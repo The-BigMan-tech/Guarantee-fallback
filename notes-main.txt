@@ -1,23 +1,29 @@
 glob pattern
+cookies are already in express js
+
 
 PART 1--proper backend
 --------
 node js
 fetch api
 express js
-Web sockets
-cookies
-jest
-Graphql
+pug 
+mongo db
+mongoose
+node js mongo db
 
 
 PART 2--expert backend
 --------
-Third party apis--twillio,stripe,auth0
-mongo db
-node js mongo db
-prisma js
 nest js
+Graphql api
+Third party apis--twillio,stripe,auth0
+Web sockets
+fastify
+jest
+playwright
+prisma js
+
 
 
 for ts in code runner:tsc & node
