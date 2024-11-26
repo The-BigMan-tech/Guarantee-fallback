@@ -1,0 +1,239 @@
+
+
+
+
+3. 1.1-1.3x size of the line height for your headings and 1.3 -1.5x times for your body text.
+
+Hero section
+
+Content should come first before layout
+
+SECTIONS
+_________
+A good web layout should be split into sections or rows that are vertically stacked on each other and each row should only convey one idea and must be visually distinct not necessarily meaning different color styles and give them enough vertical padding and this is because it makes the content more consumablea and prevents a text wall.If you are using a text wall,then you will have only one section and dump the content wall below it just make sure that you split the content into consumable formats using headings or so.
+Every row should have a heading so that the content can become easily consumable and not put pressure under the
+viewer of your site to consume that info.
+Headings should be descriptive and straight to the point
+
+To make sections viusually distinct,you should use background color,images or adequate spacing
+
+
+
+ORDER
+______
+Hero section woth one sentence explaining what they do at a high level
+logically order your content from the view of a new customer who doesnt know anything about your service
+Call to action
+
+LAYOUT 
+______
+if the content does not have headings,read the content and come up with it yourself.It is just English essay
+
+Types of consumable content.Imagery and texts
+
+Split each page of your content into sections and order them correctly.Summarize them in your home page and 
+leave a link to the full one.
+
+1-COL layout for hero section
+2-COl layout for about.One for images
+3-COL layout for content like services.You can use images or icons with text content below it
+contact below which is the CTA
+Dont fear walls of text.You will still meet it.JUst spice it a little using column layouts
+
+Trusty title,background and paragraph image
+
+Learn Title designs
+Consumable content
+If content does not fit the 2 COL layout,then refactor the content wherever you can even if it is not grammatically right at times
+Standards vs best parctice
+
+Above the folds arent the hero section.The hero section is for the home page.The above the fold is for every other page
+
+who you are is defined by your logo but what you do and how you can help is in your hero section.
+The image sells the idea
+
+h1-What do you do
+p-how i help you
+radial layout
+the navbar shoud define your goals and include CTA
+
+Horizontal,mega section,vertical,footer navbar
+CTAs are login and contact us
+
+Content
+Assets
+Code
+
+tYpe of fonts
+2-col hero section
+for other bavove the folds,a cenetered title box is enough.Hero section is fine as long as ux is presreved
+dont forget abou breadcrumbs in sub pages
+
+your folds shouldnt create false bottoms else,your users may not even ever scroll to the bottom
+
+dont sacrifice ux for wow!
+
+
+STATS
+_____
+Time spent is inversely proportional to how much they have to scroll
+users time is spent in the first few screenfuls
+
+
+
+
+Portfolio is not for fancy animations but to convey your worth.Dont add skill bars.
+About page is important
+show what you want to get hired for
+
+
+A section for other pages with buttons leading to them
+The hero section is important
+
+Faced portfolios are instantly placed above other portfolios.Two images.One for home and the other for about
+
+You must have at least 6 portfolio pieces and at least 3 really good ones
+Make you portfolio pieces write ups if possible
+
+AVoid powerpoint layouts.Terrible
+No sliders
+Your home page shouldnt lack content
+
+A home page is a journey to the CTA
+
+who you are and what you do
+your product and services should come below the hero section
+A description of yourself
+Persuasion
+CTA
+if possible fit your form directky in your footer
+CTAs can also be in the hero section
+
+How great you are and why they should consider you
+The CTA is at the nav bar for chances
+
+you can use footers as a second chance to convert users
+
+we use columns for footers
+
+footers can have small desc,doormat navs,cta links
+
+
+Balance
+alignment
+Proximity
+contrast to hoghlight importance
+
+
+since when did vs code require permission to delete files
+
+
+overflow-x:hidden
+filter:hue rotate
+animation-fill-mode:backwards and forwards
+utility classes
+gradient functions-linear,radial,conic
+
+
+
+has attribite and other pseudo classes and element attr
+
+normal,before and after for button animations
+@property for custom variables
+customize your vs code ui with css
+
+
+
+
+Css is not scalable and not programmatic with no styling logic
+Utility classes are not reusable components
+
+
+Preprocessor
+1.Scss--An entirely new language--variables,nesting mixins,functions
+
+Css in js
+styled jsx
+
+Utility classes approach unlike bootstrap
+Tailwind.provides very powerful config
+
+Component libraries in react or next js
+
+
+Js frameworks makes reusable components
+jsx
+
+Typescript
+
+npm is js pip
+entry loop and exit loops
+Rules that are more specific will override the rules of their parents:inline,id,classes,element
+
+Color theory
+Typography
+Layout
+visual hierarchy
+Balance
+Simplicity
+gui packs for my game cuz the main menu will be made with html and css for customization
+
+
+hero section
+straight to the point
+trust/Persuasion
+
+
+Your section should always answer a question
+The headings hould also answer questions
+
+
+Idea->Research->Content->Design->code
+black and white bt dont go too far with the shades
+Accent colors for borders,buttons,gradients
+
+Css variables for global scope
+min and max for dynamic heading sizing,snap scrolling
+
+creativity is a process nit a moment
+dont clutter ypur website with too many elements
+
+hero section is normally a one column layout
+the design of sections should be easily scannable
+design systems
+dont center align your paragraphs
+line-height should be inversely proportional to font size
+2 types of buttons:1 for primary and the other for secondary and they must have different colors for the two types
+emphasize the elemnts the user will look for
+
+
+each page is divided into sections and each section is a column layout
+selectible cards instead of just lists
+
+
+The interaction principle--cognitive,physical and time effort
+
+The fewer the interaction to reach their goal,the higher the ux
+the most features must be used within the thumb zone
+
+Turn empty_cart states into opportunities.No bare empty_cart states
+Visual cues
+harsh borders makes your content look imprisoned.use border colors that are slightly darker than the web not a full black one
+Your border should not draw away the users from the content in the box
+you can use shadows instead of borders but blur them.they shouldnt be harsh
+scale important parts to rep hierarchy
+serif for content and sans serif for headings
+Italics emphasizes text over bold ones which can distract the users
+users like reading larger font sizes
+
+electron js is a runtime environment for making desktop apps with html,css and js
+post css
+you can use docs or cheatsheets
+
+scroll animations
+customizing vs code with css
+noxus latest video
+
+
+to the point.
+1-2-3-4-5-6

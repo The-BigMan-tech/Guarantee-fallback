@@ -1,0 +1,50 @@
+NOTEBOOK-DAD AND PHYSICAL
+Variations of the same image
+there is an error when reloading the page because of a variable in order +page being initially undefined
+
+snippet js--a syntatic sugar for function calls using comments tagged with todo
+
+states
+props
+two way data binding
+context
+stores
+
+dribble.com for web designs
+
+WHAT I LEARNT IN DETAIL
+Apis 
+Async programming
+Typescript
+errors
+feature based folder structure
+
+
+ERRORS STUFF
+Type checking
+Linting
+
+Exception handling blocks
+
+Well Documented functions
+Proper prep of the algorithm
+Deep knowledge about the pl,framework and coding environment
+Testing
+logging
+debugging
+
+reproducing errors
+
+
+OTHER STUFFS
+commit message types:chore,fix,docs,feat
+technical and features folder structure with directory diagram
+
+Scaling
+
+the build process
+provide a coloring 
+
+
+so abstracted from reality that you can only interact with them via a proxy
+behave test for js

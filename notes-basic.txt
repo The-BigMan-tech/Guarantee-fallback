@@ -1,0 +1,147 @@
+"You can travel around the world to hear all the advice it has to offer but you will still come back to the Bible-Jehovah's word".
+
+Project fallout mod
+warriors of world
+keerdims zombie apocolypse essentials
+
+NEW NOTING
+__________
+Glob patterns
+Bit wise operators
+Fake shutdown and airplane mode app
+pngs remove backgrounds while jpgs dont
+using popping emojis that respond to code
+Toolfinder.co
+Check out obsidian and my other apps on the desktop
+Record the time you spend on a project relative to your estimations
+tabsaver with py
+learn the graph data structure and also obsidian graphs 
+matrices are used for storing transformations
+Learn about beizer curves and tweening for making smooth animation curves
+from the shadows reborn mod 
+selling licenses for pro users and having all features for free users
+After python,i'll learn C#,Go,low level ones like C++ and powershell
+blender or photshop
+A grid like that of css that can combine multiple windows into a single encapsulated app
+new term;utility functions
+lib----No build structure,pre built components,particular task,developer control
+framework----Particular app build structure,whole app solution,inversion control
+
+JUST NOTING
+___________
+1. Note down the developing experience 
+2. The term "Batteries included" framework 
+3. Devdocs io-for accessing docs 
+4. Msys2-for installing a c++ compiler 
+5. What the heck are tell tale strings 
+6. Use false tracebacks to mislead debuggers 
+7.Archive.org,Pdfdrive.com
+8. figma for gui design 
+9. Dashboard 
+10. Tails os-for total incognito 
+11. Snappify-for code editing 
+12.Property decorator In python
+13.Browser sandbox or quarantine
+14.You can containerize windows app and deploy it on the cloud as a web application that can be run on the browser
+intellisense
+Database breaches
+A central file sharer that connects a code file directly to chat gpt or any ai app.whenever you ask your ai to generate code for you,it does that directly to a custom code editor  on the web that has typing animation where the code editor scales in size animatedly as the code is typed so that the code looks neater.You can choose a custom theme as defined by a vs code extension.I will  make a reader that will understand a vs code theme extension and translate it to a theme.Use a browser sandbox to launch this for safety
+Do not save all your credentials into one gmail account
+Do not reuse or save passwords in ypur browser
+Do not use the gmail for paid services for free services becaue the free services has a higher chance of data breach
+Password manager
+File operation watcher app with python
+wireframing
+
+
+
+CODING LEARNING RESOURCES
+_________________________
+1. Geeks for geeks 
+2. Tutorialspoint 
+3. W3schools 
+4. Digital ocean for java,python and go 
+5. C++ crash course pdf and low level learning for C++ 
+6. The real python website articles
+For python
+	1. The real python,python basics 
+	2. Guru99 web 
+	3. Learn python3 the hard way 
+	4. Learn more python3 the hard way 
+	5. Python crash course 3rd edition 
+	6. Beginning programming with python 
+	7. The official python doc for references only 
+
+
+
+DIGITAL DESIGN
+______________
+Software
+	1. Logigator --> logic circuit simulator 
+	2. Autodesk fusion CAD,KiCAD,Altium,eagle --> circuit design 
+
+Learning resources
+	1. GeeksforGeeks --> Logic design
+	2. Tutorialspoint --> Logic design
+	3. Allaboutcircuits --> Logic design
+	4. Hardware bee,semi-engineering,acldigital websites -->Intro to RTL design
+	5. Javatpoint ---> RTL design in verilog
+	6. VLSI design from tutorialspoint
+	7. Build-electronic-circuits --> Circuit design
+
+
+
+PROJECT IDEAS
+______________
+1. An IDE loading screen: It will be many programming languages logos coming into the screen using fireship intro effects on the logo to form a cluster of logos and then,a load bar.
+2. A program that takes an input consisting of a string of numbers and it finds if there is any matching trig no to it in base four.The purpose of this is to easily store answers through a long generated number like a trig no. 
+3. Complex one line matching game and make an ai pathing system that can solve it Make a code wars like software by learning how to write tests 
+4. Scroll-is a good name for a cool software, framework or maybe a transpiler 
+5. In addition to my code wars project,add a 3d playbot like copilots logo but 3d at the top left corner of the screen that will visually be getting smarter the closer they are in solving the problem they want to solve which is measured by how close they are in getting a positive test result.It also turns coding into a game so you have to buy loops,functions and all that stuff
+6. Mouse click, scrolling and keyboard sounds with scrolling and icons animation app
+7. A gradient and color harmony 3d model painter
+8. Boring old text--> sweet infographics generator
+9. A program that is similar to the flux eye glare app for mac but with a modern ui look and a more visual way of relaying the information to the user 
+10. An app that will inform you when you are about to perform a file operation on a sensitive file in your system.It also keeps a log record of what folders or files you operated on.
+11. An app that adds raindrops to your desktop screen based on the weather.
+12. An app lock app with a modern ui that doesn't just prevent anybody from accessing your app without the password but also blocks the app from communicating with your computer at all without you opening the app with the password(This is to keep suspicious apps in check).
+13. An app that gamifies tasks
+14. Code that wants you to break it with code for fun. 
+15. Float-A tool that uses a search algorithm to browse on the internet to find a free alternative software to any software or one which has a better pricing with the same quality.Its basically like that honey extension for chrome but for softwares. 
+
+
+
+TIPS
+_____
+1. When hacking,do passive reconnaissance gathering info then exploit 
+2. Learn what you need when you need it 
+3. Debugging model: TDEL (Testing,Debugging,Error handling,Logging) 
+4. Hacking games is just manipulating memory
+5. A genius respects simplicity over complexity 
+6. Be healthy while coding 
+7. Project based learning,practice and creative problem solving is the best way to learn programming and not just coding
+8. Create things you find useful to you and not the next big social media platform or something except if it is my big game.
+9. Avoid tutorial hell.Dont look for tutorials to solve all your problems but break down heavy problems into smaller solvable ones. 
+10. Share your work with a community even if they will roast you because they will expose you to the learning process
+11. Learning,iterating and improving
+12. Follow tutorials but DONT use the same example
+13. Don't create projects that you will not use 
+14. You don't have to create something that is relevant to everyone. 
+15. Ability to learn and pick up new things is the valuable part of a good programming skill 
+16. Architect your tech stack i.e the tools you will use to develop your projects Have a good growth mindset while coding and not a fixed mindset. 
+17. Be very tolerant and persistent in solving errors and bugs in your program Write optimized code not necessarily the perfect code 
+18. Don't be afraid to make mistakes 
+My Good Coding process
+	1. You must know how to solve the problem on your own.
+	2. Teach a child how you solved the problem step by step,then code it
+	3. If you are stuck expressing a particular thought in code,then try different approaches till you get something.
+	4. Use tutorial books as a lookup reference
+	5. Use the pass statement with the debugger to keep track of program flow 
+	6. Code something you are not sure of or something you want to test into a separate file and then transfer it to your main code 
+	7. Refactor 
+
+
+Little skills to understand your code
+	1. The right syntax interpretation 
+	2. A working mental model 
+	3. Track program control flow 

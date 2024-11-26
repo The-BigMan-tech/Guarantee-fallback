@@ -1,0 +1,53 @@
+Variables
+nesting
+
+style rules
+
+At rules
+--------
+import--partials,@use,@forward
+reusable styles-@mixin,@include
+inheritance--placeholder,class extensions with @extend
+Parent selector--to capture the name of parent
+sass operators
+Conditional checks
+loops
+functions
+!global
+interpolation
+sass functions
+
+
+There are a lot more ways to extend tailwind especially with post css but these are the main.Check the docs
+arbitrary values
+overriding the theme
+extending the theme
+@layer with @apply
+prefix for namespace reasons
+
+
+for each
+intersection observer
+
+Centralized variables in tailwind
+
+Dictionary notation to create objects on the fly
+function constructors for reusable objects--data class
+full fledged classes
+abstract vs concrete
+
+the new keyword with the constructor,native objects or the Object constructor
+the create keyword for cloning classes
+with keyword
+
+js method notation
+Method overloading
+strict mode
+import and export
+documentation,modules
+map in js-->map in python
+higher order functions
+Ipython kernel
+a function that is passed into another function is called a callabck function
+I skipped regex and data view
+Waterfall

@@ -1,0 +1,89 @@
+Vs code styled components
+JSX html tags 
+Es7+ React/Redux/react native snippets
+Simple react snippets
+test adapter converter
+Qodo Gen:Ai coding assistant
+Pylance
+Python
+Powershell
+Monokai pro
+Material icon theme
+filesize
+C/C++
+Html play
+Turbo console log
+Jupyter Notebook Renderers
+Tailwind Css intellisense
+Jupyter
+Intellicode API usage Example
+Git Blame
+Intellicode
+Python debugger
+Live sass compiler
+Catpuccin for vscode
+Github theme
+Waka time
+Emoji
+Es lint
+Debugger for firefox
+Rainbow csv
+auto docstring-python docstring generator
+Mintlify doc writer
+Python type hint
+Test Exlorer ui
+Python Test Explorer for Visual Studio code
+AREPL for python
+Sourcery
+Python indent
+Azure repos 
+Remote repositories 
+Github repositories
+Git history
+Git graph
+Prettier-code formatter
+Live share
+HTML and CSS supoort
+Live server
+Better Comments
+Nebula pandas
+Moon light
+Theme by Language
+exe runner
+Ayu
+Jupyter slide show
+Jupyter Cell tags 
+Jupyter Keymap
+Indent Rainbow
+Auto Close tag
+Auto rename tag
+Vscode Archive
+vscode pdf
+Tabout
+python snippets
+project manager
+Powermode
+Polacode
+Output colorizer
+Notes
+Jsflowchart
+Es6 code snippets
+Image viewer
+Flow craft
+py2flowchart
+Draw io integration
+Draw io mermaid integration 
+Error lens
+Duplicate action 
+Code tour 
+Code spell checker 
+Code runner
+Bookmarks
+Custom Css and Js loader
+Svelte for Vs Code
+Svelte 3 snippets
+Svelte Intellisense
+Tailwind fold
+
+
+Steam is still on my computer after i deleted it

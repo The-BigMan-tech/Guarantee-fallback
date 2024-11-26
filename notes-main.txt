@@ -1,0 +1,362 @@
+glob pattern
+
+PART 1--proper backend
+--------
+node js
+fetch api
+express js
+Web sockets
+cookies
+jest
+Graphql
+
+
+PART 2--expert backend
+--------
+Third party apis--twillio,stripe,auth0
+mongo db
+node js mongo db
+prisma js
+nest js
+
+
+for ts in code runner:tsc & node
+: typeof import('http')
+etc,api protocols,authentication,api security.HTTP request are done through apis like fetch api for js and request for python
+Svelte is much more declarative than react
+in svelte,we use stores for shared state,check on jotai for react
+state,props,two way data binding,context,stores,modules
+
+null coalescing operator prevents errors that come from null objects in advance
+Typescript scales Javascript because you can craft a type system
+Typescript just makes js type safe and thherefore preventing errors before running the code
+
+sync code,microtasks,macrotask,callbacks,promises--executor and consumers,os operations,async functions,await keyword
+online delivery analogy for api
+Remake my file sender using web sockets and async code
+awaited ops are microtasks
+The promise itself has its own function
+abstraction
+A promise maintains state.it takes an executor function that modifies a state
+
+Async functions always return a promise and are non blocking and allow the use of the wait keyword
+synchronous code,micro tasks,macro tasks
+
+are functions with the async keyword a micro task
+
+HTTP requests,Rest,CRUD,100,200,300,an inempotent operation is like a pure function but for crud ops,stateless ops.
+Pagination,GraphQL
+Web sockets are the web implementation of the sockets i used in python.It means that once i learn web sockets,i can create a full blown file sender app with gui and everything anot to mention promises.
+sockets and apis are easier implementations of establishing communication between different softwares
+GraphQL is like SQL but for APIS
+
+Hard coded vs dynamic
+Algol--C--the rest liek python
+Install ts compiler through npm and use this cmd in pkg.json:
+{
+    "scripts": {
+        "watch":"tsc --watch",
+        "ts": "node script.js"
+    }
+}
+use the at method to access negative indexes in arrays in js
+install concurrently to run multiple cmd at the same time
+Dvh
+Svelte has two way data binding using the bind dirtective--GG
+
+Svelte's routing is the best of both worlds:seamless SPA experience but ssr
+Quick snippets--like tailwind but utility snippets that is just as customizable
+node js is like nest js for node
+express js
+
+page server is the same as page client buit for operations that shouldnt be exposed to the client. ie only on the server
+The page server loads first and returns whatever data it has to the client.
+OMO!!Use all my codes as ref
+
+position relative doesnt remove the space the element takes in it container
+context,script modules,page and layout data
+use this: data-sveltekit-noscroll to maintain scroll position when routing
+
++page.svelte--for data in a page and +layout.svelte for common stuffs between webpages
+Array.from method for the each block in svelte
+
+Can write a storybook--use .js extension
+no error highlighting--dont install eslint
+made fonts possible---used preview-head.html and paste the font links and select the font name class
+props--i forgot to interpolate props in back ticks
+staticDirs: ['../static'] and a restart.to make images work
+import '../src/app.css'; for tailwind classes to work
+Default.parameters = {
+  layout: 'centered', // Center this specific story
+}; for centering your stories
+
+
+for using tailwind styles in storybook,i have to import the global css styles into it and for font in svelte,paste the link in page.html and extend tailwinds them to include the fonts
+custom css and js extension for vs code
+dribble.com for web designs
+
+We use maps for loop rendering in react
+Anything that has the length property in js is treated as an array
+The same way images in react can only be placed in the public folder,for svelte it is in the static folder
+gitignore file.
+knowing how to get to somewhere from somewhere
+I have to learn cyber security
+study pattern--using notes---Ill move to obsidian notes very soon---OBSIDIAN,JUPYTER NOTEBOOK
+Reading for Jamb
+
+
+So svelte files use SFCs
+script type=module
+jsx is syntatic sugar for js function calls
+
+retrace
+
+I can use post css to get styled components to use the @apply rule creating tailwind vue styled components
+I can create a styled component that inherits from multiple onres through string interpolation
+Separation of concerns.All my styled components go in one dir,text content in another dir while the markup and script in one component place.Ill use json for the text content
+ill use front end js lib for my games ui
+A bot that can beat reCaptcha
+
+<!--
+For mobie,it is all about prioritizing content over ui
+min width and max width
+Imperative vs Declarative
+
+Tailsasscss--For responsive designs
+I use react for form validation over normal js
+Tailwind uses atomic classes
+Semantic html
+Ill export my styled components all into a buffer so that i can reuse components i have made before.It will be my own bootstrap.
+Tailwind dark theme
+git revert
+
+flex grow,shrink and wrap to be used with responsive design
+extend and override themes for responsive design
+query strings formy multi step form
+hamburger menu
+free pik
+I love 4k astronaut wallpapers
+-->
+
+
+next js,vite for react
+sveltekit for svelte
+Story book js
+typescript
+JsDoc
+node js
+Express js
+Cookies and APIS--browser apis,rest,GraphQL,twillio,stripe,auth0, 
+web sockets
+Jest
+IM MAKING A FILE SHARE AND WHATSAPP
+nest js for typescript
+mongo db and node js mongo db
+prisma js--node js for better dbs
+The react stack
+Angular
+Astro with front end frameworks for better seo
+solid js
+Mitosis js
+Remotion js
+GSAP
+Electron js
+Django,flask,fast with python.return to python if satisfied
+Tauri
+ionic
+
+
+tailwind container tag
+meta frameworks
+session,cookies storage
+A very interactive jupyter notebook doc of web dev
+
+
+
+Back end frameworks
+-------------------
+node js--js server
+express--handles http requests and responses
+
+
+Front end frameworks
+---------------
+react--lib specifically for reusable ui components,component based architecture,SPA-CSR,one data binding
+next-->SSR,SSG
+angular-->Full web framework with typescript,two data binding
+GSAP-->Javascript animation framework
+vue-->
+nuxt js-->
+svelte 
+vite js
+nest js
+Solid js
+Story book js
+Chart Js-->Like matplotlib in python
+Cypress js
+astro js
+Deno
+electron js-->framework for building cross platform desktop apps using web tech
+Tauri-->A lighter,safer and interoperable electron
+ionic js--for mobile apps
+selenium
+daily.dev
+
+ROADMAP
+_______
+HTML->Markup/Structuring the content---Separates the content from presentation
+Git and Github--->Version control and code sharing
+CSS->Styling the content
+Web Design->principles/standards,best practices,Ui/Ux
+Tailwind-->Utility first css framework
+SASS-->Css preprocessor
+Javascript->Interactive ui
+Web sockets--for real time notifications
+Back end technologies
+Front end technologies || Styled components->Css in js
+post css--transforming css using js plugins
+purge css--for removing unused styles from style sheets
+typescript
+yaml,XML,JSON->Data storage and serialization
+AJAX->
+SVG->
+SEO->
+my sql->
+mongo db--->
+redis db--->
+prisma js
+Python web frameworks-->
+ruby on rails(if possible)-->
+Java with spring boot
+Php with Laravel
+
+
+
+
+Others
+-------
+APIS.Like stripe,oauth0,twillio etc
+api protocols,authentication,api security
+The react stack--Redux,Formik,Styled components
+cloud service
+web pack
+NGINX
+testing
+containerization
+virtualization
+ci/Cd 
+serverless computing
+
+
+Rendering patterns 
+
+
+spa--client side rendering
+interactive ui--two way flow of information
+CDN,web sever
+view layer,back end layer
+
+
+STATIC RENDERED WEB APPS 
+--------------------------
+Pre generated
+No server requests
+Can not change dynamically.Changes involves a rebuild process
+storage bucket--point a domain name
+use huggo,jekyll
+
+
+MULTI-PAGE WEB APPS
+--------------------
+Server side requests
+Content can change dynamically
+Use django,ruby on rails
+
+
+SINGLE PAGE APPS
+----------------
+One html shell page.
+js updates the page through http requests
+big js bundle and higher initial load times
+poor seo
+
+SSR
+----
+Initial request is on the server and the page is made dynamically and js takes over to render it to the client.
+MPA + SPA =SSR
+
+
+SSG
+----
+pre render all html pages and hydrate to js after initial page loads.Redeploy whenever your site changes
+Static + SPA
+
+Hydration,Partial hydration,Island
+
+ASSETS
+_________
+Adobe color
+lottiefiles
+iconscout
+Google fonts
+Power toys color picker
+Font awesome
+Box icon
+freepik
+bing image creator
+Canva
+Hakei
+dribble
+Shape divider
+
+
+
+LEARNING RESOURCES
+__________________
+Websites
+--------
+Tutorialspoint
+GeeksforGeeks
+W3schools
+hubspot.com
+Css-tricks
+frontend mentor
+learn bricks builder.com
+joshwcomeau.com
+dev.to
+
+Yt
+---
+The website architect
+Tim Gabe
+Coding2Go
+Slaying the Dragon
+Optimistic web 
+
+OTHER 
+______
+Emmet.io
+
+
+BOOKMARKED ARTICLES 
+___________________
+HTML--GfG
+HTML tag ref--Tp
+HTML attr ref--Tp
+HTML event attr ref--GfG
+CSS--GfG
+CSS ref--Tp
+Web design--GfG
+JavaScript--GfG
+SEO--Tp
+XML--Tp
+Ajax--Tp
+LESS--Tp
+SAAS--GfG
+CSS-W3schools
+
+BOOKMARKED TABS 
+_________________
+Obsidian notes tutorial
+convert csv to HTML
+How to use the inspector

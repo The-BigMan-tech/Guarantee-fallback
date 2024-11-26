@@ -1,0 +1,32 @@
+@mixin point-frame($point){
+    @for $i from 1 to length($point) {
+        @if ($i % 2) != 0 {
+            #{nth($point,$i)}:nth($point,($i + 1))
+        }
+    }
+}
+@mixin middle-frame($through:initial) {
+    #{nth($through,1)} {
+        @for $i from 2 to length($through) {
+            @if ($i % 2) == 0 {
+                #{nth($through,$i)}:nth($through,($i + 1))
+            }
+        }
+    }
+}
+@mixin an-animation($animation:initial,$from:initial,$to:initial,$through:initial){
+    animation:$animation;
+    @keyframes #{nth($animation,1)}{
+        from {
+            @include point-frame($from)
+        }
+        to {
+            @include point-frame($to)
+        }  
+        @if $through != initial {
+            @each $item in $through {
+                @include middle-frame($item)
+            }  
+        }
+    }
+}

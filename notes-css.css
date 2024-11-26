@@ -1,0 +1,215 @@
+/* * SIMPLE SELECTORS*/
+/*Element*/
+h1 {
+  color: inherit;
+}
+/*Class*/
+.custom_class {
+  color: inherit;
+}
+/*ID*/
+#custom_id {
+  color: inherit;
+}
+
+/* *ATTRIBUTE SELECTORS */
+/*Syntax-1*/
+[href] {
+  color: inherit;
+}
+/*Syntax-2*/
+p[class] {
+  background-color: inherit;
+}
+/*Syntax-3*/
+p[class="sound"] {
+  background-color: inherit;
+}
+/*A lot of specification*/
+p[class~="sound"] {
+  color: inherit;
+}
+p[class|="sound"] {
+  color: inherit;
+}
+p[class^="sound"] {
+  color: inherit;
+}
+p[class$="sound"] {
+  color: inherit;
+}
+p[class*="sound"] {
+  color: inherit;
+}
+
+/* *UNIVERSAL SELECTOR */
+* {
+  color: inherit;
+}
+/* * PSEUDO ClASS SELECTORS */
+p:hover {
+  color: inherit;
+}
+/* *PSEUDO ELEMENT SELECTORS */
+p:hover::first-letter {
+  color: inherit;
+}
+/* *GROUPING SELECTORS */
+p,
+h1 {
+  color: inherit;
+}
+/* * COMBINATORS */
+/*General sibling*/
+h1 ~ b {
+  background-color: inherit;
+}
+/*Adjacent sibling*/
+p + em {
+  background-color: inherit;
+}
+/*Child selector*/
+p > em {
+  background-color: inherit;
+}
+/*Descendant selector*/
+body em {
+  background-color: inherit;
+}
+/*You can use no space for more specification */
+
+/* *STYLING*/
+/*Text*/
+.text_styles {
+  color: orange;
+  text-transform: uppercase;
+  text-align: justify;
+  text-decoration-line: underline;
+  text-decoration-color: brown;
+  letter-spacing: 1rem;
+  word-spacing: 2rem;
+  line-height: 2rem;
+}
+/* Fonts */
+.font_styles {
+  font-family: Consolas, Arial Black;
+  font-style: italic;
+  font-weight: bold;
+  font-variant: small-caps;
+  font-size: 800rem;
+  font-stretch: narrower;
+}
+/* Background */
+.background_styles {
+  background-color: inherit;
+  background-image: linear-gradient(to right, red, yellow);
+  background-image: url();
+  background-attachment: scroll;
+  background-position: center center;
+}
+/* Box model */
+.box_model {
+  width: inherit;
+  height: inherit;
+  padding: inherit;
+  border: inherit;
+  margin: inherit;
+}
+/* Border */
+.border_styles {
+  border-style: dashed;
+  border-width: 5px;
+  border-color: orange;
+  border-radius: 10px;
+}
+.list_styles {
+  list-style: circle;
+  list-style-image: url();
+}
+/** SOME NOTES*/
+/*Units: px,em,rem,percentage,fraction,vh */
+/*There is also overflow.No need to type that */
+/*There is also a cursor style */
+/*You can use opacity to set an image's transparency
+/*There is also position.You dont need to type that
+/*Inline elements only take as much space as their content while block takes the full width
+/*Learn displays.
+/*You can inherit from multiple classes using space and the last applied one overrides the prevvious ones
+/*Dont forget flex container takes align content and flex item takes align self and order
+/*You can collapse borders and margins
+/*Use opacity for a fade in and fade out animation
+/*Inherit and initial
+/*POSITION:static,fixed,relative,absolute,sticky
+/*Bento grids,z index
+/* *GRID*/
+/*(1).If you choose to use grid template rows and columns,you dont have to use grid template areas and you dont have to assign the grid items directly to the container using grid area.Any thing under the grid container is automatically allocated to a grid slot and also,the auto value makes the sizing dynamic
+(2).If you are using template areas,you dont have to specify grid template rows and columns because sizing is dynamic according to content size and for the grid items,use grid area to assign them.
+
+You can use grid columns and row to span only for method 1 and grid-gap to increase the gap.Learn how to use auto flow to specify how the items in the grid flows*/
+
+/* ? FIRST METHOD */
+/* Grid Container*/
+.grid_container_1 {
+  display: grid;
+  grid-template-rows: repeat(4, fr);
+  grid-template-columns: repeat(4, 1fr);
+}
+.grid_item_1 {
+  background-color: grey;
+}
+
+/* ? SECOND METHOD */
+.grid_container_2 {
+  display: grid;
+  grid-template-areas:
+    "header header header"
+    "sidebar content content"
+    "footer footer footer";
+}
+.header {
+  grid-area: header;
+}
+.content {
+  grid-area: content;
+}
+.sidebar {
+  grid-area: sidebar;
+}
+.footer {
+  grid-area: footer;
+}
+
+/* * FLEXBOX */
+.flex-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  top: 60px;
+}
+
+.flex-item {
+  flex: 1 1;
+}
+
+/** COUNTERS */
+body {
+  counter-reset: count;
+}
+div > div::before {
+  counter-increment: count;
+  content: "Number" counter(count) ":";
+}
+/** COLUMNS */
+.columns {
+  column-count: 8;
+  column-gap: 8;
+}
+/** TRANSFORMATIONS */
+.some_tag:hover {
+  transform: translate();
+  transform: rotate();
+  transform: scale();
+  transform: skew();
+}
