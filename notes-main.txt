@@ -1,16 +1,22 @@
 glob pattern
 cookies are already in express js
+In my online shop,if you want to add an item visually and not through the json file,i can connect my frontend with my backend using a post request.The server will then parse it into the json file
+
 
 Postman
+Insomnia
+
 PART 1--proper backend
 --------
 node js
 fetch api
 express js
 pug 
+Postman
 mongo db
 mongoose
 node js mongo db
+prisma js
 
 
 PART 2--expert backend
@@ -19,8 +25,8 @@ nest js
 Graphql api
 Third party apis--twillio,stripe,auth0
 Web sockets
-prisma js
 fastify
+Chart js
 
 TESTING TECHNOLOGIES 
 --------------------
@@ -29,6 +35,30 @@ jest
 playwright
 cucumber js--bdd test
 selenium--automated tests
+
+ADDED TO MY STACK
+------------------
+next js,vite for react
+sveltekit for svelte
+Story book js
+typescript
+JsDoc
+Backend
+IM MAKING A FILE SHARE AND WHATSAPP
+
+WHERE I AM IN FRONTEND
+-----------------------
+The react stack
+Angular
+Astro with front end frameworks for better seo
+solid js
+Mitosis js
+Remotion js
+GSAP
+Electron js
+Tauri
+ionic
+Django,flask,fast with python.return to python if satisfied
 
 
 
@@ -149,33 +179,6 @@ hamburger menu
 free pik
 I love 4k astronaut wallpapers
 -->
-
-
-next js,vite for react
-sveltekit for svelte
-Story book js
-typescript
-JsDoc
-node js
-Express js
-Cookies and APIS--browser apis,rest,GraphQL,twillio,stripe,auth0, 
-web sockets
-Jest
-IM MAKING A FILE SHARE AND WHATSAPP
-nest js for typescript
-mongo db and node js mongo db
-prisma js--node js for better dbs
-The react stack
-Angular
-Astro with front end frameworks for better seo
-solid js
-Mitosis js
-Remotion js
-GSAP
-Electron js
-Tauri
-ionic
-Django,flask,fast with python.return to python if satisfied
 
 
 
