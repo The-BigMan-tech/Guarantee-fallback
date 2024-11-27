@@ -7,8 +7,8 @@ Postman
 Insomnia
 API dog
 
-PART 1--proper backend
---------
+PART 1--a solid backend
+-----------------------
 node js
 fetch api
 Todo:express js
@@ -18,26 +18,28 @@ mongo db
 mongoose
 node js mongo db
 prisma js
+!Must start at most Sat aft:Nest js
 
 
 PART 2--expert backend
 --------
-nest js
-Graphql api
-Third party apis--twillio,stripe,auth0
+!Must start at most Mon:Graphql api
+?Maybe Tues-Wed:Third party apis--twillio,stripe,auth0
 fastify
 Chart js
-Web sockets
+!Must start on Sat:Web sockets
 socket io
 
 
 TESTING TECHNOLOGIES 
 --------------------
-Postman--api test
-jest
-playwright
+*Already learnt:Postman--api test
+!At most the following Monday:jest
 cucumber js--bdd test
+playwright
 selenium--automated tests
+
+
 
 ADDED TO MY STACK
 ------------------
