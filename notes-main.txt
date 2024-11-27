@@ -5,12 +5,13 @@ In my online shop,if you want to add an item visually and not through the json f
 
 Postman
 Insomnia
+API dog
 
 PART 1--proper backend
 --------
 node js
 fetch api
-express js
+Todo:express js
 pug 
 Postman
 mongo db
@@ -24,9 +25,11 @@ PART 2--expert backend
 nest js
 Graphql api
 Third party apis--twillio,stripe,auth0
-Web sockets
 fastify
 Chart js
+Web sockets
+socket io
+
 
 TESTING TECHNOLOGIES 
 --------------------
