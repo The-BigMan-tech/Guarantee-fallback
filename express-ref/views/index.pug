@@ -1,0 +1,81 @@
+doctype html
+html
+   head
+      //Passing data to a tag
+      title=text
+   body
+      //using classes with .,id with # ,attr in () and Interpolation with #{}
+      p.greetings#people(style={'color':'red'}) Hello World! and #{text}
+
+
+      //Condition checks
+      if (typeof text == 'number')
+         h1 Text is given but it is a number
+      else if (text)
+         h1 Text is given as a string
+      //equivalent to a negated if statement
+      unless (typeof text == 'boolean')
+         h1 At least,it aint a bool
+      else 
+         h1 Text is not given
+
+
+      //switch case
+      -var dogs = 0
+      case dogs 
+         //You can use block or indentation syntax.Buffered and unbuffered comment
+         //-will not be in the markup
+         when 0: p No dogs men 
+         when 1
+            p You have a dog men
+         default 
+            p Go get some dogs
+      
+
+      //Any code that uses - is unbuffered because it doesnt get included in the output while the = is buffered because it gets included in the html file.Buffered code gets escaped to prevent xss
+
+
+      //Pipeline operator for whitespace control
+      p
+         |First paragraph
+         |second paragraph
+      
+
+      //Interpolation is deprecated.Js expressions also work too
+      -let url = 'pug.html'
+      a(href='/' + url)
+
+      //Using js expressions in attr defs.Since they are expressions,they dont enter in quote.Also multiline attr def is allowed
+      p(
+         class=true?'red':'green'
+         style={'font-weight':'bold'}
+      )
+
+      //I can use arrays to contain the classes
+      -let glasses = ['text-red-500','flex','flex-col']
+      p(class=glasses)
+
+      //omitting the tag name defaults it to a div
+      .container
+
+      //importing another pug file
+      include ./includes/nice.pug
+
+      //iteration.Can also work for objects
+      -let arr = [1,2,3,4,5]
+      each value,index in arr 
+         p=index + ':' + value
+
+      //mixins--you can put all sorts of logic in here
+      mixin items(text='default text')
+         ul 
+            li=text
+            li=text
+      +items('a')
+      +items('b')
+
+      //You can use the : for nested tags
+      div: h1: p hello
+
+      //I havent learnt whitespace control
+      img(src="./springroll.png")

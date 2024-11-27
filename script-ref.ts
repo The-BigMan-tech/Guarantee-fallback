@@ -1,3 +1,5 @@
+//!For the fastest ts execution time experience,use tsc watch for autocompile and nodemon for auto execution of the compiled js cript
+
 //*Basic Type Annotations
 let price:number = 10
 let person:string = 'person'

@@ -1,0 +1,10 @@
+ws server || http server
+events actions
+
+normal event,web socket event listeners---real time communication.It fires as soon as an action is done
+Postman can test for web socket servers too
+
+
+web socket--low level,socket io--high level 
+
+big queations,your example,my example,spaced repetition

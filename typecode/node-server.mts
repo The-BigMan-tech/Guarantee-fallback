@@ -15,7 +15,9 @@
 import chalk from 'chalk';//*For the default export
 import * as http from 'http';//*For named exports
 import * as assert from 'assert'
-import * as fs from 'fs'
+import * as fileSystem from 'fs'
+import * as path from 'path'
+
 
 let port:number = 4000
 let hostname:string = 'localhost'
@@ -36,7 +38,7 @@ console.log(chalk.red('hello'));
 
 //?Abstract concept vector illustration
 //!process and child process,buffer,crypto,dns,query strings,tls ssl,zlib
-//TODO reading and writing to files in bin.Path module,stream,string decoder,timers
+//TODO Path module,stream,string decoder,timers,handling json data
 //*A buffer is like an array of intergers but for bytes.use for my file transfer
 assert.ok(true)
 
@@ -44,18 +46,11 @@ assert.ok(true)
  * 
  * @param {string} message  -The message to log
  */
-function debug(message:string):void{
-    console.debug("\n",chalk.green.underline.bold("Debug:"),message);
-}
-function info(message:string):void{
-    console.info('\n',chalk.yellow.underline.bold("Info:"),message);
-}
-function warn(message:string):void{
-    console.warn('\n',chalk.blue.underline.bold("Warning!:"),message);
-}
-function error(message:string | Error):void{
-    console.error('\n',chalk.red.underline.bold("ERROR!!!:"),message,"\n");
-}
+type log = (message:string)=>void
+const debug:log = (message:string)=> console.debug(chalk.green.underline.bold("Debug:"),message);
+const info:log = (message:string)=>console.info(chalk.yellow.underline.bold("Info:"),message);
+const warn:log = (message:string)=>console.warn(chalk.blue.underline.bold("Warning!:"),message);
+const error:(message:string | Error)=>void = (message:string | Error)=>console.error(chalk.red.underline.bold("ERROR!!!:"),message,"\n");
 
 debug('hello')
 info('INFO');
@@ -68,13 +63,18 @@ error('an error')
 //*the event loop--timers,io callbacks,set immediate
 //*This is for the file ops by the way:but the await here seems to control the order of the file operations so thats what it is used for.It can be used to control the order of async operations and also queue these operations if they dont resolve immediately till after executing the async code but since these particular ops are handled by the os and not node js,they can still run while the main node js thread does other things outside the function
 
-fs.readFile('./data.txt','utf-8',(err,data)=>{//*The callback is for accessing file data and error if any
-    console.log("FILE DATA:",data);
-})  
-fs.writeFile('./data.txt','override',(err)=>console.log((err)?err:'success'))
-fs.appendFile('./data.txt','override',(err)=>console.log((err)?err:'success'))
-
-fs.unlink('./data.txt',(err)=>console.log((err)?error(err):'success'))
-fs.mkdir('./data',(err)=>console.log((err)?err:'success'))
+let fs = fileSystem.promises//*I can also use async await
+fs.readFile('./data.txt','utf-8')
+.then((data)=>{
+    console.log("SUPER DATA",data);
+    return fs.writeFile('./data.txt','not nice')
+})
+.then(()=>{
+    return fs.appendFile('./data.txt','very good')
+})
+.catch((err)=>console.log(`Caught error: ${err}`));
 
 //*the promise consumers dont get scheduled till the promise resolves
+
+let sample_path = 'C:/Users/USER/Desktop/Webnote/web-socket/websocket.txt'
+console.log(path.basename(sample_path))

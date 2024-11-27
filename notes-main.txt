@@ -53,7 +53,8 @@ IM MAKING A FILE SHARE AND WHATSAPP
 
 WHERE I AM IN FRONTEND
 -----------------------
-The react stack
+scroll animation with the intersection obsever api
+The react stack--formik,redux,react spring,styled components,react scroll parallax
 Angular
 Astro with front end frameworks for better seo
 solid js
