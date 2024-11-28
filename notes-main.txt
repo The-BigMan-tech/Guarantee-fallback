@@ -1,8 +1,31 @@
+Mongo db environments
+----------------------
+Mongo db Atlas
+Mongo db entreprise edition
+Mongo db community edition
+
+
+UI--atlas ui,compass ui
+Shell---mongosh,Mongo db vs code playground
+script--Mongo db shell contained in a js file
+Mongo db drivers---mongodb npm package,mongoose
+
+
+invincible 
+murder drones
+
+
+typo error
+Hard drive,laptop
+jsdom
+markdown for docs like readme files
+.env files are for declaring environment variables 
 glob pattern
 cookies are already in express js
 In my online shop,if you want to add an item visually and not through the json file,i can connect my frontend with my backend using a post request.The server will then parse it into the json file
 
-
+API CLIENT TOOLS 
+-----------------
 Postman
 Insomnia
 API dog
