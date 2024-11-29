@@ -13,6 +13,7 @@ import express from 'express';
 import { router } from './child.js';
 //@ts-ignore
 import cookieParser from 'cookie-parser';
+//@ts-ignore
 import session from 'express-session';
 const app = express();
 app.set('view engine', 'pug');
@@ -82,11 +83,14 @@ app.use(session({
     }
 }));
 app.get('/session', (request, response) => {
+    //@ts-ignore
     request.session.username = 'hi'; //*the value of the data is set by the user through the fetch api
     response.send('session created with username data');
 });
 app.get('/get-session', (request, response) => {
+    //@ts-ignore
     response.send(`Session data: ${request.session.username}`);
 });
 //*Try out path parameter here.Dynamic routes
+//*scaffolding the app
 app.listen(4000);

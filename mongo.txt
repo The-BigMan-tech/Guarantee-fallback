@@ -1,0 +1,64 @@
+I have to use a syntax that reflexts function calls in js because this is a script and not the mongosh shell
+A Mongo datatbase is a collection of documents
+a document is a Bson object which is json but more features and a collection is an array of those documents
+If you dont specify the id,mongo db will return a unique id
+create collection is not comulsory as mongo will create the collection if it doesnt exist before performing ops
+the find method is to find all,findone is to find the first one
+Database instructions are called queries
+
+comparison operators--key dependent
+logic---key independent
+
+
+Structure of a mongo db operation
+connecting to a db
+declarative use function to state the db we are working on
+A function that represents the operation which is called a query.It can be One or many
+
+document objects and collections--as it is or as criteria objects
+operator objects--criteria operators,update operators
+
+criteria objects can be emoty to query all documents
+
+void queries only return an object representing the state of the operation and the document itself,
+
+
+void queries
+filter and return
+filter and void
+
+limit limits it and skip skips the first x number of documents
+
+number argument functions
+string argumaent functions
+
+an aggregation is a map for documents and it passes the documents through stages called pipelines withs $stage operators
+
+projection object
+sort object
+
+$field means to access the field
+
+$operators are used as keys
+
+
+the $ is for creating a field reference or to invoke operators
+because a db is a group of colletions,you can only access a collection through the dot notation
+
+so we can use duplicate objects for historical tracking,analysis and other record shit
+relationships are just nested documents
+indexed data prevents mongo db from scanning the whole document for data retrieval
+an index will not apply if the field is an array or a document itself
+you can log results/cursor in a mongo db script
+
+Atomics are only guaranteed at the level of a single document and thats why we use the embedded document model over the referenced model
+all single document operations are atomic 
+
+
+Single document
+multi document--transactions
+
+
+each single operation is atomic on its own by default and it gets commited if it succeeds regardless of wheteher subsequent one fails.Only when multiple of these operations attempts to modify the same document concurrently that the locking mechanism is applied
+
+rollback mechanism---unlike throwing errors,it maintains consistency by rolling back the operations to retrieve the previous state but in error throwing,non of the operations are done at all

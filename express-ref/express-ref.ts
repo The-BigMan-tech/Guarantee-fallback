@@ -20,6 +20,7 @@ import express,{Express,Request,Response,NextFunction} from 'express'
 import {router} from './child.js'
 //@ts-ignore
 import cookieParser from 'cookie-parser';
+//@ts-ignore
 import session from 'express-session'
 import { Session } from 'inspector/promises';
 
@@ -108,14 +109,16 @@ app.use(session({
 }))
 
 app.get('/session',(request:Request,response:Response)=>{
+    //@ts-ignore
     request.session.username = 'hi'//*the value of the data is set by the user through the fetch api
     response.send('session created with username data')
 })
 app.get('/get-session',(request:Request,response:Response)=>{
+    //@ts-ignore
     response.send(`Session data: ${request.session.username}`)
 })
 //*Try out path parameter here.Dynamic routes
-
+//*scaffolding the app
 app.listen(4000)
 
 

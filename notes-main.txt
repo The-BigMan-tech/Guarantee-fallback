@@ -1,3 +1,8 @@
+!Ill learn Mysql and prisma later
+cursor code editor
+coolors.co web
+
+
 Mongo db environments
 ----------------------
 Mongo db Atlas
@@ -34,20 +39,21 @@ PART 1--a solid backend
 -----------------------
 node js
 fetch api
-Todo:express js
+express js
 pug 
 Postman
 mongo db
+mongo db driver
 mongoose
-node js mongo db
-prisma js
-!Must start at most Sat aft:Nest js
+
 
 
 PART 2--expert backend
---------
-!Must start at most Mon:Graphql api
-?Maybe Tues-Wed:Third party apis--twillio,stripe,auth0
+----------------------
+!Must start at most Mon aft:Nest js
+Graphql api
+Third party apis--twillio,stripe,auth0
+Cucumber js
 fastify
 Chart js
 !Must start on Sat:Web sockets
@@ -56,9 +62,7 @@ socket io
 
 TESTING TECHNOLOGIES 
 --------------------
-*Already learnt:Postman--api test
 !At most the following Monday:jest
-cucumber js--bdd test
 playwright
 selenium--automated tests
 
