@@ -1,4 +1,6 @@
 Dynamic import only imports code when the user needs it
+coolors
+
 Environments
 -------------
 Browser
