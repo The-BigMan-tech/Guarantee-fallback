@@ -10,10 +10,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 //*I changed the output directpry of all my js files to the compiled-js folder to free my code from all the compiled js clutter and i also changed the icon of the folder.
 import express from 'express';
 import { getFood } from './database/food-db.js';
+import { closeConnection } from './database/connection.js';
 const app = express();
 app.use(express.json());
 app.get('/pixel', (request, response) => __awaiter(void 0, void 0, void 0, function* () {
     const data = yield getFood('CraftyNinja');
     response.json(data);
+}));
+process.on('SIGINT', () => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("Shutting down the server");
+    yield closeConnection();
+    process.exit(0);
 }));
 app.listen(4000, () => console.log('Connection successful.Listening on port 4000'));

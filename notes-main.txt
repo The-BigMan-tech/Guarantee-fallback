@@ -1,4 +1,16 @@
+Dynamic import only imports code when the user needs it
+Environments
+-------------
+Browser
+Interpreted environments
+System environment
+Db engine
+game engine
+
+*After this web dev,ill go back tp python---C# and Java---low level ones
+
 !Ill learn Mysql and prisma later
+!There is PyPy,Cython and now Mojo
 cursor code editor
 coolors.co web
 
@@ -86,7 +98,6 @@ Angular
 Astro with front end frameworks for better seo
 solid js
 Mitosis js
-Remotion js
 GSAP
 Electron js
 Tauri

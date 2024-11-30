@@ -12,4 +12,9 @@ app.get('/pixel',async (request:Request,response:Response) => {
         response.json(data)
     }
 );
+process.on('SIGINT',async ()=>{
+    console.log("Shutting down the server");
+    await closeConnection()
+    process.exit(0)
+})
 app.listen(4000,()=>console.log('Connection successful.Listening on port 4000'))
