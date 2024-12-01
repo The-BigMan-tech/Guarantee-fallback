@@ -1,3 +1,12 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import express from 'express';
 import { addTaskToDB, getTaskFromDB, deleteTaskFromDB } from './database/taskStore.js';
 //@ts-ignore
@@ -8,22 +17,16 @@ app.use(express.json());
 app.use(cors());
 app.post('/addTask', (request, response) => {
     let taskData = request.body;
-    console.log(taskData);
     addTaskToDB(taskData);
     response.send(`Seen data,${taskData}`);
 });
-app.get('/getTask', (request, response) => {
-    getTaskFromDB();
-    tasks = tasks.filter((task) => task.name != '');
+app.get('/getTask', (request, response) => __awaiter(void 0, void 0, void 0, function* () {
+    tasks = yield getTaskFromDB();
     response.json(tasks);
-});
-app.delete('/deleteTask/:id', (request, response) => {
-    console.log("received delete operation");
-    const remove = JSON.parse(decodeURIComponent(request.params.id));
-    console.log(`REMOVING THE TASK:${JSON.stringify(remove)}`);
-    tasks.splice(tasks.lastIndexOf(remove.name), 1);
-    deleteTaskFromDB(tasks);
-    console.log("Current task data:", tasks);
-    response.status(204).send();
+}));
+app.delete('/deleteTask/:task', (request, response) => {
+    const task_to_remove = JSON.parse(decodeURIComponent(request.params.task));
+    deleteTaskFromDB(task_to_remove);
+    response.status(204).send(`Deleted the task: ${task_to_remove}`);
 });
 app.listen(4000, () => console.log("Server is running on the port 4000"));

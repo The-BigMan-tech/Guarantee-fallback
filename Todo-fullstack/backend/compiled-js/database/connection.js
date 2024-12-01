@@ -13,15 +13,28 @@ const client = new MongoClient("mongodb://localhost:27017/");
 let database;
 export function connectToDB() {
     return __awaiter(this, void 0, void 0, function* () {
-        if (!database) {
-            try {
+        try {
+            if (!database)
                 database = client.db('MY_DATABASE');
-            }
-            catch (err) {
-                console.log("Database connection error: ", err);
-            }
+            return database;
         }
-        return database;
+        catch (error) {
+            console.log(`Database connection error: ${error}`);
+        }
+    });
+}
+export function returnCollection(name) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const db = yield connectToDB();
+        const collections = yield db.listCollections({ name: name }).toArray();
+        if (!collections.length)
+            return yield db.createCollection(name);
+        return yield db.collection(name);
+    });
+}
+export function returnLastDocument(collection, query) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return collection.find(query).sort({ _id: -1 }).limit(1).toArray();
     });
 }
 export function closeConnectionToDB() {

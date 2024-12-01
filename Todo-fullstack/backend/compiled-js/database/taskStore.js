@@ -7,37 +7,23 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { connectToDB } from "./connection.js";
-function returnCollection(name) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let taskDataCollection;
-        const db = yield connectToDB();
-        //*Checks if collection exists before creating it.
-        const collections = yield db.listCollections({ name: name }).toArray();
-        if (!collections.length) {
-            console.log("Creating collection");
-            return yield db.createCollection(name);
-        }
-        else {
-            console.log("Collection already exists");
-            return yield db.collection('taskData');
-        }
-    });
-}
-export function addTaskToDB(tasks) {
+import { returnCollection, returnLastDocument } from "./connection.js";
+export function addTaskToDB(task) {
     return __awaiter(this, void 0, void 0, function* () {
         const taskDataCollection = yield returnCollection('taskData');
-        yield taskDataCollection.insertOne(tasks);
+        yield taskDataCollection.insertOne(task);
     });
 }
 export function getTaskFromDB() {
     return __awaiter(this, void 0, void 0, function* () {
-        const db = yield connectToDB();
-        return;
+        const taskDataCollection = yield returnCollection('taskData');
+        return taskDataCollection.find({}).toArray();
     });
 }
-export function deleteTaskFromDB(tasks) {
+export function deleteTaskFromDB(task) {
     return __awaiter(this, void 0, void 0, function* () {
-        const db = yield connectToDB();
+        const taskDataCollection = yield returnCollection('taskData');
+        const lastDocument = yield returnLastDocument(taskDataCollection, { name: task.name });
+        yield taskDataCollection.deleteOne({ _id: lastDocument[0]._id });
     });
 }
