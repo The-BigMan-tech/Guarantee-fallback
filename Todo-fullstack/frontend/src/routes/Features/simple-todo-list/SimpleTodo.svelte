@@ -9,7 +9,7 @@
     let checked:string[] = $state([])
     let cross:string[] = $state([])
     let edit:boolean[] = $state([])
-    let edit_or_done:string = $state('EDIT')
+    let edit_or_done:string[] = $state([])
 
     function toggleCrossTask(index:number):void {
         if (checked[index]) {
@@ -26,6 +26,16 @@
         }
         checked[index] = ''
         toggleCrossTask(index)
+    }
+    function toggleEditTask(index:number):void {
+        if (edit[index]) {
+            edit[index] = false
+            edit_or_done[index] = 'EDIT'
+            return
+        }
+        edit[index] = true
+        edit_or_done[index] = 'DONE'
+        
     }
     function typingTask(event:Event):void {
         const target = event.target as HTMLInputElement
@@ -57,16 +67,6 @@
         saveTask()
         if (checked[index]) toggleCheckedTask(index)
     }
-    function toggleEditTask(index:number):void {
-        if (edit[index]) {
-            edit[index] = false
-            edit_or_done = 'EDIT'
-            return
-        }
-        edit[index] = true
-        edit_or_done = 'DONE'
-        
-    }
 </script>
 <div class="flex justify-center relative top-24">
     <div class="flex flex-col items-center">
@@ -92,7 +92,11 @@
                             {/if}
                             <div class="flex absolute right-4 gap-5">
                                 <button onclick={()=>toggleEditTask(index)}>
-                                    <h1 class="bg-[#031E6F] text-white py-3 px-4 rounded-xl">{edit_or_done}</h1>
+                                    {#if (edit_or_done[index])}
+                                        <h1 class="bg-[#031E6F] text-white py-3 px-4 rounded-xl">{edit_or_done[index]}</h1>
+                                    {:else}
+                                        <h1 class="bg-[#031E6F] text-white py-3 px-4 rounded-xl">EDIT</h1>
+                                    {/if}
                                 </button>
                                 <button onclick={()=>deleteTask(addedTask,index)}>
                                     <h1 class="bg-[#780707] text-white py-3 px-4 rounded-xl">DELETE</h1>
