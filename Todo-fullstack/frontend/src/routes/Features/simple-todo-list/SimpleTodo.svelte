@@ -31,20 +31,20 @@
         checked[index] = ''
         toggleCrossTask(index)
     }
-    async function saveTask() {
+    async function saveChanges() {
         const response = await fetch('http://localhost:4000/getTask',{method:'GET'})
         if (!response.ok) throw new Error('Got an error on response')
         taskData = await response.json()
     }
     onMount(()=>{
-        saveTask()
+        saveChanges()
     })
     async function editTask(index:number) {
         console.log(`RECEIVED THE NEW TASK: ${task} AT INDEX: ${index}`);
         await fetch(`http://localhost:4000/editTask/${encodeURIComponent(JSON.stringify({name:task,index:index}))}`,
             {method:'PUT',}
         )
-        saveTask()
+        saveChanges()
     }
     function toggleEditTask(index:number,defaultText:string):void {
         if (edit[index]) {
@@ -65,14 +65,14 @@
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({name:task})
         })
-        saveTask()
+        saveChanges()
     }
     async function deleteTask(removeTask:TaskData,index:number) {
         await fetch(
             `http://localhost:4000/deleteTask/${encodeURIComponent(JSON.stringify(removeTask))}`,
             {method:'DELETE'}
         )
-        saveTask()
+        saveChanges()
         if (checked[index]) toggleCheckedTask(index)
     }
 </script>
