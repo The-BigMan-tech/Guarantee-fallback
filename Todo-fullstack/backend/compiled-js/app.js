@@ -8,7 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import express from 'express';
-import { addTaskToDB, getTaskFromDB, deleteTaskFromDB } from './database/taskStore.js';
+import { closeConnectionToDB } from './database/connection.js';
+import { addTaskToDB, getTaskFromDB, deleteTaskFromDB, updateTaskToDB } from './database/taskStore.js';
 //@ts-ignore
 import cors from 'cors';
 let tasks = [];
@@ -29,8 +30,19 @@ app.delete('/deleteTask/:task', (request, response) => {
     deleteTaskFromDB(task_to_remove);
     response.status(204).send(`Deleted the task: ${task_to_remove}`);
 });
-app.put('/editTask/:task', (request, response) => {
+app.put('/editTask/:task', (request, response) => __awaiter(void 0, void 0, void 0, function* () {
     const task_to_update = JSON.parse(decodeURIComponent(request.params.task));
-    response.send(`Edited the task ${task_to_update}`);
-});
+    tasks = yield getTaskFromDB();
+    console.log("ORIGINAL TASK TO EDIT: ", tasks[task_to_update.index].name);
+    console.log("NEW TASK VALUE:", task_to_update.name);
+    updateTaskToDB(tasks[task_to_update.index], task_to_update);
+    tasks = yield getTaskFromDB();
+    console.log("UPDATED TASK", tasks);
+    response.status(204).send(`Edited the task ${task_to_update}`);
+}));
+process.on('SIGINT', () => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("Shutting down the server");
+    yield closeConnectionToDB();
+    process.exit(0);
+}));
 app.listen(4000, () => console.log("Server is running on the port 4000"));

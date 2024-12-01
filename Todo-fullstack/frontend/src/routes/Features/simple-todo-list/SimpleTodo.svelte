@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
 
     interface TaskData {
-        name?:string
+        name:string
     }
     let task:string = $state('')
     let taskData:TaskData[] = $state([])
@@ -11,6 +11,10 @@
     let edit:boolean[] = $state([])
     let edit_or_done:string[] = $state([])
 
+    function typingTask(event:Event):void {
+        const target = event.target as HTMLInputElement
+        task = target.value
+    }
     function toggleCrossTask(index:number):void {
         if (checked[index]) {
             cross[index] = 'line-through text-[#4c4c4c]'
@@ -27,20 +31,6 @@
         checked[index] = ''
         toggleCrossTask(index)
     }
-    function toggleEditTask(index:number):void {
-        if (edit[index]) {
-            edit[index] = false
-            edit_or_done[index] = 'EDIT'
-            return
-        }
-        edit[index] = true
-        edit_or_done[index] = 'DONE'
-        
-    }
-    function typingTask(event:Event):void {
-        const target = event.target as HTMLInputElement
-        task = target.value
-    }
     async function saveTask() {
         const response = await fetch('http://localhost:4000/getTask',{method:'GET'})
         if (!response.ok) throw new Error('Got an error on response')
@@ -49,6 +39,24 @@
     onMount(()=>{
         saveTask()
     })
+    async function editTask(index:number) {
+        console.log(`RECEIVED THE NEW TASK: ${task} AT INDEX: ${index}`);
+        await fetch(`http://localhost:4000/editTask/${encodeURIComponent(JSON.stringify({name:task,index:index}))}`,
+            {method:'PUT',}
+        )
+        saveTask()
+    }
+    function toggleEditTask(index:number,defaultText:string):void {
+        if (edit[index]) {
+            edit[index] = false
+            edit_or_done[index] = 'EDIT'
+            editTask(index)
+            return
+        }
+        edit[index] = true
+        edit_or_done[index] = 'DONE'
+        task = defaultText as string
+    }
     async function addTask() {
         if (!task.length) return
         await fetch('http://localhost:4000/addTask',
@@ -86,12 +94,12 @@
                         <div class="flex bg-[#98D9E3] relative rounded-2xl py-4 px-6 items-center gap-5">
                             <button onclick={()=>toggleCheckedTask(index)} class={`border-2 border-[#031E6F] h-6 w-6 rounded-sm text-transparent ${checked[index]}`}>0</button>
                             {#if (edit[index])}
-                                <input value={addedTask.name} class={`text-xl outline-none ${cross[index]}`}/>
+                                <input onchange={typingTask} value={addedTask.name} class={`text-xl outline-none ${cross[index]}`}/>
                             {:else}
                                 <h1 class={`text-xl outline-none bg-[#98d9e3] ${cross[index]}`}>{addedTask.name}</h1>
                             {/if}
                             <div class="flex absolute right-4 gap-5">
-                                <button onclick={()=>toggleEditTask(index)}>
+                                <button onclick={()=>toggleEditTask(index,addedTask.name as string)}>
                                     {#if (edit_or_done[index])}
                                         <h1 class="bg-[#031E6F] text-white py-3 px-4 rounded-xl">{edit_or_done[index]}</h1>
                                     {:else}

@@ -27,3 +27,9 @@ export function deleteTaskFromDB(task) {
         yield taskDataCollection.deleteOne({ _id: lastDocument[0]._id });
     });
 }
+export function updateTaskToDB(originalTask, newTask) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const taskDataCollection = yield returnCollection('taskData');
+        yield taskDataCollection.updateOne(originalTask, { $set: { name: newTask.name } });
+    });
+}

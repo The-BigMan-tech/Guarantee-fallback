@@ -1,11 +1,11 @@
 import express,{Express,NextFunction,Request,Response} from 'express'
 import { closeConnectionToDB} from './database/connection.js'
-import { addTaskToDB,getTaskFromDB,deleteTaskFromDB } from './database/taskStore.js'
+import { addTaskToDB,getTaskFromDB,deleteTaskFromDB,updateTaskToDB} from './database/taskStore.js'
 //@ts-ignore
 import cors from 'cors'
 
 interface TaskData {
-    name:string | undefined
+    name:string 
 }
 let tasks:TaskData[] = []
 const app:Express = express()
@@ -27,8 +27,19 @@ app.delete('/deleteTask/:task',(request:Request,response:Response)=>{
     deleteTaskFromDB(task_to_remove)
     response.status(204).send(`Deleted the task: ${task_to_remove}`)
 })
-app.put('/editTask/:task',(request:Request,response:Response)=>{
+app.put('/editTask/:task',async (request:Request,response:Response)=>{
     const task_to_update = JSON.parse(decodeURIComponent(request.params.task));
-    response.send(`Edited the task ${task_to_update}`)
+    tasks = await getTaskFromDB()
+    console.log("ORIGINAL TASK TO EDIT: ",tasks[task_to_update.index].name);
+    console.log("NEW TASK VALUE:",task_to_update.name);
+    updateTaskToDB(tasks[task_to_update.index],task_to_update)
+    tasks = await getTaskFromDB()
+    console.log("UPDATED TASK",tasks);
+    response.status(204).send(`Edited the task ${task_to_update}`)
+})
+process.on('SIGINT',async ()=>{
+    console.log("Shutting down the server");
+    await closeConnectionToDB()
+    process.exit(0)
 })
 app.listen(4000,()=>console.log("Server is running on the port 4000"))
