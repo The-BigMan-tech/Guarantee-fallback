@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { onMount } from "svelte";
+
     interface TaskData {
         name?:string | undefined
     }
@@ -9,6 +11,13 @@
         const target = event.target as HTMLInputElement
         task = target.value
     }
+    async function saveTask() {
+        const response = await fetch('http://localhost:4000/getTask',{method:'GET'})
+        if (!response.ok) throw new Error('Got an error on response')
+        taskData = await response.json()
+        console.log("Gotten Task",taskData);
+    }
+
     async function addTask() {
         console.log(task);
         await fetch('http://localhost:4000/addTask',
@@ -20,18 +29,17 @@
                 body:JSON.stringify({name:task})
             }
         )
-        const response = await fetch('http://localhost:4000/getTask',{method:'GET'})
-        if (!response.ok) throw new Error('Got an error on response')
-        taskData = await response.json()
-        taskData = taskData.filter((task)=>task.name != '')
-        console.log("Gotten Task",taskData);
+        saveTask()
     }
-    addTask()
+    onMount(()=>saveTask())
+
     async function deleteTask(removeTask:TaskData) {
-        console.log('Called it',removeTask);
-        await fetch(`http://localhost:4000/deleteTask/${removeTask}`,{method:'GET'})
+        console.log(`http://localhost:4000/deleteTask/${(JSON.stringify(removeTask))}`);
+        await fetch(`http://localhost:4000/deleteTask/${encodeURIComponent(JSON.stringify(removeTask))}`,{method:'DELETE'})
+        saveTask()
     }
 </script>
+
 <div class="flex relative">
     <div class="mt-10">
     <form action="">

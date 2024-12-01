@@ -12,6 +12,7 @@ const app:Express = express()
 app.use(express.json())
 app.use(cors())
 
+
 app.post('/addTask',(request:Request,response:Response)=>{
     let taskData:TaskData = request.body;
     tasks.push(taskData)
@@ -19,13 +20,15 @@ app.post('/addTask',(request:Request,response:Response)=>{
     response.send(`Seen data,${taskData}`)
 })
 app.get('/getTask',(request:Request,response:Response)=>{
+    tasks = tasks.filter((task)=>task.name != '')
     response.json(tasks)
 })
-app.get('/deleteTask/:id',(request:Request,response:Response)=>{
+app.delete('/deleteTask/:id',(request:Request,response:Response)=>{
     console.log("received delete operation");
-    const remove = request.params.id;
-   // tasks.splice(tasks.indexOf(remove))
-    console.log(`REMOVING THE TASK:${typeof remove}`);
+    const remove = JSON.parse(decodeURIComponent(request.params.id));
+    console.log(`REMOVING THE TASK:${JSON.stringify(remove)}`);
+    tasks = tasks.filter(task => task.name !== remove.name);
+    console.log("Current task data:",tasks);
     response.status(204).send()
 })
 app.listen(4000,()=>console.log("Server is running on the port 4000"))
