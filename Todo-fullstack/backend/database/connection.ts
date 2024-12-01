@@ -5,7 +5,7 @@ let database:Db;
 export async function connectDB() {
     if (!database) {
         try {
-            database = client.db('TodoDB');
+            database = client.db('MY_DATABASE');
         }
         catch(err) {
             console.log("Database connection error: ",err);

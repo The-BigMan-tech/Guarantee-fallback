@@ -1,0 +1,38 @@
+{
+    "$schema": "https://cdn.statically.io/gh/nguyenngoclongdev/cdn/main/schema/v10/terminal-keeper.json",
+    "theme": "tribe",
+    "active": "TodoApp",
+    "activateOnStartup": true,
+    "keepExistingTerminals": false,
+    "sessions": {
+        "TodoApp": [
+            {
+                "name": "Run frontend",
+                "autoExecuteCommands": true,
+                "icon": "device-desktop",
+                "color": "terminal.ansiGreen",
+                "commands": [
+                    "cd Todo-fullstack/frontend;npm run dev"
+                ]
+            },
+            {
+                "name": "Compile typescript",
+                "autoExecuteCommands": true,
+                "icon": "run",
+                "color": "terminal.ansiGreen",
+                "commands": [
+                    "cd Todo-fullstack/backend/;npx tsc --watch"
+                ]
+            },
+            {
+                "name": "Run backend",
+                "autoExecuteCommands": true,
+                "icon": "server",
+                "color": "terminal.ansiGreen",
+                "commands": [
+                    "cd Todo-fullstack/backend/compiled-js;npx nodemon app.js"
+                ]
+            }
+        ]
+    }
+}

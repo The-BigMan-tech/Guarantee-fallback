@@ -84,6 +84,7 @@ Svelte for Vs Code
 Svelte 3 snippets
 Svelte Intellisense
 Tailwind fold
-
+MongoDB for vscode
+Terminal keeper
 
 Steam is still on my computer after i deleted it
