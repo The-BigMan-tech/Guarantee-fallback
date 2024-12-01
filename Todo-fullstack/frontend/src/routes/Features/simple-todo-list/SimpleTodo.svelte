@@ -8,10 +8,12 @@
     let taskData:TaskData[] = $state([])
     let checked:string[] = $state([])
     let cross:string[] = $state([])
-    
+    let edit:boolean[] = $state([])
+    let edit_or_done:string = $state('EDIT')
+
     function toggleCrossTask(index:number):void {
         if (checked[index]) {
-            cross[index] = 'line-through'
+            cross[index] = 'line-through text-[#4c4c4c]'
             return
         }
         cross[index] = ''
@@ -48,9 +50,22 @@
         saveTask()
     }
     async function deleteTask(removeTask:TaskData,index:number) {
-        await fetch(`http://localhost:4000/deleteTask/${encodeURIComponent(JSON.stringify(removeTask))}`,{method:'DELETE'})
+        await fetch(
+            `http://localhost:4000/deleteTask/${encodeURIComponent(JSON.stringify(removeTask))}`,
+            {method:'DELETE'}
+        )
         saveTask()
-        toggleCheckedTask(index)
+        if (checked[index]) toggleCheckedTask(index)
+    }
+    function toggleEditTask(index:number):void {
+        if (edit[index]) {
+            edit[index] = false
+            edit_or_done = 'EDIT'
+            return
+        }
+        edit[index] = true
+        edit_or_done = 'DONE'
+        
     }
 </script>
 <div class="flex justify-center relative top-24">
@@ -70,10 +85,19 @@
                     {#each taskData as addedTask,index}
                         <div class="flex bg-[#98D9E3] relative rounded-2xl py-4 px-6 items-center gap-5">
                             <button onclick={()=>toggleCheckedTask(index)} class={`border-2 border-[#031E6F] h-6 w-6 rounded-sm text-transparent ${checked[index]}`}>0</button>
-                            <h1 class={`text-xl ${cross[index]}`}>{addedTask.name}</h1>
-                            <button onclick={()=>deleteTask(addedTask,index)} class="absolute right-4  bg-[#031E6F] text-white py-3 px-4 rounded-xl">
-                                <h1>DELETE</h1>
-                            </button>
+                            {#if (edit[index])}
+                                <input value={addedTask.name} class={`text-xl outline-none ${cross[index]}`}/>
+                            {:else}
+                                <h1 class={`text-xl outline-none bg-[#98d9e3] ${cross[index]}`}>{addedTask.name}</h1>
+                            {/if}
+                            <div class="flex absolute right-4 gap-5">
+                                <button onclick={()=>toggleEditTask(index)}>
+                                    <h1 class="bg-[#031E6F] text-white py-3 px-4 rounded-xl">{edit_or_done}</h1>
+                                </button>
+                                <button onclick={()=>deleteTask(addedTask,index)}>
+                                    <h1 class="bg-[#780707] text-white py-3 px-4 rounded-xl">DELETE</h1>
+                                </button> 
+                            </div>
                         </div> 
                     {/each}
                 </div>

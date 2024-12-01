@@ -27,4 +27,8 @@ app.delete('/deleteTask/:task',(request:Request,response:Response)=>{
     deleteTaskFromDB(task_to_remove)
     response.status(204).send(`Deleted the task: ${task_to_remove}`)
 })
+app.put('/editTask/:task',(request:Request,response:Response)=>{
+    const task_to_update = JSON.parse(decodeURIComponent(request.params.task));
+    response.send(`Edited the task ${task_to_update}`)
+})
 app.listen(4000,()=>console.log("Server is running on the port 4000"))
