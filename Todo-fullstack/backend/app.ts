@@ -16,7 +16,6 @@ app.use(cors())
 app.post('/addTask',(request:Request,response:Response)=>{
     let taskData:TaskData = request.body;
     addTaskToDB(taskData)
-    
     response.send(`Seen data,${taskData}`)
 })
 app.get('/getTask',async (request:Request,response:Response)=>{
@@ -28,5 +27,4 @@ app.delete('/deleteTask/:task',(request:Request,response:Response)=>{
     deleteTaskFromDB(task_to_remove)
     response.status(204).send(`Deleted the task: ${task_to_remove}`)
 })
-
 app.listen(4000,()=>console.log("Server is running on the port 4000"))

@@ -2,11 +2,29 @@
     import { onMount } from "svelte";
 
     interface TaskData {
-        name?:string | undefined
+        name?:string
     }
     let task:string = $state('')
     let taskData:TaskData[] = $state([])
+    let checked:string[] = $state([])
+    let cross:string[] = $state([])
     
+    function toggleCrossTask(index:number):void {
+        if (checked[index]) {
+            cross[index] = 'line-through'
+            return
+        }
+        cross[index] = ''
+    }
+    function toggleCheckedTask(index:number):void {
+        if (!checked[index]){
+            checked[index] = 'bg-[#031E6F]'
+            toggleCrossTask(index)
+            return
+        }
+        checked[index] = ''
+        toggleCrossTask(index)
+    }
     function typingTask(event:Event):void {
         const target = event.target as HTMLInputElement
         task = target.value
@@ -20,13 +38,19 @@
         saveTask()
     })
     async function addTask() {
-        console.log(task);
-        await fetch('http://localhost:4000/addTask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:task})})
+        if (!task.length) return
+        await fetch('http://localhost:4000/addTask',
+        {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({name:task})
+        })
         saveTask()
     }
-    async function deleteTask(removeTask:TaskData) {
+    async function deleteTask(removeTask:TaskData,index:number) {
         await fetch(`http://localhost:4000/deleteTask/${encodeURIComponent(JSON.stringify(removeTask))}`,{method:'DELETE'})
         saveTask()
+        toggleCheckedTask(index)
     }
 </script>
 <div class="flex justify-center relative top-24">
@@ -43,11 +67,12 @@
                     </button>
                 </form>
                 <div class="flex flex-col gap-5 relative mt-8">
-                    {#each taskData as addedTask}
-                        <div class="flex bg-[#29dcf0] relative rounded-2xl py-4 px-6 ">
-                            <h1 class="text-xl">{addedTask.name}</h1>
-                            <button onclick={()=>deleteTask(addedTask)} class="absolute right-4 top-4">
-                                <h1>Delete</h1>
+                    {#each taskData as addedTask,index}
+                        <div class="flex bg-[#98D9E3] relative rounded-2xl py-4 px-6 items-center gap-5">
+                            <button onclick={()=>toggleCheckedTask(index)} class={`border-2 border-[#031E6F] h-6 w-6 rounded-sm text-transparent ${checked[index]}`}>0</button>
+                            <h1 class={`text-xl ${cross[index]}`}>{addedTask.name}</h1>
+                            <button onclick={()=>deleteTask(addedTask,index)} class="absolute right-4  bg-[#031E6F] text-white py-3 px-4 rounded-xl">
+                                <h1>DELETE</h1>
                             </button>
                         </div> 
                     {/each}
