@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { MongoClient } from 'mongodb';
 const client = new MongoClient("mongodb://localhost:27017/");
 let database;
-export function connectDB() {
+export function connectToDB() {
     return __awaiter(this, void 0, void 0, function* () {
         if (!database) {
             try {
@@ -24,7 +24,7 @@ export function connectDB() {
         return database;
     });
 }
-export function closeConnection() {
+export function closeConnectionToDB() {
     return __awaiter(this, void 0, void 0, function* () {
         yield client.close();
     });

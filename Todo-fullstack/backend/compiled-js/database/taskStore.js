@@ -7,14 +7,37 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { connectDB } from "./connection.js";
-export function postTask() {
+import { connectToDB } from "./connection.js";
+function returnCollection(name) {
     return __awaiter(this, void 0, void 0, function* () {
-        const db = yield connectDB();
+        let taskDataCollection;
+        const db = yield connectToDB();
+        //*Checks if collection exists before creating it.
+        const collections = yield db.listCollections({ name: name }).toArray();
+        if (!collections.length) {
+            console.log("Creating collection");
+            return yield db.createCollection(name);
+        }
+        else {
+            console.log("Collection already exists");
+            return yield db.collection('taskData');
+        }
     });
 }
-export function getTask() {
+export function addTaskToDB(tasks) {
     return __awaiter(this, void 0, void 0, function* () {
-        const db = yield connectDB();
+        const taskDataCollection = yield returnCollection('taskData');
+        yield taskDataCollection.insertOne(tasks);
+    });
+}
+export function getTaskFromDB() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const db = yield connectToDB();
+        return;
+    });
+}
+export function deleteTaskFromDB(tasks) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const db = yield connectToDB();
     });
 }

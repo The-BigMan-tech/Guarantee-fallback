@@ -1,1 +1,0 @@
-<h1 class="text-[#00e5ff] text-7xl font-[800]">TODO APP</h1>

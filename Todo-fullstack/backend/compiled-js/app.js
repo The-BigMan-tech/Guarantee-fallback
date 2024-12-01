@@ -1,4 +1,5 @@
 import express from 'express';
+import { addTaskToDB, getTaskFromDB, deleteTaskFromDB } from './database/taskStore.js';
 //@ts-ignore
 import cors from 'cors';
 let tasks = [];
@@ -7,11 +8,12 @@ app.use(express.json());
 app.use(cors());
 app.post('/addTask', (request, response) => {
     let taskData = request.body;
-    tasks.push(taskData);
-    console.log(tasks);
+    console.log(taskData);
+    addTaskToDB(taskData);
     response.send(`Seen data,${taskData}`);
 });
 app.get('/getTask', (request, response) => {
+    getTaskFromDB();
     tasks = tasks.filter((task) => task.name != '');
     response.json(tasks);
 });
@@ -19,7 +21,8 @@ app.delete('/deleteTask/:id', (request, response) => {
     console.log("received delete operation");
     const remove = JSON.parse(decodeURIComponent(request.params.id));
     console.log(`REMOVING THE TASK:${JSON.stringify(remove)}`);
-    tasks = tasks.filter(task => task.name !== remove.name);
+    tasks.splice(tasks.lastIndexOf(remove.name), 1);
+    deleteTaskFromDB(tasks);
     console.log("Current task data:", tasks);
     response.status(204).send();
 });

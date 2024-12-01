@@ -1,7 +1,12 @@
+obsidian,codieum,beehive,heatmap ai,readme.so
+
+
+*local storage for js
 json.stringify tells js to covert an object to its json string and not the string as dictated by the string dunder method
 Dynamic import only imports code when the user needs it
 coolors
 Check on pinno
+
 Environments
 -------------
 Browser

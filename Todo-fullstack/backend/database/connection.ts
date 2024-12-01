@@ -2,7 +2,7 @@
 import {MongoClient,Db} from 'mongodb'
 const client = new MongoClient("mongodb://localhost:27017/");
 let database:Db;
-export async function connectDB() {
+export async function connectToDB() {
     if (!database) {
         try {
             database = client.db('MY_DATABASE');
@@ -13,7 +13,7 @@ export async function connectDB() {
     }
     return database
 }
-export async function closeConnection() {
+export async function closeConnectionToDB() {
     await client.close()
 }
 
