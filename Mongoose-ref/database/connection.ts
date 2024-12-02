@@ -10,3 +10,7 @@ export async function connectToDB() {
         process.exit(1)
     }
 }
+export async function closeConnectionToDB() {
+    mongoose.connection.close()
+    
+}

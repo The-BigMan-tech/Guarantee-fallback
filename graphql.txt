@@ -1,0 +1,4 @@
+graphiql
+get exactly what you want
+Dgraph database
+we use npm install to install project dependencies as dictated by the package.json

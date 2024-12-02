@@ -90,8 +90,8 @@ mongoose
 
 PART 2--expert backend
 ----------------------
+Graphql server
 !Must start at most Mon aft:Nest js
-Graphql api
 Third party apis--twillio,stripe,auth0
 Cucumber js
 fastify

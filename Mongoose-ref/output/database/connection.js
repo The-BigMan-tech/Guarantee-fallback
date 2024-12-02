@@ -20,3 +20,8 @@ export function connectToDB() {
         }
     });
 }
+export function closeConnectionToDB() {
+    return __awaiter(this, void 0, void 0, function* () {
+        mongoose.connection.close();
+    });
+}
