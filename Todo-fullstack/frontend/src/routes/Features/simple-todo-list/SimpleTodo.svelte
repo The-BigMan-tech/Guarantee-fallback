@@ -31,30 +31,30 @@
         checked[index] = ''
         toggleCrossTask(index)
     }
-    async function saveChanges() {
+    async function loadChanges() {
         const response = await fetch('http://localhost:4000/getTask',{method:'GET'})
         if (!response.ok) throw new Error('Got an error on response')
         taskData = await response.json()
     }
     onMount(()=>{
-        saveChanges()
+        loadChanges()
     })
     async function editTask(index:number) {
         console.log(`RECEIVED THE NEW TASK: ${task} AT INDEX: ${index}`);
         await fetch(`http://localhost:4000/editTask/${encodeURIComponent(JSON.stringify({name:task,index:index}))}`,
             {method:'PUT',}
         )
-        saveChanges()
+        loadChanges()
     }
     function toggleEditTask(index:number,defaultText:string):void {
         if (edit[index]) {
             edit[index] = false
-            edit_or_done[index] = 'EDIT'
+            edit_or_done[index] = '/assets/images/pencil-solid(1).svg'
             editTask(index)
             return
         }
         edit[index] = true
-        edit_or_done[index] = 'DONE'
+        edit_or_done[index] = '/assets/images/square-check-solid.svg'
         task = defaultText as string
     }
     async function addTask() {
@@ -65,14 +65,14 @@
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({name:task})
         })
-        saveChanges()
+        loadChanges()
     }
     async function deleteTask(removeTask:TaskData,index:number) {
         await fetch(
             `http://localhost:4000/deleteTask/${encodeURIComponent(JSON.stringify(removeTask))}`,
             {method:'DELETE'}
         )
-        saveChanges()
+        loadChanges()
         if (checked[index]) toggleCheckedTask(index)
     }
 </script>
@@ -82,7 +82,7 @@
         <div class="flex relative">
             <div class="mt-10">
                 <form action="">
-                    <input onchange={typingTask} value={task} class="py-3 px-6 border-[#B7D8E8] w-[35rem] border rounded-3xl text-xl font-[Consolas] outline-none bg-transparent text-[#B7D8E8]" type="text" placeholder="You can write anything here">
+                    <input onchange={typingTask} value='' class="py-3 px-6 border-[#B7D8E8] w-[35rem] border rounded-3xl text-xl font-[Consolas] outline-none bg-transparent text-[#B7D8E8]" type="text" placeholder="You can write anything here">
                     <button onclick={addTask}>
                         <div class="bg-[#00e5ff] py-3 px-8 font-[600] text-lg rounded-3xl absolute right-0 top-[2.55rem]">
                             <h1>ADD</h1>
@@ -91,23 +91,23 @@
                 </form>
                 <div class="flex flex-col gap-5 relative mt-8">
                     {#each taskData as addedTask,index}
-                        <div class="flex bg-[#98D9E3] relative rounded-2xl py-4 px-6 items-center gap-5">
-                            <button onclick={()=>toggleCheckedTask(index)} class={`border-2 border-[#031E6F] h-6 w-6 rounded-sm text-transparent ${checked[index]}`}>0</button>
+                        <div class="flex bg-[#101114] relative rounded-2xl py-4 px-6 items-center gap-5 text-white">
+                            <button onclick={()=>toggleCheckedTask(index)} class={`border-2 border-[#00e5ff] h-6 w-6 rounded-sm text-transparent ${checked[index]}`}>0</button>
                             {#if (edit[index])}
-                                <input onchange={typingTask} value={addedTask.name} class={`text-xl outline-none ${cross[index]}`}/>
+                                <input onchange={typingTask} value={addedTask.name} class={`text-xl text-black outline-none ${cross[index]}`}/>
                             {:else}
-                                <h1 class={`text-xl outline-none bg-[#98d9e3] ${cross[index]}`}>{addedTask.name}</h1>
+                                <h1 class={`text-xl outline-none bg-[#101114] ${cross[index]}`}>{addedTask.name}</h1>
                             {/if}
                             <div class="flex absolute right-4 gap-5">
                                 <button onclick={()=>toggleEditTask(index,addedTask.name as string)}>
                                     {#if (edit_or_done[index])}
-                                        <h1 class="bg-[#031E6F] text-white py-3 px-4 rounded-xl">{edit_or_done[index]}</h1>
+                                        <img class="w-4" src={edit_or_done[index]} alt="">
                                     {:else}
-                                        <h1 class="bg-[#031E6F] text-white py-3 px-4 rounded-xl">EDIT</h1>
+                                        <img class="w-4" src="/assets/images/pencil-solid(1).svg" alt="">
                                     {/if}
                                 </button>
                                 <button onclick={()=>deleteTask(addedTask,index)}>
-                                    <h1 class="bg-[#780707] text-white py-3 px-4 rounded-xl">DELETE</h1>
+                                    <img class="w-4" src="/assets/images/trash-can-solid.svg" alt="">
                                 </button> 
                             </div>
                         </div> 

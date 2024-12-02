@@ -33,11 +33,7 @@ app.delete('/deleteTask/:task', (request, response) => {
 app.put('/editTask/:task', (request, response) => __awaiter(void 0, void 0, void 0, function* () {
     const task_to_update = JSON.parse(decodeURIComponent(request.params.task));
     tasks = yield getTaskFromDB();
-    console.log("ORIGINAL TASK TO EDIT: ", tasks[task_to_update.index].name);
-    console.log("NEW TASK VALUE:", task_to_update.name);
     updateTaskToDB(tasks[task_to_update.index], task_to_update);
-    tasks = yield getTaskFromDB();
-    console.log("UPDATED TASK", tasks);
     response.status(204).send(`Edited the task ${task_to_update}`);
 }));
 process.on('SIGINT', () => __awaiter(void 0, void 0, void 0, function* () {

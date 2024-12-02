@@ -12,7 +12,6 @@ const app:Express = express()
 app.use(express.json())
 app.use(cors())
 
-
 app.post('/addTask',(request:Request,response:Response)=>{
     let taskData:TaskData = request.body;
     addTaskToDB(taskData)
@@ -30,11 +29,7 @@ app.delete('/deleteTask/:task',(request:Request,response:Response)=>{
 app.put('/editTask/:task',async (request:Request,response:Response)=>{
     const task_to_update = JSON.parse(decodeURIComponent(request.params.task));
     tasks = await getTaskFromDB()
-    console.log("ORIGINAL TASK TO EDIT: ",tasks[task_to_update.index].name);
-    console.log("NEW TASK VALUE:",task_to_update.name);
     updateTaskToDB(tasks[task_to_update.index],task_to_update)
-    tasks = await getTaskFromDB()
-    console.log("UPDATED TASK",tasks);
     response.status(204).send(`Edited the task ${task_to_update}`)
 })
 process.on('SIGINT',async ()=>{
