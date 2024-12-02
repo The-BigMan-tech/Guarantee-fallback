@@ -22,7 +22,6 @@ import {router} from './child.js'
 import cookieParser from 'cookie-parser';
 //@ts-ignore
 import session from 'express-session'
-import { Session } from 'inspector/promises';
 
 
 const app:Express = express()

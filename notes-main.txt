@@ -1,3 +1,22 @@
+the process module for controlling the lifdecycle of a program
+
+FOLDER STRUCTURE OF FRONT-END 
+------------------------------
+
+
+
+
+FOLDER STRUCTURE FOR BACK-END 
+------------------------------
+
+
+copy my tsconfig.json from the mongoose-ref folder across all ts projects
+
+Router--mounts/maps controllers to a route
+view
+controller--routehandlers and middleware
+model
+
 http server vs tcp server
 obsidian,codieum,beehive,heatmap ai,readme.so
 perplexity ai
