@@ -1,13 +1,11 @@
+nest js decorators
+null safety
+havent learnt regex yet
+HTTP protocol and mvc architecture,component based architecture
 the process module for controlling the lifdecycle of a program
-
-FOLDER STRUCTURE OF FRONT-END 
-------------------------------
-
-
-
-
-FOLDER STRUCTURE FOR BACK-END 
-------------------------------
+package.json
+*FOLDER STRUCTURE OF FRONTEND
+*FOLDER STRUCTURE OF BACKEND
 
 
 copy my tsconfig.json from the mongoose-ref folder across all ts projects
@@ -90,19 +88,19 @@ mongoose
 
 PART 2--expert backend
 ----------------------
-Graphql server
 !Must start at most Mon aft:Nest js
-Third party apis--twillio,stripe,auth0
-Cucumber js
-fastify
 Chart js
+Graphql server and Dgraph DB
+jest
+Third party apis--twillio,stripe,auth0
+fastify
 !Must start on Sat:Web sockets
 socket io
 
 
 TESTING TECHNOLOGIES 
 --------------------
-!At most the following Monday:jest
+Cucumber js
 playwright
 selenium--automated tests
 

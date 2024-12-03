@@ -12,5 +12,4 @@ export async function connectToDB() {
 }
 export async function closeConnectionToDB() {
     mongoose.connection.close()
-    
 }
