@@ -26,7 +26,7 @@
  * *the middleware is an injectable class that implements the NestMiddleware interface
  * !Booked exception filters
  */
-import { Controller,Get,Param} from '@nestjs/common';
+import { Controller,Get,Param, ParseIntPipe} from '@nestjs/common';
 import { AppService } from './app.service';
 
 @Controller()
@@ -49,7 +49,7 @@ export class SampleController {
 @Controller()
 export class NewController {
   @Get('newman/:value')
-  getNew(@Param('value') value:number):string {
+  getNew(@Param('value',ParseIntPipe) value:number):string {
     return `seen dynamic data: ${value}`
   }
 }

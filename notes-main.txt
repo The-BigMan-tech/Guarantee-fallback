@@ -1,3 +1,7 @@
+Schema defines the structure and constraint of data for validation and integrity
+
+
+the unknown type is safer than the any type because you have to narrow it down to a type before using the value unlike the any.We use it fo rvalue sthat we dont know at compile time
 nest js decorators
 null safety
 havent learnt regex yet
