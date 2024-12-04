@@ -1,5 +1,7 @@
-Schema defines the structure and constraint of data for validation and integrity
-
+HTML notebook--a notebook but you write the notes with html which allows yoy to make a webpage as a notebook
+zod.Schema defines the structure and constraint of data for validation and integrity--validation logic
+DTO is for shaping the data structure sent over a request/response 
+type interfaces doesnt enforce runtime validation--purely type checking
 
 the unknown type is safer than the any type because you have to narrow it down to a type before using the value unlike the any.We use it fo rvalue sthat we dont know at compile time
 nest js decorators
