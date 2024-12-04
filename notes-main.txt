@@ -1,5 +1,8 @@
+watch compiler
+live runner
+
 HTML notebook--a notebook but you write the notes with html which allows yoy to make a webpage as a notebook
-zod.Schema defines the structure and constraint of data for validation and integrity--validation logic
+zod schema validation library.Schema defines the structure and constraint of data for validation and integrity--validation logic
 DTO is for shaping the data structure sent over a request/response 
 type interfaces doesnt enforce runtime validation--purely type checking
 

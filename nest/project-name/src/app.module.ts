@@ -4,10 +4,10 @@ import { AppController, SampleController,NewController} from './app.controller';
 import { AppService } from './app.service';
 import { experimentModule } from './experiment/experiment.module';
 import { experimentMiddleware,functionalMiddleware} from './experiment/experiment.middleware';
-
+import { blogModule } from './blog/blog.module';
 @Module(
   {
-    imports:[experimentModule],
+    imports:[experimentModule,blogModule],
     controllers: [AppController,SampleController,NewController],
     providers: [AppService],
   }

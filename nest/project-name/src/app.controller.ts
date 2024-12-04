@@ -25,6 +25,7 @@
  * *controller,provider,middleware,module
  * *the middleware is an injectable class that implements the NestMiddleware interface
  * !Booked exception filters
+ * *the placement of pipes and guards will determine the scope they are available to
  */
 import { Controller,Get,Param, ParseIntPipe} from '@nestjs/common';
 import { AppService } from './app.service';
