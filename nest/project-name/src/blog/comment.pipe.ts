@@ -13,11 +13,11 @@ import {plainToInstance} from 'class-transformer';
 @Injectable()
 export class CommentPipe implements PipeTransform {
     transform(value:unknown,{metatype}:ArgumentMetadata,) {
-        if (metatype !== commentDtoClass) return value
+        if (metatype !== commentDtoClass) return value;
         try {
             return commentSchema.safeParse(value)
         }catch(err) {
-            if (err instanceof ZodError) throw new BadGatewayException(err.errors)
+            if (err instanceof ZodError) throw new BadGatewayException(err.errors);
             throw err;
         }
     }
@@ -27,7 +27,7 @@ export class CommentPipe implements PipeTransform {
  */
 @Injectable()
 export class ClassPipe implements PipeTransform{
-    async transform(value:unknown,{metatype}:ArgumentMetadata) {
+    async transform(value:unknown,{metatype}:ArgumentMetadata):Promise<unknown> {
         if (this.isaPrimitiveConstructor(metatype)) return value
         const object = plainToInstance(metatype,value);
         const errors = await validate(object);
@@ -35,7 +35,7 @@ export class ClassPipe implements PipeTransform{
         return value;
     }
     /**
-     * Checks if the given metatype is a primitive datatype constructor.It returns true if it is else,false
+     * *Checks if the given metatype is a primitive datatype constructor.It returns true if it is else,false
      */
     private isaPrimitiveConstructor(metatype:Type<any>): boolean {
         const primitives:(Type<any>)[] = [String, Boolean, Number, Array, Object];
