@@ -31,8 +31,16 @@
  * 
  * *Rxjs
  * *zod
- * *interceptors
- * *decorators
+ * 
+ * 
+ * *mongo--LONG
+ * *mvc--SHORT
+ * *encryption and hashing,serialization--SHORT
+ * *cookie,sessions---SHORT
+ * *life cycle event,event---SHORT
+ * *circular dependency--SHORT
+ * *file upload,streaming files--LONGISH
+ * *execution context--MEDIUM
  */
 import { Controller,Get,Param, ParseIntPipe} from '@nestjs/common';
 import { AppService } from './app.service';

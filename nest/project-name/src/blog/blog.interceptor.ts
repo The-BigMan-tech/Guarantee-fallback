@@ -14,6 +14,13 @@ export class blogInterceptor implements NestInterceptor{
     intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> | Promise<Observable<any>> {
         const request = context.switchToHttp().getRequest()
         const now = Date.now()
-        return
+        return next
+            .handle()
+            .pipe(
+                tap(() => {
+                        console.log(`${request.method} ${request.url} ${Date.now() - now}ms`)
+                    }
+                )
+            )
     }
 }

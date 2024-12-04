@@ -1,10 +1,11 @@
 /* eslint-disable prettier/prettier */
-import {Controller,Post,Body,UsePipes, UseGuards} from '@nestjs/common';
+import {Controller,Post,Body,UsePipes, UseGuards, UseInterceptors} from '@nestjs/common';
 import { CommentPipe } from './comment.pipe';
 import {commentDtoClass} from './comment';
 import { ClassPipe } from './comment.pipe';
 import { commentClass } from './comment';
 import { BlogGuard } from './blog.guard';
+import { blogInterceptor } from './blog.interceptor';
 
 interface sampleInterface {
     email:unknown,
@@ -24,6 +25,7 @@ export class BlogController {
     
     @Post('postSomething')
     @UsePipes(new ClassPipe())
+    @UseInterceptors(new blogInterceptor())
     public postSomething(@Body() body:commentClass) {
         return `${body.username} posted some data`
     }
