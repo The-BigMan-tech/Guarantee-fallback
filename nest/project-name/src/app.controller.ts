@@ -28,6 +28,11 @@
  * *the placement of pipes and guards will determine the scope they are available to
  * 
  * *Batteries
+ * 
+ * *Rxjs
+ * *zod
+ * *interceptors
+ * *decorators
  */
 import { Controller,Get,Param, ParseIntPipe} from '@nestjs/common';
 import { AppService } from './app.service';
