@@ -8,8 +8,10 @@ export const commentSchema = z.object({
 });
 export class commentDtoClass {
     email:string;
-    comment:string
+    comment:string;
 }
+
+
 
 export class commentClass {
     @IsNotEmpty()

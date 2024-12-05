@@ -5,9 +5,10 @@ import { AppService } from './app.service';
 import { experimentModule } from './experiment/experiment.module';
 import { experimentMiddleware,functionalMiddleware} from './experiment/experiment.middleware';
 import { blogModule } from './blog/blog.module';
+import {MongooseModule} from '@nestjs/mongoose'
 @Module(
   {
-    imports:[experimentModule,blogModule],
+    imports:[experimentModule,blogModule,MongooseModule.forRoot('mongodb://localhost:27017/MY_DATABASE')],
     controllers: [AppController,SampleController,NewController],
     providers: [AppService],
   }

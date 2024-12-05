@@ -8,7 +8,7 @@
         "TodoApp": [
             {
                 "name": "Run frontend",
-                "autoExecuteCommands": true,
+                "autoExecuteCommands": false,
                 "icon": "device-desktop",
                 "color": "terminal.ansiGreen",
                 "commands": [
@@ -17,18 +17,18 @@
             },
             {
                 "name": "Compile typescript",
-                "autoExecuteCommands": true,
+                "autoExecuteCommands":false,
                 "icon": "run",
-                "color": "terminal.ansiGreen",
+                "color": "terminal.ansiYellow",
                 "commands": [
                     "cd Todo-fullstack/backend/;npx tsc --watch"
                 ]
             },
             {
                 "name": "Run backend",
-                "autoExecuteCommands": true,
+                "autoExecuteCommands":false,
                 "icon": "server",
-                "color": "terminal.ansiGreen",
+                "color": "terminal.ansiRed",
                 "commands": [
                     "cd Todo-fullstack/backend/compiled-js;npx nodemon app.js"
                 ]

@@ -28,10 +28,14 @@ export class CommentPipe implements PipeTransform {
 @Injectable()
 export class ClassPipe implements PipeTransform{
     async transform(value:unknown,{metatype}:ArgumentMetadata):Promise<unknown> {
-        if (this.isaPrimitiveConstructor(metatype)) return value
+        if (this.isaPrimitiveConstructor(metatype)) {
+            return value;
+        }
         const object = plainToInstance(metatype,value);
         const errors = await validate(object);
-        if (errors.length) throw new BadGatewayException(errors);
+        if (errors.length) {
+            throw new BadGatewayException(errors);
+        }
         return value;
     }
     /**
