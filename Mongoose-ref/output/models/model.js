@@ -1,4 +1,4 @@
-//!mongoose plugins,virtuals--ideal for computed or derived data,popuate for data that has references
+//!mongoose plugins,virtuals--ideal for computed or derived data,popuate for data that has references,validators,aggregation,transactions
 //*Once you have learnt one,you have covered 60% of the rest
 //*low level modules and high level ones.The high level abstracts away from the low level and is more declarative and expressive
 //*http module--low level,express-high level

@@ -17,11 +17,9 @@ export class BlogGuard implements CanActivate {
     canActivate(context: ExecutionContext):boolean {
         const request = context.switchToHttp().getRequest()
         const token:string = request.headers['authorization'];
-        if (token) {
-            if (this.validateToken(token)) {
-                request.user = this.validateToken(token)
-                return true
-            }
+        if (token && this.validateToken(token)) {
+            request.user = this.validateToken(token)
+            return true
         }
         return false
     }

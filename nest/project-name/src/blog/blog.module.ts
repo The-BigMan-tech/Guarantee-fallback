@@ -2,16 +2,18 @@
 import { Module } from "@nestjs/common";
 import { BlogController } from "./blog.controller";
 import { MongooseModule } from "@nestjs/mongoose";
-import { BlogDB,BlogSchema } from "./blog.schema";
+import { BlogModel} from "./blog.schema";
 import { BlogService } from "./blog.service";
+
+const ModelArray = [BlogModel]//*you can register multiple models here
 @Module(
     {
-        imports:[MongooseModule.forFeature([{name:BlogDB.name,schema:BlogSchema}])],
+        imports:[MongooseModule.forFeature(ModelArray)],
         controllers:[BlogController],
         providers:[BlogService],
         exports:[]
     }
 )
-export class blogModule{
+export class BlogModule{
     //No implementation
 }

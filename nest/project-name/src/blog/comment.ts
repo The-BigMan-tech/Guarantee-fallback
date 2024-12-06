@@ -12,7 +12,6 @@ export class commentDtoClass {
 }
 
 
-
 export class commentClass {
     @IsNotEmpty()
     @IsString()

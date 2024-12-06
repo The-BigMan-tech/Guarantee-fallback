@@ -4,13 +4,13 @@ import { AppController, SampleController,NewController} from './app.controller';
 import { AppService } from './app.service';
 import { experimentModule } from './experiment/experiment.module';
 import { experimentMiddleware,functionalMiddleware} from './experiment/experiment.middleware';
-import { blogModule } from './blog/blog.module';
+import { BlogModule } from './blog/blog.module';
 import {MongooseModule} from '@nestjs/mongoose'
 import { Connection } from 'mongoose';
 @Module(
   {
     imports:[
-      experimentModule,blogModule,
+      experimentModule,BlogModule,
       MongooseModule.forRoot('mongodb://localhost:27017/MY_DATABASE',
         {
           onConnectionCreate:(connection:Connection)=>{

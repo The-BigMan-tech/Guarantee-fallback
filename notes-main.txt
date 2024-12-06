@@ -1,3 +1,15 @@
+*Amazon
+*Data analytics app with chart js
+*whatsapp using twillio
+
+
+graphiql
+get exactly what you want
+Dgraph database
+we use npm install to install project dependencies as dictated by the package.json
+
+
+shiny object syndrome
 Python--forensics,data science,machine learning,cyber security,networking
 
 watch compiler
@@ -100,10 +112,11 @@ mongoose
 PART 2--expert backend
 ----------------------
 !Must start at most Mon aft:Nest js
+intersection observer api
 Chart js
+Third party apis--twillio,stripe,auth0,algolia
 Graphql server and Dgraph DB
 jest
-Third party apis--twillio,stripe,auth0
 fastify
 !Must start on Sat:Web sockets
 socket io
@@ -111,6 +124,7 @@ socket io
 
 TESTING TECHNOLOGIES 
 --------------------
+vitest
 Cucumber js
 playwright
 selenium--automated tests
