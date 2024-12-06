@@ -11,7 +11,6 @@ export class commentDtoClass {
     comment:string;
 }
 
-
 export class commentClass {
     @IsNotEmpty()
     @IsString()

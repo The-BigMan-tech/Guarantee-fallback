@@ -1,4 +1,4 @@
-//!To properly compile ts files to es module js files,you have to use type:modules in packag.json and specify the files in an array in the tsconfig.json or use include with a glob pattern and dont run tsc on a specific file or else,it will be ignored
+//!To properly compile ts files to es module js files,you have to use type:modules in package.json and specify the files in an array in the tsconfig.json or use include with a glob pattern and dont run tsc on a specific file or else,it will be ignored
 
 //*A hyperlink is a static link from one page to another
 //*a route is a mapping between a url path and its operations or resources
@@ -13,6 +13,7 @@
 //*MULTER--For uploading files through multipart form data which is an encoding to submit forms like images or uploading files to the server
 //*BODY PARSER--for parsing json data sent over an http request body.Now inbuilt into express as express.json()
 //*svgs for designing programmatically
+//*rate limiter
 
 
 //!Use normal js to check for any false error ts throws.You can use @ts-ignore to tell ts to shut up

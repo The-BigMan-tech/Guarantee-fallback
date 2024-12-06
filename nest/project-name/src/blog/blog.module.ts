@@ -1,9 +1,9 @@
 /* eslint-disable prettier/prettier */
 import { Module } from "@nestjs/common";
-import { BlogController } from "./blog.controller";
+import { BlogController } from "./controllers/blog.controller";
 import { MongooseModule } from "@nestjs/mongoose";
-import { BlogModel} from "./blog.schema";
-import { BlogService } from "./blog.service";
+import { BlogModel} from "./models/blog.schema";
+import { BlogService } from "./services/blog.service";
 
 const ModelArray = [BlogModel]//*you can register multiple models here
 @Module(

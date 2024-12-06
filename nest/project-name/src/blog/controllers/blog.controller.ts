@@ -1,12 +1,12 @@
 /* eslint-disable prettier/prettier */
 import {Controller,Post,Body,UsePipes, UseGuards, UseInterceptors,Get} from '@nestjs/common';
-import { CommentPipe } from './comment.pipe';
-import {commentDtoClass} from './comment';
-import { ClassPipe } from './comment.pipe';
-import { commentClass } from './comment';
-import { BlogGuard } from './blog.guard';
-import { blogInterceptor } from './blog.interceptor';
-import { BlogService } from './blog.service';
+import { CommentPipe } from '../pipes/comment.pipe';
+import {commentDtoClass} from '../dtos/comment.dto';
+import { ClassPipe } from '../pipes/comment.pipe';
+import { commentClass } from '../dtos/comment.dto';
+import { BlogGuard } from '../guards/blog.guard';
+import { blogInterceptor } from '../interceptors/blog.interceptor';
+import { BlogService } from '../services/blog.service';
 
 interface sampleInterface {
     email:unknown,

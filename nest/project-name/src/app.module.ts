@@ -4,6 +4,7 @@ import { AppController, SampleController,NewController} from './app.controller';
 import { AppService } from './app.service';
 import { experimentModule } from './experiment/experiment.module';
 import { experimentMiddleware,functionalMiddleware} from './experiment/experiment.middleware';
+import { blogMiddleware } from './blog/middlewares/blog.middleware';
 import { BlogModule } from './blog/blog.module';
 import {MongooseModule} from '@nestjs/mongoose'
 import { Connection } from 'mongoose';
@@ -35,5 +36,9 @@ export class AppModule implements NestModule {
       consumer
         .apply(functionalMiddleware)
         .forRoutes('NoMiddleware')
+
+      consumer
+        .apply(blogMiddleware)
+        .forRoutes('blog')
     }
 }

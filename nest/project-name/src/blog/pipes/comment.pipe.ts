@@ -1,8 +1,8 @@
 /* eslint-disable prettier/prettier */
 import {Injectable,PipeTransform,BadGatewayException,ArgumentMetadata,Type} from '@nestjs/common';
-import { commentSchema } from './comment';
+import { commentSchema } from '../dtos/comment.dto';
 import { ZodError } from 'zod';
-import { commentDtoClass} from './comment';
+import { commentDtoClass} from '../dtos/comment.dto';
 
 import { validate } from 'class-validator';
 import {plainToInstance} from 'class-transformer';

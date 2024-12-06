@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument,Model} from 'mongoose';
 
 @Schema()
 export class BlogDefinition {
@@ -10,6 +10,10 @@ export class BlogDefinition {
     @Prop()
     age: number;
 }
+//*exporting types
 export type BlogDocument = HydratedDocument<BlogDefinition>;
-export const BlogSchema = SchemaFactory.createForClass(BlogDefinition);//*the actual schema
+export type BlogModelType = Model<BlogDocument>;
+
+//*exporting variables
+export const BlogSchema = SchemaFactory.createForClass(BlogDefinition);//*the actual schema object
 export const BlogModel = {name:'Blog',schema:BlogSchema}
