@@ -1,7 +1,31 @@
+nest js is based on angular and is opionated while express is unopinionated
+
+
+so there is a difference between using the downloaded and the deployed version of an app.In the deployed version,the client doesnt download anything,the frontend is deployed on something like vercel and the backend is hosted on a hosting playform like hostinger and the data can be stored on a cloud service while in the downloaded version,it can be fully contained but the backend must use a local storage db like sql lite or indexed db i.e both the front and backend or a mix where the frontend is downloaded but the backend is hosted on a hosting platform
+
+Mongodb atlas,Aws,google cloud services,Azure
+
+?API versioning
+?Communicating api version between client and server
+?Version control middleware
+?Service worker for update checks
+
+Object vs relational database 
+Document vs Table database
+
 *Amazon
 *Data analytics app with chart js
 *whatsapp using twillio
 
+
+Deploy the frontend
+Host the backend
+Cloud service to store backend's data
+
+You can use logical operators,guard clauses and early returns to shorten if statements
+
+render for hosting backend and vercel for frontend
+canvas tag for drawing graphics in an html page using js
 
 graphiql
 get exactly what you want
@@ -12,6 +36,7 @@ we use npm install to install project dependencies as dictated by the package.js
 shiny object syndrome
 Python--forensics,data science,machine learning,cyber security,networking
 
+Auto save
 watch compiler
 live runner
 
@@ -66,7 +91,7 @@ coolors.co web
 
 Mongo db environments
 ----------------------
-Mongo db Atlas
+Mongo db Atlas--cloud service for mongo db
 Mongo db entreprise edition
 Mongo db community edition
 
@@ -111,15 +136,16 @@ mongoose
 
 PART 2--expert backend
 ----------------------
-!Must start at most Mon aft:Nest js
+Nest js
 intersection observer api
 Chart js
+socket io
 Third party apis--twillio,stripe,auth0,algolia
 Graphql server and Dgraph DB
+security with jwt token,bcrypt,auth0,auth js
 jest
 fastify
-!Must start on Sat:Web sockets
-socket io
+
 
 
 TESTING TECHNOLOGIES 
@@ -143,7 +169,6 @@ IM MAKING A FILE SHARE AND WHATSAPP
 
 WHERE I AM IN FRONTEND
 -----------------------
-scroll animation with the intersection obsever api
 The react stack--formik,redux,react spring,styled components,react scroll parallax
 Angular
 Astro with front end frameworks for better seo
