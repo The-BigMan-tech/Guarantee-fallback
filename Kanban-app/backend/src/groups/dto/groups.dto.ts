@@ -1,4 +1,4 @@
-import { TaskDTO } from "src/usertasks/task.dto";
+import { TaskDTO } from "src/usertasks/dto/task.dto";
 
 export class GroupDTO {
     name:string;

@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
-import { AddGroupModule } from "./adding-a-group/add-group.module";
-import { DeleteGroupModule } from "./deleting-a-group/delete-group.module";
+import { AddGroupModule } from "./add-a-group/add-group.module";
+import { DeleteGroupModule } from "./delete-a-group/delete-group.module";
 
 @Module(
     {
