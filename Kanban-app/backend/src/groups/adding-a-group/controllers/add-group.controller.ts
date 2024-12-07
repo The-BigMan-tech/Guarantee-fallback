@@ -1,4 +1,4 @@
-import { Controller,Put,Body} from "@nestjs/common";
+import { Controller,Post,Body} from "@nestjs/common";
 import { AddGroupService } from "../services/add-group.service";
 import { GroupCheckService } from "src/groups/common-services/services/group-check.service";
 
@@ -11,7 +11,7 @@ export class AddGroup {
     constructor(private readonly addGroupService:AddGroupService,private readonly groupCheckService:GroupCheckService) {
         //No implementation
     }
-    @Put()
+    @Post()
     public async addGroup(@Body() group:GroupInfo):Promise<string> {
         let groupDoesNotExist:boolean = !(await this.groupCheckService.doesGroupExist(group.boardName,group.groupName))
         if (groupDoesNotExist) {
