@@ -1,36 +1,18 @@
 {
     "$schema": "https://cdn.statically.io/gh/nguyenngoclongdev/cdn/main/schema/v10/terminal-keeper.json",
+    "active": "Kanban",
     "theme": "tribe",
-    "active": "TodoApp",
-    "activateOnStartup": true,
+    "activateOnStartup": false,
     "keepExistingTerminals": false,
     "sessions": {
-        "TodoApp": [
+        "Kanban": [
             {
-                "name": "Run frontend",
+                "name": "Run Backend",
                 "autoExecuteCommands": false,
-                "icon": "device-desktop",
+                "icon": "server",
                 "color": "terminal.ansiGreen",
                 "commands": [
-                    "cd Todo-fullstack/frontend;npm run dev"
-                ]
-            },
-            {
-                "name": "Compile typescript",
-                "autoExecuteCommands":false,
-                "icon": "run",
-                "color": "terminal.ansiYellow",
-                "commands": [
-                    "cd Todo-fullstack/backend/;npx tsc --watch"
-                ]
-            },
-            {
-                "name": "Run backend",
-                "autoExecuteCommands":false,
-                "icon": "server",
-                "color": "terminal.ansiRed",
-                "commands": [
-                    "cd Todo-fullstack/backend/compiled-js;npx nodemon app.js"
+                    "cd Kanban-app/backend;npm run start:dev"
                 ]
             }
         ]

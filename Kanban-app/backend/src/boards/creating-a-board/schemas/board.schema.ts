@@ -1,0 +1,18 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument,Model} from 'mongoose';
+import { GroupDTO } from 'src/groups/groups.dto';
+
+@Schema()
+export class BoardDefinition {
+    @Prop()
+    name:string
+
+    @Prop()
+    groups:GroupDTO[] | null
+}
+
+export type BoardDocumentType = HydratedDocument<BoardDefinition>
+export type BoardModelType = Model<BoardDocumentType>
+
+export const BoardSchema = SchemaFactory.createForClass(BoardDefinition)
+export const BoardModel = {name:'Board',schema:BoardSchema}
