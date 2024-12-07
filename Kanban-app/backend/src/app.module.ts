@@ -4,10 +4,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { Connection } from 'mongoose';
 import { MongooseModule } from '@nestjs/mongoose';
+import { GroupModule } from './groups/groups.module';
 
 @Module({
   imports: [
-    BoardModule,
+    BoardModule,GroupModule,
     MongooseModule.forRoot('mongodb://localhost:27017/KANBAN',
         {
           onConnectionCreate:(connection:Connection)=>{

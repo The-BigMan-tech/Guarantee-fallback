@@ -17,6 +17,11 @@ export class CreateBoard {
     @Post()
     public async createBoard(@Body() board:BoardDefinition):Promise<string> {
         let result;
+        const defaultGroups = ['TODO','DOING','DONE']
+        board.groups = []
+        for (let group of defaultGroups) {
+            board.groups.push({name:group,tasks:[]})
+        }
         let boardDoesNotExist = !(await this.boardCheckService.doesBoardExist(board.name))
         if (boardDoesNotExist) {
             result = await this.boardService.createBoard(board);

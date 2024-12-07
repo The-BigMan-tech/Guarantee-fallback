@@ -8,7 +8,7 @@ export class BoardDefinition {
     name:string
 
     @Prop()
-    groups:GroupDTO[] | null
+    groups:GroupDTO[] 
 }
 
 export type BoardDocumentType = HydratedDocument<BoardDefinition>
