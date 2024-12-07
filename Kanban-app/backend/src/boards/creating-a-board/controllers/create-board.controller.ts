@@ -22,7 +22,7 @@ export class CreateBoard {
             result = await this.boardService.createBoard(board);
             return `CREATED THE BOARD:,${board.name}\n\n RESULT OF BOARD CREATION:${result}`
         }
-        result = await this.boardDataService.returnBoard(board)
+        result = await this.boardDataService.returnBoard(board.name)
         return `CANNOT CREATE THE BOARD ${board.name} AS THE BOARD ALREADY EXISTS`
     }
 }
