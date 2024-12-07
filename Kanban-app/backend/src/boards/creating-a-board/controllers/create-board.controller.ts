@@ -8,7 +8,14 @@ export class CreateBoard {
         //No implementation
     }
     @Post()
-    public createBoard(@Body() board:BoardDefinition) {
-        return `Created the board ${board}`
+    public async createBoard(@Body() board:BoardDefinition) {
+        let result;
+        if (!this.boardService.doesBoardExist(board)) {
+            result = await this.boardService.createBoard(board);
+            const currentBoards = JSON.stringify(await this.boardService.returnBoards(),null,5)
+            return `CREATED THE BOARD:,${board.name}\n\n RESULT OF BOARD CREATION:${result}\n\n CURRENT BOARDS:${currentBoards}`
+        }
+        result = await this.boardService.returnBoard(board)
+        return `CANNOT CREATE THE BOARD ${board.name} AS THE BOARD ALREADY EXISTS`
     }
 }

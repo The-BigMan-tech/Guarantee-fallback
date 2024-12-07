@@ -8,6 +8,18 @@ export class CreateBoardService {
         //No implementation
     }
     async createBoard(board:BoardDefinition):Promise<BoardDocumentType> {
-        return
+        return this.BoardModel.create(board)
+    }
+    async doesBoardExist(board:BoardDefinition):Promise<boolean> {
+        if (this.BoardModel.find({name:board.name}).exec()) {
+            return true
+        }
+        return false
+    }
+    async returnBoard(board:BoardDefinition):Promise<BoardDocumentType[]> {
+        return this.BoardModel.find({name:board.name}).exec();
+    }
+    async returnBoards():Promise<BoardDocumentType[]> {
+        return this.BoardModel.find().exec();
     }
 }
