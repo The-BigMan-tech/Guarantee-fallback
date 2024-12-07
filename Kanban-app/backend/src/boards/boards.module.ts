@@ -2,9 +2,10 @@ import { Module } from "@nestjs/common";
 import { CreateBoardModule } from "./creating-a-board/create-board.module";
 import { LoadBoardModule } from "./loading-boards/loadBoards.module";
 import { DeleteBoardModule } from "./deleting-a-board/delete-board.module";
+import { CommonServicesModule } from "./common-services/common-services.module";
 
 @Module({
-    imports:[CreateBoardModule,LoadBoardModule,DeleteBoardModule],
+    imports:[CommonServicesModule,CreateBoardModule,LoadBoardModule,DeleteBoardModule],
 })
 export class BoardModule {
 

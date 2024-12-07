@@ -1,15 +1,15 @@
 import { Controller,Delete,Param} from "@nestjs/common";
 import { DeleteBoardService } from "../services/delete-board.service";
-import { CreateBoardService } from "src/boards/creating-a-board/services/create-board.service";
+import { BoardCheckService } from "src/boards/common-services/services/board-check.service";
 
 @Controller('boards/deleteBoard/:board')
 export class DeleteBoard {
-    constructor(private readonly deleteService:DeleteBoardService,private createService:CreateBoardService) {
+    constructor(private readonly deleteService:DeleteBoardService,private checkService:BoardCheckService) {
         //No implementation
     }
     @Delete()
     public async deleteBoard(@Param('board') boardName:string):Promise<string> {
-        let boardDoesNotExist = !(await this.createService.doesBoardExist(boardName))
+        let boardDoesNotExist = !(await this.checkService.doesBoardExist(boardName))
         if (boardDoesNotExist) {
             return `CANNOT DELETE THE BOARD,${boardName} AS THE BOARD DOES NOT EXIST`
         }
