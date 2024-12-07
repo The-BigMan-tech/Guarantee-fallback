@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument,Model} from 'mongoose';
-import { GroupDTO } from 'src/groups/groups.dto';
+import { GroupDTO } from 'src/groups/dto/groups.dto';
 
 @Schema()
 export class BoardDefinition {

@@ -10,10 +10,10 @@ export class CreateBoardService {
     async createBoard(board:BoardDefinition):Promise<BoardDocumentType> {
         return this.BoardModel.create(board)
     }
-    async doesBoardExist(board:BoardDefinition):Promise<boolean> {
-        const existingBoard = await this.BoardModel.find({name:board.name}).exec();
+    async doesBoardExist(board:string):Promise<boolean> {
+        const existingBoard = await this.BoardModel.find({name:board}).exec();
         if (existingBoard.length > 0) {
-            console.log(`THE BOARD ${board.name} EXISTS`)
+            console.log(`THE BOARD ${board} EXISTS`)
             return true
         }
         console.log("THE BOARD DOESNT EXIST")

@@ -10,7 +10,7 @@ export class CreateBoard {
     @Post()
     public async createBoard(@Body() board:BoardDefinition):Promise<string> {
         let result;
-        let boardDoesNotExist = !(await this.boardService.doesBoardExist(board))
+        let boardDoesNotExist = !(await this.boardService.doesBoardExist(board.name))
         if (boardDoesNotExist) {
             result = await this.boardService.createBoard(board);
             return `CREATED THE BOARD:,${board.name}\n\n RESULT OF BOARD CREATION:${result}`
