@@ -1,5 +1,5 @@
 import { Controller,Post,Body} from "@nestjs/common";
-import { BoardDefinition } from "../schemas/board.schema";
+import { BoardDefinition } from "../../schemas/board.schema";
 import { CreateBoardService } from "../services/create-board.service";
 
 @Controller('boards/createBoard')
@@ -8,12 +8,12 @@ export class CreateBoard {
         //No implementation
     }
     @Post()
-    public async createBoard(@Body() board:BoardDefinition) {
+    public async createBoard(@Body() board:BoardDefinition):Promise<string> {
         let result;
-        if (!this.boardService.doesBoardExist(board)) {
+        let boardDoesNotExist = !(await this.boardService.doesBoardExist(board))
+        if (boardDoesNotExist) {
             result = await this.boardService.createBoard(board);
-            const currentBoards = JSON.stringify(await this.boardService.returnBoards(),null,5)
-            return `CREATED THE BOARD:,${board.name}\n\n RESULT OF BOARD CREATION:${result}\n\n CURRENT BOARDS:${currentBoards}`
+            return `CREATED THE BOARD:,${board.name}\n\n RESULT OF BOARD CREATION:${result}`
         }
         result = await this.boardService.returnBoard(board)
         return `CANNOT CREATE THE BOARD ${board.name} AS THE BOARD ALREADY EXISTS`
