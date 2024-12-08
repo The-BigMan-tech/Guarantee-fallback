@@ -16,4 +16,13 @@ export class SelectBoard {
         const result = await this.boardDataService.returnBoard(boardName)
         return `LOADED THE BOARD:${boardName}'s DATA:\n ${result}`
     }
+    @Get('readable')
+    public async selectReadableBoard(@Param('boardName') boardName:string) {
+        let boardDoesNotExist = !(await this.boardCheckService.doesBoardExist(boardName))
+        if (boardDoesNotExist) {
+            return `CANNOT LOAD THE DATA FOR THE BOARD: ${boardName} BECAUSE IT DOESNT EXIST`
+        }
+        const result = await this.boardDataService.returnBoardAsString(boardName)
+        return `LOADED THE BOARD:${boardName}'s DATA:\n ${result}`
+    }
 }

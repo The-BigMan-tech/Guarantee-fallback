@@ -11,4 +11,8 @@ export class BoardDataService {
     async returnBoard(board:string):Promise<BoardDocumentType[]> {
         return this.BoardModel.find({name:board}).exec();
     }
+    async returnBoardAsString(board:string):Promise<string> {
+        const updatedBoard: BoardDefinition = await this.BoardModel.findOne({ name: board}).lean();
+        return `UPDATED BOARD", ${JSON.stringify(updatedBoard, null, 2)}` // Use JSON.stringify for better visibility
+    }
 }
