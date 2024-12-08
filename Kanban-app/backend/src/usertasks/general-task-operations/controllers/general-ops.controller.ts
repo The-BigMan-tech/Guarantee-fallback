@@ -1,6 +1,6 @@
 import { Controller,Post,Body,Delete,Query} from "@nestjs/common";
 import { TaskDTO } from "src/usertasks/dto/task.dto";
-import { AddTaskService} from "../services/add-task.service";
+import { TaskOperationsService } from "../services/general-ops.service";
 
 interface TaskLocation {
     boardName:string,
@@ -11,19 +11,19 @@ interface DeleteInfo {
     groupName:string,
     title:string
 }
-@Controller('boards/addTask')
+@Controller('tasks')
 export class TaskController {
-    constructor(private readonly addTaskService:AddTaskService) {
+    constructor(private readonly operationService:TaskOperationsService) {
         //No implementation
     }
-    @Post()
+    @Post('/addTask')
     public async addTaskControl(@Body() task:TaskLocation):Promise<string> {
-        await this.addTaskService.addTask(task.boardName,task.taskInfo.status,task.taskInfo);
+        await this.operationService.addTask(task.boardName,task.taskInfo.status,task.taskInfo);
         return `ADDED THE TASK ${task.taskInfo.title} TO THE GROUP ${task.taskInfo.status} OF THE BOARD ${task.boardName}`
     }
-    @Delete('/delete')
+    @Delete('/deleteTask')
     public async deleteTaskControl(@Query() task:DeleteInfo):Promise<string> {
-        await this.addTaskService.deleteTask(task.boardName,task.groupName,task.title)
+        await this.operationService.deleteTask(task.boardName,task.groupName,task.title)
         return `DELETED THE TASK ${task.title} FROM THE GROUP ${task.groupName} FOR THE BOARD ${task.boardName}`
     }
 }

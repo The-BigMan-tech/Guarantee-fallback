@@ -4,7 +4,7 @@ import { BoardModelType } from "src/boards/schemas/board.schema";
 import { TaskDTO } from "src/usertasks/dto/task.dto";
 
 @Injectable()
-export class AddTaskService {
+export class TaskOperationsService {
     constructor(@InjectModel('Board') private BoardModel:BoardModelType) {
         //No implementation
     }
@@ -19,7 +19,6 @@ export class AddTaskService {
         const group = board.groups[0]
         const taskIndex = group.tasks.findIndex(task=>task.title===title)
         group.tasks.splice(taskIndex,1)
-
         await this.BoardModel.updateOne(
             { name: boardName, "groups.name": groupName }, // Find the board and group
             { $set: { "groups.$.tasks":group.tasks } } // Use $pull to remove the task by title
