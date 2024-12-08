@@ -20,7 +20,7 @@ export class TaskOperationsService {
         console.log(board);
         const group = board.groups[0]
 
-        //*Find the index where the task we want to delete belongs,remove it through the splice method and update the board by setting the tasks array of the particular group with this new one
+        //*Find the index where the task we want to delete belongs,remove it through the splice method and update the board by setting the tasks array of the particular group with this new one.
         const taskIndex = group.tasks.findIndex(task=> {task.title===title})
         console.log("INDEX",taskIndex);
         if (taskIndex === -1) {
