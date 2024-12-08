@@ -5,10 +5,11 @@ import { AppService } from './app.service';
 import { Connection } from 'mongoose';
 import { MongooseModule } from '@nestjs/mongoose';
 import { GroupModule } from './groups/groups.module';
+import { TasksModule } from './usertasks/usertasks.module';
 
 @Module({
   imports: [
-    BoardModule,GroupModule,
+    BoardModule,GroupModule,TasksModule,
     MongooseModule.forRoot('mongodb://localhost:27017/KANBAN',
         {
           onConnectionCreate:(connection:Connection)=>{

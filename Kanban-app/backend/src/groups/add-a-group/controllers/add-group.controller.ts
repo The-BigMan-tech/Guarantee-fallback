@@ -2,7 +2,7 @@ import { Controller,Post,Body} from "@nestjs/common";
 import { AddGroupService } from "../services/add-group.service";
 import { GroupCheckService } from "src/groups/common-services/services/group-check.service";
 
-interface GroupInfo {
+interface GroupLocation {
     boardName:string,
     groupName:string
 }
@@ -12,7 +12,7 @@ export class AddGroup {
         //No implementation
     }
     @Post()
-    public async addGroup(@Body() group:GroupInfo):Promise<string> {
+    public async addGroup(@Body() group:GroupLocation):Promise<string> {
         let groupDoesNotExist:boolean = !(await this.groupCheckService.doesGroupExist(group.boardName,group.groupName))
         if (groupDoesNotExist) {
             await this.addGroupService.addGroup(group.boardName,group.groupName);
