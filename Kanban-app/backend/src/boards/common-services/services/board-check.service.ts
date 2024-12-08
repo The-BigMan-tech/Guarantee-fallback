@@ -8,7 +8,7 @@ export class BoardCheckService {
     constructor(@InjectModel('Board') private BoardModel:BoardModelType) {
         //No implementation
     }
-    async doesBoardExist(board:string):Promise<boolean> {
+    public async doesBoardExist(board:string):Promise<boolean> {
         const existingBoard:BoardDefinition = await this.BoardModel.findOne({name:board}).exec();
         if (existingBoard) {
             return true
