@@ -7,22 +7,24 @@ export class SelectBoard {
     constructor(private readonly boardDataService:BoardDataService,private readonly boardCheckService:BoardCheckService) {
         //No implementation
     }
-    @Get()
-    public async selectBoard(@Param('boardName') boardName:string) {
+    public async selectBoard(boardName:string,option:string) {
+        let result;
         let boardDoesNotExist = !(await this.boardCheckService.doesBoardExist(boardName))
-        if (boardDoesNotExist) {
-            return `CANNOT LOAD THE DATA FOR THE BOARD: ${boardName} BECAUSE IT DOESNT EXIST`
+        if (boardDoesNotExist) return `CANNOT LOAD THE DATA FOR THE BOARD: ${boardName} BECAUSE IT DOESNT EXIST`;
+        if (option === 'object') {
+            result = await this.boardDataService.returnBoard(boardName)
+        }else if (option === 'string'){
+            result = await this.boardDataService.returnBoardAsString(boardName)
         }
-        const result = await this.boardDataService.returnBoard(boardName)
         return `LOADED THE BOARD:${boardName}'s DATA:\n ${result}`
+    }
+    
+    @Get()
+    public async selectBoardObject(@Param('boardName') boardName:string) {
+        return this.selectBoard(boardName,'object')
     }
     @Get('readable')
     public async selectReadableBoard(@Param('boardName') boardName:string) {
-        let boardDoesNotExist = !(await this.boardCheckService.doesBoardExist(boardName))
-        if (boardDoesNotExist) {
-            return `CANNOT LOAD THE DATA FOR THE BOARD: ${boardName} BECAUSE IT DOESNT EXIST`
-        }
-        const result = await this.boardDataService.returnBoardAsString(boardName)
-        return `LOADED THE BOARD:${boardName}'s DATA:\n ${result}`
+        return this.selectBoard(boardName,'string')
     }
 }

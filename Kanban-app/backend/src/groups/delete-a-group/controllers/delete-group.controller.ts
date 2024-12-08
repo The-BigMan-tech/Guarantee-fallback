@@ -7,7 +7,7 @@ interface GroupInfo {
     groupName:string
 }
 
-@Controller('boards/deleteGroup')
+@Controller('groups/deleteGroup')
 export class DeleteGroup {
     constructor(
         private readonly deleteGroupService:DeleteGroupService,

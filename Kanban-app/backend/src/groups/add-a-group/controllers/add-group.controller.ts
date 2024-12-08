@@ -6,7 +6,7 @@ interface GroupLocation {
     boardName:string,
     groupName:string
 }
-@Controller('boards/addGroup/')
+@Controller('groups/addGroup/')
 export class AddGroup {
     constructor(private readonly addGroupService:AddGroupService,private readonly groupCheckService:GroupCheckService) {
         //No implementation

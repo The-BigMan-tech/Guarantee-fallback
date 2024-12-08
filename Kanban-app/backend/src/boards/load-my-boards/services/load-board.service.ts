@@ -10,4 +10,7 @@ export class LoadBoardService {
     async returnBoards():Promise<BoardDocumentType[]> {
         return this.BoardModel.find().exec();
     }
+    async returnBoardsByName():Promise<BoardDocumentType[]> {
+        return this.BoardModel.find({},{name:1}).exec();
+    }
 }
