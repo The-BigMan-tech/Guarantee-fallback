@@ -15,7 +15,7 @@ export class TaskOperationsService {
         ).exec();
     }
     public async deleteTask(boardName:string,groupName:string,title:string):Promise<void> {
-        const board = await this.BoardModel.findOne({name:boardName,"groups.name": groupName},{ "groups.$": 1 })
+        const board = await this.BoardModel.findOne({name:boardName,"groups.name": groupName})
         const group = board.groups[0]
         const taskIndex = group.tasks.findIndex(task=>task.title===title)
         group.tasks.splice(taskIndex,1)

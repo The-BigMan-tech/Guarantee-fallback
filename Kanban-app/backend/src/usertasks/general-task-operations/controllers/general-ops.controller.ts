@@ -23,7 +23,11 @@ export class TaskController {
     }
     @Delete('/deleteTask')
     public async deleteTaskControl(@Query() task:DeleteInfo):Promise<string> {
-        await this.operationService.deleteTask(task.boardName,task.groupName,task.title)
-        return `DELETED THE TASK ${task.title} FROM THE GROUP ${task.groupName} FOR THE BOARD ${task.boardName}`
+        try {
+            await this.operationService.deleteTask(task.boardName,task.groupName,task.title);
+            return `DELETED THE TASK ${task.title} FROM THE GROUP ${task.groupName} FOR THE BOARD ${task.boardName}`
+        }catch {
+            return `CANNOT DELETE THE TASK ${task.title} FROM THE GROUP ${task.groupName} FOR THE BOARD ${task.boardName} BECAUSE THE TASK DOENST EXIST`
+        }
     }
 }
