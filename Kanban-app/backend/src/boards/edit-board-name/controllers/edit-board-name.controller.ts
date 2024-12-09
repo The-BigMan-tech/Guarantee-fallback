@@ -1,5 +1,5 @@
 import { Controller,Put,Body} from "@nestjs/common";
-import { EditBoardService } from "../services/edit-board.service";
+import { EditBoardService } from "../services/edit-board-name.service";
 import { BoardCheckService } from "src/boards/common-services/services/board-check.service";
 
 interface EditBoardInfo {

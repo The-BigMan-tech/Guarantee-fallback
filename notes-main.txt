@@ -1,3 +1,5 @@
+?More type annotations,better messages
+
 Not adhering to the interface when sending request data can lead to errors
 *Types of storage:cookies,sessions,local storage,database
 GET and DELETE: Use query strings and path parameters.
