@@ -41,6 +41,7 @@ export class TaskOperationsService {
      * *The $ returns the first element in array that matches the query
      * *The dot operator means look for one group in that array that matches the criteria specified
      * *The dot operator is to query into nested structures.for objects,you provide the key and for an array,the index.
+     * *The first query in the update one method will be the context of the second query
      */
     public async editTask(boardName:string,groupName:string,index:number,newTask:TaskDTO):Promise<string | void> {
         const board:BoardDefinition = await this.BoardModel.findOne({name:boardName,"groups.name": groupName},{'groups.$':1}).exec()
