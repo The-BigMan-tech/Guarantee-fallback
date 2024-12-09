@@ -10,13 +10,13 @@ export class SelectBoard {
     public async selectBoard(boardName:string,option:string) {
         let result;
         let boardDoesNotExist = !(await this.boardCheckService.doesBoardExist(boardName))
-        if (boardDoesNotExist) return `CANNOT LOAD THE DATA FOR THE BOARD: ${boardName} BECAUSE IT DOESNT EXIST`;
+        if (boardDoesNotExist) return `CANNOT LOAD THE DATA FOR THE BOARD: '${boardName}' BECAUSE IT DOESNT EXIST`;
         if (option === 'object') {
             result = await this.boardDataService.returnBoard(boardName)
         }else if (option === 'string'){
             result = await this.boardDataService.returnBoardAsString(boardName)
         }
-        return `LOADED THE BOARD:${boardName}'s DATA:\n ${result}`
+        return `LOADED '${boardName}' DATA:\n ${result}`
     }
     
     @Get()

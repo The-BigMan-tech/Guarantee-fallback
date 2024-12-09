@@ -28,26 +28,26 @@ export class TaskController {
     @Post('/addTask')
     public async addTaskControl(@Body() task:TaskLocation):Promise<string> {
         await this.operationService.addTask(task.boardName,task.taskInfo.status,task.taskInfo);
-        return `ADDED THE TASK ${task.taskInfo.title} TO THE GROUP ${task.taskInfo.status} OF THE BOARD ${task.boardName}`
+        return `ADDED THE TASK '${task.taskInfo.title}' TO THE GROUP '${task.taskInfo.status}' OF THE BOARD '${task.boardName}'`
     }
     @Delete('/deleteTask')
     public async deleteTaskControl(@Query() task:DeleteTaskInfo):Promise<string> {
         try {
             const result = await this.operationService.deleteTask(task.boardName,task.groupName,task.index,task.title);
             if (result === 'not found') {
-                return `CANNOT DELETE THE TASK ${task.title} FROM THE GROUP ${task.groupName} FROM THE BOARD ${task.boardName} BECAUSE THE TASK DOESNT EXIST`
+                return `CANNOT DELETE THE TASK '${task.title}' FROM THE GROUP '${task.groupName}' FROM THE BOARD '${task.boardName}' BECAUSE THE TASK DOESNT EXIST`
             }
-            return `DELETED THE TASK ${task.title} FROM THE GROUP ${task.groupName} FOR THE BOARD ${task.boardName}`
+            return `DELETED THE TASK '${task.title}' FROM THE GROUP '${task.groupName}' FOR THE BOARD '${task.boardName}'`
         }catch {
-            return `CANNOT DELETE THE TASK ${task.title} FROM THE GROUP ${task.groupName} BECAUSE THE GROUP DOESNT EXIST`
+            return `CANNOT DELETE THE TASK '${task.title}' FROM THE GROUP '${task.groupName}' BECAUSE THE GROUP DOESNT EXIST`
         }
     }
     @Put('/editTask')
     public async editTaskControl(@Body() task:EditTaskInfo):Promise<string> {
         const result = await this.operationService.editTask(task.boardName,task.groupName,task.index,task.newTask);
         if (result == 'not found') {
-            return `CANNOT EDIT THE TASK ${task.newTask.title} FROM THE GROUP ${task.groupName} FROM THE BOARD ${task.boardName} BECAUSE THE TASK DOESNT EXIST`
+            return `CANNOT EDIT THE TASK '${task.newTask.title}' FROM THE GROUP '${task.groupName}' FROM THE BOARD '${task.boardName}' BECAUSE THE TASK DOESNT EXIST`
         }
-        return `EDITED THE TASK ${task.newTask.title} FROM THE GROUP ${task.groupName} FOR THE BOARD ${task.boardName}`
+        return `EDITED THE TASK '${task.newTask.title}' FROM THE GROUP '${task.groupName}' FOR THE BOARD '${task.boardName}'`
     }
 }

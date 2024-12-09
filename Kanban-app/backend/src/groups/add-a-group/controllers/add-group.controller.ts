@@ -16,8 +16,8 @@ export class AddGroup {
         let groupDoesNotExist:boolean = !(await this.groupCheckService.doesGroupExist(group.boardName,group.groupName))
         if (groupDoesNotExist) {
             await this.addGroupService.addGroup(group.boardName,group.groupName);
-            return `ADDED THE GROUP ${group.groupName} TO THE BOARD ${group.boardName}`
+            return `ADDED THE GROUP '${group.groupName}' TO THE BOARD '${group.boardName}'`
         }
-        return `CANNOT ADD THE GROUP: ${group.groupName} TO THE BOARD ${group.boardName} BECAUSE THE GROUP ALREADY EXISTST`
+        return `CANNOT ADD THE GROUP: '${group.groupName}' TO THE BOARD '${group.boardName}' BECAUSE THE GROUP ALREADY EXIST`
     }
 }

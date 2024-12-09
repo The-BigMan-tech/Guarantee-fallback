@@ -11,9 +11,9 @@ export class DeleteBoard {
     public async deleteBoard(@Param('boardName') boardName:string):Promise<string> {
         let boardDoesNotExist = !(await this.checkService.doesBoardExist(boardName))
         if (boardDoesNotExist) {
-            return `CANNOT DELETE THE BOARD,${boardName} AS THE BOARD DOES NOT EXIST`
+            return `CANNOT DELETE THE BOARD,'${boardName}' AS THE BOARD DOES NOT EXIST`
         }
         this.deleteService.deleteBoard(boardName)
-        return `DELETED THE BOARD: ${boardName}`
+        return `DELETED THE BOARD: '${boardName}'`
     }
 }

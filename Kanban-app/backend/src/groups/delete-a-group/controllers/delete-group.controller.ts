@@ -20,8 +20,8 @@ export class DeleteGroup {
         let groupExists:boolean = await this.groupCheckService.doesGroupExist(group.boardName,group.groupName)
         if (groupExists) {
             await this.deleteGroupService.deleteGroup(group.boardName,group.groupName);
-            return `DELETED THE GROUP ${group.groupName} FROM THE BOARD ${group.boardName}`
+            return `DELETED THE GROUP '${group.groupName}' FROM THE BOARD '${group.boardName}'`
         }
-        return `CANNOT DELETE THE GROUP ${group.groupName} BECUASE IT DOESNT EXIST`
+        return `CANNOT DELETE THE GROUP '${group.groupName}' BECUASE IT DOESNT EXIST`
     }
 }
