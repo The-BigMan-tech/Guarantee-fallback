@@ -1,3 +1,5 @@
+Not adhering to the interface when sending request data can lead to errors
+*Types of storage:cookies,sessions,local storage,database
 GET and DELETE: Use query strings and path parameters.
 POST and PUT: Use the request body to send data.
 Operation safety
@@ -141,7 +143,7 @@ PART 2--expert backend
 Nest js
 intersection observer api
 Chart js
-socket io
+!socket io
 Third party apis--twillio,stripe,auth0,algolia
 Graphql server and Dgraph DB
 security with jwt token,bcrypt,auth0,auth js

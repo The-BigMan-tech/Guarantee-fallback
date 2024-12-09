@@ -12,7 +12,6 @@ export class TaskOperationsService {
     }
     public async doesTaskExist(group:GroupDTO,index:number,title:string):Promise<boolean> {
         const task = group.tasks[index]
-        console.log("TASK",task);
         if (task.title === title) {
             return true
         }
@@ -27,7 +26,6 @@ export class TaskOperationsService {
     public async deleteTask(boardName:string,groupName:string,index:number,title:string):Promise<string | void> {
         //*The last parameter is to return the board document but should project only the group array containing only the group with the name that matches
         const board:BoardDefinition = await this.BoardModel.findOne({name:boardName,"groups.name": groupName},{'groups.$':1}).exec()
-        console.log(board);
         const group:GroupDTO = board.groups[0]
         const taskDoesNotExist = !(await this.doesTaskExist(group,index,title))
         if (taskDoesNotExist) {
@@ -40,7 +38,11 @@ export class TaskOperationsService {
         ).exec();
     }
     public async editTask(boardName:string,groupName:string,index:number,newTask:TaskDTO):Promise<void> {
-        const board = await this.BoardModel.findOne({name:boardName,"groups.name": groupName},{'groups.$':1}).exec()
-        const group = board.groups[0]
+        const board:BoardDefinition = await this.BoardModel.findOne({name:boardName,"groups.name": groupName},{'groups.$':1}).exec()
+        const group:GroupDTO = board.groups[0]
+        const task:TaskDTO = group.tasks[index]
+        const updatedTask:TaskDTO = {...task,...newTask}
+
+        console.log("NEW TASK",updatedTask);
     }
 }
