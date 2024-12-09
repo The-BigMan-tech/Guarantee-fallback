@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
-import { CreateBoard } from "./controllers/create-board.controller";
+import { CreateBoard } from "./controllers/create-board.controller.js";
 import { BoardModel} from "../schemas/board.schema";
 import { MongooseModule } from "@nestjs/mongoose";
-import { CreateBoardService } from "./services/create-board.service";
+import { CreateBoardService } from "./services/create-board.service.js";
 import { CommonServicesModule } from "../common-services/common-services.module";
 import { BoardCheckService } from "../common-services/services/board-check.service";
 import { BoardDataService } from "../common-services/services/get-board-data.service";

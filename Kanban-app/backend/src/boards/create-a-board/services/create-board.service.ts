@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { BoardModelType,BoardDocumentType,BoardDefinition} from "../../schemas/board.schema";
+import { BoardModelType,BoardDocumentType,BoardDefinition} from "../../schemas/board.schema.js";
 
 @Injectable()
 export class CreateBoardService {
