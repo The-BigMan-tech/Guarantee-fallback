@@ -8,13 +8,13 @@ interface TaskLocation {
     taskInfo:TaskDTO
 }
 //*The possibility of two tasks having the same title brings up the use of its index for precision
-interface DeleteInfo {
+interface DeleteTaskInfo {
     boardName:string,
     groupName:string,
     index:number,
     title:string
 }
-interface EditInfo {
+interface EditTaskInfo {
     boardName:string,
     groupName:string,
     index:number,
@@ -31,7 +31,7 @@ export class TaskController {
         return `ADDED THE TASK ${task.taskInfo.title} TO THE GROUP ${task.taskInfo.status} OF THE BOARD ${task.boardName}`
     }
     @Delete('/deleteTask')
-    public async deleteTaskControl(@Query() task:DeleteInfo):Promise<string> {
+    public async deleteTaskControl(@Query() task:DeleteTaskInfo):Promise<string> {
         try {
             const result = await this.operationService.deleteTask(task.boardName,task.groupName,task.index,task.title);
             if (result === 'not found') {
@@ -43,8 +43,11 @@ export class TaskController {
         }
     }
     @Put('/editTask')
-    public async editTaskControl(@Body() task:EditInfo):Promise<string> {
-        await this.operationService.editTask(task.boardName,task.groupName,task.index,task.newTask);
-        return
+    public async editTaskControl(@Body() task:EditTaskInfo):Promise<string> {
+        const result = await this.operationService.editTask(task.boardName,task.groupName,task.index,task.newTask);
+        if (result == 'not found') {
+            return `CANNOT EDIT THE TASK ${task.newTask.title} FROM THE GROUP ${task.groupName} FROM THE BOARD ${task.boardName} BECAUSE THE TASK DOESNT EXIST`
+        }
+        return `EDITED THE TASK ${task.newTask.title} FROM THE GROUP ${task.groupName} FOR THE BOARD ${task.boardName}`
     }
 }

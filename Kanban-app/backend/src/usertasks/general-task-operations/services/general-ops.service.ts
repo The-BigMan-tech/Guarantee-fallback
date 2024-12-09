@@ -12,7 +12,7 @@ export class TaskOperationsService {
     }
     public async doesTaskExist(group:GroupDTO,index:number,title:string):Promise<boolean> {
         const task = group.tasks[index]
-        if (task.title === title) {
+        if ((task) && (task.title === title)) {
             return true
         }
         return false
@@ -37,12 +37,26 @@ export class TaskOperationsService {
             { $set: { "groups.$.tasks":group.tasks } } // Use $pull to remove the task by title
         ).exec();
     }
-    public async editTask(boardName:string,groupName:string,index:number,newTask:TaskDTO):Promise<void> {
+    /**
+     * *The $ returns the first element in array that matches the query
+     * *The dot operator means look for one group in that array that matches the criteria specified
+     * *The dot operator is to query into nested structures.for objects,you provide the key and for an array,the index.
+     */
+    public async editTask(boardName:string,groupName:string,index:number,newTask:TaskDTO):Promise<string | void> {
         const board:BoardDefinition = await this.BoardModel.findOne({name:boardName,"groups.name": groupName},{'groups.$':1}).exec()
         const group:GroupDTO = board.groups[0]
         const task:TaskDTO = group.tasks[index]
         const updatedTask:TaskDTO = {...task,...newTask}
 
         console.log("NEW TASK",updatedTask);
+        const taskDoesNotExist = !(await this.doesTaskExist(group,index,newTask.title))
+        if (taskDoesNotExist) {
+            return 'not found'
+        }
+        await this.BoardModel.updateOne(
+            {name:boardName,"groups.name":groupName,"groups.tasks.title":task.title},
+            //*we use square brackets because it allows you to evaluate an expression as an object key
+            {$set:{[`groups.$.tasks.${index}`]:updatedTask}}
+        ).exec()
     }
 }

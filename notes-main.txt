@@ -35,7 +35,7 @@ graphiql
 get exactly what you want
 Dgraph database
 we use npm install to install project dependencies as dictated by the package.json
-
+myG1thu61234$$#
 
 shiny object syndrome
 Python--forensics,data science,machine learning,cyber security,networking
@@ -144,7 +144,7 @@ Nest js
 intersection observer api
 Chart js
 !socket io
-Third party apis--twillio,stripe,auth0,algolia
+Third party apis--twillio,stripe,auth0,algolia,otpAuth
 Graphql server and Dgraph DB
 security with jwt token,bcrypt,auth0,auth js
 jest
@@ -173,7 +173,7 @@ IM MAKING A FILE SHARE AND WHATSAPP
 
 WHERE I AM IN FRONTEND
 -----------------------
-The react stack--formik,redux,react spring,styled components,react scroll parallax
+The react stack--formik,redux,react spring,styled components,react scroll parallax,react pdf
 Angular
 Astro with front end frameworks for better seo
 solid js

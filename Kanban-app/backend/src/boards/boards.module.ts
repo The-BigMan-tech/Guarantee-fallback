@@ -4,9 +4,10 @@ import { LoadBoardModule } from "./load-my-boards/loadBoards.module";
 import { DeleteBoardModule } from "./delete-a-board/delete-board.module";
 import { CommonServicesModule } from "./common-services/common-services.module";
 import { SelectBoardModule } from "./select-a-board/select-board.module";
+import { EditBoardModule } from "./edit-board-name/edit-board.module";
 
 @Module({
-    imports:[CommonServicesModule,CreateBoardModule,LoadBoardModule,DeleteBoardModule,SelectBoardModule],
+    imports:[CommonServicesModule,CreateBoardModule,LoadBoardModule,DeleteBoardModule,SelectBoardModule,EditBoardModule],
 })
 export class BoardModule {
 
