@@ -7,11 +7,7 @@ export class AddGroupService {
     constructor(@InjectModel('Board') private BoardModel:BoardModelType) {
         //No implementation
     }
-    public async addGroup(boardName:string,groupName:string):Promise<string> {
-        const board:BoardDefinition = await this.BoardModel.findOne({name:boardName})
-        if (!board) {
-            return 'board not found'
-        }
+    public async addGroup(boardName:string,groupName:string):Promise<void> {
         await this.BoardModel.updateOne(
             {name:boardName},
             {$push:{groups:{name:groupName,tasks:[]}}}

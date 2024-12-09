@@ -13,12 +13,11 @@ export class AddGroup {
     @Post()
     @UsePipes(new RequestSafetyPipe())
     public async addGroup(@Body() group:GroupInfoDTO):Promise<string> {
-        let groupDoesNotExist:boolean = !(await this.groupCheckService.doesGroupExist(group.boardName,group.groupName))
-        if (groupDoesNotExist) {
-            const result = await this.addGroupService.addGroup(group.boardName,group.groupName);
-            if (result == 'board not found') {
-                return 'BOARD NOT FOUND'
-            }
+        let groupExists:boolean | string = await this.groupCheckService.doesGroupExist(group.boardName,group.groupName)
+        if (groupExists == 'board not found') {
+            return 'BOARD NOT FOUND'
+        }else if (!groupExists) {
+            await this.addGroupService.addGroup(group.boardName,group.groupName);
             return `ADDED THE GROUP '${group.groupName}' TO THE BOARD '${group.boardName}'`
         }
         return `CANNOT ADD THE GROUP: '${group.groupName}' TO THE BOARD '${group.boardName}' BECAUSE THE GROUP ALREADY EXIST`

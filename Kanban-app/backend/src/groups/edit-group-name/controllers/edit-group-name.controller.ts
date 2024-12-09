@@ -16,8 +16,10 @@ export class EditGroup {
     @Put()
     @UsePipes(new RequestSafetyPipe())
     public async editGroup(@Body() group:EditGroupDTO):Promise<string> {
-        const groupDoesNotExist:boolean = !(await this.groupCheckService.doesGroupExist(group.boardName,group.oldGroupName))
-        if (groupDoesNotExist) {
+        const groupExists:boolean | string = await this.groupCheckService.doesGroupExist(group.boardName,group.oldGroupName)
+        if (groupExists === 'board not found') {
+            return 'BOARD NOT FOUND'
+        }else if (!groupExists) {
             return `CANNOT CHANGE THE GROUP NAME OF THE BOARD '${group.boardName}' FROM '${group.oldGroupName}' TO '${group.newGroupName}' BECAUSE THE GROUP OR THE BOARD DOESNT EXIST`;
         }
         await this.editGroupService.editGroup(group.boardName,group.oldGroupName,group.newGroupName);
