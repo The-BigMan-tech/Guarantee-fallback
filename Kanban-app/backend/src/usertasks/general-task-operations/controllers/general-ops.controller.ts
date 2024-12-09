@@ -17,24 +17,30 @@ export class TaskController {
         await this.operationService.addTask(task.boardName,task.taskInfo.status,task.taskInfo);
         return `ADDED THE TASK '${task.taskInfo.title}' TO THE GROUP '${task.taskInfo.status}' OF THE BOARD '${task.boardName}'`
     }
+
     @Delete('/deleteTask')
     public async deleteTaskControl(@Query() task:DeleteTaskDTO):Promise<string> {
-        try {
-            const result = await this.operationService.deleteTask(task.boardName,task.groupName,task.index,task.title);
-            if (result === 'not found') {
-                return `CANNOT DELETE THE TASK '${task.title}' FROM THE GROUP '${task.groupName}' FROM THE BOARD '${task.boardName}' BECAUSE THE TASK DOESNT EXIST`
-            }
-            return `DELETED THE TASK '${task.title}' FROM THE GROUP '${task.groupName}' FOR THE BOARD '${task.boardName}'`
-        }catch {
-            return `CANNOT DELETE THE TASK '${task.title}' FROM THE GROUP '${task.groupName}' BECAUSE THE GROUP DOESNT EXIST`
+        const result = await this.operationService.deleteTask(task.boardName,task.groupName,task.index,task.title);
+        if (result === 'board not found') {
+            return `BOARD NOT FOUND`
+        }else if(result === 'group not found') {
+            return `GROUP NOT FOUND`
+        }else if (result === 'task not found') {
+            return `COULD NOT DELETE THE TASK ${task.title} FROM THE GROUP ${task.groupName} FROM THE BOARD ${task.boardName} BECAUSE IT DOESNT EXIST AT THE INDEX YOU PROVIDED`
         }
+        return `SUCCESSFULLY DELETED THE TASK ${task.title} FROM THE GROUP ${task.groupName} FROM THE BOARD ${task.boardName}`
     }
+
     @Put('/editTask')
     public async editTaskControl(@Body() task:EditTaskDTO):Promise<string> {
         const result = await this.operationService.editTask(task.boardName,task.groupName,task.index,task.newTask);
-        if (result == 'not found') {
-            return `CANNOT EDIT THE TASK '${task.newTask.title}' FROM THE GROUP '${task.groupName}' FROM THE BOARD '${task.boardName}' BECAUSE THE TASK DOESNT EXIST`
+        if (result == 'board not found') {
+            return `BOARD NOT FOUND`
+        }else if (result === 'group not found') {
+            return `GROUP NOT FOUND`
+        }else if (result === `task not found`) {
+            return `TASK NOT FOUND`
         }
-        return `EDITED THE TASK '${task.newTask.title}' FROM THE GROUP '${task.groupName}' FOR THE BOARD '${task.boardName}'`
+        return `SUCCEEDED`
     }
 }

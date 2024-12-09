@@ -26,10 +26,16 @@ export class TaskOperationsService {
     public async deleteTask(boardName:string,groupName:string,index:number,title:string):Promise<string | void> {
         //*The last parameter is to return the board document but should project only the group array containing only the group with the name that matches
         const board:BoardDefinition = await this.BoardModel.findOne({name:boardName,"groups.name": groupName},{'groups.$':1}).exec()
+        if (!board) {
+            return 'board not found'
+        }
         const group:GroupDTO = board.groups[0]
+        if (!group) {
+            return 'group not found'
+        }
         const taskDoesNotExist = !(await this.doesTaskExist(group,index,title))
         if (taskDoesNotExist) {
-            return 'not found'
+            return 'task not found'
         }
         group.tasks.splice(index,1)
         await this.BoardModel.updateOne(
@@ -45,19 +51,23 @@ export class TaskOperationsService {
      */
     public async editTask(boardName:string,groupName:string,index:number,newTask:TaskDTO):Promise<string | void> {
         const board:BoardDefinition = await this.BoardModel.findOne({name:boardName,"groups.name": groupName},{'groups.$':1}).exec()
-        const group:GroupDTO = board.groups[0]
-        const task:TaskDTO = group.tasks[index]
-        const updatedTask:TaskDTO = {...task,...newTask}
-
-        console.log("NEW TASK",updatedTask);
-        const taskDoesNotExist = !(await this.doesTaskExist(group,index,newTask.title))
-        if (taskDoesNotExist) {
-            return 'not found'
+        if (!board) {
+            return 'board not found'
         }
+        const group:GroupDTO = board.groups[0]
+        if (!group) {
+            return 'group not found'
+        }
+        const task:TaskDTO = group.tasks[index]
+        if (!task) {
+            return 'task not found'
+        }
+        const updatedTask:TaskDTO = {...task,...newTask}
         await this.BoardModel.updateOne(
             {name:boardName,"groups.name":groupName,"groups.tasks.title":task.title},
             //*we use square brackets because it allows you to evaluate an expression as an object key
             {$set:{[`groups.$.tasks.${index}`]:updatedTask}}
         ).exec()
+        return task.title
     }
 }

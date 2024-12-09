@@ -1,9 +1,13 @@
 import { TaskDTO } from "src/usertasks/dto/task.dto";
-import { IsString,IsNotEmpty } from "class-validator";
+import { IsString,IsNotEmpty, IsOptional } from "class-validator";
 
 
 export class GroupDTO {
+    @IsString()
+    @IsNotEmpty()
     name:string;
+
+    @IsOptional()
     tasks:TaskDTO[]
 }
 export class GroupInfoDTO {

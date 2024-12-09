@@ -1,22 +1,58 @@
+import { IsEmpty, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
+import { Type } from "class-transformer";
+
 export class TaskDTO {
+    @IsString()
+    @IsNotEmpty()
     title:string;
+
+    @IsString()
+    @IsOptional()
     description:string;
+
+    @IsString()
+    @IsOptional()
     subtasks:string;
+
+    @IsString()
+    @IsNotEmpty()
     status:string
 }
+export class FlexibleTaskDTO extends TaskDTO{
+    @IsString()
+    @IsOptional()
+    @IsEmpty()
+    status: string;
+}
 export class TaskDetailsDTO {
+    @IsString()
+    @IsNotEmpty()
     boardName:string;
+
+    @ValidateNested()
+    @Type(()=>TaskDTO)
     taskInfo:TaskDTO
 }
 //*The possibility of two tasks having the same title brings up the use of its index for precision
 export class GeneralDetailsDTO {
+    @IsString()
+    @IsNotEmpty()
     boardName:string;
+
+    @IsString()
+    @IsNotEmpty()
     groupName:string;
-    index:number
+
+
+    index:number;
 }
 export class DeleteTaskDTO extends GeneralDetailsDTO{
+    @IsString()
+    @IsNotEmpty()
     title:string;
 }
 export class EditTaskDTO extends GeneralDetailsDTO {
-    newTask:TaskDTO
+    @ValidateNested()
+    @Type(()=>FlexibleTaskDTO)
+    newTask:FlexibleTaskDTO
 }
