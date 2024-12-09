@@ -14,7 +14,10 @@ export class TaskController {
     }
     @Post('/addTask')
     public async addTaskControl(@Body() task:TaskDetailsDTO):Promise<string> {
-        await this.operationService.addTask(task.boardName,task.taskInfo.status,task.taskInfo);
+        const result = await this.operationService.addTask(task.boardName,task.taskInfo.status,task.taskInfo);
+        if (result === 'board not found') {
+            return 'BOARD NOT FOUND'
+        }
         return `ADDED THE TASK '${task.taskInfo.title}' TO THE GROUP '${task.taskInfo.status}' OF THE BOARD '${task.boardName}'`
     }
 
@@ -26,7 +29,7 @@ export class TaskController {
         }else if(result === 'group not found') {
             return `GROUP NOT FOUND`
         }else if (result === 'task not found') {
-            return `COULD NOT DELETE THE TASK ${task.title} FROM THE GROUP ${task.groupName} FROM THE BOARD ${task.boardName} BECAUSE IT DOESNT EXIST AT THE INDEX YOU PROVIDED`
+            return `TASK NOT FOUND`
         }
         return `SUCCESSFULLY DELETED THE TASK ${task.title} FROM THE GROUP ${task.groupName} FROM THE BOARD ${task.boardName}`
     }

@@ -15,7 +15,10 @@ export class AddGroup {
     public async addGroup(@Body() group:GroupInfoDTO):Promise<string> {
         let groupDoesNotExist:boolean = !(await this.groupCheckService.doesGroupExist(group.boardName,group.groupName))
         if (groupDoesNotExist) {
-            await this.addGroupService.addGroup(group.boardName,group.groupName);
+            const result = await this.addGroupService.addGroup(group.boardName,group.groupName);
+            if (result == 'board not found') {
+                return 'BOARD NOT FOUND'
+            }
             return `ADDED THE GROUP '${group.groupName}' TO THE BOARD '${group.boardName}'`
         }
         return `CANNOT ADD THE GROUP: '${group.groupName}' TO THE BOARD '${group.boardName}' BECAUSE THE GROUP ALREADY EXIST`
