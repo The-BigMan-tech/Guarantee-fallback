@@ -1,9 +1,9 @@
-import { Controller,Post,Body} from "@nestjs/common";
-import { BoardDefinition } from "../../schemas/board.schema";
+import { Controller,Post,Body, UsePipes} from "@nestjs/common";
 import { CreateBoardService } from "../services/create-board.service";
 import { BoardCheckService } from "src/boards/common-services/services/board-check.service";
 import { BoardDataService } from "src/boards/common-services/services/get-board-data.service";
-
+import { BoardDTO } from "src/boards/dtos/board.dto";
+import { RequestSafetyPipe } from "src/pipes/request-safety.pipe";
 
 @Controller('boards/createBoard')
 export class CreateBoard {
@@ -15,7 +15,8 @@ export class CreateBoard {
         //No implementation
     }
     @Post()
-    public async createBoard(@Body() board:BoardDefinition):Promise<string> {
+    @UsePipes(new RequestSafetyPipe())
+    public async createBoard(@Body() board:BoardDTO):Promise<string> {
         let result;
         const defaultGroups = ['TODO','DOING','DONE']
         board.groups = []

@@ -1,11 +1,10 @@
 import { Controller,Delete,Query,Get} from "@nestjs/common";
 import { GroupCheckService } from "src/groups/common-services/services/group-check.service";
 import { DeleteGroupService } from "../services/delete-group.service";
+import { GroupInfoDTO } from "src/groups/dto/groups.dto";
+import { RequestSafetyPipe } from "src/pipes/request-safety.pipe";
+import { UsePipes } from "@nestjs/common";
 
-interface GroupInfo {
-    boardName:string,
-    groupName:string
-}
 
 @Controller('groups/deleteGroup')
 export class DeleteGroup {
@@ -16,7 +15,8 @@ export class DeleteGroup {
         //No implementation
     }
     @Delete()
-    public async deleteGroup(@Query() group:GroupInfo):Promise<string> {
+    @UsePipes(new RequestSafetyPipe())
+    public async deleteGroup(@Query() group:GroupInfoDTO):Promise<string> {
         let groupExists:boolean = await this.groupCheckService.doesGroupExist(group.boardName,group.groupName)
         if (groupExists) {
             await this.deleteGroupService.deleteGroup(group.boardName,group.groupName);

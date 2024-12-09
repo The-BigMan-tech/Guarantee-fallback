@@ -1,37 +1,24 @@
 import { Controller,Post,Body,Delete,Query,Put} from "@nestjs/common";
 import { TaskDTO } from "src/usertasks/dto/task.dto";
 import { TaskOperationsService } from "../services/general-ops.service";
+import { UsePipes } from "@nestjs/common";
+import { RequestSafetyPipe } from "src/pipes/request-safety.pipe";
+import { TaskDetailsDTO,DeleteTaskDTO,EditTaskDTO} from "src/usertasks/dto/task.dto";
 
 
-interface TaskLocation {
-    boardName:string,
-    taskInfo:TaskDTO
-}
-//*The possibility of two tasks having the same title brings up the use of its index for precision
-interface DeleteTaskInfo {
-    boardName:string,
-    groupName:string,
-    index:number,
-    title:string
-}
-interface EditTaskInfo {
-    boardName:string,
-    groupName:string,
-    index:number,
-    newTask:TaskDTO
-}
 @Controller('tasks')
+@UsePipes(new RequestSafetyPipe())
 export class TaskController {
     constructor(private readonly operationService:TaskOperationsService) {
         //No implementation
     }
     @Post('/addTask')
-    public async addTaskControl(@Body() task:TaskLocation):Promise<string> {
+    public async addTaskControl(@Body() task:TaskDetailsDTO):Promise<string> {
         await this.operationService.addTask(task.boardName,task.taskInfo.status,task.taskInfo);
         return `ADDED THE TASK '${task.taskInfo.title}' TO THE GROUP '${task.taskInfo.status}' OF THE BOARD '${task.boardName}'`
     }
     @Delete('/deleteTask')
-    public async deleteTaskControl(@Query() task:DeleteTaskInfo):Promise<string> {
+    public async deleteTaskControl(@Query() task:DeleteTaskDTO):Promise<string> {
         try {
             const result = await this.operationService.deleteTask(task.boardName,task.groupName,task.index,task.title);
             if (result === 'not found') {
@@ -43,7 +30,7 @@ export class TaskController {
         }
     }
     @Put('/editTask')
-    public async editTaskControl(@Body() task:EditTaskInfo):Promise<string> {
+    public async editTaskControl(@Body() task:EditTaskDTO):Promise<string> {
         const result = await this.operationService.editTask(task.boardName,task.groupName,task.index,task.newTask);
         if (result == 'not found') {
             return `CANNOT EDIT THE TASK '${task.newTask.title}' FROM THE GROUP '${task.groupName}' FROM THE BOARD '${task.boardName}' BECAUSE THE TASK DOESNT EXIST`

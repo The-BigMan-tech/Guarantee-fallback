@@ -1,12 +1,9 @@
 import { Controller,Put,Body} from "@nestjs/common";
 import { GroupCheckService } from "src/groups/common-services/services/group-check.service";
 import { EditGroupService } from "../services/edit-group-name.service";
-
-interface EditGroupInfo {
-    boardName:string,
-    oldGroupName:string,
-    newGroupName:string
-}
+import { EditGroupDTO } from "src/groups/dto/groups.dto";
+import { RequestSafetyPipe } from "src/pipes/request-safety.pipe";
+import { UsePipes } from "@nestjs/common";
 
 @Controller('groups/editGroup')
 export class EditGroup {
@@ -17,7 +14,8 @@ export class EditGroup {
         //No implementation
     }
     @Put()
-    public async editGroup(@Body() group:EditGroupInfo):Promise<string> {
+    @UsePipes(new RequestSafetyPipe())
+    public async editGroup(@Body() group:EditGroupDTO):Promise<string> {
         const groupDoesNotExist:boolean = !(await this.groupCheckService.doesGroupExist(group.boardName,group.oldGroupName))
         if (groupDoesNotExist) {
             return `CANNOT CHANGE THE GROUP NAME OF THE BOARD '${group.boardName}' FROM '${group.oldGroupName}' TO '${group.newGroupName}' BECAUSE THE GROUP DOESNT EXIST`;

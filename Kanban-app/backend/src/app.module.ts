@@ -6,6 +6,7 @@ import { Connection } from 'mongoose';
 import { MongooseModule } from '@nestjs/mongoose';
 import { GroupModule } from './groups/groups.module';
 import { TasksModule } from './usertasks/usertasks.module';
+import { RequestSafetyPipe } from './pipes/request-safety.pipe';
 
 @Module({
   imports: [
@@ -21,6 +22,6 @@ import { TasksModule } from './usertasks/usertasks.module';
       )
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,RequestSafetyPipe],
 })
 export class AppModule {}
