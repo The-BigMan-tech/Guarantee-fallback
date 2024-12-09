@@ -1,6 +1,7 @@
-
+GET and DELETE: Use query strings and path parameters.
+POST and PUT: Use the request body to send data.
+Operation safety
 nest js is based on angular and is opionated while express is unopinionated
-
 
 so there is a difference between using the downloaded and the deployed version of an app.In the deployed version,the client doesnt download anything,the frontend is deployed on something like vercel and the backend is hosted on a hosting playform like hostinger and the data can be stored on a cloud service while in the downloaded version,it can be fully contained but the backend must use a local storage db like sql lite or indexed db i.e both the front and backend or a mix where the frontend is downloaded but the backend is hosted on a hosting platform
 
