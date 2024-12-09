@@ -1,6 +1,5 @@
 import { Controller,Post,Body, UsePipes} from "@nestjs/common";
 import { CreateBoardService } from "../services/create-board.service.js";
-import chalk from 'chalk'
 import { BoardCheckService } from "src/boards/common-services/services/board-check.service";
 import { BoardDataService } from "src/boards/common-services/services/get-board-data.service";
 import { BoardDTO } from "src/boards/dtos/board.dto";
@@ -27,7 +26,7 @@ export class CreateBoard {
         let boardDoesNotExist = !(await this.boardCheckService.doesBoardExist(board.name))
         if (boardDoesNotExist) {
             result = await this.boardService.createBoard(board);
-            return `${chalk.green('SUCCESSS: ')}'Created a board named ${board.name}'\n\n Here is the board data:\n${result}`
+            return `SUCCESSS:Created a board named ${board.name}'\n\n Here is the board data:\n${result}`
         }
         result = await this.boardDataService.returnBoard(board.name)
         return `CANNOT CREATE THE BOARD '${board.name}' AS THE BOARD ALREADY EXISTS`
