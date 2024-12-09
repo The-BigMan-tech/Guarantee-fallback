@@ -26,7 +26,7 @@ export class CreateBoard {
         let boardDoesNotExist = !(await this.boardCheckService.doesBoardExist(board.name))
         if (boardDoesNotExist) {
             result = await this.boardService.createBoard(board);
-            return `SUCCESSS:Created a board named ${board.name}'\n\n Here is the board data:\n${result}`
+            return `SUCCESS:Created a board named ${board.name}'\n\n Here is the board data:\n${result}`
         }
         result = await this.boardDataService.returnBoard(board.name)
         return `CANNOT CREATE THE BOARD '${board.name}' AS THE BOARD ALREADY EXISTS`
