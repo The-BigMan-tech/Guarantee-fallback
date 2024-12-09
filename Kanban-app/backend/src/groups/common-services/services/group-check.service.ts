@@ -10,6 +10,9 @@ export class GroupCheckService {
     }
     async doesGroupExist(boardName:string,groupName:string):Promise<boolean> {
         const existingBoard:BoardDefinition = await this.BoardModel.findOne({name:boardName}).exec();
+        if (!existingBoard) {
+            return false
+        }
         for (let group of existingBoard.groups) {
             if (group.name == groupName) {
                 return true

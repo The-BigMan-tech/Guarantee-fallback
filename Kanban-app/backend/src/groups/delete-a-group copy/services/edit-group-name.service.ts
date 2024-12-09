@@ -20,6 +20,12 @@ export class EditGroupService {
         }
     }
     public async editGroup(boardName:string,oldGroupName:string,newGroupName:string):Promise<void> {
-        
+        const board:BoardDefinition = await this.boardModel.findOne({name:boardName}).exec();
+        for (let group of board.groups) {
+            if (group.name == oldGroupName) {
+                group.name = newGroupName;
+                await this.boardModel.findOneAndReplace(board,board);
+            }
+        }
     }
 }

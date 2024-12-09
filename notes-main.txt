@@ -1,4 +1,4 @@
-?More type annotations,better messages
+?More type annotations,better messages,enforce request safety with pipes
 
 Not adhering to the interface when sending request data can lead to errors
 *Types of storage:cookies,sessions,local storage,database
@@ -36,7 +36,7 @@ canvas tag for drawing graphics in an html page using js
 graphiql
 get exactly what you want
 Dgraph database
-we use npm install to install project dependencies as dictated by the package.json
+?we use npm install to install project dependencies as dictated by the package.json
 myG1thu61234$$#
 
 shiny object syndrome

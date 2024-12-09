@@ -22,6 +22,7 @@ export class EditGroup {
         if (groupDoesNotExist) {
             return `CANNOT CHANGE THE GROUP NAME OF THE BOARD ${group.boardName} FROM ${group.oldGroupName} TO ${group.newGroupName} BECAUSE THE GROUP DOESNT EXIST`;
         }
+        await this.editGroupService.editGroup(group.boardName,group.oldGroupName,group.newGroupName);
         return `CHANGED THE GROUP NAME OF THE BOARD ${group.boardName} FROM ${group.oldGroupName} TO ${group.newGroupName}`
     }
 }
