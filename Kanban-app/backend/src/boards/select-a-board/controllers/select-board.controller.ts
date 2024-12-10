@@ -9,14 +9,22 @@ export class SelectBoard {
     }
     public async selectBoard(boardName:string,option:string) {
         let result;
-        let boardDoesNotExist = !(await this.boardCheckService.doesBoardExist(boardName))
-        if (boardDoesNotExist) return `CANNOT LOAD THE DATA FOR THE BOARD: '${boardName}' BECAUSE IT DOESNT EXIST`;
+        let tag:string;
+        let message:string;
+        let boardDoesNotExist:boolean = !(await this.boardCheckService.doesBoardExist(boardName))
+        if (boardDoesNotExist) {
+            tag = 'UNSAFE'
+            message = `Cannot load the data for the board '${boardName}' because it doesnt exist`
+            return `${tag}:${message}`;
+        }
         if (option === 'object') {
             result = await this.boardDataService.returnBoard(boardName)
         }else if (option === 'string'){
             result = await this.boardDataService.returnBoardAsString(boardName)
         }
-        return `LOADED '${boardName}' DATA:\n ${result}`
+        tag = 'SUCCESSFUL'
+        message = `Loaded '${boardName}' data:\n ${result}`
+        return `${tag}:${message}`
     }
     
     @Get()

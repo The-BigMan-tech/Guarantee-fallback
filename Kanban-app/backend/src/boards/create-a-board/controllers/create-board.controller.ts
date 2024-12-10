@@ -31,7 +31,7 @@ export class CreateBoard {
         if (boardDoesNotExist) {
             result = await this.boardService.createBoard(board);
             tag = 'SUCCESSFUL'
-            message = `Created a board named '${board.name}'\nData for the board:\n${result}`
+            message = `Created a board named '${board.name}'\nInitial data for the board:\n${result}`
             return `${tag}:${message}`
         }
         result = await this.boardDataService.returnBoard(board.name)

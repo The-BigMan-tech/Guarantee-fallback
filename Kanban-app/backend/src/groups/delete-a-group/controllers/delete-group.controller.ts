@@ -18,9 +18,7 @@ export class DeleteGroup {
     @UsePipes(new RequestSafetyPipe())
     public async deleteGroup(@Query() group:GroupInfoDTO):Promise<string> {
         let groupExists:boolean | string = await this.groupCheckService.doesGroupExist(group.boardName,group.groupName)
-        if (groupExists == 'board not found') {
-            return 'BOARD NOT FOUND'
-        }else if (groupExists) {
+        if (groupExists) {
             await this.deleteGroupService.deleteGroup(group.boardName,group.groupName);
             return `DELETED THE GROUP '${group.groupName}' FROM THE BOARD '${group.boardName}'`
         }

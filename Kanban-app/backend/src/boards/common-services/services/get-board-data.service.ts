@@ -12,7 +12,7 @@ export class BoardDataService {
         return await this.BoardModel.findOne({name:board}).exec();
     }
     public async returnBoardAsString(board:string):Promise<string> {
-        const updatedBoard: BoardDefinition = await this.BoardModel.findOne({ name: board}).lean();
-        return `UPDATED BOARD", ${JSON.stringify(updatedBoard, null, 2)}` // Use JSON.stringify for better visibility
+        const theBoard:BoardDefinition = await this.BoardModel.findOne({ name: board}).lean();
+        return JSON.stringify(theBoard, null, 2) // Use JSON.stringify for better visibility
     }
 }

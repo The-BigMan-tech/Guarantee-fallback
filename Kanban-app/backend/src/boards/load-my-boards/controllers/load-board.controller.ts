@@ -13,7 +13,15 @@ export class LoadBoard {
     }
     @Get('forDebugging')
     public async loadBoards():Promise<string> {
-        const currentBoards = JSON.stringify(await this.boardService.returnBoards(),null,5)
-        return `HERE ARE THE CREATED BOARDS: \n ${currentBoards}`
+        let currentBoards:BoardDocumentType[] | string = await this.boardService.returnBoards()
+        let tag:string = 'SUCCESSFUL';
+        let message:string;
+        if (currentBoards.length) {
+            currentBoards = JSON.stringify(currentBoards,null,3)
+            message = `Here are your boards: \n ${currentBoards}`
+            return `${tag}:${message}`
+        }
+        message = 'But you have no boards'
+        return `${tag}:${message}`
     }
 }

@@ -12,11 +12,17 @@ export class EditBoard {
     @Put()
     @UsePipes(new RequestSafetyPipe())
     public async editBoard(@Body() board:EditBoardDTO):Promise<string> {
+        let tag:string;
+        let message:string;
         const boardDoesNotExist = !(await this.checkService.doesBoardExist(board.oldBoardName))
         if (boardDoesNotExist) {
-            return `CANNOT CHANGE THE BOARD NAME FROM '${board.oldBoardName}' TO '${board.newBoardName}' BECAUSE THE BOARD DOESNT EXIST`
+            tag = 'UNSAFE'
+            message = `Cannot change the board name from '${board.oldBoardName}' to '${board.newBoardName}' because the board doesnt exist'`
+            return `${tag}:${message}`
         }
         await this.editService.editBoard(board.oldBoardName,board.newBoardName)
-        return `CHANGED THE BOARD NAME FROM ${board.oldBoardName} TO ${board.newBoardName}`
+        tag = 'SUCCESSFUL'
+        message = `Changed the board name from '${board.oldBoardName}' to '${board.newBoardName}'`
+        return `${tag}:${message}`
     }
 }

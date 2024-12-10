@@ -8,11 +8,8 @@ export class GroupCheckService {
     constructor(@InjectModel('Board') private BoardModel:BoardModelType) {
         //No implementation
     }
-    async doesGroupExist(boardName:string,groupName:string):Promise<boolean | string> {
+    async doesGroupExist(boardName:string,groupName:string):Promise<boolean> {
         const existingBoard:BoardDefinition = await this.BoardModel.findOne({name:boardName}).exec();
-        if (!existingBoard) {
-            return 'board not found'
-        }
         for (let group of existingBoard.groups) {
             if (group.name == groupName) {
                 return true

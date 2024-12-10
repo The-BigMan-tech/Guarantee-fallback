@@ -145,10 +145,10 @@ PART 2--expert backend
 Nest js
 intersection observer api
 Chart js
+security with jwt token,bcrypt,auth0,auth js,otpAuth
 !socket io
 Third party apis--twillio,stripe,auth0,algolia,otpAuth
 Graphql server and Dgraph DB
-security with jwt token,bcrypt,auth0,auth js
 jest
 fastify
 

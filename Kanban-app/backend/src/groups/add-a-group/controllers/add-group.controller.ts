@@ -4,22 +4,39 @@ import { GroupCheckService } from "src/groups/common-services/services/group-che
 import { GroupInfoDTO } from "src/groups/dto/groups.dto";
 import { RequestSafetyPipe } from "src/pipes/request-safety.pipe";
 import { UsePipes } from "@nestjs/common";
+import { BoardCheckService } from "src/boards/common-services/services/board-check.service";
+
 
 @Controller('groups/addGroup/')
 export class AddGroup {
-    constructor(private readonly addGroupService:AddGroupService,private readonly groupCheckService:GroupCheckService) {
+    constructor(
+        private readonly addGroupService:AddGroupService,
+        private readonly groupCheckService:GroupCheckService,
+        private readonly boardCheckService:BoardCheckService
+    ) {
         //No implementation
     }
     @Post()
     @UsePipes(new RequestSafetyPipe())
     public async addGroup(@Body() group:GroupInfoDTO):Promise<string> {
-        let groupExists:boolean | string = await this.groupCheckService.doesGroupExist(group.boardName,group.groupName)
-        if (groupExists == 'board not found') {
-            return 'BOARD NOT FOUND'
-        }else if (!groupExists) {
-            await this.addGroupService.addGroup(group.boardName,group.groupName);
-            return `ADDED THE GROUP '${group.groupName}' TO THE BOARD '${group.boardName}'`
+        let tag:string;
+        let message:string;
+
+        let boardExists:boolean = await this.boardCheckService.doesBoardExist(group.boardName);
+        if (!boardExists) {
+            tag = 'UNSAFE'
+            message = `Cannot add the group '${group.groupName}' to the board '${group.boardName}' because the board doesnt exist`
+            return `${tag}:${message}`
         }
-        return `CANNOT ADD THE GROUP: '${group.groupName}' TO THE BOARD '${group.boardName}' BECAUSE THE GROUP ALREADY EXIST`
+        let groupExists:boolean = await this.groupCheckService.doesGroupExist(group.boardName,group.groupName)
+        if (!groupExists) {
+            await this.addGroupService.addGroup(group.boardName,group.groupName);
+            tag = 'SUCCESSFUL'
+            message = `Added the group '${group.groupName}' to the board '${group.boardName}'`
+            return `${tag}:${message}`
+        }
+        tag = 'UNSAFE'
+        message = `Cannot add the group '${group.groupName}' to the board '${group.boardName}' because the group already exists`
+        return `${tag}:${message}`
     }
 }
