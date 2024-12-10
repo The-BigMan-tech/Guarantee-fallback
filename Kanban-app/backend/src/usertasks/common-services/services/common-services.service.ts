@@ -16,7 +16,7 @@ export class allCheckService {
     ) {
         //No implementation
     }
-    public async checkForAll(boardName:string,groupName:string,taskName:string,checkForTask?:boolean,taskIndex?:number):Promise<string | void> {
+    public async checkForAll(boardName:string,groupName:string,checkForTask?:boolean,taskIndex?:number):Promise<string | void> {
         const boardExists = await this.boardCheckService.doesBoardExist(boardName)
         if (!boardExists) {
             return `board not found`
@@ -35,4 +35,24 @@ export class allCheckService {
             return task.title
         }
     }   
+    public async checkOperationSafety(operationType:string,boardName:string,groupName:string,checkForTask:boolean=false,taskIndex?:number):Promise<string | string[]> {
+        let tag:string;
+        let message:string;
+        const unsafeMessage:string | void = await this.checkForAll(boardName,groupName,checkForTask,taskIndex)
+        if (unsafeMessage === 'board not found' || 'group not found' || 'task not found') {
+            tag = 'UNSAFE'
+        }
+        if (unsafeMessage === 'board not found') {
+            message = `The board,'${boardName}' doesnt exist to perform the ${operationType} operation`
+            return `${tag}:${message}`
+        }else if (unsafeMessage === 'group not found') {
+            message = `The group,'${groupName}' doesnt exist to perform the ${operationType} operation`
+            return `${tag}:${message}`
+        }else if (unsafeMessage === 'task not found') {
+            message = `No task exist at the query you provided to perform the ${operationType} operation`
+            return `${tag}:${message}`
+        }else {
+            return ['operation is safe',unsafeMessage as string]
+        }
+    }
 }

@@ -17,15 +17,13 @@ export class AddTaskControl {
     public async addTaskControl(@Body() task:TaskDetailsDTO):Promise<string> {
         let tag:string;
         let message:string;
-        const unsafeMessage:string | void = await this.allCheckService.checkForAll(task.boardName,task.taskInfo.status,task.taskInfo.title)
-        if (unsafeMessage) {
-            tag = 'UNSAFE'
-            message = unsafeMessage
-            return `${tag}:${message}`
+        const unsafeMessage:string | string[] = await this.allCheckService.checkOperationSafety('add',task.boardName,task.taskInfo.status)
+        if (!Array.isArray(unsafeMessage)) {
+            return unsafeMessage 
         }
         await this.addTaskService.addTask(task.boardName,task.taskInfo.status,task.taskInfo);
         tag = 'SUCCESSFUL'
-        message = `Added the task '${task.taskInfo.title}' to the group '${task.taskInfo.status}' from the board '${task.boardName}'`
+        message = `Added the task '${task.taskInfo.title}' to the group '${task.taskInfo.status}' to the board '${task.boardName}'`
         return `${tag}:${message}`
     }
 }
