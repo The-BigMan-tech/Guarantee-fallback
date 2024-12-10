@@ -5,15 +5,15 @@ import { allCheckService } from "../common-services/services/common-services.ser
 import { BoardCheckService } from "src/boards/common-services/services/board-check.service";
 import { GroupCheckService } from "src/groups/common-services/services/group-check.service";
 
-import { AddTaskControl } from "./controllers/add-task.controller";
-import { AddTaskService } from "./services/add-task.service";
+import { DeleteTaskControl } from "./controllers/delete-task.controller";
+import { DeleteTaskService } from "./services/delete-task.service";
 
 const ModelArray = [BoardModel]
 @Module({
     imports:[MongooseModule.forFeature(ModelArray)],
-    controllers:[AddTaskControl],
-    providers:[AddTaskService,allCheckService,BoardCheckService,GroupCheckService]
+    controllers:[DeleteTaskControl],
+    providers:[DeleteTaskService,allCheckService,BoardCheckService,GroupCheckService]
 })
-export class AddTaskModule {
+export class DeleteTaskModule {
     
 }

@@ -43,13 +43,7 @@ export class GeneralDetailsDTO {
     @IsNotEmpty()
     groupName:string;
 
-
     index:number;
-}
-export class DeleteTaskDTO extends GeneralDetailsDTO{
-    @IsString()
-    @IsNotEmpty()
-    title:string;
 }
 export class EditTaskDTO extends GeneralDetailsDTO {
     @ValidateNested()
