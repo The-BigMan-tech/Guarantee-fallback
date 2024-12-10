@@ -1,4 +1,4 @@
-import { Controller,Post,Body} from "@nestjs/common";
+import { Controller,Post,Body,NotFoundException} from "@nestjs/common";
 import { AddGroupService } from "../services/add-group.service";
 import { GroupCheckService } from "src/groups/common-services/services/group-check.service";
 import { GroupInfoDTO } from "src/groups/dto/groups.dto";
@@ -26,7 +26,7 @@ export class AddGroup {
         if (!boardExists) {
             tag = 'UNSAFE'
             message = `Cannot add the group '${group.groupName}' to the board '${group.boardName}' because the board doesnt exist`
-            return `${tag}:${message}`
+            throw new NotFoundException(`${tag}:${message}`)
         }
         let groupExists:boolean = await this.groupCheckService.doesGroupExist(group.boardName,group.groupName)
         if (!groupExists) {
@@ -37,6 +37,6 @@ export class AddGroup {
         }
         tag = 'UNSAFE'
         message = `Cannot add the group '${group.groupName}' to the board '${group.boardName}' because the group already exists`
-        return `${tag}:${message}`
+        throw new NotFoundException(`${tag}:${message}`)
     }
 }

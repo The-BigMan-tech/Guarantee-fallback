@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable,NotFoundException} from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { BoardModelType } from "src/boards/schemas/board.schema";
 import { BoardCheckService } from "src/boards/common-services/services/board-check.service";
@@ -44,13 +44,13 @@ export class allCheckService {
         }
         if (warning === 'board not found') {
             message = `The board,'${boardName}' doesnt exist to perform the ${operationType} operation`
-            return `${tag}:${message}`
+            throw new NotFoundException(`${tag}:${message}`)
         }else if (warning === 'group not found') {
             message = `The group,'${groupName}' doesnt exist to perform the ${operationType} operation`
-            return `${tag}:${message}`
+            throw new NotFoundException(`${tag}:${message}`)
         }else if (warning === 'task not found') {
             message = `No task exist at the query you provided to perform the ${operationType} operation`
-            return `${tag}:${message}`
+            throw new NotFoundException(`${tag}:${message}`)
         }else {
             return ['operation is safe',warning as string]
         }

@@ -1,4 +1,4 @@
-import { Controller,Get,Param} from "@nestjs/common";
+import { Controller,Get,Param,NotFoundException} from "@nestjs/common";
 import { BoardDataService } from "src/boards/common-services/services/get-board-data.service";
 import { BoardCheckService } from "src/boards/common-services/services/board-check.service";
 
@@ -15,7 +15,7 @@ export class SelectBoard {
         if (boardDoesNotExist) {
             tag = 'UNSAFE'
             message = `Cannot load the data for the board '${boardName}' because it doesnt exist`
-            return `${tag}:${message}`;
+            throw new NotFoundException(`${tag}:${message}`);
         }
         if (option === 'object') {
             result = await this.boardDataService.returnBoard(boardName)

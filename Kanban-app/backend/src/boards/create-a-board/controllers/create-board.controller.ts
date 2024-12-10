@@ -1,4 +1,4 @@
-import { Controller,Post,Body, UsePipes} from "@nestjs/common";
+import { Controller,Post,Body, UsePipes,NotFoundException} from "@nestjs/common";
 import { CreateBoardService } from "../services/create-board.service.js";
 import { BoardCheckService } from "src/boards/common-services/services/board-check.service";
 import { BoardDataService } from "src/boards/common-services/services/get-board-data.service";
@@ -37,6 +37,6 @@ export class CreateBoard {
         result = await this.boardDataService.returnBoard(board.name)
         tag = 'UNSAFE'
         message = `Cannot create the board '${board.name}' because the board already exists`
-        return `${tag}:${message}`
+        throw new NotFoundException(`${tag}:${message}`) 
     }
 }

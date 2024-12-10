@@ -1,4 +1,4 @@
-import { Controller,Put,Body} from "@nestjs/common";
+import { Controller,Put,Body,NotFoundException} from "@nestjs/common";
 import { GroupCheckService } from "src/groups/common-services/services/group-check.service";
 import { EditGroupService } from "../services/edit-group-name.service";
 import { EditGroupDTO } from "src/groups/dto/groups.dto";
@@ -24,13 +24,13 @@ export class EditGroup {
         if (!boardExists) {
             tag = 'UNSAFE'
             message = `The board you provided,'${group.boardName}' doesnt exist to perform the edit operation`
-            return `${tag}:${message}`
+            throw new NotFoundException(`${tag}:${message}`)
         }
         const groupExists:boolean = await this.groupCheckService.doesGroupExist(group.boardName,group.oldGroupName)
         if (!groupExists) {
             tag = 'UNSAFE'
             message = `The group you provided,'${group.oldGroupName}' doesnt exist to perform the edit operation`
-            return `${tag}:${message}`
+            throw new NotFoundException(`${tag}:${message}`)
         }
         await this.editGroupService.editGroup(group.boardName,group.oldGroupName,group.newGroupName);
         tag = 'SUCCESSFUL'

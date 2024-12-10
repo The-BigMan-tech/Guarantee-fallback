@@ -1,4 +1,4 @@
-import { Controller,Delete,Query,Get} from "@nestjs/common";
+import { Controller,Delete,Query,Get,NotFoundException} from "@nestjs/common";
 import { GroupCheckService } from "src/groups/common-services/services/group-check.service";
 import { DeleteGroupService } from "../services/delete-group.service";
 import { GroupInfoDTO } from "src/groups/dto/groups.dto";
@@ -24,7 +24,7 @@ export class DeleteGroup {
         if (!boardExists) {
             tag = 'UNSAFE'
             message = `Cannot delete the group '${group.groupName}' from the board '${group.boardName}' because the board doesnt exist`
-            return `${tag}:${message}`
+            throw new NotFoundException(`${tag}:${message}`)
         }
         let groupExists:boolean = await this.groupCheckService.doesGroupExist(group.boardName,group.groupName)
         if (groupExists) {
@@ -35,6 +35,6 @@ export class DeleteGroup {
         }
         tag = 'UNSAFE'
         message = `Cannot delete the group '${group.groupName}' from the board '${group.boardName}' because the group doesnt exist`
-        return `${tag}:${message}`
+        throw new NotFoundException(`${tag}:${message}`)
     }
 }

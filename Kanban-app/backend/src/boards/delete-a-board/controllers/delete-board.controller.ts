@@ -1,4 +1,4 @@
-import { Controller,Delete,Param} from "@nestjs/common";
+import { Controller,Delete,Param,NotFoundException} from "@nestjs/common";
 import { DeleteBoardService } from "../services/delete-board.service";
 import { BoardCheckService } from "src/boards/common-services/services/board-check.service";
 
@@ -15,7 +15,7 @@ export class DeleteBoard {
         if (boardDoesNotExist) {
             tag = 'UNSAFE'
             message = `Cannot delete the board '${boardName}' because the board doesnt exist`
-            return `${tag}:${message}`
+            throw new NotFoundException(`${tag}:${message}`)
         }  
         this.deleteService.deleteBoard(boardName)
         tag = 'SUCCESSFUL'
@@ -30,7 +30,7 @@ export class DeleteBoard {
         if (result === 'nothing found') {
             tag = 'UNSAFE'
             message = 'There are no boards to be found'
-            return `${tag}:${message}`
+            throw new NotFoundException(`${tag}:${message}`)
         }
         tag = 'SUCCESSFUL'
         message = 'Deleted all the boards'
