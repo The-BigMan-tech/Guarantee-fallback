@@ -9,16 +9,31 @@ export class DeleteBoard {
     }
     @Delete('board/:boardName')
     public async deleteBoard(@Param('boardName') boardName:string):Promise<string> {
-        let boardDoesNotExist = !(await this.checkService.doesBoardExist(boardName))
+        let tag:string;
+        let message:string;
+        let boardDoesNotExist:boolean = !(await this.checkService.doesBoardExist(boardName))
         if (boardDoesNotExist) {
-            return `CANNOT DELETE THE BOARD,'${boardName}' AS THE BOARD DOES NOT EXIST`
-        }
+            tag = 'UNSAFE'
+            message = `Cannot delete the board '${boardName}' because the board doesnt exist`
+            return `${tag}:${message}`
+        }  
         this.deleteService.deleteBoard(boardName)
-        return `DELETED THE BOARD: '${boardName}'`
+        tag = 'SUCCESSFUL'
+        message = `Deleted the board '${boardName}'`
+        return `${tag}:${message}`
     }
     @Delete('/all')
     public async deleteAll():Promise<string> {
-        await this.deleteService.deleteAll()
-        return 'Deleted all the boards'
+        let tag:string
+        let message:string
+        const result:string | void = await this.deleteService.deleteAll()
+        if (result === 'nothing found') {
+            tag = 'UNSAFE'
+            message = 'There are no boards to be found'
+            return `${tag}:${message}`
+        }
+        tag = 'SUCCESSFUL'
+        message = 'Deleted all the boards'
+        return `${tag}:${message}`
     }
 }

@@ -10,7 +10,12 @@ export class DeleteBoardService {
     public async deleteBoard(boardName:string):Promise<void> {
         await this.boardModel.deleteOne({name:boardName}).exec()
     }   
-    public async deleteAll():Promise<void> {
+    public async deleteAll():Promise<void | string> {
+        const anyBoard = await this.boardModel.find().exec()
+        console.log(anyBoard);
+        if (!anyBoard.length) {
+            return 'nothing found'
+        }
         await this.boardModel.deleteMany({}).exec()
     }
 }

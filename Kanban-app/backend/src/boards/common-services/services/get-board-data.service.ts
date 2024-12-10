@@ -8,8 +8,8 @@ export class BoardDataService {
     constructor(@InjectModel('Board') private BoardModel:BoardModelType) {
         //No implementation
     }
-    public async returnBoard(board:string):Promise<BoardDocumentType[]> {
-        return this.BoardModel.find({name:board}).exec();
+    public async returnBoard(board:string):Promise<BoardDocumentType> {
+        return await this.BoardModel.findOne({name:board}).exec();
     }
     public async returnBoardAsString(board:string):Promise<string> {
         const updatedBoard: BoardDefinition = await this.BoardModel.findOne({ name: board}).lean();
