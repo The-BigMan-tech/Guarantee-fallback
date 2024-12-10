@@ -12,15 +12,6 @@ export class TaskController {
     constructor(private readonly operationService:TaskOperationsService) {
         //No implementation
     }
-    @Post('/addTask')
-    public async addTaskControl(@Body() task:TaskDetailsDTO):Promise<string> {
-        const result = await this.operationService.addTask(task.boardName,task.taskInfo.status,task.taskInfo);
-        if (result === 'board not found') {
-            return 'BOARD NOT FOUND'
-        }
-        return `ADDED THE TASK '${task.taskInfo.title}' TO THE GROUP '${task.taskInfo.status}' OF THE BOARD '${task.boardName}'`
-    }
-
     @Delete('/deleteTask')
     public async deleteTaskControl(@Query() task:DeleteTaskDTO):Promise<string> {
         const result = await this.operationService.deleteTask(task.boardName,task.groupName,task.index,task.title);

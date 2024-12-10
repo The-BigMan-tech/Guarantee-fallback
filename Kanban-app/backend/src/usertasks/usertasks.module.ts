@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
-import { TaskOperationsModule } from "./general-task-operations/general-ops.module";
+import { AddTaskModule } from "./add-a-task/add-task.module";
 
 @Module({
-    imports:[TaskOperationsModule]
+    imports:[AddTaskModule]
 })
 export class TasksModule {
 

@@ -5,12 +5,13 @@ import { GroupCheckService } from "../common-services/services/group-check.servi
 
 import { DeleteGroup } from "./controllers/delete-group.controller";
 import { DeleteGroupService } from "./services/delete-group.service";
+import { BoardCheckService } from "src/boards/common-services/services/board-check.service";
 
 const ModelArray = [BoardModel]
 @Module({
     imports:[MongooseModule.forFeature(ModelArray)],
     controllers:[DeleteGroup],
-    providers:[DeleteGroupService,GroupCheckService]
+    providers:[DeleteGroupService,GroupCheckService,BoardCheckService]
 })
 export class DeleteGroupModule {
     

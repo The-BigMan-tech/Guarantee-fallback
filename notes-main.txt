@@ -1,4 +1,5 @@
-?More type annotations,better messages,enforce request safety with pipes
+Operation safety can increase performance by preventing unecessary computations
+Request safety and operation safety
 
 Not adhering to the interface when sending request data can lead to errors
 *Types of storage:cookies,sessions,local storage,database
