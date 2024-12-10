@@ -17,11 +17,11 @@ export class DeleteTaskControl {
     public async deleteTaskControl(@Query() task:GeneralDetailsDTO):Promise<string> {
         let tag:string;
         let message:string;
-        const unsafeMessage:string | string[] = await this.allCheckService.checkOperationSafety('delete',task.boardName,task.groupName,true,task.index)
-        if (!Array.isArray(unsafeMessage)) {
-            return unsafeMessage 
+        const warningMessage:string | string[] = await this.allCheckService.checkOperationSafety('delete',task.boardName,task.groupName,true,task.index)
+        if (!Array.isArray(warningMessage)) {
+            return warningMessage 
         }
-        let taskTitle = unsafeMessage[1]
+        let taskTitle = warningMessage[1]
         await this.deleteTaskService.deleteTask(task.boardName,task.groupName,task.index);
         tag = 'SUCCESSFUL';
         message = `Deleted the task '${taskTitle}' from the group '${task.groupName}' from the board '${task.boardName}'`

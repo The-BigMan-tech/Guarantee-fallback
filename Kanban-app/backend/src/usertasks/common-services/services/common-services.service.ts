@@ -38,21 +38,21 @@ export class allCheckService {
     public async checkOperationSafety(operationType:string,boardName:string,groupName:string,checkForTask:boolean=false,taskIndex?:number):Promise<string | string[]> {
         let tag:string;
         let message:string;
-        const unsafeMessage:string | void = await this.checkForAll(boardName,groupName,checkForTask,taskIndex)
-        if (unsafeMessage === 'board not found' || 'group not found' || 'task not found') {
+        const warning:string | void = await this.checkForAll(boardName,groupName,checkForTask,taskIndex)
+        if (warning === 'board not found' || 'group not found' || 'task not found') {
             tag = 'UNSAFE'
         }
-        if (unsafeMessage === 'board not found') {
+        if (warning === 'board not found') {
             message = `The board,'${boardName}' doesnt exist to perform the ${operationType} operation`
             return `${tag}:${message}`
-        }else if (unsafeMessage === 'group not found') {
+        }else if (warning === 'group not found') {
             message = `The group,'${groupName}' doesnt exist to perform the ${operationType} operation`
             return `${tag}:${message}`
-        }else if (unsafeMessage === 'task not found') {
+        }else if (warning === 'task not found') {
             message = `No task exist at the query you provided to perform the ${operationType} operation`
             return `${tag}:${message}`
         }else {
-            return ['operation is safe',unsafeMessage as string]
+            return ['operation is safe',warning as string]
         }
     }
 }

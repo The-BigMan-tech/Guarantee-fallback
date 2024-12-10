@@ -3,10 +3,10 @@ import { InjectModel } from "@nestjs/mongoose";
 import { BoardModelType } from "src/boards/schemas/board.schema";
 import { TaskDTO } from "src/usertasks/dto/task.dto";
 import { GroupDTO } from "src/groups/dto/groups.dto";
-import { BoardDefinition } from "src/boards/schemas/board.schema";
+import { BoardDocumentType } from "src/boards/schemas/board.schema";
 
 @Injectable()
-export class TaskOperationsService {
+export class EditTaskService {
     constructor(@InjectModel('Board') private BoardModel:BoardModelType) {
         //No implementation
     }
@@ -17,20 +17,9 @@ export class TaskOperationsService {
      * *The first query in the update one method will be the context of the second query
      */
     public async editTask(boardName:string,groupName:string,index:number,newTask:TaskDTO):Promise<string | void> {
-        let board:BoardDefinition = await this.BoardModel.findOne({name:boardName})
-        if (!board) {
-            return 'board not found'
-        }
-        board = await this.BoardModel.findOne({name:boardName,"groups.name": groupName},{'groups.$':1}).exec()
-        if (!board) {
-            return 'group not found'
-        }
-
+        const board:BoardDocumentType = await this.BoardModel.findOne({name:boardName,"groups.name": groupName},{'groups.$':1}).exec()
         const group:GroupDTO = board.groups[0]
         const task:TaskDTO = group.tasks[index]
-        if (!task) {
-            return 'task not found'
-        }
         const updatedTask:TaskDTO = {...task,...newTask}
         await this.BoardModel.updateOne(
             {name:boardName,"groups.name":groupName,"groups.tasks.title":task.title},

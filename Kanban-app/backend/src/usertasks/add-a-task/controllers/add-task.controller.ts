@@ -17,9 +17,9 @@ export class AddTaskControl {
     public async addTaskControl(@Body() task:TaskDetailsDTO):Promise<string> {
         let tag:string;
         let message:string;
-        const unsafeMessage:string | string[] = await this.allCheckService.checkOperationSafety('add',task.boardName,task.taskInfo.status)
-        if (!Array.isArray(unsafeMessage)) {
-            return unsafeMessage 
+        const warningMessage:string | string[] = await this.allCheckService.checkOperationSafety('add',task.boardName,task.taskInfo.status)
+        if (!Array.isArray(warningMessage)) {
+            return warningMessage
         }
         await this.addTaskService.addTask(task.boardName,task.taskInfo.status,task.taskInfo);
         tag = 'SUCCESSFUL'
