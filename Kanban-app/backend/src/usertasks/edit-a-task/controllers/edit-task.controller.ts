@@ -7,7 +7,6 @@ import { EditTaskService } from "../services/edit-task.service";
 import { allCheckService } from "src/usertasks/common-services/services/common-services.service";
 
 @Controller('tasks')
-@UsePipes(new RequestSafetyPipe())
 export class EditTaskController {
     constructor(
         private readonly editTaskService:EditTaskService,
@@ -16,6 +15,7 @@ export class EditTaskController {
         //No implementation
     }
     @Put('/editTask')
+    @UsePipes(new RequestSafetyPipe())
     public async editTaskControl(@Body() task:EditTaskDTO):Promise<string> {
         const warningMessage:string | string[] = await this.allCheckService.checkOperationSafety('edit',task.boardName,task.groupName)
         if (!Array.isArray(warningMessage)) {
