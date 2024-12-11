@@ -88,7 +88,7 @@
             <Logo/>
             <h1 class='text-3xl font-bold font-space'>Kanban</h1>
         </div>
-        <h1 class='text-[#6b6d7a] font-roboto font-[600] text-lg mb-7'>ALL BOARDS ( {boardNumber} )</h1>
+        <h1 class='text-[#6b6d7a] font-roboto font-[600] mb-7'>ALL BOARDS ( {boardNumber} )</h1>
     </div>
     <div class={`ml-6 overflow-y-scroll pl-10 w-[${boardWidth}rem] relative right-10`}>
         <div class='flex flex-col gap-5'>
