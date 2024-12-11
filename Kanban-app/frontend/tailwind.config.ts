@@ -5,7 +5,12 @@ export default {
   content: ['./src/**/*.{html,js,svelte,ts}'],
 
   theme: {
-    extend: {}
+    extend: {
+      fontFamily: {
+        roboto: ["'Roboto Mono'", 'monospace'], // Add your font here
+        space:["'Space Mono'",'serif']
+      },
+    }
   },
 
   plugins: [typography]
