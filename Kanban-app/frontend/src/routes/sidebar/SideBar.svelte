@@ -6,12 +6,13 @@
     let boardNumber:number = $state(0)
     let createBoard:boolean = $state(false)
     let createText:string = $state('+ Create new board')
-    let createTextStyle:string = $state('text-[#e964f3] ')
+    let createTextStyle:string = $state('text-[#e964f3]')
     let newBoardName:string = $state('')
     let boards:BoardDefinition[] = $state([])
     let boardSelection:string[] = $state([])
     let boardIcons:boolean[] = $state([])
     let boardWidth:number = $state(19)
+    let onEdit:boolean[] = $state([])
     
     async function processResponse(response:Response):Promise<void> {
         if (!response.ok) {
@@ -74,14 +75,23 @@
     <div class={`ml-6 overflow-y-scroll pl-10 w-[${boardWidth}rem] relative right-10`}>
         <div class='flex flex-col gap-5'>
             {#each boards as board,index}
-                <button id={`board${index}`} onclick={()=>selectBoard(index)} class={`flex gap-4 items-center ${boardSelection[index]}`}>
-                    {#if (!boardIcons[index])}
-                        <img class="w-4" src="/chalkboard-solid-purple.svg" alt="">
-                    {:else}
-                        <img class="w-4" src="/chalkboard-solid.svg" alt="">
-                    {/if}
-                    <h1 class='font-sans'>{board.name}</h1>
-                </button>
+                <div class='flex relative'>
+                    <button id={`board${index}`} onclick={()=>selectBoard(index)} class={`flex gap-4 items-center ${boardSelection[index]}`}>
+                        {#if (!boardIcons[index])}
+                            <img class="w-4" src="/chalkboard-solid-purple.svg" alt="">
+                        {:else}
+                            <img class="w-4" src="/chalkboard-solid.svg" alt="">
+                        {/if}
+                        {#if (!onEdit[index])}
+                            <h1 class='font-sans'>{board.name}</h1>
+                        {:else}
+                            <input type="text">
+                        {/if}
+                    </button>
+                    <button>
+                        <img class="w-4 absolute right-7 top-1" class:top-4={boardSelection[index]}  src="/pen-to-square-solid(1).svg" alt="">
+                    </button>
+                </div>
             {/each}
         </div>
         <div class='flex mt-7 gap-4'>
@@ -91,7 +101,7 @@
                 </form>
             {/if}
             <div class='flex mb-10'>
-                <button onclick={toggleCreateBox} class={`${createTextStyle}`}>
+                <button onclick={toggleCreateBox} class={`${createTextStyle} font-roboto`}>
                     {#if (createText === 'Cancel')}
                         <img class='w-6' src="/circle-xmark-solid.svg" alt="">
                     {:else}
