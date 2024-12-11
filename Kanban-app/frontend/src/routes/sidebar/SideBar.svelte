@@ -11,6 +11,7 @@
     let boards:BoardDefinition[] = $state([])
     let boardSelection:string[] = $state([])
     let boardIcons:boolean[] = $state([])
+    let boardWidth:number = $state(19)
     
     async function processResponse(response:Response):Promise<void> {
         if (!response.ok) {
@@ -23,7 +24,7 @@
         if (!createBoard) {
             createBoard = true
             createText = 'Cancel'
-            createTextStyle = 'text-red-600'
+            createTextStyle = 'text-[#ff5a5a]'
             return
         }
         createBoard = false
@@ -64,13 +65,13 @@
 
 <aside class='flex flex-col bg-[#2c2c38] text-white h-[36.7rem] w-72'>
     <div class='flex flex-col ml-6'>
-        <div class='flex gap-5 items-center mt-6 border-r border-[#3a3a46] mb-10'>
+        <div class='flex gap-5 items-center mt-6 border-r border-[#3a3a46] mb-10 flex-wrap'>
             <Logo/>
             <h1 class='text-3xl font-bold font-space'>Kanban</h1>
         </div>
         <h1 class='text-[#6b6d7a] font-roboto font-[600] text-lg mb-7'>ALL BOARDS ( {boardNumber} )</h1>
     </div>
-    <div class='ml-6 overflow-y-scroll pl-10 w-[19rem] relative right-10'>
+    <div class={`ml-6 overflow-y-scroll pl-10 w-[${boardWidth}rem] relative right-10`}>
         <div class='flex flex-col gap-5'>
             {#each boards as board,index}
                 <button id={`board${index}`} onclick={()=>selectBoard(index)} class={`flex gap-4 items-center ${boardSelection[index]}`}>
@@ -83,15 +84,20 @@
                 </button>
             {/each}
         </div>
-        <div class='flex flex-col mt-7 gap-4'>
+        <div class='flex mt-7 gap-4'>
             {#if (createBoard)}
                 <form onsubmit={createNewBoard} action="">
-                    <input onchange={captureText} class='outline-none text-black w-44' type="text">
+                    <input onchange={captureText} class='outline-none text-white w-44 bg-[#6144b8] rounded-lg pl-3 font-sans' type="text">
                 </form>
             {/if}
             <div class='flex mb-10'>
-                <img src="" alt="">
-                <button onclick={toggleCreateBox} class={`${createTextStyle}`}>{createText}</button>
+                <button onclick={toggleCreateBox} class={`${createTextStyle}`}>
+                    {#if (createText === 'Cancel')}
+                        <img class='w-6' src="/circle-xmark-solid.svg" alt="">
+                    {:else}
+                        {createText}
+                    {/if}
+                </button>
             </div>
         </div>
     </div>

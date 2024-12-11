@@ -1,3 +1,4 @@
+class: directive in svelte
 You can only read the response body text
 Operation safety can increase performance by preventing unecessary computations
 Request safety and operation safety
