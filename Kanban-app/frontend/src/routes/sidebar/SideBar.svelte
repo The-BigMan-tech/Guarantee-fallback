@@ -75,7 +75,6 @@
         boardIcons = []
         boardSelection[index] = 'bg-[#645fc6] rounded-r-3xl py-3 w-64 pl-16 relative right-10 transition-all duration-75 ease-linear'
         boardIcons[index] = true
-
     }
     onMount(()=>{
         loadBoards();
