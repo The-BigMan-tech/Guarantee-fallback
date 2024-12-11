@@ -52,23 +52,30 @@
         loadBoards()
         toggleCreateBox()
     }
+    async function editBoard(index:number,oldName:string):Promise<void> {
+        if (onEdit[index]) {
+            onEdit[index] = false
+            const response:Response = await fetch('http://localhost:3100/boards/editBoard',{
+                method:'PUT',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({oldBoardName:oldName,newBoardName:newBoardName})
+            })
+            processResponse(response)
+            loadBoards()
+            return
+        }
+        onEdit[index] = true
+    }
     function selectBoard(index:number,event:Event) {
         const target = event.target as HTMLInputElement
-        if (target.classList.contains('outline-none')) {
-            return
+        if (target.classList.contains('outline-none')) { //*this is to disable selecting a board when editing
+            return 
         }
         boardSelection = []
         boardIcons = []
         boardSelection[index] = 'bg-[#645fc6] rounded-r-3xl py-3 w-64 pl-16 relative right-10 transition-all duration-75 ease-linear'
         boardIcons[index] = true
 
-    }
-    function editBoard(index:number):void {
-        if (onEdit[index]) {
-            onEdit[index] = false
-            return
-        }
-        onEdit[index] = true
     }
     onMount(()=>{
         loadBoards();
@@ -96,10 +103,10 @@
                         {#if (!onEdit[index])}
                             <h1 class='font-sans'>{board.name}</h1>
                         {:else}
-                            <input class='outline-none rounded-lg pl-3 font-sans w-36 bg-white text-black' type="text">
+                            <input onchange={captureText} class='outline-none rounded-lg pl-3 font-sans w-36 bg-white text-black' type="text">
                         {/if}
                     </button>
-                    <button onclick={()=>editBoard(index)}>
+                    <button onclick={()=>editBoard(index,board.name)}>
                         {#if (!onEdit[index])}
                             <img class="w-4 absolute right-7 top-1" class:top-4={boardSelection[index]}  src="/pen-to-square-solid(1).svg" alt="">
                         {:else}
