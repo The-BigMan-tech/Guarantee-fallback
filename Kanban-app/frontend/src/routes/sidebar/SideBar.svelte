@@ -11,9 +11,9 @@
     let boards:BoardDefinition[] = $state([])
     let boardSelection:string[] = $state([])
     let boardIcons:boolean[] = $state([])
-    let boardWidth:number = $state(19)
+    let boardWidth:number = $state(19);
     let onEdit:boolean[] = $state([])
-    
+
     async function processResponse(response:Response):Promise<void> {
         if (!response.ok) {
             const responseMessage = await response.text()
@@ -52,12 +52,23 @@
         loadBoards()
         toggleCreateBox()
     }
-    function selectBoard(index:number) {
+    function selectBoard(index:number,event:Event) {
+        const target = event.target as HTMLInputElement
+        if (target.classList.contains('outline-none')) {
+            return
+        }
         boardSelection = []
         boardIcons = []
         boardSelection[index] = 'bg-[#645fc6] rounded-r-3xl py-3 w-64 pl-16 relative right-10 transition-all duration-75 ease-linear'
         boardIcons[index] = true
 
+    }
+    function editBoard(index:number):void {
+        if (onEdit[index]) {
+            onEdit[index] = false
+            return
+        }
+        onEdit[index] = true
     }
     onMount(()=>{
         loadBoards();
@@ -76,7 +87,7 @@
         <div class='flex flex-col gap-5'>
             {#each boards as board,index}
                 <div class='flex relative'>
-                    <button id={`board${index}`} onclick={()=>selectBoard(index)} class={`flex gap-4 items-center ${boardSelection[index]}`}>
+                    <button id={`board${index}`} onclick={(event)=>selectBoard(index,event)} class={`flex gap-4 items-center ${boardSelection[index]}`}>
                         {#if (!boardIcons[index])}
                             <img class="w-4" src="/chalkboard-solid-purple.svg" alt="">
                         {:else}
@@ -85,11 +96,15 @@
                         {#if (!onEdit[index])}
                             <h1 class='font-sans'>{board.name}</h1>
                         {:else}
-                            <input type="text">
+                            <input class='outline-none rounded-lg pl-3 font-sans w-36 bg-white text-black' type="text">
                         {/if}
                     </button>
-                    <button>
-                        <img class="w-4 absolute right-7 top-1" class:top-4={boardSelection[index]}  src="/pen-to-square-solid(1).svg" alt="">
+                    <button onclick={()=>editBoard(index)}>
+                        {#if (!onEdit[index])}
+                            <img class="w-4 absolute right-7 top-1" class:top-4={boardSelection[index]}  src="/pen-to-square-solid(1).svg" alt="">
+                        {:else}
+                            <img class="w-4 absolute right-7 top-1" class:top-4={boardSelection[index]}  src="/square-check-regular(1).svg" alt="">
+                        {/if}
                     </button>
                 </div>
             {/each}
@@ -97,7 +112,7 @@
         <div class='flex mt-7 gap-4'>
             {#if (createBoard)}
                 <form onsubmit={createNewBoard} action="">
-                    <input onchange={captureText} class='outline-none text-white w-44 bg-[#6144b8] rounded-lg pl-3 font-sans' type="text">
+                    <input onchange={captureText} class='outline-none rounded-lg pl-3 font-sans w-44 text-white bg-[#6144b8]' type="text">
                 </form>
             {/if}
             <div class='flex mb-10'>
