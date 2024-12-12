@@ -35,11 +35,31 @@
         const target = event.target as HTMLInputElement
         newBoardName = target.value
     }
+    async function selectBoard(index:number,event:Event | null,boardName:string) {
+        if (event) {
+            const target = event.target as HTMLInputElement
+            if (target.classList.contains('outline-none')) { //*this is to disable selecting a board when editing
+                return 
+            }
+        }
+        boardSelection = []
+        boardIcons = []
+        boardSelection[index] = 'bg-[#242340] rounded-r-3xl py-3 w-80 pl-[5.5rem] relative right-10 transition-all duration-75 ease-linear'
+        boardIcons[index] = true
+        await fetch(`http://localhost:3100/boards/pushBoard/${boardName}`,{method:'GET'})
+        Toplever.set(true)
+        Toplever.set(false)
+    }
     async function loadBoards() {
         const response:Response = await fetch('http://localhost:3100/boards/loadmyBoards',{method:'GET'})
         processResponse(response)
         boards = await response.json()
         boardNumber = boards.length
+        let lastBoard = boards.at(-1)
+        if (lastBoard) {
+            let lastIndex = boards.indexOf(lastBoard)
+            await selectBoard(lastIndex,null,lastBoard.name)
+        }
     }
     async function createNewBoard() {
         const response:Response = await fetch('http://localhost:3100/boards/createBoard',{
@@ -71,19 +91,6 @@
             return
         }
         onEdit[index] = true
-    }
-    async function selectBoard(index:number,event:Event,boardName:string) {
-        const target = event.target as HTMLInputElement
-        if (target.classList.contains('outline-none')) { //*this is to disable selecting a board when editing
-            return 
-        }
-        boardSelection = []
-        boardIcons = []
-        boardSelection[index] = 'bg-[#242340] rounded-r-3xl py-3 w-80 pl-[5.5rem] relative right-10 transition-all duration-75 ease-linear'
-        boardIcons[index] = true
-        await fetch(`http://localhost:3100/boards/pushBoard/${boardName}`,{method:'GET'})
-        Toplever.set(true)
-        Toplever.set(false)
     }
     $effect(()=>{
         let none = isSideBarOn

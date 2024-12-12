@@ -2,8 +2,7 @@
     import type {BoardDefinition} from '../interfaces/shared-interfaces'
     import {Sidelever} from '../levers/lever.svelte'
 
-    let nameDisplay:string = $state('Platform Launch')
-    let defaultName:string = $state('')
+    let nameDisplay:string = $state('Select a board to view its info')
     let board:BoardDefinition = $state() as BoardDefinition
     let {isTopBarOn} = $props()
 
@@ -20,31 +19,33 @@
         board = await response.json()
     }
     async function deleteBoard():Promise<void> {
-        const response:Response = await fetch(`http://localhost:3100/boards/delete/board/${nameDisplay}`,{method:'DELETE'})
+        let response:Response = await fetch(`http://localhost:3100/boards/delete/board/${nameDisplay}`,{method:'DELETE'})
         await processResponse(response)
         Sidelever.set(true)
         Sidelever.set(false)
-        defaultName = 'react'
-        console.log(defaultName);
+
+        response = await fetch('http://localhost:3100/boards/loadmyBoards',{method:'GET'})
+        processResponse(response)
+        let lastBoardName = ((await response.json()).at(-1)).name
+        if (lastBoardName) {
+            nameDisplay = lastBoardName
+            return
+        }
+        nameDisplay = 'Select a board to view its info'
     }
     $effect(()=>{
-        let none = [isTopBarOn,defaultName]
+        let none = isTopBarOn
         getSelectedBoard()
-        .then(() => {
-            console.log('Board name',board.name)
-            if (board.name) {
-                nameDisplay = board.name
-                return
-            }
-            nameDisplay = 'Platform launch'
-        });
+        .then(() => nameDisplay = board.name);
     })
 </script>
 
 <div class='flex bg-[#2e2e3a] text-white h-20 items-center w-[62rem] relative border border-[#2e2e3a]'>
     <h1 class='font-bold text-2xl ml-20'>{nameDisplay}</h1>
-    <button class='absolute right-56 bg-[rgb(100,94,197)] py-2 px-4 rounded-3xl'>+ Add new Task</button>
-    <button onclick={deleteBoard} class='absolute right-24'>
-        <h1>Delete this board</h1>
-    </button>
+    {#if (nameDisplay !==  'Select a board to view its info')}
+        <button class='absolute right-56 bg-[rgb(100,94,197)] py-2 px-4 rounded-3xl'>+ Add new Task</button>
+        <button onclick={deleteBoard} class='absolute right-24'>
+            <h1>Delete this board</h1>
+        </button>
+    {/if}
 </div>
