@@ -3,17 +3,23 @@
     import TopBar from "./topbar/TopBar.svelte";
     import Body from "./body/Body.svelte";
     import { onDestroy } from 'svelte';
-    import {lever} from "./levers/lever.svelte";
+    import {Toplever,Sidelever} from "./levers/lever.svelte";
 
-    let isOn:boolean = $state(false)
-    const unsubscribe = lever.subscribe(value => isOn = value);
-    onDestroy(unsubscribe);
+    let isTopBarOn:boolean = $state(false)
+    let isSideBarOn:boolean = $state(false)
+
+    const unsubscribe1 = Toplever.subscribe(value => isTopBarOn = value);
+    const unsubscribe2 = Sidelever.subscribe(value => isSideBarOn = value);
+    onDestroy(()=>{
+            unsubscribe1();unsubscribe2()
+        }
+    );
 </script>
 
 <div class='flex'>
-    <SideBar/>
+    <SideBar {isSideBarOn}/>
     <div class='flex flex-col'>
-        <TopBar {isOn}/>
+        <TopBar {isTopBarOn}/>
         <Body/>
     </div>
 </div>

@@ -2,8 +2,9 @@
     import { onMount } from 'svelte';
     import type {BoardDefinition} from '../interfaces/shared-interfaces'
     import Logo from './logo.svelte';
-    import {lever} from '../levers/lever.svelte'
 
+    import {Toplever} from '../levers/lever.svelte'
+    let {isSideBarOn} = $props()
     let boardNumber:number = $state(0)
     let createBoard:boolean = $state(false)
     let createText:string = $state('')
@@ -47,8 +48,15 @@
             body:JSON.stringify({name:newBoardName})
         })
         processResponse(response)
-        loadBoards()
+        await loadBoards()
         toggleCreateBox()
+        const index = boards.findIndex(board=>board.name===newBoardName)
+        console.log('INDEX',index,'BOARD',boardSelection);
+        if (boardSelection[index]) {
+            await fetch(`http://localhost:3100/boards/pushBoard/${newBoardName}`,{method:'GET'})
+            Toplever.set(true)
+            Toplever.set(false)
+        }
     }
     async function editBoard(index:number,oldName:string):Promise<void> {
         if (onEdit[index]) {
@@ -74,9 +82,13 @@
         boardSelection[index] = 'bg-[#242340] rounded-r-3xl py-3 w-80 pl-[5.5rem] relative right-10 transition-all duration-75 ease-linear'
         boardIcons[index] = true
         await fetch(`http://localhost:3100/boards/pushBoard/${boardName}`,{method:'GET'})
-        lever.set(true)
-        lever.set(false)
+        Toplever.set(true)
+        Toplever.set(false)
     }
+    $effect(()=>{
+        let none = isSideBarOn
+        loadBoards()
+    })
     onMount(()=>{
         loadBoards();
     })
