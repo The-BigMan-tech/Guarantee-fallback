@@ -5,8 +5,7 @@
 
     let boardNumber:number = $state(0)
     let createBoard:boolean = $state(false)
-    let createText:string = $state('+ Create new board')
-    let createTextStyle:string = $state('text-[#e964f3]')
+    let createText:string = $state('Create new board')
     let newBoardName:string = $state('')
     let boards:BoardDefinition[] = $state([])
     let boardSelection:string[] = $state([])
@@ -25,12 +24,10 @@
         if (!createBoard) {
             createBoard = true
             createText = 'Cancel'
-            createTextStyle = 'text-[#ff5a5a]'
             return
         }
         createBoard = false
-        createText = '+ Create new board'
-        createTextStyle = 'text-[#e964f3]'
+        createText = ''
     }
     function captureText(event:Event):void {
         const target = event.target as HTMLInputElement
@@ -73,7 +70,7 @@
         }
         boardSelection = []
         boardIcons = []
-        boardSelection[index] = 'bg-[#645fc6] rounded-r-3xl py-3 w-64 pl-16 relative right-10 transition-all duration-75 ease-linear'
+        boardSelection[index] = 'bg-[#242340] rounded-r-3xl py-3 w-80 pl-[5.5rem] relative right-10 transition-all duration-75 ease-linear'
         boardIcons[index] = true
     }
     onMount(()=>{
@@ -93,7 +90,7 @@
         <div class='flex flex-col gap-5'>
             {#each boards as board,index}
                 <div class='flex relative'>
-                    <button id={`board${index}`} onclick={(event)=>selectBoard(index,event)} class={`flex gap-4 items-center ${boardSelection[index]}`}>
+                    <button id={`board${index}`} onclick={(event)=>selectBoard(index,event)} class={`flex gap-4 items-center pl-10 ${boardSelection[index]}`}>
                         {#if (!boardIcons[index])}
                             <img class="w-4" src="/chalkboard-solid-purple.svg" alt="">
                         {:else}
@@ -102,14 +99,14 @@
                         {#if (!onEdit[index])}
                             <h1 class='font-sans'>{board.name}</h1>
                         {:else}
-                            <input onchange={captureText} class='outline-none rounded-lg pl-3 font-sans w-36 bg-white text-black' type="text">
+                            <input onchange={captureText} class='outline-none rounded-lg pl-3 font-sans w-32 bg-white text-black' type="text">
                         {/if}
                     </button>
                     <button onclick={()=>editBoard(index,board.name)}>
                         {#if (!onEdit[index])}
-                            <img class="w-4 absolute right-7 top-1" class:top-4={boardSelection[index]}  src="/pen-to-square-solid(1).svg" alt="">
+                            <img class="w-4 absolute left-0 top-1" class:top-4={boardSelection[index]}  src="/pen-to-square-regular.svg" alt="">
                         {:else}
-                            <img class="w-4 absolute right-7 top-1" class:top-4={boardSelection[index]}  src="/square-check-regular(1).svg" alt="">
+                            <img class="w-4 absolute left-0 top-1" class:top-4={boardSelection[index]}  src="/square-check-regular(2).svg" alt="">
                         {/if}
                     </button>
                 </div>
@@ -122,11 +119,11 @@
                 </form>
             {/if}
             <div class='flex mb-10'>
-                <button onclick={toggleCreateBox} class={`${createTextStyle} font-roboto`}>
+                <button onclick={toggleCreateBox}>
                     {#if (createText === 'Cancel')}
                         <img class='w-6' src="/circle-xmark-solid.svg" alt="">
                     {:else}
-                        {createText}
+                        <img class="w-5 relative right-1" src="/circle-plus-solid.svg" alt="">
                     {/if}
                 </button>
             </div>
