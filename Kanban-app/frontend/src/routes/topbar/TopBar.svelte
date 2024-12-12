@@ -1,6 +1,6 @@
 <script lang='ts'>
     import type {BoardDefinition} from '../interfaces/shared-interfaces'
-    import {Sidelever} from '../levers/lever.svelte'
+    import {Sidelever,Tasklever} from '../levers/lever.svelte'
 
     let nameDisplay:string = $state('Select a board to view its info')
     let board:BoardDefinition = $state() as BoardDefinition
@@ -36,6 +36,13 @@
         }
         nameDisplay = 'Select a board to view its info'
     }
+    async function addTask():Promise<void> {
+        if ($Tasklever) {
+            Tasklever.set(false)
+            return
+        }
+        Tasklever.set(true)
+    }
     $effect(()=>{
         let none = isTopBarOn
         getSelectedBoard()
@@ -50,7 +57,7 @@
             <h1 class='font-bold relative bottom-4 right-20'>{nameDisplay}</h1>
         </div>
         <div class='flex absolute right-24 gap-8'>
-            <button class='bg-[#251e4f] py-3 px-4 rounded-3xl'>+ Add new Task</button>
+            <button onclick={addTask} class='bg-[#251e4f] py-3 px-4 rounded-3xl'>+ Add new Task</button>
             <button onclick={deleteBoard} class='flex items-center gap-4'>
                 <img class='w-5' src="/trash-can-regular.svg" alt="">
                 <h1 class='text-[#f66473]'>Delete this board</h1>
