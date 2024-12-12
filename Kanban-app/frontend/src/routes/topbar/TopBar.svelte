@@ -24,10 +24,13 @@
         Sidelever.set(true)
         Sidelever.set(false)
 
+        console.log('reached here')
         response = await fetch('http://localhost:3100/boards/loadmyBoards',{method:'GET'})
         processResponse(response)
-        let lastBoardName = ((await response.json()).at(-1)).name
-        if (lastBoardName) {
+        const boards = await response.json()
+        if (boards.length) {
+            let lastBoardName = boards.at(-1).name
+            console.log(lastBoardName);
             nameDisplay = lastBoardName
             return
         }
