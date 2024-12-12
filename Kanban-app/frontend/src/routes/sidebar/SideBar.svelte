@@ -44,7 +44,7 @@
         }
         boardSelection = []
         boardIcons = []
-        boardSelection[index] = 'bg-[#242340] rounded-r-3xl py-3 w-80 pl-[5.5rem] relative right-10 transition-all duration-75 ease-linear'
+        boardSelection[index] = 'bg-[#242340] rounded-r-3xl py-3 pl-[5.5rem] relative right-10 transition-all duration-75 ease-linear'
         boardIcons[index] = true
         await fetch(`http://localhost:3100/boards/pushBoard/${boardName}`,{method:'GET'})
         Toplever.set(true)
@@ -109,11 +109,11 @@
         </div>
         <h1 class='text-[#6b6d7a] font-roboto font-[600] mb-7'>ALL BOARDS ( {boardNumber} )</h1>
     </div>
-    <div class={`ml-6 overflow-y-scroll pl-10 w-[${boardWidth}rem] relative right-10`}>
+    <div class={`ml-6 overflow-y-scroll overflow-x-hidden pl-10 w-[${boardWidth}rem] relative right-10`}>
         <div class='flex flex-col gap-5'>
             {#each boards as board,index}
-                <div class='flex relative'>
-                    <button id={`board${index}`} onclick={(event)=>selectBoard(index,event,board.name)} class={`flex gap-4 items-center pl-10 ${boardSelection[index]}`}>
+                <div class='flex relative w-[100rem]'>
+                    <button id={`board${index}`} onclick={(event)=>selectBoard(index,event,board.name)} class={`flex gap-4 items-center pl-10 w-64 ${boardSelection[index]}`}>
                         {#if (!boardIcons[index])}
                             <img class="w-4" src="/chalkboard-solid-purple.svg" alt="">
                         {:else}
@@ -122,7 +122,7 @@
                         {#if (!onEdit[index])}
                             <h1 class='font-sans'>{board.name}</h1>
                         {:else}
-                            <input onchange={captureText} class='outline-none rounded-lg pl-3 font-sans w-32 bg-white text-black' type="text">
+                            <input onchange={captureText} class='outline-none rounded-lg pl-3 font-sans w-32 bg-white text-black' type="text" placeholder={board.name}>
                         {/if}
                     </button>
                     <button onclick={()=>editBoard(index,board.name)}>
