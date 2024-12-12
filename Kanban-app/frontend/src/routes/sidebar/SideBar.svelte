@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import type {BoardDefinition} from '../interfaces/shared-interfaces'
     import Logo from './logo.svelte';
+    import {lever} from '../levers/lever.svelte'
 
     let boardNumber:number = $state(0)
     let createBoard:boolean = $state(false)
@@ -73,6 +74,8 @@
         boardSelection[index] = 'bg-[#242340] rounded-r-3xl py-3 w-80 pl-[5.5rem] relative right-10 transition-all duration-75 ease-linear'
         boardIcons[index] = true
         await fetch(`http://localhost:3100/boards/pushBoard/${boardName}`,{method:'GET'})
+        lever.set(true)
+        lever.set(false)
     }
     onMount(()=>{
         loadBoards();

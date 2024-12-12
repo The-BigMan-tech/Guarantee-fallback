@@ -1,12 +1,27 @@
 <script lang='ts'>
-    import { onMount } from "svelte";
     import type {BoardDefinition} from '../interfaces/shared-interfaces'
     let board:BoardDefinition = $state() as BoardDefinition
+    let {isOn} = $props()
 
-    onMount(async ()=>{
-        const response:Response = await fetch('',{method:'GET'})
+    async function processResponse(response:Response):Promise<void> {
+        if (!response.ok) {
+            const responseMessage = await response.text()
+            const responseErrorMessage = JSON.parse(responseMessage).message
+            throw new Error(responseErrorMessage)
+        }
+    }
+    async function deleteBoard():Promise<void> {
+        const response:Response = await fetch('http://localhost:3100/boards/loadSelectedBoard',{method:'G'})
+        processResponse(response)
+    }
+    async function getSelectedBoard():Promise<void> {
+        const response:Response = await fetch('http://localhost:3100/boards/loadSelectedBoard',{method:'GET'})
+        processResponse(response)
         board = await response.json()
-        console.log(board);
+    }
+    $effect(()=>{
+        let none = isOn
+        getSelectedBoard().then(() => console.log('BOARD',board.name));
     })
 </script>
 

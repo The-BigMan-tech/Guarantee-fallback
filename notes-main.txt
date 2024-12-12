@@ -1,4 +1,7 @@
-Complete isolation:Components only share data through pushing,tagging and pulling data that's on the server
+I have to use indexed db as a fallback to the server.immediately there is connection,the data is synced with the server
+so my architecture is this:for A:pull initial data(data that was saved from using the app previously),push new data and dynamically tag data based on interactions while for component B:load intitial data,pull the tagged data and using an effect hook to always pull data whenever A pushes.The parent uses a store.i call the store a lever because it only flicks between true or false.So when A pushes data,it flicks it on or set the store's value to true,then the parent will then pass a state that is subscribed to the lever as a prop to B which uses the effect hook to always listen for when the prop changes to always pull data whenever A pushes.The only prop a component will listen to is the one that will notify it whenver A has pushed to the server and also,after A pushes and sets the lever to true,it then immediately on the next line toggle it to false so that the next push will toggle it again for B to listen to
+
+component based architecture uses reactive and event driven programming
 
 class: directive in svelte
 You can only read the response body text
