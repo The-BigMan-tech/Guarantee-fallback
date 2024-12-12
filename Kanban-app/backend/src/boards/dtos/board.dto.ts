@@ -1,4 +1,4 @@
-import {IsNotEmpty, IsOptional, IsString} from 'class-validator'
+import {IsBoolean, IsNotEmpty, IsOptional, IsString} from 'class-validator'
 import { GroupDTO } from 'src/groups/dto/groups.dto'
 
 export class BoardDTO {
@@ -8,6 +8,10 @@ export class BoardDTO {
 
     @IsOptional()
     groups:GroupDTO[]
+
+    @IsOptional()
+    @IsBoolean()
+    isSelected:boolean
 }
 export class EditBoardDTO {
     @IsString()

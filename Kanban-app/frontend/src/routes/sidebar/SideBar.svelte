@@ -5,7 +5,7 @@
 
     let boardNumber:number = $state(0)
     let createBoard:boolean = $state(false)
-    let createText:string = $state('Create new board')
+    let createText:string = $state('')
     let newBoardName:string = $state('')
     let boards:BoardDefinition[] = $state([])
     let boardSelection:string[] = $state([])
@@ -63,7 +63,7 @@
         }
         onEdit[index] = true
     }
-    function selectBoard(index:number,event:Event) {
+    async function selectBoard(index:number,event:Event,boardName:string) {
         const target = event.target as HTMLInputElement
         if (target.classList.contains('outline-none')) { //*this is to disable selecting a board when editing
             return 
@@ -72,6 +72,7 @@
         boardIcons = []
         boardSelection[index] = 'bg-[#242340] rounded-r-3xl py-3 w-80 pl-[5.5rem] relative right-10 transition-all duration-75 ease-linear'
         boardIcons[index] = true
+        await fetch(`http://localhost:3100/boards/pushBoard/${boardName}`,{method:'GET'})
     }
     onMount(()=>{
         loadBoards();
@@ -90,7 +91,7 @@
         <div class='flex flex-col gap-5'>
             {#each boards as board,index}
                 <div class='flex relative'>
-                    <button id={`board${index}`} onclick={(event)=>selectBoard(index,event)} class={`flex gap-4 items-center pl-10 ${boardSelection[index]}`}>
+                    <button id={`board${index}`} onclick={(event)=>selectBoard(index,event,board.name)} class={`flex gap-4 items-center pl-10 ${boardSelection[index]}`}>
                         {#if (!boardIcons[index])}
                             <img class="w-4" src="/chalkboard-solid-purple.svg" alt="">
                         {:else}

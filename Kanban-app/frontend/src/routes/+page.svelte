@@ -1,4 +1,4 @@
-<script>
+<script lang='ts'>
     import SideBar from "./sidebar/SideBar.svelte";
     import TopBar from "./topbar/TopBar.svelte";
     import Body from "./body/Body.svelte";

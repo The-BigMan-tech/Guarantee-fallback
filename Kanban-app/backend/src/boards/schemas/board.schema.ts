@@ -9,6 +9,9 @@ export class BoardDefinition {
 
     @Prop()
     groups:GroupDTO[] 
+
+    @Prop()
+    isSelected:boolean
 }
 
 export type BoardDocumentType = HydratedDocument<BoardDefinition>

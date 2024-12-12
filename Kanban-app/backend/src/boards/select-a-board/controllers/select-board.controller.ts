@@ -1,16 +1,17 @@
 import { Controller,Get,Param,NotFoundException} from "@nestjs/common";
 import { BoardDataService } from "src/boards/common-services/services/get-board-data.service";
 import { BoardCheckService } from "src/boards/common-services/services/board-check.service";
+import { BoardDocumentType } from "src/boards/schemas/board.schema";
 
-@Controller('boards/selectBoard/:boardName')
+@Controller('boards')
 export class SelectBoard {
     constructor(private readonly boardDataService:BoardDataService,private readonly boardCheckService:BoardCheckService) {
         //No implementation
     }
     public async selectBoard(boardName:string,option:string) {
-        let result;
         let tag:string;
         let message:string;
+        let result;
         let boardDoesNotExist:boolean = !(await this.boardCheckService.doesBoardExist(boardName))
         if (boardDoesNotExist) {
             tag = 'UNSAFE'
@@ -19,20 +20,36 @@ export class SelectBoard {
         }
         if (option === 'object') {
             result = await this.boardDataService.returnBoard(boardName)
+            return result
         }else if (option === 'string'){
             result = await this.boardDataService.returnBoardAsString(boardName)
+            tag = 'SUCCESSFUL'
+            message = `Loaded '${boardName}' data:\n ${result}`
+            return `${tag}:${message}`
         }
-        tag = 'SUCCESSFUL'
-        message = `Loaded '${boardName}' data:\n ${result}`
-        return `${tag}:${message}`
     }
     
-    @Get()
+    @Get('/selectBoard/:boardName')
     public async selectBoardObject(@Param('boardName') boardName:string) {
         return this.selectBoard(boardName,'object')
     }
-    @Get('readable')
+    @Get('/selectBoard/:boardName/readable')
     public async selectReadableBoard(@Param('boardName') boardName:string) {
         return this.selectBoard(boardName,'string')
+    }
+    @Get('/loadSelectedBoard')
+    public async loadSelectedBoard():Promise<BoardDocumentType | string> {
+        let boards:BoardDocumentType[] = await this.boardDataService.returnBoards()
+        for (let board of boards) {
+            if (board.isSelected) {
+                return board
+            }
+        }
+        return 'You havent selected a board'
+    }
+    @Get('/pushBoard/:boardName')
+    public async selectedBoard(@Param('boardName') boardName:string):Promise<BoardDocumentType> {
+        await this.boardDataService.selectBoard(boardName)
+        return 
     }
 }

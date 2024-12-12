@@ -8,6 +8,6 @@ export class EditBoardService {
         //No implementation
     }
     public async editBoard(oldBoardName:string,newBoardName:string):Promise<void> {
-        await this.boardModel.updateOne({name:oldBoardName},{name:newBoardName}).exec()
+        await this.boardModel.updateOne({name:oldBoardName},{$set:{name:newBoardName}}).exec()
     }
 }

@@ -24,12 +24,14 @@ export class CreateBoard {
         let result:BoardDocumentType
         const defaultGroups:string[] = ['TODO','DOING','DONE'];
         board.groups = [];
+        board.isSelected = false
         for (let group of defaultGroups) {
             board.groups.push({name:group,tasks:[]})
         }
         let boardDoesNotExist:boolean = !(await this.boardCheckService.doesBoardExist(board.name))
         if (boardDoesNotExist) {
             result = await this.boardService.createBoard(board);
+            console.log(board.isSelected)
             tag = 'SUCCESSFUL'
             message = `Created a board named '${board.name}'\nInitial data for the board:\n${result}`
             return `${tag}:${message}`
