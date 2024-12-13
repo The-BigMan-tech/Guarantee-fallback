@@ -39,25 +39,28 @@
         <div class='absolute text-white w-96 bg-[#26262e] h-[32rem] rounded-xl shadow-xl'>
             <div class='flex flex-col relative left-9 top-7'>
                 <div class='flex flex-col gap-4'>
-                    <div class='flex gap-5 relative w-80'>
-                        <h1>Board:</h1>
-                        <h1>{value.name}</h1>
-                        <button onclick={()=>cancel(index)} class='absolute right-4'>Cancel</button>
+                    <div class='flex gap-5 relative w-80 items-center'>
+                        <img class="w-4"  src="/chalkboard-solid.svg" alt="">
+                        <h1 class='font-roboto text-sm'>Board:</h1>
+                        <h1 class='font-bold text-sm'>{value.name}</h1>
+                        <button onclick={()=>cancel(index)} class='absolute right-4'>
+                            <img class='w-6' src="/circle-xmark-solid.svg" alt="">
+                        </button>
                     </div>
-                    <h1 class='text-xl font-bold'>Add New Task</h1>
+                    <h1 class='text-xl font-bold font-space'>Add New Task</h1>
                 </div>
                 <form class="flex flex-col gap-10 relative" action="">
                     <div class='relative top-3 flex flex-col'>
-                        <label for="">Title</label>
+                        <label class="font-roboto" for="">Title</label>
                         <input class='relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c]' type="text">
                     </div>
                     <div class='relative top-3 flex flex-col'>
-                        <label for="">Description</label>
+                        <label class='font-mono' for="">Description</label>
                         <textarea class='resize-none relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c] h-20' name="" id=""></textarea>
                     </div>
                     <div class='relative top-3 flex flex-col gap-4'>
-                        <label for="">Status</label>
-                        <select class='text-white bg-transparent border border-[#4e4e5c] w-80 pl-2 py-2 rounded-sm' name="" id="">
+                        <label class='font-mono' for="">Status</label>
+                        <select class='text-white bg-transparent border border-[#4e4e5c] w-80 pl-2 py-2 rounded-sm font-sans' name="" id="">
                             {#each groups as group}
                                 <option class='pl-2'>{group.name}</option>
                             {/each}
