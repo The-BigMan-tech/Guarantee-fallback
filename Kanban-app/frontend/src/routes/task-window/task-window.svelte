@@ -9,6 +9,7 @@
 
     let title:string = $state('');
     let description:string = $state('')
+    let status:string = $state('')
 
     async function processResponse(response:Response):Promise<void> {
         if (!response.ok) {
@@ -41,7 +42,7 @@
             taskInfo:{
                 title:title,
                 description:description,
-                status:"new"
+                status:status
             }
         }
         console.log('Task details',taskObject);
@@ -78,9 +79,9 @@
                     </div>
                     <div class='relative top-3 flex flex-col gap-4'>
                         <label class='font-mono' for="">Status</label>
-                        <select class='text-white bg-transparent border border-[#4e4e5c] w-80 pl-2 py-2 rounded-sm font-sans' name="" id="">
+                        <select bind:value={status} class='text-white bg-transparent border border-[#4e4e5c] w-80 pl-2 py-2 rounded-sm font-sans' name="" id="">
                             {#each groups as group}
-                                <option class='pl-2'>{group.name}</option>
+                                <option value={group.name} class='pl-2'>{group.name}</option>
                             {/each}
                         </select>
                     </div>
