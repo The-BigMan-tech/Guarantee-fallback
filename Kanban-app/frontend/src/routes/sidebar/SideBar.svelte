@@ -57,7 +57,7 @@
     }
     async function loadBoards() {
         const response:Response = await fetch('http://localhost:3100/boards/loadmyBoards',{method:'GET'})
-        processResponse(response)
+        await processResponse(response)
         boards = await response.json()
         boardNumber = boards.length
         let lastBoard = boards.at(-1)
@@ -95,7 +95,7 @@
                 headers:{'Content-Type':'application/json'},
                 body:JSON.stringify({oldBoardName:oldName,newBoardName:newBoardName})
             })
-            processResponse(response)
+            await processResponse(response)
             loadBoards()
             return
         }

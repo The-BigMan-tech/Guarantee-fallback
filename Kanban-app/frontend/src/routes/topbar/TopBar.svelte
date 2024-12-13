@@ -1,4 +1,5 @@
 <script lang='ts'>
+    import { onMount } from 'svelte';
     import type {BoardDefinition} from '../interfaces/shared-interfaces'
     import {Sidelever,TaskName,Tasklever,setIndex} from '../levers/lever.svelte'
 
@@ -9,7 +10,6 @@
     let shouldDelete:boolean = $state(false)
     let {isTopBarOn} = $props();
 
-
     async function processResponse(response:Response):Promise<void> {
         if (!response.ok) {
             const responseMessage = await response.text()
@@ -19,14 +19,24 @@
     }
     async function getSelectedBoard():Promise<void> {
         let response:Response = await fetch('http://localhost:3100/boards/loadSelectedBoard',{method:'GET'})
-        processResponse(response);
+        await processResponse(response);
         board = await response.json()
         response = await fetch('http://localhost:3100/boards/loadmyBoards',{method:'GET'})
-        processResponse(response)
+        await processResponse(response)
         boards = await response.json()
         TaskName.set(board.name);
+        taskIndex = boards.findIndex(Board=>Board.name===board.name)
+        shouldDelete = localStorage.getItem(`wasWindowOpenedat${taskIndex}`) === 'true'
+        console.log('Should delete: ',shouldDelete);
+    }
+    function cancel() {
+        shouldDelete = false
+        localStorage.setItem(`wasWindowOpenedat${taskIndex}`,'')
+        shouldDelete = localStorage.getItem(`wasWindowOpenedat${taskIndex}`) === 'true'
+        console.log('Should delete from cancel',shouldDelete);
     }
     async function deleteBoard():Promise<void> {
+        cancel()
         setIndex(taskIndex,false)
         let response:Response = await fetch(`http://localhost:3100/boards/delete/board/${nameDisplay}`,{method:'DELETE'})
         await processResponse(response)
@@ -35,7 +45,7 @@
 
         console.log('reached here')
         response = await fetch('http://localhost:3100/boards/loadmyBoards',{method:'GET'})
-        processResponse(response)
+        await processResponse(response)
         boards = await response.json()
         if (boards.length) {
             let lastBoardName = boards.at(-1)?.name
@@ -44,10 +54,10 @@
             return
         }
         nameDisplay = 'Select a board to view its info'
-        shouldDelete = false
     }
     function deleteForSure():void {
         shouldDelete = true
+        localStorage.setItem(`wasWindowOpenedat${taskIndex}`,'true')
     }
     async function addTask():Promise<void> {
         taskIndex = boards.findIndex(Board=>Board.name===board.name)
@@ -79,10 +89,13 @@
     {/if}
 </div>
 {#if (shouldDelete)}
-    <div class='flex flex-col gap-2 justify-center items-center absolute left-[35vw] top-[35vh] text-white w-[30rem] bg-[#26262e] h-24 rounded-xl shadow-xl'>
-        <div class='flex gap-4'>
-            <h1 class='text-red-400 font-bold text-lg font-roboto'>Are you sure you want to delete this board?</h1>
+    <div class='flex flex-col gap-3 justify-center items-center absolute left-[35vw] top-[35vh] text-white w-[34rem] bg-[#26262e] h-24 rounded-xl shadow-md'>
+        <h1 class='text-red-400 font-bold text-lg font-roboto'>Are you sure you want to delete the board; {board.name} ?</h1>
+        <div class='flex gap-24'>
+            <button onclick={deleteBoard} class='bg-[#f05050] py-1 px-5 rounded-xl font-[550] font-roboto'>Yes</button>
+            <button onclick={cancel}>
+                <img class='w-6' src="/circle-xmark-solid.svg" alt="">
+            </button>
         </div>
-        <button onclick={deleteBoard} class='bg-red-700 py-1 px-5 rounded-xl'>Yes</button>
     </div>
 {/if}
