@@ -89,9 +89,9 @@
     {/if}
 </div>
 {#if (shouldDelete)}
-    <div class='flex flex-col gap-3 justify-center items-center absolute left-[35vw] top-[35vh] text-white w-[34rem] bg-[#26262e] h-24 rounded-xl shadow-md'>
+    <div class='flex flex-col gap-3 justify-center items-center absolute left-[35vw] top-[35vh] text-white w-[40rem] bg-[#26262e] h-24 rounded-xl shadow-md'>
         <h1 class='text-red-400 font-bold text-lg font-roboto'>Are you sure you want to delete the board; {board.name} ?</h1>
-        <div class='flex gap-24'>
+        <div class='flex gap-20'>
             <button onclick={deleteBoard} class='bg-[#f05050] py-1 px-5 rounded-xl font-[550] font-roboto'>Yes</button>
             <button onclick={cancel}>
                 <img class='w-6' src="/circle-xmark-solid.svg" alt="">

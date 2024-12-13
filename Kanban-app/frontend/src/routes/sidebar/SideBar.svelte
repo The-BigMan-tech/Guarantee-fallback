@@ -4,7 +4,6 @@
     import Logo from './logo.svelte';
 
     import {Toplever,Indexlever} from '../levers/lever.svelte'
-    import type { HtmlTagDescriptor } from 'vite';
     let {isSideBarOn} = $props()
     let boardNumber:number = $state(0)
     let createBoard:boolean = $state(false)

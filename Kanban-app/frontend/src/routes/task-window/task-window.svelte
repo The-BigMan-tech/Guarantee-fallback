@@ -1,6 +1,6 @@
 <script lang='ts'>
     import type {BoardDefinition,GroupDTO,TaskDetailsDTO} from '../interfaces/shared-interfaces'
-    import {setIndex} from '../levers/lever.svelte'
+    import {setIndex,ReloadTask} from '../levers/lever.svelte'
 
     let {isTaskOn,sharedName} = $props()
     let boards:BoardDefinition[] = $state([])
@@ -51,6 +51,8 @@
         console.log('Task details',taskObject);
         taskCreated = true
         title = '';description='';status=''
+        ReloadTask.set(true)
+        ReloadTask.set(false)
     }
     function Ok(index:number):void {
         taskCreated=false;

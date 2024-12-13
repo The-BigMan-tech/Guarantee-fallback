@@ -10,7 +10,7 @@ export interface TaskDetailsDTO {
 }
 export interface GroupDTO {
     name:string,
-    tasks:TaskDTO
+    tasks:TaskDTO[]
 }
 export interface BoardDefinition {
     name:string,

@@ -5,6 +5,7 @@
     export const Tasklever = writable([false])
     export const Indexlever = writable(0)
     export const TaskName = writable('')
+    export const ReloadTask = writable(false)
 
     export function setIndex(index:number,bool:boolean) {
         Tasklever.update(array => {
