@@ -1,6 +1,6 @@
 *Font squirrel
 *Dev dojo
-
+*svelte binding and stores
 The most independent parts of the program must be coded first before the dependent ones
 The server should be operationally feature based while the frontend shouldbe visually feature based
 Use a boolean array to check for selected values and apply styles based on them

@@ -32,10 +32,6 @@
     function cancel(index:number):void { 
         setIndex(index,false)
     }
-    function typeTitle(event:Event):void {
-        const target = event.target as HTMLInputElement
-        title = target.value
-    }
     function createTask(boardName:string) {
         const taskObject:TaskDetailsDTO = {
             boardName:boardName,
@@ -71,7 +67,7 @@
                 <form class="flex flex-col gap-14 relative" action="">
                     <div class='relative top-3 flex flex-col mt-3'>
                         <label class="font-roboto" for="">Title</label>
-                        <input onchange={typeTitle} value={title} class='relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c] font-[600]' type="text" placeholder='eg Do my homework'>
+                        <input bind:value={title} class='relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c] font-[600]' type="text" placeholder='eg Do my homework'>
                     </div>
                     <div class='relative top-3 flex flex-col'>
                         <label class='font-mono' for="">Description</label>
@@ -79,7 +75,7 @@
                     </div>
                     <div class='relative top-3 flex flex-col gap-4'>
                         <label class='font-mono' for="">Status</label>
-                        <select bind:value={status} class='text-white bg-transparent border border-[#4e4e5c] w-80 pl-2 py-2 rounded-sm font-sans' name="" id="">
+                        <select bind:value={status} class='text-purple-600 font-[540] bg-transparent border border-[#4e4e5c] w-80 pl-2 py-2 rounded-sm font-sans' name="" id="">
                             {#each groups as group}
                                 <option value={group.name} class='pl-2'>{group.name}</option>
                             {/each}
