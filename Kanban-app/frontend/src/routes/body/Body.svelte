@@ -1,6 +1,5 @@
 <script lang='ts'>
     import type {BoardDefinition, GroupDTO,TaskDTO} from '../interfaces/shared-interfaces'
-    import { TaskName } from '../levers/lever.svelte';
     let board:BoardDefinition = $state() as BoardDefinition
     let groups:GroupDTO[] = $state([])
     let tasks:TaskDTO[] = $state([])
