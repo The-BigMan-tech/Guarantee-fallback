@@ -8,9 +8,9 @@
 
     export function setIndex(index:number,bool:boolean) {
         Tasklever.update(array => {
-        const newArray = [...array];
-        newArray[index] = bool;
-        return newArray; // Return the new array
+            const newArray = [...array];
+            newArray[index] = bool;
+            return newArray; // Return the new array
         });
     }
 </script>

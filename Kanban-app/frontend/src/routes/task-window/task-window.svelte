@@ -50,6 +50,11 @@
         await processResponse(response)
         console.log('Task details',taskObject);
         taskCreated = true
+        title = '';description='';status=''
+    }
+    function Ok(index:number):void {
+        taskCreated=false;
+        cancel(index)
     }
     $effect(()=>{
         console.log('Task flicked',isTaskOn);
@@ -95,7 +100,13 @@
                 <button onclick={()=>createTask(value.name)} class='absolute bottom-4 left-[5.5rem] bg-[#4d3bbc] py-3 px-14 rounded-3xl'>Create Task</button>
             </div>
         {:else}
-            <div class='absolute text-white w-96 bg-[#26262e] h-[34rem] rounded-xl shadow-xl'>Task created</div>
+            <div class='flex flex-col gap-2 justify-center items-center absolute text-white w-96 bg-[#26262e] h-24 rounded-xl shadow-xl'>
+                <div class='flex gap-4'>
+                    <img class='w-5' src="/thumbs-up-regular.svg" alt="">
+                    <h1 class='text-green-400 font-bold text-lg font-roboto'>Task Created Successfully</h1>
+                </div>
+                <button class='bg-green-700 py-1 px-5 rounded-xl' onclick={()=>Ok(index)}>Ok</button>
+            </div>
         {/if}
     {/if}
 {/each}

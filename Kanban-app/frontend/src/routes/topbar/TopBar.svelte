@@ -6,7 +6,9 @@
     let boards:BoardDefinition[] = $state([])
     let board:BoardDefinition = $state() as BoardDefinition
     let taskIndex:number = $state(0)
-    let {isTopBarOn} = $props()
+    let shouldDelete:boolean = $state(false)
+    let {isTopBarOn} = $props();
+
 
     async function processResponse(response:Response):Promise<void> {
         if (!response.ok) {
@@ -22,7 +24,7 @@
         response = await fetch('http://localhost:3100/boards/loadmyBoards',{method:'GET'})
         processResponse(response)
         boards = await response.json()
-        TaskName.set(board.name)
+        TaskName.set(board.name);
     }
     async function deleteBoard():Promise<void> {
         setIndex(taskIndex,false)
@@ -42,6 +44,10 @@
             return
         }
         nameDisplay = 'Select a board to view its info'
+        shouldDelete = false
+    }
+    function deleteForSure():void {
+        shouldDelete = true
     }
     async function addTask():Promise<void> {
         taskIndex = boards.findIndex(Board=>Board.name===board.name)
@@ -63,7 +69,7 @@
         </div>
         <div class='flex absolute right-24 gap-8'>
             <button onclick={addTask} class='bg-[#251e4f] py-3 px-4 rounded-3xl hover:bg-[white] hover:text-[#251e4f]'>+ Add new Task</button>
-            <button onclick={deleteBoard} class='flex items-center gap-4'>
+            <button onclick={deleteForSure} class='flex items-center gap-4'>
                 <img class='w-5' src="/trash-can-regular.svg" alt="">
                 <h1 class='text-[#f66473]'>Delete this board</h1>
             </button>
@@ -72,3 +78,11 @@
         <h1 class='font-bold text-xl absolute left-16'>{nameDisplay}</h1>
     {/if}
 </div>
+{#if (shouldDelete)}
+    <div class='flex flex-col gap-2 justify-center items-center absolute left-[35vw] top-[35vh] text-white w-[30rem] bg-[#26262e] h-24 rounded-xl shadow-xl'>
+        <div class='flex gap-4'>
+            <h1 class='text-red-400 font-bold text-lg font-roboto'>Are you sure you want to delete this board?</h1>
+        </div>
+        <button onclick={deleteBoard} class='bg-red-700 py-1 px-5 rounded-xl'>Yes</button>
+    </div>
+{/if}
