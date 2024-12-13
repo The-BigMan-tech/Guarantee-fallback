@@ -22,7 +22,7 @@
 </script>
 
 {#each boards as value,index}
-    {#if (isTaskOn[index])}
+    {#if (isTaskOn[index] && value.name === sharedName)}
         <div class='absolute text-white flex'>
             <h1>{value.name}</h1>
         </div>

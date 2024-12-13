@@ -22,6 +22,7 @@
         response = await fetch('http://localhost:3100/boards/loadmyBoards',{method:'GET'})
         processResponse(response)
         boards = await response.json()
+        TaskName.set(board.name)
     }
     async function deleteBoard():Promise<void> {
         setIndex(taskIndex,false)
