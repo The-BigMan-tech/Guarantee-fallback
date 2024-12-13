@@ -4,6 +4,7 @@
     import Logo from './logo.svelte';
 
     import {Toplever,Indexlever} from '../levers/lever.svelte'
+    import type { HtmlTagDescriptor } from 'vite';
     let {isSideBarOn} = $props()
     let boardNumber:number = $state(0)
     let createBoard:boolean = $state(false)
@@ -27,6 +28,7 @@
         warningMessage = ''
     }
     function toggleCreateBox():void {
+        warningMessage = ''
         if (!createBoard) {
             createBoard = true
             createText = 'Cancel'
@@ -144,25 +146,24 @@
                 </div>
             {/each}
         </div>
-        <div class='flex mt-7 gap-4'>
+        <div class='flex mt-7 gap-4 relative'>
             {#if (createBoard)}
                 <form onsubmit={createNewBoard}>
-                    {#if (warningMessage)}
-                        <input onchange={captureText} class='outline-none rounded-lg pl-3 font-sans w-44 bg-[#6144b8]' type="text" placeholder={warningMessage}>
-                    {:else}
-                        <input onchange={captureText} class='outline-none rounded-lg pl-3 font-sans w-44 text-white bg-[#6144b8]' type="text">
-                    {/if}
+                    <div class='flex flex-col gap-2'>
+                        <input onfocus={()=>warningMessage=''} onchange={captureText} class='outline-none rounded-lg pl-3 font-sans w-44 text-white bg-[#6144b8]' type="text">
+                        {#if (warningMessage)}
+                            <h1 class='text-red-500'>{warningMessage}</h1>
+                        {/if}
+                    </div>
                 </form>
             {/if}
-            <div class='flex mb-10'>
-                <button onclick={toggleCreateBox}>
-                    {#if (createText === 'Cancel')}
-                        <img class='w-6' src="/circle-xmark-solid.svg" alt="">
-                    {:else}
-                        <img class="w-5 relative right-1" src="/circle-plus-solid.svg" alt="">
-                    {/if}
-                </button>
-            </div>
+            <button class='mb-20' onclick={toggleCreateBox}>
+                {#if (createText === 'Cancel')}
+                    <img class='w-6 ' src="/circle-xmark-solid.svg" alt="">
+                {:else}
+                    <img class="w-5 relative right-1" src="/circle-plus-solid.svg" alt="">
+                {/if}
+            </button>
         </div>
     </div>
 </aside>
