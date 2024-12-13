@@ -36,7 +36,7 @@
 
 {#each boards as value,index}
     {#if (isTaskOn[index] && value.name === sharedName)}
-        <div class='absolute text-white w-96 bg-[#26262e] h-[32rem] rounded-xl shadow-xl'>
+        <div class='absolute text-white w-96 bg-[#26262e] h-[34rem] rounded-xl shadow-xl'>
             <div class='flex flex-col relative left-9 top-7'>
                 <div class='flex flex-col gap-4'>
                     <div class='flex gap-5 relative w-80 items-center'>
@@ -49,14 +49,14 @@
                     </div>
                     <h1 class='text-xl font-bold font-space'>Add New Task</h1>
                 </div>
-                <form class="flex flex-col gap-10 relative" action="">
-                    <div class='relative top-3 flex flex-col'>
+                <form class="flex flex-col gap-14 relative" action="">
+                    <div class='relative top-3 flex flex-col mt-3'>
                         <label class="font-roboto" for="">Title</label>
-                        <input class='relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c]' type="text">
+                        <input class='relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c] font-[600]' type="text" placeholder='eg Do my homework'>
                     </div>
                     <div class='relative top-3 flex flex-col'>
                         <label class='font-mono' for="">Description</label>
-                        <textarea class='resize-none relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c] h-20' name="" id=""></textarea>
+                        <textarea class='resize-none relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c] h-20' name="" id="" placeholder='eg I have to go research on advanced calculus for this one'></textarea>
                     </div>
                     <div class='relative top-3 flex flex-col gap-4'>
                         <label class='font-mono' for="">Status</label>

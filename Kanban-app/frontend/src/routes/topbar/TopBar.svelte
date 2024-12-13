@@ -62,7 +62,7 @@
             <h1 class='font-bold relative bottom-4 right-20'>{nameDisplay}</h1>
         </div>
         <div class='flex absolute right-24 gap-8'>
-            <button onclick={addTask} class='bg-[#251e4f] py-3 px-4 rounded-3xl'>+ Add new Task</button>
+            <button onclick={addTask} class='bg-[#251e4f] py-3 px-4 rounded-3xl hover:bg-[white] hover:text-[#251e4f]'>+ Add new Task</button>
             <button onclick={deleteBoard} class='flex items-center gap-4'>
                 <img class='w-5' src="/trash-can-regular.svg" alt="">
                 <h1 class='text-[#f66473]'>Delete this board</h1>
