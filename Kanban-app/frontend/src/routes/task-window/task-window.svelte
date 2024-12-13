@@ -38,7 +38,7 @@
         const taskObject:TaskDetailsDTO = {
             boardName:boardName,
             taskInfo:{
-                title:"A new task",
+                title:title,
                 description:"Something to do later",
                 status:"new"
             }
