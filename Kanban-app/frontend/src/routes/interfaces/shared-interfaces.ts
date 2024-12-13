@@ -1,8 +1,12 @@
 export interface TaskDTO {
     title:string,
     description:string,
-    subtasks:string,
+    subtasks?:string,
     status:string,
+}
+export interface TaskDetailsDTO {
+    boardName:string;
+    taskInfo:TaskDTO
 }
 export interface GroupDTO {
     name:string,

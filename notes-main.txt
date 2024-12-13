@@ -1,6 +1,8 @@
 *Font squirrel
 *Dev dojo
 
+The most independent parts of the program must be coded first before the dependent ones
+The server should be operationally feature based while the frontend shouldbe visually feature based
 Use a boolean array to check for selected values and apply styles based on them
 ai--utility snippet maker
 I have to use indexed db as a fallback to the server.immediately there is connection,the data is synced with the server

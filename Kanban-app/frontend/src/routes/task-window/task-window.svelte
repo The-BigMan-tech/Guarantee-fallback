@@ -1,11 +1,13 @@
 <script lang='ts'>
-    import type {BoardDefinition,GroupDTO} from '../interfaces/shared-interfaces'
+    import type {BoardDefinition,GroupDTO,TaskDetailsDTO} from '../interfaces/shared-interfaces'
     import {setIndex} from '../levers/lever.svelte'
 
     let {isTaskOn,sharedName} = $props()
     let boards:BoardDefinition[] = $state([])
     let board:BoardDefinition = $state() as BoardDefinition
-    let groups:GroupDTO[] = $state([]) 
+    let groups:GroupDTO[] = $state([]) ;
+
+    let title:string = $state('');
 
     async function processResponse(response:Response):Promise<void> {
         if (!response.ok) {
@@ -27,6 +29,21 @@
     }
     function cancel(index:number):void { 
         setIndex(index,false)
+    }
+    function typeTitle(event:Event):void {
+        const target = event.target as HTMLInputElement
+        title = target.value
+    }
+    function createTask(boardName:string) {
+        const taskObject:TaskDetailsDTO = {
+            boardName:boardName,
+            taskInfo:{
+                title:"A new task",
+                description:"Something to do later",
+                status:"new"
+            }
+        }
+        console.log('Task details',taskObject);
     }
     $effect(()=>{
         console.log('Task flicked',isTaskOn);
@@ -52,7 +69,7 @@
                 <form class="flex flex-col gap-14 relative" action="">
                     <div class='relative top-3 flex flex-col mt-3'>
                         <label class="font-roboto" for="">Title</label>
-                        <input class='relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c] font-[600]' type="text" placeholder='eg Do my homework'>
+                        <input onchange={typeTitle} value={title} class='relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c] font-[600]' type="text" placeholder='eg Do my homework'>
                     </div>
                     <div class='relative top-3 flex flex-col'>
                         <label class='font-mono' for="">Description</label>
@@ -68,7 +85,7 @@
                     </div>
                 </form>
             </div>
-            <button class='absolute bottom-4 left-[5.5rem] bg-[#4d3bbc] py-3 px-14 rounded-3xl'>Create Task</button>
-        </div>
+                <button onclick={()=>createTask(value.name)} class='absolute bottom-4 left-[5.5rem] bg-[#4d3bbc] py-3 px-14 rounded-3xl'>Create Task</button>
+            </div>
     {/if}
 {/each}
