@@ -19,7 +19,7 @@
     const unsubscribe4 = Indexlever.subscribe(value => sharedIndex = value);
     const unsubscribe5 = TaskName.subscribe(value => sharedName = value);
     onDestroy(()=>{
-            unsubscribe1();unsubscribe2();unsubscribe3();unsubscribe4()
+            unsubscribe1();unsubscribe2();unsubscribe3();unsubscribe4();unsubscribe5()
         }
     );
 </script>
