@@ -21,6 +21,11 @@
         board = await response.json()
         groups = board.groups
     }
+    async function deleteTask(boardName:string,groupName:string,index:number):Promise<void> {
+        const response:Response = await fetch(`http://localhost:3100/tasks/deleteTask?boardName=${encodeURIComponent(boardName)}&groupName=${encodeURIComponent(groupName)}&index=${index}`,{method:'DELETE'})
+        await processResponse(response)
+        await loadSelectedBoard()
+    }
     $effect(()=>{
         let none = isTopBarOn
         let none1 = shouldTaskReload
@@ -35,9 +40,11 @@
                 <div class='flex flex-col w-56 mb-20'>
                     <h1 class='font-sans font-[550] mb-6'>{group.name} ( <span class='text-[#a59bf5] font-space'> {group.tasks.length} </span> )</h1>
                     <div class='flex flex-col gap-7 overflow-y-scroll'>
-                        {#each group.tasks as task}
+                        {#each group.tasks as task,index}
                             <div class='flex gap-5'>
-                                <img class='w-4' src="/trash-can-regular.svg" alt="">
+                                <button onclick={()=>deleteTask(board.name,group.name,index)}>
+                                    <img class='w-4' src="/trash-can-regular.svg" alt="">
+                                </button>
                                 <button class='bg-[#2c2c38] py-3 w-[100%] text-white rounded-xl text-xl text-left pl-4 font-roboto shadow-md'>{task.title}</button>
                             </div>
                         {/each}
