@@ -46,10 +46,6 @@
     async function addTask():Promise<void> {
         taskIndex = boards.findIndex(Board=>Board.name===board.name)
         console.log('Board index',taskIndex);
-        if ($Tasklever[taskIndex]) {
-            setIndex(taskIndex,false)
-            return
-        }
         setIndex(taskIndex,true)
     }
     $effect(()=>{
