@@ -1,10 +1,11 @@
 <script lang='ts'>
     import type {BoardDefinition} from '../interfaces/shared-interfaces'
-    import {Sidelever,Tasklever} from '../levers/lever.svelte'
+    import {Sidelever,TaskName,Tasklever,setIndex} from '../levers/lever.svelte'
 
     let nameDisplay:string = $state('Select a board to view its info')
     let boards:BoardDefinition[] = $state([])
     let board:BoardDefinition = $state() as BoardDefinition
+    let taskIndex:number = $state(0)
     let {isTopBarOn} = $props()
 
     async function processResponse(response:Response):Promise<void> {
@@ -23,6 +24,7 @@
         boards = await response.json()
     }
     async function deleteBoard():Promise<void> {
+        setIndex(taskIndex,false)
         let response:Response = await fetch(`http://localhost:3100/boards/delete/board/${nameDisplay}`,{method:'DELETE'})
         await processResponse(response)
         Sidelever.set(true)
@@ -41,13 +43,13 @@
         nameDisplay = 'Select a board to view its info'
     }
     async function addTask():Promise<void> {
-        let taskIndex = boards.findIndex(Board=>Board.name===board.name)
+        taskIndex = boards.findIndex(Board=>Board.name===board.name)
         console.log('Board index',taskIndex);
-        if ($Tasklever) {
-            Tasklever.set(false)
+        if ($Tasklever[taskIndex]) {
+            setIndex(taskIndex,false)
             return
         }
-        Tasklever.set(true)
+        setIndex(taskIndex,true)
     }
     $effect(()=>{
         let none = isTopBarOn

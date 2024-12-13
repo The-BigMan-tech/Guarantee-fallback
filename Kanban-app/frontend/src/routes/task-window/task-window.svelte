@@ -1,7 +1,7 @@
 <script lang='ts'>
     import type {BoardDefinition} from '../interfaces/shared-interfaces'
-    let {isTaskOn} = $props()
-    let board:BoardDefinition = $state() as BoardDefinition
+    let {isTaskOn,sharedName} = $props()
+    let boards:BoardDefinition[] = $state([])
 
     async function processResponse(response:Response):Promise<void> {
         if (!response.ok) {
@@ -10,20 +10,21 @@
             throw new Error(responseErrorMessage)
         }
     }
-    async function getSelectedBoard():Promise<void> {
-        const response:Response = await fetch('http://localhost:3100/boards/loadSelectedBoard',{method:'GET'})
-        processResponse(response);
-        board = await response.json()
+    async function loadBoards() {
+        const response:Response = await fetch('http://localhost:3100/boards/loadmyBoards',{method:'GET'})
+        processResponse(response)
+        boards = await response.json()
     }
-
     $effect(()=>{
         console.log('Task flicked',isTaskOn);
-        getSelectedBoard()
+        loadBoards()
     })
 </script>
 
-{#if (isTaskOn)}
-    <div class='absolute text-white'>
-        {board.name}
-    </div>
-{/if}
+{#each boards as value,index}
+    {#if (isTaskOn[index])}
+        <div class='absolute text-white flex'>
+            <h1>{value.name}</h1>
+        </div>
+    {/if}
+{/each}

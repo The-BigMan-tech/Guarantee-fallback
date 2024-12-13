@@ -2,9 +2,8 @@
     import { onMount } from 'svelte';
     import type {BoardDefinition} from '../interfaces/shared-interfaces'
     import Logo from './logo.svelte';
-    import Warning from '../warning-window/Warning.svelte';
 
-    import {Toplever,Tasklever} from '../levers/lever.svelte'
+    import {Toplever,Indexlever} from '../levers/lever.svelte'
     let {isSideBarOn} = $props()
     let boardNumber:number = $state(0)
     let createBoard:boolean = $state(false)
@@ -15,7 +14,6 @@
     let boardIcons:boolean[] = $state([])
     let boardWidth:number = $state(19);
     let onEdit:boolean[] = $state([])
-    let taskWindow:boolean[] = $state([])
     let warningMessage:string = $state('')
 
     async function processResponse(response:Response):Promise<void> {
@@ -55,15 +53,7 @@
         await fetch(`http://localhost:3100/boards/pushBoard/${boardName}`,{method:'GET'})
         Toplever.set(true)
         Toplever.set(false)
-
-        Tasklever.set(false)
-        Tasklever.set(true)
-
-        taskWindow[index] = true
-        if (!taskWindow[index]) {
-            Tasklever.set(false)
-            return
-        }
+        Indexlever.set(index)
     }
     async function loadBoards() {
         const response:Response = await fetch('http://localhost:3100/boards/loadmyBoards',{method:'GET'})

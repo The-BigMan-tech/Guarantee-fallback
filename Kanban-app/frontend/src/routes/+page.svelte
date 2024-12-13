@@ -4,18 +4,22 @@
     import Body from "./body/Body.svelte";
     import TaskWindow from "./task-window/task-window.svelte";
     import { onDestroy } from 'svelte';
-    import {Toplever,Sidelever,Tasklever} from "./levers/lever.svelte";
+    import {Toplever,Sidelever,Tasklever,Indexlever,TaskName} from "./levers/lever.svelte";
 
 
     let isTopBarOn:boolean = $state(false)
     let isSideBarOn:boolean = $state(false)
-    let isTaskOn:boolean = $state(false)
+    let isTaskOn:boolean[] = $state([])
+    let sharedIndex:number = $state(0)
+    let sharedName:string = $state('')
 
     const unsubscribe1 = Toplever.subscribe(value => isTopBarOn = value);
     const unsubscribe2 = Sidelever.subscribe(value => isSideBarOn = value);
     const unsubscribe3 = Tasklever.subscribe(value => isTaskOn = value);
+    const unsubscribe4 = Indexlever.subscribe(value => sharedIndex = value);
+    const unsubscribe5 = TaskName.subscribe(value => sharedName = value);
     onDestroy(()=>{
-            unsubscribe1();unsubscribe2();unsubscribe3();
+            unsubscribe1();unsubscribe2();unsubscribe3();unsubscribe4()
         }
     );
 </script>
@@ -28,5 +32,5 @@
             <Body/>
         </div>
     </div>
-    <TaskWindow {isTaskOn}/>
+    <TaskWindow {isTaskOn} {sharedName}/>
 </div>
