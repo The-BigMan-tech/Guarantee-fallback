@@ -8,6 +8,7 @@
     let groups:GroupDTO[] = $state([]) ;
 
     let title:string = $state('');
+    let description:string = $state('')
 
     async function processResponse(response:Response):Promise<void> {
         if (!response.ok) {
@@ -39,7 +40,7 @@
             boardName:boardName,
             taskInfo:{
                 title:title,
-                description:"Something to do later",
+                description:description,
                 status:"new"
             }
         }
@@ -73,7 +74,7 @@
                     </div>
                     <div class='relative top-3 flex flex-col'>
                         <label class='font-mono' for="">Description</label>
-                        <textarea class='resize-none relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c] h-20' name="" id="" placeholder='eg I have to go research on advanced calculus for this one'></textarea>
+                        <textarea bind:value={description} class='resize-none relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c] h-20' name="" id="" placeholder='eg I have to go research on advanced calculus for this one'></textarea>
                     </div>
                     <div class='relative top-3 flex flex-col gap-4'>
                         <label class='font-mono' for="">Status</label>
