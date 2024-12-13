@@ -2,8 +2,9 @@
     import { onMount } from 'svelte';
     import type {BoardDefinition} from '../interfaces/shared-interfaces'
     import Logo from './logo.svelte';
+    import Warning from '../warning-window/Warning.svelte';
 
-    import {Toplever} from '../levers/lever.svelte'
+    import {Toplever,Tasklever} from '../levers/lever.svelte'
     let {isSideBarOn} = $props()
     let boardNumber:number = $state(0)
     let createBoard:boolean = $state(false)
@@ -14,13 +15,18 @@
     let boardIcons:boolean[] = $state([])
     let boardWidth:number = $state(19);
     let onEdit:boolean[] = $state([])
+    let taskWindow:boolean[] = $state([])
+    let warningMessage:string = $state('')
 
     async function processResponse(response:Response):Promise<void> {
+        console.log('processing');
         if (!response.ok) {
             const responseMessage = await response.text()
             const responseErrorMessage = JSON.parse(responseMessage).message
+            warningMessage = 'Board already exists!'
             throw new Error(responseErrorMessage)
         }
+        warningMessage = ''
     }
     function toggleCreateBox():void {
         if (!createBoard) {
@@ -49,6 +55,15 @@
         await fetch(`http://localhost:3100/boards/pushBoard/${boardName}`,{method:'GET'})
         Toplever.set(true)
         Toplever.set(false)
+
+        Tasklever.set(false)
+        Tasklever.set(true)
+
+        taskWindow[index] = true
+        if (!taskWindow[index]) {
+            Tasklever.set(false)
+            return
+        }
     }
     async function loadBoards() {
         const response:Response = await fetch('http://localhost:3100/boards/loadmyBoards',{method:'GET'})
@@ -67,7 +82,11 @@
             headers:{'Content-Type':'application/json'},
             body:JSON.stringify({name:newBoardName})
         })
-        processResponse(response)
+        await processResponse(response)
+        console.log('Warning',warningMessage);
+        if (warningMessage) {
+            return
+        }
         await loadBoards()
         toggleCreateBox()
         const index = boards.findIndex(board=>board.name===newBoardName)
@@ -137,8 +156,12 @@
         </div>
         <div class='flex mt-7 gap-4'>
             {#if (createBoard)}
-                <form onsubmit={createNewBoard} action="">
-                    <input onchange={captureText} class='outline-none rounded-lg pl-3 font-sans w-44 text-white bg-[#6144b8]' type="text">
+                <form onsubmit={createNewBoard}>
+                    {#if (warningMessage)}
+                        <input onchange={captureText} class='outline-none rounded-lg pl-3 font-sans w-44 bg-[#6144b8]' type="text" placeholder={warningMessage}>
+                    {:else}
+                        <input onchange={captureText} class='outline-none rounded-lg pl-3 font-sans w-44 text-white bg-[#6144b8]' type="text">
+                    {/if}
                 </form>
             {/if}
             <div class='flex mb-10'>

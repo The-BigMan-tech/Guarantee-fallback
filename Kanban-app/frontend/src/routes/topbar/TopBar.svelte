@@ -3,6 +3,7 @@
     import {Sidelever,Tasklever} from '../levers/lever.svelte'
 
     let nameDisplay:string = $state('Select a board to view its info')
+    let boards:BoardDefinition[] = $state([])
     let board:BoardDefinition = $state() as BoardDefinition
     let {isTopBarOn} = $props()
 
@@ -14,9 +15,12 @@
         }
     }
     async function getSelectedBoard():Promise<void> {
-        const response:Response = await fetch('http://localhost:3100/boards/loadSelectedBoard',{method:'GET'})
+        let response:Response = await fetch('http://localhost:3100/boards/loadSelectedBoard',{method:'GET'})
         processResponse(response);
         board = await response.json()
+        response = await fetch('http://localhost:3100/boards/loadmyBoards',{method:'GET'})
+        processResponse(response)
+        boards = await response.json()
     }
     async function deleteBoard():Promise<void> {
         let response:Response = await fetch(`http://localhost:3100/boards/delete/board/${nameDisplay}`,{method:'DELETE'})
@@ -27,16 +31,18 @@
         console.log('reached here')
         response = await fetch('http://localhost:3100/boards/loadmyBoards',{method:'GET'})
         processResponse(response)
-        const boards = await response.json()
+        boards = await response.json()
         if (boards.length) {
-            let lastBoardName = boards.at(-1).name
+            let lastBoardName = boards.at(-1)?.name
             console.log(lastBoardName);
-            nameDisplay = lastBoardName
+            nameDisplay = lastBoardName as string
             return
         }
         nameDisplay = 'Select a board to view its info'
     }
     async function addTask():Promise<void> {
+        let taskIndex = boards.findIndex(Board=>Board.name===board.name)
+        console.log('Board index',taskIndex);
         if ($Tasklever) {
             Tasklever.set(false)
             return
