@@ -7,6 +7,7 @@
     let viewTask:TaskDTO = $state() as TaskDTO
     let {isTopBarOn,shouldTaskReload} = $props()
 
+    let tagColors:string[] = $state(['bg-[hsl(0,89%,71%)]','bg-[hsl(57,100%,68%)]','bg-[hsl(150,56%,57%)]'])
     async function processResponse(response:Response):Promise<void> {
         console.log('processing');
         if (!response.ok) {
@@ -43,10 +44,10 @@
 <div class='bg-[#21212d] h-[31.7rem] relative overflow-x-scroll overflow-y-clip'>
     <div class='absolute flex flex-col left-16 mt-4'>
         <div class='flex text-[#848a9a] gap-24'>
-            {#each groups as group} 
+            {#each groups as group,gIndex} 
                 <div class='flex flex-col w-56 mb-20'>
                     <div class='flex gap-3'>
-                        <h1 class={`text-transparent bg-[hsl(150,56%,57%)] w-3 h-3 rounded-full relative top-[0.4rem]`}>0</h1>
+                        <h1 class={`text-transparent ${tagColors[gIndex]} w-3 h-3 rounded-full relative top-[0.4rem]`}>0</h1>
                         <h1 class='font-sans font-[550] mb-6'>{group.name} ( <span class='text-[#a59bf5] font-space'> {group.tasks.length} </span> )</h1>
                     </div>
                     <div class='flex flex-col gap-7 overflow-y-scroll h-[26rem]'>
