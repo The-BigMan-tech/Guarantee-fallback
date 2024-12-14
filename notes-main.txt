@@ -1,3 +1,9 @@
+*ill use stores and a one push and pull architecture
+
+Normal people when they see it: 🥱
+Developers when they see it: 🧐🤔🫡😮‍💨🗿🗿🗿
+
+!Not so scalable architecture:Refresh cycle and lever system
 *Font squirrel
 *Dev dojo
 *svelte binding and stores

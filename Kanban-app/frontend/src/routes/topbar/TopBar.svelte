@@ -2,6 +2,7 @@
     import { onMount } from 'svelte';
     import type {BoardDefinition} from '../interfaces/shared-interfaces'
     import {Sidelever,TaskName,Tasklever,setIndex} from '../levers/lever.svelte'
+    
 
     let nameDisplay:string = $state('Select a board to view its info')
     let boards:BoardDefinition[] = $state([])

@@ -3,6 +3,8 @@
     let board:BoardDefinition = $state() as BoardDefinition
     let groups:GroupDTO[] = $state([])
     let tasks:TaskDTO[] = $state([])
+    
+    let taskView:boolean[] = $state([])
 
     let {isTopBarOn,shouldTaskReload} = $props()
 
@@ -24,6 +26,11 @@
         const response:Response = await fetch(`http://localhost:3100/tasks/deleteTask?boardName=${encodeURIComponent(boardName)}&groupName=${encodeURIComponent(groupName)}&index=${index}`,{method:'DELETE'})
         await processResponse(response)
         await loadSelectedBoard()
+    }
+    function viewATask(index:number):void {
+        taskView=[];
+        taskView[index]=true;
+        console.log('TASK VIEW',taskView[0],taskView[1])
     }
     $effect(()=>{
         let none = isTopBarOn
@@ -47,8 +54,16 @@
                                 <button onclick={()=>deleteTask(board.name,group.name,index)}>
                                     <img class='w-5' src="/trash-can-regular.svg" alt="">
                                 </button>
-                                <button class='bg-[#2c2c38] py-3 w-[100%] text-white rounded-xl text-xl text-left pl-4 font-roboto shadow-md'>{task.title}</button>
+                                <button onclick={()=>viewATask(index)} class='bg-[#2c2c38] py-3 w-[100%] text-white rounded-xl text-xl text-left pl-4 font-roboto shadow-md'>{task.title}</button>
                             </div>
+                            {#if taskView[index]}
+                                <div class='text-white flex flex-col bg-[#26262e]'>
+                                    <h1>Task: {task.title}</h1>
+                                    {#if task.description}
+                                        <p>Description: {task.description}</p>
+                                    {/if}
+                                </div>
+                            {/if}
                         {/each}
                     </div>
                 </div>
