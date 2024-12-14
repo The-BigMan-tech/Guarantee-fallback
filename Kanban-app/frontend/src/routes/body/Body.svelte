@@ -52,10 +52,10 @@
                     <div class='flex flex-col gap-7 overflow-y-scroll h-[26rem]'>
                         {#each group.tasks as task,index}
                             <div class='flex gap-5'>
-                                <button onclick={()=>deleteTask(board.name,group.name,index)}>
+                                <button class='flex-shrink-0' onclick={()=>deleteTask(board.name,group.name,index)}>
                                     <img class='w-5' src="/trash-can-regular.svg" alt="">
                                 </button>
-                                <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[100%] text-white rounded-xl text-xl text-left pl-4 font-roboto shadow-sm'>{task.title}</button>
+                                <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[80%] text-white rounded-xl text-xl text-left pl-4 font-roboto shadow-sm break-words'>{task.title}</button>
                             </div>
                         {/each}
                     </div>
@@ -68,9 +68,9 @@
 {#if shouldView}
     <div class='flex flex-col gap-5 text-white z-20 absolute left-[40vw] top-[40vh] bg-[#26262e] w-96 text-left pl-7 pt-5 rounded-lg shadow-md'>
         <div class='flex relative'>
-            <div class='flex gap-2'>
+            <div class='flex gap-2 flex-wrap w-64'>
                 <h1 class='font-roboto'>Title:</h1>
-                <h1 class='font-sans'>{viewTask.title}</h1>
+                <h1 class='font-sans break-words w-56'>{viewTask.title}</h1>
             </div>
             <button onclick={()=>shouldView=false}>
                 <img class='w-6 absolute right-5 top-0' src="/circle-xmark-solid.svg" alt="">
