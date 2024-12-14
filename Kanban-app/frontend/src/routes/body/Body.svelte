@@ -32,13 +32,13 @@
     })
 </script>
 
-<div class='bg-[#21212d] h-[31.7rem] relative overflow-x-scroll'>
+<div class='bg-[#21212d] h-[31.7rem] relative overflow-x-scroll overflow-y-clip'>
     <div class='absolute flex flex-col left-16 mt-4'>
         <div class='flex text-[#848a9a] gap-24'>
             {#each groups as group} 
                 <div class='flex flex-col w-56 mb-20'>
                     <h1 class='font-sans font-[550] mb-6'>{group.name} ( <span class='text-[#a59bf5] font-space'> {group.tasks.length} </span> )</h1>
-                    <div class='flex flex-col gap-7 overflow-y-scroll'>
+                    <div class='flex flex-col gap-7 overflow-y-scroll h-[26rem]'>
                         {#each group.tasks as task,index}
                             <div class='flex gap-5'>
                                 <button onclick={()=>deleteTask(board.name,group.name,index)}>
