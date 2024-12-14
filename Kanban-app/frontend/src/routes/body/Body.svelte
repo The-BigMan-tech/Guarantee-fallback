@@ -55,7 +55,7 @@
                                 <button onclick={()=>deleteTask(board.name,group.name,index)}>
                                     <img class='w-5' src="/trash-can-regular.svg" alt="">
                                 </button>
-                                <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[100%] text-white rounded-xl text-xl text-left pl-4 font-roboto shadow-md'>{task.title}</button>
+                                <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[100%] text-white rounded-xl text-xl text-left pl-4 font-roboto shadow-sm'>{task.title}</button>
                             </div>
                         {/each}
                     </div>
@@ -64,8 +64,25 @@
         </div>
     </div>
 </div>
-<div class='text-white z-20 absolute left-[50vw] top-[50vh]'>
-    {#if shouldView}
-        <h1>{viewTask.title}</h1>
-    {/if}
-</div>
+
+{#if shouldView}
+    <div class='flex flex-col gap-5 text-white z-20 absolute left-[40vw] top-[40vh] bg-[#26262e] w-96 text-left pl-7 pt-5 rounded-lg shadow-md'>
+        <div class='flex relative'>
+            <div class='flex gap-2'>
+                <h1 class='font-roboto'>Title:</h1>
+                <h1 class='font-sans'>{viewTask.title}</h1>
+            </div>
+            <button onclick={()=>shouldView=false}>
+                <img class='w-6 absolute right-5 top-0' src="/circle-xmark-solid.svg" alt="">
+            </button>
+        </div>
+        <div class='flex gap-2 w-80 flex-wrap'>
+            <h1 class='font-roboto'>Description:</h1>
+            <p class='break-words w-80'>{viewTask.description}</p>
+        </div>
+        <div class='flex gap-2 mb-8'>
+            <h1 class='font-roboto'>Status: </h1>
+            <h1 class='text-[#9333ea]'>{viewTask.status}</h1>
+        </div>
+    </div>
+{/if}
