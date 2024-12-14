@@ -2,10 +2,9 @@
     import type {BoardDefinition, GroupDTO,TaskDTO} from '../interfaces/shared-interfaces'
     let board:BoardDefinition = $state() as BoardDefinition
     let groups:GroupDTO[] = $state([])
-    let tasks:TaskDTO[] = $state([])
-    
-    let taskView:boolean[] = $state([])
 
+    let shouldView:boolean = $state(false)
+    let viewTask:TaskDTO = $state() as TaskDTO
     let {isTopBarOn,shouldTaskReload} = $props()
 
     async function processResponse(response:Response):Promise<void> {
@@ -27,10 +26,12 @@
         await processResponse(response)
         await loadSelectedBoard()
     }
-    function viewATask(index:number):void {
-        taskView=[];
-        taskView[index]=true;
-        console.log('TASK VIEW',taskView[0],taskView[1])
+    async function viewATask(boardName:string,groupName:string,index:number):Promise<void> {
+        const response:Response = await fetch(`http://localhost:3100/tasks/viewTask?boardName=${encodeURIComponent(boardName)}&groupName=${encodeURIComponent(groupName)}&index=${index}`,{method:'GET'})
+        await processResponse(response)
+        viewTask = await response.json()
+        shouldView = true
+        console.log('SHOULD VIEW',shouldView,viewTask.title);
     }
     $effect(()=>{
         let none = isTopBarOn
@@ -54,20 +55,17 @@
                                 <button onclick={()=>deleteTask(board.name,group.name,index)}>
                                     <img class='w-5' src="/trash-can-regular.svg" alt="">
                                 </button>
-                                <button onclick={()=>viewATask(index)} class='bg-[#2c2c38] py-3 w-[100%] text-white rounded-xl text-xl text-left pl-4 font-roboto shadow-md'>{task.title}</button>
+                                <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[100%] text-white rounded-xl text-xl text-left pl-4 font-roboto shadow-md'>{task.title}</button>
                             </div>
-                            {#if taskView[index]}
-                                <div class='text-white flex flex-col bg-[#26262e]'>
-                                    <h1>Task: {task.title}</h1>
-                                    {#if task.description}
-                                        <p>Description: {task.description}</p>
-                                    {/if}
-                                </div>
-                            {/if}
                         {/each}
                     </div>
                 </div>
             {/each}
         </div>
     </div>
+</div>
+<div class='text-white z-20 absolute left-[50vw] top-[50vh]'>
+    {#if shouldView}
+        <h1>{viewTask.title}</h1>
+    {/if}
 </div>

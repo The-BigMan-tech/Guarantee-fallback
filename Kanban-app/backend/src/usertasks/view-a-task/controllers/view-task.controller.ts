@@ -25,6 +25,6 @@ export class ViewTaskControl {
         const taskData:TaskDTO = await this.viewTaskService.viewTask(task.boardName,task.groupName,task.index);
         tag = 'SUCCESSFUL';
         message = 'Here is the task\'s data:\n';
-        return `${tag}:${message}${JSON.stringify(taskData,null,4)}`;
+        return taskData;
     }
 }
