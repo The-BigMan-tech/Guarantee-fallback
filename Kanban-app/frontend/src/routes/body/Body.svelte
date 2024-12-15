@@ -20,6 +20,7 @@
         const response:Response = await fetch('http://localhost:3100/boards/loadSelectedboard',{method:'GET'})
         await processResponse(response)
         board = await response.json()
+        console.log('BOARD RECEIVED',board)
         groups = board.groups
     }
     async function deleteTask(boardName:string,groupName:string,index:number):Promise<void> {

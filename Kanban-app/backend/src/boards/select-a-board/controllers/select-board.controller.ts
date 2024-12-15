@@ -1,7 +1,7 @@
 import { Controller,Get,Param,NotFoundException} from "@nestjs/common";
 import { BoardDataService } from "src/boards/common-services/services/get-board-data.service";
 import { BoardCheckService } from "src/boards/common-services/services/board-check.service";
-import { BoardDocumentType } from "src/boards/schemas/board.schema";
+import { BoardDefinition, BoardDocumentType } from "src/boards/schemas/board.schema";
 
 @Controller('boards')
 export class SelectBoard {
@@ -45,7 +45,7 @@ export class SelectBoard {
                 return board
             }
         }
-        return 
+        return {} as BoardDocumentType
     }
     @Get('/pushBoard/:boardName')
     public async selectedBoard(@Param('boardName') boardName:string):Promise<BoardDocumentType> {
