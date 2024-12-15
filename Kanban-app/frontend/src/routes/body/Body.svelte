@@ -55,9 +55,9 @@
                         {#each group.tasks as task,index}
                             <div class='flex gap-5'>
                                 <button class='flex-shrink-0' onclick={()=>deleteTask(board.name,group.name,index)}>
-                                    <img class='w-5' src="/trash-can-regular.svg" alt="">
+                                    <img class='w-4' src="/trash-can-regular.svg" alt="">
                                 </button>
-                                <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[80%] text-white rounded-xl text-lg text-left pl-4 font-roboto shadow-sm break-words'>{task.title}</button>
+                                <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[80%] text-white rounded-xl text-lg text-left pl-4 font-roboto shadow-sm break-words pr-2'>{task.title}</button>
                             </div>
                         {/each}
                     </div>
