@@ -1,7 +1,10 @@
 <script lang='ts'>
-    import type {BoardDefinition, GroupDTO,TaskDTO} from '../interfaces/shared-interfaces'
+    import type {BoardDefinition, GroupDTO,TaskDTO,EditTaskDTO} from '../interfaces/shared-interfaces'
     let board:BoardDefinition = $state() as BoardDefinition
     let groups:GroupDTO[] = $state([])
+    let globalGroup:string = $state('')
+    let globalIndex:number = $state(0)
+
 
     let shouldView:boolean = $state(false)
     let viewTask:TaskDTO = $state() as TaskDTO
@@ -22,7 +25,7 @@
         if (!response.ok) {
             const responseMessage = await response.text()
             const responseErrorMessage = JSON.parse(responseMessage).message
-            throw new Error(responseErrorMessage)
+            throw new Error(responseMessage)
         }
     }
     async function loadSelectedBoard():Promise<void> {
@@ -41,6 +44,8 @@
         const response:Response = await fetch(`http://localhost:3100/tasks/viewTask?boardName=${encodeURIComponent(boardName)}&groupName=${encodeURIComponent(groupName)}&index=${index}`,{method:'GET'})
         await processResponse(response)
         viewTask = await response.json()
+        globalGroup = groupName
+        globalIndex = index
         newStatus = newStatus || viewTask.status
         shouldView = true
         console.log('SHOULD VIEW',shouldView,viewTask.title);
@@ -62,6 +67,27 @@
         editTitle = false
         editDescription = false
         editStatus = false
+    }
+    async function editTask():Promise<void> {
+        console.log('BOARD TO EDIT',board.name,'GROUP',globalGroup,'INDEX',globalIndex,'NEW TITLE',newTitle);
+        const newTaskObject:EditTaskDTO = {
+            boardName:board.name,
+            groupName:globalGroup,
+            index:globalIndex,
+            newTask:{
+                title:newTitle,
+                description:newDescription,
+                status:newStatus
+            }
+        }
+        const response:Response = await fetch('http://localhost:3100/tasks/editTask',{
+            method:'PUT',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(newTaskObject)
+        })
+        await processResponse(response)
+        cancel()
+        await loadSelectedBoard()
     }
     $effect(()=>{
         let none = isTopBarOn
@@ -109,7 +135,7 @@
                 </button>
                 <h1 class='font-roboto underline'>Title:</h1>
                 {#if !editTitle}
-                    <h1 class='font-sans break-words'>{viewTask.title}</h1>
+                    <h1 class='font-sans break-words'>{newTitle || viewTask.title}</h1>
                 {:else}
                     <input bind:value={newTitle} class='outline-none w-40 bg-transparent border-2 border-[#4e4e5c] pl-3 rounded-lg' type="text" placeholder={viewTask.title}>
                 {/if}
@@ -128,7 +154,7 @@
             </button>
             <h1 class='font-roboto underline'>Description:</h1>
             {#if !editDescription}
-                <p class='break-words'>{viewTask.description}</p>
+                <p class='break-words'>{newDescription || viewTask.description}</p>
             {:else}
                 <textarea bind:value={newDescription} class='resize-none relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c] h-16' name="" id="" placeholder={viewTask.description}></textarea>
             {/if}
@@ -146,7 +172,7 @@
             </select>
         </div>
         {#if (newTitle || newDescription || editStatus)}
-            <button class='mb-4 relative bottom-2 font-sans bg-green-700 w-40 py-2 rounded-2xl font-[550] items-center'>Apply changes</button>
+            <button onclick={editTask} class='mb-4 relative bottom-2 font-sans bg-green-700 w-40 py-2 rounded-2xl font-[550] items-center'>Apply changes</button>
         {/if}
     </div>
 {/if}

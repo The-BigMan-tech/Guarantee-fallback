@@ -21,7 +21,7 @@ export class TaskDTO {
 export class FlexibleTaskDTO extends TaskDTO{
     @IsString()
     @IsOptional()
-    @IsEmpty()
+    @IsNotEmpty()
     status: string;
 }
 export class TaskDetailsDTO {
