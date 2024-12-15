@@ -6,8 +6,17 @@
     let shouldView:boolean = $state(false)
     let viewTask:TaskDTO = $state() as TaskDTO
     let {isTopBarOn,shouldTaskReload} = $props()
-
     let tagColors:string[] = $state(['bg-[hsl(0,89%,71%)]','bg-[hsl(57,100%,68%)]','bg-[hsl(150,56%,57%)]'])
+
+    let newTitle:string = $state('')
+    let newDescription:string = $state('')
+    let newStatus:string = $state('')
+
+    let editTitle:boolean = $state(false)
+    let editDescription:boolean = $state(false)
+    let editStatus:boolean = $state(false)
+
+
     async function processResponse(response:Response):Promise<void> {
         console.log('processing');
         if (!response.ok) {
@@ -34,6 +43,24 @@
         viewTask = await response.json()
         shouldView = true
         console.log('SHOULD VIEW',shouldView,viewTask.title);
+    }
+    function handleChange(event:Event) {
+        console.log('NEW STATUS',newStatus)
+        const target = event.target as HTMLInputElement
+        if (target.value !== viewTask.status) {
+            editStatus = true
+            return
+        }
+        editStatus = false
+    }
+    function cancel() {
+        shouldView = false
+        newTitle = ''
+        newDescription = ''
+        newStatus = ''
+        editTitle = false
+        editDescription = false
+        editStatus = false
     }
     $effect(()=>{
         let none = isTopBarOn
@@ -69,23 +96,56 @@
 </div>
 
 {#if shouldView}
-    <div class='flex flex-col gap-5 text-white z-20 absolute left-[40vw] top-[40vh] bg-[#26262e] w-96 text-left pl-7 pt-5 rounded-lg shadow-md'>
+    <div class='flex flex-col gap-8 text-white z-20 absolute left-[40vw] top-[40vh] bg-[#26262e] w-96 text-left pl-7 pt-5 rounded-lg shadow-md'>
         <div class='flex relative'>
-            <div class='flex gap-2 flex-wrap w-64'>
-                <h1 class='font-roboto'>Title:</h1>
-                <h1 class='font-sans break-words w-56'>{viewTask.title}</h1>
+            <div class='flex gap-2 flex-wrap w-64 '>
+                <button onclick={()=>editTitle=editTitle?false:true}>
+                    {#if !editTitle}
+                        <img class="w-4" src="/pen-to-square-regular.svg" alt="">
+                    {:else}
+                        <img class="w-4" src="/square-check-regular(2).svg" alt="">
+                    {/if}
+                </button>
+                <h1 class='font-roboto underline'>Title:</h1>
+                {#if !editTitle}
+                    <h1 class='font-sans break-words'>{viewTask.title}</h1>
+                {:else}
+                    <input bind:value={newTitle} class='outline-none w-40 bg-transparent border-2 border-[#4e4e5c] pl-3 rounded-lg' type="text" placeholder={viewTask.title}>
+                {/if}
             </div>
-            <button onclick={()=>shouldView=false}>
+            <button onclick={cancel}>
                 <img class='w-6 absolute right-5 top-0' src="/circle-xmark-solid.svg" alt="">
             </button>
         </div>
         <div class='flex gap-2 w-80 flex-wrap'>
-            <h1 class='font-roboto'>Description:</h1>
-            <p class='break-words w-80'>{viewTask.description}</p>
+            <button onclick={()=>editDescription=editDescription?false:true}>
+                {#if !editDescription}
+                    <img class="w-4" src="/pen-to-square-regular.svg" alt="">
+                {:else}
+                    <img class="w-4" src="/square-check-regular(2).svg" alt="">
+                {/if}
+            </button>
+            <h1 class='font-roboto underline'>Description:</h1>
+            {#if !editDescription}
+                <p class='break-words'>{viewTask.description}</p>
+            {:else}
+                <textarea bind:value={newDescription} class='resize-none relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c] h-16' name="" id="" placeholder={viewTask.description}></textarea>
+            {/if}
         </div>
-        <div class='flex gap-2 mb-8'>
+        <div class='flex gap-2 items-center mb-3'>
             <h1 class='font-roboto'>Status: </h1>
-            <h1 class='text-[#9333ea]'>{viewTask.status}</h1>
+            <select bind:value={newStatus} onchange={handleChange} class='text-purple-600 font-[540] bg-transparent border border-[#4e4e5c] w-40 pl-2 py-2 rounded-sm font-sans' name="" id="">
+                {#each groups as group}
+                    {#if (group.name == viewTask.status)}
+                        <option selected value={group.name} class='pl-2'>{group.name}</option>
+                    {:else}
+                        <option value={group.name} class='pl-2'>{group.name}</option>
+                    {/if}
+                {/each}
+            </select>
         </div>
+        {#if (newTitle || newDescription || editStatus)}
+            <button class='mb-4 relative bottom-2 font-sans bg-green-700 w-40 py-2 rounded-2xl font-[550] items-center'>Apply changes</button>
+        {/if}
     </div>
 {/if}
