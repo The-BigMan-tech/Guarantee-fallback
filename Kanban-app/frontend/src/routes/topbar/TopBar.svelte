@@ -29,6 +29,7 @@
         taskIndex = boards.findIndex(Board=>Board.name===board.name)
         shouldDelete = localStorage.getItem(`wasWindowOpenedat${taskIndex}`) === 'true'
         console.log('Should delete: ',shouldDelete);
+        console.log('FAULTY NAME DISPLAY',nameDisplay);
     }
     function cancel() {
         shouldDelete = false
@@ -72,7 +73,7 @@
     $effect(()=>{
         let none = isTopBarOn
         getSelectedBoard()
-        .then(() => nameDisplay = board.name);
+        .then(() => {nameDisplay = board.name || 'Select a board to view its info'});
     })
 </script>
 
