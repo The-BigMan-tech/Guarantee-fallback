@@ -41,6 +41,7 @@
         const response:Response = await fetch(`http://localhost:3100/tasks/viewTask?boardName=${encodeURIComponent(boardName)}&groupName=${encodeURIComponent(groupName)}&index=${index}`,{method:'GET'})
         await processResponse(response)
         viewTask = await response.json()
+        newStatus = newStatus || viewTask.status
         shouldView = true
         console.log('SHOULD VIEW',shouldView,viewTask.title);
     }
