@@ -17,13 +17,9 @@
         }
     }
     async function loadSelectedBoard():Promise<void> {
-        const response:Response = await fetch('http://localhost:3100/boards/loadSelectedBoard',{method:'GET'})
+        const response:Response = await fetch('http://localhost:3100/boards/loadSelectedboard',{method:'GET'})
         await processResponse(response)
-        try {
-            board = await response.json()
-        }catch {
-            board = {} as BoardDefinition
-        }
+        board = await response.json()
         groups = board.groups
     }
     async function deleteTask(boardName:string,groupName:string,index:number):Promise<void> {

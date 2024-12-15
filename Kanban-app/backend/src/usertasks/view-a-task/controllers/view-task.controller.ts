@@ -15,7 +15,7 @@ export class ViewTaskControl {
     }
     @Get()
     @UsePipes(new RequestSafetyPipe())
-    public async viewTaskControl(@Query() task:GeneralDetailsDTO):Promise<string> {
+    public async viewTaskControl(@Query() task:GeneralDetailsDTO):Promise<string | TaskDTO> {
         let tag:string;
         let message:string;
         const warningMessage:string | string[] = await this.allCheckService.checkOperationSafety('get',task.boardName,task.groupName,true,task.index)
