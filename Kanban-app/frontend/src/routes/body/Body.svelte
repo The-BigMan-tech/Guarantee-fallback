@@ -19,7 +19,11 @@
     async function loadSelectedBoard():Promise<void> {
         const response:Response = await fetch('http://localhost:3100/boards/loadSelectedBoard',{method:'GET'})
         await processResponse(response)
-        board = await response.json()
+        try {
+            board = await response.json()
+        }catch {
+            board = {} as BoardDefinition
+        }
         groups = board.groups
     }
     async function deleteTask(boardName:string,groupName:string,index:number):Promise<void> {
@@ -37,6 +41,7 @@
     $effect(()=>{
         let none = isTopBarOn
         let none1 = shouldTaskReload
+        console.log('RELOADED');
         loadSelectedBoard().then(()=>console.log('BOARD DATA: ',board.name))
     })
 </script>
@@ -56,7 +61,7 @@
                                 <button class='flex-shrink-0' onclick={()=>deleteTask(board.name,group.name,index)}>
                                     <img class='w-5' src="/trash-can-regular.svg" alt="">
                                 </button>
-                                <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[80%] text-white rounded-xl text-xl text-left pl-4 font-roboto shadow-sm break-words'>{task.title}</button>
+                                <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[80%] text-white rounded-xl text-lg text-left pl-4 font-roboto shadow-sm break-words'>{task.title}</button>
                             </div>
                         {/each}
                     </div>

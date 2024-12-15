@@ -37,15 +37,15 @@ export class SelectBoard {
     public async selectReadableBoard(@Param('boardName') boardName:string) {
         return this.selectBoard(boardName,'string')
     }
-    @Get('/loadSelectedBoard')
-    public async loadSelectedBoard():Promise<BoardDocumentType | string> {
+    @Get('/loadSelectedboard')
+    public async loadSelectedBoard():Promise<BoardDocumentType> {
         let boards:BoardDocumentType[] = await this.boardDataService.returnBoards()
         for (let board of boards) {
             if (board.isSelected) {
                 return board
             }
         }
-        return 'You havent selected a board'
+        return 
     }
     @Get('/pushBoard/:boardName')
     public async selectedBoard(@Param('boardName') boardName:string):Promise<BoardDocumentType> {

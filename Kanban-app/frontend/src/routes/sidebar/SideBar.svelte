@@ -116,6 +116,7 @@
         <div class='flex gap-5 items-center mt-6 border-r border-[#3a3a46] mb-10 flex-wrap'>
             <Logo/>
             <h1 class='text-3xl font-bold font-space'>Kanban</h1>
+            <span class='text-2xl font-[550] text-green-400 font-space'>[ Beta ]</span>
         </div>
         <h1 class='text-[#6b6d7a] font-roboto font-[600] mb-7'>ALL BOARDS ( {boardNumber} )</h1>
     </div>

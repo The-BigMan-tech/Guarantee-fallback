@@ -1,7 +1,7 @@
 <script lang='ts'>
     import { onMount } from 'svelte';
     import type {BoardDefinition} from '../interfaces/shared-interfaces'
-    import {Sidelever,TaskName,Tasklever,setIndex} from '../levers/lever.svelte'
+    import {Sidelever,TaskName,Tasklever,setIndex,ReloadTask} from '../levers/lever.svelte'
     
 
     let nameDisplay:string = $state('Select a board to view its info')
@@ -48,6 +48,8 @@
         response = await fetch('http://localhost:3100/boards/loadmyBoards',{method:'GET'})
         await processResponse(response)
         boards = await response.json()
+        ReloadTask.set(true)
+        ReloadTask.set(false)
         if (boards.length) {
             let lastBoardName = boards.at(-1)?.name
             console.log(lastBoardName);
