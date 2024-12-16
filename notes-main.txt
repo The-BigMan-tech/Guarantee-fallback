@@ -1,4 +1,8 @@
-?tags,time,moving tasks up and down
+*In a boolean array holding selected values,only one can be selected at a time but more than one can be deselected at a time
+
+Client bounding rect returns the element's surface area and relative position to the viewport
+*The dimensionality of data increases as the app becomes more complex
+?tags,time,moving tasks up and down,arrows to shift it to the next group
 
 *react uses functional component structure while svelte uses sfcs
 *Ill only use python for app intelligence using data science and machine learning
