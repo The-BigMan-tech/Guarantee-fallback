@@ -134,8 +134,8 @@
                     </div>
                     <div class='flex flex-col gap-7 overflow-y-scroll h-[26rem]'>
                         {#each group.tasks as task,index}
-                            <div class='flex gap-3 items-center'>
-                                <div class='flex flex-col justify-center relative'>
+                            <div class='flex relative gap-3 items-center'>
+                                <div class='flex flex-col justify-center absolute right-14 z-10'>
                                     <button onclick={()=>popDelete(index,gIndex)} class='flex gap-1 text-transparent'>
                                         <h1 class='bg-slate-200 h-1 w-1 rounded-full'>0</h1>
                                         <h1 class='bg-slate-200 h-1 w-1 rounded-full'>0</h1>
@@ -147,17 +147,19 @@
                                         </button>
                                     {/if}
                                 </div>
-                                {#if tagHex[gIndex - 1]}
-                                    <button onclick={()=>slideSideways(index,gIndex - 1,group.name,task.title,task.description)} class='rotate-180'>
-                                        <Arrow color={tagHex[gIndex - 1]}/>
-                                    </button>
-                                {/if}
-                                <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[80%] text-white rounded-xl text-lg text-left pl-4 font-roboto shadow-sm break-words pr-2'>{task.title}</button> 
-                                {#if tagHex[gIndex + 1]}
-                                    <button onclick={()=>slideSideways(index,gIndex + 1,group.name,task.title,task.description)}>
-                                        <Arrow color={tagHex[gIndex + 1]}/>
-                                    </button>
-                                {/if}
+                                <div class='flex flex-shrink-0 w-[100%] gap-2 relative'>
+                                    {#if tagHex[gIndex - 1]}
+                                        <button onclick={()=>slideSideways(index,gIndex - 1,group.name,task.title,task.description)} class='rotate-180'>
+                                            <Arrow color={tagHex[gIndex - 1]}/>
+                                        </button>
+                                    {/if}
+                                    <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[80%] text-white rounded-xl text-lg text-left pl-4 font-roboto shadow-sm break-words pr-2'>{task.title}</button> 
+                                    {#if tagHex[gIndex + 1]}
+                                        <button onclick={()=>slideSideways(index,gIndex + 1,group.name,task.title,task.description)}>
+                                            <Arrow color={tagHex[gIndex + 1]}/>
+                                        </button>
+                                    {/if}
+                                </div>
                             </div>
                         {/each}
                     </div>
