@@ -52,6 +52,7 @@
         const response:Response = await fetch(`http://localhost:3100/tasks/deleteTask?boardName=${encodeURIComponent(boardName)}&groupName=${encodeURIComponent(groupName)}&index=${index}`,{method:'DELETE'})
         await processResponse(response)
         await loadSelectedBoard()
+        deleteAction[index] = false
     }
     async function viewATask(boardName:string,groupName:string,index:number):Promise<void> {
         const response:Response = await fetch(`http://localhost:3100/tasks/viewTask?boardName=${encodeURIComponent(boardName)}&groupName=${encodeURIComponent(groupName)}&index=${index}`,{method:'GET'})

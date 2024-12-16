@@ -81,10 +81,10 @@
     {#if (nameDisplay !==  'Select a board to view its info')}
         <h1 class='font-bold text-2xl absolute left-14'>{nameDisplay}</h1>
         <div class='flex absolute right-24 gap-8'>
-            <button onclick={addTask} class='bg-[#251e4f] py-3 px-4 rounded-3xl hover:bg-[white] hover:text-[#251e4f]'>+ Add new Task</button>
+            <button onclick={addTask} class='bg-[#8421bd] py-2 px-3 rounded-3xl font-[550] font-roboto'>+ Add new Task</button>
             <button onclick={deleteForSure} class='flex items-center gap-4'>
                 <img class='w-5' src="/trash-can-regular.svg" alt="">
-                <h1 class='text-[#f66473]'>Delete this board</h1>
+                <h1 class='text-[#ff5a5a]'>Delete this board</h1>
             </button>
         </div>
     {:else}
