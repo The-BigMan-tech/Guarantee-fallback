@@ -118,7 +118,7 @@
                 <div class='flex flex-col w-56 mb-20'>
                     <div class='flex gap-3'>
                         <h1 class={`text-transparent ${tagColors[gIndex]} w-3 h-3 rounded-full relative top-[0.4rem]`}>0</h1>
-                        <h1 class='font-sans font-[550] mb-6'>{group.name} ( <span class='text-[#a59bf5] font-space'> {group.tasks.length} </span> )</h1>
+                        <h1 class='font-sans font-[550] mb-6'>{group.name} ( <span class='text-[#bf57fc] font-space'> {group.tasks.length} </span> )</h1>
                     </div>
                     <div class='flex flex-col gap-7 overflow-y-scroll h-[26rem]'>
                         {#each group.tasks as task,index}
@@ -156,7 +156,7 @@
                         <img class="w-4" src="/square-check-regular(2).svg" alt="">
                     {/if}
                 </button>
-                <h1 class='font-roboto underline'>Title:</h1>
+                <h1 class='font-roboto'>Title:</h1>
                 {#if !editTitle}
                     <h1 class='font-sans break-words'>{newTitle || viewTask.title}</h1>
                 {:else}
@@ -175,7 +175,7 @@
                     <img class="w-4" src="/square-check-regular(2).svg" alt="">
                 {/if}
             </button>
-            <h1 class='font-roboto underline'>Description:</h1>
+            <h1 class='font-roboto'>Description:</h1>
             {#if !editDescription}
                 <p class='break-words'>{newDescription || viewTask.description}</p>
             {:else}
