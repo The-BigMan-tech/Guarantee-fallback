@@ -1,3 +1,4 @@
+*react uses functional component structure while svelte uses sfcs
 *Ill only use python for app intelligence using data science and machine learning
 
 *In js,logical operators unlike python returns the original values rather than the boolean values.They only get implicitly converted to boolean values in condition checks.The and operator returns the first falsy value it finds and for or,the first truthy value it finds and they both return the last values if all operands are truthy or falsy which allows for short circuiting condition checks.And there are logical assignment operator which does both assignment and logical evaluation in a shorter expression

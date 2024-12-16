@@ -161,7 +161,7 @@
         </div>
         <div class='flex gap-2 items-center mb-3'>
             <h1 class='font-roboto'>Status: </h1>
-            <select bind:value={newStatus} onchange={handleChange} class='text-purple-600 font-[540] bg-transparent border border-[#4e4e5c] w-40 pl-2 py-2 rounded-sm font-sans' name="" id="">
+            <select bind:value={newStatus} onchange={handleChange} class='text-[#b979de] font-[540] bg-transparent border border-[#4e4e5c] w-40 pl-2 py-2 rounded-sm font-sans' name="" id="">
                 {#each groups as group}
                     {#if (group.name == viewTask.status)}
                         <option selected value={group.name} class='pl-2'>{group.name}</option>
@@ -173,9 +173,9 @@
         </div>
         {#if (newTitle || newDescription || editStatus)}
             {#if ((!editTitle && !editDescription))}
-                <button onclick={editTask} class='mb-4 relative bottom-2 font-sans bg-green-700 w-40 py-2 rounded-2xl font-[550] items-center'>Apply changes</button>
+                <button onclick={editTask} class='mb-4 relative bottom-2 font-sans bg-[#4dde78] w-40 py-2 rounded-2xl font-[550] items-center text-black'>Apply changes</button>
             {:else}
-                <h1 class='relative bottom-4 text-yellow-300'>Click on all check buttons to apply changes</h1>
+                <h1 class='relative bottom-4 text-[#ffee38]'>Click on all check buttons to apply changes</h1>
             {/if}
         {/if}
     </div>

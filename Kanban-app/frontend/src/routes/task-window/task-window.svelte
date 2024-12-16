@@ -82,7 +82,7 @@
                     </div>
                     <form class="flex flex-col gap-14 relative" action="">
                         <div class='relative top-3 flex flex-col mt-3'>
-                            <label class="font-roboto" for="">Title</label>
+                            <label class="font-roboto" for="">Title <span class='text-[#ff5a5a] text-sm'>required</span></label>
                             <input bind:value={title} class='relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c] font-[600]' type="text" placeholder='eg Do my homework'>
                         </div>
                         <div class='relative top-3 flex flex-col'>
@@ -90,8 +90,8 @@
                             <textarea bind:value={description} class='resize-none relative top-3 w-80 py-1 outline-none rounded-sm pl-4 text-white bg-transparent outline-[#4e4e5c] h-20' name="" id="" placeholder='eg I have to go research on advanced calculus for this one'></textarea>
                         </div>
                         <div class='relative top-3 flex flex-col gap-4'>
-                            <label class='font-mono' for="">Status</label>
-                            <select bind:value={status} class='text-purple-600 font-[540] bg-transparent border border-[#4e4e5c] w-80 pl-2 py-2 rounded-sm font-sans' name="" id="">
+                            <label class='font-mono' for="">Status <span class='text-[#ff5a5a] text-sm'>required</span></label>
+                            <select bind:value={status} class='text-[#7e4ef8] font-[540] bg-transparent border border-[#4e4e5c] w-80 pl-2 py-2 rounded-sm font-sans' name="" id="">
                                 {#each groups as group}
                                     <option value={group.name} class='pl-2'>{group.name}</option>
                                 {/each}
