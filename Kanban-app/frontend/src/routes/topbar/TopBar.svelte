@@ -79,10 +79,7 @@
 
 <div class='flex bg-[#2e2e3a] text-white h-20 items-center w-[62rem] relative border border-[#2e2e3a]'>
     {#if (nameDisplay !==  'Select a board to view its info')}
-        <div class='flex items-center relative top-4 left-12 w-28 h-6'>
-            <img class='w-28' src="/laps.svg" alt="">
-            <h1 class='font-bold relative bottom-4 right-20'>{nameDisplay}</h1>
-        </div>
+        <h1 class='font-bold text-2xl absolute left-14'>{nameDisplay}</h1>
         <div class='flex absolute right-24 gap-8'>
             <button onclick={addTask} class='bg-[#251e4f] py-3 px-4 rounded-3xl hover:bg-[white] hover:text-[#251e4f]'>+ Add new Task</button>
             <button onclick={deleteForSure} class='flex items-center gap-4'>
