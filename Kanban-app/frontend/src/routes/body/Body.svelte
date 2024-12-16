@@ -188,7 +188,7 @@
                                 </div>
                             </div>
                             {#if changeIndexGroup[gIndex]}
-                                <button class='bg-transparent hover:border hover:border-[#bd57fc] py-0 h-0 hover:py-3 hover:h-auto w-[80%] rounded-xl shadow-sm text-transparent relative left-5 hover:text-white'>{changePlaceholder}</button> 
+                                <button class='bg-transparent hover:border hover:border-[#bd57fc] text-left pl-4 py-0 h-0 hover:py-3 hover:h-auto w-[80%] rounded-xl shadow-sm text-transparent relative left-5 hover:text-white'>{changePlaceholder}</button> 
                             {/if}
                         {/each}
                     </div>
