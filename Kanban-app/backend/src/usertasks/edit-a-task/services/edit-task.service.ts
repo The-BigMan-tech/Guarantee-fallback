@@ -18,19 +18,18 @@ export class EditTaskService {
      */
     public async editTask(boardName:string,groupName:string,index:number,newTask:TaskDTO):Promise<string | void> {
         const board:BoardDocumentType = await this.BoardModel.findOne({name:boardName,"groups.name": groupName},{'groups.$':1}).exec()
-        const group:GroupDTO = board.groups[0]
+        const group:GroupDTO = board.groups[0];
         const task:TaskDTO = group.tasks[index]
         const updatedTask:TaskDTO = {...task,...newTask}
+        group.tasks.splice(index,1)
         await this.BoardModel.updateOne(
-            {name:boardName,"groups.name":groupName,"groups.tasks.title":task.title},
-            //*we use square brackets because it allows you to evaluate an expression as an object key
-            {$set:{[`groups.$.tasks.${index}`]:updatedTask}}
-        ).exec()
+            { name: boardName, "groups.name": groupName }, // Find the board and group
+            { $set: { "groups.$.tasks":group.tasks } } 
+        ).exec();
         await this.BoardModel.updateOne(
             {'groups.name':updatedTask.status},
             {$push:{'groups.$.tasks':updatedTask}}
         );
-
         return task.title
     }
 }
