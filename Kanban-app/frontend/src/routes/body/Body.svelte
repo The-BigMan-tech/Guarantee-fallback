@@ -24,6 +24,10 @@
 
     let deleteAction:boolean[] = $state([])
     let deleteActionGroup:boolean[] = $state([])
+
+    let changeIndexArr:boolean[] = $state([])
+    let changeIndexGroup:boolean[] = $state([])
+    let changePlaceholder:string = $state('')
     function popDelete(index:number,gIndex:number) {
         if (!deleteAction[index]) {
             deleteAction = []
@@ -35,6 +39,19 @@
         deleteAction[index] = false
         deleteActionGroup[index] = false
     }
+    function changeIndex(gIndex:number,index:number,title:string) {
+        changePlaceholder = title
+        popDelete(index,gIndex)
+        if (!changeIndexArr[index]) {
+            changeIndexArr = []
+            changeIndexGroup = []
+            changeIndexArr[index] = true
+            changeIndexGroup[gIndex] = true
+            return
+        }
+        changeIndexArr[index] = false
+        changeIndexGroup[gIndex] = false
+    }   
     async function processResponse(response:Response):Promise<void> {
         console.log('processing');
         if (!response.ok) {
@@ -134,33 +151,45 @@
                     </div>
                     <div class='flex flex-col gap-7 overflow-y-scroll h-[26rem]'>
                         {#each group.tasks as task,index}
-                            <div class='flex relative gap-3 items-center'>
-                                <div class='flex flex-col justify-center absolute right-14 z-10'>
-                                    <button onclick={()=>popDelete(index,gIndex)} class='flex gap-1 text-transparent group'>
-                                        <h1 class='bg-slate-200 h-1 w-1 rounded-full group-hover:bg-[#bf57fc]'>0</h1>
-                                        <h1 class='bg-slate-200 h-1 w-1 rounded-full group-hover:bg-[#bf57fc]'>0</h1>
-                                        <h1 class='bg-slate-200 h-1 w-1 rounded-full group-hover:bg-[#bf57fc]'>0</h1>
-                                    </button>
-                                    {#if (deleteAction[index] && deleteActionGroup[gIndex])}
-                                        <button class='flex-shrink-0 absolute top-5' onclick={()=>deleteTask(board.name,group.name,index)}>
-                                            <img class='w-4 bg-[#29282a]' src="/trash-can-regular.svg" alt="">
+                            <div class='flex flex-col'>
+                                <div class='flex relative gap-3 items-center'>
+                                    <div class='flex flex-col justify-center absolute right-14 z-10'>
+                                        <button onclick={()=>popDelete(index,gIndex)} class='flex gap-1 text-transparent group'>
+                                            <h1 class='bg-slate-200 h-1 w-1 rounded-full group-hover:bg-[#bf57fc]'>0</h1>
+                                            <h1 class='bg-slate-200 h-1 w-1 rounded-full group-hover:bg-[#bf57fc]'>0</h1>
+                                            <h1 class='bg-slate-200 h-1 w-1 rounded-full group-hover:bg-[#bf57fc]'>0</h1>
                                         </button>
-                                    {/if}
-                                </div>
-                                <div class='flex flex-shrink-0 w-[100%] gap-2 relative'>
-                                    {#if tagHex[gIndex - 1]}
-                                        <button onclick={()=>slideSideways(index,gIndex - 1,group.name,task.title,task.description)} class='rotate-180'>
-                                            <Arrow color={tagHex[gIndex - 1]}/>
-                                        </button>
-                                    {/if}
-                                    <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[80%] text-white rounded-xl text-lg text-left pl-4 font-roboto shadow-sm break-words pr-2'>{task.title}</button> 
-                                    {#if tagHex[gIndex + 1]}
-                                        <button onclick={()=>slideSideways(index,gIndex + 1,group.name,task.title,task.description)}>
-                                            <Arrow color={tagHex[gIndex + 1]}/>
-                                        </button>
-                                    {/if}
+                                        {#if (deleteAction[index] && deleteActionGroup[gIndex])}
+                                            <div class='flex items-center gap-6'>
+                                                <button class='flex-shrink-0 absolute top-5' onclick={()=>deleteTask(board.name,group.name,index)}>
+                                                    <img class='w-4 bg-[#29282a]' src="/trash-can-regular.svg" alt="">
+                                                </button>
+                                                <button onclick={()=>changeIndex(gIndex,index,task.title)} class='absolute top-4 left-9'>S</button>
+                                            </div>
+                                        {/if}
+                                    </div>
+                                    <div class='flex flex-shrink-0 w-[100%] gap-2 relative'>
+                                        {#if tagHex[gIndex - 1]}
+                                            <button onclick={()=>slideSideways(index,gIndex - 1,group.name,task.title,task.description)} class='rotate-180'>
+                                                <Arrow color={tagHex[gIndex - 1]}/>
+                                            </button>
+                                        {/if}
+                                        {#if (changeIndexArr[index] && changeIndexGroup[gIndex])}
+                                            <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] border border-[#fff75c] py-3 w-[80%] text-white rounded-xl text-lg text-left pl-4 font-roboto shadow-sm break-words pr-2'>{task.title}</button> 
+                                        {:else}
+                                            <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[80%] text-white rounded-xl text-lg text-left pl-4 font-roboto shadow-sm break-words pr-2'>{task.title}</button> 
+                                        {/if}
+                                        {#if tagHex[gIndex + 1]}
+                                            <button onclick={()=>slideSideways(index,gIndex + 1,group.name,task.title,task.description)}>
+                                                <Arrow color={tagHex[gIndex + 1]}/>
+                                            </button>
+                                        {/if}
+                                    </div>
                                 </div>
                             </div>
+                            {#if changeIndexGroup[gIndex]}
+                                <button class='bg-transparent hover:border hover:border-[#bd57fc] py-0 h-0 hover:py-3 hover:h-auto w-[80%] rounded-xl shadow-sm text-transparent relative left-5 hover:text-white'>{changePlaceholder}</button> 
+                            {/if}
                         {/each}
                     </div>
                 </div>
