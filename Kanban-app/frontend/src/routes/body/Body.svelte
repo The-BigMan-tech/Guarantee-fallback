@@ -1,6 +1,7 @@
 <script lang='ts'>
-    import { onMount } from 'svelte';
     import type {BoardDefinition, GroupDTO,TaskDTO,EditTaskDTO} from '../interfaces/shared-interfaces'
+    import Arrow from './arrow.svelte';
+
     let board:BoardDefinition = $state() as BoardDefinition
     let groups:GroupDTO[] = $state([])
     let globalGroup:string = $state('')
@@ -10,7 +11,8 @@
     let shouldView:boolean = $state(false)
     let viewTask:TaskDTO = $state() as TaskDTO
     let {isTopBarOn,shouldTaskReload} = $props()
-    let tagColors:string[] = $state(['bg-[hsl(0,89%,71%)]','bg-[hsl(57,100%,68%)]','bg-[hsl(150,56%,57%)]'])
+    let tagColors:string[] = $state(['bg-[#f77373]','bg-[#fff75c]','bg-[#54cf91]'])
+    let tagHex:string[] = $state(['#f77373','#fff75c','#54cf91'])
 
     let newTitle:string = $state('')
     let newDescription:string = $state('')
@@ -103,6 +105,16 @@
         cancel()
         await loadSelectedBoard()
     }
+    async function slideSideways(taskIndex:number,groupIndex:number,groupName:string,title:string,description:string):Promise<void> {
+        globalGroup = groupName
+        globalIndex = taskIndex
+        newStatus = groups[groupIndex].name
+
+        newTitle = title
+        newDescription = description || 'no description'
+        console.log('ORIGINAL TITLE',newTitle,'DESC',newDescription,'NEW STATUS',newStatus,'TASK INDEX',taskIndex,'GROUP NAME',globalGroup);
+        await editTask()
+    }
     $effect(()=>{
         let none = isTopBarOn
         let none1 = shouldTaskReload
@@ -135,13 +147,17 @@
                                         </button>
                                     {/if}
                                 </div>
-                                <button>
-                                    <img class='w-4 rotate-180' src="/arrow.svg" alt="">
-                                </button>
-                                <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[80%] text-white rounded-xl text-lg text-left pl-4 font-roboto shadow-sm break-words pr-2'>{task.title}</button>
-                                <button>
-                                    <img class='w-4' src="/arrow.svg" alt="">
-                                </button>
+                                {#if tagHex[gIndex - 1]}
+                                    <button onclick={()=>slideSideways(index,gIndex - 1,group.name,task.title,task.description)} class='rotate-180'>
+                                        <Arrow color={tagHex[gIndex - 1]}/>
+                                    </button>
+                                {/if}
+                                <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[80%] text-white rounded-xl text-lg text-left pl-4 font-roboto shadow-sm break-words pr-2'>{task.title}</button> 
+                                {#if tagHex[gIndex + 1]}
+                                    <button onclick={()=>slideSideways(index,gIndex + 1,group.name,task.title,task.description)}>
+                                        <Arrow color={tagHex[gIndex + 1]}/>
+                                    </button>
+                                {/if}
                             </div>
                         {/each}
                     </div>
