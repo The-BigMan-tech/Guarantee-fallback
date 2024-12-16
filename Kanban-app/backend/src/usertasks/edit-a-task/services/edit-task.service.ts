@@ -32,4 +32,16 @@ export class EditTaskService {
         );
         return task.title
     }
+    public async editTaskIndex(boardName:string,groupName:string,index:number,newIndex:number):Promise<void> {
+        const board:BoardDocumentType = await this.BoardModel.findOne({name:boardName,"groups.name": groupName},{'groups.$':1}).exec()
+        const group:GroupDTO = board.groups[0];
+        const task:TaskDTO = group.tasks[index]
+
+        group.tasks.splice(newIndex,0,task)
+        group.tasks.splice(index + 1,1)
+        await this.BoardModel.updateOne(
+            { name: boardName, "groups.name": groupName }, // Find the board and group
+            { $set: { "groups.$.tasks":group.tasks } } 
+        ).exec();
+    }
 }

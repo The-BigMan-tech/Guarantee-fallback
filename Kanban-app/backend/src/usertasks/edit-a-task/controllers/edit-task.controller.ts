@@ -2,7 +2,7 @@ import { Controller,Post,Body,Delete,Query,Put} from "@nestjs/common";
 import { TaskDTO } from "src/usertasks/dto/task.dto";
 import { UsePipes } from "@nestjs/common";
 import { RequestSafetyPipe } from "src/pipes/request-safety.pipe";
-import { TaskDetailsDTO,EditTaskDTO} from "src/usertasks/dto/task.dto";
+import { TaskDetailsDTO,EditTaskDTO,EditIndexDTO} from "src/usertasks/dto/task.dto";
 import { EditTaskService } from "../services/edit-task.service";
 import { allCheckService } from "src/usertasks/common-services/services/common-services.service";
 
@@ -26,5 +26,10 @@ export class EditTaskController {
         const tag = 'SUCESSFUL'
         const message = `Edited the task ${taskTitle} from the group ${task.groupName} from the board ${task.boardName}`
         return `${tag}:${message}`
+    }
+    @Put('/editTaskIndex')
+    @UsePipes(new RequestSafetyPipe())
+    public async editTaskIndex(@Body() task:EditIndexDTO):Promise<void> {
+        await this.editTaskService.editTaskIndex(task.boardName,task.groupName,task.index,task.newIndex)
     }
 }

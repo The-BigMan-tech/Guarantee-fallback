@@ -50,3 +50,6 @@ export class EditTaskDTO extends GeneralDetailsDTO {
     @Type(()=>FlexibleTaskDTO)
     newTask:FlexibleTaskDTO
 }
+export class EditIndexDTO extends GeneralDetailsDTO {
+    newIndex:number
+}
