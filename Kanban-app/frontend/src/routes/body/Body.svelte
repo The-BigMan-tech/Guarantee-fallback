@@ -19,7 +19,20 @@
     let editDescription:boolean = $state(false)
     let editStatus:boolean = $state(false)
 
+    let deleteAction:boolean[] = $state([])
+    let deleteActionGroup:boolean[] = $state([])
 
+    function popDelete(index:number,gIndex:number) {
+        if (!deleteAction[index]) {
+            deleteAction = []
+            deleteActionGroup = []
+            deleteAction[index] = true
+            deleteActionGroup[gIndex] = true
+            return
+        }
+        deleteAction[index] = false
+        deleteActionGroup[index] = false
+    }
     async function processResponse(response:Response):Promise<void> {
         console.log('processing');
         if (!response.ok) {
@@ -108,10 +121,19 @@
                     </div>
                     <div class='flex flex-col gap-7 overflow-y-scroll h-[26rem]'>
                         {#each group.tasks as task,index}
-                            <div class='flex gap-5'>
-                                <button class='flex-shrink-0' onclick={()=>deleteTask(board.name,group.name,index)}>
-                                    <img class='w-4' src="/trash-can-regular.svg" alt="">
-                                </button>
+                            <div class='flex gap-5 items-center'>
+                                <div class='flex flex-col justify-center relative'>
+                                    <button onclick={()=>popDelete(index,gIndex)} class='flex gap-1 text-transparent'>
+                                        <h1 class='bg-slate-200 h-1 w-1 rounded-full'>0</h1>
+                                        <h1 class='bg-slate-200 h-1 w-1 rounded-full'>0</h1>
+                                        <h1 class='bg-slate-200 h-1 w-1 rounded-full'>0</h1>
+                                    </button>
+                                    {#if (deleteAction[index] && deleteActionGroup[gIndex])}
+                                        <button class='flex-shrink-0 absolute top-5' onclick={()=>deleteTask(board.name,group.name,index)}>
+                                            <img class='w-4' src="/trash-can-regular.svg" alt="">
+                                        </button>
+                                    {/if}
+                                </div>
                                 <button onclick={()=>viewATask(board.name,group.name,index)} class='bg-[#2c2c38] py-3 w-[80%] text-white rounded-xl text-lg text-left pl-4 font-roboto shadow-sm break-words pr-2'>{task.title}</button>
                             </div>
                         {/each}

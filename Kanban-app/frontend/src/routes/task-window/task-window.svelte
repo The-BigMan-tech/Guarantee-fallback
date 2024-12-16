@@ -58,6 +58,7 @@
         title = '';description='';status=''
         ReloadTask.set(true)
         ReloadTask.set(false)
+        status = 'TODO'
     }
     function Ok(index:number):void {
         taskCreated=false;
