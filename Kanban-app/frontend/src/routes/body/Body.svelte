@@ -75,9 +75,9 @@
             groupName:globalGroup,
             index:globalIndex,
             newTask:{
-                title:newTitle,
-                description:newDescription,
-                status:newStatus
+                title:newTitle || viewTask.title,
+                description:newDescription || viewTask.description,
+                status:newStatus || viewTask.status
             }
         }
         const response:Response = await fetch('http://localhost:3100/tasks/editTask',{
@@ -172,7 +172,11 @@
             </select>
         </div>
         {#if (newTitle || newDescription || editStatus)}
-            <button onclick={editTask} class='mb-4 relative bottom-2 font-sans bg-green-700 w-40 py-2 rounded-2xl font-[550] items-center'>Apply changes</button>
+            {#if ((!editTitle && !editDescription))}
+                <button onclick={editTask} class='mb-4 relative bottom-2 font-sans bg-green-700 w-40 py-2 rounded-2xl font-[550] items-center'>Apply changes</button>
+            {:else}
+                <h1 class='relative bottom-4 text-yellow-300'>Click on all check buttons to apply changes</h1>
+            {/if}
         {/if}
     </div>
 {/if}
