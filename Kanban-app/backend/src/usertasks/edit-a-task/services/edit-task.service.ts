@@ -26,6 +26,11 @@ export class EditTaskService {
             //*we use square brackets because it allows you to evaluate an expression as an object key
             {$set:{[`groups.$.tasks.${index}`]:updatedTask}}
         ).exec()
+        await this.BoardModel.updateOne(
+            {'groups.name':updatedTask.status},
+            {$push:{'groups.$.tasks':updatedTask}}
+        );
+
         return task.title
     }
 }
