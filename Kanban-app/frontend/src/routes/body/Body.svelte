@@ -1,5 +1,5 @@
 <script lang='ts'>
-    import type {BoardDefinition, GroupDTO,TaskDTO,EditTaskDTO} from '../interfaces/shared-interfaces'
+    import type {BoardDefinition, GroupDTO,TaskDTO,EditTaskDTO,EditTaskIndexDTO} from '../interfaces/shared-interfaces'
     import Arrow from './arrow.svelte';
 
     let board:BoardDefinition = $state() as BoardDefinition
@@ -40,6 +40,7 @@
         deleteActionGroup[index] = false
     }
     function changeIndex(gIndex:number,index:number,title:string) {
+        globalIndex = index
         changePlaceholder = title
         popDelete(index,gIndex)
         if (!changeIndexArr[index]) {
@@ -100,6 +101,15 @@
         editTitle = false
         editDescription = false
         editStatus = false
+    }
+    async function editTaskIndex(groupName:string,newIndex:number):Promise<void> {
+        const taskIndexInfo:EditTaskIndexDTO = {
+            boardName:board.name,
+            groupName:groupName,
+            index:globalIndex,
+            newIndex:newIndex
+        }
+        console.log('NEW TASK INDEX INFO: ',taskIndexInfo);
     }
     async function editTask():Promise<void> {
         console.log('BOARD TO EDIT',board.name,'GROUP',globalGroup,'INDEX',globalIndex,'NEW TITLE',newTitle);
@@ -188,7 +198,7 @@
                                 </div>
                             </div>
                             {#if changeIndexGroup[gIndex]}
-                                <button class='bg-transparent hover:border hover:border-[#bd57fc] text-left pl-4 py-0 h-0 hover:py-3 hover:h-auto w-[80%] rounded-xl shadow-sm text-transparent relative text-lg left-5 hover:text-white'>{changePlaceholder}</button> 
+                                <button onclick={()=>editTaskIndex(group.name,index+1)} class='bg-transparent hover:border hover:border-[#bd57fc] text-left pl-4 py-0 h-0 hover:py-3 hover:h-auto w-[80%] rounded-xl shadow-sm text-transparent relative text-lg left-5 hover:text-white'>{changePlaceholder}</button> 
                             {/if}
                         {/each}
                     </div>
