@@ -149,7 +149,7 @@
                         <h1 class={`text-transparent ${tagColors[gIndex]} w-3 h-3 rounded-full relative top-[0.4rem]`}>0</h1>
                         <h1 class='font-sans font-[550] mb-6'>{group.name} ( <span class='text-[#bf57fc] font-space'> {group.tasks.length} </span> )</h1>
                     </div>
-                    <div class='flex flex-col gap-7 overflow-y-scroll h-[26rem]'>
+                    <div class='flex flex-col gap-7 overflow-y-scroll h-[26rem] w-56'>
                         {#each group.tasks as task,index}
                             <div class='flex flex-col'>
                                 <div class='flex relative gap-3 items-center'>
@@ -188,7 +188,7 @@
                                 </div>
                             </div>
                             {#if changeIndexGroup[gIndex]}
-                                <button class='bg-transparent hover:border hover:border-[#bd57fc] text-left pl-4 py-0 h-0 hover:py-3 hover:h-auto w-[80%] rounded-xl shadow-sm text-transparent relative left-5 hover:text-white'>{changePlaceholder}</button> 
+                                <button class='bg-transparent hover:border hover:border-[#bd57fc] text-left pl-4 py-0 h-0 hover:py-3 hover:h-auto w-[80%] rounded-xl shadow-sm text-transparent relative text-lg left-5 hover:text-white'>{changePlaceholder}</button> 
                             {/if}
                         {/each}
                     </div>
