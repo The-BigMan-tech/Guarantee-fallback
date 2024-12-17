@@ -153,6 +153,7 @@
         await loadSelectedBoard()
     }
     async function slideSideways(taskIndex:number,groupIndex:number,groupName:string,title:string,description:string):Promise<void> {
+        console.log('Slided');
         globalGroup = groupName
         globalIndex = taskIndex
         newStatus = groups[groupIndex].name

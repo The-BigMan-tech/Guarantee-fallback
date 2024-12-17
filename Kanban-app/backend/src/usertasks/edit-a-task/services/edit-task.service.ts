@@ -21,11 +21,23 @@ export class EditTaskService {
         const group:GroupDTO = board.groups[0];
         const task:TaskDTO = group.tasks[index]
         const updatedTask:TaskDTO = {...task,...newTask}
-        group.tasks[index] = updatedTask
+        if (task.status == newTask.status) {
+            group.tasks[index] = updatedTask
+            await this.BoardModel.updateOne(
+                { name: boardName, "groups.name": groupName }, // Find the board and group
+                { $set: { "groups.$.tasks":group.tasks } } 
+            ).exec();
+            return
+        }
+        group.tasks.splice(index,1)
         await this.BoardModel.updateOne(
             { name: boardName, "groups.name": groupName }, // Find the board and group
             { $set: { "groups.$.tasks":group.tasks } } 
         ).exec();
+        await this.BoardModel.updateOne(
+            {'groups.name':updatedTask.status},
+            {$push:{'groups.$.tasks':updatedTask}}
+        );
         return task.title;
     }
     public async editTaskIndex(boardName:string,groupName:string,index:number,newIndex:number,direction:string):Promise<void> {
