@@ -3,7 +3,7 @@
 
 Client bounding rect returns the element's surface area and relative position to the viewport
 *The dimensionality of data increases as the app becomes more complex
-?tags,time,moving tasks up and down,arrows to shift it to the next group
+?pick tool,time,burn down charts,custom columns
 
 *react uses functional component structure while svelte uses sfcs
 *Ill only use python for app intelligence using data science and machine learning
