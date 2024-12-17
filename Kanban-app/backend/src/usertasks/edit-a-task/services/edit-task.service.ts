@@ -48,12 +48,14 @@ export class EditTaskService {
         console.log('ORIGINAL INDEX: ',index);
         console.log('DIRECTION OF CHANGE',direction);
         if (direction == 'up') {
-            index = index + 1
+            index = index + 1;
         }
         console.log('INDEX TO THROW AWAY AFTER CHANGING DIRECTION',index);
         
         console.log('STEP 1',group.tasks);
-        newIndex = newIndex + 1
+        if (newIndex !== 0) {
+            newIndex = newIndex + 1
+        }
         group.tasks.splice(newIndex,0,task)
         console.log('TASKS AFTER INSERTING AT THE NEW INDEX',group.tasks,'new index',newIndex)
 
