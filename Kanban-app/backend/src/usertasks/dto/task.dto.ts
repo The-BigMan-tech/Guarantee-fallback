@@ -52,4 +52,5 @@ export class EditTaskDTO extends GeneralDetailsDTO {
 }
 export class EditIndexDTO extends GeneralDetailsDTO {
     newIndex:number
+    direction:string
 }

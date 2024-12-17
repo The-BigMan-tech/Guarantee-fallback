@@ -21,24 +21,33 @@ export class EditTaskService {
         const group:GroupDTO = board.groups[0];
         const task:TaskDTO = group.tasks[index]
         const updatedTask:TaskDTO = {...task,...newTask}
-        group.tasks.splice(index,1)
+        group.tasks[index] = updatedTask
         await this.BoardModel.updateOne(
             { name: boardName, "groups.name": groupName }, // Find the board and group
             { $set: { "groups.$.tasks":group.tasks } } 
         ).exec();
-        await this.BoardModel.updateOne(
-            {'groups.name':updatedTask.status},
-            {$push:{'groups.$.tasks':updatedTask}}
-        );
-        return task.title
+        return task.title;
     }
-    public async editTaskIndex(boardName:string,groupName:string,index:number,newIndex:number):Promise<void> {
+    public async editTaskIndex(boardName:string,groupName:string,index:number,newIndex:number,direction:string):Promise<void> {
         const board:BoardDocumentType = await this.BoardModel.findOne({name:boardName,"groups.name": groupName},{'groups.$':1}).exec()
         const group:GroupDTO = board.groups[0];
         const task:TaskDTO = group.tasks[index]
 
+        console.log('ORIGINAL INDEX: ',index);
+        console.log('DIRECTION OF CHANGE',direction);
+        if (direction == 'up') {
+            index = index + 1
+        }
+        console.log('INDEX TO THROW AWAY AFTER CHANGING DIRECTION',index);
+        
+        console.log('STEP 1',group.tasks);
+        newIndex = newIndex + 1
         group.tasks.splice(newIndex,0,task)
-        group.tasks.splice(index + 1,1)
+        console.log('TASKS AFTER INSERTING AT THE NEW INDEX',group.tasks,'new index',newIndex)
+
+        group.tasks.splice(index,1)
+        console.log('TASK AFTER REMOVING THAT INDEX: ',group.tasks,'THREW AWAY: ',index)
+
         await this.BoardModel.updateOne(
             { name: boardName, "groups.name": groupName }, // Find the board and group
             { $set: { "groups.$.tasks":group.tasks } } 

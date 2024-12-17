@@ -28,3 +28,10 @@ export interface EditTaskDTO {
     index:number,
     newTask:FlexibleTaskDTO
 }
+export interface EditTaskIndexDTO {
+    boardName:string,
+    groupName:string,
+    index:number,
+    newIndex:number,
+    direction:string
+}

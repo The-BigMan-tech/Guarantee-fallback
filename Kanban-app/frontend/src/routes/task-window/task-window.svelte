@@ -78,7 +78,7 @@
 {#each boards as value,index}
     {#if (isTaskOn[index] && value.name === sharedName)}
         {#if (!taskCreated)}
-            <div class='absolute text-white w-96 bg-[#26262e] h-[34rem] rounded-xl shadow-xl'>
+            <div class='absolute text-white w-96 bg-[#26262e] h-[34rem] rounded-xl shadow-xl z-20'>
                 <div class='flex flex-col relative left-9 top-7'>
                     <div class='flex flex-col gap-4'>
                         <div class='flex gap-5 relative w-80 items-center'>

@@ -30,6 +30,6 @@ export class EditTaskController {
     @Put('/editTaskIndex')
     @UsePipes(new RequestSafetyPipe())
     public async editTaskIndex(@Body() task:EditIndexDTO):Promise<void> {
-        await this.editTaskService.editTaskIndex(task.boardName,task.groupName,task.index,task.newIndex)
+        await this.editTaskService.editTaskIndex(task.boardName,task.groupName,task.index,task.newIndex,task.direction)
     }
 }

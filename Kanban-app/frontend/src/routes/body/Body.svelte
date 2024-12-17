@@ -6,7 +6,7 @@
     let groups:GroupDTO[] = $state([])
     let globalGroup:string = $state('')
     let globalIndex:number = $state(0)
-
+    let globalGIndex:number = $state(0)
 
     let shouldView:boolean = $state(false)
     let viewTask:TaskDTO = $state() as TaskDTO
@@ -28,6 +28,8 @@
     let changeIndexArr:boolean[] = $state([])
     let changeIndexGroup:boolean[] = $state([])
     let changePlaceholder:string = $state('')
+
+    let globalIndex2:number = $state(0)
     function popDelete(index:number,gIndex:number) {
         if (!deleteAction[index]) {
             deleteAction = []
@@ -39,9 +41,10 @@
         deleteAction[index] = false
         deleteActionGroup[index] = false
     }
-    function changeIndex(gIndex:number,index:number,title:string) {
-        globalIndex = index
-        changePlaceholder = title
+    function changeIndex(gIndex:number,index:number,title?:string) {
+        globalIndex2 = index
+        globalGIndex = gIndex
+        changePlaceholder = title as string
         popDelete(index,gIndex)
         if (!changeIndexArr[index]) {
             changeIndexArr = []
@@ -103,13 +106,29 @@
         editStatus = false
     }
     async function editTaskIndex(groupName:string,newIndex:number):Promise<void> {
+        let direction = ''
+        if (newIndex > globalIndex2) {
+            direction = 'down'
+        }else {
+            direction = 'up'
+        }
         const taskIndexInfo:EditTaskIndexDTO = {
             boardName:board.name,
             groupName:groupName,
-            index:globalIndex,
-            newIndex:newIndex
+            index:globalIndex2,
+            newIndex:newIndex,
+            direction:direction
         }
         console.log('NEW TASK INDEX INFO: ',taskIndexInfo);
+        const response:Response = await fetch('http://localhost:3100/tasks/editTaskIndex',{
+            method:'PUT',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(taskIndexInfo)
+        })
+        await processResponse(response)
+        changeIndex(globalGIndex,globalIndex2)
+        deleteAction = []
+        await loadSelectedBoard()
     }
     async function editTask():Promise<void> {
         console.log('BOARD TO EDIT',board.name,'GROUP',globalGroup,'INDEX',globalIndex,'NEW TITLE',newTitle);
@@ -123,6 +142,7 @@
                 status:newStatus || viewTask.status
             }
         }
+        console.log('EDIT TASK OBJECT',newTaskObject);
         const response:Response = await fetch('http://localhost:3100/tasks/editTask',{
             method:'PUT',
             headers:{'Content-Type':'application/json'},
@@ -198,7 +218,7 @@
                                 </div>
                             </div>
                             {#if changeIndexGroup[gIndex]}
-                                <button onclick={()=>editTaskIndex(group.name,index+1)} class='bg-transparent hover:border hover:border-[#bd57fc] text-left pl-4 py-0 h-0 hover:py-3 hover:h-auto w-[80%] rounded-xl shadow-sm text-transparent relative text-lg left-5 hover:text-white'>{changePlaceholder}</button> 
+                                <button onclick={()=>editTaskIndex(group.name,index)} class='bg-transparent hover:border hover:border-[#bd57fc] text-left pl-4 py-0 h-0 hover:py-3 hover:h-auto w-[80%] rounded-xl shadow-sm text-transparent relative text-lg left-5 hover:text-white'>{changePlaceholder}</button> 
                             {/if}
                         {/each}
                     </div>
