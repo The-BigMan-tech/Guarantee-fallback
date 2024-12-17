@@ -188,19 +188,21 @@
                     <div class='flex flex-col gap-7 overflow-y-scroll h-[26rem] w-56'>
                         {#each group.tasks as task,index}
                             <div class='flex flex-col'>
-                                <div class='flex relative gap-3 items-center w-56'>
-                                    <div class='flex flex-col justify-center absolute right-14 z-10'>
+                                <div class='flex relative gap-3 items-center w-56 justify-center'>
+                                    <div class='absolute top-6 right-14 z-10 h-10'>
                                         <button onclick={()=>popDelete(index,gIndex)} class='flex gap-1 text-transparent group'>
                                             <h1 class='bg-slate-200 h-1 w-1 rounded-full group-hover:bg-[#bf57fc]'>0</h1>
                                             <h1 class='bg-slate-200 h-1 w-1 rounded-full group-hover:bg-[#bf57fc]'>0</h1>
                                             <h1 class='bg-slate-200 h-1 w-1 rounded-full group-hover:bg-[#bf57fc]'>0</h1>
                                         </button>
                                         {#if (deleteAction[index] && deleteActionGroup[gIndex])}
-                                            <div class='flex items-center gap-6'>
-                                                <button class='flex-shrink-0 absolute top-5' onclick={()=>deleteTask(board.name,group.name,index)}>
-                                                    <img class='w-4 bg-[#29282a]' src="/trash-can-regular.svg" alt="">
+                                            <div class='flex items-center gap-6 absolute bottom-0'>
+                                                <button class='flex-shrink-0' onclick={()=>deleteTask(board.name,group.name,index)}>
+                                                    <img class='w-4' src="/trash-can-regular.svg" alt="">
                                                 </button>
-                                                <button onclick={()=>changeIndex(gIndex,index,task.title)} class='absolute top-4 left-9'>S</button>
+                                                <button onclick={()=>changeIndex(gIndex,index,task.title)} class='flex-shrink-0'>
+                                                    <img class='w-4' src="/scissors-solid.svg" alt="">
+                                                </button>
                                             </div>
                                         {/if}
                                     </div>
