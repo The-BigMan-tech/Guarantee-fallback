@@ -176,14 +176,19 @@
         <div class='flex text-[#848a9a] gap-24'>
             {#each groups as group,gIndex} 
                 <div class='flex flex-col w-56 mb-20'>
-                    <div class='flex gap-3'>
-                        <h1 class={`text-transparent ${tagColors[gIndex]} w-3 h-3 rounded-full relative top-[0.4rem]`}>0</h1>
-                        <h1 class='font-sans font-[550] mb-6'>{group.name} ( <span class='text-[#bf57fc] font-space'> {group.tasks.length} </span> )</h1>
+                    <div class='flex flex-col mb-4'>
+                        <div class='flex gap-3'>
+                            <h1 class={`text-transparent ${tagColors[gIndex]} w-3 h-3 rounded-full relative top-[0.4rem]`}>0</h1>
+                            <h1 class='font-sans font-[550] mb-6'>{group.name} ( <span class='text-[#bf57fc] font-space'> {group.tasks.length} </span> )</h1>
+                        </div>
+                        {#if changeIndexGroup[gIndex]}
+                            <button onclick={()=>editTaskIndex(group.name,0)} class={`bg-transparent hover:border hover:border-[#bd57fc] text-left pl-4 py-0 hover:py-3 hover:h-auto w-[80%] rounded-xl shadow-sm text-transparent text-lg hover:text-white ${(group.name !== 'TODO')?'relative left-5':''}`}>{changePlaceholder}</button> 
+                        {/if}
                     </div>
                     <div class='flex flex-col gap-7 overflow-y-scroll h-[26rem] w-56'>
                         {#each group.tasks as task,index}
                             <div class='flex flex-col'>
-                                <div class='flex relative gap-3 items-center'>
+                                <div class='flex relative gap-3 items-center w-56'>
                                     <div class='flex flex-col justify-center absolute right-14 z-10'>
                                         <button onclick={()=>popDelete(index,gIndex)} class='flex gap-1 text-transparent group'>
                                             <h1 class='bg-slate-200 h-1 w-1 rounded-full group-hover:bg-[#bf57fc]'>0</h1>
@@ -219,7 +224,7 @@
                                 </div>
                             </div>
                             {#if changeIndexGroup[gIndex]}
-                                <button onclick={()=>editTaskIndex(group.name,index)} class='bg-transparent hover:border hover:border-[#bd57fc] text-left pl-4 py-0 h-0 hover:py-3 hover:h-auto w-[80%] rounded-xl shadow-sm text-transparent relative text-lg left-5 hover:text-white'>{changePlaceholder}</button> 
+                                <button onclick={()=>editTaskIndex(group.name,index)} class={`bg-transparent hover:border hover:border-[#bd57fc] text-left pl-4 py-0 h-0 hover:py-3 hover:h-auto w-[80%] self-start rounded-xl shadow-sm text-transparent relative text-lg  hover:text-white ${(group.name !== 'TODO')?'relative left-5':''}`}>{changePlaceholder}</button> 
                             {/if}
                         {/each}
                     </div>
