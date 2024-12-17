@@ -117,7 +117,7 @@
                 <button onclick={()=>createTask(value.name)} class='absolute bottom-4 left-[5.5rem] bg-[#4d3bbc] py-3 px-14 rounded-3xl'>Create Task</button>
             </div>
         {:else}
-            <div class='flex flex-col gap-2 justify-center items-center absolute text-white w-96 bg-[#26262e] h-24 rounded-xl shadow-xl'>
+            <div class='flex flex-col gap-2 justify-center items-center absolute text-white w-96 bg-[#26262e] h-24 rounded-xl shadow-xl z-20'>
                 <div class='flex gap-4'>
                     <img class='w-5' src="/thumbs-up-regular.svg" alt="">
                     <h1 class='text-green-400 font-bold text-lg font-roboto'>Task Created Successfully</h1>
