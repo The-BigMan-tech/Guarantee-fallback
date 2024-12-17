@@ -1,3 +1,5 @@
+*netlify,vercel,render,github pages
+
 *use flex shrink-0 to ensure images dont shrink
 *In a boolean array holding selected values,only one can be selected at a time but more than one can be deselected at a time
 
