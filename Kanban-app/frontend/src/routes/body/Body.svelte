@@ -105,13 +105,19 @@
         editDescription = false
         editStatus = false
     }
-    async function editTaskIndex(groupName:string,newIndex:number):Promise<void> {
+    async function editTaskIndex(groupName:string,newIndex:number,extra:boolean=false):Promise<void> {
         let direction = ''
         if (newIndex > globalIndex2) {
             direction = 'down'
         }else {
             direction = 'up'
         }
+        console.log('NEW INEX VALUE: ',newIndex);
+        if ((!extra) && (newIndex==0)) {
+            newIndex = newIndex + 1
+            direction = 'dynamic'
+        }
+        console.log('NEW INDEX VALUE 2',newIndex);
         const taskIndexInfo:EditTaskIndexDTO = {
             boardName:board.name,
             groupName:groupName,
@@ -182,7 +188,7 @@
                             <h1 class='font-sans font-[550] mb-6'>{group.name} ( <span class='text-[#bf57fc] font-space'> {group.tasks.length} </span> )</h1>
                         </div>
                         {#if changeIndexGroup[gIndex]}
-                            <button onclick={()=>editTaskIndex(group.name,0)} class={`bg-transparent hover:border hover:border-[#bd57fc] text-left pl-4 py-0 hover:py-3 hover:h-auto w-[80%] rounded-xl shadow-sm text-transparent text-lg hover:text-white ${(group.name !== 'TODO')?'relative left-5':''}`}>{changePlaceholder}</button> 
+                            <button onclick={()=>editTaskIndex(group.name,0,true)} class={`bg-transparent hover:border hover:border-[#bd57fc] text-left pl-4 py-0 hover:py-3 hover:h-auto w-[80%] rounded-xl text-transparent text-lg hover:text-white ${(group.name !== 'TODO')?'relative left-5':''}`}>{changePlaceholder}</button> 
                         {/if}
                     </div>
                     <div class='flex flex-col gap-7 overflow-y-scroll h-[26rem] w-56'>

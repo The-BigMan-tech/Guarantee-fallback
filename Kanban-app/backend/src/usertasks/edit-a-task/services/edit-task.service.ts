@@ -47,13 +47,13 @@ export class EditTaskService {
 
         console.log('ORIGINAL INDEX: ',index);
         console.log('DIRECTION OF CHANGE',direction);
-        if (direction == 'up') {
+        if ((direction == 'up') || (direction =='dynamic')) {
             index = index + 1;
         }
         console.log('INDEX TO THROW AWAY AFTER CHANGING DIRECTION',index);
         
         console.log('STEP 1',group.tasks);
-        if (newIndex !== 0) {
+        if ((newIndex !== 0) && (direction != 'dynamic')) {
             newIndex = newIndex + 1
         }
         group.tasks.splice(newIndex,0,task)
