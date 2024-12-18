@@ -1,3 +1,8 @@
+*servers are completely statless and they need a database to retain state while components are stateful but lose their state once they are destroyed unless stored in a database
+
+?LAN setup.listen on all ports,allow node js through firewall,use local ip on external machine
+
+*Nginx,Ngrok,cloud services/hosting platforms
 *netlify,vercel,render,github pages
 
 *use flex shrink-0 to ensure images dont shrink
@@ -181,7 +186,7 @@ Nest js
 intersection observer api
 Chart js
 !Redux
-Pouch db
+Pouch db and Couch db
 Axios
 socket io
 !electron
