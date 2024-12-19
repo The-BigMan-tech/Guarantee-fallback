@@ -212,4 +212,5 @@ div > div::before {
   transform: rotate();
   transform: scale();
   transform: skew();
+  color:#39a756;
 }

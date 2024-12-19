@@ -15,6 +15,7 @@ dribble
 Shape divider
 Font squirrel
 devdojo
+daily.dev
 
 
 LEARNING RESOURCES

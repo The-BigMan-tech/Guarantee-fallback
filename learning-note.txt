@@ -1,3 +1,7 @@
+^Tech stack quality check.It gives a score gotten from comparing how good your custom tech stack is to how good it will fulfill a project idea using user-defined metrics for the project through using data submitted from a detailed form about the project and using predefined metrics for the tech stack quality against fulfilling that project using data about each technology against the context it is being used for and how well it works with the others for fullfilling a task and secondly.Users can also emphasize which part of the form data is the most important for checking against the stack and another feature is the kanban board which will be used for the developer's skill assessment to check if he has the skills to fullfill the stack.The purpose of this app is to complement decision making
+
+?Vite or next js installer for react
+
 *mongo db is document oriented
 
 *graph ql allows you to control how the response object should look like and merge multiple request sinto one meaning you can request for what you specifically ask for over allowing an http server decide the response object for you which typically sends you the whole data leaving it to the fronyend to filter out the data it needs.With a normal http server,you have to create separate api endpoints for every precise data you wnt like how i have load all boards and load a board as separate requests which is inefficient.with graphql you can freakin batch requests unlike rest.graph ql ships errors in the response object and not through status codes and as such,errors can be treated as value.Rest apis deliver static responses but graphql allows us to make that dynamic but the dynamism of  graphq can lead to inconsistent responses per request body unlike rest apis that are indempotent which guves the same response for the same request regarless of how many times it is requested.  
@@ -295,6 +299,12 @@ meta frameworks
 session,cookies storage
 A very interactive jupyter notebook doc of web dev
 
+
+
+spa--client side rendering
+interactive ui--two way flow of information
+CDN,web sever
+view layer,back end layer
 
 
 STATIC RENDERED WEB APPS 
