@@ -1,3 +1,41 @@
+*So for pure hosting,focus on both hardware and software.for Iaas,focus on everything software.for Paas,only focus on coding and forget about setup and for Baas,focus on frontend more as the provider handles common backend chores
+
+*Iaas-infrastructure service
+*Paas--app development service
+*self hosting,pure hosting service,cloud hosting
+
+*The developer is separate from the provider.The provider is responsible for managing the infrastructure while the developer is responsible for the app itself.A pure service doesnt offer things like scalability.When a provider delivers services to the povider like scalability,it becomes a cloud service
+
+*A regular service is a fixed service that doesnt increase on demand
+
+
+*web app and a cloud app.A web app like a cloud app is hosted by a provider and can only be accessed online but a web app only becomes a cloud app when it delivers services within the scope of cloud principles
+
+?Paas,Iaas,Baas,Saas
+
+*Session data consists of all the inpersitent data stored in the frontend throughout its use and some of it can be persisted through cookies,session apis,etc
+
+*frontend uses two types of state:ui and variable state.in general,ui states are mainly reflected in the ui but can also influence rendering while variable states arent reflected in the ui but are used for the frontend's logic and can influence ui rendering
+
+
+*backend requires a full restart per change as it is stateless but the frontend doesnt since it retains state and thus uses hmr.This is because frontend is stateful but not persistent and backend is both stateless and not persistent.So a db is the only solution for a persitent storage of state and im guessing the reason why frontend state isnt persistent is that it is only used for updating the ui and only end data is stored in the db
+
+*Hmr in web bundlers works with the file watcher by not requiring a full page reload per change.It does this by only updating the modules that were edited leading to performance boost and reservation of state
+
+*File watchers--compile,refresh the browser,rerun a script
+
+*so bundlers package all your frontend code and its dependencies into a single file with extra features like code optimization,real time refreshes and tree shaking.
+
+*live server
+*Context api and use reducer hooks are like low level verions of Redux
+
+*Frontend frameworks use a compiler to convert their code into vanilla js.For react,it is babel although babel is primarily for compiling js to a backwards compatible version while others use their own compilers.The compilers convert Component written code to DOM manipulation which is its superset.
+
+^Dont forget about user stories
+
+*a template builder is a tool that scaffolds an application for developmen like svelte kit,next js
+*a module,library,framework,template builder
+
 ^Tech stack quality check.It gives a score gotten from comparing how good your custom tech stack is to how good it will fulfill a project idea using user-defined metrics for the project through using data submitted from a detailed form about the project and using predefined metrics for the tech stack quality against fulfilling that project using data about each technology against the context it is being used for and how well it works with the others for fullfilling a task and secondly.Users can also emphasize which part of the form data is the most important for checking against the stack and another feature is the kanban board which will be used for the developer's skill assessment to check if he has the skills to fullfill the stack.The purpose of this app is to complement decision making
 
 ?Vite or next js installer for react

@@ -11,7 +11,7 @@ todo:Frontend related
 ---------------------
 next js
 Astro js
-react spring,react scroll parallax,react pdf
+react spring,react scroll parallax,react pdf,react query
 Mitosis js
 GSAP
 
@@ -42,11 +42,20 @@ Seo
 Yaml
 Stream apis 
 
-todo:Section 7
+todo:Third party APIs
+---------------------
+Twillio
+Stripe
+Algolia
+SendGrid
+
+todo:Cloud
 ---------------
-Third party apis--twillio,stripe,algolia
 Azure,Google cloud,Aws
 Terraform
+
+todo:Section 10
+----------------
 Python fast api
 
 
@@ -58,7 +67,7 @@ Pouch db and Couch db
 Axios
 socket io
 security with jwt token,bcrypt,auth0,auth js,otpAuth
-Graphql server and Dgraph DB
+Graphql server and Dgraph DB--ill use graph ql as a layer over my nest js server
 jest
 
 
@@ -74,7 +83,7 @@ SASS
 Vanilla Javascript
 minor:Rendering patterns
 React
-minor:styled components
+minor:styled components and tailwind styled components
 minor:Deployment platforms--netlify,vercel,render and github pages
 Svelte
 minor:Json
@@ -90,6 +99,7 @@ mongo db
 minor: mongo db driver
 minor: mongoose
 Nest js
+minor:Zod
 minor:intersection observer api
 Chart js
 
