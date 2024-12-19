@@ -1,0 +1,15 @@
+?tailwind css,react,redux,chart js,axios,nest js,socket io,pouch db,couch db,netlify,ngrok
+?session storage for multi step login form,cookies for preferences
+?pipes and DTOs on the server to validate requests
+?Formik to validate forms on the client side
+
+?Jwt tokens--auto pass authentication information.goes to the authorization header
+?bcrypt-password hashing
+?auth0-logging with gmail
+?otpAuth--another layer of security by sending an otp to their gmail
+
+?pinno for logging
+?jest for server testing
+
+?Docker and kuberntes for containing the backend
+?Terraform with azure

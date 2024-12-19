@@ -1,0 +1,40 @@
+ASSETS
+_________
+Adobe color
+lottiefiles
+iconscout
+Google fonts
+Power toys color picker
+Font awesome
+Box icon
+freepik
+bing image creator
+Canva
+Hakei
+dribble
+Shape divider
+Font squirrel
+devdojo
+
+
+LEARNING RESOURCES
+__________________
+Websites
+--------
+Tutorialspoint
+GeeksforGeeks
+W3schools
+hubspot.com
+Css-tricks
+frontend mentor
+learn bricks builder.com
+joshwcomeau.com
+dev.to
+
+Yt
+---
+The website architect
+Tim Gabe
+Coding2Go
+Slaying the Dragon
+Optimistic web 

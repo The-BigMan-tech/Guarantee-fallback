@@ -1,0 +1,158 @@
+API CLIENT TOOLS 
+-----------------
+Postman
+Insomnia
+API dog
+
+
+PART 1--a solid backend
+-----------------------
+node js
+fetch api
+express js
+pug 
+Postman
+mongo db
+mongo db driver
+mongoose
+
+
+
+PART 2--expert backend
+----------------------
+!Ill learn Mysql and prisma later
+Nest js
+intersection observer api
+Chart js
+!Redux
+Formik
+Pouch db and Couch db
+Axios
+socket io
+Tauri
+security with jwt token,bcrypt,auth0,auth js,otpAuth
+Graphql server and Dgraph DB
+!jest
+Third party apis--twillio,stripe,algolia
+fastify
+
+
+
+TESTING TECHNOLOGIES 
+--------------------
+vitest
+Cucumber js
+playwright
+selenium--automated tests
+
+
+
+ADDED TO MY STACK
+------------------
+next js,vite for react
+sveltekit for svelte
+Story book js
+typescript
+JsDoc
+Backend
+IM MAKING A FILE SHARE AND WHATSAPP
+
+WHERE I AM IN FRONTEND
+-----------------------
+The react stack--formik,redux,react spring,styled components,react scroll parallax,react pdf
+Angular
+Astro with front end frameworks for better seo
+solid js
+Mitosis js
+GSAP
+Electron js
+Tauri
+ionic
+Django,flask,fast with python.return to python if satisfied
+
+
+
+Back end frameworks
+-------------------
+node js--js server
+express--handles http requests and responses
+
+
+Front end frameworks
+---------------
+react--lib specifically for reusable ui components,component based architecture,SPA-CSR,one data binding
+next-->SSR,SSG
+angular-->Full web framework with typescript,two data binding
+GSAP-->Javascript animation framework
+vue-->
+nuxt js-->
+svelte 
+vite js
+nest js
+Solid js
+Story book js
+Chart Js-->Like matplotlib in python
+Cypress js
+astro js
+Deno
+electron js-->framework for building cross platform desktop apps using web tech
+Tauri-->A lighter,safer and interoperable electron
+ionic js--for mobile apps
+selenium
+daily.dev
+
+ROADMAP
+_______
+HTML->Markup/Structuring the content---Separates the content from presentation
+Emmet snippets
+Git and Github--->Version control and code sharing
+CSS->Styling the content
+Web Design->principles/standards,best practices,Ui/Ux
+Tailwind-->Utility first css framework
+SASS-->Css preprocessor
+Javascript->Interactive ui
+Web sockets--for real time notifications
+Back end technologies
+Front end technologies || Styled components->Css in js
+post css--transforming css using js plugins
+purge css--for removing unused styles from style sheets
+typescript
+yaml,XML,JSON->Data storage and serialization
+AJAX->
+SVG->
+SEO->
+my sql->
+mongo db--->
+redis db--->
+prisma js
+Python web frameworks-->
+ruby on rails(if possible)-->
+Java with spring boot
+Php with Laravel
+
+
+Others
+-------
+APIS.Like stripe,oauth0,twillio etc
+api protocols,authentication,api security
+The react stack--Redux,Formik,Styled components
+cloud service
+web pack
+NGINX,Ngrok
+testing
+containerization
+virtualization
+ci/Cd 
+serverless computing
+
+
+Rendering patterns 
+
+
+spa--client side rendering
+interactive ui--two way flow of information
+CDN,web sever
+view layer,back end layer
+
+Nginx,Ngrok,Terraform with cloud services/hosting platforms
+netlify,vercel,render,github pages

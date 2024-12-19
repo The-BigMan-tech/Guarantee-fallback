@@ -1,9 +1,25 @@
+*mongo db is document oriented
+
+*graph ql allows you to control how the response object should look like and merge multiple request sinto one meaning you can request for what you specifically ask for over allowing an http server decide the response object for you which typically sends you the whole data leaving it to the fronyend to filter out the data it needs.With a normal http server,you have to create separate api endpoints for every precise data you wnt like how i have load all boards and load a board as separate requests which is inefficient.with graphql you can freakin batch requests unlike rest.graph ql ships errors in the response object and not through status codes and as such,errors can be treated as value.Rest apis deliver static responses but graphql allows us to make that dynamic but the dynamism of  graphq can lead to inconsistent responses per request body unlike rest apis that are indempotent which guves the same response for the same request regarless of how many times it is requested.  
+
+*in rest apis/http servers,urls are used to define resources on the cloud
+I want to research on the app i want to make,use ai software designer,watch yt videos on how to work about the app
+
+vercel them are infrastructure as a service
+electron,deployment and hosting,docker
+
+Docker and kubernetes,graphql,Terraform with Azure,hostinger
+
+Azure for various cloud services
+
+docker is for containerizing backend services and its dependencies in an isolated environment allowing you to use it on another machine without ever worrying about reinstalling dependencies,environment setup and whether it works on your machine and not on others.it will make it work on any machine the same way as yours regardless of os.
+
+
+*sessions are just a way to manage temprorary state in a server
+*Because servers dont retain states,the request has to contain the full data to ensure requests are independent
 *servers are completely statless and they need a database to retain state while components are stateful but lose their state once they are destroyed unless stored in a database
 
 ?LAN setup.listen on all ports,allow node js through firewall,use local ip on external machine
-
-*Nginx,Ngrok,cloud services/hosting platforms
-*netlify,vercel,render,github pages
 
 *use flex shrink-0 to ensure images dont shrink
 *In a boolean array holding selected values,only one can be selected at a time but more than one can be deselected at a time
@@ -22,15 +38,14 @@ Client bounding rect returns the element's surface area and relative position to
 Normal people when they see it: 🥱
 Developers when they see it: 🧐🤔🫡😮‍💨🗿
 
-!Not so scalable architecture:Refresh cycle and lever system
-*Font squirrel
-*Dev dojo
+
 *svelte binding and stores
 The most independent parts of the program must be coded first before the dependent ones
 The server should be operationally feature based while the frontend shouldbe visually feature based
 Use a boolean array to check for selected values and apply styles based on them
 ai--utility snippet maker
 I have to use indexed db as a fallback to the server.immediately there is connection,the data is synced with the server
+!Not so scalable architecture:Refresh cycle and lever system
 so my architecture is this:for A:pull initial data(data that was saved from using the app previously),push new data and dynamically tag data based on interactions while for component B:load intitial data,pull the tagged data and using an effect hook to always pull data whenever A pushes.The parent uses a store.i call the store a lever because it only flicks between true or false.So when A pushes data,it flicks it on or set the store's value to true,then the parent will then pass a state that is subscribed to the lever as a prop to B which uses the effect hook to always listen for when the prop changes to always pull data whenever A pushes.The only prop a component will listen to is the one that will notify it whenver A has pushed to the server and also,after A pushes and sets the lever to true,it then immediately on the next line toggle it to false so that the next push will toggle it again for B to listen to.I am also going to use stores for more than just levers.Anything shareable at this point should use one.The point of levers is to sync components an other stores like numbers or strings for sharing values wuth other components in real time.
 
 component based architecture uses reactive and event driven programming
@@ -58,11 +73,6 @@ Mongodb atlas,Aws,google cloud services,Azure
 
 Object vs relational database 
 Document vs Table database
-
-*Amazon
-*Data analytics app with chart js
-*whatsapp using twillio
-
 
 Deploy the frontend
 Host the backend
@@ -129,7 +139,6 @@ game engine
 
 *After this web dev,ill go back tp python---C# and Java---low level ones
 
-!Ill learn Mysql and prisma later
 !There is PyPy,Cython and now Mojo
 cursor code editor
 coolors.co web
@@ -160,76 +169,6 @@ markdown for docs like readme files
 glob pattern
 cookies are already in express js
 In my online shop,if you want to add an item visually and not through the json file,i can connect my frontend with my backend using a post request.The server will then parse it into the json file
-
-API CLIENT TOOLS 
------------------
-Postman
-Insomnia
-API dog
-
-PART 1--a solid backend
------------------------
-node js
-fetch api
-express js
-pug 
-Postman
-mongo db
-mongo db driver
-mongoose
-
-
-
-PART 2--expert backend
-----------------------
-Nest js
-intersection observer api
-Chart js
-!Redux
-Pouch db and Couch db
-Axios
-socket io
-!electron
-security with jwt token,bcrypt,auth0,auth js,otpAuth
-Third party apis--twillio,stripe,auth0,algolia,otpAuth
-Graphql server and Dgraph DB
-jest
-fastify
-
-
-
-TESTING TECHNOLOGIES 
---------------------
-vitest
-Cucumber js
-playwright
-selenium--automated tests
-
-
-
-ADDED TO MY STACK
-------------------
-next js,vite for react
-sveltekit for svelte
-Story book js
-typescript
-JsDoc
-Backend
-IM MAKING A FILE SHARE AND WHATSAPP
-
-WHERE I AM IN FRONTEND
------------------------
-The react stack--formik,redux,react spring,styled components,react scroll parallax,react pdf
-Angular
-Astro with front end frameworks for better seo
-solid js
-Mitosis js
-GSAP
-Electron js
-Tauri
-ionic
-Django,flask,fast with python.return to python if satisfied
-
 
 
 for ts in code runner:tsc & node
@@ -351,96 +290,11 @@ I love 4k astronaut wallpapers
 -->
 
 
-
 tailwind container tag
 meta frameworks
 session,cookies storage
 A very interactive jupyter notebook doc of web dev
 
-
-
-Back end frameworks
--------------------
-node js--js server
-express--handles http requests and responses
-
-
-Front end frameworks
----------------
-react--lib specifically for reusable ui components,component based architecture,SPA-CSR,one data binding
-next-->SSR,SSG
-angular-->Full web framework with typescript,two data binding
-GSAP-->Javascript animation framework
-vue-->
-nuxt js-->
-svelte 
-vite js
-nest js
-Solid js
-Story book js
-Chart Js-->Like matplotlib in python
-Cypress js
-astro js
-Deno
-electron js-->framework for building cross platform desktop apps using web tech
-Tauri-->A lighter,safer and interoperable electron
-ionic js--for mobile apps
-selenium
-daily.dev
-
-ROADMAP
-_______
-HTML->Markup/Structuring the content---Separates the content from presentation
-Git and Github--->Version control and code sharing
-CSS->Styling the content
-Web Design->principles/standards,best practices,Ui/Ux
-Tailwind-->Utility first css framework
-SASS-->Css preprocessor
-Javascript->Interactive ui
-Web sockets--for real time notifications
-Back end technologies
-Front end technologies || Styled components->Css in js
-post css--transforming css using js plugins
-purge css--for removing unused styles from style sheets
-typescript
-yaml,XML,JSON->Data storage and serialization
-AJAX->
-SVG->
-SEO->
-my sql->
-mongo db--->
-redis db--->
-prisma js
-Python web frameworks-->
-ruby on rails(if possible)-->
-Java with spring boot
-Php with Laravel
-
-
-
-
-Others
--------
-APIS.Like stripe,oauth0,twillio etc
-api protocols,authentication,api security
-The react stack--Redux,Formik,Styled components
-cloud service
-web pack
-NGINX
-testing
-containerization
-virtualization
-ci/Cd 
-serverless computing
-
-
-Rendering patterns 
-
-
-spa--client side rendering
-interactive ui--two way flow of information
-CDN,web sever
-view layer,back end layer
 
 
 STATIC RENDERED WEB APPS 
@@ -479,70 +333,55 @@ Static + SPA
 
 Hydration,Partial hydration,Island
 
-ASSETS
-_________
-Adobe color
-lottiefiles
-iconscout
-Google fonts
-Power toys color picker
-Font awesome
-Box icon
-freepik
-bing image creator
-Canva
-Hakei
-dribble
-Shape divider
+
+NOTEBOOK-DAD AND PHYSICAL
+Variations of the same image
+there is an error when reloading the page because of a variable in order +page being initially undefined
+
+snippet js--a syntatic sugar for function calls using comments tagged with todo
+
+states
+props
+two way data binding
+context
+stores
+
+dribble.com for web designs
+
+WHAT I LEARNT IN DETAIL
+Apis 
+Async programming
+Typescript
+errors
+feature based folder structure
 
 
+ERRORS STUFF
+Type checking
+Linting
 
-LEARNING RESOURCES
-__________________
-Websites
---------
-Tutorialspoint
-GeeksforGeeks
-W3schools
-hubspot.com
-Css-tricks
-frontend mentor
-learn bricks builder.com
-joshwcomeau.com
-dev.to
+Exception handling blocks
 
-Yt
----
-The website architect
-Tim Gabe
-Coding2Go
-Slaying the Dragon
-Optimistic web 
+Well Documented functions
+Proper prep of the algorithm
+Deep knowledge about the pl,framework and coding environment
+Testing
+logging
+debugging
 
-OTHER 
-______
-Emmet.io
+reproducing errors
 
 
-BOOKMARKED ARTICLES 
-___________________
-HTML--GfG
-HTML tag ref--Tp
-HTML attr ref--Tp
-HTML event attr ref--GfG
-CSS--GfG
-CSS ref--Tp
-Web design--GfG
-JavaScript--GfG
-SEO--Tp
-XML--Tp
-Ajax--Tp
-LESS--Tp
-SAAS--GfG
-CSS-W3schools
+OTHER STUFFS
+commit message types:chore,fix,docs,feat
+technical and features folder structure with directory diagram
 
-BOOKMARKED TABS 
-_________________
-Obsidian notes tutorial
-convert csv to HTML
-How to use the inspector
+Scaling
+
+the build process
+provide a coloring 
+
+
+so abstracted from reality that you can only interact with them via a proxy
+behave test for js
+

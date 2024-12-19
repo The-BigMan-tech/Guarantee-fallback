@@ -1,4 +1,3 @@
-const { subscribe } = require("diagnostics_channel")
 
 //*Creating the database
 use('MY_DATABASE')
