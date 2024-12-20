@@ -1,3 +1,15 @@
+*Use Service.msc to start mongo db locally and you can change the port by using mongod.cf in the bin of the mongosb folder on the disk and for the atlas,go to monog db compass then paste your connection tsring and change the password to the right one and then scroll down to advanced options and in there,you will see an authroization heading.scroll down and also change the password field there.Copy the connection string and use it in mongoose
+
+*the name of the slice object is used to prefix the actions
+*default imports can be named anything you like on import
+
+*The actions property maps reducers to actions.The reducer property wraps all the reducers into one root reducer
+
+*A store is an object containing the applications state which is a key-value collection of every state in the app or a slice of the app's state.You can write multiple reducers that combines into one single root reducer.The reducer is the one that directly modifies the state.The action object is like a request that tells the reducer what to do with the state.
+
+*Action,reducer and state
+
+
 *So for pure hosting,focus on both hardware and software.for Iaas,focus on everything software.for Paas,only focus on coding and forget about setup and for Baas,focus on frontend more as the provider handles common backend chores
 
 *Iaas-infrastructure service

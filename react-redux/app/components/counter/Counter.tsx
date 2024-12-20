@@ -25,6 +25,7 @@ export const Counter = () => {
 
   return (
     <div>
+      <h1 className="">Hello Redux!!</h1>
       <div className={styles.row}>
         <button
           className={styles.button}

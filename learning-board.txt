@@ -11,7 +11,7 @@ todo:Frontend related
 ---------------------
 next js
 Astro js
-react spring,react scroll parallax,react pdf,react query
+react spring,react scroll parallax,react pdf,react query,Formik
 Mitosis js
 GSAP
 
@@ -62,12 +62,11 @@ Python fast api
 *CURRENT LEARNING SESSION
 ?------------------------
 Redux
-Formik
-Pouch db and Couch db
+Pouch db
 Axios
+Graphql server and Dgraph DB
 socket io
 security with jwt token,bcrypt,auth0,auth js,otpAuth
-Graphql server and Dgraph DB--ill use graph ql as a layer over my nest js server
 jest
 
 

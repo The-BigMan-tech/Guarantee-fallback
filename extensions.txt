@@ -87,3 +87,4 @@ Tailwind fold
 MongoDB for vscode
 Terminal keeper
 Codeium
+Inline fold----for tailwind classes
