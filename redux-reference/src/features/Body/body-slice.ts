@@ -1,4 +1,5 @@
 import { createSlice,PayloadAction} from '@reduxjs/toolkit'
+import { RootState } from '@/app/store'
 
 export interface CounterSliceState {
     value:number
@@ -15,6 +16,18 @@ export const counterSlice = createSlice({
         }
     }
 })
-// Action creators are generated for each case reducer function
-export const {increment} = counterSlice.actions
 export default counterSlice.reducer
+export const {increment} = counterSlice.actions
+
+export function selectCountFrom(state:RootState):number {
+    return state.counter.value
+}
+
+export const incrementIfOdd = (amount: number): AppThunk => {
+    return (dispatch, getState) => {
+        const currentValue = selectCountFrom(getState())
+        if (currentValue % 2 === 1) {
+            dispatch(increment(amount))
+        }
+    }
+}

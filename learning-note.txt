@@ -1,7 +1,35 @@
+*Thunks are used for writing async logic.Thunks are action creators that returns a function instead of a plain action object
+
+*Reducers have the rule of being pure functions to always create predicatble behaviour
+*When you dispatch an action to a store,redux uses the prefix of the action's type to determine which slice to map the action to.Thats why the key of the slice must match the name of the slice
+
+*An action is just an object with a type and payload.They are implicitly created by redux toolkit with the name convention of their type being slice name/reducer for that action.An action craetor returns an action object and th dispatch submits that action object to the store
+
+*reducers under the hood dont mutate state but rather use the immer library to do immutable operations
+
+*A slice is like a route for a server.it represents a share in the store's state.Therefore,a reducer is like a controller
+
+*so when we say counter:counterReducer in our store setup,we say that it should assign all state managment of that section to the reducer
+
+*Each feature with its own slice and reducers
+*A selector is a function that extracts a particular state from a store
+
+*A reducer is a function that calculates the new state using the old state and an action.They must be pure meaning that they always produce the same output for the same action input given that the old state is the same.Therefore,no side effects,no random values,no async operations
+
+*An action creator is a function that returns an action object and thus,using dispatch creates an action object using the action creator and send that action to the store
+
+*Redux uses immutability with the immer library to ensure operation safety and preducatbility
+*Redux uses the global state paradigm where state is separated from the component tree in a place called the store
+
+*The context paradigm,the global state paradigm
+
 !Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
+
+*before state management,state was lifted up to parents and passed down as props to children and then use context api to prevent prop drilling
 
 *next js adds server side logic to your react.
 *Url state management also prevents the need for complex state management
+
 *The term reducer as used in redux comes from the reduce function in functional programming.
 ^Learn more about functional programming
 

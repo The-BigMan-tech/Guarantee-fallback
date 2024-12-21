@@ -64,9 +64,11 @@ Python fast api
 *CURRENT LEARNING SESSION
 ?------------------------
 Redux
+Dasiy UI
 pinno
 Pouch db
 Axios
+tRPC
 Graphql server and Dgraph DB
 socket io
 security with jwt token,bcrypt,auth0,auth js,otpAuth

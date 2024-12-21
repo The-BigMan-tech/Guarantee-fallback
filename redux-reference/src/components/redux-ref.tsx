@@ -1,16 +1,17 @@
-import { useSelector } from "react-redux"
-import { useAtom } from "jotai"
-import { proton } from "@/features/Body/atoms"
-import { useAppSelector } from "@/app/hooks"
+import {state} from "@/app/hooks"
+import { selectCountFrom } from "@/features/Body/body-slice"
 
 export default function ReduxRef() {
-    const [neutron] = useAtom(proton)
-    const count = useAppSelector(state=>state.counter.value)
+    const count:number = state(store=>selectCountFrom(store))
     return (
         <>
             <div>Hello worlds</div>
             <div>{count}</div>
-            <div>Jotai atom:{neutron}</div>
+            <label className="daisy-swap daisy-swap-rotate text-9xl">
+                <input type="checkbox" />
+                <div className="daisy-swap-on">😃</div>
+                <div className="daisy-swap-off">😞</div>
+            </label>
         </>
     )
 }
