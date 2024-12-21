@@ -13,3 +13,5 @@
 
 ?Docker and kuberntes for containing the backend
 ?Terraform with azure
+
+*Architecture:Redux for state,then pushes to pouch db and when online,pushes to a nest js server that stores it in mongo db

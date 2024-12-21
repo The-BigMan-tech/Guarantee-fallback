@@ -1,4 +1,8 @@
-*Use Service.msc to start mongo db locally and you can change the port by using mongod.cf in the bin of the mongosb folder on the disk and for the atlas,go to monog db compass then paste your connection tsring and change the password to the right one and then scroll down to advanced options and in there,you will see an authroization heading.scroll down and also change the password field there.Copy the connection string and use it in mongoose
+!Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
+
+*Context api is a low level version of global state management in react,svelete and other frontend frameworks.For svelete,the modern way is stores
+
+*Use Service.msc to start mongo db locally and you can change the port by using mongod.cf in the bin of the mongosb folder on the disk and for the atlas,go to monog db compass then paste your connection tsring and change the password to the right one and then scroll down to advanced options and in there,you will see an authroization heading.scroll down and also change the password field there.Copy the connection string and use it in mongoose to fix that authentication error
 
 *the name of the slice object is used to prefix the actions
 *default imports can be named anything you like on import
@@ -41,7 +45,8 @@
 *live server
 *Context api and use reducer hooks are like low level verions of Redux
 
-*Frontend frameworks use a compiler to convert their code into vanilla js.For react,it is babel although babel is primarily for compiling js to a backwards compatible version while others use their own compilers.The compilers convert Component written code to DOM manipulation which is its superset.
+*Frontend frameworks use a compiler to convert their code into vanilla js.For react,it is babel although babel is primarily for compiling js to a backwards compatible version while others use their own compilers.The compilers convert Component written code to DOM manipulation which is its superset.Component written code is just html in javascript where js can directly manipulate that html
+
 
 ^Dont forget about user stories
 

@@ -11,7 +11,8 @@ todo:Frontend related
 ---------------------
 next js
 Astro js
-react spring,react scroll parallax,react pdf,react query,Formik
+Tans stack query,router,ranger
+react spring,react scroll parallax,react pdf,Formik
 Mitosis js
 GSAP
 
@@ -61,7 +62,7 @@ Python fast api
 
 *CURRENT LEARNING SESSION
 ?------------------------
-Redux
+Redux and Jotai
 Pouch db
 Axios
 Graphql server and Dgraph DB
