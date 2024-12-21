@@ -2,7 +2,7 @@ import {state} from "@/app/hooks"
 import { selectCountFrom } from "@/features/Body/body-slice"
 
 export default function ReduxRef() {
-    const count:number = state(store=>selectCountFrom(store))
+    const count:number = state((store)=>selectCountFrom(store))
     return (
         <>
             <div>Hello worlds</div>

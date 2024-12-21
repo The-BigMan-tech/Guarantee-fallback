@@ -1,4 +1,4 @@
-*Thunks are used for writing async logic.Thunks are action creators that returns a function instead of a plain action object
+*Redux thunks are used for writing async logic.Redux Thunks are action creators that returns a function instead of a plain action object called a thunk.It is a middleware that sits in between a dispatched action and a reducer
 
 *Reducers have the rule of being pure functions to always create predicatble behaviour
 *When you dispatch an action to a store,redux uses the prefix of the action's type to determine which slice to map the action to.Thats why the key of the slice must match the name of the slice
