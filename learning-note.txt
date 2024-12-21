@@ -1,5 +1,6 @@
 !Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
 
+*next js adds server side logic to your react
 *The term reducer as used in redux comes from the reduce function in functional programming.
 ^Learn more about functional programming
 
