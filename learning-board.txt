@@ -9,6 +9,7 @@ Kubernetes
 
 todo:Frontend related
 ---------------------
+Jotai
 next js
 Astro js
 Tans stack query,router,ranger
@@ -62,7 +63,8 @@ Python fast api
 
 *CURRENT LEARNING SESSION
 ?------------------------
-Redux and Jotai
+Redux
+pinno
 Pouch db
 Axios
 Graphql server and Dgraph DB

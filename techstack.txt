@@ -2,7 +2,6 @@
 ?session storage for multi step login form,cookies for preferences
 ?pipes and DTOs on the server to validate requests
 
-
 ?Jwt tokens--auto pass authentication information.goes to the authorization header
 ?bcrypt-password hashing
 ?auth0-logging with gmail

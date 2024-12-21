@@ -1,15 +1,11 @@
 import { useSelector } from "react-redux"
 import { useAtom } from "jotai"
 import { proton } from "@/features/Body/atoms"
+import { useAppSelector } from "@/app/hooks"
 
-interface RootState{
-    counter:{
-        value:number
-    }
-}
 export default function ReduxRef() {
     const [neutron] = useAtom(proton)
-    const count = useSelector((state:RootState)=>state.counter.value)
+    const count = useAppSelector(state=>state.counter.value)
     return (
         <>
             <div>Hello worlds</div>

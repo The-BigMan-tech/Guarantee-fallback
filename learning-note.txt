@@ -1,5 +1,12 @@
 !Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
 
+*The term reducer as used in redux comes from the reduce function in functional programming.
+^Learn more about functional programming
+
+*The difference between context and store is that in context,the components that wants to use its state must be inside the context but for global state management,the store is separate from the component allowing you to access its state regardless of where your components are located
+
+*Local state,props,prop drilling for shared state,context api,useReducer for reducers
+
 *Context api is a low level version of global state management in react,svelete and other frontend frameworks.For svelete,the modern way is stores
 
 *Use Service.msc to start mongo db locally and you can change the port by using mongod.cf in the bin of the mongosb folder on the disk and for the atlas,go to monog db compass then paste your connection tsring and change the password to the right one and then scroll down to advanced options and in there,you will see an authroization heading.scroll down and also change the password field there.Copy the connection string and use it in mongoose to fix that authentication error
