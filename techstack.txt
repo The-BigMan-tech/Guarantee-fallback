@@ -1,7 +1,7 @@
-?tailwind css,react,redux,chart js,axios,nest js,socket io,pouch db,couch db,netlify,ngrok
+?tailwind css,react,redux,chart js,axios,nest js,socket io,pouch db,netlify,ngrok and,graph ql
 ?session storage for multi step login form,cookies for preferences
 ?pipes and DTOs on the server to validate requests
-?Formik to validate forms on the client side
+
 
 ?Jwt tokens--auto pass authentication information.goes to the authorization header
 ?bcrypt-password hashing

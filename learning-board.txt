@@ -77,7 +77,7 @@ jest
 HTML and Emmet snippets
 minor:Git and Github
 CSS
-Web design principles
+minor:Web design principles
 Tailwind
 SASS
 Vanilla Javascript

@@ -4,8 +4,8 @@ import { useAtom } from 'jotai'
 import { proton } from './atoms'
 
 export default function Body() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_neutron,setNeutron] = useAtom(proton)
-    console.log(_neutron);
     const count:number = useAppSelector(state=>state.counter.value)
     const dispatch = useAppDispatch()
     return (
