@@ -1,6 +1,19 @@
 !CHECK YOUR EMAIL EVERY DAY.I submitted a form to idently io for a free python course give away
 !Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
 
+*The first argument to the async thunk is the action payload.The second argument to the async thunk is an object that provides utilities like dispatch and get state and for normal thunks,they also only accept one payload
+
+*reducers decides how the state changes in response to actions meaning that they are the only ones allowed to modify state
+
+*The action string for async thunks is just a unique identifier for it only used by rtk for generating the action objects for the async states
+
+*Extra reducers is for adding a function that can create reducer cases.The builder object in this function is used to add cases for creating direct mappings of action strings to arrow functions which are anonymous reducers.In an async thunk,createAsyncThunk automatically creates the pending,fulfilled and rejected properties which holds the action objects for those life cycle parts.These gets dispatched depending on the state of the promise.
+
+*Async thunks are action creators that returns promises.They are used for dispatching actions based on the life cycle of promises.The action string used in async thunks is a unique identifier that rtk will use for the pending,fullfileed and failed life cycle states.
+
+*A thunk can dispatch multiple actions
+
+*null and ? like operations:null coalescing,logical or operator,optional chaining,ternary operator
 ?state retention,persistence,management,binding,mutation
 
 *local state management
