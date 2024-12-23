@@ -2,7 +2,6 @@ import Chart from 'chart.js/auto'
 import { Colors } from 'chart.js/auto';
 Chart.register(Colors)
 
-
 const data = [
         { year: 2010, count: 10 },
         { year: 2011, count: 20 },

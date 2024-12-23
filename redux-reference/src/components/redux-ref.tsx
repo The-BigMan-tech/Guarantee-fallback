@@ -7,7 +7,7 @@ export default function ReduxRef() {
         <>
             <div>Hello worlds</div>
             <div>{count}</div>
-            <label className="daisy-swap daisy-swap-rotate text-9xl">
+            <label className="daisy-swap daisy-swap-flip text-9xl">
                 <input type="checkbox" />
                 <div className="daisy-swap-on">😃</div>
                 <div className="daisy-swap-off">😞</div>

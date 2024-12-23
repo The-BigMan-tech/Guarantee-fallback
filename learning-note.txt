@@ -1,3 +1,37 @@
+!CHECK YOUR EMAIL EVERY DAY.I submitted a form to idently io for a free python course give away
+!Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
+
+?state retention,persistence,management,binding,mutation
+
+*local state management
+*Parent state management
+*Context
+*Atomic state management
+*Redux 
+
+*Url state management is for state persistence across page reloads
+
+*Each of these paradigms have an sigmoid scalability-complexity curve.I think of a scalability as an imaginary function that takes into account of factors liek ease of use,capability,practical uses,etc
+
+*local state management has a scalability curve of 100 till the complexity demands a global scope for state
+
+*Atomic state management is where shared state is split into atoms which are independent state units that can be read and written to directly by components.They are decentralized meaning that they do not need to be provided by a parent to be used in the app
+
+*The best part of context is that it prevents prop drilling.Contexts and redux store are provided almost the same way except that you can have many contexts but only one redux store.In redux,the store is separate from the component tree,meaning that components can subscribe to the particular state that they need from the store and they can be unaware of the state tree but for context,the components must be aware of the context data they are consuming and change in context data will lead to re-renders thus,impacting performance.For contexts,you are forced to create multiple contexts leaving some state management to the individual parents that provide it because if we use a single object as the context that holds all the global state for our app,change in one state will cause a full re-render of the others since they are in the same object that has changed leading to more performance issues
+
+*In contexts,global data has to be splitted into many contexts and provided by separate parent components but for redux,the store can be provided to the root component.The higher the complexity of sharing context,the more the context has to be lifted up which will cause performance issues and tight coupling of components
+
+*RTK query,RTK listeners,async thunks
+
+context api is used with useReducers
+?Teardown and lay of the lands
+
+*There are creators and the obejcet itself.A creator returns that object.So an action creator can return a plain action object or a thunk which is a function that allows us to perform side effect operations and computations.
+
+*Middlewares can be chained
+
+*A thunk is a term for a function that delays a computation till its needed and in the case of redux,it can delay the dispatch of an action based on computations.A thunk can allow you to accept arguments besides plain action objects like promises which will then later on dispatch real action object and create side effects
+
 *Redux thunks are used for writing async logic.Redux Thunks are action creators that returns a function instead of a plain action object called a thunk.It is a middleware that sits in between a dispatched action and a reducer
 
 *Reducers have the rule of being pure functions to always create predicatble behaviour
@@ -23,7 +57,6 @@
 
 *The context paradigm,the global state paradigm
 
-!Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
 
 *before state management,state was lifted up to parents and passed down as props to children and then use context api to prevent prop drilling
 

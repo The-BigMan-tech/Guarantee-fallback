@@ -39,6 +39,7 @@ Cypress js
 
 todo:Extra learning
 ----------------------
+Apex charts
 Svg
 Seo
 Yaml
@@ -64,9 +65,9 @@ Python fast api
 *CURRENT LEARNING SESSION
 ?------------------------
 Redux
+Pouch DB
 Dasiy UI
 pinno
-Pouch db
 Axios
 tRPC
 Graphql server and Dgraph DB
@@ -117,8 +118,8 @@ Insomnia
 API dog
 
 
-*Just acknowledging but may not use
-?----------------------------------
+*Just acknowledging but may never use
+?-------------------------------------
 serverless computing
 post css
 purge css
@@ -129,3 +130,4 @@ fastify
 Deno
 xml
 Hugo
+Htmx
