@@ -1,6 +1,20 @@
 !CHECK YOUR EMAIL EVERY DAY.I submitted a form to idently io for a free python course give away
 !Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
 
+*understanding mutation and query endpoints
+*Types for endpoints and the api slice
+*conditional and loop rendering
+
+?vscode uses monaco code editor as its text engine
+
+*so for object destructuring, i have to use the exact names of the properties i want to unpack and if i want to rename it,i have to use colons but for array destructuring,i can unpack it with any variable name i want since it uses indexing and not properties for unpacking.For array destructuring,to selectively unpack what you need,you use empty spaces separated by commas but for objects,we use the direct property name
+
+*endpoints are operations to a server.It can be a query for reading data or a mutation to update data on the server.Endpoint by default use get unless explicitly overriden.For every endpoint defined in a slice,rtk query will generate a hook for that
+
+*In rtk query,it is one api slice per application.An rtk query is consisted of the base query and enpoints.The base query is a function that knows how to communicate with the server.We use the fetchbasequery which is like a superset of the fetch function.We pass in the base url there which is the main url of our server
+
+?New anime power:Conflict when the character can create conflicts or paradooxes and controls  how the universe resolves those conflicts
+
 *The first argument to the async thunk is the action payload.The second argument to the async thunk is an object that provides utilities like dispatch and get state and for normal thunks,they also only accept one payload
 
 *reducers decides how the state changes in response to actions meaning that they are the only ones allowed to modify state
