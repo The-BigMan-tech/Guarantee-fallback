@@ -1,9 +1,15 @@
 !CHECK YOUR EMAIL EVERY DAY.I submitted a form to idently io for a free python course give away
 !Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
 
+?Learn the difference between pnpm and npm
+?Jsx control statements babel plugin for react
+
 *understanding mutation and query endpoints
 *Types for endpoints and the api slice
 *conditional and loop rendering
+
+*Directives in frontend components are attributes with a semantic meaning
+*every programming language has a package manager
 
 ?vscode uses monaco code editor as its text engine
 
@@ -13,7 +19,9 @@
 
 *In rtk query,it is one api slice per application.An rtk query is consisted of the base query and enpoints.The base query is a function that knows how to communicate with the server.We use the fetchbasequery which is like a superset of the fetch function.We pass in the base url there which is the main url of our server
 
-?New anime power:Conflict when the character can create conflicts or paradooxes and controls  how the universe resolves those conflicts
+?New anime power:A character that can reproduce favourable conditions which may be helpful
+
+?New anime power:Characters can create paradoxes that can protect them because anybody that forces their way through a paradox will tear the universe.
 
 *The first argument to the async thunk is the action payload.The second argument to the async thunk is an object that provides utilities like dispatch and get state and for normal thunks,they also only accept one payload
 
