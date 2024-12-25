@@ -3,6 +3,7 @@
 ?Learn about package managers in detail:npm,pnpm and also npx
 ?Jsx control statements babel plugin for react
 
+*Eslint is the official linter for javascript
 *meta frameworks brings a mini server to your frontend
 *Directives in frontend components are attributes with a semantic meaning
 
