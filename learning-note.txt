@@ -1,15 +1,10 @@
 !CHECK YOUR EMAIL EVERY DAY.I submitted a form to idently io for a free python course give away
 !Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
-
-?Learn the difference between pnpm and npm
+?Learn about package managers in detail:npm,pnpm and also npx
 ?Jsx control statements babel plugin for react
 
-*understanding mutation and query endpoints
-*Types for endpoints and the api slice
-*conditional and loop rendering
-
+*meta frameworks brings a mini server to your frontend
 *Directives in frontend components are attributes with a semantic meaning
-*every programming language has a package manager
 
 ?vscode uses monaco code editor as its text engine
 

@@ -9,9 +9,12 @@ Kubernetes
 
 todo:Frontend related
 ---------------------
-Jotai
 next js
+Jotai
 Astro js
+Vue js--I love their directives
+nuxt js
+Sveltekit
 Tans stack query,router,ranger
 react spring,react scroll parallax,react pdf,Formik
 Mitosis js
@@ -64,7 +67,7 @@ Python fast api
 
 *CURRENT LEARNING SESSION
 ?------------------------
-Redux
+Redux and RTK query
 Pouch DB
 Dasiy UI
 pinno
@@ -110,7 +113,6 @@ Chart js
 
 
 
-
 *API CLIENT TOOLS
 ?-----------------
 Postman
@@ -123,7 +125,6 @@ API dog
 serverless computing
 post css
 purge css
-vue and nuxt js
 solid js
 angular
 fastify
@@ -131,3 +132,4 @@ Deno
 xml
 Hugo
 Htmx
+Jquery-simplifies dom manipulation
