@@ -1,5 +1,13 @@
 *LEARNING BANK
 ?--------------
+todo:Backend related
+---------------------
+tRPC
+Graphql server and Dgraph DB
+socket io
+security with jwt token,bcrypt,auth0,auth js,otpAuth
+jest
+
 todo:Production related
 ----------------------
 Nginx,Ngrok
@@ -9,10 +17,8 @@ Kubernetes
 
 todo:Frontend related
 ---------------------
-next js
-Jotai
-Astro js
 Vue js--I love their directives
+Astro js
 nuxt js
 Sveltekit
 Tans stack query,router,ranger
@@ -68,16 +74,13 @@ Python fast api
 *CURRENT LEARNING SESSION
 ?------------------------
 Redux and RTK query
+pinno
 Immer library
 Pouch DB
-pinno
 Dasiy UI
 Axios
-tRPC
-Graphql server and Dgraph DB
-socket io
-security with jwt token,bcrypt,auth0,auth js,otpAuth
-jest
+next js
+Jotai
 
 
 

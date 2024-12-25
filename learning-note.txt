@@ -2,7 +2,8 @@
 !Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
 ?Learn about package managers in detail:npm,pnpm and also npx
 ?Learn how version control works in detail
-?Jsx control statements babel plugin for react
+
+?Automatic refresh in rtk query
 
 *Svgs are images as code and lottie files are animations as code.
 
