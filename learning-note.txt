@@ -3,6 +3,8 @@
 ?Learn about package managers in detail:npm,pnpm and also npx
 ?Jsx control statements babel plugin for react
 
+*Svgs are images as code and lottie files are animations as code.
+
 *Declarative ui syntax is compiled to dom manipulation
 
 *loop rendering in react requires a unique identifier like using the uuid package

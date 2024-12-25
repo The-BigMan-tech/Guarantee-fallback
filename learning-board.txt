@@ -123,6 +123,7 @@ API dog
 
 *Just acknowledging but may never use
 ?-------------------------------------
+^There are lottie players on npm like react-lottie-player and dotlottie-react but they require react 18.waiting for react 19 update.
 serverless computing
 post css
 purge css
