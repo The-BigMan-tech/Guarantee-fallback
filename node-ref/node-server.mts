@@ -23,7 +23,7 @@ let port:number = 4000
 let hostname:string = 'localhost'
 
 const server = http.createServer((request,response)=>{
-    console.log("REQUEST UR",request.url)
+    console.log("REQUEST URL",request.url)
     console.log("REQUEST METHOD",request.method);
 
     response.setHeader('Access-Control-Allow-Origin', '*'); //*Allow CORS
