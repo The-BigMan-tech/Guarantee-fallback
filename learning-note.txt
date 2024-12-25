@@ -3,6 +3,21 @@
 ?Learn about package managers in detail:npm,pnpm and also npx
 ?Jsx control statements babel plugin for react
 
+*Declarative ui syntax is compiled to dom manipulation
+
+*loop rendering in react requires a unique identifier like using the uuid package
+
+*For dynamic rendering i.e loop and conditional,react uses template syntax,vue uses directives and sveltes uses control blocks
+
+
+*Scalability of a software solution refers to its ability to handle an increasing amount of work or itscapacity to accommodate growth in various factors—such as maintainability, performance, robustness, andsafety—without requiring a complete redesign or significant changes to the architecture.
+
+*Complexity in software refers to the increasing demand for a more ideal or sophisticated solution as the software grows. This complexity arises from the need to manage more features, integrate with other systems, and accommodate changing requirements.
+
+
+*Primitives are immutable types meaning that they are explicitly copied on each modification while objects and arrays are directly mutable since they are modified using their references meaning that performing operations on primitives in functions will always be free of side effects unlike arrays and objects.To prevent side effects or direct mutation,we copy the array or the object.In js,we use the spread operator.*Spreading is an operation that allows you to selectively modify arrays and objects and keeping the rest of it unchanged.React requires that state updates should be immutable and thats why use the spread operator for objects and arrays.Arrays and objects are passed by reference because they can consume lots of memory when they are deeply nested but immutability brings safety and predicatbility.
+
+
 *Eslint is the official linter for javascript
 *meta frameworks brings a mini server to your frontend
 *Directives in frontend components are attributes with a semantic meaning

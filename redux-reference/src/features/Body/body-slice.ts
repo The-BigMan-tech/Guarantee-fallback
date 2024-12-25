@@ -3,6 +3,7 @@ import { RootState } from '@/app/store'
 import { AppThunk } from '@/app/store'
 import { createAsyncThunk } from '@reduxjs/toolkit'
 
+
 export interface CounterSliceState {
     value:number,
     loading:boolean
@@ -20,6 +21,7 @@ export const counterSlice = createSlice({
     initialState,
     reducers: {
         increment(state,action:PayloadAction<number>):void {
+            console.log('reached Incremented function');
             state.value += action.payload || 1
         }
     },
@@ -47,7 +49,7 @@ export const selectCountFrom = (store:RootState):number => store.counter.value;
 export const selectLoadingFrom = (store:RootState):boolean => store.counter.loading
 
 export function incrementIfOdd(amount:number): AppThunk {
-    return (dispatch, getState) => {
+    return (dispatch,getState) => {
         const currentCount:number = selectCountFrom(getState())
         if (currentCount == 12) {
             console.log('TRUE:',currentCount);

@@ -1,5 +1,5 @@
 import {increment,incrementIfOdd,fetchItems} from './body-slice'
-import {state,useAppDispatch} from "@/app/hooks"
+import {selector,useAppDispatch} from "@/app/hooks"
 import { selectCountFrom,selectLoadingFrom} from './body-slice'
 import { useEffect } from 'react'
 import {useGetItemsQuery} from '../api/api-slice'
@@ -7,8 +7,8 @@ import {useGetItemsQuery} from '../api/api-slice'
 
 export default function Body() {
     const dispatch = useAppDispatch()
-    const count:number = state(store=>selectCountFrom(store))
-    const loading:boolean = state(store=>selectLoadingFrom(store));
+    const count:number = selector((store)=>selectCountFrom(store))
+    const loading:boolean = selector((store)=>selectLoadingFrom(store));
     const { data: boards, error, isLoading } = useGetItemsQuery();
 
     useEffect(()=>{
