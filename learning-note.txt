@@ -2,9 +2,11 @@
 !Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
 ?Learn about package managers in detail:npm,pnpm and also npx
 ?Learn how version control works in detail
-
+?SWC compiler,tsc compiler,Babel compiler,llvm
 ?Automatic refresh in rtk query
 
+*css in js,preprocessor
+*loops are procedural while recursion is functional
 *Svgs are images as code and lottie files are animations as code.
 
 *Declarative ui syntax is compiled to dom manipulation
@@ -35,7 +37,8 @@
 *In rtk query,it is one api slice per application.An rtk query is consisted of the base query and enpoints.The base query is a function that knows how to communicate with the server.We use the fetchbasequery which is like a superset of the fetch function.We pass in the base url there which is the main url of our server
 
 ?New anime power:A character that can reproduce favourable conditions which may be helpful
-
+?New anime power:version control like git to revert to any state to recover from damage
+?New anime power:pipes:The only use of this is to temporary create flexible pipes in his body that can act as blood vessels and control the pressure of those pipes to pulse blood without a heart
 ?New anime power:Characters can create paradoxes that can protect them because anybody that forces their way through a paradox will tear the universe.
 
 *The first argument to the async thunk is the action payload.The second argument to the async thunk is an object that provides utilities like dispatch and get state and for normal thunks,they also only accept one payload
@@ -133,7 +136,6 @@ context api is used with useReducers
 
 *Action,reducer and state
 
-
 *So for pure hosting,focus on both hardware and software.for Iaas,focus on everything software.for Paas,only focus on coding and forget about setup and for Baas,focus on frontend more as the provider handles common backend chores
 
 *Iaas-infrastructure service
@@ -158,7 +160,7 @@ context api is used with useReducers
 
 *Hmr in web bundlers works with the file watcher by not requiring a full page reload per change.It does this by only updating the modules that were edited leading to performance boost and reservation of state
 
-*File watchers--compile,refresh the browser,rerun a script
+*Nodemon and tsc compiler are file watchers.File watchers--compiler,browser refresher,rerun a script.
 
 *so bundlers package all your frontend code and its dependencies into a single file with extra features like code optimization,real time refreshes and tree shaking.
 

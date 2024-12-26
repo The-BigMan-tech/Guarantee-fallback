@@ -74,7 +74,9 @@ Python fast api
 *CURRENT LEARNING SESSION
 ?------------------------
 Redux and RTK query
-pinno
+Hook state
+react lottie player
+pino js
 Immer library
 Pouch DB
 Dasiy UI
@@ -103,6 +105,7 @@ Story book
 Typescript
 Jsdoc
 node js
+minor:nodemon
 fetch api
 express js
 pug 
@@ -126,7 +129,6 @@ API dog
 
 *Just acknowledging but may never use
 ?-------------------------------------
-^There are lottie players on npm like react-lottie-player and dotlottie-react but they require react 18.waiting for react 19 update.
 serverless computing
 post css
 purge css
