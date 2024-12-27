@@ -3,7 +3,15 @@
 ?Learn about package managers in detail:npm,pnpm and also npx
 ?Learn how version control works in detail
 ?SWC compiler,tsc compiler,Babel compiler,llvm
+
 ?Automatic refresh in rtk query
+?I should use pinno in redux middleware for logging app interactions
+?Deno has native support for ts and prevents npm module vulnerabilities by allowing code to access what you allow and also,it is faster than node js.With deno,there is no need to setup typescript with the tsc or swc compiler but because type checking in deno costs a lot of time,ts files dont get type checked before
+
+*learn about ts utility types
+*Path parameters starts with : while query parameters starts with ?
+*tailwind allows you to know what styles applies to a tag at first glance
+*Sass-css,Ts-Js,Mojo-python,C++-C
 
 *css in js,preprocessor
 *loops are procedural while recursion is functional

@@ -7,6 +7,7 @@ Graphql server and Dgraph DB
 socket io
 security with jwt token,bcrypt,auth0,auth js,otpAuth
 jest
+Deno
 
 todo:Production related
 ----------------------
@@ -74,10 +75,9 @@ Python fast api
 *CURRENT LEARNING SESSION
 ?------------------------
 Redux and RTK query
-Hook state
 react lottie player
-pino js
 Immer library
+pino js
 Pouch DB
 Dasiy UI
 Axios
@@ -129,13 +129,13 @@ API dog
 
 *Just acknowledging but may never use
 ?-------------------------------------
+Hookstate--I woud have loved to use it but is incompatible with the immer library
 serverless computing
 post css
 purge css
 solid js
 angular
 fastify
-Deno
 xml
 Hugo
 Htmx
