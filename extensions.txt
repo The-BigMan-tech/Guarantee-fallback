@@ -83,8 +83,8 @@ Custom Css and Js loader
 Svelte for Vs Code
 Svelte 3 snippets
 Svelte Intellisense
-Tailwind fold
 MongoDB for vscode
 Terminal keeper
 Codeium
-Inline fold----for tailwind classes
+Inline fold
+Even better toml

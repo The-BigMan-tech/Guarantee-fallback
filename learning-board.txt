@@ -77,11 +77,11 @@ Python fast api
 Redux and RTK query
 react lottie player
 Immer library
+Axios
 pino js
+next js
 Pouch DB
 Dasiy UI
-Axios
-next js
 Jotai
 
 
@@ -105,19 +105,20 @@ Story book
 Typescript
 Jsdoc
 node js
-minor:nodemon
 fetch api
 express js
 pug 
 minor: Postman
 mongo db
-minor: mongo db driver
-minor: mongoose
 Nest js
 minor:Zod
 minor:intersection observer api
 Chart js
 
+*npm packages
+Chalk
+nodemon
+mongoose and mongodb driver
 
 
 *API CLIENT TOOLS

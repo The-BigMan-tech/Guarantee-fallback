@@ -1,12 +1,36 @@
-!CHECK YOUR EMAIL EVERY DAY.I submitted a form to idently io for a free python course give away
 !Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
 ?Learn about package managers in detail:npm,pnpm and also npx
 ?Learn how version control works in detail
 ?SWC compiler,tsc compiler,Babel compiler,llvm
+?Understand the inner workings of electron,tauri and node js and the various browser components that makes them work
+?Time series data and time scale db
+
 
 ?Automatic refresh in rtk query
 ?I should use pinno in redux middleware for logging app interactions
 ?Deno has native support for ts and prevents npm module vulnerabilities by allowing code to access what you allow and also,it is faster than node js.With deno,there is no need to setup typescript with the tsc or swc compiler but because type checking in deno costs a lot of time,ts files dont get type checked before
+
+*Feature based architecture aims to solve the problems from tight coupling of components
+
+*Tauri uses native web views.Native webviews are software components that allows an app to display web content without a browser.It is like a tiny browser
+*NW js packages a node js server and chromium together in a single runtime allowing you to leverage node modules and broswer apis in one place
+*Electron packages chromium to execute your app.
+
+
+*In javascript,using lamba functions is highly common because of its async and functional nature.Javascript has the largest ecosystem of frameworks,packages and libraries
+
+*Databases,compilers and game engines are written in languages like C++ 
+
+*There are package managers and the files you use to define package and dependency data.Js uses package.json.With python,we use toml with poetry.py manager and for js,maven
+
+*You add the api key to the headers which is where we store metadata
+*Scaffolding utility is a more professional way of saying template builder
+
+*Pino allows you to dynamically set the log level at runtime to control the verbosity of logging or reduce log noise
+
+*In a request,you can ship payload through query parameters for get and delete and a request body for put and post.You can also use path parameters for dynamic routing
+
+*Axios can be ran on a node js server
 
 *learn about ts utility types
 *Path parameters starts with : while query parameters starts with ?
@@ -85,7 +109,7 @@
 *RTK query,RTK listeners,async thunks
 
 context api is used with useReducers
-?Teardown and lay of the lands
+?Teardown,lay of the lands,lego fortnite
 
 *There are creators and the obejcet itself.A creator returns that object.So an action creator can return a plain action object or a thunk which is a function that allows us to perform side effect operations and computations.
 
