@@ -1,9 +1,11 @@
 import { useAppDispatch } from "../../hooks"
-import { useState } from "react"
+import { useState,useEffect } from "react"
 import {v4 as uniqueID} from 'uuid'
+import { display } from "./input-slice"
 
 export default function Input() {
     const dispatch = useAppDispatch()
+    const [input,setInput] = useState('')
     const [buttons] = useState([
         {
             id:uniqueID(),
@@ -69,19 +71,31 @@ export default function Input() {
             text:"x"
         }
     ])
-
+    function pressButton(button:string) {
+        if (button === 'DEL') {
+            setInput(input.slice(0,-1))
+            return
+        }
+        setInput(input + button)
+    }
+    function reset() {
+        setInput('')
+    }
+    useEffect(()=>{
+        dispatch(display(input))
+    },[input,dispatch])
     return (
         <>  
             <div className="flex flex-col bg-[#242d44] w-[30%] items-center rounded-xl h-[85%] relative gap-6 pt-10">
                 <div className="text-xl grid grid-rows-4 grid-cols-4 gap-x-3 gap-y-5">
                     {
                         buttons.map(button=>(
-                            <button className={`font-space py-3 px-4 rounded-lg shadow-md font-bold text-2xl ${(button.text==='DEL')?'bg-[#647299] text-white':'text-[#414757] bg-[#eae3db]'}`} key={button.id}>{button.text}</button>
+                            <button onClick={()=>pressButton(button.text)} className={`font-space py-3 px-4 rounded-lg shadow-md font-bold text-2xl ${(button.text==='DEL')?'bg-[#647299] text-white hover:bg-[#384f68]':'text-[#414757] bg-[#eae3db] hover:bg-[#3b4664] hover:text-white'}`} key={button.id}>{button.text}</button>
                         ))
                     }
                 </div>
                 <div className="flex flex-wrap gap-10 items-center">
-                    <button className="font-space font-bold bg-[#647299] text-white text-xl rounded-lg py-3 px-16 shadow-md">RESET</button>
+                    <button onClick={reset} className="font-space font-bold bg-[#647299] text-white text-xl rounded-lg py-3 px-16 shadow-md hover:bg-[#384f68]">RESET</button>
                     <button className="bg-[#d13f30] text-white px-12 text-2xl shadow-md rounded-lg font-bold text-center h-[100%]">=</button>
                 </div>
             </div>
