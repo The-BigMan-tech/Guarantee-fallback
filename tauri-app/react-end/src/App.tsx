@@ -8,7 +8,7 @@ function App() {
 
   return (
     <Provider store={store}>
-        <div>
+        <div className='flex flex-col items-center relative top-[15vh] gap-6 h-[80vh]'>
           <Display/>
           <Input/>
         </div>
