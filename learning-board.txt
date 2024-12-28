@@ -119,6 +119,8 @@ Chart js
 Chalk
 nodemon
 mongoose and mongodb driver
+uuid
+math js
 
 
 *API CLIENT TOOLS

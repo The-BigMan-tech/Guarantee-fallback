@@ -10,6 +10,8 @@
 ?I should use pinno in redux middleware for logging app interactions
 ?Deno has native support for ts and prevents npm module vulnerabilities by allowing code to access what you allow and also,it is faster than node js.With deno,there is no need to setup typescript with the tsc or swc compiler but because type checking in deno costs a lot of time,ts files dont get type checked before
 
+*Function constructor evaluation is safer than pure eval because the string is only evaluated as a return from a function but Math js provides safer and more complicated evaluations for math expressions.
+
 *Feature based architecture aims to solve the problems from tight coupling of components
 
 *Tauri uses native web views.Native webviews are software components that allows an app to display web content without a browser.It is like a tiny browser

@@ -2,6 +2,7 @@ import { useAppDispatch } from "../../hooks"
 import { useState,useEffect } from "react"
 import {v4 as uniqueID} from 'uuid'
 import { display } from "./input-slice"
+import {evaluate} from 'mathjs'
 
 export default function Input() {
     const dispatch = useAppDispatch()
@@ -71,19 +72,25 @@ export default function Input() {
             text:"x"
         }
     ])
-    function pressButton(button:string) {
+    function pressButton(button:string):void {
         if (button === 'DEL') {
             setInput(input.slice(0,-1))
             return
         }
         setInput(input + button)
     }
-    function reset() {
+    function reset():void {
         setInput('')
     }
+    function submitResult() {
+        console.log('RESULT:',evaluate(input));
+        setInput(evaluate(input))
+    }
     useEffect(()=>{
+        console.log('CALCULATION',input);
         dispatch(display(input))
     },[input,dispatch])
+
     return (
         <>  
             <div className="flex flex-col bg-[#242d44] w-[30%] items-center rounded-xl h-[85%] relative gap-6 pt-10">
@@ -96,7 +103,7 @@ export default function Input() {
                 </div>
                 <div className="flex flex-wrap gap-10 items-center">
                     <button onClick={reset} className="font-space font-bold bg-[#647299] text-white text-xl rounded-lg py-3 px-16 shadow-md hover:bg-[#384f68]">RESET</button>
-                    <button className="bg-[#d13f30] text-white px-12 text-2xl shadow-md rounded-lg font-bold text-center h-[100%]">=</button>
+                    <button onClick={submitResult} className="bg-[#d13f30] text-white px-12 text-2xl shadow-md rounded-lg font-bold text-center h-[100%]">=</button>
                 </div>
             </div>
         </>
