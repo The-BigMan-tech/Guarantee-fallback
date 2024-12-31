@@ -4,11 +4,26 @@
 ?SWC compiler,tsc compiler,Babel compiler,llvm
 ?Understand the inner workings of electron,tauri and node js and the various browser components that makes them work
 ?Time series data and time scale db
-
+?There is transcrypt compiler
 
 ?Automatic refresh in rtk query
 ?I should use pinno in redux middleware for logging app interactions
 ?Deno has native support for ts and prevents npm module vulnerabilities by allowing code to access what you allow and also,it is faster than node js.With deno,there is no need to setup typescript with the tsc or swc compiler but because type checking in deno costs a lot of time,ts files dont get type checked before
+
+*The docker run command runs a container from an image
+*There is docker hub which is like github but for docker containers
+
+^Dont forget about mcmodels website for minecraft
+^Lagging background processes of an app can prevent the desktop app from opening
+
+^anime power:you can only touch a shell or decoy of the person.His power hides him from any physical intercations and can only be interacted through a function that returns a decoy of him.Him and the decoy exist in the same space coordinates but only one can be seen at a time.Any attempt to attack him only attacks the decoy or shell and it shatters off when the character garbage collects it revealing the true character.Visually,it will look like how a character dies and respawns in a video game
+
+
+^table tennis,pen spinning,air hockey
+
+*In docker,we install dependencies first before src code so that we dont install our modules on every src code change.It allows for caching
+
+*react favours functional programming
 
 *Function constructor evaluation is safer than pure eval because the string is only evaluated as a return from a function but Math js provides safer and more complicated evaluations for math expressions.
 
