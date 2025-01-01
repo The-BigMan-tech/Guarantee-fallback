@@ -10,9 +10,11 @@
 ?I should use pinno in redux middleware for logging app interactions
 ?Deno has native support for ts and prevents npm module vulnerabilities by allowing code to access what you allow and also,it is faster than node js.With deno,there is no need to setup typescript with the tsc or swc compiler but because type checking in deno costs a lot of time,ts files dont get type checked before
 
+?Vs code log points
 *The docker run command runs a container from an image
 *There is docker hub which is like github but for docker containers
 
+*Distributing the frontend and shipping the backend
 ^Dont forget about mcmodels website for minecraft
 ^Lagging background processes of an app can prevent the desktop app from opening
 
