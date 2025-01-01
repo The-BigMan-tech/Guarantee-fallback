@@ -12,9 +12,8 @@ Deno
 
 todo:Production related
 ----------------------
-Nginx,Ngrok
 Kubernetes
-^Web bundler like parcel,vite,webpack,turbopack,rollup
+Web bundlers like parcel,vite,webpack,turbopack,rollup
 
 todo:Frontend related
 ---------------------
@@ -84,7 +83,7 @@ Redux and RTK query
 Tauri
 Docker
 Nginx 
-Ngrok
+Ngrok--tunneling for previews
 next js
 Pouch DB
 Dasiy UI

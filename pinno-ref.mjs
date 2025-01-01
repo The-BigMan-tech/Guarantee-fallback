@@ -1,6 +1,7 @@
 import pino from 'pino';
 
 // Create a logger with pino-pretty
+const x = 10
 const logger = pino({
     level:'trace',
     transport: {
