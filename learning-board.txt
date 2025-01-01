@@ -13,12 +13,12 @@ Deno
 todo:Production related
 ----------------------
 Nginx,Ngrok
-Docker 
 Kubernetes
 ^Web bundler like parcel,vite,webpack,turbopack,rollup
 
 todo:Frontend related
 ---------------------
+Jotai
 Vue js--I love their directives
 Astro js
 nuxt js
@@ -30,7 +30,6 @@ GSAP
 
 todo:Native app related
 ------------------------
-Tauri
 Electron js
 ionic js
 Nw js
@@ -82,52 +81,63 @@ Rust--for making system level functions for my tauri app
 *CURRENT LEARNING SESSION
 ?------------------------
 Redux and RTK query
-react lottie player
-Immer library
-Axios
-pino js
+Tauri
+Docker
 next js
 Pouch DB
 Dasiy UI
-Jotai
 
 
 
 *MY CURRENT TECH STACK
 ?---------------------
-HTML and Emmet snippets
-minor:Git and Github
+HTML
 CSS
-minor:Web design principles
-Tailwind
+Tailwind css
 SASS
 Vanilla Javascript
-minor:Rendering patterns
 React
-minor:styled components and tailwind styled components
-minor:Deployment platforms--netlify,vercel,render and github pages
+Styled components && tailwind styled components
 Svelte
-minor:Json
 Story book
-Typescript
-Jsdoc
+Typescript and JsDoc
 node js
-fetch api
+fetch api and Axios
 express js
 pug 
-minor: Postman
 mongo db
 Nest js
-minor:Zod
-minor:intersection observer api
 Chart js
 
-*npm packages
-Chalk
+*Minor
+!-------
+*Tools
+Emmet snippets
+Git and github
+Postman
+Deployment platforms--netlify,vercel,render and github pages
+
+*Bonus
+Web design principles
+Rendering patterns
+
+*Major npm packages
+mongoose
+mongo db driver
 nodemon
-mongoose and mongodb driver
+Immer library
+Zod
+
+*Utility npm packages
 uuid
+Chalk
 math js
+pino
+reat lottie player
+
+*other minors
+Json
+intersection observer api
 
 
 *API CLIENT TOOLS
