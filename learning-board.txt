@@ -82,7 +82,7 @@ Rust--for making system level functions for my tauri app
 Redux and RTK query
 Tauri
 Docker
-Nginx 
+Nginx--reverse proxy
 Ngrok--tunneling for previews
 next js
 Pouch DB

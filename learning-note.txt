@@ -11,6 +11,13 @@
 ?Deno has native support for ts and prevents npm module vulnerabilities by allowing code to access what you allow and also,it is faster than node js.With deno,there is no need to setup typescript with the tsc or swc compiler but because type checking in deno costs a lot of time,ts files dont get type checked before
 
 ?Vs code log points
+
+^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
+
+*the difference between regex and a glob pattern is that regex for powerful string matching and glob patterns are for file paths
+
+*Nginx has master and worker processes.The master process manages worker processe whil worker processes serves a request.Nginx consists of modules which are controlled by directives specified in the configuration file.There are simple and block directives
+
 *The docker run command runs a container from an image
 *There is docker hub which is like github but for docker containers
 
