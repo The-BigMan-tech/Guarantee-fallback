@@ -79,9 +79,6 @@ Rust--for making system level functions for my tauri app
 
 *CURRENT LEARNING SESSION
 ?------------------------
-Redux and RTK query
-Tauri
-Docker
 Nginx--reverse proxy
 Ngrok--tunneling for previews
 next js
@@ -102,27 +99,34 @@ Styled components && tailwind styled components
 Svelte
 Story book
 Typescript and JsDoc
-node js
+node js native
 fetch api and Axios
 express js
 pug 
 mongo db
 Nest js
 Chart js
+Redux and RTK query
+Tauri--basics
+Docker
 
-*Minor
-!-------
+
+*MINOR
+-------
 *Tools
+^------
 Emmet snippets
 Git and github
 Postman
 Deployment platforms--netlify,vercel,render and github pages
 
 *Bonus
+^------
 Web design principles
 Rendering patterns
 
 *Major npm packages
+^------------------
 mongoose
 mongo db driver
 nodemon
@@ -130,6 +134,7 @@ Immer library
 Zod
 
 *Utility npm packages
+^--------------------
 uuid
 Chalk
 math js
@@ -137,6 +142,7 @@ pino
 reat lottie player
 
 *other minors
+^-------------
 Json
 intersection observer api
 

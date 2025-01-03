@@ -12,7 +12,18 @@
 
 ?Vs code log points
 
+^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
+
+*GET--fetch data
+*POST---upload data
+*PUT--update a resource entirely
+*PATCH---partially updata a resource
+*DELETE--delete a resource
+
+*for get and delete,we use path parameters and query parameters for their requests
+*while post,put and patch use a request body for payload
+
 
 *the difference between regex and a glob pattern is that regex for powerful string matching and glob patterns are for file paths
 
