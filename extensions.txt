@@ -88,3 +88,8 @@ Terminal keeper
 Codeium
 Inline fold
 Even better toml
+rust analyzer
+NGINX config language support
+Docker
+Wallaby
+JSON crack
