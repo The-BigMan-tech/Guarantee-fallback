@@ -15,7 +15,7 @@
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
 
-
+*Boids algorithm of bird flocks
 *TESTS HELPS TO CATCH LOGIC ERRORS EARLY IN DEVELOPMENT AND PROVIDES REFACTORING SAFETY
 
 *Unit tests is for testing components in isolation by asserting expected outputs against its inputs

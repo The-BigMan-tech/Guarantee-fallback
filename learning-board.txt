@@ -67,13 +67,14 @@ SendGrid
 
 todo:Cloud
 ---------------
+Firebase,Supabase
 Azure,Google cloud,Aws
 Terraform
 
 todo:New programming language
 -----------------------------
 C#---for making games with unity
-Python--fast api,data science and machine learning stuff
+Python,PyPy,Cython,Mojo--fast api,data science and machine learning stuff
 Rust--for making system level functions for my tauri app
 
 
