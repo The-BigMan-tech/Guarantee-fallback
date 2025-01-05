@@ -4,7 +4,7 @@ import {Injectable,CanActivate, ExecutionContext} from '@nestjs/common';
 /**
  * *after authentication,you can add custom properties to store authenticated user data.It can be done by the middleware or the guard
  * *You can use jwt,session or http headers authentication
- * *You can use the @request decorator to access the requestuser afterward
+ * *You can use the @request decorator to access the request user afterward
  * *I can inject models/services into guards,pipes,etc in the constructor method
 */
 interface userData {

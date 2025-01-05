@@ -77,6 +77,10 @@ export default function Input() {
             setInput(input.slice(0,-1))
             return
         }
+        if (button === 'x') {
+            setInput(input + '*')
+            return
+        }
         setInput(input + button)
     }
     function reset():void {

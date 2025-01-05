@@ -82,7 +82,7 @@ Rust--for making system level functions for my tauri app
 ?------------------------
 Jest--unit and mock tests
 Supertest--api integration tests
-Fast Check
+Fast Check--property based test
 Stryker--mutation tests
 Cypress--E2E and component testing
 next js

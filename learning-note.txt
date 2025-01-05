@@ -15,6 +15,29 @@
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
 
+
+*TESTS HELPS TO CATCH LOGIC ERRORS EARLY IN DEVELOPMENT AND PROVIDES REFACTORING SAFETY
+
+*Unit tests is for testing components in isolation by asserting expected outputs against its inputs
+*Property tests tests for rules and properties that a function must always hold or adhere to across a wide range of inputs.It is good for testing for edge cases that unit tests might miss
+*Integration tests checks if the various app components function together as a whole
+*Mutation testing helps to ensure the quality of your tests.They can catch errors caused by typos
+
+
+*You can pass an option object to the arbitraries to control the properties of the values being passed
+
+*The shrinker from fast check should be applied to all stack traces to make errors easier to read
+
+*the aim of property based testing is to find bugs easily,not to generate random data
+*fast checks makes bugs reproducible by using the same seed which will always return the same values
+
+*A property is made up of an arbitrary which is a function that determines what types of values to generate and a predicate which is a function that takes each of the generated values as inputs to another function to test and returning a boolean value
+
+*Runners are functions that computes a property multiple times and assert if its true.If its false,it returns the smallest number of inputs that lead to the error and not juts the first one.This is known as shrinking
+
+*property based testing is for declaring statements that must always hold true regardless of the input
+
+
 *for wallaby to detect my e2e tests,change their file config from e2e-spec to e2e.spec.ts in the regex pattern in the jest config file
 
 *I should use before all for states that needs to be shared across my tests that wont change across tests and before each for when it changes across tests for consistent states
