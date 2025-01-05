@@ -15,6 +15,26 @@
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
 
+*for wallaby to detect my e2e tests,change their file config from e2e-spec to e2e.spec.ts in the regex pattern in the jest config file
+
+*I should use before all for states that needs to be shared across my tests that wont change across tests and before each for when it changes across tests for consistent states
+
+*Jest provides high level matchers for the things in the mock property
+
+*Jest.spyon is used for flexibility of mock values across different tests
+*jest.fn() creates a new mock while jest.mock() creates a mock from a module and jest.spyon
+
+*mockReturnValue,mockResolvedValue,mockImplementation
+
+*A test should have one focus which is the function or unit being tested and thus,having a mock with its own implementatio will lead to confusion about what is being tested and increase the complexities of a test.Unit testing should completely isolate the code being tested to ensure reliability and consistency.If a function's behaviour is critical to a test,its implementation should be kept straightforward.If logic is required,a mock should be created per scenario
+
+*Calls-is an array of all the calls on that mock function.Each call is an array of the parameters passed to the function
+*Results is an array of all the results from the mock function.Each result is an object specifying the type and value property where the type is whether it was a return or a thrown error and the value is the value returned by the mock
+
+*the mock property--calls,results
+*mock property holds methods about the information about the mock function.Other properties are for defining its return and also its implementation
+
+
 *GET--fetch data
 *POST---upload data
 *PUT--update a resource entirely
