@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type":"module",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,6 +11,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "console-table-printer": "^2.12.1",
     "postgres": "^3.4.5"
+  },
+  "dependencies": {
+    "json-2-csv": "^5.5.7",
+    "table": "^6.9.0"
   }
 }
