@@ -18,7 +18,7 @@
 
 *npx is for running executable node packages
 
-*To install cypress,create a project with vite and choose vanilla ts with the swc and then,install cypress there.
+*To install cypress,create a project with vite and choose vanilla ts with the swc and then,install cypress there and run it.For the types,add cypress and node to the types array and use a glob pattern in the includes array to include all ts files
 
 *Boids algorithm of bird flocks
 *TESTS HELPS TO CATCH LOGIC ERRORS EARLY IN DEVELOPMENT AND PROVIDES REFACTORING SAFETY
