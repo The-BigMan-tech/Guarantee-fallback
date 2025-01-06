@@ -91,6 +91,9 @@ Even better toml
 rust analyzer
 NGINX config language support
 Docker
+WSL
 Wallaby
 JSON crack
 Database client jdbc
+PostgreSQL
+Csv to table
