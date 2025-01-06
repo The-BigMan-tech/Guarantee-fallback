@@ -39,7 +39,6 @@ todo:DB related
 ----------------
 Redis DB
 My sql 
-Prisma
 
 todo:Testing related
 -------------------
@@ -87,6 +86,8 @@ Supertest--api integration tests
 Fast Check--property based test
 Stryker--mutation tests
 Cypress--E2E and component testing
+Postgre sql
+Prisma js
 next js
 Pouch DB
 Dasiy UI

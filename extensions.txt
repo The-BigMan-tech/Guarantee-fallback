@@ -93,3 +93,4 @@ NGINX config language support
 Docker
 Wallaby
 JSON crack
+Database client jdbc

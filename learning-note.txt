@@ -16,6 +16,33 @@
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
 
+*In clis,command flags are for extra options
+
+*There is --save and --save-dev.They both install the package locally but save dev saves it as a dev dependency over a production dependency
+
+*npx pnpm init must come first before installing any third party packages
+
+*Environments
+--------------
+*Browsers--html and css
+*Game engines
+*Database engines
+*Containerization engines
+*Interpreter
+*Compilers and transpilers
+*Terminal--for running clis
+
+
+*namespaces provides naming safety
+*Curly braces and semicolons are features of a statically typed language
+
+
+*Fields are default to null
+*Database,schema/namespaces,queries
+*Queries must be terminated by semicolons
+*Schemas are namespaces to tables.They are used for preventing naming conflicts and managing priviledges.They are analogous to mongo db cluster
+*Syntax of sql queries:Verb,Noun,identifier,table structure
+
 *queries commands are commands that requests elements from the DOM,action commands for interacting with the DOM and they must be chained to query commands and assertion commands are for defining expectations
 *Cypress:queries,action,expectations
 
