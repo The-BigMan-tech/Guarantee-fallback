@@ -81,6 +81,7 @@ Rust--for making system level functions for my tauri app
 
 *CURRENT LEARNING SESSION
 ?------------------------
+Wallaby.js
 Jest--unit and mock tests
 Supertest--api integration tests
 Fast Check--property based test

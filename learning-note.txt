@@ -16,6 +16,14 @@
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
 
+*queries commands are commands that requests elements from the DOM,action commands for interacting with the DOM and they must be chained to query commands and assertion commands are for defining expectations
+*Cypress:queries,action,expectations
+
+*You cant just write raw sql queries to prevent sql injection.Instead we use ORMS
+
+*Most servers run on the linux OS
+*Vercel and netlify are using aws under the hood
+
 *npx is for running executable node packages
 
 *To install cypress,create a project with vite and choose vanilla ts with the swc and then,install cypress there and run it.For the types,add cypress and node to the types array and use a glob pattern in the includes array to include all ts files
