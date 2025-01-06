@@ -9,11 +9,16 @@
 ?Automatic refresh in rtk query
 ?I should use pinno in redux middleware for logging app interactions
 ?Deno has native support for ts and prevents npm module vulnerabilities by allowing code to access what you allow and also,it is faster than node js.With deno,there is no need to setup typescript with the tsc or swc compiler but because type checking in deno costs a lot of time,ts files dont get type checked before
+?Vite is primarily a web bundler but it is also a scaffolding utility for many kinds of web projects
 
 ?Vs code log points
 
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
+
+*npx is for running executable node packages
+
+*To install cypress,create a project with vite and choose vanilla ts with the swc and then,install cypress there.
 
 *Boids algorithm of bird flocks
 *TESTS HELPS TO CATCH LOGIC ERRORS EARLY IN DEVELOPMENT AND PROVIDES REFACTORING SAFETY

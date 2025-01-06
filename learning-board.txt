@@ -46,11 +46,11 @@ todo:Testing related
 vitest
 Cucumber js
 playwright
-selenium--automated tests
 
 
 todo:Extras
 -----------
+*Making clis with commander js
 D3 js
 Apex charts
 Svg
@@ -166,6 +166,7 @@ serverless computing
 post css
 purge css
 solid js
+Selenium
 angular
 fastify
 xml
