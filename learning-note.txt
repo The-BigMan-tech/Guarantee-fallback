@@ -16,6 +16,8 @@
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
 
+^This is my table printer toolchain for postgres:I used the postgress js package to retrieve a postgres table into an array of objects.I then used the json2csv module to convert it to a csv string and then write it to a file using the fs module.I then used a vscode extension to turn that csv to a beautiful table of my postgres data.
+
 *In clis,command flags are for extra options
 
 *There is --save and --save-dev.They both install the package locally but save dev saves it as a dev dependency over a production dependency

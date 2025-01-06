@@ -16,10 +16,10 @@ const sql = postgres({
     password: 'JehovahmyGod1234$$#', // Your PostgreSQL password
     database: 'school', // The name of your database
 })
-async function fetchData() {
-    const table = await sql`SELECT * FROM students LIMIT 100`;
-    const csv = await json2csv(table);
+async function fetchData(table) {
+    const data = await sql`SELECT * FROM ${sql(table)} LIMIT 100`;
+    const csv = await json2csv(data);
     await fs.writeFile(`${__dirname}/table.csv`, csv,(err)=>{console.log('ERROR',err);})
 }
 
-await fetchData();
+await fetchData('students');
