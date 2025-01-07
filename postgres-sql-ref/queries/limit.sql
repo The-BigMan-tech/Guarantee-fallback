@@ -1,0 +1,1 @@
+SELECT * FROM students LIMIT 3 OFFSET 1

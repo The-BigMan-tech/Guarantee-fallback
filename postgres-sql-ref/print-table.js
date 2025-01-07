@@ -17,7 +17,7 @@ const sql = postgres({
     database: 'school', // The name of your database
 })
 async function fetchData(table) {
-    const data = await sql`SELECT * FROM ${sql(table)} LIMIT 100`;
+    const data = await sql`SELECT * FROM ${sql(table)}`;
     const csv = await json2csv(data);
     await fs.writeFile(`${__dirname}/table.csv`, csv,(err)=>{console.log('ERROR',err);})
 }

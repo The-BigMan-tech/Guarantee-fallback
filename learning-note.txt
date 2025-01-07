@@ -18,6 +18,8 @@
 
 ^This is my table printer toolchain for postgres:I used the postgress js package to retrieve a postgres table into an array of objects.I then used the json2csv module to convert it to a csv string and then write it to a file using the fs module.I then used a vscode extension to turn that csv to a beautiful table of my postgres data.
 
+^Becareful of keybindings as they may conflict with the keys as you type
+
 *The rubiks cube--a rep of tensors
 
 *ericperson1234$$#,Ericperson1234
@@ -25,6 +27,7 @@
 
 *There is --save and --save-dev.They both install the package locally but save dev saves it as a dev dependency over a production dependency
 
+*python introduces the practice of indentation
 *npx pnpm init must come first before installing any third party packages
 
 *Environments
@@ -37,13 +40,26 @@
 *Compilers and transpilers
 *Terminal--for running clis
 
+*To use group by,the syntax is columns to be cumulated,cumulative function.When this syntax is queried,we have to provide the group by syntax because since all the values are the same,sql will have no way to group the data.If any of the column values in the queried columns doesnt have the same value as the rest,the record intersecting that column doesnt get cumulated.
+
+*order is eeuivalent to sort
+*We use the group by clause for cumulating data across many records that share the same value
+*The limit statement is equivalent to projection in mongo db
+
+*Without the as keyword,its a definition but with the as keyowrd is an alias or assignment
+
+*Use single quotes in postgres sql
+*The like clause is a boolean expression and it is for searching for data through a minimal regex pattern where % is zero,one or mor characters and _ represents a character
+
+*Clause--Table,row,value/condition
 *Connection to sql databases are outside of sql statements
 *namespaces provides naming safety
 *Curly braces and semicolons are features of a statically typed language
 
 *The structure is Database--Schema--Query and Table
 
-*The select query is for selecting a column not a row
+*The select query is for selecting a column not a row.The first part of it is the column with all the data in it.The second part is the table to select it from.The third part is the where clause which can take an expression to determine which particular row data to extract.It takes in a boolean expression
+
 *Fields are default to null
 *Database,schema/namespaces,queries
 *Queries must be terminated by semicolons

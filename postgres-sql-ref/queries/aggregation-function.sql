@@ -1,0 +1,1 @@
+SELECT SUM(student_age) AS TOTAL_AGE FROM students;
