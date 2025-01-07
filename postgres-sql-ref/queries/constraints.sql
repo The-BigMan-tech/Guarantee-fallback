@@ -1,5 +1,2 @@
---*The datatypes themselves are constraints
-INSERT INTO public.students 
-    (student_name,student_age)
-    VALUES ('Person',2);
-
+ALTER TABLE students
+    ADD COLUMN unique_id SERIAL PRIMARY KEY;

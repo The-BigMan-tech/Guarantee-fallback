@@ -40,6 +40,12 @@
 *Terminal--for running clis
 
 
+*The insert query can either directly takes values to insert or the values from a select query
+
+*To add a column with a not null contraint to a table that already has records,set a default value so that upon adding the column,all records will have the default value and subsequent ones will have to obey the contraint but for adding a primary key later which you should have done upon table creation,just specify the type as serial primary key and postgres will generate the keys for all records serially
+
+*There can only be one primary key in a table because it uniquely identifies the record.Unique and primary key are the same in that they ensure that the values in a column will always be unique but only one unique key can be used as the primary key.
+
 *You cant set the datatype of a column to null if it already has null values
 
 *Set data type and type are the same when setting the data type of a column in a table alteration but set data type is more readable
