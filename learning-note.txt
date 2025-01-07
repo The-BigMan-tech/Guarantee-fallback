@@ -11,6 +11,7 @@
 ?Deno has native support for ts and prevents npm module vulnerabilities by allowing code to access what you allow and also,it is faster than node js.With deno,there is no need to setup typescript with the tsc or swc compiler but because type checking in deno costs a lot of time,ts files dont get type checked before
 ?Vite is primarily a web bundler but it is also a scaffolding utility for many kinds of web projects
 ?learn about AMD js modules
+?Check on elastic search
 
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
@@ -18,6 +19,7 @@
 ^This is my table printer toolchain for postgres:I used the postgress js package to retrieve a postgres table into an array of objects.I then used the json2csv module to convert it to a csv string and then write it to a file using the fs module.I then used a vscode extension to turn that csv to a beautiful table of my postgres data.
 
 ^Becareful of keybindings as they may conflict with the keys as you type
+
 
 *The rubiks cube--a rep of tensors
 
@@ -39,6 +41,10 @@
 *Compilers and transpilers
 *Terminal--for running clis
 
+*Pouch db--Client side db for storing app's data
+*postgre sql--Server side db for user account and authentication data,log data
+*Mongo db---Server side db for synchronizing cient data with the server for backup,user sessions for quick reads and writes,shared data.It can handle a high write volumes,so its best for storing user profiles since user profiles can vary hugely between users and change frequently
+
 
 *The insert query can either directly takes values to insert or the values from a select query
 
@@ -50,7 +56,7 @@
 
 *Set data type and type are the same when setting the data type of a column in a table alteration but set data type is more readable
 
-*Component,query.The component focuses on rendring ui while the query focuses on communicating with the bakend via an api
+*Component,query and reducer.The component focuses on rendering ui while the query focuses on communicating with the bakend via an api and the reducer changes global state
 
 *Most of the business logic of the backend lives in the services since they directly communicate with the database
 

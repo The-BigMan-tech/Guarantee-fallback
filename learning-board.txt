@@ -4,7 +4,6 @@ todo:Backend related
 ---------------------
 tRPC
 Graphql server
-Dgraph DB
 socket io
 Deno
 
@@ -48,7 +47,8 @@ React native
 todo:DB related
 ----------------
 Redis DB
-My sql 
+Dgraph DB
+Elastic saerch
 
 todo:Testing related
 -------------------
@@ -171,8 +171,8 @@ Insomnia
 API dog
 
 
-*Just acknowledging but may never use
-?-------------------------------------
+*Just acknowledging but may or may not use
+?-----------------------------------------
 Hookstate--I woud have loved to use it but is incompatible with the immer library
 serverless computing
 post css
@@ -182,6 +182,7 @@ Selenium
 angular
 fastify
 xml
+My sql
 Hugo
 Htmx
 Jquery-simplifies dom manipulation
