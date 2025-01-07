@@ -8,10 +8,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 let db;
 
-async function connectToDB(connection_string) {
+async function connectToDB(connection_string,db) {
     try {
         const client = new MongoClient(connection_string);
-        const database = client.db('Kanbans');
+        const database = client.db(db);
         return database
     }catch(error) {
         console.log(`Database connection error: ${error}`);
@@ -23,12 +23,13 @@ async function returnCollection(name,db) {
     return await db.collection(name)
 }
 async function mongoToJson(info) {
-    db = await connectToDB(info.connection_string)
+    db = await connectToDB(info.connection_string,info.database)
     const collection = await returnCollection('boards',db)
     const data = JSON.stringify(await collection.find({}).toArray())
     await fs.writeFile(`${__dirname}/mongo.json`,data,(err)=>{console.log('ERROR',err);})
 }
 const info = {
-    connection_string:"mongodb://localhost:27018/"
+    connection_string:"mongodb://localhost:27018/",
+    database:'Kanbans'
 }
 await mongoToJson(info)
