@@ -1,13 +1,12 @@
 //@ts-ignore
 import { MongoClient } from 'mongodb';
-import * as fs from 'fs'
-
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import * as fs from 'fs'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
+let db;
 
 export async function connectToDB() {
     try {
@@ -18,13 +17,13 @@ export async function connectToDB() {
         console.log(`Database connection error: ${error}`);
     }
 }
-export async function returnCollection(name) {
-    const db = await connectToDB()
+export async function returnCollection(name,db) {
     const collections = await db.listCollections({ name:name}).toArray();
     if (!collections.length ) return await db.createCollection(name)
     return await db.collection(name)
 }
 
-const collection = await returnCollection('boards')
+db = await connectToDB()
+const collection = await returnCollection('boards',db)
 const data = JSON.stringify(await collection.find({}).toArray())
 await fs.writeFile(`${__dirname}/mongo.json`,data,(err)=>{console.log('ERROR',err);})
