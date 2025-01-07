@@ -37,15 +37,17 @@
 *Compilers and transpilers
 *Terminal--for running clis
 
-
+*Connection to sql databases are outside of sql statements
 *namespaces provides naming safety
 *Curly braces and semicolons are features of a statically typed language
 
+*The structure is Database--Schema--Query and Table
 
+*The select query is for selecting a column not a row
 *Fields are default to null
 *Database,schema/namespaces,queries
 *Queries must be terminated by semicolons
-*Schemas are namespaces to tables.They are used for preventing naming conflicts and managing priviledges.They are analogous to mongo db cluster
+*Schemas are namespaces to tables.They are used for preventing naming conflicts and managing priviledges
 *Syntax of sql queries:Verb,Noun,identifier,table structure
 
 *queries commands are commands that requests elements from the DOM,action commands for interacting with the DOM and they must be chained to query commands and assertion commands are for defining expectations

@@ -21,5 +21,4 @@ async function fetchData(table) {
     const csv = await json2csv(data);
     await fs.writeFile(`${__dirname}/table.csv`, csv,(err)=>{console.log('ERROR',err);})
 }
-
 await fetchData('students');
