@@ -24,12 +24,13 @@ async function returnCollection(name,db) {
 }
 async function mongoToJson(info) {
     db = await connectToDB(info.connection_string,info.database)
-    const collection = await returnCollection('boards',db)
+    const collection = await returnCollection(info.collection,db)
     const data = JSON.stringify(await collection.find({}).toArray())
     await fs.writeFile(`${__dirname}/mongo.json`,data,(err)=>{console.log('ERROR',err);})
 }
 const info = {
     connection_string:"mongodb://localhost:27018/",
-    database:'Kanbans'
+    database:'Kanbans',
+    collection:'boards'
 }
 await mongoToJson(info)
