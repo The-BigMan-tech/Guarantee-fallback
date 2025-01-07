@@ -1,4 +1,4 @@
-student_name,student_age,student_class,haspaidpartially,haspaidfully,subjects,scores
+student_name,student_age,student_class,haspaidpartially,haspaidfully,subjects,fake_scores
 Mary,20,ss3,null,true,"[""English"",""Mathematics"",""Physics""]","(100,70,60,40,)"
 PHILIP,20,ss3,null,true,"[""English"",""Mathematics"",""Physics""]","(100,70,60,40,)"
 PETER,20,ss3,null,true,"[""English"",""Mathematics"",""Physics""]","(100,70,60,40,)"
@@ -6,3 +6,7 @@ bolaji,20,ss3,null,true,"[""English"",""Mathematics"",""Physics""]","(100,70,60,
 tolani,20,ss3,null,true,"[""English"",""Mathematics"",""Physics""]","(100,70,60,40,)"
 tolani,20,ss3,null,true,"[""English"",""Mathematics"",""Physics""]","(100,70,60,40,)"
 tolani,25,ss3,null,true,"[""English"",""Mathematics"",""Physics""]","(100,70,60,40,)"
+tolani,25,ss3,null,true,"[""English"",""Mathematics"",""Physics""]","(100,70,60,40,)"
+Person,20,null,null,null,null,null
+Person,2,null,null,null,null,null
+New person,20,null,null,null,null,null

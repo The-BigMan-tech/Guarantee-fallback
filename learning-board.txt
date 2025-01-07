@@ -6,8 +6,18 @@ tRPC
 Graphql server
 Dgraph DB
 socket io
-security:jwt token,bcrypt,auth0,auth js,otpAuth
 Deno
+
+todo:Backend security related
+-----------------------------
+Jwt token
+helmet
+bcrypt
+auth js
+otpAuth
+passport auth
+throttle
+auth0
 
 todo:Production related
 ----------------------

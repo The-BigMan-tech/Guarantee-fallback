@@ -10,8 +10,7 @@
 ?I should use pinno in redux middleware for logging app interactions
 ?Deno has native support for ts and prevents npm module vulnerabilities by allowing code to access what you allow and also,it is faster than node js.With deno,there is no need to setup typescript with the tsc or swc compiler but because type checking in deno costs a lot of time,ts files dont get type checked before
 ?Vite is primarily a web bundler but it is also a scaffolding utility for many kinds of web projects
-
-?Vs code log points
+?learn about AMD js modules
 
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
@@ -40,7 +39,28 @@
 *Compilers and transpilers
 *Terminal--for running clis
 
-*To use group by,the syntax is columns to be cumulated,cumulative function.When this syntax is queried,we have to provide the group by syntax because since all the values are the same,sql will have no way to group the data.If any of the column values in the queried columns doesnt have the same value as the rest,the record intersecting that column doesnt get cumulated.
+
+*You cant set the datatype of a column to null if it already has null values
+
+*Set data type and type are the same when setting the data type of a column in a table alteration but set data type is more readable
+
+*Component,query.The component focuses on rendring ui while the query focuses on communicating with the bakend via an api
+
+*Most of the business logic of the backend lives in the services since they directly communicate with the database
+
+*Constraints are enforcements when inserting data in a database.Its like a schema from mongoose.Specifying datatypes for columns are in themselves,contsraints
+
+*Definition,assignments,queries
+*The distinct keyword is for only fetching unique data and not duplicates
+
+*An aggregate functions is like a reducer.It stacks/cumulates values
+
+*The where clause is for specifying or filtering out the particular data that you need based on a condition.It is equivalent to a filer.The having clause is filtering or specifying the grouped data we want to retrieve.It is for filtering based on the result of aggregate functions.The having clause must be used after grouping the data and before ordering the data.
+
+
+*The with clause can temporarily store the result of a query so that you can use another query on it.It is equivalent to chaining query methods in mongo db and using mongo db aggregations
+
+*To use group by,the syntax is:columns to be cumulated,cumulative function.When this syntax is queried,we have to provide the group by syntax because since all the values are the same,sql will have no way to group the data.If any of the column values in the queried columns doesnt have the same value as the rest,the record intersecting that column doesnt get cumulated.
 
 *order is eeuivalent to sort
 *We use the group by clause for cumulating data across many records that share the same value
