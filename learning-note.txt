@@ -1,7 +1,7 @@
 !Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
 ?Learn about package managers in detail:npm,pnpm and also npx
 ?Learn how version control works in detail
-?SWC compiler,tsc compiler,Babel compiler,llvm
+?SWC compiler,tsc compiler,Babel compiler,llvm.
 ?Understand the inner workings of electron,tauri and node js and the various browser components that makes them work
 ?Time series data and time scale db
 ?There is transcrypt compiler
