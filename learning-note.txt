@@ -13,6 +13,8 @@
 ?learn about AMD js modules
 ?Check on elastic search
 ?trpc is an e2e type safe implementation of rpc which is an architecture that allows clients to remotely call functions on a server instead of through http requests.Next js uses something very similar to this for its ssr
+?testing,debugging,logging,documentation,type safety,operation safety
+
 
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
@@ -24,6 +26,8 @@
 *i finally figured out why the connection string didmt work.In the connection string,hen they said replace <password> with your real password,they meant 1234 and not <1234> which is what I've been doing my entire life of using mongo and if you forgot the password,you can easily create a new user in the data base access down in the side bar and use that username and password.Having said this,i hate the installation and setup process
 
 *I also found out how to deploy my backend using docker and render.I just make a project using a docker image and use mongo db atlas for the mongo db part.I used netlify to deploy my frontend
+
+*The graph ql,trpc and jotai webs that didnt work at home worked when using gmc's wifi maybe becaue of a security stuff of the mifi or the network service
 
 *containers communicate with each other via a network.Local host for docker containers refers to the local container and not the host machine.I have to use the service names to connect them via a network.Volumes are for persistent data and docker compose to create multi container apps.Docker hub is a registry for images not for hosting containers
 
@@ -54,13 +58,22 @@
 
 *ORMS maps sql queries to oop code as an abstraction over raw sql queries because its safer
 
+
+*There are also aliases thats if i even care
+
+*Unions is for querying for the result of two different tables but WITHOUT returning duplicate records.Union all returns duplicate records.It must be the same number of columns,the datatypes dont have to be identical but must be compatible and the order of the column datatypes must be the same
+
+*Union and intersection keywords allows you to perform set operations on the result of each select query.Each column from each select query is treated as a set and a set operation will be done on all the records from the two sets to return a new column.
+
 *Cross join is like a permutation function.It returns a cartesian product of two tables which means it creates a table where all the possible combinations of records from A and B are returned.The total combination is m * n where they are both the number of records
 
-*The inner join takes all the records from db A and B and checks if they match using a join condition and if so,adds those records together in a new table.
+*The inner join takes all the records from db A and B and checks if they match using a join condition and if so,adds those records together in a new table else,they dont appear in the new table
 
 *Left outer join is the same as inner join execpt that the records that dont match will be added to the resulting table but will have those unmatching columns as null
 
 *The right outer join is a reverseof the left outer join
+
+*Full outer join is a combination of both left and right outer join
 
 *If all the records in one of the tables have been matched by the other,there wont be anyone left for right and left outer join to fill with null although im not exactly sure
 
@@ -121,6 +134,7 @@
 *Schemas are namespaces to tables.They are used for preventing naming conflicts and managing priviledges
 *Syntax of sql queries:Verb,Noun,identifier,table structure
 
+*in cypress,fixtures are used to simulate user data to be used statically in tests
 *queries commands are commands that requests elements from the DOM,action commands for interacting with the DOM and they must be chained to query commands and assertion commands are for defining expectations
 *Cypress:queries,action,expectations
 

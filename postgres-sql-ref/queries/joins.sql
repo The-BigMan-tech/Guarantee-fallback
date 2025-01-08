@@ -18,6 +18,10 @@ INSERT INTO staff
     -- FROM students LEFT OUTER JOIN staff
     -- ON students.unique_id = staff.staff_id
 
-SELECT students.student_name,staff.work_experience,staff.staff_name
-    FROM students RIGHT OUTER JOIN staff
-    ON  students.unique_id =  staff.staff_id
+-- SELECT students.student_name,staff.work_experience,staff.staff_name
+    -- FROM students RIGHT OUTER JOIN staff
+    -- ON  students.unique_id =  staff.staff_id
+
+SELECT students.student_name,staff.work_experience
+    FROM students FULL OUTER JOIN staff
+    ON students.unique_id = staff.staff_id
