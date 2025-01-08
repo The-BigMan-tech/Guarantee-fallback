@@ -12,6 +12,7 @@
 ?Vite is primarily a web bundler but it is also a scaffolding utility for many kinds of web projects
 ?learn about AMD js modules
 ?Check on elastic search
+?trpc is an e2e type safe implementation of rpc which is an architecture that allows clients to remotely call functions on a server instead of through http requests.Next js uses something very similar to this for its ssr
 
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
@@ -20,6 +21,11 @@
 
 ^Becareful of keybindings as they may conflict with the keys as you type
 
+*i finally figured out why the connection string didmt work.In the connection string,hen they said replace <password> with your real password,they meant 1234 and not <1234> which is what I've been doing my entire life of using mongo and if you forgot the password,you can easily create a new user in the data base access down in the side bar and use that username and password.Having said this,i hate the installation and setup process
+
+*I also found out how to deploy my backend using docker and render.I just make a project using a docker image and use mongo db atlas for the mongo db part.I used netlify to deploy my frontend
+
+*containers communicate with each other via a network.Local host for docker containers refers to the local container and not the host machine.I have to use the service names to connect them via a network.Volumes are for persistent data and docker compose to create multi container apps.Docker hub is a registry for images not for hosting containers
 
 *The rubiks cube--a rep of tensors
 
@@ -45,6 +51,23 @@
 *postgre sql--Server side db for user account and authentication data,log data
 *Mongo db---Server side db for synchronizing cient data with the server for backup,user sessions for quick reads and writes,shared data.It can handle a high write volumes,so its best for storing user profiles since user profiles can vary hugely between users and change frequently
 
+
+*ORMS maps sql queries to oop code as an abstraction over raw sql queries because its safer
+
+*Cross join is like a permutation function.It returns a cartesian product of two tables which means it creates a table where all the possible combinations of records from A and B are returned.The total combination is m * n where they are both the number of records
+
+*The inner join takes all the records from db A and B and checks if they match using a join condition and if so,adds those records together in a new table.
+
+*Left outer join is the same as inner join execpt that the records that dont match will be added to the resulting table but will have those unmatching columns as null
+
+*The right outer join is a reverseof the left outer join
+
+*If all the records in one of the tables have been matched by the other,there wont be anyone left for right and left outer join to fill with null although im not exactly sure
+
+
+*The select query is like return
+*Joins are for combining two or more records from different tables
+*Data migrations are complex in sql databases which means changing the structure of the db after its creation becomes difficult
 
 *The insert query can either directly takes values to insert or the values from a select query
 

@@ -5,7 +5,6 @@ todo:Backend related
 tRPC
 Graphql server
 socket io
-Deno
 
 todo:Backend security related
 -----------------------------
@@ -60,6 +59,7 @@ playwright
 todo:Extras
 -----------
 *Making clis with commander js
+Meilisearch js
 D3 js
 Apex charts
 Svg
@@ -185,4 +185,5 @@ xml
 My sql
 Hugo
 Htmx
+Deno
 Jquery-simplifies dom manipulation
