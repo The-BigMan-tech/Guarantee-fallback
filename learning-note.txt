@@ -2,7 +2,7 @@
 
 !Pray for Adelani
 !Be secure with your current password.Make a new set of secure passwords for the tools i use.
-
+!epic fight minecraft mod and addons
 ?Learn about package managers in detail:npm,pnpm and also npx
 ?Learn how version control works in detail
 ?SWC compiler,tsc compiler,Babel compiler,llvm.
@@ -24,6 +24,9 @@
 ?Dont solve problems that are really not a problem
 ?Dont context switch between programming languages
 
+?Schema definition language--single source of truth for defining the schema of the data.
+
+
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
 
@@ -31,6 +34,19 @@
 
 ^Becareful of keybindings as they may conflict with the keys as you type
 
+*Graph ql objects starts with type
+*Graphql objects--units of data in graph ql
+*There are three types of graph ql request operations;query mutations and subscriptions just like get,post,put ,etc
+
+*You query the data you want by their names
+
+*Graphql has a SDL like prisma
+
+*Because graphql supports many programming languages and backend frameworks,its documentation doesnt provide any specific code implementation on using it but rather,explains the concepts and how they work
+
+*Because graphql allows the client to control the response he wants through the request,he doesnt need to know much about how the server works
+^----------------------------------------------------------------------------------------------------------
+*Mongoose to mongo db and prisma to relational dbs like postgres
 *Cicrular dependency vs relationship
 *what does skip lib check do
 *In sql,we use a foreign key to create a relationship between two tables,but in mongo db,you can directly nest documenst
@@ -333,7 +349,7 @@
 *PATCH---partially updata a resource
 *DELETE--delete a resource
 
-*for get and delete,we use path parameters and query parameters for their requests
+*for get and delete,we use url segments,path parameters,and query parameters for their requests
 *while post,put and patch use a request body for payload
 
 
