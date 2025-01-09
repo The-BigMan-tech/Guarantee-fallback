@@ -5,6 +5,9 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
 model User {
   id    Int    @id @default(autoincrement())
   name  String

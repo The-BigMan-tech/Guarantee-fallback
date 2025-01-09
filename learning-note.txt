@@ -31,6 +31,7 @@
 
 ^Becareful of keybindings as they may conflict with the keys as you type
 
+*You cant modify the schema or generate a client when there is an active server consuming that.
 *A migration is a function that modifies the schema of the database
 *prisma migrate makes migration easier as you dont need to specify the actions that lead to a change in the schema,you only need to describe the new schema
 

@@ -97,7 +97,7 @@ Fast Check--property based test
 Stryker--mutation tests
 Cypress--E2E and component testing
 Postgre sql
-Prisma js
+Prisma js,prisma-dbml-generator
 Compo doc
 next js
 Pouch DB
@@ -175,6 +175,7 @@ API dog
 
 *Just acknowledging but may or may not use
 ?-----------------------------------------
+DBML--database markup language
 Hookstate--I woud have loved to use it but is incompatible with the immer library
 serverless computing
 post css

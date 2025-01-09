@@ -1,5 +1,6 @@
 {
     "[csv]": {
         "editor.inlayHints.maximumLength": 0
-    }
+    },
+    "dbmlERDPreviewer.preferredTheme": "dark"
 }
