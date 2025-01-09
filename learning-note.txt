@@ -1,5 +1,6 @@
 !We use environment variables in the .env file to store sensitive information that will be used in our code.The .env file must be ignored by git and not pushed to the public to prevent password leaks and since configuration variables changes per environment--locally or deployed,we use env variables to store them.
 
+!Pray for Adelani
 !Be secure with your current password.Make a new set of secure passwords for the tools i use.
 
 ?Learn about package managers in detail:npm,pnpm and also npx
@@ -28,6 +29,51 @@
 ^This is my table printer toolchain for postgres:I used the postgress js package to retrieve a postgres table into an array of objects.I then used the json2csv module to convert it to a csv string and then write it to a file using the fs module.I then used a vscode extension to turn that csv to a beautiful table of my postgres data.
 
 ^Becareful of keybindings as they may conflict with the keys as you type
+
+*The route structure of a rest api resembles a file path in a nested file tree.
+*json objects resembles how a folder looks like in the sidebar of a code editor.
+*In other words,the folder structure handles data in terms of oop
+
+*The prisma client is not an api but it mirrors some of the rest api principles.For example,the synatx to perform a resource on a model:prisma.model.operation resembles host/resource/route for a rest api.It exposes many methods for performing operations on data models.you can also think of the prisma client like the whole database in object terms.The syntax prisma.user.create means access the prisma database,then the user model and then call the create method
+
+*The prisma client creates a type safe experience and acts like an api but is best described as an orm
+
+*The difference between prisma and plain orms is that prisma allows us to define our models are defined in a language specfically for that over classes.Prisma migrate maps the models to sql queries
+
+*The pandas library is for working with data in python as tables
+*Csv can represent table data and json can represent object data
+*js emphasizes on functional and async programming.The functional paradugm focuses on creating reusable pieces of logic
+
+*Orms bridges the gap between the two mental models of data--as objects and as tables
+
+*The OOP paradigm is a way programmers like thinking of their data but database engineers think of their data in tables.In oop,we make queries on our data using the seamless dot notation but for tables,we use queries.So thats why python is great for data science.They emphasize a lot on oop
+
+*Normalization refers to splitting a huge data set into multiple tables
+
+*data models are like interfaces but for your data.They define the structure and shape of your data.Data models are defined at two layers:the database and the app.At the db layer for sql,the model is represented as tables and for mongo db,as a collection.That's why mongoose schema is for a collection.Table of records is to a Collection of objects.A collection is programmatically equivalent to an array of objects.At the app layer,data is modelled or structured either by using classes,interfaces or structs.The mental model of data s objects is why document oriented dbs are more intuitive for devs that thinks of their data as objects over tables like in sql
+
+*Mongoose allows us to define a model for our database
+
+*There are three ways of writing sql in your backend:raw,query builder and orms
+
+*For tables,data is flat and cant be nested,so a foreign key and join is used to resemble thisbut for objects,data can be nested with dot notation.
+
+*Plain Orms allows developers to think of their data as objects.Orms under the hood,uses lots of joins to map nested object structure to sql which can lead to performance issues
+
+*Sql builders:It allows us to write sql queries by constructing them with a builder pattern which means that we chain methods that resembles an actual sql query but it makes it feel more programmatic.It is less error prone,has auto completions and prevents syntax errors.The drawback is that it still forces programmers to think of their data in sql terms and not programmatically.Programmers think of their data in objects and database engineers as tables.So thats why mongo db is more intuitive for js developers
+
+*Raw sql query solutions like postgres.js:Full Control,low productivity.You write your sql queries in plain strings but they are cumbersome,type unsafe,error prone due to lack of autocompletion and is prone to sql injection.
+
+
+*There is a single source of truth for all tables called the data model as defined in the .prisma file
+*syntax for modifying data in prisma: prisma.model.
+*all prisma queries return js objects
+*I can map my models to db queires using prisma migrate
+*The prisma client will expose the models for use with the backend
+
+*Datasource tells prisma the database to connect to
+*generator--for generating the prisma client
+*A model is a representation of a table
 
 *The backend communicates with the database through a driver
 *nest js provies exception filters
