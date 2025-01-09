@@ -31,11 +31,12 @@
 
 ^Becareful of keybindings as they may conflict with the keys as you type
 
+*A migration is a function that modifies the schema of the database
 *prisma migrate makes migration easier as you dont need to specify the actions that lead to a change in the schema,you only need to describe the new schema
 
 *An active record ORM by the name,is an orm where the model itself directly controls the table.This means that changes to the model directly controls the table and the model is aware of the database.It is simple and rapid to use but becomes more bloated and less flexible as the complexity grows.
 
-*A data mapper orm decouples the model from the database.There is a separate layer that maps the model to sql queries called a migration tool and in prisma,it is the prisma migration meaning that the model is unaware of the database.This ensures that changes to the model doesnt directly alter the table.It brings some setup boilerplate but in exchange for greater flexibility,easier tests and adherence to SRP.
+*A data mapper orm decouples the model from the database.There is a separate layer that maps the model to sql queries and in prisma,it is done with the prisma migration tool meaning that the model is unaware of the database.This ensures that changes to the model doesnt directly alter the table.It brings some setup boilerplate but in exchange for greater flexibility,easier tests and adherence to SRP.
 
 *Arrays,objects and table are big data structures.
 
@@ -76,7 +77,7 @@
 
 *Sql builders:It allows us to write sql queries by constructing them with a builder pattern which means that we chain methods that resembles an actual sql query but it makes it feel more programmatic.It is less error prone,has auto completions and prevents syntax errors.The drawback is that it still forces programmers to think of their data in sql terms and not programmatically.Programmers think of their data in objects and database engineers as tables.So thats why mongo db is more intuitive for js developers
 
-*Raw sql query solutions like postgres.js:Full Control,low productivity.You write your sql queries in plain strings but they are cumbersome,type unsafe,error prone due to lack of autocompletion and is prone to sql injection.
+*Raw sql query solutions like postgres.js:Full Control,low productivity.You write your sql queries in plain strings but they are cumbersome,type unsafe and providing an interface in an attemot to provide type safety is very error prone because it isnt tied directly to the schema of the database,error prone due to lack of autocompletion and is prone to sql injection.
 
 
 *There is a single source of truth for all tables called the data model as defined in the .prisma file
