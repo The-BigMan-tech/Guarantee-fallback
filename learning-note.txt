@@ -16,7 +16,7 @@
 ?learn about AMD js modules
 ?Check on elastic search
 ?trpc is an e2e type safe implementation of rpc which is an architecture that allows clients to remotely call functions on a server instead of through http requests.Next js uses something very similar to this for its ssr
-?testing,debugging,logging,documentation,type safety,operation safety
+?testing,debugging,logging,documentation,type safety,request safety,database safety
 ?Cloud database services--Mongo db Atlas,Neon
 ?My deployment solutions--(Tauri or netlify) for the frontend,(docker and render) for the backend and since render and many other Paas services dont support docker compose,ill use the cloud version of my databases to deploy the database.
 
@@ -27,6 +27,21 @@
 ^This is my table printer toolchain for postgres:I used the postgress js package to retrieve a postgres table into an array of objects.I then used the json2csv module to convert it to a csv string and then write it to a file using the fs module.I then used a vscode extension to turn that csv to a beautiful table of my postgres data.
 
 ^Becareful of keybindings as they may conflict with the keys as you type
+
+*ts configs can affect how types are inferred
+
+*There is a database schema and a dto.The database schema ensures that only data that adheres to the schema enters the database while dtos or zod schemas are for request safety
+
+*To set up Typescript:
+----------------------
+*Manual---tsc/swc compiler,tsconfig and nodemon
+*Frontend--Ts with SWC with vite
+*Backend--nest js but to make it use esmodule syntax;
+  *change the type in the package.json to module
+  *change the module in the tsconfig to NodeNext
+  *change the module resolution to nodenext
+  *all imports must end with .js
+  *set strict null checks and no implicit any to true.
 
 *Prisma automatically generates types for your data based on your model.The prisma generate cmd generates those types.The generated type follows the syntax:model name + operation type
 
