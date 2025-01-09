@@ -98,6 +98,7 @@ Stryker--mutation tests
 Cypress--E2E and component testing
 Postgre sql
 Prisma js,prisma-dbml-generator
+*maybe go and learn graph ql
 Compo doc
 next js
 Pouch DB
