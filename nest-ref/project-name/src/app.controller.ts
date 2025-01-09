@@ -32,7 +32,6 @@
  * *Rxjs
  * *zod
  * 
- * *mongo--LONG
  * *mvc--SHORT
  * *encryption and hashing,serialization--SHORT
  * *cookie,sessions---SHORT

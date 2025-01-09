@@ -19,6 +19,7 @@
 ?testing,debugging,logging,documentation,type safety,request safety,database safety
 ?Cloud database services--Mongo db Atlas,Neon
 ?My deployment solutions--(Tauri or netlify) for the frontend,(docker and render) for the backend and since render and many other Paas services dont support docker compose,ill use the cloud version of my databases to deploy the database.
+?After making a nest js backend that has everything i want setup,i'll create a scaffolding utility that will automatically scaffold a barebones of that for me
 
 
 ^switching vocals with nightcore music from skylest
@@ -28,7 +29,7 @@
 
 ^Becareful of keybindings as they may conflict with the keys as you type
 
-
+*The backend communicates with the database through a driver
 *nest js provies exception filters
 *ts configs can affect how types are inferred
 
