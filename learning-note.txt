@@ -31,6 +31,34 @@
 
 ^Becareful of keybindings as they may conflict with the keys as you type
 
+*Cicrular dependency vs relationship
+*what does skip lib check do
+*In sql,we use a foreign key to create a relationship between two tables,but in mongo db,you can directly nest documenst
+
+*The relationship must be represented in a converse statement
+*For one to one,the relationship can be defined anywhere but the related field on the opposite entity must be optional.
+*For one many,the relationship must be defined in the Many part of the relationship and the opposite related field doesnt have to be optional
+
+*A relation must exactly have two relation fields that relates two models together for a relationship to be established meaning that the models to be related must use each other as types in one of their fields.Then in one of the relationship ends,we use the relation attr modifier to link another scalar field which should be separate from the primary key and act as the foreign key and reference it to the foreign key of the other model in the relationship.The foreign and primary must have the same properties meaning that they should have the same datatype and be both unique.When you relate a field from one model to another,it enforces the other related field to be required which is not possible as relationships in prisma arent acctually in the database layer,so it has to be optional
+
+*A relation is a connection between two different models in a data model.They are in the orm level and dont persist to the database.A relation field is a field that its type is a model
+
+*Sql uses the id to perform safe write operations like preventing inserting a record twice and without the id,you can delete multiple records by attempting to delete just one because of the possibiity that they are the are the same.The id also provides atomicity by providing a way to track changes to an element and rollback without affecting others
+
+*Type modifiers are used to modify the types of the fields in the mode.They are [] for array and ? for optional.The ? maps to NOT NULL and by default,any field that doesnt have it will have this constraint.
+
+*There are inline and block,Tag and functional 
+*Attribute modifiers modify the behaviour of these fields in the database like @id @unique and @default().You can also use block attributes like @unique([]) to make multiple fields unique.In other words,there are inline attribute modifiers to target one field and block for targetting multiple.Some are just tags while others can be functions
+
+*Attribute modifiers are used for defining additional information about how fields should be treated by the database that cant otherwise be represented by just types alone.They can define constraints,metadata and their behaviours with the database.They begin with @ like id,unique,default.
+
+*There are two categories of attr modifiers:inline and block,flags or functions
+
+*The model definition resembles that of an interface but without the commas
+*a model is made up of a field name,type,type modifiers and attribute modifiers that can be used with the @ syntax.\
+
+*functions are best written in camelcase and classes in PascalCase
+*prisma models are mapped to lower case names
 *You cant modify the schema or generate a client when there is an active server consuming that.
 *A migration is a function that modifies the schema of the database
 *prisma migrate makes migration easier as you dont need to specify the actions that lead to a change in the schema,you only need to describe the new schema

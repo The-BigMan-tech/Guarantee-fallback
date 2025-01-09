@@ -3,7 +3,17 @@
 //// ------------------------------------------------------
 
 Table User {
-  id Int [pk, increment]
+  primaryKey Int [pk, increment]
   name String [not null]
   email String [unique, not null]
+  details account [not null]
 }
+
+Table account {
+  primaryKey Int [pk, increment]
+  author User [not null]
+  password String [not null]
+  foreignKey Int [increment, unique, not null]
+}
+
+Ref: account.foreignKey > User.primaryKey

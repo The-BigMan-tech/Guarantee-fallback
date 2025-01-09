@@ -9,7 +9,14 @@ generator dbml {
   provider = "prisma-dbml-generator"
 }
 model User {
-  id    Int    @id @default(autoincrement())
-  name  String
-  email String @unique
+    primaryKey Int @id @default(autoincrement())
+    name  String 
+    email String @unique 
+    details account[]
+}
+model account {
+    primaryKey Int @id @default(autoincrement())
+    author User @relation(fields: [foreignKey],references: [primaryKey])
+    password String
+    foreignKey Int @unique @default(autoincrement())
 }

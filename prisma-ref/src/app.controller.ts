@@ -12,7 +12,6 @@ export class AppController {
   public async createUser(@Body() body:userDTO) {
       return this.appService.createUser(body);
   }
-  
   @Get('/allUsers')
   public async getUsers() {
       return this.appService.getUsers()
