@@ -21,7 +21,8 @@
 ?Cloud database services--Mongo db Atlas,Neon
 ?My deployment solutions--(Tauri or netlify) for the frontend,(docker and render) for the backend and since render and many other Paas services dont support docker compose,ill use the cloud version of my databases to deploy the database.
 ?After making a nest js backend that has everything i want setup,i'll create a scaffolding utility that will automatically scaffold a barebones of that for me
-
+?Dont solve problems that are really not a problem
+?Dont context switch between programming languages
 
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
@@ -30,9 +31,16 @@
 
 ^Becareful of keybindings as they may conflict with the keys as you type
 
+*Arrays,objects and table are big data structures.
+
+*a pointer is a variable that its value is an address to another variable.It can be reassigned and incremeneted or decremented also called pointer arithmetic while a reference is just an alias for an object and in many pl implementations,arrays and objects are passed by reference.A reference cant be null so they are null safe and its also immutable
+
+*a 2d array or matrix is not a table.A matrix is for numerical operations.A table is programmatically equivalent to an array of tuples.
+
 *The route structure of a rest api resembles a file path in a nested file tree.
 *json objects resembles how a folder looks like in the sidebar of a code editor.
 *In other words,the folder structure handles data in terms of oop
+*A scaffolding utility is like a constructor that creates a new folder based on a pre created one acting as a class
 
 *The prisma client is not an api but it mirrors some of the rest api principles.For example,the synatx to perform a resource on a model:prisma.model.operation resembles host/resource/route for a rest api.It exposes many methods for performing operations on data models.you can also think of the prisma client like the whole database in object terms.The syntax prisma.user.create means access the prisma database,then the user model and then call the create method
 
