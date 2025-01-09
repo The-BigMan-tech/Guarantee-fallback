@@ -1,4 +1,7 @@
-!Learn how to whitelist ip address to fix the handshake error when connecting to mongo atlas
+!We use environment variables in the .env file to store sensitive information that will be used in our code.The .env file must be ignored by git and not pushed to the public to prevent password leaks and since configuration variables changes per environment--locally or deployed,we use env variables to store them.
+
+!Be secure with your current password.Make a new set of secure passwords for the tools i use.
+
 ?Learn about package managers in detail:npm,pnpm and also npx
 ?Learn how version control works in detail
 ?SWC compiler,tsc compiler,Babel compiler,llvm.
@@ -14,6 +17,8 @@
 ?Check on elastic search
 ?trpc is an e2e type safe implementation of rpc which is an architecture that allows clients to remotely call functions on a server instead of through http requests.Next js uses something very similar to this for its ssr
 ?testing,debugging,logging,documentation,type safety,operation safety
+?Cloud database services--Mongo db Atlas,Neon
+?My deployment solutions--(Tauri or netlify) for the frontend,(docker and render) for the backend and since render and many other Paas services dont support docker compose,ill use the cloud version of my databases to deploy the database.
 
 
 ^switching vocals with nightcore music from skylest
@@ -23,11 +28,18 @@
 
 ^Becareful of keybindings as they may conflict with the keys as you type
 
-*i finally figured out why the connection string didmt work.In the connection string,hen they said replace <password> with your real password,they meant 1234 and not <1234> which is what I've been doing my entire life of using mongo and if you forgot the password,you can easily create a new user in the data base access down in the side bar and use that username and password.Having said this,i hate the installation and setup process
+*Prisma automatically generates types for your data based on your model.The prisma generate cmd generates those types.The generated type follows the syntax:model name + operation type
+
+*Every change to the prisma scheme requires you to run prisma migrate to get the queries and prisma generate to regen or update the prisma client to reflect the schema.
+
+*The $$# of my password has to be url encoded for prisma
+*prisma migrate syncs your schema file with your databases
+
+*i finally figured out why the connection string didmt work.In the connection string,hen they said replace <password> with your real password,they meant 1234 and not <1234> which is what I've been doing my entire life of using mongo and if you forgot the password,you can easily create a new user in the data base access down in the side bar and use that username and password.Having said this,i hate the installation and setup process.Another thing to notice is that for the frontend to communicate with the backend,cors has to enabled on the backend since they'll both have different origins and the server's port has to be whitelisted on the cloud database
 
 *I also found out how to deploy my backend using docker and render.I just make a project using a docker image and use mongo db atlas for the mongo db part.I used netlify to deploy my frontend
 
-*The graph ql,trpc and jotai webs that didnt work at home worked when using gmc's wifi maybe becaue of a security stuff of the mifi or the network service
+*The graph ql,trpc,jotai,neon webs that didnt work at home worked when using gmc's wifi maybe becaue of a security stuff of the mifi or the network service
 
 *containers communicate with each other via a network.Local host for docker containers refers to the local container and not the host machine.I have to use the service names to connect them via a network.Volumes are for persistent data and docker compose to create multi container apps.Docker hub is a registry for images not for hosting containers
 
@@ -58,6 +70,22 @@
 
 *ORMS maps sql queries to oop code as an abstraction over raw sql queries because its safer
 
+*An index is a pointer to a record in a table for fast reads but it leads to slower writes like update and delete.There are different data types for indexes which speeds up certain queries.The default is btree
+
+*Sequential scanning is ideal for returning a large percentage of the records,when there are no relevant records in the table.
+
+*Use indexes for records that are frequently queried
+*an array allows for random access of valuess
+
+*Iteration is the only way to read and modify an array at the same time so the array has to be copied for safety
+
+*Arrays are ideal for fast lookups and iterations but reading like iterating from an array and modifying it in a loop will make the indexing unpredictable so w avod it and thats why in react,we use unique ids
+
+*You can store the return of a select query in a view which mimics but is not a table
+
+*Truncate deletes the contents of a table and not the table structure itself unlike dropping a table which will require you to recreate the table before you can use it and truncate is faster especially o larger datasets.
+
+*Command line flags are like passing arguments to a function but for a cli
 
 *There are also aliases thats if i even care
 
@@ -134,6 +162,7 @@
 *Schemas are namespaces to tables.They are used for preventing naming conflicts and managing priviledges
 *Syntax of sql queries:Verb,Noun,identifier,table structure
 
+*A flaky test is a test that produces inconsistebt results when ran multiple times and thats why we use mocks
 *in cypress,fixtures are used to simulate user data to be used statically in tests
 *queries commands are commands that requests elements from the DOM,action commands for interacting with the DOM and they must be chained to query commands and assertion commands are for defining expectations
 *Cypress:queries,action,expectations

@@ -98,6 +98,7 @@ Stryker--mutation tests
 Cypress--E2E and component testing
 Postgre sql
 Prisma js
+Compo doc
 next js
 Pouch DB
 Dasiy UI
@@ -155,6 +156,7 @@ Zod
 uuid
 Chalk
 math js
+Jest junit
 pino
 reat lottie player
 
