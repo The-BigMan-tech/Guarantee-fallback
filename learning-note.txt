@@ -26,7 +26,6 @@
 
 ?Schema definition language--single source of truth for defining the schema of the data.
 
-
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
 
@@ -34,30 +33,39 @@
 
 ^Becareful of keybindings as they may conflict with the keys as you type
 
-*Graph ql objects starts with type
-*Graphql objects--units of data in graph ql
+*The http verbs are purely semantic.Same thing as html semantic tags
+
+*The types of root operations are queries,mutations and subscriptions but they are all the same other than their descriptive names.Its up to the implementation of these queries.
+
+*A graphql object is an object that describes what data we can fetch and what field it has
+*We select the root object,then the specific object we want to select
+*Graphql is all about selecting fields on objects
+*Graph ql objects and the functions that returns the data in each field of a graphql object
+
 *There are three types of graph ql request operations;query mutations and subscriptions just like get,post,put ,etc
-
-*You query the data you want by their names
-
 *Graphql has a SDL like prisma
 
 *Because graphql supports many programming languages and backend frameworks,its documentation doesnt provide any specific code implementation on using it but rather,explains the concepts and how they work
 
 *Because graphql allows the client to control the response he wants through the request,he doesnt need to know much about how the server works
 ^----------------------------------------------------------------------------------------------------------
+*The two layers for data on the server are:the app layer and the database layer.At the app layer,we use dtos and schemas.The dtos through class validataor with class transformer and zod define the shape of the data that will be received by a request together with nest js pipes for validation and the schemas either through a SDL or a using a class with decorators are used to define the shape of the data at the database layer.
+
+*Use interfaces for objects that only store data and use classes for objects that will need to have methods to perform complex operations on the data they store.
+
 *Mongoose to mongo db and prisma to relational dbs like postgres
-*Cicrular dependency vs relationship
-*what does skip lib check do
+todo:Redis DB and Cassandra in 100 seconds
+todo:Cicrular dependency vs relationship
+todo:what does skip lib check do
 *In sql,we use a foreign key to create a relationship between two tables,but in mongo db,you can directly nest documenst
 
 *The relationship must be represented in a converse statement
 *For one to one,the relationship can be defined anywhere but the related field on the opposite entity must be optional.
 *For one many,the relationship must be defined in the Many part of the relationship and the opposite related field doesnt have to be optional
 
-*A relation must exactly have two relation fields that relates two models together for a relationship to be established meaning that the models to be related must use each other as types in one of their fields.Then in one of the relationship ends,we use the relation attr modifier to link another scalar field which should be separate from the primary key and act as the foreign key and reference it to the foreign key of the other model in the relationship.The foreign and primary must have the same properties meaning that they should have the same datatype and be both unique.When you relate a field from one model to another,it enforces the other related field to be required which is not possible as relationships in prisma arent acctually in the database layer,so it has to be optional
+*A relationship must exactly have two related fields that relates two models together meaning that the models to be related must use each other as types in one of their fields.Then in one relationship end,we use the relation attr modifier to link another scalar field which should be separate from the primary key and act as the foreign key and reference it to the primary key of the other model in the relationship.The foreign and primary key must have the same properties meaning that they should have the same datatype and be both unique.
 
-*A relation is a connection between two different models in a data model.They are in the orm level and dont persist to the database.A relation field is a field that its type is a model
+*A relationship is a connection between two different models in a data model.They are in the orm level and dont persist to the database.A related field is a field that its type is a model.
 
 *Sql uses the id to perform safe write operations like preventing inserting a record twice and without the id,you can delete multiple records by attempting to delete just one because of the possibiity that they are the are the same.The id also provides atomicity by providing a way to track changes to an element and rollback without affecting others
 
@@ -110,7 +118,7 @@
 
 *Normalization refers to splitting a huge data set into multiple tables
 
-*data models are like interfaces but for your data.They define the structure and shape of your data.Data models are defined at two layers:the database and the app.At the db layer for sql,the model is represented as tables and for mongo db,as a collection.That's why mongoose schema is for a collection.Table of records is to a Collection of objects.A collection is programmatically equivalent to an array of objects.At the app layer,data is modelled or structured either by using classes,interfaces or structs.The mental model of data s objects is why document oriented dbs are more intuitive for devs that thinks of their data as objects over tables like in sql
+*data models are like interfaces but for your data.They define the structure and shape of your data.Data models are defined at two layers:the database and the app.At the db layer for sql,the model is represented as tables and for mongo db,as a collection.That's why mongoose schema is for a collection.Table of records is to a Collection of objects.A collection is programmatically equivalent to an array of objects.At the app layer,data is modelled or structured either by using classes,interfaces or structs.The mental model of data s objects is why document oriented dbs are more intuitive for devs that thinks of their data as objects over tables like in sql.
 
 *Mongoose allows us to define a model for our database
 

@@ -14,7 +14,7 @@ const sql = postgres({
     port: 5432,             // PostgreSQL server port
     username: 'postgres', // Your PostgreSQL username
     password: 'JehovahmyGod1234$$#', // Your PostgreSQL password
-    database: 'school', // The name of your database
+    database: 'postgres', // The name of your database
 })
 async function fetchData(table,file) {
     const data = await sql`SELECT * FROM ${sql(table)}`;
@@ -22,4 +22,3 @@ async function fetchData(table,file) {
     await fs.writeFile(`${__dirname}/${file}.csv`, csv,(err)=>{console.log('ERROR',err);})
 }
 await fetchData('students','student-table');
-await fetchData('staff','staff-table');

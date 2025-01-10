@@ -46,6 +46,7 @@ React native
 todo:DB related
 ----------------
 Redis DB
+Cassandra
 Dgraph DB
 Elastic saerch
 
@@ -150,7 +151,7 @@ mongoose
 mongo db driver
 nodemon
 Immer library
-Zod
+Zod,class validator and class transformer
 
 *Utility npm packages
 ^--------------------
@@ -160,6 +161,7 @@ math js
 Jest junit
 pino
 reat lottie player
+dotenv
 
 *other minors
 ^-------------
@@ -184,6 +186,7 @@ purge css
 solid js
 Selenium
 angular
+Time scale DB
 fastify
 xml
 My sql

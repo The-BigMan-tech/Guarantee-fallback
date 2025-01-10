@@ -12,8 +12,7 @@ export class AppService {
       return this.prisma.user.create({
           data:{
             name:userData.name,
-            email:userData.email,
-            details:userData.details
+            email:userData.email
           }
       });
   }

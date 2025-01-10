@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="6" failures="0" errors="0" time="18.077">
+  <testsuite name="AppController" errors="0" failures="0" skipped="0" timestamp="2025-01-08T14:41:19" time="15.879" tests="4">
+    <testcase classname="AppController root operations: should mock the service" name="AppController root operations: should mock the service" time="0.083" file="src\app.controller.spec.ts">
+    </testcase>
+    <testcase classname="AppController root operations: should return a number" name="AppController root operations: should return a number" time="0.008" file="src\app.controller.spec.ts">
+    </testcase>
+    <testcase classname="AppController root operations: should return the average of the given numbers" name="AppController root operations: should return the average of the given numbers" time="0.004" file="src\app.controller.spec.ts">
+    </testcase>
+    <testcase classname="AppController root operations: should echo back a number" name="AppController root operations: should echo back a number" time="0.008" file="src\app.controller.spec.ts">
+    </testcase>
+  </testsuite>
+  <testsuite name="App Service" errors="0" failures="0" skipped="0" timestamp="2025-01-08T14:41:19" time="16.065" tests="1">
+    <testcase classname="App Service root operations: should return Hello World!" name="App Service root operations: should return Hello World!" time="0.071" file="src\app.service.spec.ts">
+    </testcase>
+  </testsuite>
+  <testsuite name="AppController" errors="0" failures="0" skipped="0" timestamp="2025-01-08T14:41:19" time="16.812" tests="1">
+    <testcase classname="AppController root operations: should always return a number (with seed=212339043)" name="AppController root operations: should always return a number (with seed=212339043)" time="0.09" file="src\app.property.spec.ts">
+    </testcase>
+  </testsuite>
+</testsuites>
