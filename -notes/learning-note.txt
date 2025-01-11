@@ -3,28 +3,30 @@
 !Pray for Adelani
 !Be secure with your current password.Make a new set of secure passwords for the tools i use.
 !epic fight minecraft mod and addons
-?Learn about package managers in detail:npm,pnpm and also npx
-?Learn how version control works in detail
-?SWC compiler,tsc compiler,Babel compiler,llvm.
-?Understand the inner workings of electron,tauri and node js and the various browser components that makes them work
-?Time series data and time scale db
-?There is transcrypt compiler
+todo:Learn about package managers in detail:npm,pnpm and also npx
+todo:Learn how version control works in detail
+todo:SWC compiler,tsc compiler,Babel compiler,llvm.
+todo:Understand the inner workings of electron,tauri and node js and the various browser components that makes them work
+todo:Time series data and time scale db
+todo:There is transcrypt compiler
 
-?Automatic refresh in rtk query
-?I should use pinno in redux middleware for logging app interactions
-?Deno has native support for ts and prevents npm module vulnerabilities by allowing code to access what you allow and also,it is faster than node js.With deno,there is no need to setup typescript with the tsc or swc compiler but because type checking in deno costs a lot of time,ts files dont get type checked before
-?Vite is primarily a web bundler but it is also a scaffolding utility for many kinds of web projects
-?learn about AMD js modules
-?Check on elastic search
-?trpc is an e2e type safe implementation of rpc which is an architecture that allows clients to remotely call functions on a server instead of through http requests.Next js uses something very similar to this for its ssr
-?testing,debugging,logging,documentation,type safety,request safety,database safety
-?Cloud database services--Mongo db Atlas,Neon
-?My deployment solutions--(Tauri or netlify) for the frontend,(docker and render) for the backend and since render and many other Paas services dont support docker compose,ill use the cloud version of my databases to deploy the database.
-?After making a nest js backend that has everything i want setup,i'll create a scaffolding utility that will automatically scaffold a barebones of that for me
-?Dont solve problems that are really not a problem
-?Dont context switch between programming languages
-
-?Schema definition language--single source of truth for defining the schema of the data.
+todo:Automatic refresh in rtk query
+todo:I should use pinno in redux middleware for logging app interactions
+todo:Deno has native support for ts and prevents npm module vulnerabilities by allowing code to access what you allow and also,it is faster than node js.With deno,there is no need to setup typescript with the tsc or swc compiler but because type checking in deno costs a lot of time,ts files dont get type checked before
+todo:Vite is primarily a web bundler but it is also a scaffolding utility for many kinds of web projects
+todo:learn about AMD js modules
+todo:Check on elastic search
+todo:trpc is an e2e type safe implementation of rpc which is an architecture that allows clients to remotely call functions on a server instead of through http requests.Next js uses something very similar to this for its ssr
+todo:testing,debugging,logging,documentation,type safety,request safety,database safety
+todo:Cloud database services--Mongo db Atlas,Neon
+todo:My deployment solutions--(Tauri or netlify) for the frontend,(docker and render) for the backend and since render and many other Paas services dont support docker compose,ill use the cloud version of my databases to deploy the database.
+todo:After making a nest js backend that has everything i want setup,i'll create a scaffolding utility that will automatically scaffold a barebones of that for me
+todo:Dont solve problems that are really not a problem
+todo:Dont context switch between programming languages
+todo:Curl
+todo:Schema definition language--single source of truth for defining the schema of the data.
+?wsl
+?environment variables on the system allows us to access software from anywhere in our system using the command prompt or powershell
 
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
@@ -33,6 +35,10 @@
 
 ^Becareful of keybindings as they may conflict with the keys as you type
 
+?Python has a static type checker like eslint called mypy
+?loose,strict and deep equality
+
+*when elements in a data structure needs to be unique,you use a set
 *The http verbs are purely semantic.Same thing as html semantic tags
 
 *The types of root operations are queries,mutations and subscriptions but they are all the same other than their descriptive names.Its up to the implementation of these queries.
@@ -54,8 +60,6 @@
 *Use interfaces for objects that only store data and use classes for objects that will need to have methods to perform complex operations on the data they store.
 
 *Mongoose to mongo db and prisma to relational dbs like postgres
-todo:Redis DB and Cassandra in 100 seconds
-todo:Cicrular dependency vs relationship
 todo:what does skip lib check do
 *In sql,we use a foreign key to create a relationship between two tables,but in mongo db,you can directly nest documenst
 
