@@ -17,7 +17,7 @@ todo:Vite is primarily a web bundler but it is also a scaffolding utility for ma
 todo:learn about AMD js modules
 todo:Check on elastic search
 todo:trpc is an e2e type safe implementation of rpc which is an architecture that allows clients to remotely call functions on a server instead of through http requests.Next js uses something very similar to this for its ssr
-todo:testing,debugging,logging,documentation,type safety,request safety,database safety
+?:testing,debugging,logging,exception handling,documentation,type safety,request safety,database safety
 todo:Cloud database services--Mongo db Atlas,Neon
 todo:My deployment solutions--(Tauri or netlify) for the frontend,(docker and render) for the backend and since render and many other Paas services dont support docker compose,ill use the cloud version of my databases to deploy the database.
 todo:After making a nest js backend that has everything i want setup,i'll create a scaffolding utility that will automatically scaffold a barebones of that for me
@@ -38,6 +38,11 @@ todo:Schema definition language--single source of truth for defining the schema 
 ?Python has a static type checker like eslint called mypy
 ?loose,strict and deep equality
 
+?in nest js we have controllers,services,pipes,guards,middleware,exception filters
+?The response body should always be an object to provide clarity and a structured message for error handling.It should be an object with the uninterpolated message of either the operation was a success or a falure ,then a data property showing the data that was requested,posted,updated or deleted.Any response that isnt a success should be thrown as an error using nest js exception filters
+
+?Operation safety should happen at the database layer and not manually at the app layer.Any error that occurs there should be caught in a catch block with the error initially set as unknown and then checking if its an instance of any of the errors provided by the database and then throw the appropriate error using nest js built-in exception filters.The error message will be an object with the message property set to a provided error message and another property for the error itself.It makes it easier to catch expected errors.
+
 *when elements in a data structure needs to be unique,you use a set
 *The http verbs are purely semantic.Same thing as html semantic tags
 
@@ -55,6 +60,9 @@ todo:Schema definition language--single source of truth for defining the schema 
 
 *Because graphql allows the client to control the response he wants through the request,he doesnt need to know much about how the server works
 ^----------------------------------------------------------------------------------------------------------
+*create function takes an object that has a data property with the data we want to create as the value.It can also take an array of objects to create many objects at once
+
+
 *The two layers for data on the server are:the app layer and the database layer.At the app layer,we use dtos and schemas.The dtos through class validataor with class transformer and zod define the shape of the data that will be received by a request together with nest js pipes for validation and the schemas either through a SDL or a using a class with decorators are used to define the shape of the data at the database layer.
 
 *Use interfaces for objects that only store data and use classes for objects that will need to have methods to perform complex operations on the data they store.

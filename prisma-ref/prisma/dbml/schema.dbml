@@ -16,4 +16,10 @@ Table account {
   foreignKey Int [increment, unique, not null]
 }
 
+Table Sample {
+  primarykey Int [pk, increment]
+  username String [unique, not null]
+  userpassword String [not null]
+}
+
 Ref: account.foreignKey > User.primaryKey

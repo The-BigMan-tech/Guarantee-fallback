@@ -20,3 +20,8 @@ model account {
     password String
     foreignKey Int @unique @default(autoincrement())
 }
+model Sample {
+    primarykey Int @id @default(autoincrement())
+    username String @unique
+    userpassword String
+}
