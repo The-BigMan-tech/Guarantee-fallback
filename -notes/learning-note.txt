@@ -51,6 +51,8 @@ todo:Schema definition language--single source of truth for defining the schema 
 
 ?in nest js,i cant directly access the response body without using the res decorator.I use built in nest js features rather than directly using the response or request body for simplicity like decorators for dynamic params and body payload,exception filters for errors,etc
 
+?There is a very decent chance that the library you downloaded at npm is the problem.If thats the case,switch to an alternative till the root cause of the problem in the library for you is figured out or resolved.
+
 *Trpc removes the need for controllers
 
 ^STRUCTURE OF A NEST JS SERVER
@@ -65,9 +67,7 @@ todo:Schema definition language--single source of truth for defining the schema 
 *Data schemas--app layer and database layer.They are used for stating the shape of data on the request and the database
 
 *The interecptors and middleware are both used for monitoring data on the server before and after a request-response cycle but they are slightly different.The middleware is executed before any requests reaches the route handler.They are mostly used for logging incoming requests.The interceptors are executed after the response and are used for logging responses and providing metrics to the client and server and how long it took to deliver the response.You dont log sensitive information because if for any reason,a hacker gets their hands on the log file,the data will be leaked and will cause a data breach.
-*Async and sensitive data.Time stamped logs are very important
 *Logging request body can lead to security vulnerabilities and performance issues.Log request bodies selectively
-
 *we often pad strings for dates to ensure that the strings have consistent digits
 
 *The tests are used for testing all these components.
