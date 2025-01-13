@@ -1,1 +1,1 @@
-SELECT * FROM "RequestLogs" WHERE (method='POST')
+SELECT * FROM "RequestLogs" WHERE (method='GET')

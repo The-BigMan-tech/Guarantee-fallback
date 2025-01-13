@@ -1,2 +1,2 @@
 primarykey,timestamp,method,url
-2,Mon Jan 13 2025 11:55:48 GMT+0100 (West Africa Standard Time),POST,/createSample
+1,Mon Jan 13 2025 11:37:16 GMT+0100 (West Africa Standard Time),GET,/getAllSamples

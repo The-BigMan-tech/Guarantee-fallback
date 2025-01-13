@@ -162,6 +162,8 @@ Jest junit
 pino
 reat lottie player
 dotenv
+postgres js
+pg js
 
 *other minors
 ^-------------
