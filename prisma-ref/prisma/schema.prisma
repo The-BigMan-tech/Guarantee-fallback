@@ -20,6 +20,12 @@ model account {
     password String
     foreignKey Int @unique @default(autoincrement())
 }
+model RequestLogs {
+    primarykey Int @id @default(autoincrement())
+    timestamp DateTime
+    method String
+    url String
+}
 model Sample {
     primarykey Int @id @default(autoincrement())
     username String @unique

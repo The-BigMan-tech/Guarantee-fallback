@@ -11,4 +11,14 @@ export class AppService {
   public async createSample(sampleData:Prisma.SampleCreateInput):Promise<Sample> {
       return await this.prisma.sample.create({data:sampleData})
   }
+  public async findSamplebyName(name:string):Promise<Sample> {
+    return await this.prisma.sample.findUnique({
+      where:{
+        username:name
+      }
+    }) as Sample
+  }
+  public async findAllSamples():Promise<Sample[]> {
+    return await this.prisma.sample.findMany()
+  }
 }

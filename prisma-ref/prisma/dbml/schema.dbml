@@ -16,6 +16,13 @@ Table account {
   foreignKey Int [increment, unique, not null]
 }
 
+Table RequestLogs {
+  primarykey Int [pk, increment]
+  timestamp DateTime [not null]
+  method String [not null]
+  url String [not null]
+}
+
 Table Sample {
   primarykey Int [pk, increment]
   username String [unique, not null]

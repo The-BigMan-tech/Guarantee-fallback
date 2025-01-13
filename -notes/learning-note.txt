@@ -38,11 +38,52 @@ todo:Schema definition language--single source of truth for defining the schema 
 ?Python has a static type checker like eslint called mypy
 ?loose,strict and deep equality
 
+?Decorators can be applied at three level:a class,a method or the parameter definition
+?If you dont provide a string in the Body or Param decorator,you extract the whole thing,else you extract a specific part from it.You can name the parameter names anything you like.Its just the place to extract the data to.
+
 ?in nest js we have controllers,services,pipes,guards,middleware,exception filters
-?The response body should always be an object to provide clarity and a structured message for error handling.It should be an object with the uninterpolated message of either the operation was a success or a falure ,then a data property showing the data that was requested,posted,updated or deleted.Any response that isnt a success should be thrown as an error using nest js exception filters
 
-?Operation safety should happen at the database layer and not manually at the app layer.Any error that occurs there should be caught in a catch block with the error initially set as unknown and then checking if its an instance of any of the errors provided by the database and then throw the appropriate error using nest js built-in exception filters.The error message will be an object with the message property set to a provided error message and another property for the error itself.It makes it easier to catch expected errors.
+?The response body should always be an object to provide clarity and a structured message for error handling.It should be an object with the uninterpolated message of either the operation was a success or a falure ,then a data property showing the data that was requested,posted,updated or deleted.Any response that isnt a success should be thrown as an error using nest js exception filters.
 
+?Operation safety should happen at the database layer and not manually at the app layer.Although,some operations safety will be manually handled
+
+?To achieve great exception handling like that in python,any error that occurs there should be caught in a catch block with the error type initially set as unknown and then checking if its an instance of any of the errors provided by the database using a switch case statement and then throw the appropriate error using nest js built-in exception filters.The error message will be an object with the message property set to a provided error message and another property for the error itself.It makes it easier to catch expected errors.Im choosing to use switch case for this one because it adds syntatic sugar for tasks like this that involves some type of checking.
+
+?in nest js,i cant directly access the response body without using the res decorator.I use built in nest js features rather than directly using the response or request body for simplicity like decorators for dynamic params and body payload,exception filters for errors,etc
+
+*Trpc removes the need for controllers
+
+^STRUCTURE OF A NEST JS SERVER
+*Pipes are for validating request data before it reaches the controllers
+
+*Guards are used to authorize data before it is served by a controller.
+
+*Controllers are just entry points to an api.They parse request data.Hand over the data logic to the right services and returns a response to the client either a success or an error.Controllers should be very thin in code,hand over most logic to the services and should only monitor the flow of data from request to response.They map route handlers to the appropriate routes
+
+*Services implement the actual application logic and business rules.They perform CRUD operations.Handle complex logic that may involve the use of apis or multiple resources and can be reused across controllers.The core logic of the app should be in the services or models as one might call it.
+
+*Data schemas--app layer and database layer.They are used for stating the shape of data on the request and the database
+
+*The interecptors and middleware are both used for monitoring data on the server before and after a request-response cycle but they are slightly different.The middleware is executed before any requests reaches the route handler.They are mostly used for logging incoming requests.The interceptors are executed after the response and are used for logging responses and providing metrics to the client and server and how long it took to deliver the response.You dont log sensitive information because if for any reason,a hacker gets their hands on the log file,the data will be leaked and will cause a data breach.
+*Async and sensitive data.Time stamped logs are very important
+*Logging request body can lead to security vulnerabilities and performance issues.Log request bodies selectively
+
+*we often pad strings for dates to ensure that the strings have consistent digits
+
+*The tests are used for testing all these components.
+
+*The module bundles related components together and creates an entry point to a part or the whole of the application.
+
+*The main.ts file creates the api using the module
+
+
+*Every coding language has to have a path and file library built in.
+
+*Interfaces are stict in their contracts but using a generic makes it flexible and thus reducing the need to create many interfaces because of changes in data type.
+
+*Functions are the go to way to reuse logic and not classes.Classes are for providing implementations to commonly shared logic across methods on data across many objects.
+
+*In a class,you can only write implementations in methods
 *when elements in a data structure needs to be unique,you use a set
 *The http verbs are purely semantic.Same thing as html semantic tags
 
@@ -60,9 +101,14 @@ todo:Schema definition language--single source of truth for defining the schema 
 
 *Because graphql allows the client to control the response he wants through the request,he doesnt need to know much about how the server works
 ^----------------------------------------------------------------------------------------------------------
+*The prisma keys:data,where
+
 *create function takes an object that has a data property with the data we want to create as the value.It can also take an array of objects to create many objects at once
+*create many is the same as create except that the dat property maps to an array of objects
 
+*FindUnique returns a single object
 
+^---------------------------------------------------------------------------------------------------------
 *The two layers for data on the server are:the app layer and the database layer.At the app layer,we use dtos and schemas.The dtos through class validataor with class transformer and zod define the shape of the data that will be received by a request together with nest js pipes for validation and the schemas either through a SDL or a using a class with decorators are used to define the shape of the data at the database layer.
 
 *Use interfaces for objects that only store data and use classes for objects that will need to have methods to perform complex operations on the data they store.
