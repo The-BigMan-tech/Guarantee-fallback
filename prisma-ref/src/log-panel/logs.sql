@@ -1,1 +1,1 @@
-SELECT * FROM "RequestLogs" WHERE (method='GET');
+SELECT * FROM "RequestLogs";
