@@ -53,14 +53,22 @@ todo:Schema definition language--single source of truth for defining the schema 
 
 ?There is a very decent chance that the library you downloaded at npm is the problem.If thats the case,switch to an alternative till the root cause of the problem in the library for you is figured out or resolved.
 
-*Trpc removes the need for controllers
+?Postgres triggers
+
+?Logging application logic--log files
+?Logging user interactions on the server--tables in postgres for complex querying
+
+*Javascript and typescript cannot access native features.It can only access things in the node js and browser environment.I can use rust with tauri.Python too cant access native features unless it is exposed by the interpreter. 
+
+*To get the current working directory,check my query logs.mjs file.
+*Trpc removes the need for controllers.
 
 ^STRUCTURE OF A NEST JS SERVER
-*Pipes are for validating request data before it reaches the controllers
+*Pipes are for validating request data before it reaches the controllers.
 
 *Guards are used to authorize data before it is served by a controller.
 
-*Controllers are just entry points to an api.They parse request data.Hand over the data logic to the right services and returns a response to the client either a success or an error.Controllers should be very thin in code,hand over most logic to the services and should only monitor the flow of data from request to response.They map route handlers to the appropriate routes
+*Controllers are just entry points to an api.They parse request data.Hand over the data logic to the right services and returns a response to the client either a success or an error.Controllers should be very thin in code,hand over most logic to the services and should only monitor the flow of data from request to response.They map route handlers to the appropriate routes.
 
 *Services implement the actual application logic and business rules.They perform CRUD operations.Handle complex logic that may involve the use of apis or multiple resources and can be reused across controllers.The core logic of the app should be in the services or models as one might call it.
 
@@ -68,7 +76,7 @@ todo:Schema definition language--single source of truth for defining the schema 
 
 *The interecptors and middleware are both used for monitoring data on the server before and after a request-response cycle but they are slightly different.The middleware is executed before any requests reaches the route handler.They are mostly used for logging incoming requests.The interceptors are executed after the response and are used for logging responses and providing metrics to the client and server and how long it took to deliver the response.You dont log sensitive information because if for any reason,a hacker gets their hands on the log file,the data will be leaked and will cause a data breach.
 *Logging request body can lead to security vulnerabilities and performance issues.Log request bodies selectively
-*we often pad strings for dates to ensure that the strings have consistent digits
+*we often pad strings for dates to ensure that the strings have consistent digits.
 
 *The tests are used for testing all these components.
 
@@ -76,6 +84,8 @@ todo:Schema definition language--single source of truth for defining the schema 
 
 *The main.ts file creates the api using the module
 
+
+?Js is event driven,asynchronous
 
 *Every coding language has to have a path and file library built in.
 
