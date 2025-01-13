@@ -29,15 +29,12 @@ async function fetchLogs(query,file) {
     const path = `${__dirname}/${file}.csv`
     await fs.writeFile(path,csv,()=>{})
     if (query.endsWith(';')) {
-        childProcess.exec(`start ${__dirname}/request-logs.csv`,(error, stdout, stderr) => {
-            if (error) {
-                console.error(`exec error: ${error}`);
-                return;
-            }
-            console.log(`stdout: ${stdout}`);
-            console.error(`stderr: ${stderr}`);
-            robot.keyTap('t', ['control', 'shift']);
-        })
+        childProcess.exec(`start ${__dirname}/request-logs.csv`)
+        setTimeout(()=>{
+            robot.keyTap('t',['control','shift']);
+            robot.keyTap('x',['control','shift']);
+            robot.keyTap('n',['control','shift']);
+        },2000)
     }
 }
 const watchPath = `${__dirname}/logs.sql`;
