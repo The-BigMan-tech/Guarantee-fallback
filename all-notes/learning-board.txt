@@ -164,6 +164,8 @@ reat lottie player
 dotenv
 postgres js
 pg js
+json2csv
+chokidar
 
 *other minors
 ^-------------
