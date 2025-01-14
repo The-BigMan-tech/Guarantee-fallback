@@ -98,9 +98,10 @@ Fast Check--property based test
 Stryker--mutation tests
 Cypress--E2E and component testing
 Postgre sql
-nest js logger
-Prisma js,prisma-dbml-generator
-*maybe go and learn graph ql
+Prisma js
+graph ql
+JWT token
+Winston and nest js logger
 Compo doc
 next js
 Pouch DB

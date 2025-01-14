@@ -8,23 +8,12 @@ generator client {
 generator dbml {
   provider = "prisma-dbml-generator"
 }
-model User {
-    primaryKey Int @id @default(autoincrement())
-    name  String 
-    email String @unique 
-    details account[]
-}
-model account {
-    primaryKey Int @id @default(autoincrement())
-    author User @relation(fields: [foreignKey],references: [primaryKey])
-    password String
-    foreignKey Int @unique @default(autoincrement())
-}
 model RequestLogs {
     primarykey Int @id @default(autoincrement())
     requestTimestamp DateTime
     method String
     url String
+    responseRecord ResponseLogs?
 }
 model ResponseLogs {
     primarykey Int @id @default(autoincrement())
@@ -33,6 +22,8 @@ model ResponseLogs {
     url String
     statusCode Int
     responseTime Int
+    requestRecord RequestLogs @relation(fields: [foreignkey],references: [primarykey])
+    foreignkey Int @unique @default(autoincrement())
 }
 model Sample {
     primarykey Int @id @default(autoincrement())

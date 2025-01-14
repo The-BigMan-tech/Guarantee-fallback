@@ -2,25 +2,12 @@
 //// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 //// ------------------------------------------------------
 
-Table User {
-  primaryKey Int [pk, increment]
-  name String [not null]
-  email String [unique, not null]
-  details account [not null]
-}
-
-Table account {
-  primaryKey Int [pk, increment]
-  author User [not null]
-  password String [not null]
-  foreignKey Int [increment, unique, not null]
-}
-
 Table RequestLogs {
   primarykey Int [pk, increment]
   requestTimestamp DateTime [not null]
   method String [not null]
   url String [not null]
+  responseRecord ResponseLogs
 }
 
 Table ResponseLogs {
@@ -30,6 +17,8 @@ Table ResponseLogs {
   url String [not null]
   statusCode Int [not null]
   responseTime Int [not null]
+  requestRecord RequestLogs [not null]
+  foreignkey Int [increment, unique, not null]
 }
 
 Table Sample {
@@ -38,4 +27,4 @@ Table Sample {
   userpassword String [not null]
 }
 
-Ref: account.foreignKey > User.primaryKey
+Ref: ResponseLogs.foreignkey - RequestLogs.primarykey

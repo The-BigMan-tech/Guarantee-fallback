@@ -58,6 +58,8 @@ todo:Schema definition language--single source of truth for defining the schema 
 ?Logging application logic--log files
 ?Logging user interactions on the server--tables in postgres for complex querying
 
+?table is to class and records are to objects
+
 *Javascript and typescript cannot access native features.It can only access things in the node js and browser environment.I can use rust with tauri.Python too cant access native features unless it is exposed by the interpreter. 
 
 *To get the current working directory,check my query logs.mjs file.
@@ -83,6 +85,8 @@ todo:Schema definition language--single source of truth for defining the schema 
 *The middleware chain completes before the interceptor chain.Intereceptors are processed before and after data reaches the route handler and after every other middleware.The middleware and the interceptor can both call or pass the control to the next handler in the response-chain but interceptors can call the handle method on the next function which returns an observable which represents the eventual response of that next handler.You can then create a pipe of chained rxjs operations that allows you to observe the data,log it or after it has been processed by the route handler essentially giving us the power to modify the response.Interceptors must call the handle method or else,the route handler wont be executed.
 
 ?Check on aspect oriented programming as interecptors are based on that.Logging is also used to understand your application better.Logging and transport.Developement logging goes to the console while production login goes to a file.
+
+?Modern programming languages use objects to store data
 
 *The tests are used for testing all these components.
 
@@ -116,14 +120,27 @@ todo:Schema definition language--single source of truth for defining the schema 
 *Because graphql supports many programming languages and backend frameworks,its documentation doesnt provide any specific code implementation on using it but rather,explains the concepts and how they work
 
 *Because graphql allows the client to control the response he wants through the request,he doesnt need to know much about how the server works
+
+^PRISMA
 ^----------------------------------------------------------------------------------------------------------
+?Jwt token to get the username so that the request records can be unique and something i can use to dynamically relate records to their right responses.Connecting a record to another and creating a record with a related field.
+
 *The prisma keys:data,where
 
 *create function takes an object that has a data property with the data we want to create as the value.It can also take an array of objects to create many objects at once
 *create many is the same as create except that the dat property maps to an array of objects
+*select is a subset.Select is equivalent to projection
+*include is for relations
+*update is just find and create
 
-*FindUnique returns a single object
+*FindUnique returns a single object based on a unique field.I should use it to query by primary keys or any other special id
+*Find many
+*Find first
+*uosert is like update but it creates a new record if the one to update doesnt exist
+*Commiting multiple related queries should be done in a transaction which ensures atomicity
+*To create relationships in code with prisma.I can either use connect to create a relationship between two records after they have been made spearately or create the record with its relationship in one go
 
+*Learn what you need to learn to get started using the technology and learn the rest when you need to.
 ^---------------------------------------------------------------------------------------------------------
 *The two layers for data on the server are:the app layer and the database layer.At the app layer,we use dtos and schemas.The dtos through class validataor with class transformer and zod define the shape of the data that will be received by a request together with nest js pipes for validation and the schemas either through a SDL or a using a class with decorators are used to define the shape of the data at the database layer.
 
