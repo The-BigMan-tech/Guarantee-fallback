@@ -22,9 +22,17 @@ model account {
 }
 model RequestLogs {
     primarykey Int @id @default(autoincrement())
-    timestamp DateTime
+    requestTimestamp DateTime
     method String
     url String
+}
+model ResponseLogs {
+    primarykey Int @id @default(autoincrement())
+    responseTimestamp DateTime
+    method String
+    url String
+    statusCode Int
+    responseTime Int
 }
 model Sample {
     primarykey Int @id @default(autoincrement())

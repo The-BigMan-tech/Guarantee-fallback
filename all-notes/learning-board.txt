@@ -1,5 +1,3 @@
-*intrerceptor,pino
-
 *LEARNING BANK
 ?--------------
 todo:Backend related
@@ -100,6 +98,7 @@ Fast Check--property based test
 Stryker--mutation tests
 Cypress--E2E and component testing
 Postgre sql
+nest js logger
 Prisma js,prisma-dbml-generator
 *maybe go and learn graph ql
 Compo doc

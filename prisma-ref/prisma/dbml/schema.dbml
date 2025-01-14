@@ -18,9 +18,18 @@ Table account {
 
 Table RequestLogs {
   primarykey Int [pk, increment]
-  timestamp DateTime [not null]
+  requestTimestamp DateTime [not null]
   method String [not null]
   url String [not null]
+}
+
+Table ResponseLogs {
+  primarykey Int [pk, increment]
+  responseTimestamp DateTime [not null]
+  method String [not null]
+  url String [not null]
+  statusCode Int [not null]
+  responseTime Int [not null]
 }
 
 Table Sample {

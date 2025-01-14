@@ -10,7 +10,9 @@ import postgres from 'pg';
 //For tapping the keyboard shortcut to turn my csv file to a fine table.Requires the csv to table extension
 import robot from 'robotjs'
 import childProcess from 'child_process'//To get the exec command for opening a csv file
+import util from 'util'
 
+const exec = util.promisify(childProcess.exec);
 
 //*Get the current directory of the file
 const __filename = fileURLToPath(import.meta.url);
@@ -37,13 +39,16 @@ async function fetchLogs(query,file) {
      **Im using it as a terminator so that it only opens the csv table till needed since i cant open the file
      **in the background and turn it to a table
      */
+    //console.log('QUERY:',query);
     if (query.endsWith(';')) {
-        childProcess.exec(`start ${__dirname}/request-logs.csv`)
+        await exec(`start ${__dirname}/request-logs.csv`)
         setTimeout(()=>{
             robot.keyTap('t',['control','shift']);
             robot.keyTap('x',['control','shift']);
             robot.keyTap('n',['control','shift']);
         },2000)
+        query = query.replace(';','')
+        await fs.writeFile(`${__dirname}/logs.sql`,query,()=>{})
     }
 }
 const watchPath = `${__dirname}/logs.sql`;//*watch the logs.sql file

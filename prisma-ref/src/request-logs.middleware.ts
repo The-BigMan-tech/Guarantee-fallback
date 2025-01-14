@@ -10,7 +10,7 @@ export async function requestLoggerMiddleware(req: Request, res: Response, next:
     const method = req.method;
     const url = req.url;   
     const logRecord:Prisma.RequestLogsCreateInput = {
-        timestamp:timestamp,
+        requestTimestamp:timestamp,
         method:method,
         url:url
     }

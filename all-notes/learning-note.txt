@@ -68,7 +68,7 @@ todo:Schema definition language--single source of truth for defining the schema 
 
 *Guards are used to authorize data before it is served by a controller.
 
-*Controllers are just entry points to an api.They parse request data.Hand over the data logic to the right services and returns a response to the client either a success or an error.Controllers should be very thin in code,hand over most logic to the services and should only monitor the flow of data from request to response.They map route handlers to the appropriate routes.
+*Controllers are just entry points to an api.They parse request data.Hand over the data logic to the right services and returns a response to the client either a success or an error.Controllers should be very thin in code,hand over most logic to the services and should only monitor the flow of data from request to response.They map route handlers to the appropriate routes for serving requests for a particular route.The route habndlers are the methods.
 
 *Services implement the actual application logic and business rules.They perform CRUD operations.Handle complex logic that may involve the use of apis or multiple resources and can be reused across controllers.The core logic of the app should be in the services or models as one might call it.
 
@@ -77,6 +77,12 @@ todo:Schema definition language--single source of truth for defining the schema 
 *The interecptors and middleware are both used for monitoring data on the server before and after a request-response cycle but they are slightly different.The middleware is executed before any requests reaches the route handler.They are mostly used for logging incoming requests.The interceptors are executed after the response and are used for logging responses and providing metrics to the client and server and how long it took to deliver the response.You dont log sensitive information because if for any reason,a hacker gets their hands on the log file,the data will be leaked and will cause a data breach.
 *Logging request body can lead to security vulnerabilities and performance issues.Log request bodies selectively
 *we often pad strings for dates to ensure that the strings have consistent digits.
+*Middleware can directly modify the request by attatching or adding data to it that must be present in any request like the username of the person that sent a request.It is used in conjuction with the jwt token.
+*The interceptor cannot directly add data to th response object as it may not be sent back to the client.Instead,we want to modify a property of the response that serves a placeholder for the data we want to add.We can use this send response metrics to the client.
+*The Interceptor can use the username of the modified request and log that data along with other repsonse metrics and relate it back to the right user in the request logs
+*The middleware chain completes before the interceptor chain.Intereceptors are processed before and after data reaches the route handler and after every other middleware.The middleware and the interceptor can both call or pass the control to the next handler in the response-chain but interceptors can call the handle method on the next function which returns an observable which represents the eventual response of that next handler.You can then create a pipe of chained rxjs operations that allows you to observe the data,log it or after it has been processed by the route handler essentially giving us the power to modify the response.Interceptors must call the handle method or else,the route handler wont be executed.
+
+?Check on aspect oriented programming as interecptors are based on that.Logging is also used to understand your application better.Logging and transport.Developement logging goes to the console while production login goes to a file.
 
 *The tests are used for testing all these components.
 
@@ -85,7 +91,7 @@ todo:Schema definition language--single source of truth for defining the schema 
 *The main.ts file creates the api using the module
 
 
-?Js is event driven,asynchronous
+?Js is event driven,asynchronous and functional
 
 *Every coding language has to have a path and file library built in.
 
