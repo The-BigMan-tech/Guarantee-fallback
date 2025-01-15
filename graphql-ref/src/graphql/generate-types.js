@@ -18,4 +18,4 @@ watcher.on('change',async ()=>{
         path: join(__dirname, './graphql.ts'),
         watch:true
     });
-})
+});

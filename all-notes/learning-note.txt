@@ -66,7 +66,7 @@ todo:Schema definition language--single source of truth for defining the schema 
 ?Graph ql in nest js requires ts-morph
 ?Persistent and short processes.Nodemon make it a long lived process
 ?Polling mechanism vs file watching
-
+?Code bloating vs boilerplate
 
 *Javascript and typescript cannot access native features.It can only access things in the node js and browser environment.I can use rust with tauri.Python too cant access native features unless it is exposed by the interpreter. 
 
@@ -117,6 +117,10 @@ todo:Schema definition language--single source of truth for defining the schema 
 
 ^GRAPHQL
 ^------------------------------------------------------------------------------
+*The graphql schema is the single source of truth for a graphql api.Not only does it define the shape of the data but also defines the endpoints of all types of operations that the server can accept.The implementation of those endpoints is in the resolver
+
+*We use args to extract data for use in our resolvers similar to path parameters in rest
+
 *Resolvers are code that allows users to interact with their data on graphql
 *The types of root operations are queries,mutations and subscriptions but they are all the same other than their descriptive names.Its up to the implementation of these queries.
 
@@ -153,7 +157,7 @@ todo:Schema definition language--single source of truth for defining the schema 
 
 *Learn what you need to learn to get started using the technology and learn the rest when you need to.
 ^---------------------------------------------------------------------------------------------------------
-*The two layers for data on the server are:the app layer and the database layer.At the app layer,we use dtos and schemas.The dtos through class validataor with class transformer and zod define the shape of the data that will be received by a request together with nest js pipes for validation and the schemas either through a SDL or a using a class with decorators are used to define the shape of the data at the database layer.
+*The two layers for data on the server are:the app layer and the database layer.At the app layer,we use dtos or zod schemas for rest and graph ql schemas for graphql apis.They define the shape of the data that will be received by a request together with nest js pipes for validation.For the database layer,we have classes with decorators or an sdl like prisma to define the shape of the data at the database layer.
 
 *Use interfaces for objects that only store data and use classes for objects that will need to have methods to perform complex operations on the data they store.
 
