@@ -35,6 +35,8 @@ todo:Schema definition language--single source of truth for defining the schema 
 
 ^Becareful of keybindings as they may conflict with the keys as you type
 
+?You can use the text mate rules key under the token customization settings in the settings.json file to change the token color and in combination with the custom css ad js extension,i can cutsomize the look of vscode without having to make a syntax highlighter
+
 ?Python has a static type checker like eslint called mypy
 ?loose,strict and deep equality
 

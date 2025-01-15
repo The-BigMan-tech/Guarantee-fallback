@@ -16,4 +16,5 @@ export async function requestLoggerMiddleware(req: Request, res: Response, next:
     }
     await prisma.requestLogs.create({data:logRecord})
     next();
+    
 }
