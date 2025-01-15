@@ -8,9 +8,15 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export interface CreateUserResponse {
+export interface Sample {
     message: string;
     data: User;
+}
+
+export interface Apple {
+    message: string;
+    data: User;
+    energy: string;
 }
 
 export interface User {
@@ -25,7 +31,8 @@ export interface IQuery {
 }
 
 export interface IMutation {
-    createUser(name: string, email: string): Nullable<CreateUserResponse> | Promise<Nullable<CreateUserResponse>>;
+    createUser(name: string, email: string, energy?: Nullable<string>): Nullable<CreateUserResponse> | Promise<Nullable<CreateUserResponse>>;
 }
 
+export type CreateUserResponse = Sample | Apple;
 type Nullable<T> = T | null;

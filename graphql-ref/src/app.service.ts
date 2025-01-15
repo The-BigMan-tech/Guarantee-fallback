@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { User } from './graphql/graphql.js';
+import { User,Sample,Apple} from './graphql/graphql.js';
 
 @Injectable()
 export class AppService {

@@ -1,7 +1,14 @@
-type CreateUserResponse {
+type Sample {
     message:String!
     data:User!
 }
+type Apple {
+    message:String!
+    data:User!
+    energy:String!
+}
+union CreateUserResponse = Sample | Apple
+
 type User {
     id: ID!
     name: String!
@@ -11,6 +18,10 @@ type Query {
     user(id: ID!): User
     allUsers: [User]
 }
+"""
+A multiline comment
+"""
+"Inline comment"
 type Mutation {
-    createUser(name:String!,email:String!):CreateUserResponse
+    createUser(name:String!,email:String!,energy:String):CreateUserResponse
 }

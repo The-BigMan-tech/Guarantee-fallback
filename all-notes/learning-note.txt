@@ -3,6 +3,9 @@
 !Pray for Adelani
 !Be secure with your current password.Make a new set of secure passwords for the tools i use.
 !epic fight minecraft mod and addons
+?Docker container apps
+todo:'If you cant read it,code it'
+
 todo:Learn about package managers in detail:npm,pnpm and also npx
 todo:Learn how version control works in detail
 todo:SWC compiler,tsc compiler,Babel compiler,llvm.
@@ -25,8 +28,12 @@ todo:Dont solve problems that are really not a problem
 todo:Dont context switch between programming languages
 todo:Curl
 todo:Schema definition language--single source of truth for defining the schema of the data.
+
+TODO:Learn how to encapsulate react component logic to hooks.This settles that react is functional in its paradigm.
 ?wsl
 ?environment variables on the system allows us to access software from anywhere in our system using the command prompt or powershell
+?A crud api is one that allows users to read and write data to and from the server i.e Create,Read,Update,Delete and for rest apis,they are defined with get,post,put,patch and delete http verbs and for graphql,its queries and mutations
+?RTK and react query creates a single source of truth for all requests to the server from a component.
 
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
@@ -119,12 +126,33 @@ todo:Schema definition language--single source of truth for defining the schema 
 
 ^GRAPHQL
 ^------------------------------------------------------------------------------
-*Reusing values across queries using variables
+*every field can have arguments
+*Input object types are normal graphql object types but they can be used as args in queries or mutations
 
+*A resolver should be properly mapped to the type it returns
+
+*We use inline fragments to query the union type
+
+*Union types are for multiple possible return values.For endpoints returning a union or an abstarct interface,the resolver has to return a value that is a concrete of the union or abstract interface.
+
+*When graphql objects shares data,we should use interfaces for type safety.
+
+*The graphql schema also serves a complete documentation to the client what requests,fields and type of data they can send to the server and what they expect in return as seen in postman
+
+*Deprecation means that a feature is no longer supported but its still available for use because of legacy code but can be removed once the developers determine it is no longer needed
+
+*Entrypoints may or may not have arguments
+
+*Graph ql is only a layer over your server.It is just a shema to define your server in detail.The actual code that resolves all of this is written in the language of your choice.Graphql can also prevent the hassle of api versioning
+
+*Reusing values across queries using variables
 
 *Graphql gives the client the power to define how the response body should look like.
 
-*The graphql schema is the single source of truth for a graphql api.Not only does it define the shape of the data like dto but also defines the endpoints or api interactions on the server.The implementation of those endpoints is in the resolver
+*Graphql makes the client to confidently use an api without knowing much about the api
+*Resolvers are like route handlers but more thought of as query handlers.They are mapped to the queries defined in the graphql schema file just like how route handlers are mapped to routes on the server.In graph ql,there are two types of requests;query and mutation or read and write
+
+*The graph ql schema is the single source of truth for a graph ql api.It defines the shape and structure of the data that will be used throughout the api and be returned to the client.Not only that,but it also defines all the entrypoints and api endpoints for our server.The definition of those entrypoints are mapped to resolvers.Graphql is agnostic/neutral to databases,programming languages and transport layers.The graphql schema is the plan for your whole api.
 
 *We use args to extract data for use in our resolvers similar to path parameters in rest
 

@@ -8,6 +8,8 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
 
 import { UserResolver } from './sample.resolver.js';
+import { ResultUnionResolver } from './union.resolver.js';
+
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -20,6 +22,6 @@ import { UserResolver } from './sample.resolver.js';
     }),
   ],
   controllers: [AppController],
-  providers: [AppService,UserResolver],
+  providers: [AppService,UserResolver,ResultUnionResolver],
 })
 export class AppModule {}
