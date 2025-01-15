@@ -117,6 +117,8 @@ todo:Schema definition language--single source of truth for defining the schema 
 
 ^GRAPHQL
 ^------------------------------------------------------------------------------
+*Graphql gives the client the power to define how the response body should look like.
+
 *The graphql schema is the single source of truth for a graphql api.Not only does it define the shape of the data but also defines the endpoints of all types of operations that the server can accept.The implementation of those endpoints is in the resolver
 
 *We use args to extract data for use in our resolvers similar to path parameters in rest

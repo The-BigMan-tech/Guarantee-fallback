@@ -19,7 +19,7 @@ export class UserResolver {
         return await this.appService.findAllUsers()
     }
     @Mutation()
-    async createUser(@Args('user') user:User):Promise<StructuredResponse<User>> {
+    async createUser(@Args() user:User):Promise<StructuredResponse<User>> {
         const data = await this.appService.createUser(user.name,user.email)
         return {message:'Successfully created the data',data:data}
     }   
