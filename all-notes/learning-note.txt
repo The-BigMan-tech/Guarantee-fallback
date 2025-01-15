@@ -62,6 +62,9 @@ todo:Schema definition language--single source of truth for defining the schema 
 
 ?table is to class and records are to objects
 
+?Peer dependencies
+?Graph ql in nest js requires ts-morph
+?Persistent and short processes.Nodemon make it a long lived process
 *Javascript and typescript cannot access native features.It can only access things in the node js and browser environment.I can use rust with tauri.Python too cant access native features unless it is exposed by the interpreter. 
 
 *To get the current working directory,check my query logs.mjs file.
