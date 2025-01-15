@@ -8,15 +8,15 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export interface IQuery {
-    user(id: string): Nullable<User> | Promise<Nullable<User>>;
-    allUsers(): Nullable<Nullable<User>[]> | Promise<Nullable<Nullable<User>[]>>;
-}
-
 export interface User {
     id: string;
     name: string;
     email: string;
+}
+
+export interface IQuery {
+    user(id: string): Nullable<User> | Promise<Nullable<User>>;
+    allUsers(): Nullable<Nullable<User>[]> | Promise<Nullable<Nullable<User>[]>>;
 }
 
 type Nullable<T> = T | null;

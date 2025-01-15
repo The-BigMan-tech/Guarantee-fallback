@@ -65,6 +65,9 @@ todo:Schema definition language--single source of truth for defining the schema 
 ?Peer dependencies
 ?Graph ql in nest js requires ts-morph
 ?Persistent and short processes.Nodemon make it a long lived process
+?Polling mechanism vs file watching
+
+
 *Javascript and typescript cannot access native features.It can only access things in the node js and browser environment.I can use rust with tauri.Python too cant access native features unless it is exposed by the interpreter. 
 
 *To get the current working directory,check my query logs.mjs file.
@@ -112,6 +115,9 @@ todo:Schema definition language--single source of truth for defining the schema 
 *when elements in a data structure needs to be unique,you use a set
 *The http verbs are purely semantic.Same thing as html semantic tags
 
+^GRAPHQL
+^------------------------------------------------------------------------------
+*Resolvers are code that allows users to interact with their data on graphql
 *The types of root operations are queries,mutations and subscriptions but they are all the same other than their descriptive names.Its up to the implementation of these queries.
 
 *A graphql object is an object that describes what data we can fetch and what field it has
