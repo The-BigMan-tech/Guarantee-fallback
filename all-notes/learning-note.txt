@@ -68,6 +68,8 @@ todo:Schema definition language--single source of truth for defining the schema 
 ?Polling mechanism vs file watching
 ?Code bloating vs boilerplate
 
+?No wonder why prisma's and graphql's sdl were awefully similar.Prisma was inspired by graphql
+
 *Javascript and typescript cannot access native features.It can only access things in the node js and browser environment.I can use rust with tauri.Python too cant access native features unless it is exposed by the interpreter. 
 
 *To get the current working directory,check my query logs.mjs file.
@@ -117,9 +119,12 @@ todo:Schema definition language--single source of truth for defining the schema 
 
 ^GRAPHQL
 ^------------------------------------------------------------------------------
+*Reusing values across queries using variables
+
+
 *Graphql gives the client the power to define how the response body should look like.
 
-*The graphql schema is the single source of truth for a graphql api.Not only does it define the shape of the data but also defines the endpoints of all types of operations that the server can accept.The implementation of those endpoints is in the resolver
+*The graphql schema is the single source of truth for a graphql api.Not only does it define the shape of the data like dto but also defines the endpoints or api interactions on the server.The implementation of those endpoints is in the resolver
 
 *We use args to extract data for use in our resolvers similar to path parameters in rest
 

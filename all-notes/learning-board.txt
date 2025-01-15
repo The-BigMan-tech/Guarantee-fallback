@@ -140,7 +140,7 @@ Prisma js
 Emmet snippets
 Git and github
 Postman
-Deployment platforms--netlify,vercel,render and github pages
+Deployment platforms--netlify,vercel,render,github pages and coolify for self deployment
 
 *Bonus
 ^------
