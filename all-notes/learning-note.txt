@@ -28,12 +28,22 @@ todo:Dont solve problems that are really not a problem
 todo:Dont context switch between programming languages
 todo:Curl
 todo:Schema definition language--single source of truth for defining the schema of the data.
-
+todo:HOC,higher order functions,decorators and wrapper classes
 TODO:Learn how to encapsulate react component logic to hooks.This settles that react is functional in its paradigm.
+todo:Redux,RTK query,react query,datbase schemas,graphql schemas,dtos/zod schemas and apollo client follow the single source of truth principle.A DTO is a contract for the structure of the data that will be transferred between the server and client while a schema is a contract for the shape of the data in the database
+
+
+?Saving webs as apps with chrome uses the native webview
+?Decorators and other @ rules in other langs use @ to mean mdoify
 ?wsl
 ?environment variables on the system allows us to access software from anywhere in our system using the command prompt or powershell
 ?A crud api is one that allows users to read and write data to and from the server i.e Create,Read,Update,Delete and for rest apis,they are defined with get,post,put,patch and delete http verbs and for graphql,its queries and mutations
 ?RTK and react query creates a single source of truth for all requests to the server from a component.
+?React-dom is the package that manipulates the v-DOM
+?DDL,DML,SQL,DQL
+
+^React--functional,component based architecture
+^Nest js--object oriented,mvc architecture
 
 ^switching vocals with nightcore music from skylest
 ^Better anime power:His power is statelessness meaning that he never retains his state as all state is lost over time giving him the power of respawning like in video games
@@ -126,6 +136,27 @@ TODO:Learn how to encapsulate react component logic to hooks.This settles that r
 
 ^GRAPHQL
 ^------------------------------------------------------------------------------
+*I like graph ql's single source of truth.Many similar queries can be defined in one query operation
+
+*We use directives to change the shape of our query dynamically while variables are used to change the arguments dynamically.
+
+*Fragments are a block of fields that we can query reusably throughout all our other queries to keep our code DRY.They basically just spread fields from a type into another.Inline fragments are used to conditionally include fields based on the type being returned meaning that if the type a query returns doesnt resolve to the type expected,the fields will not be present.Inline fragments are for specifying the data that graphql returns on a concrete level because all fields on a graphql query should be concrete.
+
+*in graphql,you cant query the same field twice because graph ql queries requires that each query should be unique.this is because graph ql data is structured likea json which requires unique keys.Aliases resolves this by making each of the query's names unique.
+
+*We can pass variables for dynamic querying
+
+*A graphql request consists of the operation type and name,then the specific field which is what we want to query
+
+*Appollo is what we use to set up a graoh ql server and a graphql client
+
+*For rest,its fetch api or axios,for graphql,its apollo client
+
+*Query with multiple args/no args--GET
+*Mutation with multiple args/no args--DELETE
+*Mutation with payload in one arg like an input object---POST,PUT,PATCH
+
+*Graph ql is like a query language especially for detailed field selecting
 *every field can have arguments
 *Input object types are normal graphql object types but they can be used as args in queries or mutations
 

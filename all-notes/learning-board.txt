@@ -3,7 +3,6 @@
 todo:Backend related
 ---------------------
 tRPC
-Graphql server
 socket io
 
 todo:Backend security related
@@ -92,12 +91,12 @@ Rust--for making system level functions for my tauri app
 *CURRENT LEARNING SESSION
 ?------------------------
 graph ql,appollo client
-JWT token
-Winston and nest js logger
-Compo doc
+Pouch db
 next js
-Pouch DB
 Dasiy UI
+JWT token
+minor:Winston and nest js logger
+minor:Compo doc
 
 
 
@@ -167,6 +166,7 @@ dotenv
 postgres js
 pg js
 json2csv
+json colorizer
 chokidar
 
 *other minors

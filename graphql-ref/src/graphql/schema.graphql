@@ -15,13 +15,9 @@ type User {
     email: String!
 }
 type Query {
-    user(id: ID!): User
+    user(id: ID!): User #*Resolves to the type User.So we will create a User resolver.The type it resolves to is like a route.Each of the entrypoints that resolves to a user has to be implemented by a function under the resolve type
     allUsers: [User]
 }
-"""
-A multiline comment
-"""
-"Inline comment"
 type Mutation {
     createUser(name:String!,email:String!,energy:String):CreateUserResponse
 }

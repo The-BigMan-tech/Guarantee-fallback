@@ -1,0 +1,7 @@
+{
+    "client": {
+        "service": {
+            "localSchemaFile": "./src/graphql/schema.graphql"
+        }
+    }
+}
