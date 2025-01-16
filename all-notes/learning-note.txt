@@ -41,6 +41,7 @@ todo:Redux,RTK query,react query,datbase schemas,graphql schemas,dtos/zod schema
 ?RTK and react query creates a single source of truth for all requests to the server from a component.
 ?React-dom is the package that manipulates the v-DOM
 ?DDL,DML,SQL,DQL
+?Dynamic behaviour is handled at runtime
 
 ^React--functional,component based architecture
 ^Nest js--object oriented,mvc architecture
@@ -136,6 +137,8 @@ todo:Redux,RTK query,react query,datbase schemas,graphql schemas,dtos/zod schema
 
 ^GRAPHQL
 ^------------------------------------------------------------------------------
+*A graphql schema gets auto validated like setting up a dto with a pipe in a rest server
+
 *I like graph ql's single source of truth.Many similar queries can be defined in one query operation
 
 *We use directives to change the shape of our query dynamically while variables are used to change the arguments dynamically.
@@ -154,7 +157,7 @@ todo:Redux,RTK query,react query,datbase schemas,graphql schemas,dtos/zod schema
 
 *Query with multiple args/no args--GET
 *Mutation with multiple args/no args--DELETE
-*Mutation with payload in one arg like an input object---POST,PUT,PATCH
+*Mutation with payload in one arg using an input object---POST,PUT,PATCH
 
 *Graph ql is like a query language especially for detailed field selecting
 *every field can have arguments
