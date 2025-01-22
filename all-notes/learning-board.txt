@@ -38,9 +38,10 @@ GSAP
 todo:Native app related
 ------------------------
 Electron js
-ionic js
 Nw js
 React native
+Expo js
+ionic js
 
 todo:DB related
 ----------------
@@ -51,14 +52,15 @@ Elastic saerch
 
 todo:Testing related
 -------------------
-vitest
-Cucumber js
-playwright
+vitest--Frontend Component testing
+Cucumber js--Behaviour driven testing
+playwright--Frontend e2e testing
 
 
 todo:Extras
 -----------
 *Making clis with commander js
+Lerna
 Meilisearch js
 D3 js
 Apex charts
@@ -76,7 +78,7 @@ SendGrid
 
 todo:Cloud
 ---------------
-Firebase,Supabase
+Firebase,Supabase,Appwrite,pocketbase
 Azure,Google cloud,Aws
 Terraform
 
@@ -93,7 +95,11 @@ Rust--for making system level functions for my tauri app
 graph ql and appollo client--Graphql doc 3 more chapters on the life cycle of a graph ql query
 Pouch db
 next js
+Uiverse.io
 Dasiy UI
+Gsap
+Framer motion
+lottie animations
 JWT token
 minor:Winston and nest js logger
 minor:Compo doc
@@ -122,12 +128,12 @@ Chart js
 Redux and RTK query
 Tauri--basics
 Docker
-Wallaby.js
-Jest--unit and mock tests
-Supertest--api integration tests
-Fast Check--property based test
-Stryker--mutation tests
-Cypress--E2E and component testing
+Wallaby.js--Backend auto test bot
+Jest--Backend unit and mock tests
+Supertest--Backend api integration tests
+Fast Check--Backend property based test
+Stryker--Backend mutation tests
+Cypress--Frontend E2E and component testing
 Postgre sql
 Prisma js
 
@@ -195,6 +201,8 @@ angular
 Time scale DB
 fastify
 xml
+three js
+Blend 4 web
 My sql
 Hugo
 Htmx

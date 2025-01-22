@@ -3,6 +3,13 @@
 !Pray for Adelani
 !Be secure with your current password.Make a new set of secure passwords for the tools i use.
 !epic fight minecraft mod and addons
+
+?Responsiveness--flexible layouts,relative units
+
+?To get cypress up and running properly for react apps,you should install vite5.0 with react,add the cypress types and include ts and tsx files in tsconfig.json,add the d.ts file for the mount method
+?You can store data in flat files or a database
+?Random access means accessing specific data without traversing through the whole memory like lists and arrays
+
 ?Docker container apps
 todo:'If you cant read it,code it'
 
