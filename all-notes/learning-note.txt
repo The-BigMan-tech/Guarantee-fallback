@@ -38,7 +38,7 @@ todo:Schema definition language--single source of truth for defining the schema 
 todo:HOC,higher order functions,decorators and wrapper classes
 TODO:Learn how to encapsulate react component logic to hooks.This settles that react is functional in its paradigm.
 todo:Redux,RTK query,react query,datbase schemas,graphql schemas,dtos/zod schemas and apollo client follow the single source of truth principle.A DTO is a contract for the structure of the data that will be transferred between the server and client while a schema is a contract for the shape of the data in the database
-
+todo:The difference between msis and nsis installers
 
 ?Saving webs as apps with chrome uses the native webview
 ?Decorators and other @ rules in other langs use @ to mean mdoify
