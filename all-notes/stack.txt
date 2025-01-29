@@ -1,0 +1,325 @@
+^Frontend
+----------
+*Tailwind css--for the ui
+*daisy ui--extra ui utilities
+*React--the main frontend
+*Redux---state management
+*RTk query--single source of truth for all queries in the frontend
+*Tauri--to packae my app as a desktop app
+*Cypress--ui testing
+*Immer library--to make changes to immutable state easier
+Pouch db--a persistent local storage for the app's state
+*react router dom-for web apps 
+
+minors
+*uuid--to create unique
+
+
+^Backend--For user account and to backup data
+---------
+Nest js--The main backend framework
+mongo db--to backup user's data
+postgre sql--to store user's data
+Prisma--An orm for my postgres
+Jest,Supertest,fast check and stryker--for testing
+Docker--To containerize my backend
+coolify--to deploy it
+
+
+*Typos can lead to lots of trouble and also,to configure a path,use an alias in vite config file and map the path to the tsconfig file
+
+*Conditional testing
+*dont directly interpolate,evaluate or execute user input as it can lead to code injection
+*cypress has a jquery like syntax
+
+
+*You can run linux on windows with wsl
+*You can run windows on mac with a vm
+*You can run android on windows and mac using emulators like bluestacks
+*You can run web apps on desktop natively using wrbview
+
+*To make a style apply to the whole page even without content,you have to set its h to h-screen
+*Global css.Index.css as seen in tailwind is a global css solution
+*font spring
+*Jsx only takes expressions
+
+*To conditionally apply styles in tw,you use interpolation but for scss,you use their directives
+*from now on,use local fonts so that they work even when the app is offline.You first use the index.css to register it using the @font face rule and providing the name,the src relative to the font folder in the public folder and the format of the font
+
+
+*Css and Js can both do animations but Js libraries are more powerful
+
+*Daisy ui--ui library.Ui libraries can be styled components,utility classes or opionated classes
+*Gsap,framer motion,react spring and react scroll parallax--animation library
+*Animation libraries are animated components just like styled components
+*Dom manipulation is just querying the dom
+
+*I should have used h-screen for that kanabn sidebar
+*Try your best to use relative units
+*Dont forget to provide the redux store.
+*If i want to create a block arrow function,i have to use ()
+*Dont use reserved words
+*There is a difference between a json object and a class
+*When elements in a list of jsx elements modify and read to the same state,it causes a rerender each time and all of them will end up having the same value even if you taught you modified only for one element.My solution to this at least for now and possibly only for input elements,it to use the use ref hook and make each input to reference the same ref
+
+*Style based on props and since react uses keys,it will track which value changed so there is no need for that my idea of boolean arrays again
+
+*Routing in frontend frameworks is like adding server side routing but for component frameworks
+
+*When defining routes,give each component its own route because if not,it will be globally available across all other routes.
+*When using routes,you dont directly mount the components in the main one but rather allocate/map them to specific routes.
+
+*Poop sample can repair infection in the future
+
+*For conditional rendering in react,we use && for a single if statement but for if else chains,we use the ternary operator and for loop rendering,we use map.This is because jsx can only take expressions
+
+*There is useRef and CreateRef but use useRef
+*non null assertion vs optional chainin operator and assertion on assignment
+*max height is used to tell a container to continue to grow but stop at a certain size
+*Refs are used to directly point to an element in the dom
+
+todo:When i tried to bind an input value to a state,any change to that input value caused the other inputs that depended on that state in a jsx map to re-render and thus,the input box always cleared each time i typed in it.And at some point,i got it to stop clearing but the input box always went out of focus because it always re-rendered and the state change will be applied to all the input elements instead of the one that changed it but when i used a ref,all that problem was gone since refs dont cause re-rendering and point directly to an element in the dom but when i used it for a condition check,the jsx elements in that block were fixed since refs dont cause a re-render so i had to use a normal state and it worked this time without the first problem happening except for the fact that a change in that state will be reflected in every jsx element that uses that state rather than the one that specifically changed it.I believe that when i inserted the jsx elements that depended on that state under a condition check of it,it only rendered the jsx elements that passed the condition which prevented the issue of the whole map re-rendering when the state changes rather than just the jsx element that caused it and also,by creating an equality condition check to a property that is unique to each element,like if state === element.name,it prevented the state from being globally applied.Although,i am not too sure about this,so i need to use it more before confirming or making any more deductions.And also,in svelte,the re-rendering issue is absent so i used an array to create scoped states where each element in a list rendered element has its own scoped state according to its index.This wont work in react because of the re-rendering problem.
+todo:My deduction is correct.To scope a state for a particular jsx element,you use an equlity check of the state to a unique property of each of the jsx elements like their id.
+todo:Or maybe it didnt work because i didnt add unique keys to the input children but only to the container.
+
+*To toggle between classes,use a ternary operator that checks the state,if the state is true,set it to false,else true in a one liner
+
+*Using a ref solved the rendering issue when an element in a map changes the state since refs dont cause re-renders
+
+*Change in refs do not cause re-renders like in state and as such,any jsx that depends on them will be fixed and not re-render despite changes to them and as such,it is good for mapped jsx and doesnt need a boolean array like i used in svelte.
+
+*Styling isolatively for mapped jsx in react doesnt need a boolean array like i did in svelte because react uses keys to keep track of the elements.You just need to use to use a ternary operator in an interpolated string
+
+
+*A tauri app may not look the same as it woud have on a browser because webkit has a slightly different way of rendering styles than the browser
+
+*You can also use a ternary operator to change the src of an image rather than stressing yourself to use condition checks which can make your code harder to read
+
+*We use ternary operators to conditionally style jsx and conditional rendering for conditionally rendering jsx elements
+
+*There are three scopes of state;global local and element local.Global state is shared amongst components,local state is within one component while element local state is scoped to a particular jsx element in a component.Useful for map rendered elements.
+
+todo:fix the name of a board when it overflows the container
+
+*Absolute positioning takes away the space an element takes while relative keeps that space even if it isnt visually occupying that space
+
+*For input elements,you dont need to add the value property to bind it to a state but for options within the select element,you have to provide a state to the value property of the select element as a default.For the select element,you have to bind the input to the select element and not the options.The style you apply to the options is for the option box but for the select element container,it is the option selected in the selected box and for the select element,the value of each option should be provided so that it can reflect in the select container and binding can be applied at the container
+
+
+*You can do a two way data binding between a parent and a child component by passing the state setter of the parent as a prop to the child
+
+*I use props only when i want to break a component into smaller decoupled components for readability where the parent that assembles them passes props to them
+
+
+^my code is functional but unnecessarily complex and very hard to read and maintain.So ill reach a point where i'll stop adding features and do a complete refactor complete refactor is rewuired without breaking any functionality.
+
+*Check my tauri cfg.json file for how i finalized the settings of my app
+
+?Latest
+fixed moving groups bug
+Added progress bars
+Fixed the progress bars bug
+Quick adding of tasks
+editing a task
+Fixed the bug with the view card not updating when the task status changes
+Fixed the bug when editing a task
+Made the group input better
+
+todo:FEATURES
+Keyboard support
+Adding date
+Check on clickup for more
+
+?todo:Bugs and fixes
+fix the truncation of long board names
+error message when creating duplicate groups
+
+?todo:Full refactor
+Write cypress tests for every component
+Custom hooks to share code across many components
+Functions to share logic across reducers
+Breaking down a component into smaller components
+moving inline event listeners to external functions
+Replacing many inline attributes with a function that can directly manipulate its dom using its id
+
+todo:Plug a licensing service to my licensing system that uses local storage
+
+
+*To read data from a redux store,we use a selector and to change a state,we dispatch an action
+
+*For the color dots in my kanban app next to each group name to add flavour to the ui or ux,i created an array of tw color utility classes and when looping over the groups,i used the index to access the right color in the colors array according to its index.In case the index exceeds the array,it will use the modulus of the index to the length of the color array to get an index in the color array essentially looping over the colors when the index exceeds its length which prevents them from having undefined colors.
+
+*Filter and splice can remove items from an array.Splice uses index while filter uses a condition check on some property.
+
+*From now on,be creating the unique ids at a redux slice
+
+todo:Docker desktop--wsl,services,task manager,virtual machine platform in windows features 
+todo:Tauri--tauri cli,rust toolchain,ms visual studi build tools.
+
+*To clear that details text in a daisy ui dropdown,you add an empty summary tag
+*when confused about why some styles are applied to elements,it can be as a result of the browser styles.use the inspector tool to check which styles are being applied to an element that are causing the issue.Inline tailwind styles are the best way to override them
+
+*The rendering was messed up because the keyprop wasnt unique even though i made sure it is unique and this is because,the children of the element were sharing the same keys,so i had to give each child its own unique key as well
+
+*Routing in the frontend is like that in the backend and there is also a package for handling query parameters in the frontend
+
+*Paths are to files,routes to frontend and backend,action types to reducers
+
+*In js,the splice method can be used to both insert and delete an element from an array using its index.The first par is the index of the element you want to perform your operation on.The second par is how many of the elements in the array will get a side effect;1 means that it will affect one element from that index and 0 means it will affect none.The third par is the element we want to insert in the index as specified by the first parameter.
+
+*Splice and filter can remove elements from an array except that splice uses index while filter uses a property
+
+todo:Something weird happened.A component that uses svg code couldn't load properly in a list rendered component but it could in a non list rendered component.I then left it imported in the normal rendered componet and then it worked well in the list rendered component.It didnt work again in the list rendered component once i took it of the normal rendered one.I found the solution by mistake when i imported the component in another to test it in isolation.Of course,the problem is lack of unique ids for each of the children but the one i discovered is the faster solution
+
+*You must provide a default value for select because if not,it will not listen to any value if there is only one option and thats why i had one bug about adding a task to a group when it was the only group on the board
+
+*you'll use props more when you want to break down a component into more child components
+*Local storage thing:'
+
+Todo:concurrently npm
+todotoastify
+todo:three js,blend4web
+todo:javascript mastery channel
+todo:Hello pangea/dnd
+
+*Condition checks can be very technical at times like the filter in my kanban app.It took serious thinking of the condition checks for the program to properly apply the right filter to the right board and to clean up any space occupied by the invisible non filtered groups
+
+*error lens with es lint or linters
+
+*I finally fixed the progress bars bug.The issue was that i was tracking the number of tasks in every group through user interactions like when they add or delete a task or a group and made the program manually increment and decrement the number per interaction which wasnt efficient as i had to do this for every possible user interaction that modifies a task or a group.I only did this because the structure of the data is very nested and it i wanted to increment the count as the task in the map where generated but there was no way to write code logic direclty in jsx without events so i did that as a workaround.But i later wrote a code in the use effect hook that directly watches for changes in the length of each group independent of user interacctions and thus,making it more efficient.
+
+*In react,immutability is key.Immutability ensures array and object safety
+
+todo:
+Tailwind css animate
+tailwind css 3d
+tailwind scrollbar hide
+tailwind flip
+tailwind container queries
+
+responsive tw classes
+layouts like grid and flexbox with container queries
+Relative units
+
+
+
+?Sentry js
+?The console ninja extension looks good but suffers from monetization so i'll make my own version that also dislays log messages directly in the editor
+
+vscode has a built in git client
+
+todo:Clerk
+?React router dom,next js file based routing
+
+By default,tauri doesnt expose dev tools to the users because of security.Do not expose the dev tools to the client for any reason.
+
+local storage in tauri apps are scoped to the app itseld,so they dont conflict with the keys of other apps.
+
+
+*There is a small difference in visibility:hidden,position:absolute and display:none in how they handle document flow and hide elements
+
+*Learn how to make water waves in css
+
+
+change the dark theme a little
+
+*In a react app,files can only be served to the client from the public directory
+
+*keygen can handle licensing
+
+*I can load txt files into my app using the fetch api and whitespace pre line to preserve the lines
+
+*My app name is not a legal entity
+
+*Shorthand for passing props: return <License {...{licenseText,agreement,toggleAgreement,setProceed}}/>
+
+*A hook is a component that returns an object or an array holding data rather than jsx for rendering ui
+
+*The only time i'll use css or sass modules is if im repeating many tailwind classes across elements
+
+*Have to set proceed to false when checked in the loading screen
+*Set back that state in the loading screen to agreement
+
+*I made two layers if license protection.The first layer allows you to use the app as long as you clicked on proceed believing that the proceed button will only be available to you if you agreed to the license because in my code,the proceed button wont be available to you unless you accept the agreement but in case the user somehow gets the proceed button,the second layer will check the value of the agreement and decide if the user can bypass the software or not.
+
+if proceed button shows even when proceed is false
+if the agreement is false
+Setting proceed and agreement to false
+
+*A button for some reason was re-rendering the ui whenevr i clicked on it.I changed it from a button to a div functioning as a button and it worked
+
+*Frontend architecture
+Components
+Hooks
+Redux store
+Peristent storage
+Meta framework
+Queries
+
+*A spa application is a single html file that is dynamically controlled by javascript
+
+*Always bind input data to a state and set its value to the value of that state
+
+todo:webRTC for video conferencing
+todo vid src api
+
+todo:Static websites
+todo:Hydrated static websites
+
+Web apps
+SPA
+todo:Calculator
+todo:To-Do app
+todo:Kanban app
+todo:Chat app
+
+
+Full stack app
+todo:Admin dashboard 
+todo:E-commerce platform
+todo:Location based app as a transport app
+todo:Customer relationship manager
+todo:Social media platform
+todo:real time collaboration tool
+todo:Entreprise resolution planning system
+
+
+Next js apps are ssr unlike pure react that is spa
+
+*Fizix
+
+*changes,staged changes,committed changes,pushed changes
+*discard,unstage,reset,revert
+
+todo Sentry io.Their website makes coding look like aaa games
+*people just like visualizing data
+
+*Supabase uses a query builder
+
+*frontend,backend,database,apis,backend as a service
+
+*Sdk,Api,library,module,Framework,Backend as a service-->dependency
+*Http,graphql,socket and tRPC servers.
+
+*An sdk or development kit is a set of tools for a platform.It simplifies the complexity of a program by handling all direct interactions to a codebase
+*SDKs is a set of tools that allows you to communicate easily with existing codebases without direct interaction.Sdks use local apis
+
+*An api is a protocol that defines how two different softwares should communicate.It allows two different codebases on different machines to intercat with each other.In other words,your backend is a software and your frontend is another software but since they are decoupled,they have to communicate over an api
+
+
+*There are local apis and network apis.Local apis run in the same process/terminal as the app
+*Local apis normally follow the reactive/event driven paradigm where you make direct function calls that the component can respond to
+
+
+*Interpreter,Compiler,Virtual machine for langauges like java
+
+
+*in the terminal as a Command line interface
+*in the browser as a website or webapp
+*in os platforms as a gui app
+*in game engines as a game
+*in an api client as an API
+*in the filesystem as files
+
+
+*plugin,extension,mod

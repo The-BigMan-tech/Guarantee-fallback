@@ -93,9 +93,9 @@ Rust--for making system level functions for my tauri app
 *CURRENT LEARNING SESSION
 ?------------------------
 graph ql and appollo client--Graphql doc 3 more chapters on the life cycle of a graph ql query
-Pouch db
 next js
 Uiverse.io
+Material ui
 Dasiy UI
 Gsap
 Framer motion
@@ -103,7 +103,7 @@ lottie animations
 JWT token
 minor:Winston and nest js logger
 minor:Compo doc
-
+Pouch db
 
 
 *MY CURRENT TECH STACK
