@@ -1,9 +1,19 @@
+*CURRENT LEARNING SESSION
+?------------------------
+next js
+Pouch db--hundreds of mb of storage
+
+
 *LEARNING BANK
 ?--------------
 todo:Backend related
 ---------------------
 tRPC
 socket io
+todo:Quickly read the 3 gql doc chapters on a gql query life cycle
+minor:Winston and nest js logger
+minor:Compo doc
+
 
 todo:Backend security related
 -----------------------------
@@ -16,6 +26,7 @@ passport auth
 throttle
 auth0
 
+
 todo:Production related
 ----------------------
 Nginx as a reverse proxy
@@ -23,17 +34,30 @@ Ngrok as a tunnelling service
 Kubernetes
 Web bundlers like parcel,vite,webpack,turbopack,rollup
 
+
+todo:Make react better
+----------------------
+Jotai--quick global state management without setting up a reducer for it
+Formik--makes form validation easier
+
+
+todo:Animation and Effects
+---------------------------
+Gsap
+Framer motion
+lottie animations
+React spring
+React scroll parallax
+
+
 todo:Frontend related
 ---------------------
-Jotai
-Vue js--I love their directives
 Astro js
+Vue js--I love their directives
 nuxt js
 Sveltekit
-Tans stack query,router,ranger
-react spring,react scroll parallax,react pdf,Formik
 Mitosis js
-GSAP
+
 
 todo:Native app related
 ------------------------
@@ -43,12 +67,14 @@ React native
 Expo js
 ionic js
 
+
 todo:DB related
 ----------------
 Redis DB
 Cassandra
 Dgraph DB
 Elastic saerch
+
 
 todo:Testing related
 -------------------
@@ -69,6 +95,7 @@ Seo
 Yaml
 Stream apis 
 
+
 todo:Third party APIs
 ---------------------
 Twillio
@@ -76,34 +103,21 @@ Stripe
 Algolia
 SendGrid
 
+
 todo:Cloud
 ---------------
 Firebase,Supabase,Appwrite,pocketbase
 Azure,Google cloud,Aws
 Terraform
 
-todo:New programming language
+
+todo:New programming languages
 -----------------------------
 C#---for making games with unity
 Python,PyPy,Cython,Mojo--fast api,data science and machine learning stuff
 Rust--for making system level functions for my tauri app
 
 
-
-*CURRENT LEARNING SESSION
-?------------------------
-graph ql and appollo client--Graphql doc 3 more chapters on the life cycle of a graph ql query
-next js
-Uiverse.io
-Material ui
-Dasiy UI
-Gsap
-Framer motion
-lottie animations
-JWT token
-minor:Winston and nest js logger
-minor:Compo doc
-Pouch db
 
 
 *MY CURRENT TECH STACK
@@ -124,18 +138,22 @@ express js
 pug 
 mongo db
 Nest js
-Chart js
+practice:Chart js
 Redux and RTK query
 Tauri--basics
 Docker
-Wallaby.js--Backend auto test bot
-Jest--Backend unit and mock tests
-Supertest--Backend api integration tests
-Fast Check--Backend property based test
-Stryker--Backend mutation tests
-Cypress--Frontend E2E and component testing
-Postgre sql
-Prisma js
+practice:Wallaby.js--Backend auto test bot
+practice:Jest--Backend unit and mock tests
+practice:Supertest--Backend api integration tests
+practice:Fast Check--Backend property based test
+practice:Stryker--Backend mutation tests
+practice:Cypress--Frontend E2E and component testing
+practice:Postgre sql
+practice:Prisma js
+practice:Graphql
+Daisy ui
+Material ui
+Daisy ui
 
 
 *MINOR
@@ -179,7 +197,7 @@ chokidar
 ^-------------
 Json
 intersection observer api
-
+local storage--offers 3-5 mb of storage
 
 *API CLIENT TOOLS
 ?-----------------
@@ -190,6 +208,7 @@ API dog
 
 *Just acknowledging but may or may not use
 ?-----------------------------------------
+Tans stack query,router,ranger--There is already rtk query and next js router and ui libraries that can do rangers
 DBML--database markup language
 Hookstate--I woud have loved to use it but is incompatible with the immer library
 serverless computing

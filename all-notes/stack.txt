@@ -251,10 +251,12 @@ Setting proceed and agreement to false
 *Frontend architecture
 Components
 Hooks
-Redux store
+Redux store--reducers,thunks,async thunks
 Peristent storage
 Meta framework
 Queries
+Providers
+Routers
 
 *A spa application is a single html file that is dynamically controlled by javascript
 
@@ -323,3 +325,18 @@ todo Sentry io.Their website makes coding look like aaa games
 
 
 *plugin,extension,mod
+
+
+*there are two ways of installing frontend frameworks.Through a web bundler or a meta framework
+
+*Components are react hydrated functions that returns ui while hooks return values in the form of a single return value,array or object
+
+*Pair tags are for encapsulating text content while self closing elements use attributes or props in the case of components for passing values to the elements
+
+
+todo:Neumorphism ui design,material design
+todo:Deepserk r1 ai,devin ai,Altera ai
+
+?Formik can handle form validation which is what i have been manually doing throughout my kanban project
+
+*There is a three end point schema validation in a full stack app.At the frontend layer with form validation,at the backend layer with dtos and at the database layer with schemas
