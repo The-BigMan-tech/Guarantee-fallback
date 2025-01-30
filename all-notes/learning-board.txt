@@ -1,11 +1,14 @@
 *CURRENT LEARNING SESSION
 ?------------------------
 next js
+Astro js
 Pouch db--hundreds of mb of storage
 
 
 *LEARNING BANK
 ?--------------
+todo:Later,later later,refactor my cherrytop kanban app
+
 todo:Backend related
 ---------------------
 tRPC
@@ -39,6 +42,7 @@ todo:Make react better
 ----------------------
 Jotai--quick global state management without setting up a reducer for it
 Formik--makes form validation easier
+Million js--a fast rendering engine to be augmented with performance critical react components
 
 
 todo:Animation and Effects
@@ -52,7 +56,6 @@ React scroll parallax
 
 todo:Frontend related
 ---------------------
-Astro js
 Vue js--I love their directives
 nuxt js
 Sveltekit
@@ -130,7 +133,7 @@ Vanilla Javascript
 React
 Styled components && tailwind styled components
 Svelte
-Story book
+practice:Story book
 Typescript and JsDoc
 node js native
 fetch api and Axios
@@ -215,6 +218,7 @@ serverless computing
 post css
 purge css
 solid js
+alpine js
 Selenium
 angular
 Time scale DB

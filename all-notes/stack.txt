@@ -309,7 +309,7 @@ todo Sentry io.Their website makes coding look like aaa games
 *An api is a protocol that defines how two different softwares should communicate.It allows two different codebases on different machines to intercat with each other.In other words,your backend is a software and your frontend is another software but since they are decoupled,they have to communicate over an api
 
 
-*There are local apis and network apis.Local apis run in the same process/terminal as the app
+*There are local apis and network/remote apis.Local apis run in the same process/terminal as the app
 *Local apis normally follow the reactive/event driven paradigm where you make direct function calls that the component can respond to
 
 
@@ -339,4 +339,40 @@ todo:Deepserk r1 ai,devin ai,Altera ai
 
 ?Formik can handle form validation which is what i have been manually doing throughout my kanban project
 
-*There is a three end point schema validation in a full stack app.At the frontend layer with form validation,at the backend layer with dtos and at the database layer with schemas
+*There is a three end point schema validation in a full stack app.At the frontend layer with form validation,at the backend layer with dtos and at the database lay
+
+
+*Astro js in summary:Hydrate only the elements you interact with when you need to interact with them.It improves perfrormance by minimizing the js that is shipped to the client by only sending static html first and hydrating it later when the user needs to interact with it.
+
+state
+props
+direct dom manipulation
+life cycle management
+event listeners
+loop rendering
+conditional rendering
+jsx
+
+*State updates causes re-renders of the whole component where the state is but direct dom manipipulation doesnt cause re-renders making it efficient for components that needs consistent updates like a time display component.The component that displays the time should be its own separate component so that any state updates related to the time state will only cause the time component to re-render and not the component where its being used and astro can make that even more faster by ensuring that only the time component gets hydrated and not the component where its being used.
+
+*splitting a component into multiple individual components along with the states they'll use will lead to more optimized re-renders than when everything is in one component.In general,the best way to optimize re-renders is to split your component into multiple components and shift states closer to the components where they are being used
+
+*Stateful components are user interactive cuz they use states while pure components arent user interactive cuz they rely entirely on props
+
+*Use memo minimizes rerenders by caching props that don't change frequently to prevent the component from rerendering whenever the parent changes.It is only effective when the component doesn't dynamically leave and enter the dom as it will be treated like a new element if it did,when it's props don't change or are stable on every render cycle of its parent,when its a pure component i.e a component that relies entirely on props for its output and will provide the same output given the same props creating the need to cache previous computations and when child components that are costly to rerender dont need to rely on the state of the parent that causes its sibling components to rerender
+
+
+*You don't memoize a component that changes it's state frequently like time or animation state,receives frequently changing props,when it dynamically leaves and enters the dom,when the component mostly relies internal state for rerendering and for simple components where perfomance will be negligible and debugging will be harder if added.
+
+
+*ways to optimize in react
+direct dom manipulation 
+splitting a components into multiple components
+memoization
+islands with astro
+
+
+*Mitosis js is write once,compile anywhere
+
+
+*In ssrs and spas,parent components can be mapped to an individual route except that in ssrs,each page/parent component has its own individual html document leading to full page reloads and its route is file based while in spa routinng,each parent component take turns on hydrating a single html document without a full page reload and its route is user defined
