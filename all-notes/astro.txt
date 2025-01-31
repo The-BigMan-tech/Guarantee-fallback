@@ -1,0 +1,2 @@
+*Stylesheets loaded in the head tags are global css
+*the public folder in frontend apps are for serving static content
