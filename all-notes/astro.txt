@@ -1,2 +1,19 @@
 *Stylesheets loaded in the head tags are global css
 *the public folder in frontend apps are for serving static content
+
+*use the stack trace if any to track where the error occured
+*understand how the codebase behaves in response to small code changes and log any behaviour for studying that behaviour over time.
+*use the logs and code observation to trace the error to the exact function or lines that caused the error and use logs to understand why that code is causing the error.
+*better code quality increases the speed of finding bugs
+
+*vscode terminal stopped showing the icon for full screen terminal
+*tw intellisense isnt working
+*immediately i wrote this,the tw intellisense started workling again but the full screen terminal icon still isnt showing
+
+
+
+?Astro
+------
+*The global css file should be imported in the index.astro file
+*Astro can load images from the public folder and css styles imported in components.It wasnt working before but its sha working now
+*To get tailwind working for astro,follow the tailwind docs on installing tailwind for astro or follow the astro doc on using their plugin

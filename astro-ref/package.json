@@ -8,15 +8,18 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "astro-dev": "astro dev",
-    "astro-build": "astro build",
-    "astro-preview": "astro preview"
+    "astro:dev": "astro dev",
+    "astro:build": "astro build",
+    "astro:preview": "astro preview"
   },
   "dependencies": {
     "@astrojs/react": "^4.2.0",
+    "@astrojs/tailwind": "^6.0.0",
+    "@tailwindcss/vite": "^4.0.1",
     "astro": "^5.2.1",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

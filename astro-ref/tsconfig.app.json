@@ -23,6 +23,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"],
-  "extends": "astro/tsconfigs/base"
+  "extends": "astro/tsconfigs/base",
+  "include": ["src",".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
 }
