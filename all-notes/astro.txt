@@ -11,9 +11,115 @@
 *immediately i wrote this,the tw intellisense started workling again but the full screen terminal icon still isnt showing
 
 
-
 ?Astro
 ------
 *The global css file should be imported in the index.astro file
 *Astro can load images from the public folder and css styles imported in components.It wasnt working before but its sha working now
 *To get tailwind working for astro,follow the tailwind docs on installing tailwind for astro or follow the astro doc on using their plugin
+
+*Most web frameworks are web-app first frameworks but astro is content first
+
+
+*In functional component frameworks like react,css are loaded through css modules while for sfc frameworks like vue and svelte,css are wriiten in the sfc and scoped to that component.
+
+
+
+^Primary web rendering patterns
+-------------------------------
+*In static rendered websites,the content is static and the page is unreactive.When a user visits a static wbesite,all the html files are loaded into his system meaning that all the content must have been prepared in advance.The content cant change and can only be done when the changes are re-deployed.
+?implementation:Html and css only websites
+
+*Multi-page apps/rendered websites are websites were the content is rendered on the server and delivered to the client over a network connection.The content is dynamic because the server can construct new pages dynamically using request data but mpas arent reactive so there is no app like experience.It is used a lot in online shops. 
+?implementation:A server like node js fitting data into an html template like pug and serving it to the client.
+
+*Single page apps are websites where the content is dynamic and reactive.The whole page is a single html file that pretends to act as a desktop/mobile app by using js to hydrate the page meaning js can load html elements in and out of the dom and change the content dynamically in response to user interactions.The problem is that initial load times will be slow because js will have to load properly first before any content is displayed.It is the most ideal rendering pattern for smooth ux web apps but suffers with poor seo since seo cant understand what your web is about by just its html shell
+?implementation:Through dom manipulation or a component framework like react js
+
+
+^Secondary web rendering patterns:A mix of two primary rendering patterns
+--------------------------------------------------------------------------
+*Server side rendering pattern or SSR is a combination of spa and mpa.Each page component in spa will be pre-renderd as an html file on the server and shipped to the client so that when it does,the corresponding js will hydrate the html document.Unlike spa,where each page component hydrates the same html document,each page in ssr will hydrate its own document.This is to improve the seo of spas and allows for some server behaviour mimics like true routing where each pre-rendered html document is mapped to a route based on its path in the file system unlike spa routnig where routing is done by each page component switching turns to hydrate the same html document and thats why when you route in a spa app through the url link and not through the app,it throws a 404 error unless you use the hashrouter.
+?implementation:through meta frameworks which are frameworks built on top of others for adding ssr like next js
+
+
+^Tertiary rendering pattern--a mix of a secondary and a primary rendering patterns
+-----------------------------------------------------------------------------------
+*Static site generation rendering pattern (ssg) is a rendering pattern thats a combination of SSR and Static rendered websites.It pre-renders spa components into static html,ships it to the client except that there is no js on the client side for hydration leading to faster load times for content driven websites written in spa technologies like react but dont need hydration to function their websites
+?implementation:through a content driven framework like astro js
+
+*Partial hydration is a rendering pattern that extends ssg by allowing the client side to use js to hydrate the page only when needed.At this point,it sounds like ssg + partial hydration is just ssr execpt that in partial hydartion,js doesnt hydrate the whole page like ssr but rather,it only selectively hydrates components that needs to be interactive only when needed while leaving the rest of the content as static html making that intercative component an island in terms of astro js like for example,in a navbar component,you can render the whole navbar as static html but you make the button component hydrated with js rather than leaving the whole component hydarted with js.The dehydration process of the component is done in the component's .astro counterpart i believe.
+?implementation:the same as the one above
+
+?Note:The servers in both ssr and ssg frameworks arent remote server but rather,servers that runs in the same process as the app except that the server code is ran in a node js environment while the client side is the browser meaning that in spa,rendering happens in the browser while in ssrs and ssgs,rendering happens in a node js environment and  then shipped to the browser.Servers in this case,is not about its physical location but rather,what its function is.Meta frameworks like next js bring a local server directly to your app without the need for a remote server essentially creating a full stack app.And in next js,state is preserved across routes because the server renders js while astro just ships the html to the client like that i believe.
+
+
+*In astro,the script in the triple dashes is ran on astro's server/the node js environment
+*The client directive are for creating client islands
+*We can use the client directive to selectively hydrate the components we want in astro.client:load will hyfrte the component once its loaded,client:idle will tell it to hydrate when the browser is idle and client:visible will telll it to hydrate only when its intersecting the viewport or is visible at the viewport
+
+*astro also allows you to seamlessly separet your content from markdown using markdown
+
+todo:learn about server islands which allows us to render components with static placeholder content while its data is being fetched.
+
+
+*next js isnt a server itself but uses a server to serve these files
+*by server they mean the environment where the script is ran.in next js and astro,server scripts are ran in a node js env and the logs are only seen in the console while for plain react,evrything is in the browser
+*env variables are only available to server side code
+
+*Pages is the folder where all the astro files stay in.They are responsible for routing and data loading.each astro file is part of the routing mechanism that tells astro which files to pre-render.They are not the server files themselves
+
+
+*when it was said that ssr = mpa + spa doesnt just mean just where rendering takes place but also where dynamic content is generated,it also means that you can create actual server side logic in a script called an api route that can capture a request and dynamically create the html content just like a mpa before shipping it to the client for hydration but for pre-rendering alone on the server,it is handled by astro and next js built in.
+
+*next js and astro js servers focus primarily on the view layer unlike remote servers that focuses on models and controllers and since next js servers focuses on the view layer,it offloads the view from the server to the frontend app.They are also the part of the code where queries like react query or rtk query are used
+
+*Another thing that gives next js servers that term is that they allow routing of resources like an actual server but instead based on the file system because thats how html pages are normally organized and allocated in the client.
+*a license mechanism should be done in a next js api route
+
+
+*In ssg,all the html is generated ahead of time or at build time even before it reaches production thats why its a combination of ssr and staic rendered.Like static rendered pages,everything is done ahead of time and doesnt change per request like a multi page app or an ssr app that generates them on the fly on every request.
+
+
+*SSRs are best for rapidly changing data or improving the seo of your react apps but for partially static content,astro is better
+
+*when you use next js as the view layer,you can leverage baas to take care of your model and controller logic
+
+*A page in ssg and ssr are templates for generating the html document from your component's code
+
+*Path parameters,query parameters and url segments
+
+*Routing
+*pre rendering
+*api routes
+
+*Api routes also reduces the amount of js that will be sent to the client side bundle and thus will make the code faster
+
+*404 page,500 page and error page for better displat of errors to your clients
+
+*the a tags are used for routing between pages
+
+*So there are pages and components.Pages are templates that are used for contructing an html page on the server
+
+*A page can accept path parameter data based on how it gets routed like how a component can accept props
+
+*In ssgs,because the oages are pre rendered,dynamic pages arent for generating dynamic pages but rather to prevent redundancy
+
+*In ssg,since we are pre rendering the pages,we have to tell astro all the types of pages that will be loaded in advanced using an array returned by get static paths
+
+*rtk query,next js actions,astro actions
+
+?todo:Routing
+minor:Endpoints
+minor:Middleware
+minor:Prefetch
+todo:View transitions
+minor:Components
+^medium:layouts
+minor:styles
+todo:Markdown
+todo:Content collection
+^medium:Images
+todo:Astro actions
+
+
+todo:Check on shiki and shadcn

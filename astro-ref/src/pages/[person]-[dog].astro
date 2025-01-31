@@ -1,0 +1,17 @@
+---
+    export function getStaticPaths() {
+        return [
+            {params: {person: 'clifford',dog:'spike'}},
+            {params: {person: 'rover',dog:'rex'}},
+        ];
+    }
+    const person = Astro.params.person ?? 'empty'
+    const dog = Astro.params.dog ?? 'no dog'
+---
+
+<html>
+    <body>
+        <h1>This is a sample person: {person}</h1>
+        <h1>A dynamic dog: {dog}</h1>
+    </body>
+</html>
