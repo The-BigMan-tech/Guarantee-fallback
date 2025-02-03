@@ -1,12 +1,26 @@
 ---
-    export function getStaticPaths() {
-        return [
-            {params: {person: 'clifford',dog:'spike'}},
-            {params: {person: 'rover',dog:'rex'}},
-        ];
-    }
-    const person = Astro.params.person ?? 'empty'
-    const dog = Astro.params.dog ?? 'no dog'
+interface Data {
+    person: string
+    dog: string
+}
+export function getStaticPaths() {
+    const data:Data[] = [
+        {
+            person: 'clifford',
+            dog: 'spike',
+        },
+        {
+            person:'rover',
+            dog:'rex'
+        }
+    ]
+    return data.map((unit)=>{
+        return {
+            params:unit
+        }
+    })
+}
+const {person,dog} = Astro.params
 ---
 
 <html>

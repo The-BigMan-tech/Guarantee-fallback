@@ -1,11 +1,17 @@
 ---
 import '../index.css'
 import App from "../App";
+import Props from './props.astro';
+
+const response = await fetch('http://localhost:4321/api/1.json')
+const data = await response.json()
 ---
 <html>
     <body>
         <App client:load/>
         <a href="/hello">link to hello</a>
-        <a href="/clifford-spike">Link to dynamic person</a>
+        <a href="/rover-rex">Link to dynamic person</a>
+        <Props sample="10" number="122"/>
+        <h1>Data from endpoint: {data.name}</h1>
     </body>
 </html>

@@ -1,0 +1,46 @@
+---
+import '../../index.css'
+import type {PaginationPage} from '../../interface/pagination'
+import type { PaginateFunction } from 'astro'
+
+interface samplePage {
+    sample:string,
+    hasFed:boolean
+}
+export async function getStaticPaths({paginate}:{paginate:PaginateFunction}) {
+    const samplePages:samplePage[] = [
+        {
+            sample:'Dog',
+            hasFed:true
+        },
+        {
+            sample:'Cat',
+            hasFed:true
+        },
+        {
+            sample:'bull',
+            hasFed:true
+        },
+        {
+            sample:'bison',
+            hasFed:true
+        }
+    ]
+    return paginate(samplePages,{pageSize:2});
+}
+const {page}:{page:PaginationPage<samplePage>} = Astro.props
+---
+
+<html>
+    <body>
+        <h1 class="font-sans font-bold">Page number: {page.currentPage}</h1>
+        {page.data.map(({sample,hasFed})=>(
+            <div class="mb-9">
+                <div>Sample {sample}</div>
+                <div>Has fed?: {hasFed}</div>
+            </div>
+        ))}
+        {page.url.prev && <a href={page.url.prev}>Previous page</a>}
+        {page.url.next && <a href={page.url.next}>Next page</a>}
+    </body>
+</html>

@@ -108,7 +108,7 @@ todo:learn about server islands which allows us to render components with static
 
 *rtk query,next js actions,astro actions
 
-?todo:Routing
+?To finsih before next week Monday
 minor:Endpoints
 minor:Middleware
 minor:Prefetch
@@ -116,10 +116,24 @@ todo:View transitions
 minor:Components
 ^medium:layouts
 minor:styles
-todo:Markdown
+todo:Markdown and MDX
 todo:Content collection
 ^medium:Images
 todo:Astro actions
 
 
 todo:Check on shiki and shadcn
+
+
+*Rest parameters are for variable number of dyamic routes
+*You can pass props to astro components
+
+*Pages in ssr and ssg takes props and params
+
+*Astro has pagination
+*declaration files are purely for type checking support for modules
+*in pagination,the parameter in bracket is the page number
+
+*In astro,the file name will determine the type of the endpoint
+
+*In creating dynamic endpoints in astro,you can only use id as the property of the params object and as such,you need to use the id to route to those pages and to return the corresponding json data for each id,you have to use a separate array where you access each data using the id as an index
