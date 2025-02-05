@@ -25,6 +25,10 @@ todo:Quickly read the 3 gql doc chapters on a gql query life cycle
 minor:Winston and nest js logger
 minor:Compo doc
 
+todo:Ui related
+----------------
+bulma css--only for the smart grid and maybe column
+shadcn ui
 
 todo:Animation and Effects
 ---------------------------
@@ -159,7 +163,7 @@ practice:Prisma js
 practice:Graphql
 Daisy ui
 Material ui
-Daisy ui
+uiverse.io
 
 
 *MINOR

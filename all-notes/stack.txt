@@ -1,3 +1,4 @@
+!Never go to websites by randomly typing domain names
 ^Frontend
 ----------
 *Tailwind css--for the ui
@@ -284,8 +285,11 @@ todo:Customer relationship manager
 todo:Social media platform
 todo:real time collaboration tool
 todo:Entreprise resolution planning system
+todo:google drive
+todo:movie app
 
 
+cloudinary
 Next js apps are ssr unlike pure react that is spa
 
 *Fizix
@@ -376,3 +380,30 @@ islands with astro
 
 
 *In ssrs and spas,parent components can be mapped to an individual route except that in ssrs,each page/parent component has its own individual html document leading to full page reloads and its route is file based while in spa routinng,each parent component take turns on hydrating a single html document without a full page reload and its route is user defined
+
+*You should not recall functions for the same output in a react component.You should rather save it in a state
+
+*i can extract inline conditional styling to variables holding template strings data and also to functions that performs the logic there and returns the class as a value
+
+*dont call a use state in a use effect or it will lead to infinite rendering
+
+todo:my tasks button has some alignment problems
+todo:adaptive deadline progress bar color
+todo:editing the deadline
+todo:filtering by date and overdue
+todo:the timer changes color with the progress bar
+todo:scoped finishing groups
+todo:Fix the calendar styling in the locally built version
+todo:Add ux like recommendations on which board to create
+todo:fix the overdue property change and cause it to rerender
+
+todo:Learn about themes in tailwind
+todo:field sizing property in css
+
+*always clean your code from console.log statememts and leave comments
+*console.log is for development not for production
+
+
+tailwind breakpoint classes
+flexible layouts
+relative units
