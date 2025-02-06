@@ -1,0 +1,20 @@
+*Web apps are instantly accessible unlike desktop apps and for desktop apps,you have to think of how you will handle updates
+
+todo:Know how to automatically handle desktop app updates
+
+*Tauri is react and rust for the backend
+
+*Tauri does not run a node js environment but rather,it uses a web view and rust for its backend and as such,it can only a client side react app and not a next js app.It instead uses rust for its backend while electron js can run full next js apps cuz it uses the node js environemnt as well as chromium to make desktop apps
+
+*Tauri compiles your app to binaries that are only target the machine its compiling on and uses the sytem's built in webview and as such,the users dont need to download anything to run the app while electron uses the chromium and an in built node js env making users to install the app without any additional packages
+
+*Docker container,web app,desktop app
+
+todo:NodeGUI
+todo:Fix my syntax coloring.it sucks a little bit
+
+*blockbench is made with vue,three js and electron
+*The await keyword is for telling an async operation to run only when another async operation has finished
+
+*concurrently is for running cmds in separate terminals
+*Tauri for react apps and electron for next js apps

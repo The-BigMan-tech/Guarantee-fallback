@@ -136,7 +136,7 @@ HTML
 CSS
 Tailwind css
 SASS
-Vanilla Javascript
+Raw Javascript
 React
 Styled components && tailwind styled components
 Svelte

@@ -276,17 +276,17 @@ todo:To-Do app
 todo:Kanban app
 todo:Chat app
 
-
 Full stack app
 todo:Admin dashboard 
 todo:E-commerce platform
-todo:Location based app as a transport app
+todo:Transport app
 todo:Customer relationship manager
 todo:Social media platform
 todo:real time collaboration tool
 todo:Entreprise resolution planning system
 todo:google drive
 todo:movie app
+todo:Video conferencing app and vid src api
 
 
 cloudinary
@@ -407,3 +407,25 @@ todo:field sizing property in css
 tailwind breakpoint classes
 flexible layouts
 relative units
+
+lua with lua for making roblox games
+i'll wait for hytale for years
+
+todo:mockbin.i dont need it cuz i can just make an empty api but i may need it to fake some things in my code
+
+?i can no longer open postman for some reason
+
+Cross platform with widgets architecture with Flutter
+Js with React native and expo
+Native with swift and kotlin
+
+?I must buy teardown
+
+*component based frameworks--->sfc and functional
+
+*Storybook is practically a testing tool as it allows you to test components in isolation
+
+
+*if i want to make a website,here are the three level of tools i will use depending on the complexity:html and tailwind,alpine js,react with astro and optionally ui libraries and components
+
+todo:Check that beautiful sign up page that bolaji sent to me from dribbble
