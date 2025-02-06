@@ -1,7 +1,15 @@
-staff_id,staff_name,job,work_experience
-1,Mary,Teacher,Pro
-2,Isaac,Teacher,Pro
-3,Matt,Teacher,Pro
-11,Matt,Teacher,Pro
-56,Matt,Teacher,Pro
-72,Matt,Teacher,Pro
+|----------|------------|---------|-----------------|
+| STAFF_ID | STAFF_NAME | JOB     | WORK_EXPERIENCE |
+|----------|------------|---------|-----------------|
+|        1 | Mary       | Teacher | Pro             |
+|----------|------------|---------|-----------------|
+|        2 | Isaac      | Teacher | Pro             |
+|----------|------------|---------|-----------------|
+|        3 | Matt       | Teacher | Pro             |
+|----------|------------|---------|-----------------|
+|       11 | Matt       | Teacher | Pro             |
+|----------|------------|---------|-----------------|
+|       56 | Matt       | Teacher | Pro             |
+|----------|------------|---------|-----------------|
+|       72 | Matt       | Teacher | Pro             |
+|----------|------------|---------|-----------------|

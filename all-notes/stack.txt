@@ -177,11 +177,8 @@ todo:Something weird happened.A component that uses svg code couldn't load prope
 *you'll use props more when you want to break down a component into more child components
 *Local storage thing:'
 
-Todo:concurrently npm
-todotoastify
-todo:three js,blend4web
+
 todo:javascript mastery channel
-todo:Hello pangea/dnd
 
 *Condition checks can be very technical at times like the filter in my kanban app.It took serious thinking of the condition checks for the program to properly apply the right filter to the right board and to clean up any space occupied by the invisible non filtered groups
 
@@ -209,7 +206,6 @@ Relative units
 
 vscode has a built in git client
 
-todo:Clerk
 ?React router dom,next js file based routing
 
 By default,tauri doesnt expose dev tools to the users because of security.Do not expose the dev tools to the client for any reason.
@@ -263,8 +259,6 @@ Routers
 
 *Always bind input data to a state and set its value to the value of that state
 
-todo:webRTC for video conferencing
-todo vid src api
 
 todo:Static websites
 todo:Hydrated static websites
@@ -286,10 +280,10 @@ todo:real time collaboration tool
 todo:Entreprise resolution planning system
 todo:google drive
 todo:movie app
+todo:Banking app
 todo:Video conferencing app and vid src api
 
 
-cloudinary
 Next js apps are ssr unlike pure react that is spa
 
 *Fizix
@@ -297,7 +291,6 @@ Next js apps are ssr unlike pure react that is spa
 *changes,staged changes,committed changes,pushed changes
 *discard,unstage,reset,revert
 
-todo Sentry io.Their website makes coding look like aaa games
 *people just like visualizing data
 
 *Supabase uses a query builder
@@ -408,12 +401,8 @@ tailwind breakpoint classes
 flexible layouts
 relative units
 
-lua with lua for making roblox games
+luau with lua for making roblox games
 i'll wait for hytale for years
-
-todo:mockbin.i dont need it cuz i can just make an empty api but i may need it to fake some things in my code
-
-?i can no longer open postman for some reason
 
 Cross platform with widgets architecture with Flutter
 Js with React native and expo
@@ -425,7 +414,6 @@ Native with swift and kotlin
 
 *Storybook is practically a testing tool as it allows you to test components in isolation
 
-
-*if i want to make a website,here are the three level of tools i will use depending on the complexity:html and tailwind,alpine js,react with astro and optionally ui libraries and components
+*if i want to make a website,here are the three level of tools i will use depending on the complexity:wordpress,html and tailwind,alpine js,react with astro and optionally ui libraries and components
 
 todo:Check that beautiful sign up page that bolaji sent to me from dribbble

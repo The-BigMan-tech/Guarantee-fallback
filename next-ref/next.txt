@@ -41,7 +41,7 @@ todo:Marked js
 *Route groups are folders that wont be part of the route.its only for organizational purposes
 
 
-^I'll use the app directory for storing the page files aka for routing purposes,the lib folder for shared logic like hooks and components and the components folder for the components in a feature based style.The app folder will have a corresponding fetaure based structure where each page.tsx is an entry point for assembling the raw components from the components folder from the respective feature into a single route
+^I'll use the app directory for storing the page files aka for routing purposes,the lib folder for shared logic like hooks and components and the components folder for the components in a feature based style.The app folder will have a corresponding fetaure based structure where each page.tsx is an entry point for assembling the raw components from the components folder from the respective feature into a single route.So my app folder is purely for routing and assembly point purposes.
 
 *A layout is a component that takes another component as a prop and it can be accessed via the children property of its prop.It automatically takes a page as child and its for consistent styling across pages.
 
@@ -79,3 +79,46 @@ And then optionally use tailwind
 
 
 *Next js didnt import the globals css file into the layout.tsx when it scaffolded the project which is required for applying tailwind and locally imported fonts that use font face to the components.Honestly dissapointing for a meta framework.Mistake,that was me.IM the one that messed up.When i removed the fonts,i also wiped out the globals.css by mistake.
+
+*im ending up using mockbin to simulate fetch requests cuz i dont have the time to scaffold a new nest js server like i thought
+
+todo:mockbin.io
+
+*Next js is really an ssr.It has mpa and spa in one
+
+*Next js apps can directly communicate with a database
+
+*In ssrs,fetches to an api or a database happens on the server meaning it happens before the html document is sent to the client
+
+*In next js,a server component is like an mpa cuz its content is dynamically rendred either through a fetch api,a database or dynamic route data but it doesnt allow client side interactivity
+
+*The difference between a client component and a server component is where they are rendered in the app.By default,all components in next js are server components unless explicitly stated.For both,html documents are pre-rendered on the server before its shipped to the client except that for server components,the entire html document is generated and rendered on the server before its shipped to the client meaning that it cant be client side interactive and it functions just like an mpa but for client components,a skeleton html document is rendered on the server and shipped to the client where js will then hydrate the document.
+
+*in next js,each page gets their own html document so you dont have to import them in a main jsx file as an assembly point
+
+^dont forget to use cypress for full e2e tests and story book for isolation
+^Be careful of routing errors
+
+*Server side components use fetch and axios to make api calls while client components use rtk query or react query and a local database like pouch db.Server component fetching is better when fully rendrered html is required to render on the server for improved seo and performance and rtk query in client components where high interactivity is required.
+
+*Server side components is like the view layer in the mvc architecture where the view would have been carried by the server.
+
+^Death battle goku vs superman,the two Yuji raps,Sukuna rap,la la la,skyfall,switching vocals megamix by skylest,arcane music,funk in blue lock edits
+
+
+todo:Big O
+?For code along,watch the entire video and take notes and how they do it.Js mastery
+
+*Next js is a backend that primarily focuses on the view layer using react while nest js is a full blown entreprise grade backend framework.
+
+Javascript,Typescript,React,Next js
+Javascript,Typescript,node js,Express js,nest js
+
+
+todo:New name:Droplet
+
+*Next js runs in a server environment like any node js server where it serves html documents to the client but when bundled in electron as a desktop app,it creates a local server for each installatio
+
+*Astro js is a static site generator which is a framework that compiles your component code into static html at build time and selectively hydrates certain components with js
+
+*js is very powerful in handling network request because it is asynchronous in nature

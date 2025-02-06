@@ -1,11 +1,16 @@
 todo:Later,later later,remake my cherrytop kanban app
-
+Js Mastery
 
 *CURRENT LEARNING SESSION
 ?------------------------
 Astro js
 next js
 Pouch db--hundreds of mb of storage
+Stripe js
+Formik
+Hello pangea dnd
+React Native
+Expo js
 
 
 *LEARNING BANK
@@ -21,6 +26,12 @@ todo:Backend related
 ---------------------
 tRPC
 socket io
+Web Rtc
+Vid src api
+CLerk
+Cloudinary
+Mockbin io
+todo:Learn cookie and session storage
 todo:Quickly read the 3 gql doc chapters on a gql query life cycle
 minor:Winston and nest js logger
 minor:Compo doc
@@ -75,7 +86,11 @@ Vue js--I love their directives
 nuxt js
 Sveltekit
 Mitosis js
-
+Alpine js
+Three js
+Hugo
+Hello pangea dnd
+React toastify
 
 
 todo:DB related
@@ -91,6 +106,7 @@ todo:Testing related
 vitest--Frontend Component testing
 Cucumber js--Behaviour driven testing
 playwright--Frontend e2e testing
+Sentry io
 
 
 todo:Extras
@@ -116,7 +132,7 @@ SendGrid
 
 todo:Cloud
 ---------------
-Firebase,Supabase,Appwrite,pocketbase
+Baas like Firebase,Supabase,Appwrite,pocketbase
 Azure,Google cloud,Aws
 Terraform
 
@@ -126,7 +142,7 @@ todo:New programming languages
 C#---for making games with unity
 Python,PyPy,Cython,Mojo--fast api,data science and machine learning stuff
 Rust--for making system level functions for my tauri app
-Web 3--as a favor 
+Solidity--for web3 cuz our instructor highly recommended it.
 
 
 
@@ -190,6 +206,7 @@ Zod,class validator and class transformer
 
 *Utility npm packages
 ^--------------------
+concurrently
 uuid
 Chalk
 math js
@@ -225,17 +242,13 @@ serverless computing
 post css
 purge css
 solid js
-alpine js
 Selenium
 angular
 Time scale DB
 fastify
 xml
-three js
 Blend 4 web
 My sql
-Hugo
 Htmx
-WebRTC
 Deno
 Jquery-simplifies dom manipulation
