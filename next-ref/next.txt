@@ -18,3 +18,64 @@ todo:Fix my syntax coloring.it sucks a little bit
 
 *concurrently is for running cmds in separate terminals
 *Tauri for react apps and electron for next js apps
+
+*I used concurrently to start my electron app window
+
+*WHen building your desktop web app,you have to build the web app using the bundler and connect it to either electron or tauri
+
+todo:electron builder
+
+*admin dashboards are best done with next js
+
+*No rendering strategy is a superset of the other.They just borrow techniques from each other to make their own pattern
+
+todo:DOM purify
+todo:Marked js
+
+*Next js is a complimentary set to react while typescript is a superset of js.Complimentary and supersets are different.
+
+*In next js,the page is the entry point.Any component that isnt a page or a folder that is prefixed with underscore to be declared as private isnt routable.
+
+^Im separating my component logic into hooks in private folders only if it warrants doing so and leave my components to only render the ui
+
+*Route groups are folders that wont be part of the route.its only for organizational purposes
+
+
+^I'll use the app directory for storing the page files aka for routing purposes,the lib folder for shared logic like hooks and components and the components folder for the components in a feature based style.The app folder will have a corresponding fetaure based structure where each page.tsx is an entry point for assembling the raw components from the components folder from the respective feature into a single route
+
+*A layout is a component that takes another component as a prop and it can be accessed via the children property of its prop.It automatically takes a page as child and its for consistent styling across pages.
+
+
+*Understanding someone else's codebase
+Comments
+Docstrings
+Good variable names
+Type Safety:Type annotations and Linter like eslint and error lens
+
+
+*Understanding the behaviour of the codebase
+Error messages:through error handlers or the stack trace
+Logs
+Step through debugging
+Tests
+
+*You can pass a state,a state setter or a component to another component but only the layout can accept another component
+
+*The Image component from next js is lazy loaded,has size optimizations for every type of device by using the  webp format which is a format for reducing the file size of images by compressing it with or without loss of quality depending on the device and avif for super high compression quality that also supports a higher range of colors without compromising any significant image quality and prevents layout shifts which happens when elements are added dynamically to the dom which spoils the user experience by causing the user to interact with the wrong element
+
+*Jpeg
+*png
+*gifr
+*Webp
+*Svg images are for preserving the quality of images
+
+
+*There are two ways to load fonts:
+By cloud importing fonts from google in an html document using the font's cdn or by using next js/fonts 
+By local imports using the global css or next js/local
+
+
+And then optionally use tailwind
+
+
+*Next js didnt import the globals css file into the layout.tsx when it scaffolded the project which is required for applying tailwind and locally imported fonts that use font face to the components.Honestly dissapointing for a meta framework.Mistake,that was me.IM the one that messed up.When i removed the fonts,i also wiped out the globals.css by mistake.
