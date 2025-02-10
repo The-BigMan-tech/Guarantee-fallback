@@ -122,3 +122,20 @@ todo:New name:Droplet
 *Astro js is a static site generator which is a framework that compiles your component code into static html at build time and selectively hydrates certain components with js
 
 *js is very powerful in handling network request because it is asynchronous in nature
+
+^I'll make next js desktop apps by using electron to create a window that is just a layer over the website so that it can be used as a separate app rather than in the browser because ill like my app to be used as a desktop app.This will make the app an online app which will be just be the same thing as accessing it in the browser which questions why i will then make it as a desktop app but preferences matter to me.I could have just used tauri for this instead since I prefer to use tauri to make desktop apps with react and i don't have to worry about the impossibility of packaging a node env with tauri to make my next js app to work since the app is just a layer and not an app itself but i chose electron because using tauri to scaffold a project is an overkill when i can just use one electron.js file to tell electron to build such an app plus since the app is just a layer,i believe it wont be a memory hog.If i then want to make my desktop app offline,ill package the whole next js app into the electron app since electron has node to support next js except that the offline one will be heavier since it packages the whole next js server with it.So there is an option for a lightweight but an online one and a heavy but offline one.
+
+^All my next js apps will be online but with some offline capabilities while my react apps will be fully offline using pouch db as the database.Once the app is opened,every client component will cached in advance even before the user loads them so that an interenet connection is only needed in the initial load and any subsequent responses from the server will also be cached.All client components will use pouch db so that they can work offline but any request from the client request will be batched till there is internet connection where it will be pushed to the server.My fully offline react apps that relies on data fetching as well will also batch requests till there is internet connection
+
+*Html,Xml,Xhtml,Yaml,Mathml,Dbml,Saml
+*Ngrok is for exposing your website publicly only for development
+
+*Objects can create graph data structures for either relationships or space co-ordinates
+
+*tunnelling service,hosting service,deployment service/platform as a service
+
+*tauri's rust backend
+
+todo:That animated sign up page bolaji sent to me on whatsapp that came form dribbble654
+
+*cache storage api,service workers,local storage

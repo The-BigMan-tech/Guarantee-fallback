@@ -417,3 +417,7 @@ Native with swift and kotlin
 *if i want to make a website,here are the three level of tools i will use depending on the complexity:wordpress,html and tailwind,alpine js,react with astro and optionally ui libraries and components
 
 todo:Check that beautiful sign up page that bolaji sent to me from dribbble
+
+todo:For conditionally applied classes,ill store them in a backtick string and for semantic purposes,ill use styled components
+
+^XENOZ naruto edit amv

@@ -30,7 +30,6 @@ Web Rtc
 Vid src api
 CLerk
 Cloudinary
-Mockbin io
 todo:Learn cookie and session storage
 todo:Quickly read the 3 gql doc chapters on a gql query life cycle
 minor:Winston and nest js logger
@@ -72,11 +71,11 @@ Expo js
 ionic js
 
 
-todo:Production related
+todo:Production and Development related
 ----------------------
 Nginx as a reverse proxy
 Ngrok as a tunnelling service
-Kubernetes
+Mockbin.io
 Web bundlers like parcel,vite,webpack,turbopack,rollup
 
 
@@ -132,7 +131,7 @@ SendGrid
 
 todo:Cloud
 ---------------
-Baas like Firebase,Supabase,Appwrite,pocketbase
+Baas-Firebase,Supabase,Appwrite,pocketbase
 Azure,Google cloud,Aws
 Terraform
 
@@ -167,7 +166,7 @@ Nest js
 practice:Chart js
 Redux and RTK query
 Tauri--basics
-Docker
+Docker--for deployment
 practice:Wallaby.js--Backend auto test bot
 practice:Jest--Backend unit and mock tests
 practice:Supertest--Backend api integration tests
@@ -189,12 +188,20 @@ uiverse.io
 Emmet snippets
 Git and github
 Postman
-Deployment platforms--netlify,vercel,render,github pages and coolify for self deployment
+
+*Deployment or Hosting platforms
+^--------------------------------
+netlify--Paas-frontend
+vercel--Paas-frontend
+render--Paas-backend
+github pages--static websites
+coolify--self hosting service
+hostinger--external hosting service
 
 *Bonus
 ^------
 Web design principles
-Rendering patterns
+Rendering patterns--static,mpa,spa,ssr,ssg,partial hydration
 
 *Major npm packages
 ^------------------
@@ -237,6 +244,7 @@ API dog
 ?-----------------------------------------
 Tans stack query,router,ranger--There is already rtk query and next js router and ui libraries that can do rangers
 DBML--database markup language
+SAML
 Hookstate--I woud have loved to use it but is incompatible with the immer library
 serverless computing
 post css
@@ -247,6 +255,7 @@ angular
 Time scale DB
 fastify
 xml
+Kubernetes
 Blend 4 web
 My sql
 Htmx

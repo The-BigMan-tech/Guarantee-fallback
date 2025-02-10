@@ -100,3 +100,13 @@ Csv to table
 Dev containers
 C# dev kit
 Prisma
+Astro
+svg preview
+Html to css autocompletions
+Graphql:Syntax highlighting
+
+Regex previewer
+Paste json as code
+Markdown all in one
+Version lens
+Yaml
