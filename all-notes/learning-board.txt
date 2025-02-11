@@ -6,7 +6,7 @@ Js Mastery
 Astro js
 next js
 Pouch db--hundreds of mb of storage
-Stripe js
+Stripe js and paystack
 Formik
 Hello pangea dnd
 React Native
@@ -17,6 +17,7 @@ Expo js
 ?--------------
 todo:Make react better
 ----------------------
+minor:Magic regexp
 minor:Jotai--quick global state management without setting up a reducer for it
 Formik--makes form validation easier
 Million js--a fast rendering engine to be augmented with performance critical react components
@@ -40,6 +41,7 @@ todo:Ui related
 bulma css--only for the smart grid and maybe column
 shadcn ui
 
+
 todo:Animation and Effects
 ---------------------------
 Gsap
@@ -47,6 +49,7 @@ Framer motion
 lottie animations
 React spring
 React scroll parallax
+Motion canvas js
 
 
 ?Unsure of the order from here

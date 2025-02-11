@@ -1,0 +1,87 @@
+Cache storage api
+
+*Markup related
+Html
+Markdown
+
+*Styling related
+Css
+Tailwind css
+Sass
+Styled components and tailwind styled components
+
+*Scripting related
+Javascript
+Typescript
+^subsets
+Jsdoc
+
+*Frontend frameworks
+React
+Svelte
+Vue
+Astro js
+Next js
+
+*Frontend tools/additions
+Jotai
+Redux
+Rtk query
+Formik
+Million js
+
+*Mobile app related
+React Native
+Expo js
+
+*Backend related
+Node js native
+Express js
+Nest js
+Pug
+Prisma js
+Graphql
+tRPC
+socket io
+
+*Desktop app related
+Tauri js
+
+*Databases and storage
+Mongo db
+Postgre sql
+Pouch db
+local storage
+
+*Payment related
+Paystack
+Stripe js
+
+*Animation,diagrams and Effects related
+Chart js
+Hello pangea dnd--Drag and drop library
+
+*Deployment related
+Docker
+
+*Backend testing related
+Wallaby js
+Jest
+Supertest
+Fast check
+Stryker
+
+*Frontend testing related
+Cypress
+
+*Ui libraries
+Daisy ui
+Material ui
+Uiverse.io
+Shadcn ui
+Bulma css--only for their smart grid
+
+*Backend clients
+Fetch api
+Axios
+Apollo client

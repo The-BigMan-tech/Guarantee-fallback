@@ -127,7 +127,10 @@ todo:New name:Droplet
 
 ^All my next js apps will be online but with some offline capabilities while my react apps will be fully offline using pouch db as the database.Once the app is opened,every client component will cached in advance even before the user loads them so that an interenet connection is only needed in the initial load and any subsequent responses from the server will also be cached.All client components will use pouch db so that they can work offline but any request from the client request will be batched till there is internet connection where it will be pushed to the server.My fully offline react apps that relies on data fetching as well will also batch requests till there is internet connection
 
-*Html,Xml,Xhtml,Yaml,Mathml,Dbml,Saml
+^The markup languages
+*Html,Xml,Xhtml,Yaml,Mathml,Dbml,Saml,svg
+*Svg is just xml
+
 *Ngrok is for exposing your website publicly only for development
 
 *Objects can create graph data structures for either relationships or space co-ordinates
@@ -139,3 +142,31 @@ todo:New name:Droplet
 todo:That animated sign up page bolaji sent to me on whatsapp that came form dribbble654
 
 *cache storage api,service workers,local storage
+
+*loopback interface means a computer communicating with itself over a network and its just a fancy term for local host
+
+*web search engine and distributed search engine
+*timestamp is for data versioning
+*In object oriented databases,the data and methods required to operate on that data are encapsulated in the object meaning that you cant perform pre defined crud methods or sql queries to perform operations on the data like other databases.
+
+
+*kv database,wide column/column oriented db,row/table/sql oriented/relational db,document oriented db,graph db,multimodel databse like surreal db and redis,vector db
+
+*Elastic search is more accurately described as a distributed search engine
+*Elastic search is best for scaling highly unstructured data like text based data
+
+*Vector databases unlike other dbs that gives you exactly what you queried for,returns similar data by using similar search.It is used for ai/ml technologies and recommendaton systems
+
+*Vector databases is best used to power machine learning models so ill use one with python
+*i can use vector databases to imprive my ai model and other ones like chatgpt
+
+*Array--matrix,vector
+
+^Ill use react alone with tauri when building offline or 90% offline web apps,next js with electron for online web apps and react with astro for websites
+
+todo:Understand elastic search inverted indexing
+todo:How vector databases work in detail down to the maths
+todo:what the hell are web components and how does lit use it
+
+todo:Magic regexp
+todo:motion canvas

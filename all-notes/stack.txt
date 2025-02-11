@@ -282,6 +282,7 @@ todo:google drive
 todo:movie app
 todo:Banking app
 todo:Video conferencing app and vid src api
+todo:real estate management app
 
 
 Next js apps are ssr unlike pure react that is spa
