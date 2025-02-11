@@ -1,8 +1,12 @@
-Cache storage api
-
 *Markup related
 Html
 Markdown
+Svg
+xml
+Xhtml
+Mathml
+Dbml
+Saml
 
 *Styling related
 Css
@@ -12,57 +16,154 @@ Styled components and tailwind styled components
 
 *Scripting related
 Javascript
-Typescript
-^subsets
-Jsdoc
+Typescript and Jsdoc
+
+*Data serialization
+json
+Yaml
+
+*Search tools
+Elastic search
+Meilisearch js 
+Algolia js
 
 *Frontend frameworks
 React
 Svelte
 Vue
-Astro js
-Next js
+Alpine js
+Mitosis
 
-*Frontend tools/additions
+*Content related
+Hugo
+Astro js
+
+*Frontend meta-frameworks
+Next js
+Nuxt js
+Sveltekit
+
+*3d
+Three js
+Blend4Web
+
+*React tools
 Jotai
 Redux
+Immer library
 Rtk query
-Formik
 Million js
+
+*Forms
+Formik
+Web3forms
 
 *Mobile app related
 React Native
 Expo js
+ionic js
 
 *Backend related
+pug--view layer
 Node js native
 Express js
 Nest js
-Pug
-Prisma js
 Graphql
 tRPC
 socket io
+Sessions and cookies
+
+*Database connection
+Mongodb driver
+Mongoose
+Prisma js
+
+*Commnunication api toolchain
+Twillio--broader range of communication integrations
+WebRTC--real time peer-peer communication
+
+*Backend as a Service
+Firebase
+Supabase
+Appwrite
+Pocketbase
+
+*Platform as a service
+Cloudinary--media management cloud service
+Github pages--deploying static websites
+Netlify--deploying frontend framework web apps
+Vercel--deploying next js web apps and serveless functions as a faas
+Render--deploying containerized and fullstack apps
+
+
+*Hosting management
+Hostinger
+Coolify
+
+*Database services
+neon
+Mongo db atlas
+
+*Cloud service related
+Google cloud
+Aws
+Microsoft Azure
+Terraform
 
 *Desktop app related
 Tauri js
+Electron js
+Nw js
 
-*Databases and storage
+*Databases
 Mongo db
 Postgre sql
+Redis db
+Cassandra db
+Dgraph db
 Pouch db
+
+*Browser storage
 local storage
+Cache storage api
 
 *Payment related
 Paystack
 Stripe js
 
-*Animation,diagrams and Effects related
-Chart js
-Hello pangea dnd--Drag and drop library
 
-*Deployment related
+*Animation related
+Intersection observer api
+Gsap
+Framer motion
+React lottie player
+React spring
+React scroll parallax
+Motion canvas
+
+*App effects
+Hello pangea dnd
+React toastify
+
+*Data plots
+Chart js
+D3 js
+Apex charts
+
+*Backend Deployment related
 Docker
+Nginx--reverse proxy,load balancer,cache
+
+*Development only
+Ngrok
+Mockbin.io
+
+*Web bundlers
+Parcel
+Vite
+Webpack
+turbopack
+rollup
 
 *Backend testing related
 Wallaby js
@@ -73,6 +174,19 @@ Stryker
 
 *Frontend testing related
 Cypress
+Vitest
+Playwright
+Cucumber js
+Story book
+
+*Cli tool
+Commander js
+
+*monorepo management tool
+Lerna
+
+*Monitoring tool
+Sentry io
 
 *Ui libraries
 Daisy ui
@@ -81,7 +195,107 @@ Uiverse.io
 Shadcn ui
 Bulma css--only for their smart grid
 
-*Backend clients
+*Backend clients in code
 Fetch api
 Axios
 Apollo client
+
+*Backend client guis
+Postman
+Api dog
+Insomnia
+
+*Utilities
+Magic regexp
+Winston
+Compo doc
+Emmet snippets
+concurrently
+nodemon
+uuid
+Chalk
+math js
+Jest junit
+pino
+dotenv
+postgres js
+pg js
+json2csv
+json colorizer
+chokidar
+
+*Version control
+Git
+
+*Backend security related
+Jwt token--token based authentication
+connect mongo--session authentication
+bcrypt--hashing passwords
+otpAuth--for otp passwords
+Helmet--for securing apis by setting many http headers
+Throttle-request rate limiting to prevent Dos attacks
+passport js--A full auth soluthtion that provides abstractions at makes it easier to implement many auth strategies with consistent code.
+Zod--request validation with typescript
+Class validator and transformer--builtin request validation for nest js
+
+*Authentication As a Service
+Auth0 js
+Clerk js
+
+*Frontend security
+auth js--A full auth solution for ssr web apps like next js but ill just use it for social login
+
+*Code collaboration
+Vscode liveshare
+Ngrok
+Google meet
+Github
+
+*Extra
+Seo
+Web design principles
+Streaming
+
+*Understanding Rendering patterns
+Static
+SPA
+MPA
+SSR
+SSG
+Partial hydration
+
+
+*Next programming languages
+C#--for making games with unity
+python,Cython,Mojo-for digital forensics,network security,data science,machine learning and exposing the ml model through an api with fast api
+Rust--for directly accessing system resources and hardware,perform heavy computations faster in my tauri apps
+solidity--may not.i may cuz our instructor recommended it
+
+
+*Just acknowledging but may or may not use
+?-----------------------------------------
+Tans stack query,router,ranger--There is already rtk query and next js router and ui libraries that can do rangers
+DBML--database markup language
+SAML
+Hookstate--I woud have loved to use it but is incompatible with the immer library
+Zustand
+post css
+purge css
+solid js
+Selenium
+angular
+xata
+Mindsdb--for training ml models with sql queries instead of code
+Pinecone
+key db
+neo4j
+Time scale DB
+fastify
+node gui
+xml
+Kubernetes
+Blend 4 web
+My sql
+Htmx
+Deno
+Jquery-simplifies dom manipulation

@@ -11,7 +11,6 @@ todo:Know how to automatically handle desktop app updates
 *Docker container,web app,desktop app
 
 todo:NodeGUI
-todo:Fix my syntax coloring.it sucks a little bit
 
 *blockbench is made with vue,three js and electron
 *The await keyword is for telling an async operation to run only when another async operation has finished
@@ -82,7 +81,6 @@ And then optionally use tailwind
 
 *im ending up using mockbin to simulate fetch requests cuz i dont have the time to scaffold a new nest js server like i thought
 
-todo:mockbin.io
 
 *Next js is really an ssr.It has mpa and spa in one
 
@@ -162,6 +160,8 @@ todo:That animated sign up page bolaji sent to me on whatsapp that came form dri
 
 *Array--matrix,vector
 
+*Javascript is an event driven and async programming language
+
 ^Ill use react alone with tauri when building offline or 90% offline web apps,next js with electron for online web apps and react with astro for websites
 
 todo:Understand elastic search inverted indexing
@@ -170,3 +170,34 @@ todo:what the hell are web components and how does lit use it
 
 todo:Magic regexp
 todo:motion canvas
+
+*pypy to python is like million js to react.its just a different implementation of the interpreter and renderer respectively that runs the code faster.Mypy is to Eslint.its a static type checker for python
+
+*Iaas,Paas,Faas,Baas,Saas,Aaas,Storage services,Database service
+
+*Faas and Baas,API.When building our api,you just dont make endpoints but you also manage everything else like routing,authentication,middleware and other management and architectural concerns while in faas,you can only focus on making your endpoint function and how it responds to user events while the cloud provider handles everything else for you.So using Faas and making your own api achieve the same thing but with different approaches
+
+*Tauri is more powerful for desktop apps while electron is more powerful for web apps
+*Desktop apps,web and mobile apps are tailored to a single or team user experience while entreprise level appas are for a whole organization.Java is the strongest for entreprise level apps
+
+*Desktop,mobile,web,entreprise level
+
+*In next js,api routes and server actions are serveless functions because once deployed,they are handled by the faas of the deployment service 
+
+*next js is server based when it comes to serving components with its ssr and its serverless when it comes to server actions and api routes
+
+*Next js for the view layer,api routes and server actions for faas and a baas
+
+*Postgres models relationships with tables while graph dbs uses nodes and edges
+
+*assets in games are just data not code like in arrays
+*Thats why lottie animations is represented in json because assets are stored in serialized data formats like json or yaml
+
+*Ill use postgres to store data retrieved from forms while mongo db for storing user created data in the server
+
+*token based auth is like when you go to an office or a school,they give you a clearance card that you must show every time you go to the school to authenticate yourself and it will expire after some time before you then get another one
+*session based auth is like a school exam record.Upon writing the exam for the first time,you are given an exam number that you must show to write the exam each time and collect your result later as they will check it against the students that have sat for the exam.The diff between this and token auth is that token auth doesnt store any of your data on the server to check against.It just checks if the token is valid like how a school will check if your clearance card is valid while for session,the server checks your id against the database like how a school uses your exam number to check against the db to ensure you are writing the exam
+
+
+todo:Real estate project
+todo:Demo day

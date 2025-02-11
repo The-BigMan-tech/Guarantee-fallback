@@ -42,3 +42,4 @@ fireship
 Web dev simplified
 Slaying the Dragon
 Optimistic web 
+Javascript mastery
