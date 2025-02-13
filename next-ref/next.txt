@@ -250,7 +250,7 @@ todo:Domestic skills i need to learn
 
 *ISR
 
-*The dom is static and js only runs once.The dom can only be updated by js and it will only update as said by the script meaning that dom manipulation doesnt implicitly update the dom.
+*The dom is static and rendered only once and js only runs once.The dom can only be updated by js and it will only update as said by the script meaning that dom manipulation doesnt implicitly update the dom.
 *The ability of js to automatically update the dom is called reactivity.Mutation observer can allosw for reactivity
 *server side js only run in resoonse to user requests unless its a web socket
 
@@ -312,3 +312,12 @@ github actions
 !stopped at dynamic routes.To continue at parallel routes
 
 *Dom manipulation,Dom library,Dom observation,Html driven framework,reactive framework
+*Vite js and other web bundlers provide a development web server
+
+*Container,virtual machine,emulator
+
+*ill use python to make my own machine learning models and expose them as apis to be used in my web apps through the fast api
+
+*Bang Ops
+
+^ill use rtk query in server actions and my api routes will directly communicate with the database.State in client components is managed by redux and saved in pouch db and not in the server.

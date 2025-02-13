@@ -220,6 +220,7 @@ Stryker
 *Frontend testing related
 ^-----------------------------
 Cypress
+React testing library
 Vitest
 Playwright
 Cucumber js
