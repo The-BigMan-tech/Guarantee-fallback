@@ -310,3 +310,5 @@ github actions
 *Parallel routes can be created by explicitly creating slots and inserting them into the layuts in paralel or at the same time and the page file by default,is a slot
 
 !stopped at dynamic routes.To continue at parallel routes
+
+*Dom manipulation,Dom library,Dom observation,Html driven framework,reactive framework

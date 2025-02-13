@@ -7,6 +7,6 @@ export default async function CatchUsers({params}:{params:Promise<{names:string[
             </>
         )
     }else {
-        return <h1>You didnt provide any users</h1>
+        return <h1 className="text-red-500">You didnt provide any users</h1>
     }
 }
