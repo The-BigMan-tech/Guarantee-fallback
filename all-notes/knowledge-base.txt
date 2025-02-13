@@ -320,11 +320,12 @@ Web assembly
 *Understanding Rendering patterns
 ^-------------------------------------
 Static
+ISR
+Partial hydration
 SPA
 MPA
 SSR
-SSG
-Partial hydration
+SSG/pre rendering
 
 
 *Next programming languages
@@ -357,6 +358,7 @@ fastify
 node gui
 xml
 Kubernetes
+Remix
 Blend 4 web
 My sql
 Htmx

@@ -1,8 +1,10 @@
 'use client'
 import { useState } from "react"
 import { echoInput,createPage } from "@/lib/action"
+import { useRouter } from "next/navigation"
 
 export default function Random() {
+    const router = useRouter()
     const [count,setCount] = useState<number>(0)
     return (
         <div className="flex flex-col items-center justify-center">
@@ -14,6 +16,7 @@ export default function Random() {
                 <input type="text" name="title"/>
                 <button type="submit">Send title</button>
             </form>
+            <button onClick={()=>router.push('/')}>Programmatic routing</button>
         </div>
     )
 }

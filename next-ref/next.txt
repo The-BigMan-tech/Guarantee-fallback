@@ -275,6 +275,34 @@ todo:Domestic skills i need to learn
 
 *Ill use a search engine like elastic search for all of this high volume of note data
 
-partial hydration
+*In next js,expected errors should be returned as values and the client should show a specific error ui hwile for uncaught exceptions,errors should be thrown as exceptionsa and a generic error.js file will be used as the fallback ui.
+
+*seo bots can only index pages generated on a web server and thats why spas have poor seos
+
+?There is a new way to write css in addition to styled components.There are unstyled components which are opposite to styled components in that the purpose of them is to retain their functionality but use your won styling.
+
+todo:Group by array method
+todo:abort controller api
+todo:Check out on jetbrains mps
+todo:Sorting algirithms
+todo:resumability rendering pattern
+
 Github pages is a hosting service
 github actions
+
+*layouts do not rerender
+
+*To route in next js,you can use the link component,useRouter hook or redirect funtion.For routing based on client side interactions,use the link component.for programmatic routing,use the useRouter hook for the client side and the redirect function in the server components.When using a link component in a component that is mounted in the app dir,the path should be next/navugation and not next/router.
+*You navigate to a new route using router.push in order to maintain the history stack
+
+*The link component is optimized by next js by using prefetching which is when next js will fetch the page data along with the js that the link component will route to even before the user clicks on it.It does this when the browser is idle and the link comes into the viewport or when its mounted.The prefetched data will be cleaned as directed by the browser's cache.
+
+*In next js,pages get cached to the router cache upon being routed by the user to prevent a new network request each time the user routes
+
+*Next js uses paritial rendering when routing between the same routes that only differ by a particular segment by only reloading the page of the segment of the route that changes and preserving the layout at the parent segmet=nt from reloading.For example if you route from x/a to x/b,only a and b will refresh while the layout at x remains the same.Layout is the most common use case where partial rendering will benefit
+
+*Memoization and caching are similar except that memoization is done at the function level where pure functions can be optimized by storing their previous computations to prevent an expensive computation when the function is called with the same inputs while caching can be done at a broader level including network requests and databases
+
+*Next js automatically streams all the html documents to the client progressively but providing the loading,tsx will give a better ux and devs can manually control streaming at the component level using suspense
+
+*There are route groups which are like folders in next js except that their names wont be included in the final route.They are used to logically group routes without affecting their url structure.They are used mostly for grouping routes into intents or teams
