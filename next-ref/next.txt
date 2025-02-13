@@ -305,4 +305,4 @@ github actions
 
 *Next js automatically streams all the html documents to the client progressively but providing the loading,tsx will give a better ux and devs can manually control streaming at the component level using suspense
 
-*There are route groups which are like folders in next js except that their names wont be included in the final route.They are used to logically group routes without affecting their url structure.They are used mostly for grouping routes into intents or teams
+*There are route groups which are like folders in next js except that their names wont be included in the final route.They are used to logically group routes without affecting their url structure.They are used mostly for grouping routes into intents or teams.Routes that include a route group should not resolve to the same URL path as other routes. For example, since route groups don't affect URL structure, (marketing)/about/page.js and (shop)/about/page.js would both resolve to /about and cause an error.
