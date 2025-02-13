@@ -1,3 +1,5 @@
+!All the notes below are my thoughts during the learning process of particular technologies and the later ones in and even outside this text file might contradict older ones as a result of corrections along the way so not all of them are accurate and all might be subject to correction but as a safe bet on accuracy,trust the later ones over the older ones.
+
 *Web apps are instantly accessible unlike desktop apps and for desktop apps,you have to think of how you will handle updates
 
 todo:Know how to automatically handle desktop app updates
@@ -173,14 +175,14 @@ todo:motion canvas
 
 *pypy to python is like million js to react.its just a different implementation of the interpreter and renderer respectively that runs the code faster.Mypy is to Eslint.its a static type checker for python
 
-*Iaas,Paas,Faas,Baas,Saas,Aaas,Storage services,Database service
+*Hosting service.Cloud services:Iaas,Paas,Faas,Baas,Saas,Authentication as a service,Storage as a service,Database as a service.
 
 *Faas and Baas,API.When building our api,you just dont make endpoints but you also manage everything else like routing,authentication,middleware and other management and architectural concerns while in faas,you can only focus on making your endpoint function and how it responds to user events while the cloud provider handles everything else for you.So using Faas and making your own api achieve the same thing but with different approaches
 
 *Tauri is more powerful for desktop apps while electron is more powerful for web apps
 *Desktop apps,web and mobile apps are tailored to a single or team user experience while entreprise level appas are for a whole organization.Java is the strongest for entreprise level apps
 
-*Desktop,mobile,web,entreprise level
+*Desktop,mobile,web,entreprise level,Saas app
 
 *In next js,api routes and server actions are serveless functions because once deployed,they are handled by the faas of the deployment service 
 
@@ -201,3 +203,78 @@ todo:motion canvas
 
 todo:Real estate project
 todo:Demo day
+todo:Domestic skills i need to learn
+
+?vscode terminal cant go full screen
+?inline fold isnt working
+?Its possible that attackers can bring up credential or auth windows when using public wifi so,i shoudnt use them unless im using mine
+
+*Next js can communicate with dbs
+*Frontend,MetaFramework,Backend
+
+*server actions,api routes and server components
+
+*Forms--button with form action or form element
+
+*A saas product is a software offered on a subscription basis that is hosted in the cloud
+*Three js has now made js able to create 3d scenes in web browsers.Js can do anything to deliver a good ux across all kinds of apps
+
+*tunnelling is a way for others to test your web app on a local server outside of your network while its still in development
+
+*Rest,graph ql,rpc,web socket
+
+*Server actions are just like an rpc server but tailored to frontend web apps
+
+*server components,server actions and api routes are all different implementations of server functions
+
+*I should use server components for pages that have to be fully rendered on the server into static html before its sent to the client for better seo,faster load times and where little interactivity is required.Server actions are ideal for performing operations in response to client side interactions/client triggered actions that will require server side processing such as form submissions while api routes are for creating rest endpoints mainly for data retrieval and manipulation like client side state that is dependent on data from a database
+
+*client side queries
+
+*Caching and revalidation,batching
+
+*When i make changes to my src code,vercel automatically redeploys the latest version for me.Thats called a continuous deployment pipeline.SSG sites are just static html but i can update the content by editing the src files and pushing the changes which will trigger a redeployment but it differs from isr because in this,pages are rebuilt each time the data changes
+
+*spas,mpa,ssrs are hosted on deployment while ssgs are built on deployment
+*Spas use an empty html shell that is then hydrated by js
+*mpas 
+
+*so partially hydrated pages are built and hosted on deployment.Its similar to spa except that it isnt an empty html shell that has a single div which is the place where the whole page content goes as controlled by js but rather a page with content where js contains only one or two divs isolated from themselves and the rest of the page content.
+
+*SSG pages are built on deployment unlike others that are hosted on deployment
+*long lived process
+
+*Client side Js code is executed once the page loads and only reruns when attatched to event listeners,observers or called by another script.
+
+*web socket allows for persistent connection between the client and the server unlike the other protocols that only connect when the client makes a request to the server
+
+*ISR
+
+*The dom is static and js only runs once.The dom can only be updated by js and it will only update as said by the script meaning that dom manipulation doesnt implicitly update the dom.
+*The ability of js to automatically update the dom is called reactivity.Mutation observer can allosw for reactivity
+*server side js only run in resoonse to user requests unless its a web socket
+
+*In every rendering pattern,the content is hosted on a web server and at least,one html document is delivered to the client.The only difference is when and where the document is built.
+
+*Web servers serve html documents and scripts to be used in the browser
+*Application/backend server serves json documents to be used in the frontend app
+
+*web servers are implicitly built and managed by tools while application servers are built explicitly using frameworks like nest js or express
+
+*Next js and other meta frameworks have a dual nature of being both a web server and an application server
+
+*Everything in a desktop app is bundled locally and as such when you build a web app as a desktop app,it no longer needs access to the web server to function.
+
+*If you build a static site with only some parts of the documet made interactive by js,it is a partially hydrated page and as such,partial hydration can be seen as an extension to static rendering
+
+*Isr is an extension of static rendered pages where the pages are regenerated after a revalidation period rather then rebuilding it on change through a cd pipeline
+
+*Apache,nginx and the live server vs code extension all come with built in web servers
+
+*CD pipelines are used to continuously deploy changes to production whenever changes are made to a repository and most modern cd solutions dont require a web server restart and as such,they provide zero downtimes
+
+*Ill use a search engine like elastic search for all of this high volume of note data
+
+partial hydration
+Github pages is a hosting service
+github actions

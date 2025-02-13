@@ -5,8 +5,8 @@
   "main": "electron.mjs",
   "scripts": {
     "electron": "electron .",
-    "dev": "next dev",
     "electron:dev": "concurrently \"npx pnpm run dev\" \"npx pnpm run electron\"",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

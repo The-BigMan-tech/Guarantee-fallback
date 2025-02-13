@@ -3,12 +3,12 @@ Js Mastery
 
 *CURRENT LEARNING SESSION
 ?------------------------
-Astro js
 next js
+Astro js
 Pouch db--hundreds of mb of storage
 Stripe js and paystack
 Formik
-Hello pangea dnd
+Hello pangea dnd and react toastify
 React Native
 Expo js
 todo:Learn cookie and session storage
@@ -49,3 +49,7 @@ practice:Graphql
 Daisy ui
 Material ui
 uiverse.io
+
+
+*lego fox
+*tag based file explorer
