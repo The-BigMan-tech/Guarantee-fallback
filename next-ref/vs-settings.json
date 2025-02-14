@@ -1,0 +1,350 @@
+{
+  "extensions.autoUpdate": false,
+  "code-runner.executorMap": {
+
+    
+
+
+
+    
+
+
+    
+
+
+
+    "javascript": "node",
+    "java": "cd $dir && javac $fileName && java $fileNameWithoutExt",
+    "c": "cd $dir && gcc $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+    "zig": "zig run",
+    "cpp": "cd $dir && g++ $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+    "objective-c": "cd $dir && gcc -framework Cocoa $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+    "php": "php",
+    "python": "python -u",
+    "perl": "perl",
+    "perl6": "perl6",
+    "ruby": "ruby",
+    "go": "go run",
+    "lua": "lua",
+    "groovy": "groovy",
+    "powershell": "powershell -ExecutionPolicy ByPass -File",
+    "bat": "cmd /c",
+    "shellscript": "bash",
+    "fsharp": "fsi",
+    "csharp": "dotnet run",
+    "vbscript": "cscript //Nologo",
+    "typescript": "deno --allow-env --allow-sys",
+    "coffeescript": "coffee",
+    "scala": "scala",
+    "swift": "swift",
+    "julia": "julia",
+    "crystal": "crystal",
+    "ocaml": "ocaml",
+    "r": "Rscript",
+    "applescript": "osascript",
+    "clojure": "lein exec",
+    "haxe": "haxe --cwd $dirWithoutTrailingSlash --run $fileNameWithoutExt",
+    "rust": "cd $dir && rustc $fileName && $dir$fileNameWithoutExt",
+    "racket": "racket",
+    "scheme": "csi -script",
+    "ahk": "autohotkey",
+    "autoit": "autoit3",
+    "dart": "dart",
+    "pascal": "cd $dir && fpc $fileName && $dir$fileNameWithoutExt",
+    "d": "cd $dir && dmd $fileName && $dir$fileNameWithoutExt",
+    "haskell": "runghc",
+    "nim": "nim compile --verbosity:0 --hints:off --run",
+    "lisp": "sbcl --script",
+    "kit": "kitc --run",
+    "v": "v run",
+    "sass": "sass --style expanded",
+    "scss": "scss --style expanded",
+    "less": "cd $dir && lessc $fileName $fileNameWithoutExt.css",
+    "FortranFreeForm": "cd $dir && gfortran $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+    "fortran-modern": "cd $dir && gfortran $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+    "fortran_fixed-form": "cd $dir && gfortran $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+    "fortran": "cd $dir && gfortran $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+    "sml": "cd $dir && sml $fileName",
+    "mojo": "mojo run",
+    "erlang": "escript",
+    "spwn": "spwn build",
+    "pkl": "cd $dir && pkl eval -f yaml $fileName -o $fileNameWithoutExt.yaml",
+    "gleam": "gleam run -m $fileNameWithoutExt"
+  },
+  "workbench.iconTheme": "material-icon-theme",
+  "vscode_custom_css.imports": [
+    "file:///c:/Users/USER/Desktop/The-Web/Code-references/override.css"
+  ],
+  "animations.Install-Method": "Custom CSS and JS",
+  "apc.imports": [
+    "file:///c:/Users/USER/.vscode/extensions/brandonkirbyson.vscode-animations-2.0.3/dist/updateHandler.js"
+  ],
+  "animations.CursorAnimation": true,
+  "editor.cursorBlinking": "smooth",
+  "code-runner.saveFileBeforeRun": true,
+  "indentRainbow.colors": [
+    "rgba(255,255,64,0.07)",
+    "rgba(127,255,127,0.07)",
+    "rgba(255,127,255,0.07)",
+    "rgba(79,236,236,0.07)"
+  ],
+  "editor.fontWeight": "normal",
+  "terminal.integrated.fontFamily": "Consolas",
+  "zenMode.restore": false,
+  "apc.activityBar": {},
+  "workbench.editorAssociations": {
+    "*.exe": "default",
+    "*.mp4": "vscode.videoPreview"
+  },
+  "editor.fontLigatures": false,
+  "files.autoSave": "afterDelay",
+  "mediaPreview.video.loop": true,
+  "codetour.showMarkers": false,
+  "indentRainbow.indicatorStyle": "light",
+  "workbench.colorCustomizations": {},
+  "autoDocstring.docstringFormat": "numpy-notypes",
+  "codeMetrics.lineCountThreshold": 100,
+  "python.languageServer": "Pylance",
+  "code-runner.showExecutionMessage": false,
+  "python.analysis.inlayHints.variableTypes": true,
+  "python.analysis.inlayHints.functionReturnTypes": true,
+  "git.autofetch": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "liveServer.settings.donotShowInfoMsg": true,
+  "indentRainbow.errorColor": "",
+  "editor.fontFamily": "Consolas",
+  "editor.minimap.enabled": false,
+  "jupyter.askForKernelRestart": false,
+  "notebook.output.scrolling": true,
+  "liveServer.settings.donotVerifyTags": true,
+  "terminal.integrated.accessibleViewFocusOnCommandExecution": true,
+  "tailwindCSS.includeLanguages": {
+    "typescript": "javascript",
+    "typescriptreact": "javascript" 
+},
+"editor.quickSuggestions": {
+    "strings": true 
+},
+"tailwindCSS.experimental.classRegex": [
+    "tw`([^`]*)",
+    "tw\\.[^`]+`([^`]*)`",
+    "tw\\(.*?\\).*?`([^`]*)",
+    "'([^']*)'" 
+],
+"svelte.enable-ts-plugin": true,
+"css.lint.unknownAtRules": "ignore",
+"material-icon-theme.folders.associations": {
+  "styled-components":"ui",
+  "compiled-js":"javascript"
+},
+"editor.tokenColorCustomizations": {
+
+
+
+
+  "textMateRules": [
+        {
+            "scope": "storage.type.model.prisma", 
+            "settings": {
+                "foreground": "#ff6570"
+            }
+        },
+        {
+            "scope": "storage.type.config.prisma", 
+            "settings": {
+                "foreground": "#ff6570"
+            }
+        },
+        {
+            "scope": "variable.language.relations.prisma",
+            "settings": {
+                "foreground": "#ff6570"
+            }
+        },
+        {
+          "scope":"entity.other.attribute-name.astro",
+          "settings": {
+            "foreground": "#a788f1"
+          }
+        },
+        {
+          "scope":"entity.name.type",
+          "settings": {
+            "foreground": "#caf4f3"
+          }
+        },	
+        {
+          "scope":"support.type.primitive",
+          "settings": {
+            "foreground": "#caf4f3"
+          }
+        },	
+        {
+          "scope":" variable.other.constant",
+          "settings": {
+            "foreground": "#f4c3ed"
+          }
+        }
+    ]
+  
+},
+"tailwind-fold.unfoldIfLineSelected": true,
+"explorer.compactFolders": false,
+"code-runner.runInTerminal": true,
+"Notes.notesLocation": "c:\\Users\\USER\\Desktop\\Webnote",
+"better-comments.highlightPlainText": true,
+"better-comments.tags": [
+
+
+
+
+
+
+
+
+
+  {
+    "tag": "!",
+    "color": "#ff414e",
+    "strikethrough": false,
+    "underline": false,
+    "backgroundColor": "transparent",
+    "bold": false,
+    "italic": false
+  },
+  {
+    "tag": "?",
+    "color": "#3ac2ff",
+    "strikethrough": false,
+    "underline": false,
+    "backgroundColor": "transparent",
+    "bold": false,
+    "italic": false
+  },
+  {
+    "tag": "//",
+    "color": "#f16634",
+    "strikethrough":false,
+    "underline": false,
+    "backgroundColor": "transparent",
+    "bold": false,
+    "italic": false
+  },
+  {
+    "tag": "minor",
+    "color": "#9cd1bb",
+    "strikethrough":false,
+    "underline": false,
+    "backgroundColor": "transparent",
+    "bold": false,
+    "italic": false
+  },
+  {
+    "tag": "^",
+    "color": "#dcd76d",
+    "strikethrough":false,
+    "underline": false,
+    "backgroundColor": "transparent",
+    "bold": false,
+    "italic": false
+  },
+  {
+    "tag": "todo",
+    "color": "#FF8C00",
+    "strikethrough": false,
+    "underline": false,
+    "backgroundColor": "transparent",
+    "bold": false,
+    "italic": false
+  },
+  {
+    "tag": "*",
+    "color": "#9cd761",
+    "strikethrough": false,
+    "underline": false,
+    "backgroundColor": "transparent",
+    "bold": false,
+    "italic": false
+  },
+  {
+    "tag": "practice",
+    "color": "#ffca28",
+    "strikethrough": false,
+    "underline": false,
+    "backgroundColor": "transparent",
+    "bold": false,
+    "italic":true
+  }
+],
+"code-runner.executorMapByFileExtension": {
+
+  ".vb": "cd $dir && vbc /nologo $fileName && $dir$fileNameWithoutExt",
+  ".vbs": "cscript //Nologo",
+  ".scala": "scala",
+  ".jl": "julia",
+  ".cr": "crystal",
+  ".ml": "ocaml",
+  ".zig": "zig run",
+  ".exs": "elixir",
+  ".hx": "haxe --cwd $dirWithoutTrailingSlash --run $fileNameWithoutExt",
+  ".rkt": "racket",
+  ".scm": "csi -script",
+  ".ahk": "autohotkey",
+  ".au3": "autoit3",
+  ".kt": "cd $dir && kotlinc $fileName -include-runtime -d $fileNameWithoutExt.jar && java -jar $fileNameWithoutExt.jar",
+  ".kts": "kotlinc -script",
+  ".dart": "dart",
+  ".pas": "cd $dir && fpc $fileName && $dir$fileNameWithoutExt",
+  ".pp": "cd $dir && fpc $fileName && $dir$fileNameWithoutExt",
+  ".d": "cd $dir && dmd $fileName && $dir$fileNameWithoutExt",
+  ".hs": "runhaskell",
+  ".nim": "nim compile --verbosity:0 --hints:off --run",
+  ".csproj": "dotnet run --project",
+  ".fsproj": "dotnet run --project",
+  ".lisp": "sbcl --script",
+  ".kit": "kitc --run",
+  ".v": "v run",
+  ".vsh": "v run",
+  ".sass": "sass --style expanded",
+  ".cu": "cd $dir && nvcc $fileName -o $fileNameWithoutExt && $dir$fileNameWithoutExt",
+  ".ring": "ring",
+  ".sml": "cd $dir && sml $fileName",
+  ".mojo": "mojo run",
+  ".erl": "escript",
+  ".spwn": "spwn build",
+  ".pkl": "cd $dir && pkl eval -f yaml $fileName -o $fileNameWithoutExt.yaml",
+  ".gleam": "gleam run -m $fileNameWithoutExt"
+},
+"material-icon-theme.files.associations": {
+  
+},
+"codeium.enableCodeLens": false,
+"typescript.updateImportsOnFileMove.enabled": "always",
+"debug.javascript.debugByLinkOptions": "on",
+"editor.wordBasedSuggestions": "off",
+"editor.cursorStyle": "line-thin",
+"database-client.autoSync": true,
+"csv-to-table.upperCaseHeader": true,
+"csv-to-table.openGeneratedTableInNewEditor": false,
+"[prisma]": {
+  
+},
+"workbench.colorTheme": "Monokai Pro (Filter Octagon)",
+"javascript.updateImportsOnFileMove.enabled": "always",
+"diffEditor.ignoreTrimWhitespace": false,
+"svgPreview.autoOpen": false,
+"errorLens.gutterIconsEnabled": true,
+"editor.semanticTokenColorCustomizations": {
+
+},
+"turboConsoleLog.addSemicolonInTheEnd": true,
+"turboConsoleLog.insertEmptyLineAfterLogMessage": true,
+"turboConsoleLog.insertEmptyLineBeforeLogMessage": true,
+"turboConsoleLog.includeFileNameAndLineNum": true,
+"inlineFold.disableInDiffEditor": true,
+"inlineFold.unfoldedOpacity": 1,
+"editor.foldingHighlight": false,
+"inlineFold.regexGroup": ""
+}

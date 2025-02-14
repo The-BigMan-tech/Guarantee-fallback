@@ -4,9 +4,12 @@ Js Mastery
 *CURRENT LEARNING SESSION
 ?------------------------
 next js
+Auth js
 Astro js
 Pouch db--hundreds of mb of storage
-Stripe js and paystack
+Plaid js
+Stripe js
+paystack
 Formik
 Hello pangea dnd and react toastify
 React Native

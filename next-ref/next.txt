@@ -307,7 +307,7 @@ github actions
 
 *There are route groups which are like folders in next js except that their names wont be included in the final route.They are used to logically group routes without affecting their url structure.They are used mostly for grouping routes into intents or teams.Routes that include a route group should not resolve to the same URL path as other routes. For example, since route groups don't affect URL structure, (marketing)/about/page.js and (shop)/about/page.js would both resolve to /about and cause an error.
 
-*Parallel routes can be created by explicitly creating slots and inserting them into the layuts in paralel or at the same time and the page file by default,is a slot
+*Parallel routes can be created by explicitly creating slots and inserting them into the layouts in paralel or at the same time and the page file by default,is a slot
 
 !stopped at dynamic routes.To continue at parallel routes
 
@@ -318,6 +318,19 @@ github actions
 
 *ill use python to make my own machine learning models and expose them as apis to be used in my web apps through the fast api
 
-*Bang Ops
+*Green Bang 
 
-^ill use rtk query in server actions and my api routes will directly communicate with the database.State in client components is managed by redux and saved in pouch db and not in the server.
+*server actions are for handling server side processing that are tied directly and tightly to user interactions liek form submissions and button clicks.
+*Api routes should be used for resusable and shared complex backend logic like user authentication,data fetching for multiple components,payment processing,external api proxy,admin actions.
+
+^Server actions and Api routes are self managed backend functionalities before i then move to a dedicated nest js backend as the complexity of the backend grows.My client components should use rtk query to communicate with the api routes and then later,to a nest js api.My client components should manage state with redux and write it locally to pouch db.I have to write as much backend logic as possible within next js till the complexity demands a dedicated backend server.
+
+*The page component by default is mapped to a children slot.Slots are not part of the route segment and odnt affect the url structure
+
+todo:understand this:Slots are combined with the regular Page component to form the final page associated with the route segment. Because of this, you cannot have separate static and dynamic slots at the same route segment level. If one slot is dynamic, all slots at that level must be dynamic.
+
+?in parallel routing,i cant access the routes of slots directly through the url only through a link the layout where the slot is imported in.
+
+*Parallel routing allows next js to render two or more of the same routes at the same time as far as they are in different slots.They are great for creating route/tab groups that are conditionally rendered.This is because non of the pages in a slot will be rendered as a route unless its rendered in the layout explicitly or as said by a condition check.Meaning that if slot A has a route called dog and another slot called slot B only has a page route and you only render slot B in the layout,you cant access the dog route in slot A.It is the next js equivalent to conditionally rendering routes in react router dom as i implemented it in the liense check feature of my kanban app.Each slot is like an isolated environment for routes than the other so there are no naming conflicts even though the routes in each slot bears the same name
+
+^Hurray to the Record utility type
