@@ -251,6 +251,7 @@ Bulma css--only for their smart grid
 Fetch api
 Axios
 Apollo client
+Rtk query
 
 *Backend client as guis
 ^--------------------

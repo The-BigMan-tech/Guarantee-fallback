@@ -1,6 +1,6 @@
 'use client'
 import { useState } from "react"
-import { echoInput,createPage } from "@/lib/action"
+import { echoInput,createPage } from "@/lib/server/actions/action"
 import { useRouter } from "next/navigation"
 
 export default function Random() {

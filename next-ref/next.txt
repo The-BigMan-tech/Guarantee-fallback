@@ -329,8 +329,38 @@ github actions
 
 todo:understand this:Slots are combined with the regular Page component to form the final page associated with the route segment. Because of this, you cannot have separate static and dynamic slots at the same route segment level. If one slot is dynamic, all slots at that level must be dynamic.
 
-?in parallel routing,i cant access the routes of slots directly through the url only through a link the layout where the slot is imported in.
-
 *Parallel routing allows next js to render two or more of the same routes at the same time as far as they are in different slots.They are great for creating route/tab groups that are conditionally rendered.This is because non of the pages in a slot will be rendered as a route unless its rendered in the layout explicitly or as said by a condition check.Meaning that if slot A has a route called dog and another slot called slot B only has a page route and you only render slot B in the layout,you cant access the dog route in slot A.It is the next js equivalent to conditionally rendering routes in react router dom as i implemented it in the liense check feature of my kanban app.Each slot is like an isolated environment for routes than the other so there are no naming conflicts even though the routes in each slot bears the same name
 
 ^Hurray to the Record utility type
+
+*File based routing and component based routing
+
+*Route Handlers can be nested anywhere inside the app directory, similar to page.js and layout.js. But there cannot be a route.js file at the same route segment level as page.js.
+
+*Route.ts and page.ts files cant be in the same directory because both the page and rooute handler capture all the routes in a particular url segment and as such,they will conflict if they are in the same place
+
+*api routes in next js uses the native request and response apis
+*in next js,the names of the functions in the route.ts files must be http verbs and there can only be one http verb function in a route.The routes are mapped to their structure in the file system as it is for pages
+
+*the get http method can be caxhed while others cant
+
+^Ill make my server components make requests to api routes for security,decoupling and reusability
+^The goal of api routes is to make them a reusable way to perform crud operations.
+
+^Api routes are totally decoupled from your app's logic and they only focus on manipulating the database and serving requests and can be reused across different parts of the app which reduces errors plus with enhanced security ensuring that database access is only done at the api layer.So ill use api routes with rtk query
+
+*when consuming data using a redux query hook,you have to take the is loading property so that it only renders the component when the data is ready
+
+^Client should use rtk query to communicate with my api routes while my server actions and components will use axios since server actions and components cant be directly wrapped by the redux store and axios can work in a node js environment.
+^Axios instance and rtk query provide a single source of truth. 
+^Axios allows me to interecept requests and responses like nest js
+
+^server actions are tightly coupled to the app's logic while api routes arent.I believe they are called server actions because they are action that are triggered on the client side that will have to operate on the server side
+
+*Get requests can be cached and revalidated which creates isr
+
+*api routes are called route.ts or .js by convention just like how pages are named page.tsx
+
+*The page files are the templates next js will use to build the html documents before they are delivered to the client
+
+^my app folder will be focused on delivering pages or json documents to request while my components folder will consists of the components that will be used in the app and decide where they will be rendered.My app folder is essentially my backend and my components folder is essentially my frontend

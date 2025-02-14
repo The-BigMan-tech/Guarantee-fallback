@@ -1,9 +1,9 @@
-import axios from 'axios'
+import { axiosInstance } from "@/lib/axios-instance"
 // import { redirect } from 'next/navigation'
 
 export default async function ServerComponent({id}:{id:string}) {
-    const response = await axios.get('https://b5b11be5b0154ae294307be1e52a6c0d.api.mockbin.io/')
-    const message = response.data.message
+    const response = await axiosInstance.get('/users')
+    const message = response.data.name
     // redirect('/random')
     return (
         <>
