@@ -363,4 +363,29 @@ todo:understand this:Slots are combined with the regular Page component to form 
 
 *The page files are the templates next js will use to build the html documents before they are delivered to the client
 
-^my app folder will be focused on delivering pages or json documents to request while my components folder will consists of the components that will be used in the app and decide where they will be rendered.My app folder is essentially my backend and my components folder is essentially my frontend
+^my app folder will be focused on delivering pages or json documents to request while my components folder will consists of the components that will be used in the app and decide where they will be rendered.My app folder is essentially my backend and my components folder is essentially my frontend and of course,my components will be categorized in folders by features both under the client and server folder.
+
+todo:Modals and intercepting routes
+
+*Http headers which are both present in requests and responses are for holding many key-value pairs that contains information that are shared between the client and the server that are not part of the app's logic.they set various things like ;
+
+*Content type:tells the type of data that will be sent to the server in the request and to the client in the response.
+
+*Authorization:Contains credentials that the client will use to authenticate himself when making request to teh server
+
+*Accept:It defines what type of data that the client wants to receive in the response
+
+*Cookies:For sending cookies from the client to the server.Cookies are forsaving preferences
+
+*Cache control:Tells the client whether to cache or not
+
+*set cookie:Used by the server to tell the client to store cookies
+
+*Etags(entity tags):For cache validation.Cache validation tells the client how long the cached data is up to date or valid before they have to refetch the data again from the server.
+
+*In api routes,the functions are being called somewhere else and being passed the request object as the first argument while the dynamic params as the second argument so its mandatory that their signature is in that order if they want to accept any form of args in their signature
+
+*GET and DELETE--url segments,path parameters,query parameters
+*POST,PUT,PATCH--optionally path parameters and request payload
+
+*when calling an api to fetch data in a client component,i can control which parts of the component renders first by using condition logic to tie the loading of one data to start only after another one hss loaded and then render elements based on the loading state.It is good for synchronizing elements where one element needs to be rendered after another

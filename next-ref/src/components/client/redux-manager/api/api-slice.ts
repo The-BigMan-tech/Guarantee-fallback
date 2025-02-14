@@ -6,8 +6,11 @@ const apiSlice = createApi({
     endpoints:({query}) => ({
         getEcho:query<Record<string,string>,void>({
             query:() => '/users',
+        }),
+        getPerson:query<Record<string,string>,string>({
+            query:(personName:string) => `/users/${personName}`
         })
     }),
 });
-export const { useGetEchoQuery } = apiSlice;
+export const { useGetEchoQuery,useGetPersonQuery } = apiSlice;
 export default apiSlice;
