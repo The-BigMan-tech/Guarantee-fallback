@@ -2,3 +2,15 @@ react
 Next js
 plaid
 appwrite
+Chart js
+Tailwind css
+^i have to create a types folder where all the custom types in my code will be made and shared across my project
+*if i click on a link in a sidebar component to route me to somewhere else,the sidebar component will unrender on routing so the layout is used to ensure that the sidebar is consistent across many or all pages
+*use the rfc snippet to be faster
+*Route groups allows us not only to organize routes but also scope layouts
+
+*commit messages should start with a present tense verb and not a continuous one cuz your commit should answer the questions what did your commit do
+
+*source control graph and git history
+
+*i should use * as placeholder text instead of 0

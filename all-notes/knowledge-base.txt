@@ -1,242 +1,32 @@
+^MARKUP & CONTENT
 *Markup related
 ^----------------
 Html
-Markdown
-Svg
-xml
-Xhtml
-Mathml
-Dbml
-Saml
+todo: Markdown
+todo: Svg
+maybe: xml
+maybe: Xhtml
+maybe: Mathml
+maybe: Dbml
+maybe: Saml
 
+*Content related
+^----------------
+todo: Hugo
+todo: Astro js
+
+
+
+^STYLE,UI,ANIMATIONS & PLOTS
 *Styling related
 ^---------------
 Css
 Tailwind css
 Sass
-Styled components and tailwind styled components
-
-*Scripting related
-^-----------------
-Javascript
-Typescript and Jsdoc
-
-*Data serialization
-^------------------
-json
-Yaml
-
-*Search tools
-^------------
-Elastic search
-Meilisearch js 
-Algolia js
-
-
-*Frontend frameworks
-^-------------------
-React
-Svelte
-Vue
-Alpine js
-Mitosis
-
-*Frontend meta-frameworks
-^-------------------------
-Next js
-Nuxt js
-Sveltekit
-
-*Content related
-^----------------
-Hugo
-Astro js
-
-*3d software
-^------------
-Blender
-Blockbench
-
-
-*3d rendering
-^-----------
-Three js
-Blend4Web
-Babylon js
-
-*Game engine
-^-----------
-Play canvas
-Phaser
-
-*React tools
-^-----------
-Jotai
-Redux
-Immer library
-Rtk query
-Million js
-
-*Forms
-^-------
-Formik
-Web3forms
-
-*Mobile app related
-^------------------
-React Native
-Expo js
-ionic js
-
-*Backend related
-^----------------
-Node js native
-Express js
-pug--view layer
-Nest js
-Graphql
-tRPC
-socket io
-Sessions and cookies
-
-*Database connection
-^-------------------
-Mongodb driver
-Mongoose
-Prisma js
-
-*Commnunication api toolchain
-^------------------------------
-Twillio--broader range of communication integrations
-WebRTC--real time peer-peer communication
-
-*Backend as a Service
-^---------------------
-Firebase
-Supabase
-Appwrite
-Pocketbase
-
-*Platform as a service
-^----------------------
-Cloudinary--media management cloud service
-Github pages--deploying static websites
-Netlify--deploying frontend framework web apps
-Vercel--deploying next js web apps and serveless functions as a faas
-Render--deploying containerized and fullstack apps
-
-
-*Hosting management
-^------------------
-Hostinger
-Coolify
-
-*Database as a Service
-^-----------------
-neon
-Mongo db atlas
-
-*Cloud service related
-^---------------------
-Google cloud
-Aws
-Microsoft Azure
-Terraform
-
-*Desktop app related
-^-------------------
-Tauri js
-Electron js
-Nw js
-
-*Databases
-^----------
-Mongo db
-Postgre sql
-Redis db
-Cassandra db
-Dgraph db
-Pouch db
-
-*Browser storage
-^---------------
-local storage
-Cache storage api
-
-*Payment related
-^---------------
-Paystack
-Stripe js
-
-
-*Animation and Effects related
-^--------------------------------
-Intersection observer api
-Gsap
-Framer motion
-React lottie player
-React spring
-React scroll parallax
-Motion canvas
-React bits
-
-*Smooth ui
-^------------
-Hello pangea dnd
-React toastify
-
-*Data plots
-^------------
-Chart js
-D3 js
-Apex charts
-
-*Backend Deployment related
-^--------------------------------
-Docker
-Nginx--reverse proxy,load balancer,cache
-
-*Development only
-^------------------
-Ngrok
-Mockbin.io
-
-*Web bundlers
-^---------------
-Parcel
-Vite
-Webpack
-turbopack
-rollup
-
-*Backend testing related
-^-----------------------
-Wallaby js
-Jest
-Supertest
-Fast check
-Stryker
-
-*Frontend testing related
-^-----------------------------
-Cypress
-React testing library
-Vitest
-Playwright
-Cucumber js
-Story book
-
-*Cli tool
-^----------
-Commander js
-
-*monorepo management tool
-^--------------------------
-Lerna
-
-*Monitoring tool
-^----------------
-Sentry io
+Styled components
+tailwind styled components
+out: post css
+purge css
 
 *Ui libraries
 ^------------
@@ -246,6 +36,142 @@ Uiverse.io
 Shadcn ui
 Bulma css--only for their smart grid
 
+*ui additions
+^------------
+todo: Hello pangea dnd
+todo: React toastify
+
+*Animation and Effects related
+^--------------------------------
+Intersection observer api
+React lottie player
+todo: Gsap
+todo: Framer motion
+todo: React spring
+todo: React scroll parallax
+todo: Motion canvas
+todo: React bits
+
+*Data plots
+^------------
+Chart js
+todo: D3 js
+maybe: Apex charts
+
+
+
+^SCRIPING AND WEB BUNDLERS
+*Scripting related
+^-----------------
+Javascript
+Typescript and Jsdoc
+
+*Web bundlers
+^---------------
+Parcel
+Vite
+Webpack
+turbopack
+rollup
+
+
+
+^FRONTEND FRAMEWORKS,META FRAMEWORKS
+*Frontend frameworks
+^-------------------
+React
+Svelte
+todo: Vue
+todo: Alpine js
+maybe: Mitosis
+out: solid js
+out: angular js
+out: node gui
+
+*Frontend meta-frameworks
+^-------------------------
+Next js
+out: Remix
+todo: Nuxt js
+todo: Sveltekit
+
+
+
+^FRONTEND TESTING & SECURITY
+*Frontend testing related
+^-----------------------------
+Cypress
+Story book
+todo: React testing library
+todo: Vitest
+todo: Cucumber js
+maybe: Playwright
+
+*Frontend security
+^-----------------
+todo: auth js--A full auth solution for ssr web apps like next js but ill just use it for social login
+
+
+
+^FORMS,REACT TOOLS & STORAGE
+*Forms
+^-------
+todo: Formik
+todo: Web3forms
+
+*React tools
+^-----------
+Redux
+Immer library
+Rtk query
+todo: Jotai
+todo: Million js
+out: zustand
+out: hookstate
+out: Tans stack query,router,ranger
+
+*Browser storage
+^---------------
+local storage
+todo: Cache storage api
+
+
+
+^MOBILE & DESKTOP APP 
+*Mobile app related
+^------------------
+todo: React Native
+todo: Expo js
+todo: ionic js
+
+*Desktop app related
+^-------------------
+Tauri js
+Electron js
+may not learn: Nw js
+
+
+
+^3D AND GAME PRODUCTION
+*3d software
+^------------
+Blender
+Blockbench
+
+*3d rendering
+^-----------
+todo: Three js
+todo: Babylon js
+maybe: Blend4Web
+
+*Game engines
+^-------------
+todo: Play canvas
+maybe: Phaser
+
+
+
+^BACKEND CLIENTS
 *Backend clients as code
 ^-----------------------
 Fetch api
@@ -259,8 +185,185 @@ Postman
 Api dog
 Insomnia
 
+
+
+^BACKEND FRAMEWORKS,TESTING & SECURITY
+*Backend related
+^----------------
+Node js native
+Express js
+pug--view layer
+Nest js
+Graphql
+maybe: fastify
+maybe: Deno
+todo: tRPC
+todo: socket io
+minor:Sessions and cookies
+
+*Backend testing related
+^-----------------------
+Wallaby js
+Jest
+Supertest
+Fast check
+Stryker
+out: Selenium
+
+*Backend security related
+^---------------------------
+todo: Jwt token--token based authentication
+todo: connect mongo--session authentication
+todo: bcrypt--hashing passwords
+todo: otpAuth--for otp passwords
+todo: Helmet--for securing apis by setting many http headers
+todo: Throttle-request rate limiting to prevent Dos attacks
+todo: passport js--A full auth soluthtion that provides abstractions at makes it easier to implement many auth strategies with consistent code.
+Zod--request validation with typescript
+Class validator and transformer--builtin request validation for nest js
+
+
+
+^DATABASES,DATABASE CONNECTIONS & SERIALIZATION
+*Databases
+^----------
+Mongo db
+Postgre sql
+todo: Redis db
+todo: Cassandra db
+Timescale db
+Dgraph db
+Pouch db
+out: my sql
+todo: Pinecone
+maybe: key db
+maybe: xata
+maybe: Mindsdb--for training ml models with sql queries instead of code
+neo4j
+
+*Database connection
+^-------------------
+Mongodb driver
+Mongoose
+Prisma js
+
+*Data serialization
+^------------------
+json
+todo: Yaml
+
+
+
+^PAYMENT SERVICES,SEARCH TOOLS & COMMUNICATION TOOLCHAIN
+*Payment related
+^---------------
+todo: Paystack
+todo: Stripe js
+maybe: Plaid js
+
+*Search tools
+^------------
+todo: Elastic search
+todo: Meilisearch js 
+todo: Algolia js
+
+*Commnunication api toolchain
+^------------------------------
+todo: Twillio--broader range of communication integrations
+todo: WebRTC--real time peer-peer communication
+
+
+
+^AUTHENTICATION,BACKEND,PLATFORM,DATABASE AS A SERVICE
+*Authentication As a Service
+^----------------------------
+todo: Auth0 js
+todo: Clerk js
+
+*Backend as a Service
+^---------------------
+todo: Firebase
+todo: Supabase
+todo: Appwrite
+todo: Pocketbase
+
+*Platform as a service
+^---------------------
+Github pages--deploying static websites
+Netlify--deploying frontend framework web apps
+Vercel--deploying next js web apps and serveless functions as a faas
+Render--deploying containerized and fullstack apps
+todo: Cloudinary--media management cloud service
+
+*Database as a Service
+^-----------------
+neon
+Mongo db atlas
+
+
+
+^CLOUD SERVICES & HOSTING MANAGEMENT
+*Cloud service related
+^---------------------
+?Google cloud
+?Aws
+?Microsoft Azure
+?Terraform
+
+*Hosting management
+^------------------
+Hostinger
+Coolify
+
+
+
+^DEVOPS & DEVELOPMENT TOOLS
+*Devops related
+^--------------------------------
+Docker
+todo: Nginx--reverse proxy,load balancer,cache
+out: kubernetes
+
+*Development only
+^------------------
+Ngrok
+Mockbin.io
+
+
+
+^SOFTWARE MONITORING & CODE COLLABORATION
+*Monitoring tool
+^----------------
+todo: Sentry io
+
+*Code collaboration
+^-------------------
+Vscode liveshare
+Ngrok
+Google meet
+Github
+
+
+
+^VERSION CONTROL,MONO REPO MANAGEMENT & CLI CREATION
+*Version control
+^----------------
+Git
+
+*monorepo management tool
+^--------------------------
+maybe: Lerna
+
+*Cli tool
+^----------
+todo: Commander js
+
+
+
+^UTILITIES,EXTRAS & RENDERING PATTERNS
 *Utilities
 ^---------
+eslint
 Magic regexp
 Winston
 Compo doc
@@ -280,41 +383,11 @@ json2csv
 json colorizer
 chokidar
 
-*Version control
-^----------------
-Git
-
-*Backend security related
-^---------------------------
-Jwt token--token based authentication
-connect mongo--session authentication
-bcrypt--hashing passwords
-otpAuth--for otp passwords
-Helmet--for securing apis by setting many http headers
-Throttle-request rate limiting to prevent Dos attacks
-passport js--A full auth soluthtion that provides abstractions at makes it easier to implement many auth strategies with consistent code.
-Zod--request validation with typescript
-Class validator and transformer--builtin request validation for nest js
-
-*Authentication As a Service
-^----------------------------
-Auth0 js
-Clerk js
-
-*Frontend security
-^-----------------
-auth js--A full auth solution for ssr web apps like next js but ill just use it for social login
-
-*Code collaboration
-^-------------------
-Vscode liveshare
-Ngrok
-Google meet
-Github
-
 *Extra
 ^--------
 Seo
+out: Htmx
+out: Jquery-simplifies dom manipulation
 Web design principles
 Streaming
 Web assembly
@@ -330,39 +403,11 @@ SSR
 SSG/pre rendering
 
 
+
+^NEW
 *Next programming languages
 ^---------------------------------
 C#--for making games with unity
 python,Cython,Mojo-for digital forensics,network security,data science,machine learning and exposing the ml model through an api with fast api
 Rust--for directly accessing system resources and hardware,perform heavy computations faster in my tauri apps
 solidity--may not.i may cuz our instructor recommended it
-
-
-*Just acknowledging but may or may not use
-?-----------------------------------------
-Tans stack query,router,ranger--There is already rtk query and next js router and ui libraries that can do rangers
-DBML--database markup language
-SAML
-Hookstate--I woud have loved to use it but is incompatible with the immer library
-Zustand
-post css
-purge css
-solid js
-Selenium
-angular
-xata
-Mindsdb--for training ml models with sql queries instead of code
-Pinecone
-key db
-neo4j
-Time scale DB
-fastify
-node gui
-xml
-Kubernetes
-Remix
-Blend 4 web
-My sql
-Htmx
-Deno
-Jquery-simplifies dom manipulation

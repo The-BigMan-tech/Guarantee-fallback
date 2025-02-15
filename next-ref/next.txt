@@ -150,7 +150,7 @@ todo:That animated sign up page bolaji sent to me on whatsapp that came form dri
 *In object oriented databases,the data and methods required to operate on that data are encapsulated in the object meaning that you cant perform pre defined crud methods or sql queries to perform operations on the data like other databases.
 
 
-*kv database,wide column/column oriented db,row/table/sql oriented/relational db,document oriented db,graph db,multimodel databse like surreal db and redis,vector db
+*flat,kv database,wide column/column oriented db,row/table/sql oriented/relational db,document oriented db,graph db,multimodel databse like surreal db and redis,vector db
 
 *Elastic search is more accurately described as a distributed search engine
 *Elastic search is best for scaling highly unstructured data like text based data
@@ -363,7 +363,9 @@ todo:understand this:Slots are combined with the regular Page component to form 
 
 *The page files are the templates next js will use to build the html documents before they are delivered to the client
 
-^my app folder will be focused on delivering pages or json documents to request while my components folder will consists of the components that will be used in the app and decide where they will be rendered.My app folder is essentially my backend and my components folder is essentially my frontend and of course,my components will be categorized in folders by features both under the client and server folder.
+^my app folder will be focused on delivering pages to the browser and json documents to components that make api requests to it while my components folder will consists of the ui that will be used by the app to construct pages for the client and decide where they will be rendered.My app folder is essentially my backend and my components folder is essentially the frontend
+
+^and of course,my components will be categorized in folders by features both under the client and server folder.
 
 todo:Modals and intercepting routes
 
@@ -375,7 +377,7 @@ todo:Modals and intercepting routes
 
 *Accept:It defines what type of data that the client wants to receive in the response
 
-*Cookies:For sending cookies from the client to the server.Cookies are forsaving preferences
+*Cookies:For sending cookies from the client to the server.Cookies are for saving preferences
 
 *Cache control:Tells the client whether to cache or not
 
@@ -389,3 +391,43 @@ todo:Modals and intercepting routes
 *POST,PUT,PATCH--optionally path parameters and request payload
 
 *when calling an api to fetch data in a client component,i can control which parts of the component renders first by using condition logic to tie the loading of one data to start only after another one hss loaded and then render elements based on the loading state.It is good for synchronizing elements where one element needs to be rendered after another
+
+^so my next js will directly communicate with mongo db using mongoose and postgres sql using prisma while my client componets will save state locally using pouch db
+
+^Ill use auth js for authentication
+
+*There is a slight difference when something is done by convention and by best practice
+*To get query params,you use the next request instead of the normal request as the type annotation and then use the search params method
+
+*I can use return new response to send a response as text while response.json to send the response as a json document
+
+*Server actions are async functions that are executed on the server while api routes are endpoints
+
+*There are routing,rendering and programming paradigms
+
+*By convention,you can only have one middleware.ts file which is at the root of the project which is in the src folder in my case but to enforce modularity,you can create the middleware functions in separate files and then import it into the middleware file.this is to ensure a single src of truth for all middlewares
+
+*redux query,redux,prisma,graph ql and middleware.ts file
+
+*the path and url lib are similar.the path lib is used for constructing paths as objects which are used for locating resources on the file system while the url lib is for constructing urls as objects which locates resources based on their routing system
+
+*You have to create matchers on middlewares,else,it will run on every route and might lead to a recursion of redirects if redirects are applied
+
+*Middleware matchers rules:Must start with /,can include : for path parameters,can have modifiers like ?,+,* and can have regex expressions enclosed in paranthesis.So its a good way to start using magic regex
+
+*cyotek web copy--i use it to download documentations
+
+*admin table
+
+*Text data is an example of flat data and is highly unstructured and as such,it can only be effectively queried with a search tool
+
+*query,methods,search tool
+
+*a kanban app is a good example representation of a column database
+*a table of student records is a good example representation of a relational database
+
+*tailwind,alpine and hugo is like a tech stack
+*html,css,raw js
+
+*I woud have loved to use hookstate it but is incompatible with the immer library
+*There is already rtk query and next js router and ui libraries that can do rangers so i wont use the tanstack tools

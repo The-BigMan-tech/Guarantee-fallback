@@ -1,21 +1,31 @@
 todo:Later,later later,remake my cherrytop kanban app
-Js Mastery
+!the hole
 
 *CURRENT LEARNING SESSION
 ?------------------------
+=>
 next js
 Auth js
-Astro js
-Pouch db--hundreds of mb of storage
-Plaid js
-Stripe js
-paystack
+stripe js
+=>
+Pouch db
 Formik
-Hello pangea dnd and react toastify
+=>
+Hello pangea dnd
+react toastify
+=>
 React Native
 Expo js
-todo:Learn cookie and session storage
-todo:Quickly read the 3 gql doc chapters on a gql query life cycle
+=>
+three js
+blender
+play canvas
+=>
+astro js
+
+
+Learn cookie and session storage
+Quickly read the 3 gql doc chapters on a gql query life cycle
 
 
 *MY CURRENT TECH STACK
