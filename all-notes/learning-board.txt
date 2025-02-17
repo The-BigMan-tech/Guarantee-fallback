@@ -7,12 +7,10 @@ todo:Later,later later,remake my cherrytop kanban app
 next js
 Auth js
 stripe js
+vitest
 =>
 Pouch db
 Formik
-=>
-Hello pangea dnd
-react toastify
 =>
 React Native
 Expo js

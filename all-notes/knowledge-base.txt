@@ -17,7 +17,7 @@ todo: Astro js
 
 
 
-^STYLE,UI,ANIMATIONS & PLOTS
+^STYLE,UI,ANIMATIONS & DATA PLOTS
 *Styling related
 ^---------------
 Css

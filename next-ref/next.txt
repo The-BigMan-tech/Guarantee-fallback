@@ -409,7 +409,7 @@ todo:Modals and intercepting routes
 
 *redux query,redux,prisma,graph ql and middleware.ts file
 
-*the path and url lib are similar.the path lib is used for constructing paths as objects which are used for locating resources on the file system while the url lib is for constructing urls as objects which locates resources based on their routing system
+*the path and url lib are similar.the path lib is used for constructing paths as objects which are used for locating resources on the file system while the url lib is for constructing urls as objects which locates resources based on their routing system.The two provide better convenient methods for these types of tasks by cnverting the strings to objects that maps keys to different parts of the string over trying to work with them as plain strings
 
 *You have to create matchers on middlewares,else,it will run on every route and might lead to a recursion of redirects if redirects are applied
 
@@ -431,3 +431,35 @@ todo:Modals and intercepting routes
 
 *I woud have loved to use hookstate it but is incompatible with the immer library
 *There is already rtk query and next js router and ui libraries that can do rangers so i wont use the tanstack tools
+
+*middlewares are basically controllers but they have access to the next function.They have access to the request and response object as well as the next function and they intercept incoming request before they reach the controller
+
+*You can use a matcher or a conditional check to control where middlewares are applied.ill go with condition checks as they are more readable to me.
+
+^I can use magic regex to contruct regex for controlling which routes middlewares will be applied to with precision
+
+*url,nextURL,json,form data
+
+*Next URL is like url but has more convenient methods
+
+*curly brace,indentation and there are keywords to denote blocks in coding
+
+*The next method is a modified responseMiddlewares are special in that they can hand over control to another controller or api route unlike Normal api routes or controllers.
+
+*middlewares have access to;1.the request object as a parameter to modify it or access url information with the next url or url property.2.The next 
+
+*Middlewares have access to the requets object through a parameter and the response object as its provided globally by the browser since its just an extension of the web response api.It can directly modify the requets object and access its data.It uses the response object to directly respond to the request thereby preventing it from reaching its destination route,switch control to another route or back to the destination route,modify the response object from another route 
+
+*Middlewares can directly respond to the request by using rewrite method to deliver another page or by using the json method to deliver a json document.
+
+*Middlewares can  switch control by:1.using the next method to hand over control back to the destination route and 2.using the redirect method to hand over control to another route or middleware.
+
+*Middlewares can directly modify the response object from another route by assigning the response from either the next or the redirect method to a variable,modify it and then return that variable as the new response.
+
+*i can also extend the lifetime of a middleware based on the settlement of a promise by using the wait util method
+
+*Json document,page,hand it over
+
+*A component is a function that returns jsx and its used in the web component notation while hooks are functions that returns data either as objects or an array and are called like a regular function
+
+^ive found one use case of modulus.I used it in the color dot feature of groups in my kanban app.What it does is that it compresses an array that repeats a certain number of elements like [1,2,3,1,2,3,1,2,3] over and over across the array into its barest minimum by allowing the array to just be [1,2,3] and turns any index that exceeds the array into an index within the length of the array by doing (index modulus arrLength).

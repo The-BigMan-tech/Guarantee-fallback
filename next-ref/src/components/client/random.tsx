@@ -11,11 +11,13 @@ export default function Random() {
             <h1 className="font-roboto">Random</h1>
             <h1>{count}</h1>
             <button onClick={()=>setCount(prev=>prev+1)}>Increment</button>
+
             <button onClick={async ()=>await echoInput('hh')}>Test action</button>
             <form action={createPage}>
                 <input type="text" name="title"/>
                 <button type="submit">Send title</button>
             </form>
+            
             <button onClick={()=>router.push('/')}>Programmatic routing</button>
         </div>
     )
