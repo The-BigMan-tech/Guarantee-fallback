@@ -1,5 +1,12 @@
 todo:Later,later later,remake my cherrytop kanban app
 !the hole
+*file level-always on auto save,unstage changes,staged changes,commiting to other branches,committing to the main
+*pythons range loop is syntatic sugar over the for loop with a loop counter
+*for loop with an iterator
+*The const keyword ensures the immutability of primitive data
+*To create a ts project,create a new folder and do tsc init to generate the tsconfig file and run npx tsc to compile your code using the tsconfig and then use nodemon or node to run the js file
+*//*safe integer means the largest integer js can handle without losing prceision and thats wh y numbers will always be 8 bits long no matter how big because js will throw away precision as the number gets closer to the safe integer number but you can use big int as an alternative but it will consume a lot more space
+
 
 *CURRENT LEARNING SESSION
 ?------------------------

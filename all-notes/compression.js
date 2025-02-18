@@ -1,3 +1,4 @@
+//*I call this the Symmpack algorithm
 //*Compression for Palindromic arithmetic arrays
 //*It uses compression,lazy evaluation and cyclic index calculation
 function generateCompressedArr(compressedObject) {
