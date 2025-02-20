@@ -1,7 +1,9 @@
+//ngrok vite plugin.Dont expose your server to all addresses and dont hardcode variables
 //*Not tested when the array begins with 0
-//*Only works for arrays of positive integer
+//*Only works for arrays of positive integers
 //*by conserving time,i consume more memory and by conserving space,i might take more time
-
+//tunnellling service
+//localtunnel
 //My algorithm optimizes the size of integers ending with 0s by representing how many number of zeros there are with a negated integer.Its negated so that my algorithm can differentiate between 0s in chunks and actual numbers in chunks.It only does this if the zeros are too big that some of the zeros chunks of to another chunk.I did this because js will represeny chunks of 0s as just 0 which will lose the retention of some integers since my alorithm requires that they should be squashed into one chunk not to mention that even if js could represent them as they were,this one will conserver more space as repeated 0s wont take up new chunks and therefore reducing the size of the compressed array
 //The decoder doesnt decompress the array,it only knows how to read it
 //my push method has to compress when its done to ensure that the output array is always compressed to a smaller size than the input array thats if the input array wasnt compressed before pushing and it also ensures that the array after pushing will always be retained in its compressed form
@@ -15,9 +17,11 @@
 //The object overhead is negligible if it provides siginificantt compression benefit.Ill use it to send long integer arrays over a network 
 //My algorithm takes advantage of js represents numbers and as such,it will only work in js
 //Ill make different algorithms that takes adavantage of how different programming languages stores numbers
-
+//*my algorithm completely breaks when if an integer is 20 digits long
 //todo:supporting arrays that starts with 0 by using the chunk separator
 //todo:use the chunk separator for the common elements on both sides that chunks share
+
+//*The components of this cdode are the squeezer-integer squeezer and digit count squeezer,chunker,dechunker,reader
 //!pictures
 //^quantum computers
 /**
@@ -78,8 +82,14 @@ function Compress(array:number[]):number[] {
         const lastLeftChunk:string = leftChunks.at(-1) || ''
         console.log('last left chunk',lastLeftChunk)
         if (lastLeftChunk.slice(16).startsWith('0')) {
-            console.log('starts with 0',lastLeftChunk.slice(16))
-            leftChunks.push(`-${lastLeftChunk.slice(16).length}`)
+            const chunkedWithZeros = lastLeftChunk.slice(16)
+            console.log('starts with 0',chunkedWithZeros)
+            const lastZeroIndex = chunkedWithZeros.lastIndexOf('0') + 1
+            const chunkOfZeros = chunkedWithZeros.slice(0,lastZeroIndex)
+            const chunkOfNonZeros = chunkedWithZeros.slice(lastZeroIndex)
+            console.log('CHUNK OF ZEROS',chunkOfZeros)
+            leftChunks.push(`1`)
+            leftChunks.push(chunkOfNonZeros)
         }else {
             leftChunks.push(lastLeftChunk.slice(16))
         }
@@ -213,9 +223,6 @@ export class TinyPack {
     get data():number[] {
         return this.array
     }
-}
-function getSize(array:number[]):number {
-    return (array.length * 8)
 }
 
 

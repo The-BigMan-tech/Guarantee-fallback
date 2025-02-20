@@ -1,7 +1,7 @@
 "use strict";
 //ngrok vite plugin.Dont expose your server to all addresses and dont hardcode variables
 //*Not tested when the array begins with 0
-//*Only works for arrays of positive integer
+//*Only works for arrays of positive integers
 //*by conserving time,i consume more memory and by conserving space,i might take more time
 //tunnellling service
 //localtunnel
@@ -18,6 +18,7 @@ exports.TinyPack = void 0;
 //The object overhead is negligible if it provides siginificantt compression benefit.Ill use it to send long integer arrays over a network 
 //My algorithm takes advantage of js represents numbers and as such,it will only work in js
 //Ill make different algorithms that takes adavantage of how different programming languages stores numbers
+//*my algorithm completely breaks when if an integer is 20 digits long
 //todo:supporting arrays that starts with 0 by using the chunk separator
 //todo:use the chunk separator for the common elements on both sides that chunks share
 //!pictures
@@ -79,8 +80,14 @@ function Compress(array) {
         const lastLeftChunk = leftChunks.at(-1) || '';
         console.log('last left chunk', lastLeftChunk);
         if (lastLeftChunk.slice(16).startsWith('0')) {
-            console.log('starts with 0', lastLeftChunk.slice(16));
-            leftChunks.push(`-${lastLeftChunk.slice(16).length}`);
+            const chunkedWithZeros = lastLeftChunk.slice(16);
+            console.log('starts with 0', chunkedWithZeros);
+            const lastZeroIndex = chunkedWithZeros.lastIndexOf('0') + 1;
+            const chunkOfZeros = chunkedWithZeros.slice(0, lastZeroIndex);
+            const chunkOfNonZeros = chunkedWithZeros.slice(lastZeroIndex);
+            console.log('CHUNK OF ZEROS', chunkOfZeros);
+            leftChunks.push(`1`);
+            leftChunks.push(chunkOfNonZeros);
         }
         else {
             leftChunks.push(lastLeftChunk.slice(16));
@@ -220,6 +227,3 @@ class TinyPack {
     }
 }
 exports.TinyPack = TinyPack;
-function getSize(array) {
-    return (array.length * 8);
-}
