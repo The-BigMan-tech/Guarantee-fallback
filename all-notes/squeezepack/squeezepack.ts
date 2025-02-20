@@ -1,4 +1,25 @@
 //*Not tested when the array begins with 0
+//*Only works for arrays of positive integer
+//*by conserving time,i consume more memory and by conserving space,i might take more time
+
+//My algorithm optimizes the size of integers ending with 0s by representing how many number of zeros there are with a negated integer.Its negated so that my algorithm can differentiate between 0s in chunks and actual numbers in chunks.It only does this if the zeros are too big that some of the zeros chunks of to another chunk.I did this because js will represeny chunks of 0s as just 0 which will lose the retention of some integers since my alorithm requires that they should be squashed into one chunk not to mention that even if js could represent them as they were,this one will conserver more space as repeated 0s wont take up new chunks and therefore reducing the size of the compressed array
+//The decoder doesnt decompress the array,it only knows how to read it
+//my push method has to compress when its done to ensure that the output array is always compressed to a smaller size than the input array thats if the input array wasnt compressed before pushing and it also ensures that the array after pushing will always be retained in its compressed form
+//My push method checks if the array is compressed,if it is,it will read that but if not,it will take it as it is and compress the array after performing the operation.This is to ensure that the push method doesnt compress the array twice just for the sake of reading the array into its original form
+//The push method will always decompress the array,so that the array will always be the compressed version of the up to date array
+//So the at method will always compress before reading except that the compress method checks if the array is compressed before compressing meaning that the at method will only compress the array once that is the first time its called if it isnt compressed and the push method will only and always recompress after writing
+
+//by default,the algorithm will defer compression till explicitly stated using the this.compress method or implicitly when you call methods like at or push but i provided another method called defer compression.what it does is that it returns the array as it is provided that it isnt compressed so that you can chain it with normal array operations that wont compress the array but if the array is already compressed,performing normal array operations on it can lead to unexpected behaviour when you use the same array later on,thats why this method exists to always check the state of compression on the dev's behalf for safety rather than the dev calling the normal array methods directly on the this.array as it may or may not be compressed.It allows the dev to modify the array without triggering compression
+
+//the defer compression be used to implement a batch of operations on the uncompressed before compressing it rather than triggering compression when a method is called.This in addition to the compress and decompress method for explicitly compressing and decompressing the array explicitly ensures that the compression of the array is in the full control of the dev or the dev can stick to the default behaviour where the array class will defer compression till a method is called.The default behaviour will do for many use cases
+//The object overhead is negligible if it provides siginificantt compression benefit.Ill use it to send long integer arrays over a network 
+//My algorithm takes advantage of js represents numbers and as such,it will only work in js
+//Ill make different algorithms that takes adavantage of how different programming languages stores numbers
+
+//todo:supporting arrays that starts with 0 by using the chunk separator
+//todo:use the chunk separator for the common elements on both sides that chunks share
+//!pictures
+//^quantum computers
 /**
  * It converts a decimal number to base 9 as a string type
  * @param num the number to convert to base 9
@@ -34,11 +55,13 @@ function base9ToDecimal(base9Str:string):number {
  * @returns the compressed array of integers
  */
 function Compress(array:number[]):number[] {
+    if (array.length == 0) {
+        return array
+    }
     let firstChunk:string = ''
     let leftChunks:string[]  = []
     let secondChunk:string = ''
     let rightChunks:string[] = []
-    let nonZeroNumberIndex:number = 0
 
     //Produces the concatenated integer and count information chunks
     for (let num of array) {
@@ -53,24 +76,15 @@ function Compress(array:number[]):number[] {
     //Splitting the two chunks into smaller ones as they grow to preserve precision
     while (((leftChunks.at(-1) as string).length > 16)) {//Breaks the first chunk to smaller chunks
         const lastLeftChunk:string = leftChunks.at(-1) || ''
-        if (lastLeftChunk.endsWith('0')) {//This is to ensure that the integer zero cant be its own chunk because its used by my algorithm as a terminator or the center between the left and right chunks of data in the compressed array
-            //this block is to get the index of the last digit before the first zero that ends the string
-            for (let i = (lastLeftChunk.length);i >= 0 ;i--) {
-                const zeroOrNonzero:number = Number(lastLeftChunk[i])
-                if (zeroOrNonzero > 0) {
-                    nonZeroNumberIndex = i
-                    break;
-                }
-            }
-            leftChunks.push(lastLeftChunk.slice(16,nonZeroNumberIndex))
-            leftChunks.push(lastLeftChunk.slice(nonZeroNumberIndex))
-            const thirdToLastLeftChunk:string = leftChunks[leftChunks.length - 3] || lastLeftChunk
-            leftChunks[leftChunks.length - 3] = thirdToLastLeftChunk.slice(0,16)
+        console.log('last left chunk',lastLeftChunk)
+        if (lastLeftChunk.slice(16).startsWith('0')) {
+            console.log('starts with 0',lastLeftChunk.slice(16))
+            leftChunks.push(`-${lastLeftChunk.slice(16).length}`)
         }else {
             leftChunks.push(lastLeftChunk.slice(16))
-            const secondToLastLeftChunk:string = leftChunks[leftChunks.length - 2] || lastLeftChunk
-            leftChunks[leftChunks.length - 2] = secondToLastLeftChunk.slice(0,16)
-        }   
+        }
+        const secondToLastLeftChunk:string = leftChunks[leftChunks.length - 2] || lastLeftChunk
+        leftChunks[leftChunks.length - 2] = secondToLastLeftChunk.slice(0,16) 
     }
     while ((rightChunks.at(-1) as string).length > 16) {//Breaks the second chunk to smaller chunks  
         const lastRightChunk = rightChunks.at(-1) as string
@@ -85,17 +99,24 @@ function Compress(array:number[]):number[] {
     return [...leftChunksAsNumbers,0,...rightChunksAsNumbers]
 }
 function Dechunk(compressedArray:number[]):string[] {
+    console.log('Compressed array',compressedArray)
     let dechunkedArray:string[] = ['','']
     let zeroIndex:number = 0
     for (let [index,num] of compressedArray.entries()) {
-        if ((num != 0) && !(zeroIndex)) {//*If the num is not zero which acts as the separator and the zero index hasnt been decided,append it to the first chunk
+        // console.log('num: ',num);
+        if (num < 0) {//*checks if the number is negative
+            console.log('Less than 0',num)
+            dechunkedArray[0] += ('0'.repeat(Math.abs(num)))
+        }else if ((num != 0) && !(zeroIndex)) {//*If the num is not zero which acts as the separator and the zero index hasnt been decided,append it to the first chunk
             dechunkedArray[0] += String(num) 
-        }else if (num == 0) {//*if the number is the 0 separator,it should write the zero index
+        }
+        else if (num == 0) {//*if the number is the 0 separator,it should write the zero index
             zeroIndex = index
         }else {//*else it will chunk it with the second element
             dechunkedArray[1] += String(num)
         }
     }
+    console.log('DECHUNKED',dechunkedArray)
     return dechunkedArray
 }
 function DecodeForIndex(dechunkedArray:string[],index:number):number {
@@ -121,32 +142,82 @@ function DecodeForIndex(dechunkedArray:string[],index:number):number {
     }
     return Number(startingElement)
 }
-class SqueezePack {
-    public array:number[] = []
-    constructor(array:number[]) {
-        this.array = Compress(array)
+/**
+ * the array can be created by either putting it directly in the constructor or using the data setter.When you use the setter or the constructor to assign it a new array,it will not compress it immediately but will rather leave the array uncompressed/it will defer the compression of the array till any methods from the class are called to operate on the array to ensure that no time is wasted to compress the array till the array is needed to be compressed and that the resulting array from any operation is compressed for memory efficiency.Thats the default behaviour but you can explicitly compress and decompress the array at any time using the methods and as such,you can choose to compress the array right from its assignment or you can control which array operation you want to result in a compression in order to preserve time over memory when needed.The thing is just that working with a compressed array will save memory but cost more time and working with a decompressed one will save time but will not benefit from memory efficiency.The compression process can also lead to temporary memory spikes because the function compressing the array might take a lot of memory but after its done,its cleaned up.The compressed array version of the read operation will compress the array and then read its values while the write operations will decompress it,modify it and recompress it again and as such,they may be heavy to compute.The compress and decompress methods provide good control over when the array is compressed although or not and controlled compression is better if the usage and size of the array is unpredictable.the resulting array from the pushed array doesnt increase the size of the array provided that (x > 0) and (y <= x) where x is the space left in the last chunk holding the concatenated integers of the array which is mathematically = (length of the concatenated integers of the array % 16) and y is the length of the integer.
+ */
+export class TinyPack {
+    private array:number[] = []
+    public isCompressed:boolean = false
+    set data(new_array:number[]) {//for the user
+        this.array = new_array
     }
-    public returnElement(index:number):number {
-        return DecodeForIndex(Dechunk(this.array),index)
+    constructor(array?:number[]) {
+        this.array = array || []
     }
-    public returnLength():number {
+    public compress():void {
+        if (this.isCompressed == false) {
+            this.array = Compress(this.array)
+            this.isCompressed = true
+            return
+        }
+    }
+    private readCompressedData():number[] {//TODO:must be cached
+        const decompressedArray:number[] = []
+        let index = 0
+        while (DecodeForIndex(Dechunk(this.array),index) >= 0) {
+            const element = DecodeForIndex(Dechunk(this.array),index) as number
+            decompressedArray.push(element)
+            index += 1
+        }
+        return decompressedArray
+    }
+    public decompress():void {
+        if (this.isCompressed == true) {
+            this.array = this.readCompressedData()
+            this.isCompressed = false
+            return
+        }
+    }
+    public at(index:number):number | undefined {
+        this.compress()
+        console.log('Read compressed data',this.readCompressedData())
+        const number = this.readCompressedData().at(index)
+        return number
+    }
+    public push(num:number) {
+        let newArray:number[] = []
+        console.log('IS COMPRESSED?',this.isCompressed)
+        if (this.isCompressed) {
+            newArray = this.readCompressedData()
+            console.log('its compressed')
+        }else {
+            console.log('its not compressed')
+            newArray = this.array
+        }
+        newArray.push(num)
+        this.array = newArray
+        this.isCompressed = false//*as you can see above,its no longer compressed again
+        this.compress()
+        console.log('THIS ARRAY',this.array)
+    }
+    public deferCompression() {
+        if (this.isCompressed == false) {
+            return this.array
+        }else {
+            throw new Error('Cant defer the compression as the array is already compressed')
+        }
+    }
+    get length():number {
         return this.array.length
     }
-    public returnCompressedArray():number[] {
+    get data():number[] {
         return this.array
-    }
-    public returnUncompressedArray():number[] {
-        const unCompressedArray = []
-        const unCompressedArrLength = ((Dechunk(this.array)[1].split('9')).length) - 1 
-        for (let i = 0;i < unCompressedArrLength;i++) {
-            unCompressedArray.push(this.returnElement(i))
-        }
-        return unCompressedArray
     }
 }
 function getSize(array:number[]):number {
     return (array.length * 8)
 }
-const compArray = new SqueezePack([1,2,3,4,5,6,7,8,99])
-const requiredElement:number  = compArray.returnElement(8)
-console.log('Required element: ',requiredElement)
+
+
+
+

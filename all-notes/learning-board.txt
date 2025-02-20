@@ -7,6 +7,15 @@ todo:Later,later later,remake my cherrytop kanban app
 *To create a ts project,create a new folder and do tsc init to generate the tsconfig file and run npx tsc to compile your code using the tsconfig and then use nodemon or node to run the js file
 *//*safe integer means the largest integer js can handle without losing prceision and thats wh y numbers will always be 8 bits long no matter how big because js will throw away precision as the number gets closer to the safe integer number but you can use big int as an alternative but it will consume a lot more space
 
+*the properties of js objects from interfaces are getters and setters themselves but for objects created from classes,the only way to access their properties is with methods unless you implement getters and setters for it to mimic such functionality.
+
+*Interfaces and Classes
+*In spa,routing is still done in a single page and it only routes by switching which componnent hydrates the page and for global loading,just import the component into the app.tsx file without putting it in a route and therefore mimicing layouts in ssrs like next js.
+
+*license and privacy policy
+*await means two things,wait for an async operation to complete before proceeding to the next line and when a line is marked with await,js will make it non blocking
+
+//*flags,states--to synchronize functions 
 
 *CURRENT LEARNING SESSION
 ?------------------------
