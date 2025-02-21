@@ -16,6 +16,9 @@ todo:Later,later later,remake my cherrytop kanban app
 *await means two things,wait for an async operation to complete before proceeding to the next line and when a line is marked with await,js will make it non blocking
 
 //*flags,states--to synchronize functions 
+*Deno can run typescript files directly
+
+*You can lift some functionalities from the object to a function so that it doesnt increase the size of the object
 
 *CURRENT LEARNING SESSION
 ?------------------------

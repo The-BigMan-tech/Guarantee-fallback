@@ -21,6 +21,7 @@ exports.TinyPack = void 0;
 //*my algorithm completely breaks when if an integer is 20 digits long
 //todo:supporting arrays that starts with 0 by using the chunk separator
 //todo:use the chunk separator for the common elements on both sides that chunks share
+//*The components of this cdode are the squeezer-integer squeezer and digit count squeezer,chunker,dechunker,reader
 //!pictures
 //^quantum computers
 /**
@@ -227,3 +228,7 @@ class TinyPack {
     }
 }
 exports.TinyPack = TinyPack;
+const n = new TinyPack();
+n.data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 90001111];
+n.compress();
+console.log(n.data);

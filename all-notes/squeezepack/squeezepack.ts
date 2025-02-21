@@ -224,7 +224,7 @@ export class TinyPack {
         return this.array
     }
 }
-
-
-
-
+const n = new TinyPack()
+n.data =  [1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,90001111]
+n.compress()
+console.log(n.data);
