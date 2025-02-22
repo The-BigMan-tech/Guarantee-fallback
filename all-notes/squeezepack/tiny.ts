@@ -17,82 +17,117 @@ function base9ToDecimal(base9Str:string):number {
     }
     return decimal;
 }
+function numberToBase64(num:number):string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    let result = '';
+    while (num > 0) {
+        result = chars[num % 64] + result;
+        num = Math.floor(num / 64);
+    }
+    return result || '0'; // Return '0' if the number is 0
+}
+function base64ToNumber(base64:string):number {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    let result = 0;
+    for (let i = 0; i < base64.length; i++) {
+        result = result * 64 + chars.indexOf(base64[i]);
+    }
+    return result;
+}
 //*implement as many array methods as possible
 class Tiny {
-    public data:number[] = []
+    private array:(number | string)[] = []
     private isCompressed:boolean = false
     constructor(array?:number[]) {
         this.data = array || []
     }
+    get data():(number | string)[] {
+        return this.array
+    }
+    set data(newArray:(number | string)[]) {
+        this.array = newArray
+        this.isCompressed = false
+    }
     public compress():void {
         if (this.isCompressed == false) {//provides compression safety
             let chunk:string = ''
-            this.data.forEach(num=>chunk += `${decimalToBase9(num).toString()}9`)
+            this.data.forEach(num=>chunk += `${decimalToBase9(num as number).toString()}9`)
             const range = chunk.length;
-            const lengthOfCompressedArray = Math.ceil(range/15)
+            const lengthOfCompressedArray = (range/15)
             console.log('Weight',this.data.length,lengthOfCompressedArray);
-            if (this.data.length > lengthOfCompressedArray) {
+            if (lengthOfCompressedArray < this.data.length) {
                 let chunks:string[] = []
                 for (let i = 0;i < range;i+=15) {
                     const smallerChunk:string = chunk.slice(i,i+15)
                     chunks.push(smallerChunk)
                 }
-                const chunksAsNumbers:number[] = chunks.map(Number)
+                let chunksAsNumbers:(number | string)[] = chunks.map(Number)
+                console.log('Chunk as numbers',chunksAsNumbers);
+                chunksAsNumbers.forEach((num,index)=>{
+                    const numAsString:string = num.toString()
+                    const lastIndex = numAsString.length-1
+                    if (!(numAsString.startsWith('9')) && (numAsString.indexOf('9') == lastIndex)) {
+                        const numBase10 = base9ToDecimal(numAsString.slice(0,lastIndex))
+                        // console.log('Base 10',numBase10);
+                        if (numBase10 < 260000) {
+                            const numBase64 = numberToBase64(numBase10)
+                            chunksAsNumbers[index] = numBase64
+                            // console.log('Base 64',numBase64,'index',index);
+                        }
+                    }
+                })
                 this.data = chunksAsNumbers
                 this.isCompressed = true
             }
         }
     }
     public decompress():void {
-        this.data = this.returnUncompressedArray();
-        this.isCompressed = false;
+        this.data = this.returnUncompressedArray();//The setter will automatically convert is compressed to false
     }
     public skipCompression() {
         return (this.isCompressed==false)?this.data:(() => { throw new Error("The array is already compressed so you cant skip it") })();
     }
     private dechunk():string {
         let chunk:string = ''
-        this.data.forEach(num=>chunk += num.toString())
+        this.data.forEach(num=>{
+            if (typeof num == 'string') {
+                chunk += decimalToBase9(base64ToNumber(num.toString()))
+            }else {
+                chunk += num.toString()
+            }
+        })
+        // console.log('chunk: ',chunk);
         return chunk
     }
     private read(chunk:string):number[] {
         let originalArray = []
         chunk.startsWith('9')?originalArray.push(0):''//since 9 is a delimeter,it only appears first if there was a zero before it.
         originalArray = [...chunk.split('9').map((element)=>base9ToDecimal(element))]
-        originalArray = originalArray.slice(0,originalArray.length-1)
+        // console.log("🚀 ~ Tiny ~ read ~ originalArray :", originalArray);
+        // originalArray = originalArray.slice(0,originalArray.length-1)//to remove a trailing zero at the end of the array
+        // console.log("🚀 ~ Tiny ~ read ~ originalArray 2:", originalArray);
         return originalArray
     }
     private returnUncompressedArray():number[] {
-        let originalArray:number[] = (this.isCompressed)?this.read(this.dechunk()):this.data
-        return originalArray
+        let originalArray:(number | string)[] = (this.isCompressed)?this.read(this.dechunk()):this.data
+        return originalArray as number[]
     }
     public push(num:number):void {
-        let originalArray:number[] = this.returnUncompressedArray()
-        originalArray.push(num)
-        this.data = originalArray
-        this.isCompressed = false
+        this.decompress()
+        this.data.push(num)
         this.compress()
     }
     public at(index:number):number | undefined {
-        let originalArray:number[] = this.returnUncompressedArray()
+        const element = this.returnUncompressedArray().at(index)
         this.compress()
-        return originalArray.at(index)
+        return element as number
     }       
 }
 const grades = new Tiny()
-grades.data = [1,2222222222222222222222]
+grades.data = [2200000]
 grades.compress()
-console.log(grades.data);
-console.log(grades.at(0));
-grades.push(25)
-console.log(grades.data);
-
-const scores = new Tiny()
-scores.data = [0,0,1,999,46]//wont compress immediately till later
-scores.compress()
-scores.data = [1,2,3,4]
-scores.compress()
-console.log(scores.data)
+console.log('data',grades.data);
+console.log(grades.at(-1));
 
 //*my messy algorithm grew from 158 lines of code to just 50 lines and it compress twice as better.Thats the growth of an algorithm
 
@@ -118,6 +153,11 @@ console.log(scores.data)
 
 //*return uncompressed array is private because storing the value of this in another variable will lead to two types of the same array being stored in memory and as such,the user should use the decompress method whenever they need the decompressed form of an array in  order to ensure that only one type of the array is stored in memory.
 
+//*i also had to provide an abstraction for setting the data.This is because setting the data to a value should always set iscompressed to false so that the next call to compress should always compress it back but is compressed shouldnt be directly modified by the user of the class,so a setter is used an abstraction over this which forced me to implement a getter as the class variable couldnt have the same name as the setter
+
+//*There is a base 64 optimization where the last chunk will be optimized by 2-6 bytes.With the base 64 optimization,the best case scenario for my algorithm is 2bytes
+
+//todo:when to do math.ceil and normal division so that it allows it to compress if it will optimize for base 64
 //todo:can use negative to indicate that the chunk on the left is the same on the right
 
 //*There is floor division,ceiling division,normal division,round division
@@ -128,3 +168,4 @@ console.log(scores.data)
 //*standard if statements,one liner if statements
 
 //!i need to know when to take opportunities and not
+
