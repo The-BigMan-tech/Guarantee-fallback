@@ -48,34 +48,40 @@ class Tiny {
         this.array = newArray
         this.isCompressed = false
     }
+    public optimizeToBase64(lastChunk:number):string | number {
+        const lastChunkAsString:string = lastChunk.toString()
+        const lastIndex = lastChunkAsString.length-1
+        if (!(lastChunkAsString.startsWith('9')) && (lastChunkAsString.indexOf('9') == lastIndex)) {
+            const numBase10 = base9ToDecimal(lastChunkAsString.slice(0,lastIndex))
+            // console.log('Base 10',numBase10);
+            if (numBase10 < 260000) {
+                const numBase64 = numberToBase64(numBase10)
+                return numBase64
+                // console.log('Base 64',numBase64,'index',index);
+            }
+        }
+        return lastChunk
+    }
     public compress():void {
         if (this.isCompressed == false) {//provides compression safety
             let chunk:string = ''
-            this.data.forEach(num=>chunk += `${decimalToBase9(num as number).toString()}9`)
+            this.data.forEach(num=>chunk += `${decimalToBase9(Number(num)).toString()}9`)
             const range = chunk.length;
-            const lengthOfCompressedArray = (range/15)
-            console.log('Weight',this.data.length,lengthOfCompressedArray);
-            if (lengthOfCompressedArray < this.data.length) {
+            let lastChunk:number | string = Number(chunk.slice((15 *Math.floor(range/15))));
+            lastChunk = this.optimizeToBase64(lastChunk)
+            const isOptimizedTo64 = typeof lastChunk == 'string'
+            // console.log("🚀 ~ Tiny ~ compress ~ testLast:", lastChunk);
+            const lengthOfCompressedArray = Math.ceil(range/15);
+            // console.log('Weight',this.data.length,lengthOfCompressedArray);
+            if ((lengthOfCompressedArray < this.data.length) || isOptimizedTo64) {
                 let chunks:string[] = []
                 for (let i = 0;i < range;i+=15) {
                     const smallerChunk:string = chunk.slice(i,i+15)
                     chunks.push(smallerChunk)
                 }
                 let chunksAsNumbers:(number | string)[] = chunks.map(Number)
-                console.log('Chunk as numbers',chunksAsNumbers);
-                chunksAsNumbers.forEach((num,index)=>{
-                    const numAsString:string = num.toString()
-                    const lastIndex = numAsString.length-1
-                    if (!(numAsString.startsWith('9')) && (numAsString.indexOf('9') == lastIndex)) {
-                        const numBase10 = base9ToDecimal(numAsString.slice(0,lastIndex))
-                        // console.log('Base 10',numBase10);
-                        if (numBase10 < 260000) {
-                            const numBase64 = numberToBase64(numBase10)
-                            chunksAsNumbers[index] = numBase64
-                            // console.log('Base 64',numBase64,'index',index);
-                        }
-                    }
-                })
+                // console.log('Chunk as numbers',chunksAsNumbers);
+                chunksAsNumbers[chunksAsNumbers.length-1] = lastChunk
                 this.data = chunksAsNumbers
                 this.isCompressed = true
             }
@@ -90,27 +96,23 @@ class Tiny {
     private dechunk():string {
         let chunk:string = ''
         this.data.forEach(num=>{
-            if (typeof num == 'string') {
-                chunk += decimalToBase9(base64ToNumber(num.toString()))
-            }else {
-                chunk += num.toString()
-            }
+            chunk += (typeof num == 'string')?decimalToBase9(base64ToNumber(num.toString())):num.toString()
         })
         // console.log('chunk: ',chunk);
+        chunk += !(chunk.endsWith('9'))?'9':''
         return chunk
     }
     private read(chunk:string):number[] {
         let originalArray = []
         chunk.startsWith('9')?originalArray.push(0):''//since 9 is a delimeter,it only appears first if there was a zero before it.
         originalArray = [...chunk.split('9').map((element)=>base9ToDecimal(element))]
-        // console.log("🚀 ~ Tiny ~ read ~ originalArray :", originalArray);
-        // originalArray = originalArray.slice(0,originalArray.length-1)//to remove a trailing zero at the end of the array
-        // console.log("🚀 ~ Tiny ~ read ~ originalArray 2:", originalArray);
         return originalArray
     }
-    private returnUncompressedArray():number[] {
+    private returnUncompressedArray():(number | string)[] {
         let originalArray:(number | string)[] = (this.isCompressed)?this.read(this.dechunk()):this.data
-        return originalArray as number[]
+        originalArray = originalArray.slice(0,originalArray.length-1)//to remove the trailing zero
+        // console.log('original array',originalArray);
+        return originalArray
     }
     public push(num:number):void {
         this.decompress()
@@ -120,11 +122,11 @@ class Tiny {
     public at(index:number):number | undefined {
         const element = this.returnUncompressedArray().at(index)
         this.compress()
-        return element as number
+        return Number(element)
     }       
 }
 const grades = new Tiny()
-grades.data = [2200000]
+grades.data = [2200000,99999999]
 grades.compress()
 console.log('data',grades.data);
 console.log(grades.at(-1));
@@ -157,8 +159,10 @@ console.log(grades.at(-1));
 
 //*There is a base 64 optimization where the last chunk will be optimized by 2-6 bytes.With the base 64 optimization,the best case scenario for my algorithm is 2bytes
 
-//todo:when to do math.ceil and normal division so that it allows it to compress if it will optimize for base 64
 //todo:can use negative to indicate that the chunk on the left is the same on the right
+
+//*The algorithm can now compress all non zero integers even if the number of elements in the array is just one because of the addition of base 64 ti reduce the size of a number to save 2-6 bytes
+//*Type conversion is safer than type assertion
 
 //*There is floor division,ceiling division,normal division,round division
 //*My algorithm is only for non negative arrays and its optimized for js number representation.
@@ -167,5 +171,6 @@ console.log(grades.at(-1));
 
 //*standard if statements,one liner if statements
 
+//*You can use deno,swc copiler or tsc compiler with ts
 //!i need to know when to take opportunities and not
 
