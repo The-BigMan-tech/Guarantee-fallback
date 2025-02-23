@@ -48,26 +48,37 @@ class Tiny {
         this.array = newArray
         this.isCompressed = false
     }
-    public optimizeToBase64(lastChunk:number):string | number {
+    public optimizeToBase64(lastChunk:number):string | number  {
         const lastChunkAsString:string = lastChunk.toString()
         const lastIndex = lastChunkAsString.length-1
         if (!(lastChunkAsString.startsWith('9')) && (lastChunkAsString.indexOf('9') == lastIndex)) {
             const numBase10 = base9ToDecimal(lastChunkAsString.slice(0,lastIndex))
+            console.log('tiny.ts:56 => Tiny => optimizeToBase64 => numBase10:', numBase10);
             // console.log('Base 10',numBase10);
             if (numBase10 < 260000) {
-                const numBase64 = numberToBase64(numBase10)
+                const numBase64:string = numberToBase64(numBase10)
+                console.log('tiny.ts:60 => Tiny => optimizeToBase64 => numBase64:', numBase64);
                 return numBase64
                 // console.log('Base 64',numBase64,'index',index);
             }
         }
+        console.log('Returning last chunk',lastChunk);
         return lastChunk
     }
     public compress():void {
         if (this.isCompressed == false) {//provides compression safety
             let chunk:string = ''
             this.data.forEach(num=>chunk += `${decimalToBase9(Number(num)).toString()}9`)
-            const range = chunk.length;
-            let lastChunk:number | string = Number(chunk.slice((15 *Math.floor(range/15))));
+            console.log('tiny.ts:72 => Tiny => compress => chunk:', chunk);
+            let range = chunk.length;
+            if (chunk.startsWith('09')) {
+                range -= 1
+            }
+            console.log('tiny.ts:77 => Tiny => compress => chunk:', chunk);
+            console.log('tiny.ts:78 => Tiny => compress => range:', range);
+            const startOfLastChunk:number = 15 * Math.floor(range/15)
+            console.log('tiny.ts:80 => Tiny => compress => startOfLastChunk:', startOfLastChunk);
+            let lastChunk:number | string = Number(chunk.slice(startOfLastChunk));
             lastChunk = this.optimizeToBase64(lastChunk)
             const isOptimizedTo64 = typeof lastChunk == 'string'
             // console.log("🚀 ~ Tiny ~ compress ~ testLast:", lastChunk);
@@ -126,10 +137,12 @@ class Tiny {
     }       
 }
 const grades = new Tiny()
-grades.data = [2200000,99999999]
+grades.data = [0,2200000,99999999,997,98890]//Uncompressed version:24 bytes
 grades.compress()
-console.log('data',grades.data);
-console.log(grades.at(-1));
+console.log('data',grades.data);//Compressed version:10 bytes 
+console.log(grades.at(4));//Performing operations on it can lead to temporary memory spikes
+//But it reduces the amount of space needed to allocate for the array and it reduces the amount of data that is sent over the network
+
 
 //*my messy algorithm grew from 158 lines of code to just 50 lines and it compress twice as better.Thats the growth of an algorithm
 
@@ -172,5 +185,7 @@ console.log(grades.at(-1));
 //*standard if statements,one liner if statements
 
 //*You can use deno,swc copiler or tsc compiler with ts
+
+//*if the number of digits of the range is smaller than the number of digits in the other number
 //!i need to know when to take opportunities and not
 
