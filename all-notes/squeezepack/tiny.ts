@@ -1,3 +1,5 @@
+//!The notes i wrote below might be countered by preceeding notes because the notes i wrote were in the course of the algorithm's growth over time and as such,the latter ones might contradict some previous ones and if it does,its more accurate to stick to that.
+
 function decimalToBase9(num:number):string {
     if (num === 0) return '0';
     let base9 = '';
@@ -36,77 +38,95 @@ function base64ToNumber(base64:string):number {
 }
 //*implement as many array methods as possible
 class Tiny {
-    private array:(number | string)[] = []
-    private isCompressed:boolean = false
+    private array:(number | string)[] = [];
+    private isCompressed:boolean = false;
     constructor(array?:number[]) {
         this.data = array || []
     }
-    get data():(number | string)[] {
+    get is_compressed():boolean {
+        return this.isCompressed
+    }
+    get arr_state():(number | string)[] {//*returns the current state of the array whether compressed or uncompressed
         return this.array
+    }
+    get data():Promise<(number | string)[]> {//*waits for the array to be compressed before returning the array
+        return new Promise((resolve)=>{
+            const runLater = async ()=> ''
+            runLater().then(()=>{
+                (!(this.isCompressed))?this.comp():'';
+                resolve(this.array)
+            })
+        })    
     }
     set data(newArray:(number | string)[]) {
         this.array = newArray
         this.isCompressed = false
+    }
+    set compressed_data(newArray:(number | string)[]) {
+        this.array = newArray
+        this.isCompressed = true
     }
     public optimizeToBase64(lastChunk:number):string | number  {
         const lastChunkAsString:string = lastChunk.toString()
         const lastIndex = lastChunkAsString.length-1
         if (!(lastChunkAsString.startsWith('9')) && (lastChunkAsString.indexOf('9') == lastIndex)) {
             const numBase10 = base9ToDecimal(lastChunkAsString.slice(0,lastIndex))
-            console.log('tiny.ts:56 => Tiny => optimizeToBase64 => numBase10:', numBase10);
+            // console.log('tiny.ts:56 => Tiny => optimizeToBase64 => numBase10:', numBase10);
             // console.log('Base 10',numBase10);
             if (numBase10 < 260000) {
                 const numBase64:string = numberToBase64(numBase10)
-                console.log('tiny.ts:60 => Tiny => optimizeToBase64 => numBase64:', numBase64);
+                // console.log('tiny.ts:60 => Tiny => optimizeToBase64 => numBase64:', numBase64);
                 return numBase64
                 // console.log('Base 64',numBase64,'index',index);
             }
         }
-        console.log('Returning last chunk',lastChunk);
+        // console.log('Returning last chunk',lastChunk);
         return lastChunk
     }
-    public compress():void {
-        if (this.isCompressed == false) {//provides compression safety
-            let chunk:string = ''
-            this.data.forEach(num=>chunk += `${decimalToBase9(Number(num)).toString()}9`)
-            console.log('tiny.ts:72 => Tiny => compress => chunk:', chunk);
-            let range = chunk.length;
-            if (chunk.startsWith('09')) {
-                range -= 1
+    public comp():void  {
+        console.log('called compress');
+        if (this.isCompressed) {//provides compression safety
+            throw new Error('Cannot compress an already compressed array')
+        }
+        let chunk:string = ''
+        this.array.forEach(num=>chunk += `${decimalToBase9(Number(num)).toString()}9`)
+        // console.log('tiny.ts:72 => Tiny => compress => chunk:', chunk);
+        let range = chunk.length;
+        if (chunk.startsWith('09')) {
+            range -= 1
+        }
+        // console.log('tiny.ts:77 => Tiny => compress => chunk:', chunk);
+        // console.log('tiny.ts:78 => Tiny => compress => range:', range);
+        const startOfLastChunk:number = 15 * Math.floor(range/15)
+        // console.log('tiny.ts:80 => Tiny => compress => startOfLastChunk:', startOfLastChunk);
+        let lastChunk:number | string = Number(chunk.slice(startOfLastChunk));
+        lastChunk = this.optimizeToBase64(lastChunk)
+        const isOptimizedTo64 = typeof lastChunk == 'string'
+        // console.log("🚀 ~ Tiny ~ compress ~ testLast:", lastChunk);
+        const lengthOfCompressedArray = Math.ceil(range/15);
+        // console.log('Weight',this.data.length,lengthOfCompressedArray);
+        if ((lengthOfCompressedArray < this.array.length) || isOptimizedTo64) {
+            let chunks:string[] = []
+            for (let i = 0;i < range;i+=15) {
+                const smallerChunk:string = chunk.slice(i,i+15)
+                chunks.push(smallerChunk)
             }
-            console.log('tiny.ts:77 => Tiny => compress => chunk:', chunk);
-            console.log('tiny.ts:78 => Tiny => compress => range:', range);
-            const startOfLastChunk:number = 15 * Math.floor(range/15)
-            console.log('tiny.ts:80 => Tiny => compress => startOfLastChunk:', startOfLastChunk);
-            let lastChunk:number | string = Number(chunk.slice(startOfLastChunk));
-            lastChunk = this.optimizeToBase64(lastChunk)
-            const isOptimizedTo64 = typeof lastChunk == 'string'
-            // console.log("🚀 ~ Tiny ~ compress ~ testLast:", lastChunk);
-            const lengthOfCompressedArray = Math.ceil(range/15);
-            // console.log('Weight',this.data.length,lengthOfCompressedArray);
-            if ((lengthOfCompressedArray < this.data.length) || isOptimizedTo64) {
-                let chunks:string[] = []
-                for (let i = 0;i < range;i+=15) {
-                    const smallerChunk:string = chunk.slice(i,i+15)
-                    chunks.push(smallerChunk)
-                }
-                let chunksAsNumbers:(number | string)[] = chunks.map(Number)
-                // console.log('Chunk as numbers',chunksAsNumbers);
-                chunksAsNumbers[chunksAsNumbers.length-1] = lastChunk
-                this.data = chunksAsNumbers
-                this.isCompressed = true
-            }
+            let chunksAsNumbers:(number | string)[] = chunks.map(Number)
+            // console.log('Chunk as numbers',chunksAsNumbers);
+            chunksAsNumbers[chunksAsNumbers.length-1] = lastChunk
+            this.data = chunksAsNumbers
+            this.isCompressed = true
         }
     }
     public decompress():void {
         this.data = this.returnUncompressedArray();//The setter will automatically convert is compressed to false
     }
     public skipCompression() {
-        return (this.isCompressed==false)?this.data:(() => { throw new Error("The array is already compressed so you cant skip it") })();
+        return (this.isCompressed==false)?this.array:(() => { throw new Error("Performing normal array operations on a compressed array will lead to unexpected behaviour") })();
     }
     private dechunk():string {
         let chunk:string = ''
-        this.data.forEach(num=>{
+        this.array.forEach(num=>{
             chunk += (typeof num == 'string')?decimalToBase9(base64ToNumber(num.toString())):num.toString()
         })
         // console.log('chunk: ',chunk);
@@ -120,30 +140,41 @@ class Tiny {
         return originalArray
     }
     private returnUncompressedArray():(number | string)[] {
-        let originalArray:(number | string)[] = (this.isCompressed)?this.read(this.dechunk()):this.data
-        originalArray = originalArray.slice(0,originalArray.length-1)//to remove the trailing zero
+        let originalArray:(number | string)[] = (this.isCompressed)?this.read(this.dechunk()):this.array
+        // console.log('tiny.ts:124 => Tiny => returnUncompressedArray => this.data:', this.data);
+        if (this.isCompressed) {
+            originalArray = originalArray.slice(0,originalArray.length-1)//to remove the trailing zero
+        }
+        // console.log('tiny.ts:125 => Tiny => returnUncompressedArray => originalArray:', originalArray);
         // console.log('original array',originalArray);
         return originalArray
     }
-    public push(num:number):void {
+    public push(num:number):void {//*compresses every time it updates the array to ensure that the compressed array reflects the latest version
         this.decompress()
-        this.data.push(num)
-        this.compress()
+        this.array.push(num)
+        this.comp()//*Compression only happens once so if its called multiple times after already compressing,it wont compress again unless the array has been decompressed
     }
-    public at(index:number):number | undefined {
+    public at(index:number):number | undefined{//*only compresses once and for all if the array isnt already compressed
+        // console.log('called at');
         const element = this.returnUncompressedArray().at(index)
-        this.compress()
         return Number(element)
     }       
 }
-const grades = new Tiny()
-grades.data = [0,2200000,99999999,997,98890]//Uncompressed version:24 bytes
-grades.compress()
-console.log('data',grades.data);//Compressed version:10 bytes 
-console.log(grades.at(4));//Performing operations on it can lead to temporary memory spikes
+const scores = new Tiny()
+scores.data = [10,20,30,40,50,60,70,80,90,100,110,120,130,140,150]//Here is 120 bytes
+scores.data.then((array)=>{//Here is only 32 bytes to send over a network.It removes the need entirely of streamong data or at least reduce the amount of packets to be sent over a network
+    //Server side for example--sent the compressed data
+    console.log('Sent the compressed data: ',array);//i can use scores.arr_state over using the returned array variable if memory is the primary concern as the array variable is another variable taking up a separate space from scores.arr_state 
+    //Client side for example--receiving the compressed data
+    console.log('Scores',scores.arr_state);//use this over creating the array variable in the then block because of memory savings
+    const receiver = new Tiny()
+    receiver.compressed_data = array
+    console.log('Received the compressed data and created the compressed object',receiver);
+})
+console.log('is compressed now: ',scores.arr_state,await scores.data)
 //But it reduces the amount of space needed to allocate for the array and it reduces the amount of data that is sent over the network
 
-
+//todo:change will compress to true in the setter
 //*my messy algorithm grew from 158 lines of code to just 50 lines and it compress twice as better.Thats the growth of an algorithm
 
 //*For loops take two forms:iterators and range constructs.To iterate over elements of an array,ill use the for each loop as it looks shorter and more concise while for range contructs,ill use traditional for loops
@@ -168,14 +199,16 @@ console.log(grades.at(4));//Performing operations on it can lead to temporary me
 
 //*return uncompressed array is private because storing the value of this in another variable will lead to two types of the same array being stored in memory and as such,the user should use the decompress method whenever they need the decompressed form of an array in  order to ensure that only one type of the array is stored in memory.
 
-//*i also had to provide an abstraction for setting the data.This is because setting the data to a value should always set iscompressed to false so that the next call to compress should always compress it back but is compressed shouldnt be directly modified by the user of the class,so a setter is used an abstraction over this which forced me to implement a getter as the class variable couldnt have the same name as the setter
+//*i also had to provide an abstraction for setting the data.This is because setting the data to a value should always set iscompressed to false so that the next call to compress should always compress it back but is compressed shouldnt be directly modified by the user of the class,so a setter is used an abstraction over this which forced me to implement a getter as the class variable couldnt have the same name as the setter.
 
 //*There is a base 64 optimization where the last chunk will be optimized by 2-6 bytes.With the base 64 optimization,the best case scenario for my algorithm is 2bytes
 
 //todo:can use negative to indicate that the chunk on the left is the same on the right
 
-//*The algorithm can now compress all non zero integers even if the number of elements in the array is just one because of the addition of base 64 ti reduce the size of a number to save 2-6 bytes
+//*The algorithm can now compress all non zero integers even if the number of elements in the array is just one because of the addition of base 64 that reduces the size of a number to save 2-6 bytes
 //*Type conversion is safer than type assertion
+
+//*news flash.The array will not be compressed when calling the at method.It will defer compression till you use the data.Even when you use the data,it wont compress synchronously but rather,it will return a promise that it will compress so that it doesnt block the main thread and you only compress it later when you really need to use the data.This is to optimize as much time as possible so that compression doesnt waste time and it only happens when you need it to be compressed.This is a double defer of when compression will be done.You can also use await on it,so that it compresses as soon as you use the data.It will also compress implicitly when you call a write operation like push which always recompresses the data after writing to ensure that the data will always remain in a compressed form unless you use the skip compression method which returns the array as it is for you to perform write operations without recompressing on each write till you call the compress method explicitly which essentially batches the write operations and then compress later.
 
 //*There is floor division,ceiling division,normal division,round division
 //*My algorithm is only for non negative arrays and its optimized for js number representation.
