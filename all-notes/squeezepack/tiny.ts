@@ -86,12 +86,14 @@ export class Tiny {
         if (chunk.startsWith('09')) {
             range -= 1
         }
-        const startOfLastChunk:number = 15 * Math.floor(range/15);
+        const range15 = range/15
+        const startOfLastChunk:number = 15 * Math.floor(!(Number.isInteger(range15))?range15:(range15-1));
         let lastChunk:number | string = Number(chunk.slice(startOfLastChunk));
+
         lastChunk = this.optimizeToBase64(lastChunk)
         const isOptimizedTo64 = typeof lastChunk == 'string'
         const lengthOfCompressedArray = Math.ceil(range/15);
-        if ((lengthOfCompressedArray < this.array.length) || isOptimizedTo64) {
+        if ((lengthOfCompressedArray < this.array.length) || isOptimizedTo64 ) {
             let chunks:string[] = []
             for (let i = 0;i < range;i+=15) {
                 const smallerChunk:string = chunk.slice(i,i+15)
@@ -143,21 +145,8 @@ export class Tiny {
         return Number(element)
     }       
 }
-const scores = new Tiny()
-scores.data = [10,20,30,40,50,60,70,80,90,100,110,120,130,140,150]//Here is 120 bytes
-scores.data.then(()=>{//Here is only 32 bytes to send over a network.It removes the need entirely of streamong data or at least reduce the amount of packets to be sent over a network
-    //Server side for example--sent the compressed data
-    console.log('Sent the compressed data: ',scores.state);//use this over the returned value as it doesnt copy the array
 
-    //Client side for example--receiving the compressed data
-    console.log('Scores',scores.state);
-    const receiver = new Tiny()
-    receiver.compressed_data = scores.state
-    console.log('Received the compressed data and created the compressed object',receiver);
-})
-console.log('is compressed now: ',scores.state,await scores.data)
-//But it reduces the amount of space needed to allocate for the array and it reduces the amount of data that is sent over the network
-
+//It reduces the amount of space needed to allocate for the array and the data that is required to be sent over the network
 
 //*my messy algorithm grew from 158 lines of code to just 50 lines and it compress twice as better.Thats the growth of an algorithm
 
@@ -193,6 +182,8 @@ console.log('is compressed now: ',scores.state,await scores.data)
 //*Type conversion is safer than type assertion
 
 //*news flash.The array will not be compressed when calling the at method.It will defer compression till you use the data.Even when you use the data,it wont compress synchronously but rather,it will return a promise that it will compress so that it doesnt block the main thread and you only compress it later when you really need to use the data.This is to optimize as much time as possible so that compression doesnt waste time and it only happens when you need it to be compressed.This is a double defer of when compression will be done.You can also use await on it,so that it compresses as soon as you use the data.It will also compress implicitly when you call a write operation like push which always recompresses the data after writing to ensure that the data will always remain in a compressed form unless you use the skip compression method which returns the array as it is for you to perform write operations without recompressing on each write till you call the compress method explicitly which essentially batches the write operations and then compress later.
+
+//*news flash:The push method no longer recompresses the array each time it pushes but rather it decompresses the array only once so that it can push to it but it will not compress the array back and instead,return a promise that it will compress the array back.So if you call push alone,it wont compress the array back and the array will only compress afterwards on the next call to this.data.Its like a defer thing.It will push everything first then compress it later or you can call push with await which will recompress the array every time it pushes.The first option prioritizes time while the second one prioritizes the memory output of the array.
 
 //*There is floor division,ceiling division,normal division,round division
 //*My algorithm is only for non negative arrays and its optimized for js number representation.
