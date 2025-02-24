@@ -46,7 +46,7 @@ class Tiny {
     get is_compressed():boolean {
         return this.isCompressed
     }
-    get arr_state():(number | string)[] {//*returns the current state of the array whether compressed or uncompressed
+    get state():(number | string)[] {//*returns the current state of the array whether compressed or uncompressed
         return this.array
     }
     get data():Promise<(number | string)[]> {//*waits for the array to be compressed before returning the array
@@ -162,19 +162,20 @@ class Tiny {
 }
 const scores = new Tiny()
 scores.data = [10,20,30,40,50,60,70,80,90,100,110,120,130,140,150]//Here is 120 bytes
-scores.data.then((array)=>{//Here is only 32 bytes to send over a network.It removes the need entirely of streamong data or at least reduce the amount of packets to be sent over a network
+scores.data.then(()=>{//Here is only 32 bytes to send over a network.It removes the need entirely of streamong data or at least reduce the amount of packets to be sent over a network
     //Server side for example--sent the compressed data
-    console.log('Sent the compressed data: ',array);//i can use scores.arr_state over using the returned array variable if memory is the primary concern as the array variable is another variable taking up a separate space from scores.arr_state 
+    console.log('Sent the compressed data: ',scores.state);//use this over the returned value as it doesnt copy the array
+
     //Client side for example--receiving the compressed data
-    console.log('Scores',scores.arr_state);//use this over creating the array variable in the then block because of memory savings
+    console.log('Scores',scores.state);
     const receiver = new Tiny()
-    receiver.compressed_data = array
+    receiver.compressed_data = scores.state
     console.log('Received the compressed data and created the compressed object',receiver);
 })
-console.log('is compressed now: ',scores.arr_state,await scores.data)
+console.log('is compressed now: ',scores.state,await scores.data)
 //But it reduces the amount of space needed to allocate for the array and it reduces the amount of data that is sent over the network
 
-//todo:change will compress to true in the setter
+
 //*my messy algorithm grew from 158 lines of code to just 50 lines and it compress twice as better.Thats the growth of an algorithm
 
 //*For loops take two forms:iterators and range constructs.To iterate over elements of an array,ill use the for each loop as it looks shorter and more concise while for range contructs,ill use traditional for loops
