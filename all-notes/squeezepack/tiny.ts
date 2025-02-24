@@ -37,7 +37,7 @@ function base64ToNumber(base64:string):number {
     return result;
 }
 //*implement as many array methods as possible
-class Tiny {
+export class Tiny {
     private array:(number | string)[] = [];
     private isCompressed:boolean = false;
     constructor(array?:number[]) {
@@ -50,13 +50,10 @@ class Tiny {
         return this.array
     }
     get data():Promise<(number | string)[]> {//*waits for the array to be compressed before returning the array
-        return new Promise((resolve)=>{
-            const runLater = async ()=> ''
-            runLater().then(()=>{
-                (!(this.isCompressed))?this.comp():'';
-                resolve(this.array)
-            })
-        })    
+        return (async ()=>'')().then(()=>{
+            this.compress_safely()
+            return this.array
+        });   
     }
     set data(newArray:(number | string)[]) {
         this.array = newArray
@@ -83,7 +80,7 @@ class Tiny {
         // console.log('Returning last chunk',lastChunk);
         return lastChunk
     }
-    public comp():void  {
+    public compress():void  {
         console.log('called compress');
         if (this.isCompressed) {//provides compression safety
             throw new Error('Cannot compress an already compressed array')
@@ -118,6 +115,9 @@ class Tiny {
             this.isCompressed = true
         }
     }
+    public compress_safely():void {//will only call compress if it isnt compressed and as such,it wont throw an error if you attempt to compress the array if its already compressed
+        (!(this.isCompressed))?this.compress():''
+    }
     public decompress():void {
         this.data = this.returnUncompressedArray();//The setter will automatically convert is compressed to false
     }
@@ -149,10 +149,11 @@ class Tiny {
         // console.log('original array',originalArray);
         return originalArray
     }
-    public push(num:number):void {//*compresses every time it updates the array to ensure that the compressed array reflects the latest version
-        this.decompress()
-        this.array.push(num)
-        this.comp()//*Compression only happens once so if its called multiple times after already compressing,it wont compress again unless the array has been decompressed
+    public async push(num:number){//*compresses every time it updates the array to ensure that the compressed array reflects the latest version
+        this.decompress();
+        this.array.push(num);
+        return (async ()=>'')().then(()=>this.compress_safely());
+        // this.comp();//*Compression only happens once so if its called multiple times after already compressing,it wont compress again unless the array has been decompressed 
     }
     public at(index:number):number | undefined{//*only compresses once and for all if the array isnt already compressed
         // console.log('called at');
