@@ -38,87 +38,79 @@ function base64ToNumber(base64:string):number {
 }
 //*implement as many array methods as possible
 export class Tiny {
-    private array:(number | string)[] = [];
+    private name:string = ''
+    private array:Int32Array | number[] = new Int32Array([]);
     private isCompressed:boolean = false;
-    constructor(array?:number[]) {
-        this.data = array || []
+    constructor(array_name:string) {
+        this.name = array_name
     }
     get is_compressed():boolean {
         return this.isCompressed
     }
-    get state():(number | string)[] {//*returns the current state of the array whether compressed or uncompressed
+    get state():Int32Array | number[] {//*returns the current state of the array whether compressed or uncompressed
         return this.array
     }
-    get data():Promise<(number | string)[]> {
+    //use this if you want to send the array over a network only if its compressed.
+    get data():Promise<Int32Array | string> {
         return (async ()=>'')().then(()=>{
             this.compress_safely()
-            return this.array
+            if (this.array instanceof Int32Array) {
+                return this.array
+            }
+            return `The array: \'${this.name}\' did not benefit from the compression`;
         });   
     }
-    set data(newArray:(number | string)[]) {
+    set data(newArray:Int32Array | number[]) {
         this.array = newArray
         this.isCompressed = false
     }
-    set compressed_data(newArray:(number | string)[]) {
+    set compressed_data(newArray:Int32Array) {
         this.array = newArray
         this.isCompressed = true
     }
-    public optimizeToBase64(lastChunk:number):string | number  {
-        const lastChunkAsString:string = lastChunk.toString()
-        const lastIndex = lastChunkAsString.length-1
-        if (!(lastChunkAsString.startsWith('9')) && (lastChunkAsString.indexOf('9') == lastIndex)) {
-            const numBase10 = base9ToDecimal(lastChunkAsString.slice(0,lastIndex))
-            if (numBase10 < 260000) {
-                const numBase64:string = numberToBase64(numBase10)
-                return numBase64
-            }
-        }
-        return lastChunk
-    }
     public compress():void  {
-        console.log('called compress');
-        if (this.isCompressed) {
-            throw new Error('Cannot compress an already compressed array')
-        }
+        if (this.isCompressed) throw new Error(`Cannot compress the array: \'${this.name}\' as it\'s already compressed`);
+        console.log(`The array: \'${this.name}\' is under compression`);
         let chunk:string = ''
         this.array.forEach(num=>chunk += `${decimalToBase9(Number(num)).toString()}9`)
         let range = chunk.length;
-        if (chunk.startsWith('09')) {
-            range -= 1
-        }
-        const range15 = range/15
-        const startOfLastChunk:number = 15 * Math.floor(!(Number.isInteger(range15))?range15:(range15-1));
-        let lastChunk:number | string = Number(chunk.slice(startOfLastChunk));
-
-        lastChunk = this.optimizeToBase64(lastChunk)
-        const isOptimizedTo64 = typeof lastChunk == 'string'
-        const lengthOfCompressedArray = Math.ceil(range/15);
-        if ((lengthOfCompressedArray < this.array.length) || isOptimizedTo64 ) {
+        range -= (chunk.startsWith('09'))?1:0;
+        const maxChunkSize = 9
+        const lengthOfCompressedArray = Math.ceil(range/maxChunkSize);
+        if (lengthOfCompressedArray < this.array.length) {
             let chunks:string[] = []
-            for (let i = 0;i < range;i+=15) {
-                const smallerChunk:string = chunk.slice(i,i+15)
+            for (let i = 0;i < range;i+=maxChunkSize) {
+                const smallerChunk:string = chunk.slice(i,i+maxChunkSize)
                 chunks.push(smallerChunk)
             }
-            let chunksAsNumbers:(number | string)[] = chunks.map(Number)
-            chunksAsNumbers[chunksAsNumbers.length-1] = lastChunk
-            this.data = chunksAsNumbers
+            let chunksAsNumbers:number[] = chunks.map(Number)
+            this.array = new Int32Array(chunksAsNumbers)
             this.isCompressed = true
+            console.log(`The array: \'${this.name}\' has compressed successfully`);
+            return
         }
+        console.log(`Refused to compress the array: \'${this.name}\' because it wont benefit from the compression`);
     }
     public compress_safely():void {//will only call compress if it isnt compressed and as such,it wont throw an error if you attempt to compress the array if its already compressed
         (!(this.isCompressed))?this.compress():''
     }
     public decompress():void {
+        let wasCompressed = false
+        if (this.isCompressed) {
+            console.log(`The array: \'${this.name}\' is under decompression`);
+            wasCompressed = true
+        }
         this.data = this.returnUncompressedArray();//The setter will automatically convert is compressed to false
+        if (wasCompressed) {
+            console.log(`The array: \'${this.name}\' has decompressed successfully`);
+        }
     }
     public skipCompression() {
-        return (this.isCompressed==false)?this.array:(() => { throw new Error("Performing normal array operations on a compressed array will lead to unexpected behaviour") })();
+        return (this.isCompressed==false)?this.array:(() => { throw new Error(`Performing normal array operations on the compressed array: \'${this.name}\' will lead to unexpected behaviour`) })();
     }
     private dechunk():string {
         let chunk:string = ''
-        this.array.forEach(num=>{
-            chunk += (typeof num == 'string')?decimalToBase9(base64ToNumber(num.toString())):num.toString()
-        })
+        this.array.forEach(num=>chunk += num.toString())
         chunk += !(chunk.endsWith('9'))?'9':''
         return chunk
     }
@@ -128,8 +120,8 @@ export class Tiny {
         originalArray = [...chunk.split('9').map((element)=>base9ToDecimal(element))]
         return originalArray
     }
-    private returnUncompressedArray():(number | string)[] {
-        let originalArray:(number | string)[] = (this.isCompressed)?this.read(this.dechunk()):this.array
+    private returnUncompressedArray():number[] {
+        let originalArray:number[] = (this.isCompressed)?this.read(this.dechunk()):[...this.array]
         if (this.isCompressed) {
             originalArray = originalArray.slice(0,originalArray.length-1)//to remove the trailing zero
         }
@@ -137,7 +129,9 @@ export class Tiny {
     }
     public async push(num:number){
         this.decompress();
-        this.array.push(num);
+        const normalArray:number[] = [...this.array];
+        normalArray.push(num);
+        this.array = normalArray;
         return (async ()=>'')().then(()=>this.compress_safely());
     }
     public at(index:number):number | undefined {
@@ -145,7 +139,7 @@ export class Tiny {
         return Number(element)
     }       
 }
-
+//*when sending the compressed array over a network,send the this.state or await this.data in the response and then on the client side,create a new Tiny class object and set the compressed data setter to the array received over the network.This is to ensure that only the compressed array is received over the network and not the entire object 
 //It reduces the amount of space needed to allocate for the array and the data that is required to be sent over the network
 
 //*my messy algorithm grew from 158 lines of code to just 50 lines and it compress twice as better.Thats the growth of an algorithm
@@ -179,11 +173,13 @@ export class Tiny {
 //todo:can use negative to indicate that the chunk on the left is the same on the right
 
 //*The algorithm can now compress all non zero integers even if the number of elements in the array is just one because of the addition of base 64 that reduces the size of a number to save 2-6 bytes
-//*Type conversion is safer than type assertion
+//*Type conversion and type guards are safer than type assertion
 
 //*news flash.The array will not be compressed when calling the at method.It will defer compression till you use the data.Even when you use the data,it wont compress synchronously but rather,it will return a promise that it will compress so that it doesnt block the main thread and you only compress it later when you really need to use the data.This is to optimize as much time as possible so that compression doesnt waste time and it only happens when you need it to be compressed.This is a double defer of when compression will be done.You can also use await on it,so that it compresses as soon as you use the data.It will also compress implicitly when you call a write operation like push which always recompresses the data after writing to ensure that the data will always remain in a compressed form unless you use the skip compression method which returns the array as it is for you to perform write operations without recompressing on each write till you call the compress method explicitly which essentially batches the write operations and then compress later.
 
 //*news flash:The push method no longer recompresses the array each time it pushes but rather it decompresses the array only once so that it can push to it but it will not compress the array back and instead,return a promise that it will compress the array back.So if you call push alone,it wont compress the array back and the array will only compress afterwards on the next call to this.data.Its like a defer thing.It will push everything first then compress it later or you can call push with await which will recompress the array every time it pushes.The first option prioritizes time while the second one prioritizes the memory output of the array.
+
+//*news flash:I removed the base 64 optimization in favour of the int32 array optimization as int32 will only work for number arrays and arrays of numbers and strings as it is for base 64.That means that my chunk size had to be reduced from 15 bytes to 9 bytes and then converted tthe whole array to a 32 int array.I did a test on this and i was able to reduce the compressed array of a particular array from 32 to 28bytes.It squeezed extra 4 bytes out of it.So this also means im deleting the code for the base 64 optimization but its already recorded in the git history so i can always check it back later if i need to.
 
 //*There is floor division,ceiling division,normal division,round division
 //*My algorithm is only for non negative arrays and its optimized for js number representation.
