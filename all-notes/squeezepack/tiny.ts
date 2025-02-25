@@ -36,7 +36,7 @@ export class Tiny {
     }
     //use this if you want to send the array over a network only if its compressed.
     get data():Promise<Int32Array | string> {
-        return (async ()=> console.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' has been promised to compress`))
+        return (async ()=> console.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' has been promised to compress later`))
             ().then(()=>{
                 this.compress_safely()
                 if (this.array instanceof Int32Array) {
@@ -67,9 +67,9 @@ export class Tiny {
         const maxChunkSize = 9
         const lengthOfCompressedArray = Math.ceil(range/maxChunkSize);
 
-        const sizeOfCompressedArray = lengthOfCompressedArray * 4
+        const sizeOfCompressed32Array = lengthOfCompressedArray * 4
         const sizeofUncompressedArray = this.array.length * 8
-        if (sizeOfCompressedArray < sizeofUncompressedArray) {
+        if (sizeOfCompressed32Array < sizeofUncompressedArray) {
             let chunks:string[] = []
             for (let i = 0;i < range;i+=maxChunkSize) {
                 const smallerChunk:string = chunk.slice(i,i+maxChunkSize)
@@ -124,11 +124,12 @@ export class Tiny {
     public async push(num:number){
         this.decompress();
         console.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' is prepared for pushing`);
+        console.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' has been promised to compress after pushing`);
         const normalArray:number[] = [...this.array];
         normalArray.push(num);
         this.array = normalArray;
-        return (async ()=>console.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' has been promised to compress`))
-            ().then(()=>{this.compress_safely()}
+        return (async ()=>'')()
+            .then(()=>{this.compress_safely()}
         );
     }
     public at(index:number):number | undefined {
