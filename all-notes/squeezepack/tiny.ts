@@ -77,7 +77,10 @@ export class Tiny {
         range -= (chunk.startsWith('09'))?1:0;
         const maxChunkSize = 9
         const lengthOfCompressedArray = Math.ceil(range/maxChunkSize);
-        if (lengthOfCompressedArray < this.array.length) {
+        
+        const sizeOfCompressedArray = lengthOfCompressedArray * 4
+        const sizeofUncompressedArray = this.array.length * 8
+        if (sizeOfCompressedArray < sizeofUncompressedArray) {
             let chunks:string[] = []
             for (let i = 0;i < range;i+=maxChunkSize) {
                 const smallerChunk:string = chunk.slice(i,i+maxChunkSize)
