@@ -23,10 +23,12 @@ function base9ToDecimal(base9Str:string):number {
 //*implement as many array methods as possible
 export class Tiny {
     private name:string = ''
+    private log;
     private array:Int32Array | number[] = new Int32Array([]);
     private isCompressed:boolean = false;
-    constructor(array_name:string) {
+    constructor(array_name:string,shouldLog:boolean=false) {
         this.name = chalk.cyan(array_name);
+        this.log = (shouldLog)?console.log:()=>{}
     }
     get is_compressed():boolean {
         return this.isCompressed
@@ -36,7 +38,7 @@ export class Tiny {
     }
     //use this if you want to send the array over a network only if its compressed.
     get data():Promise<Int32Array | string> {
-        return (async ()=> console.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' has been promised to compress later`))
+        return (async ()=> this.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' has been promised to compress later`))
             ().then(()=>{
                 this.compress_safely()
                 if (this.array instanceof Int32Array) {
@@ -54,14 +56,13 @@ export class Tiny {
         this.array = newArray
         this.isCompressed = true
     }
-    public compress():void  {
+    public compress():void  {//?why not make this not compress safely over creating a separate method for that.the reason is because i just feelit is better for it to be designed that way
         if (this.isCompressed) {
-            console.log(`${chalk.red('Red flag:')}Refused to compress the array: \'${this.name}\' because it\'s already compressed`);
-            return
+            throw new Error(`${chalk.red('Red flag:')}Refused to compress the array: \'${this.name}\' because it\'s already compressed`);
         }
-        console.log(`${chalk.magenta('Pending:')}The array: \'${this.name}\' is under compression`);
+        this.log(`${chalk.magenta('Pending:')}The array: \'${this.name}\' is under compression`);
         let chunk:string = ''
-        this.array.forEach(num=>chunk += `${decimalToBase9(Number(num)).toString()}9`)
+        this.array.forEach(num=>chunk += `${decimalToBase9(num).toString()}9`);
         let range = chunk.length;
         range -= (chunk.startsWith('09'))?1:0;
         const maxChunkSize = 9
@@ -78,29 +79,34 @@ export class Tiny {
             let chunksAsNumbers:number[] = chunks.map(Number)
             this.array = new Int32Array(chunksAsNumbers)
             this.isCompressed = true
-            console.log(`${chalk.green('Success:')}The array: \'${this.name}\' has compressed successfully`);
+            this.log(`${chalk.green('Success:')}The array: \'${this.name}\' has compressed successfully`);
             return
         }
-        console.log(`${chalk.blue('Notice:')}Refused to compress the array: \'${this.name}\' because it wont benefit from the compression`);
+        this.log(`${chalk.blue('Notice:')}Refused to compress the array: \'${this.name}\' because it wont benefit from the compression`);
     }
+    //use this over normal compress method
     public compress_safely():void {//will only call compress if it isnt compressed and as such,it wont throw an error if you attempt to compress the array if its already compressed
         if (!(this.isCompressed)){
             this.compress();
+        }else {
+            this.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' is already compressed`);
         }
     }
     public decompress():void {
         let wasCompressed = false
         if (this.isCompressed) {
-            console.log(`${chalk.magenta('Pending:')}The array: \'${this.name}\' is under decompression`);
+            this.log(`${chalk.magenta('Pending:')}The array: \'${this.name}\' is under decompression`);
             wasCompressed = true
+        }else {
+            this.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' is already decompressed`);
         }
         this.data = this.returnUncompressedArray();//The setter will automatically convert is compressed to false
         if (wasCompressed) {
-            console.log(`${chalk.green('Success:')}The array: \'${this.name}\' has decompressed successfully`);
+            this.log(`${chalk.green('Success:')}The array: \'${this.name}\' has decompressed successfully`);
         }
     }
     public skipCompression() {
-        return (this.isCompressed==false)?this.array:(() => {console.log(`${chalk.red('Red flag:')}The array: \'${this.name}\' is already compressed so you can\'t skip the process`) })();
+        return (this.isCompressed==false)?this.array:(() => {this.log(`${chalk.red('Red flag:')}The array: \'${this.name}\' is already compressed so you can\'t skip the process`) })();
     }
     private dechunk():string {
         let chunk:string = ''
@@ -122,13 +128,13 @@ export class Tiny {
         return originalArray
     }
     public async push(num:number){
+        this.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' will be decompressed before pushing`);
         this.decompress();
-        console.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' is prepared for pushing`);
-        console.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' has been promised to compress after pushing`);
+        this.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' is prepared for pushing`);
         const normalArray:number[] = [...this.array];
         normalArray.push(num);
         this.array = normalArray;
-        return (async ()=>'')()
+        return (async ()=>this.log(`${chalk.blue('Notice:')}Pushing was successful.The array: \'${this.name}\' has now been promised to compress`))()
             .then(()=>{this.compress_safely()}
         );
     }
