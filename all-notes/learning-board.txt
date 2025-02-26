@@ -25,21 +25,21 @@ todo:Later,later later,remake my cherrytop kanban app
 =>
 next js
 Auth js
-stripe js
-vitest
+Paystack js
+minor:vitest
+minor:jotai
 =>
-Pouch db
-Formik
+minor:Pouch db
+minor:Formik
 =>
 React Native
 Expo js
 =>
-three js
 blender
 play canvas
+three js
 =>
 astro js
-
 
 Learn cookie and session storage
 Quickly read the 3 gql doc chapters on a gql query life cycle

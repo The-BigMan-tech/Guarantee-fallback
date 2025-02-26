@@ -21,7 +21,7 @@ function base9ToDecimal(base9Str:string):number {
     return decimal;
 }
 //*implement as many array methods as possible
-export class Tiny {
+export class Small32 {
     private name:string = ''
     private log;
     private array:Int32Array | number[] = new Int32Array([]);
@@ -62,21 +62,39 @@ export class Tiny {
         }
         this.log(`${chalk.magenta('Pending:')}The array: \'${this.name}\' is under compression`);
         let chunk:string = ''
-        this.array.forEach(num=>chunk += `${decimalToBase9(num).toString()}9`);
-        let range = chunk.length;
-        range -= (chunk.startsWith('09'))?1:0;
-        const maxChunkSize = 9
-        const lengthOfCompressedArray = Math.ceil(range/maxChunkSize);
+        let negativeChunk:string = ''
+        this.array.forEach((num,index)=>{
+            negativeChunk += (num < 0)?`${decimalToBase9(index)}9`:'';
+            chunk += `${decimalToBase9(Math.abs(num)).toString()}9`
+        });
+        let range = chunk.length 
+        let negRange = negativeChunk.length
 
+        range -= (chunk.startsWith('09'))?1:0;
+        negRange -= (negativeChunk.startsWith('09'))?1:0;
+
+        const maxChunkSize = 9
+        const lengthOfCompressedArray = Math.ceil(range/maxChunkSize) + Math.ceil(negRange/maxChunkSize);;
+        console.log('tiny.ts:78 => Tiny => compress => lengthOfCompressedArray:', lengthOfCompressedArray);
         const sizeOfCompressed32Array = lengthOfCompressedArray * 4
         const sizeofUncompressedArray = this.array.length * 8
         if (sizeOfCompressed32Array < sizeofUncompressedArray) {
             let chunks:string[] = []
+            let negChunks:string[] = []
             for (let i = 0;i < range;i+=maxChunkSize) {
                 const smallerChunk:string = chunk.slice(i,i+maxChunkSize)
                 chunks.push(smallerChunk)
             }
-            let chunksAsNumbers:number[] = chunks.map(Number)
+            for (let i = 0;i < negRange;i+=maxChunkSize) {
+                const smallerNegChunk:string = `-${negativeChunk.slice(i,i+maxChunkSize)}`
+                negChunks.push(smallerNegChunk)
+            }
+            chunks = chunks.filter(element=>element !== '9')
+            const last = chunks.at(-1)
+            if (last && (last.endsWith('9'))) {
+                chunks[chunks.length-1] = last.slice(0,last.length - 1)
+            }
+            let chunksAsNumbers:number[] = [...chunks.map(Number),...negChunks.map(Number)]
             this.array = new Int32Array(chunksAsNumbers)
             this.isCompressed = true
             this.log(`${chalk.green('Success:')}The array: \'${this.name}\' has compressed successfully`);
@@ -108,23 +126,36 @@ export class Tiny {
     public skipCompression() {
         return (this.isCompressed==false)?this.array:(() => {this.log(`${chalk.red('Red flag:')}The array: \'${this.name}\' is already compressed so you can\'t skip the process`) })();
     }
-    private dechunk():string {
-        let chunk:string = ''
-        this.array.forEach(num=>chunk += num.toString())
-        chunk += !(chunk.endsWith('9'))?'9':''
+    private dechunk():string[] {
+        let chunk:string[] = ['','']
+        this.array.forEach(num=>{
+            if (num > 0) {
+                chunk[0] += num.toString()
+            }else {
+                chunk[1] += (Math.abs(num)).toString()
+            }
+        })
+        if (!(chunk[1].startsWith('9')) && chunk[1].endsWith('9')) {
+            chunk[1] = chunk[1].slice(0,chunk[1].length-1)
+        }
+        // chunk[0] += !(chunk[0].endsWith('9'))?'9':'';👈
+        if (!(chunk[1])) {
+            chunk = [chunk[0]]
+        }
         return chunk
     }
-    private read(chunk:string):number[] {
+    private read(chunk:string[]):number[] {
         let originalArray = []
-        chunk.startsWith('9')?originalArray.push(0):''//since 9 is a delimeter,it only appears first if there was a zero before it.
-        originalArray = [...chunk.split('9').map((element)=>base9ToDecimal(element))]
+        chunk[0].startsWith('9')?originalArray.push(0):''//since 9 is a delimeter,it only appears first if there was a zero before it.
+        originalArray = [...chunk[0].split('9').map((element)=>base9ToDecimal(element))]
+        let negIndices = new Set(chunk[1]?[...chunk[1].split('9').map((element)=>base9ToDecimal(element))]:[])
+        console.log('tiny.ts:152 => Tiny => read => negIndices:', negIndices);
+        originalArray = originalArray.map((num,index)=>(negIndices.has(index))?(num * -1):num)
+        console.log('tiny.ts:153 => Tiny => read => originalArray:', originalArray);
         return originalArray
     }
     private returnUncompressedArray():number[] {
         let originalArray:number[] = (this.isCompressed)?this.read(this.dechunk()):[...this.array]
-        if (this.isCompressed) {
-            originalArray = originalArray.slice(0,originalArray.length-1)//to remove the trailing zero
-        }
         return originalArray
     }
     public async push(num:number){

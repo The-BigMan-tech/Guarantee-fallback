@@ -1,0 +1,45 @@
+coding with lewis vidoes
+documentations
+
+kurzgasegat
+
+^The intellisense of some langauges especially cfg files only work when connected to their language server via a network
+*I can actually use turbo console log to provide a full debugging trace
+*O auth
+//Its possible that someone will pop up a window with a prompt to put sensitive data as if it were from a trusted source.
+*electronic storage and hard disk storage
+
+*validation at the form level,request level and database level
+
+^ill make an llm that uses documentations to give you what you need to read
+
+*There is static,dynamic and gradual typing.Python supports gradual typing with its type annotations although being a dynamically typed language
+
+*functions are normally stateless and the only way you can make them stateful is by using a global state,a mutable object or an array to hold the data,a database,class variables in a class,states in frameworks like react
+
+*vs code,blender,godot
+
+*A game is a scene tree which is a tree of scenes like how react apps are tree of components
+*A scene is a collection of nodes like how components in react are a combination of jsx,css and js
+*Signals are like state in react cuz they allow nodes to communicate with each other
+^The observer pattern
+
+^the canvas and svg element
+
+*After you compile your ts file into a js file,you have to provide the declaration.ts file that will be used to provide types for the compiled js file for ts intellisense while interfaces is for the app level
+
+?Code 1
+// return new Promise((resolve)=>{
+        //     const runLater = async ()=> '';
+        //     runLater().then(()=>{
+        //         (!(this.isCompressed))?this.compress():'';//to prevent the error when trying to compress an already compressed array
+        //         resolve(this.array)
+        //     })
+        // }) 
+
+?Code 2   
+ //return (async ()=>'')().then(()=>{
+//     this.compress_safely()
+            
+
+^Both code 1 and code 2 do the exact same thing except that the second one creates a promise in the alternate way by using an async function as async functions returns a promise and then calling compress only after it has been resolved.
