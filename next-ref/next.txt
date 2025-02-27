@@ -103,7 +103,7 @@ And then optionally use tailwind
 
 *Server side components is like the view layer in the mvc architecture where the view would have been carried by the server.
 
-^Death battle goku vs superman,the two Yuji raps,Sukuna rap,la la la,pity party x control,skyfall,switching vocals megamix by skylest,arcane music,funk in blue lock edits,someone you loved
+^Death battle goku vs superman,the two Yuji raps,Sukuna rap,la la la,pity party x control,skyfall,switching vocals megamix by skylest,arcane music,funk in blue lock edits,someone you loved,fire on fire
 
 
 todo:Big O

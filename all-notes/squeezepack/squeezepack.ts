@@ -225,6 +225,7 @@ export class TinyPack {
     }
 }
 const n = new TinyPack()
-n.data =  [1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,90001111]
+n.data =  [1,2,3,4,5,6,7,8,9,1,2,3,4,5,6,7,8,80001111,800099899992]
 n.compress()
 console.log(n.data);
+console.log(n.at(-1));

@@ -43,3 +43,21 @@ kurzgasegat
             
 
 ^Both code 1 and code 2 do the exact same thing except that the second one creates a promise in the alternate way by using an async function as async functions returns a promise and then calling compress only after it has been resolved.
+
+*eslint with error lens.
+*Title case is the opposite of snake case.Learn all the types of cases in coding
+
+*game loop and frames
+
+*Offline app design choice:Download the barebones of the app and download the features that you will need incrementally.
+
+*Attatching a script to an object that is renderd elsewhere is object oriented programming.In python,self is the ref while in js,the this keyword is the ref
+
+*Gui apps and cli apps.Cli apps are for agba devs while gui apps are for users.Python is great at making cli apps
+
+*js listens to events fro input while html uses form elements
+
+*singleton object
+*The observer pattern,reactivity paradigm
+*builder pattern
+*optimization is making a program make the best use of any given compuutational resources no matter how small.

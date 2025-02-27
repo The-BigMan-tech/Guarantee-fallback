@@ -75,7 +75,7 @@ export class Small32 {
 
         const maxChunkSize = 9
         const lengthOfCompressedArray = Math.ceil(range/maxChunkSize) + Math.ceil(negRange/maxChunkSize);;
-        console.log('tiny.ts:78 => Tiny => compress => lengthOfCompressedArray:', lengthOfCompressedArray);
+        // console.log('tiny.ts:78 => Tiny => compress => lengthOfCompressedArray:', lengthOfCompressedArray);
         const sizeOfCompressed32Array = lengthOfCompressedArray * 4
         const sizeofUncompressedArray = this.array.length * 8
         if (sizeOfCompressed32Array < sizeofUncompressedArray) {
@@ -149,9 +149,9 @@ export class Small32 {
         chunk[0].startsWith('9')?originalArray.push(0):''//since 9 is a delimeter,it only appears first if there was a zero before it.
         originalArray = [...chunk[0].split('9').map((element)=>base9ToDecimal(element))]
         let negIndices = new Set(chunk[1]?[...chunk[1].split('9').map((element)=>base9ToDecimal(element))]:[])
-        console.log('tiny.ts:152 => Tiny => read => negIndices:', negIndices);
+        // console.log('tiny.ts:152 => Tiny => read => negIndices:', negIndices);
         originalArray = originalArray.map((num,index)=>(negIndices.has(index))?(num * -1):num)
-        console.log('tiny.ts:153 => Tiny => read => originalArray:', originalArray);
+        // console.log('tiny.ts:153 => Tiny => read => originalArray:', originalArray);
         return originalArray
     }
     private returnUncompressedArray():number[] {

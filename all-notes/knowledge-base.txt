@@ -408,7 +408,26 @@ SSG/pre rendering
 ^NEW
 *Next programming languages
 ^---------------------------------
-C#--for making games with unity
-python,Cython,Mojo-for digital forensics,network security,data science,machine learning and exposing the ml model through an api with fast api
-Rust--for directly accessing system resources and hardware,perform heavy computations faster in my tauri apps
-solidity--may not.i may cuz our instructor recommended it
+Gdscript for Godot--games
+C#---games
+python---data science and machine learning models
+Rust---system level control for my tauri apps
+
+
+*programming language strengths
+js--async,event driven and reactive programming,powers the web
+rust--mem management and performance,directly accessing system resources and hardware,perform heavy computations faster in my tauri apps
+python--data science,machine learning,numerical computing,scripting,backend apis,Cython,pypy,Mojo-Powerful cli apps using the rich lib to help me at coding,for digital forensics,network security,data science,machine learning and exposing the ml model through an api with fast api
+c#--desktop apps and games.
+
+
+^other programming langs i acknowldege but may not learn
+solidity--web 3
+go--concurrency and cloud computing
+powershell--task automation
+java--entrepise scale apps
+r--data science
+matlab--scientific computing
+c++--mem management
+julia--numerical computing
+ruby--web development
