@@ -1,0 +1,199 @@
+so macros are like functions for reusable blocks of code but macro genrates the reusable blocks at compile time unlike functions that gets called at runtime.this allows for compile time optimizations and can generate different code structures based on the input unlike functions that have a fixed structure
+
+When a macro is invoked, it expands into code at the call site. This means the generated code can be different for each invocation, leading to more efficient and tailored output.
+
+Functions: Always call the same block of code regardless of how they are invoked, which can lead to performance penalties if the function is called frequently.
+
+macros give a more expressive syntax
+
+functions have a fixed signature while macros signature are flexible to syntax patterns although function overloading in langs like ts,make function signatures flexible based on input and generics with union types makes return types and input types very flexible
+
+functions can also take a varible number of args by using the spread operator
+
+function overloads are resolved at runtime while macros expand into code at compile time allowing optimizations
+
+Macros are generated at compile time which can prevent errors early rather than functions throwing errors at run time when the wrong args are passed
+
+cargo is the package manager for rust and its cargo.toml and cargo.lock as oppossed to package.json and pnpm-lock.yaml or packagelock.json as it is for js files.This is called local project management.Its better to install dependencies for a particuar project rather than globally on the file system.pip does this globally i believe and thats why there is somthing called virtual environment
+
+the dependency file is for specifying the packages and the versions a project uses while the lock file is for ensuring that the versions of the dependencies remains consistent regardless of the environment
+
+toml and json files are for project management
+cfg files are for settings for an app or a tool
+yaml and json files are for serializin data
+
+dependencies in rust are called crates as it is called node modules in javascript
+
+lock files are managed by the package manager while the dependency files acn be manged manualy
+
+*ill use rust to convert the size of my compressed array to a smaller size by representing chunks in the smallest byte representation possible for that chunk rtaher than having a consistent size across all chunks
+
+*Dont need pinno for logging,the vscode turbo console log extension is far superior as it automatically creates detailed log messages and can adap it when the code refactors.Its a log manager
+
+js is interpreted by the browser,so it can run directly in the browser
+js in frontend frameworks have to be compiled by the frontend framework into regular js dom manipulation and then bundled into on js file with a web bundler like vite before running it on the browser.
+running js standalone requires node js 
+ts needs to be compiled to js files before its ran in the browser or node js envirnonment
+
+since rust is a compiled language language,it has to get compiled into an executable before it gets ran
+
+cargo build
+cargo run
+cargo check
+
+cargo build emits the executable in the target/debug folder for quick re-editing while cargo build --release builds it as a final program for use so its slower so only use it when the final build of the program is ready.
+
+"General learning material for Language X" is a completely different scope from "Teaching the basics of programming using Language X". The former is suitable when you are a beginner to the specific programming language but not to programming in general, whereas the latter is required when you are a beginner to programming in general.
+
+react requires that states must be immutable and editing them should return a new value which reps the current state and not directly modify the state itself the same as rust
+
+*rust is one of those languages that uses an entry point function called main.It also uses curly braces to create blocks over indentation and it uses semi colons as a line terminator
+
+*intellisense is provided by a language server
+
+*compile time erros means that the program isnt safely doing what its suppose to do yet.
+
+*In js and python,variables are mutable until explicitly declared immutable stated while in rust,variables are immutable by default unless they are explicitly declared mutable
+
+*in c++ and rust,printing to the std output must be in a string literal.I belive that python and js do this under the hood by an abstraction
+
+*constants are immutable together with the fact that they must be annotated and they can be declared in any scope and the value of constants must be known at compile time instead of run time like immutable values meaing that the values of constants must be hardcoded while immutable variables can be assigned the values of other variables upon declaration
+
+*constants are best for having a single source of truth for all the hardcoded values that will be used in your program and it also makes them more readable while immutable variables are for enforcing safety
+
+*You cannot change the type of a mutable variable
+
+*Shadowing is redeclaring a new variable with the same name as a previous variable.This means that the new declaration shadows the old one and takes precedence.It is used when trying to change the value and type of an immutable variable without actually mutating it because its actually declaring a new varible but with the same name.This ensures that the variable always remains immutable across changes and it also prevents the need for creating many similar variables but with just different names.Its a false sense of mutation.It can be considered as a safer alternative to mutation
+
+*Mutation means changing the value of a variable after its declaration while shadowing doesnt.
+
+*Immutability leads to predictablility as seen in react and redux and its the same for rust.
+
+*integer,float,boolean and character
+
+*Unsigned integers are guaranteed positive integers while signed integers may be positive or negative
+*You can use _ as a separator for long integer values and you can suffix the type of a variabe that holds an integer with the type in front of the integer
+
+*when an integer overflows,it can cause two things:if its in debug mode,it will panic and throw an error but if its in release mode,it will wrap around the given range which is also an error.
+
+*i,u,f
+
+2^(n-1) is the formula for calculating how many numbers can be produced with n bits.
+
+*boolean values in rust are one byte
+*there is unicode and ascii way of representing strings or characters just like python because unicode can represent a vast array of characters including emojis
+
+*chars use single quotes in rust while strings use double quotes
+
+*tuples can be unoacked in pythin and rust as arrays can be destructured in javascript
+
+*arrays,tuples and vectors.Tuples can be composed of any types while arrays cant and arrays are fixed in length
+
+*an array is a fixed large chunk of memory allocated to the stack
+
+*in python functions arent hoisted but they are in js and rust
+
+^Change the folding strategy in vs code to indentation
+
+*expressions and statements.expressions return a value while statements are a series of functions.defining a functions is a statement while calling a function is an expression.
+
+*you can create scopes in rust
+
+*statements use semicolons to terminate the end of it while expressions dont.if you use a semi colon to terminate an expression,it will become a statement
+
+*rust is expression first meaning numbers and arithmetic operations themselves are implicitly treated as expressions.
+
+*in js,anything truthy value can be used in a condition check while in rust,only expressions that evaluates to bool values can be used.
+
+*in js,paranthesis are required for blocks
+*in rust,they must be removed
+*in pythin,they are optional
+
+*switch case statements are just syntatic sugar over if-elif ladders
+
+*Blocks of code evaluates to the last expression in them and they are denoted by curly braces.
+
+*In ternary statements,each block must return the same type and this is because rust needs to know the type of a variable at compile time and not at run time.If they allowed it,the compiler will be more complex and will provide less reliable type checks if it relied on possible values of a variable.
+
+*do while loop,while loop,loop
+*iterators and range constructs.
+*range constructs are made up of a loop counter,end and a step and it can be forward or backward
+
+*The loop keyword is like the while loop except that it doest check for any condition before it enters the loop and it only terminates when explicitly stated in the program with the break keyword
+
+*variables are only visible within the scope they are declared meaing they are not visible to sibling scopes.They are also visible to child scopes but parent scopes cant access the variable in child scopes unless the scope returns the variable.Child scopes cant shadow the variables in the parent scope and can only modify it if the variable is declared muatbable in the parent scope.This is an intentional design choice to allow for predictable code.
+
+*Blocks are made using {}
+
+*Because lines have to be terminated by a semicolon in rust,only the last line of any scope in a rust program can be implicitly made as an expression.
+
+*Running a program in debug mode will only work when there are breakpoints as a debugger is just a detailed step through for a program.
+
+*Break is for breaking loops while continue is to skip the current iteration of the loop
+
+*Scopes are valid blocks like if statements,loops and functions.They are used for scoping code.the last line is implicitly the return statement for scopes meaning scopes can also be used as expressions
+
+*the loop keyword just tells a scope block to repeat itself indefintely until there is a break.You can return a value from a loop block by writing the value you want to return after it
+
+*in rust,before an element from an array is accessed,the compiler takes the extra step of checking if the index is valid.
+
+*You cannot type annotate the loop counter in a for loop
+
+*arrays can be generated by [1;5].The former generates one five times.
+
+*To do range constructs,you iterate over a special array type particularly for this through:[1..5]
+
+*You can also use the rev() method to do a reverse range construct
+
+*js and python use a garbage collector to manage memory,c++ uses manual mem management and rust uses ownership
+
+*the compiler checks for features of ownerships that if they are not met,the progam wont compile
+
+*There are two places of memory in a program; the stack and the heap. The stack is for storing data that's of a fixed and known at compile time while the heap is for data that's of an unknown size. Data can only be added to the stack through the top and accessed by the first in, last out order or the rule of stacked plates and data in the stack only exists for the scope its called in.Once the scope finishes,the stack get cleared and as such,the stack manages itself and its very safe.function parameters and local variables are stored in the stack till they get cleared when the scope is finished.Its simpler and faster to manage than the heap as the program only has to manage only one contiguous block of memory.
+
+*While the heap is for data that's of an unknown size at compile time or for variables that their values change often but the locations of each data block is sparse and can only be accessed by an allocator and since its sparse, it takes more time to allocate and access data on the heap. On the heap, its called allocating and deallocating while on the stack, its called pushing and popping.Data in the heap is left there until explicitly deallocated.You can only access data in the heap by following a pointer that leads to the address of that variable in the heap and since pointers are of known sizes,they are stored on the stack
+
+*integers and arrays of fixed sizes are stored on the stack while flexible sized arrays and strings which grow and shrink dynamically are stored in the heap.
+
+*strings and integers are passed by value while arrays and objects are passed by reference
+
+*Dangling pointers are pointers that points to the address of a memory block that has already been freed and it can cause unexpected behaviour if accessed in the program and smart pointers are pointers that come with memory safety and more features.
+
+*a null pointer means that the pointer doesnt currently point to any memory address.
+
+*pointers get cleared like any normal variable when the scope exits but if they were left pointing to a memory,the memory remains allocated until explicitly freed
+
+*Without pointers and references,you cant access data stored in the heap but for data on the stack,its direct through its variable names but many hll use references and garbage collection which is a manger for references as an abstraction over pointers.references are safer than pointers as they can never be null and it will always lead to valid memory
+
+*For arrays,the pointer initially returned is the pointer to the first element of the array and since arrays are stored in a contiguos block of memory in the heap,the addresses of the elements are serialized and you can use pointer arithmetic to get the other data in the array.Array indexing is just an abstraction of using pointer arithmetic to access elements in an array
+
+*There is a difference between a pointer and a reference.A pointer is a variable that its value is an address to another variable in the heap and can allow you to perform arithmetic operations on that value to create new pointers but doing so can lead to dangling pointers.Since pointers are just variables,they take their own space and have mem addresses on the stack while a reference is a direct alias or mapping to a variable in the heap meaning that it doesnt have its own space on the stack and it shares the same memory address as the variable is aliasing to.Pointers can be reassigned to another memory address while refs cant be reassigned this is because pointers are assigned at runtime while refs are assigned at compile time.References are safer because they cant be null which prevents dangling pointers.
+
+*there is memory leak and memory fragmentation.
+
+^Garbage collector,manual mem mangement and ownership are the different ways programming languages manages meory on the heap
+
+*time allocation--single threaded,asynchronous,multi threaded,multi processing.
+
+*strings and integers are immutable since they are passed by value 
+
+*namespaces and import aliases are used for import safety to ensure that imports dont collide with existing functions in the same module.
+
+*In js,you can do selective exporting and then import them under a namespace as a variable or use destructuring to import them directly in the namespace.
+
+*rust uses the :: notation for accessing the methods in a type and the exports in a namespace/module and not the instance of that type But uses dot notation for instance methods and properties.Its a design choice for clarity while js and pythin use dot notation for both because of simplicity and consistency
+
+*there is selective export and module export
+
+*the string type is mutable while the string literal is immutable and is known at compile time and as such,its stored in the stack.
+
+*when making string types,it makes a request to the allocator to get the space its need to store the string
+
+*rust takes a different approach.Once the variable goes out of scope,the variable that owns it gets deallocated so rust automatically calls a drop method to release the memory once the variable goes out of scope
+
+*because integer values are known at compile time and they dont carry that much data,they can be created on each variable assignment and stored on the stack
+
+*The pointer,the length and the capacity.The length is how much bytes the string is taking in memory while the capacity is the amount of memory in bytes given to the string by the allocator.This means that when you attempt to copy data thats on the heap,you actually copy the pointer,the length and the capacity of that variable on the stack and not the actual data.
+
+*arrays will always decay into the pointer of their first element
+*Data in the stack is accessed directly by the value such as integers,booleans,characters and fixed arrays and tuples while data in the heap is only accessed via pointers and references

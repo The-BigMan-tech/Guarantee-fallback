@@ -415,7 +415,8 @@ Rust---system level control for my tauri apps
 
 
 *programming language strengths
-js--async,event driven and reactive programming,powers the web
+js--async,event driven and reactive programming,networking,apis and web apps
+typescript--will make you heavily appreciate type safety/static type checking
 rust--mem management and performance,directly accessing system resources and hardware,perform heavy computations faster in my tauri apps
 python--data science,machine learning,numerical computing,scripting,backend apis,Cython,pypy,Mojo-Powerful cli apps using the rich lib to help me at coding,for digital forensics,network security,data science,machine learning and exposing the ml model through an api with fast api
 c#--desktop apps and games.
@@ -431,3 +432,4 @@ matlab--scientific computing
 c++--mem management
 julia--numerical computing
 ruby--web development
+lua--quick scripting

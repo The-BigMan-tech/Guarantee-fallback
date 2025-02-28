@@ -2,4 +2,7 @@
 **/.parcel-cache/
 **/dist/
 **/.env
-all-notes/rust/
+*
+!**/
+!*.rs
+!*rust.txt
