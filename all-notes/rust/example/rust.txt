@@ -169,7 +169,7 @@ react requires that states must be immutable and editing them should return a ne
 
 *There is a difference between a pointer and a reference.A pointer is a variable that its value is an address to another variable in the heap and can allow you to perform arithmetic operations on that value to create new pointers but doing so can lead to dangling pointers.Since pointers are just variables,they take their own space and have mem addresses on the stack while a reference is a direct alias or mapping to a variable in the heap meaning that it doesnt have its own space on the stack and it shares the same memory address as the variable is aliasing to.Pointers can be reassigned to another memory address while refs cant be reassigned this is because pointers are assigned at runtime while refs are assigned at compile time.References are safer because they cant be null which prevents dangling pointers.
 
-*there is memory leak and memory fragmentation.
+^there is memory leak and memory fragmentation.
 
 ^Garbage collector,manual mem mangement and ownership are the different ways programming languages manages meory on the heap
 
@@ -189,11 +189,108 @@ react requires that states must be immutable and editing them should return a ne
 
 *when making string types,it makes a request to the allocator to get the space its need to store the string
 
-*rust takes a different approach.Once the variable goes out of scope,the variable that owns it gets deallocated so rust automatically calls a drop method to release the memory once the variable goes out of scope
-
 *because integer values are known at compile time and they dont carry that much data,they can be created on each variable assignment and stored on the stack
 
 *The pointer,the length and the capacity.The length is how much bytes the string is taking in memory while the capacity is the amount of memory in bytes given to the string by the allocator.This means that when you attempt to copy data thats on the heap,you actually copy the pointer,the length and the capacity of that variable on the stack and not the actual data.
 
 *arrays will always decay into the pointer of their first element
+
 *Data in the stack is accessed directly by the value such as integers,booleans,characters and fixed arrays and tuples while data in the heap is only accessed via pointers and references
+
+*compilers can choose to copy the data on the heap but it will be computationally expensive in both memeory and at runtime since it takes the allocator some time to find free space on the heap and thats why variables that their values is another variable holding arrays are just shallow copies and not real/ddep copy because they still point to the same data on the heap but rust takes a different approach to prevent double free deallocs so it invalidates the first variable which is known as a move to ensure that only one pointer to data in the heap only exist at a time and as such,it is not a shallow copy meaning that you cant use the invalidated ref or it will throw an error
+
+*Memory dangers can only be prevented when you call free at the right time mapped correctly to the right alloc.
+
+*trying to deallocate memory on the heap twice will lead to memory coruption,unexpected behaviour and security vulnerabilities
+
+*shallow copy and deep copy.
+
+^dragon ball daima
+
+^in next js,a sidebar is loaded as a layout across many pages and the component that holds the content of what the sidebar leads to is a page that you get routed to by next js but in plain react,i used redux where the sidebar dispatches an action to change the current loaded data state and the content component will always reflect the current loaded data.The paradigms are different because of the way these apps approach rendering as next js creates multiple pages while react uses a single page,in next js apps,clicking on content on the sidebar routes you to the appropriate content while in react,it dispatches an action that changes the current state that the main page will always reflect
+
+*discovering and building
+
+*navbar and sidebar are for navigation
+
+*rust takes a different approach.Once the variable goes out of scope,the variable that owns it gets deallocated so rust automatically calls a drop method to release the memory once the variable goes out of scope
+
+*when you assign a variable to a new value on the heap,rust will automatically invalidate that reference but it will only drop it when the variable that owns it goes out of scope
+
+*variables that have their data on the heap have stack data that contains pointer,length and capacity information and as such,when you copy that variable,you are only copying the stack data and not the heap data
+
+*integer values are known at compile time and as such,they are stored on the stack meaning that variables that hold integer data dont get invalidated and the value actually gets copied when another variable attempts to copy it.This is the very reason why they get copied to a function when they are passed to a function as passing values to a function is just another form of assignment.
+
+*integers,floats,boolean,chars and tuples of any of the types mentioned go to the stack.
+
+*When you pass values to a function,they get copied into the function but when you pass refs like strings and vector arrays,you pass a ref to the function which means that modifying the variable in the function will modify the actual variable itself but rust also adds something else,when it also moves the ref or pass the ownership of that ref to the function meaning that when the function goes out of scope,rust will drop that variable and the variable cant be accessed in the caller after it called the function,it cant access the variable again
+
+*This also means that in rust,when you pass variables that hold references,you also pass the ownership of that reference and when the function returns the variable back to another variable in the caller,it also returns the ownership of that variable back to the scope of the caller.
+
+*This also means that all variables that hold references to data in the heap,are owned in the scope that declared them and when the scope is done,all the references it owns gets dropped.When a function returns a variable that holds a reference,it surrenders the ownership of that reference to a variable in the caller's scope.
+
+*when a variable loses ownership of a reference,it gets invalidated by rust.So when you assign a variable a new ref value,the old ref has no owner,so it gets dropped.
+
+^dropped and invalidated,ownership.
+
+*This also means that in rust,anything that has to do with variables that hold references means transferring the ownerhip of that reference.
+
+*but this is tedious as handing over and returning ownership becomes tedious
+
+*rust goes through the ownership model and not the reference model used by garbage collectors
+
+^exploit
+
+*CORRECTION:so there is a difference between ownership and reference.Garbage collectors use references meaning that when you pass a variable that holds an array to a function,the function creates another ref and not take the ownership to the ref and the gc will clear it as soon as there are no refs again to the value but rust uses ownership meaning that array/object data doesnt get dropped till the variable that owns it gets out of scope and if a variable is given another data,the data from the old ref doesnt get cleared,it just gets invalidated.This also means that the ref no longer has a valid owner but it will only get dropped if the owner goes out of scope
+
+^ownership,references and pointers.
+
+*the ownership model of rust mimics the stack
+
+^you can only access data on the heap through pointers and references.Ownership isnt a way to access data on the heap,its just a system that manages who owns a piece of data and when that data will be deallocated.
+
+*Unlike a pointer, a reference is guaranteed to point to a valid value of a particular type for the life of that reference.
+
+*references in rust is a way to pass data on the heap to a function without transferring ownership meaning that it can use the value but the value wont be dropped when the function goes out of scope because it doesnt own that value and the function doesnt have to return it back because it never owned it.
+
+*references are immutable by default which means that any function that uses it only has read only access but there can also be mutable references which means that the function has read and write access.
+
+*passing values to a function by reference over directly giving ownership is borrowing
+
+*You can create many immutable references but once you create a mutable reference,you can no longer create or have any other refs to that variable again.This is to ensure safety because users of an immutable reference don’t expect the value to suddenly change when they want to use it and when they are using it.However, multiple immutable references are allowed because no one who is just reading the data has the ability to affect anyone else’s reading of the data.This restriction prevents data races as it gets caught at compile time because data races can cause undefined behaviour at run time.
+
+*mutable references can only be made from mutable variables
+
+*Many functions can use the same mutable reference.
+
+*There can only be one mutable reference per scope and creating another mutable reference will have to be done in another scope.This is because mutable references stay as long as the life time of their scope and they only get dropped when their scope finishes.The same goes for immutable refs execpt that immutable refs get invalidated for use after a mutable one has been introduced.This rule prevents potential data races.If you were allowed to use immutable references after creating a mutable reference, it could lead to situations where one part of your code is reading a value while another part is modifying it, which could cause unpredictable behavior.
+
+*Immutable references go out of scope from the point they were last used after their declaration.
+
+*The reason why data that no longer has an owner or reference to it doesnt get dropped till the ref/owner goes out of scope in rust is to prevent the ref from dangling which is when the data is deallocated but the ref to that data still exist.This guarantees that a reference always points to valid data.Dangling references can still be created when a function returns a ref to a local variable which is invalid because the local variable goes out of scope after the function executes and as such,there is no value to borrow from meaning that the caller is referencing to nothing.Rust wont compile this.The right thing is to return the value itself,which surrenders ownership of the value to the caller.
+
+*functions normally shouldnt take ownership of their arguments until when necessary.
+
+^edits
+
+*Python uses the variable[x:y] notation for slicing,js uses a function while rust uses the &variable[1..4] for slicing also known as the range syntax which is used in range constructs.
+
+*string slices must occur at asciii character boundaries else,it will throw an error.
+
+*slices are immutable refs to a part of a string meaning that slices dont take ownership of the data and you cant modify them.
+
+*Just like how arrays decay to pointers of their first element,slices become refs to the first element of the array and its length.
+
+^the stack,the heap,the binary read only memory
+
+*string literals are immutable refs to string data on the binary read only memory
+
+^data in the stack has scope lifetime.
+^data in the heap has a persistent lifetime depending on the model used--manual,gc and ownership
+^data in the binary read only memory has a static lifetime meaning that it never gets deallocated
+
+*the stack also holds function call information
+
+*The binary read only memory is a section of the data that is included directly in the compiled executable of a program and it can never be modified.This means that the data remains even after the program is closed and it is loaded back into the program's memory once the it is opened again.So in rust,string literals and constants get stored in this storage because it saves the allocator time from finding space in the heap to store this data and it can only be accessed by reference in the program because no variable can take ownership of it as its read only and cant be deallocated.But string data on the other hand,which is one that can shrink or expand throughout the program is stored in the heap.
+
+*String literals are the only types that gets stored in the binary storage because they are hardcoded and known at compile time.even if integers are hardcoded and immutable,they are still stored in the stack because they are mostly shortlived and dont usually leave the scope they are defined in.The only way immutable integers can go here is if they are constant.

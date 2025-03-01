@@ -151,7 +151,7 @@ export class Small32 {
         let negIndices = new Set(chunk[1]?[...chunk[1].split('9').map((element)=>base9ToDecimal(element))]:[])
         // console.log('tiny.ts:152 => Tiny => read => negIndices:', negIndices);
         originalArray = originalArray.map((num,index)=>(negIndices.has(index))?(num * -1):num)
-        // console.log('tiny.ts:153 => Tiny => read => originalArray:', originalArray);
+        // console.log('tiny.ts:154 => Tiny => read => originalArray:', originalArray);
         return originalArray
     }
     private returnUncompressedArray():number[] {
@@ -171,6 +171,7 @@ export class Small32 {
     }
     public at(index:number):number | undefined {
         const element = this.returnUncompressedArray().at(index)
+        console.log(' tiny.ts:175 => Small32 => at => element:', element);
         return Number(element)
     }       
 }

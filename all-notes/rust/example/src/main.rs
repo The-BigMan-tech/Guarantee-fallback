@@ -7,7 +7,18 @@ fn hello(name:&str,age:i32)->&str {
     }
     return "Your age is very negative"
 }
-
+fn attempt1(text:&mut String) {
+    println!("Received text1: {}",text)
+}
+fn attempt2(text:&mut String) {
+    println!("Received text2: {}",text)
+}
+fn attempt3(text:String) {
+    println!("Received text3: {}",text)
+}
+fn attempt4(text:&String) {
+    println!("Received text3: {}",text)
+}
 fn main() {
     let food:&str = "noodles";//*string literal */
     let mut juice:&str = "ribena";
@@ -57,7 +68,32 @@ fn main() {
         println!("loop3:Number: {}",num)
     };
     {
-        let mut c:String = String::from("Hello world");//*string object */
+        //C loses ownership of the data to d and gets invalidated
+        let c:String = String::from("Hello world");//*string object */
+        let mut d = c;
+        println!("Variable d: {}",d);
+
+        let e:&mut String = &mut d;
+        println!("Variable e: {}",e);
+        attempt1(e);
+        attempt2(e);
+        {
+            let f:&mut String = &mut d;
+            attempt1(f);
+            attempt4(&d);
+            println!("Variable d again: {}",d);
+
+            let mut g:String = String::from("hello planet");
+            let h:&String = &g;
+            let i:&String = &g;
+            println!("Variable h: {}.Variable i: {}",h,i);
+
+            let j:&mut String = &mut g;
+            println!("Variable j: {}",j);
+            // attempt4(h);
+            let mut i:String = String::from("hello mars");
+            i.clear();
+            println!("Value of i {}",i);
+        }
     }
-    
 }
