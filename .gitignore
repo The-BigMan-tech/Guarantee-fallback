@@ -1,8 +1,27 @@
+#*Ignore all the files under these folders
 **/node_modules/
 **/.parcel-cache/
 **/dist/
+
+#*Ignore .env file in all directories
 **/.env
-*
-!**/
-!*.rs
-!*rust.txt
+
+#*Ignore these from rust
+**/*.bin
+**/*-bin-example
+**/bin-example
+**/bin-example.json
+**/test-bin-example.json
+**/*.o
+**/*.timestamp
+**/*.lock
+**/*.rmeta
+**/*.d
+**/*.TAG
+**/*.exe
+**/*.pdb
+**/.rustc_info.json
+**/.cargo-lock
+
+#*Dont ignore these from rust
+!**/Cargo.lock

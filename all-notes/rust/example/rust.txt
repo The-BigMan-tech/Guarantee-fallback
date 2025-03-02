@@ -296,3 +296,15 @@ react requires that states must be immutable and editing them should return a ne
 *String literals are the only types that gets stored in the binary storage because they are hardcoded and known at compile time.even if integers are hardcoded and immutable,they are still stored in the stack because they are mostly shortlived and dont usually leave the scope they are defined in.The only way immutable integers can go here is if they are constant.
 
 *The gc is a higher level abstraction that allows programmers to not worry about a thing about memory management while rust ownership model provides some abstractions only to guarantee safety at compile time but the programmer will still manuallay control the lifetime of data through borrowing and ownership and control which memory type every piece of data goes to by declaring it as immutable,mutable and const.
+
+^libraries,modules,frameworks,the standard library.
+
+^react state,rxjs and events are used to implement the observer pattern.
+
+*With tauri,you can interpolate js and rust code in your apps.
+
+*You can write secure code in rust but if you are going for exploitation code,you will want to go for C,C++ or python because the exploits are what rust is trying to prevent you from doing.
+
+*dataframes are a way to create table structures in code.
+
+^biome js and prettier are code formatters.Try out biome js

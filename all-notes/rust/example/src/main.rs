@@ -59,7 +59,7 @@ fn main() {
     }
     let nums:[i32;5] = [1,2,3,4,5];
     for num in nums {
-        println!("loop1:Number: {}",num)
+        println!("loop1:Number: {}",num);
     }
     for num in [1;5] {
         println!("loop 2:Number: {}",num)

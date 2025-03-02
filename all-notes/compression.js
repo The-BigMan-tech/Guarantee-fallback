@@ -10,7 +10,7 @@ function generateCompressedArr(compressedObject) {
         const prevNum = compressedArr[index-1] + common_difference
         compressedArr.push(prevNum)
     }
-    return compressedArr
+    return compressedArr;
 }
 function getElement(compressedObject,index) {
     let compressedArray = generateCompressedArr(compressedObject)

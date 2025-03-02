@@ -31,7 +31,7 @@ export class Small32 {
         this.log = (shouldLog)?console.log:()=>{}
     }
     get is_compressed():boolean {
-        return this.isCompressed
+        return this.isCompressed;
     }
     get state():Int32Array | number[] {//*returns the current state of the array whether compressed or uncompressed
         return this.array
