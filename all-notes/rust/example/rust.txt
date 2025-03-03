@@ -39,6 +39,7 @@ since rust is a compiled language language,it has to get compiled into an execut
 
 cargo build
 cargo run
+cargo clean
 cargo check
 
 cargo build emits the executable in the target/debug folder for quick re-editing while cargo build --release builds it as a final program for use so its slower so only use it when the final build of the program is ready.
@@ -205,7 +206,7 @@ react requires that states must be immutable and editing them should return a ne
 
 *shallow copy and deep copy.
 
-^dragon ball daima
+^dragon ball daima,manga
 
 ^in next js,a sidebar is loaded as a layout across many pages and the component that holds the content of what the sidebar leads to is a page that you get routed to by next js but in plain react,i used redux where the sidebar dispatches an action to change the current loaded data state and the content component will always reflect the current loaded data.The paradigms are different because of the way these apps approach rendering as next js creates multiple pages while react uses a single page,in next js apps,clicking on content on the sidebar routes you to the appropriate content while in react,it dispatches an action that changes the current state that the main page will always reflect
 
@@ -308,3 +309,118 @@ react requires that states must be immutable and editing them should return a ne
 *dataframes are a way to create table structures in code.
 
 ^biome js and prettier are code formatters.Try out biome js
+
+*for git,its safer to explicitly ignore which files you dont want to see rather than telling it to ignore all files except ...
+
+*Gitignore is safe because an ignored file doesnt get removed from the repo.it just doesnt track any changes to that file for the next commit.
+
+^Rustlings,the rust book,rust by example
+
+^Approaches to memory management
+*Through pointers--Manual memory management
+*Through references--Garbage Collector
+*Through the ownership model--Borrow Checker
+
+*package managers are for managing dependencies and scripts across codebases like npm,cargo,poetry.
+*project scaffolders/scaffolding utility are for setting up a structured folder for any type of project like vite,nest js.
+*build automation tool which helps to auto compile,bundle and execute your code and optionally with auto reloading when the src code changes
+
+*Build automation tools require one entrypoint file that intiliazes the app and manages imports.For rust its the main.rs file,for vite its main.tsx and for nest js,its the app.ts file.
+
+*Package managers are often also basic project scaffolders
+*in rust,cargo is not only a package manager and scaffolder but also a tool that compiles and run your program for you.its like vite that bundles your code for you and runs it with hmr and nest js that also compiles your ts files before executing it.
+
+*It was js that i learnt the importance of a project/package manager.
+
+^Bundler,compiler
+
+^React--compiled,bundled,executed
+^Nest js--compiled,live running
+
+*intellisense suggestions are provided by a language server
+
+*in rust,there is a difference between a string object and a string reference.A string reference is immutable,hard coded,known at compile time and stored in the binary storage since its just a ref to a string object in the binary storage while string objects can be mutable,can shrink and grow at run time and are stored in the heap.
+
+^Typescript enforces type safety,Rust enforces memory safety.They both catch many errors at compile time
+
+?Interfaces/Structures and Classes
+?Land analogy--ownership model and gc
+
+^Typescript with Rust
+
+^Funk,Reverb,Nightcore and other musical effects
+
+*nest js and angular are object oriented
+
+*In rust,references to data dont outlive the owner of that data and as such,rust uses lifetimes to determine how long a ref is valid.Normally,ref get invalidated once the owner's scope is left.
+
+*lifetimes are denoted by an apostrophe followed by a letter.they are used to tell rust how long a reference is valid for use before it invalidates it.Without specifying lifetimes, the compiler wouldn't be able to determine how long these references are valid which could to references that point to invalid memory and become dangling.
+
+*Lifetime annotations are used to tell the compiler the lifetime of a reference.Rust implicitly creates lifetime annotations for simple assignments and function signatures but it is required in complex scenarios like struct.In assignments,lifetime annotations are implicitly tied to the owner meaning that if the owner goes out of scope,the reference becomes invalid.Rust doesnt infer lifetime annotations for structs because it can lead to ambiguity as each field might have a different lifetime.
+
+*In situations where there is only one reference made at a time like in assignments,rust can infer its lifetime to be tied to its owner but when there are multiple refs to be handled by one entity like a struct or a function accepting many refs as pars,the lifetimes must be annotated explicitly so that the compiler can know the relationship between the refs
+
+*in rust,the entire instance of a struct must be mutable if changes may be required after initialization as fields cant be mutable individually.This is so that refs to struct objects can only be mutable or immutable at a time and that no part/some of its fields can be immutable and mutable at the same time to prevent data races,ensure safety and prevent borrowing rules.
+
+*in rust,data in the heap gets dropped if the owner gets out of scope,meaning that variables are local by default.
+
+*Static storage is for data that will exist throughout the lifetime of the program menaing that variables in this storage are global and they are stored in the binary heap storage.
+
+*News flash:By default,a ref can never outlive the data it points to but rust uses annotations so that it can keep track of how the ref is used in the function or struct to determine its lifetime and use it to know the relationship between future use of the refs in the same scope meaning that ref names must be consistent across the entire scope and lifetimes can only be defined in their definitions and no other lifetimes outside of what was defined can be used in the scope else,it will throw a compiler error and they are scoped to the function or struts that defines them.
+
+*Lifetime annotations are just placeholders that can hold any arbitary name so you can use any name you like as long as its consistent across the scope.They can be either generic:a,b,c or descriptive:short long.Only the static lifetime annotation is hardcoded as it is used to tell rust that data must be global and must be stored in the static storage.Apart from this,other annotations are given lifetimes based on how rust infers it at compile time.
+
+^This is similar to how react uses keys in list rendering to keep track of which values change to avoid unnecessary re-renders.React is the one that actually uses the keys,all the devs need to do,is to provide it.React relies on developer-provided keys to manage component rendering efficiently, Rust relies on developer-provided lifetime annotations to manage memory safely. Both mechanisms help their respective systems function effectively while placing the responsibility of clarity and accuracy on the developers.
+
+*rust can just add annotations themselves if they wanted to but making devs to explicitly add names,allows for clarity as what the purpose of the ref is and clearly defining the relationships between refs
+
+*so lifetime annotations are rust way of preventing dangling references as it states how long refs are valid
+
+*The only lifetimes that can be used in a function or struct are the ones that are included in their definitions in the <>.
+
+^You can use the field init shorthand syntax in rust when creating new objects from structs as it is in js.Rust also has a struct update syntax which is identical to js spread operator excep that in rust,it must come last but for js,it can be anywhere.This is just rust design choice.
+
+*When you create a new struct object say object2 from an existing one say object1 using the struct update notation,any field data that is stored in the heap as defined by the structure will be moved from object1 to object2 if object2 doesnt create its own new value for that field as borrowing rules apply to the field level meaning that object1 has lost ownership to that field data to object2 and that field becomes invalid for object1.This is because,the update syntax essentially copies each of the field's data to create a new object but if any of that field data is in the heap,it moves the ownerhsip of the access to that data to the new object
+
+^References and owners
+^Redux provides state safety for react apps
+
+*structs that dont use references in any of their fields dont need lifetime annotations.For fields that uses data on the heap directly,ownership applies.
+
+?An object is just another way of storing grouped data like an array except that data access is by field name and not by index
+
+^Tuples,arrays and vectors
+
+*Tuples and arrays are both a sequential collection of elements that are known at compile time and as such,they are stored in the stack meaning that they implement the copy trait and not the move trait in rust.The only difference between the two is that all the elements in the array must be of one type while tuples can have elements of different types.Vectors are arrays that can grow and shrink during runtime and as such,they are stored in the heap.They are made to only hold one type because of type safety during runtime and you can only get different types if you use a vector of enums since enums can hold different types.
+
+*Tuple structs are just a semantic layer over tuples by providing a struct nature.They take the name of the struct and a tuple definition which holds the type of the fields rather than raw values.They can be initialized unlike tuples.They are simply structs behaving like tuples where the field name is implicitly set as the index.Functions that take one tuple struct cant take another even if the tuple structs have the same types and number of elements.This is to ensure safety.
+
+*so we can have a tuple struct or an object struct.
+
+?How to access an array element with an index.
+?unit type struct
+
+^Unit-like structs can be useful when you need to implement a trait on some type but don’t have any data that you want to store in the type itself.They are a simple yet versatile feature in Rust. They allow for the creation of distinct types without associated data, which can be beneficial for type safety, marker patterns, and implementing behaviors via traits. This makes them a useful tool in Rust's type system, especially in more complex applications.
+
+^Copy and move traits in rust.
+
+*Unit like structs are for structs that dont need any data to implement methods
+
+*In strucures in rust,we will want to have each object from that structure own all of its data so that it simplifies memory management and ensures safety.For example,in a struct,we will want to use the String type over the &str reference as the former allows the instance of the struct to own that string since its allocated to the heap but for the latter,the instance doesnt own its data and as such,it needs to use lifetime annotations to ensure that the reference to that data doesnt outlive the owner (in this case its the instance) to prevent dangling references
+
+^Signature and definitions/implementations/concrete data
+^Loose equality,Strict equality,Deep equality
+
+*Typescript interfaces combine both data and method signatures while in rust,structs are strictly for data signatures while traits are for method signatures meaning that a ts interface is loosely equals to struct + traits in rust.
+
+^The compilers are Clang,GCC,MSVC,intel C++ compiler
+
+^msys2 is a development environment for C++ that provides a unix like shell for windows but it isnt integrated into a text editor.It is a collection of tools like compilers and package managers that can make ready C++ projects.I use msys2 to install c++.Msys2 allows you to install packages for C++ by using pacman as the package manager.Other options are the visual studio build tools,minGW that uses GCC.A dev environment takes you to the shell.
+
+*An IDE is a development environment thats integrated into a text editor.In other words,its a supercharged text editor.
+
+^llvm is a compiler framework that has compilers and allows developers to create their own.
+
+^MinGW is a compiler suite/suite of compilers like GCC and other utilities
+
+^The visual studio build tools is a set of tools for developing apps for windows.It uses a custom compiler called MSVC as its main compiler.

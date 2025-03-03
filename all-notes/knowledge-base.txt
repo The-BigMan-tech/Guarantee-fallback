@@ -412,6 +412,7 @@ Gdscript for Godot--games
 C#---games
 python---data science and machine learning models
 Rust---system level control for my tauri apps
+C--to experiment with memory at the lowest level possible
 
 
 *programming language strengths

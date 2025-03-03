@@ -2,11 +2,13 @@
 **/node_modules/
 **/.parcel-cache/
 **/dist/
+#Im ignoring this one because i can always regenerate it again with the rustlings package.
+**/rustlings
 
-#*Ignore .env file in all directories
+#*Ignore the .env file in all directories
 **/.env
 
-#*Ignore these from rust
+#*Ignore these files from rust
 **/*.bin
 **/*-bin-example
 **/bin-example
