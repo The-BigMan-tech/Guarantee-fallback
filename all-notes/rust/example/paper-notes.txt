@@ -1,0 +1,16 @@
+static websites--all possible pages are downloaded in your system--no updates.They are also known,fixed and created in production time.
+
+mpas--dynamically gen html on the server that ships to the client
+
+bundlers--can also ship multiple lighteweight units of js code to the app when needed for faster loading times
+
+treeshaking=purging csss.It removes unused styles while the former removes unused code,comments and whitespaces
+
+static,spa,mpa,ssg
+
+ssrs improve seo
+
+spa=hydrated by js on the client side
+
+mpa--its is created on the server using a templating engine like pu and data from requests and serves it to the client.Content is already stored in the server as individual pages not one page.
+

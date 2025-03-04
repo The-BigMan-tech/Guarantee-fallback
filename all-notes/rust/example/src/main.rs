@@ -34,4 +34,32 @@ fn main() {
     struct  Numbers(i32,i32);
     let one:Numbers = Numbers(1,2);
     println!("Numbers are {} and {}",one.0,one.1);
+
+    struct Point {
+        x_axis:i32,
+        y_axis:i32
+    }
+    impl Point {
+        fn new (x:i32,y:i32)->Self {
+            return Self {
+                x_axis:x,
+                y_axis:y
+            }
+        }
+        fn log_cords(&self) {
+            println!("Cords are {} and {}",self.x_axis,self.y_axis);
+        }
+    }
+    let point1:Point = Point {x_axis:20,y_axis:1};
+    point1.log_cords();
+    let point2:Point = Point::new(13,129);
+    point2.log_cords();
+
+    enum MoneyValue {
+        Cheap(i32),
+        Expensive(i32)
+    }
+    let gold:MoneyValue = MoneyValue::Expensive(8);
+    let wood:MoneyValue = MoneyValue::Cheap(15);
+    println!("Gold value: {},Wood value: {}",gold,wood)
 }

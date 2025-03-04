@@ -424,3 +424,54 @@ react requires that states must be immutable and editing them should return a ne
 ^MinGW is a compiler suite/suite of compilers like GCC and other utilities
 
 ^The visual studio build tools is a set of tools for developing apps for windows.It uses a custom compiler called MSVC as its main compiler.
+
+?Tuples-in terms of python and rust
+?Coordinate geometry and Volumetric geometry
+
+*so coordinate geometry data is an array of tuples where each tuple contains point data that can be related to form a shape while volumetric geometry data is an array of arrays where the outer array is the grid and each inner array is a layer that's stacked along the z-axis and each of those layers is an array of tuples which contain point data.They both come down to an array of tuples except that in the former,its just an array of tuples meaning that they are all just continuous number of points while in the latter,it has a finite number of arrays as each layer/inner array has many tuple data or voxel data
+
+*in coordinate geometry the tuples representation of their data is the same as that of voxels in volumetric geometry as point(x,y,z) looks identical in structure to voxel(x,y,z) but i believe the difference is that since in coordinate geometry,there are no layers,the tuple just becomes the location of a point and a point can exist anywhere in the 3d space freely and the whole shape comes together when these points are related by many continuous points in between but for volumetric data,since each voxel is in a layer of fixed z-axis,only the x-y plane defines location while the z-axis represents the depth of the space it occupies as a volume and the whole object comes together with many of a finite number of of voxels.The reason for it being finite is that computers dont have the power to generate an infinite number of arrays that each hold voxel data.
+
+*a grid is made up of number lines made to perpendicularly intersect at each other and thus creating multiple axis.
+
+*Objects made from coordinates are hollow in the sense that they only represent surfaces and dont provide any information about the internal of the model while volumetric object encapsulates both the surface and internals of the object.
+
+*Point data is best for 3d modelling and particle simulation while voxels are best for scientific purposes
+
+*Triangle geometry is an extension of coordinate geometry, using triangles to connect points defined in a point data array, where each triangle is formed by indexing into the array of vertices.
+
+^google made go and dart
+^microsoft made typescript
+
+^java and C# are object oriented while haskell and erlang is functional and python and js support the two.
+
+^monad--a way for functions to do something with absolutely no side effects
+
+*The concept of mutable state is mostly with classes than functions.Purely functional programming langaues promise no side effect whatsoever on the data the program use.
+
+?poe crashed and reopened and now the ourple is more saturated.
+
+*implementation in rust is a way to provide method definitions and concrete implementations to a structure.
+
+*its best practice to borrow the self parameter as we dont want the method to take ownership of the ibstance
+
+^class--interface + functions
+
+*getters are a way to make fields private but the method public to ensure that the property is readonly
+
+*C is procedural
+
+*a pointer is like here is the address to the data of the variable on the heap while a reference is more of when i say x im referring to this particular data stored in the heap.
+
+*Rust does automatic referencing and dereferencing when calling methods on instances meaning that any method that will use self i.e instance methods,an immutable borrow reference to the instance gets implicitly passed as the first parameter to that method
+
+*constructors in rust implementation blocks can be named anything you like but a good convetion is new unless you have many of them in which you can then use descriptive names.
+*in rust you can have many constrcutors to handle many cases in which an object of a class can be created.This is not supported in js and python as they only allow one constructor and the only way to handle multiple cases is with condition,type checks and default values and the reason its this way is because its dynamially typed and doesnt support method overloading unlike rust which is the opposite.
+
+*in rust,the :: notation is used for namespaces and constructors while the . notation is used for methods.
+
+*in rust,only expressions can end without semicolons if they are the last line of a scope
+
+*Enums in rust are used for holding variant data.It is loosely equivalent to type aliases of interfaces and then a union of many of those except that for that version,it will have to implement a 'kind' property in each of the interfaces before it can decide what type of data it is because unions state what values a variable can accept but it doesnt state what variant of that data it is
+
+^In coding,constants are normally used for making hardcoded values more readable over using arbritary number or string values so it is best practice to use them for any hardcoded value and in js and python,a data structure called an enum is used to hold a set of related constants but in rust,enums are used for creating variants of data.Also in an enum,each variant can have its own type and the amounts of unit data for that particular type.
