@@ -14,3 +14,148 @@ spa=hydrated by js on the client side
 
 mpa--its is created on the server using a templating engine like pu and data from requests and serves it to the client.Content is already stored in the server as individual pages not one page.
 
+ssrs = spas + mpa
+ssrs can maintain state across page transitions and react spa apps can also do that with redux
+
+in ssr--routing each component with its data is a page,full page reloads
+spa--component that refreshes witj data hydrated from js and not go to a new page.Thats why routing to a page made by react router from the browser leads to 404.every component modifies the same html file so it isnt true routing when using react router.
+
+
+mpas--html is dynamic but spas--html is dynamic but known at runtime
+
+frontend can preserve state but it isnt persitent unless you use a global stae management solution like redux and then save it to locally using local storage or pouch db or on the server.
+
+diff between using a codebase and communicating with a codebase:You use a codebase by importing it as a dependency in yours meaning your codebase is dependent while for communicatimg with a codebase,they are independent of themselves meaning that they are separated but they use an api whether local or remote to commmunicate with each other
+
+separate codebases communicating with a local api runs the two codebases in the same process or thread except that they dont import themselves but communicate over an abstraction called a local api
+
+frontend backend database
+frontend backend database (apis)
+frontend metafrontend backend database (apis)
+
+cpu,browser,container,vm-like java,database engine,game engine,interpreter
+
+partial hydration,ssg
+
+ssr--prerendered on the server and hydrated by js when shipped to the client
+spa--rendered on the client at runtime
+
+*Db,En,Jot
+
+static,mpa,spa,ssr,ssg,partial hydration/islands
+hydration--slower page loads
+
+in react you can pass component as props and to access that component,we use props.children
+
+react uses a virtual dom and not the actual dom
+svelte compiles your code to js that manipulates the actual dom
+
+You can extract complex conditional rendering into a separate component
+
+prettify typescript better
+preserve 3d
+
+kurzgesagt
+astro--ssg,partial hydration,allows for combination of frameworks
+
+css anchor property
+
+astro converts your spa app to a mpa
+poison code--reduces opacity and destroys the code
+
+json and md for serving static text content
+
+ts has template literal types
+
+astro is a content driven framework
+
+pug,hugo--separating content from your html
+
+templating languages
+hugo--static templating language
+pug--dynamic template language
+
+static,spa,mpa,ssr,ssg,partial hydration
+static-html,css with hugo
+spa--dom manipulation,dom library,html driven framework,component framework
+mpa--templating engine
+partial hydration--astro js
+ssr--eta frameworks like next js,nuxt and sveltekit
+
+markdown--documentation,static text content and notes
+
+tardigrade
+
+Dont make yourself too approachable
+Dont talk to people about coding
+Dont mentor anybody on coding
+Dont make coding projects for anybody except for my freelancing clients and my agent.
+Dont participate in group discussions about coding
+Dont allow anybody in the university to work under me
+
+Astro integrates seamlessly with markdown
+meta framework
+content first framework
+
+million js--fast rendering engine for react
+redwood js
+
+directives in html are attributes with special meaning
+magic--hooks and runes
+
+swc compiler
+babel compiler
+
+bundler
+
+astro js,million js,swc compiler bundlers
+
+bundlers--shipping a single lightweight unit of js
+one html,one js
+
+htmx,jquery,alpine js
+dom manipulation,dom library,jquery,html driven frameworks,component framework,meta framework,content driven framework
+
+static,spa,pa,ssr,ssg
+astro makes it faster to deliver content
+astro can allow me to combine frameworks together
+
+Multer
+-uploading file
+Grid FS-Storing files
+bcrypt-Pasword in a db
+backup and security
+Passwords-txt
+uuid as part of the password
+Name of the service
+mix and match letters with numbers. Quid
+encrypt it so that I can only remember the encryption key
+hash key
+encryption key
+FTP and Rsync protocol
+If many objects implementing an interface at need to share implementations, create a class
+If many classes need to share implementations, create an abstract
+class
+Component based architecture, functional-react
+mvc architecture, object oriented -nest js
+
+types of testing--smoke,unit,functional,integration,doc,behave,coverage,mutation
+bandit python,mypy,ci pipelines
+testing,type annotations,logging,debugging,error handling,doc
+trace module,sys module
+*animated diagrams--motion canvas
+
+netninja
+brocode
+
+pydantic--ts features to python
+tailwind responsive design utility classes
+raw sql queries,query builders,orm
+
+dbml,math ml
+
+lazy and eager eval
+
+my definition of scalability
+
+its better to use uuid over index as keys for list rendered elemenets in react because the array will become unstable if the array frequently changes.

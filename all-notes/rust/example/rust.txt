@@ -475,3 +475,13 @@ react requires that states must be immutable and editing them should return a ne
 *Enums in rust are used for holding variant data.It is loosely equivalent to type aliases of interfaces and then a union of many of those except that for that version,it will have to implement a 'kind' property in each of the interfaces before it can decide what type of data it is because unions state what values a variable can accept but it doesnt state what variant of that data it is
 
 ^In coding,constants are normally used for making hardcoded values more readable over using arbritary number or string values so it is best practice to use them for any hardcoded value and in js and python,a data structure called an enum is used to hold a set of related constants but in rust,enums are used for creating variants of data.Also in an enum,each variant can have its own type and the amounts of unit data for that particular type.
+
+?OCR technology with a flatbed scanner--converts images to text
+
+^License agreement and privacy policy
+
+^Markdown is better for structured notes but txt files are better for unstructured notes.
+
+^my handwriting needs to be better for ocr tech
+
+^make my own applock

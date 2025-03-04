@@ -61,5 +61,4 @@ fn main() {
     }
     let gold:MoneyValue = MoneyValue::Expensive(8);
     let wood:MoneyValue = MoneyValue::Cheap(15);
-    println!("Gold value: {},Wood value: {}",gold,wood)
 }

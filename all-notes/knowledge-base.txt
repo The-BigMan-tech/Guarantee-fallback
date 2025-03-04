@@ -434,3 +434,5 @@ c++--mem management
 julia--numerical computing
 ruby--web development
 lua--quick scripting
+elixir
+haskell
