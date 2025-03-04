@@ -477,7 +477,7 @@ react requires that states must be immutable and editing them should return a ne
 ^In coding,constants are normally used for making hardcoded values more readable over using arbritary number or string values so it is best practice to use them for any hardcoded value and in js and python,a data structure called an enum is used to hold a set of related constants but in rust,enums are used for creating variants of data.Also in an enum,each variant can have its own type and the amounts of unit data for that particular type.
 
 ?OCR technology with a flatbed scanner--converts images to text
-
+?pdf tools--smallpdf and light pdf
 ^License agreement and privacy policy
 
 ^Markdown is better for structured notes but txt files are better for unstructured notes.
@@ -485,3 +485,5 @@ react requires that states must be immutable and editing them should return a ne
 ^my handwriting needs to be better for ocr tech
 
 ^make my own applock
+
+^GCs like that in python also use weak referencing
