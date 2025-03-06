@@ -523,3 +523,19 @@ react requires that states must be immutable and editing them should return a ne
 *Rust enforces snake case for function names whereas js and python dont.
 
 *in rust,you can type annotate the type of data next to its variable name using the : notation or directly appended to the value.
+
+*if let statement is like the match statement but for when you are interseted for matching for only one pattern and ignoring the rest.It is less verbose and less boilerplate than the match statement when matching only for a single pattern but you lose the exhaustive checking of match statements.Its essentially syntati sugar over one pattern match case statements.
+
+*There is a difference between a return statement and return expression.A return statement returns a value from a scope to the caller and exits the entire function regardless of how deep the scope is within the function but a return expression returns a value from the scope without exiting the function.The return statement can be anywhere in a scope but a return expression can only be the last line of a scope.The return expression doesnt start with the return statement as it evaluates to a value.
+
+*scope in coding usually refers to the visibility of variables.so scope in rust which can be created with {} allows me to create variables where their duration is only within the scope's definition.they are used to control the lifetime of variables by specifying them within a temporary context.
+
+*lifetimes in rust can be controlled using lifetime annotations.
+
+*There is a difference between a function scope and a block scope.The difference lies in who they give values to.All of these scopes can choose not to give values which will make the function scope a void function,the block scope a statement but they will become expressions if they do give a value.A function scope gives a value to the caller of the function.The caller of the function exists outside of the scope of the function and the function evaluates to a value and returns the value and flow control back to the caller of the function while a block scope gives a value to a variable but the flow control is still in the scope of the function as the variable that collects the value from these scopes exist within the function.This scope does this by just evaluating to a value which gives the value to the variable in the function scope without using the return statement to return flow control and the value to the caller of the function.
+
+*So calling a function hands flow control over to the function but if you also pass variables whose data exist in the heap,you are passing both ownership of the variable and flow control to the function.The function will always return back flow control to the caller even if it isnt explicitly written but for the function to return back ownership of the data,it must be done explicitly.
+
+*if statements,for and while loops tokens are just directives on how and when block scopes should be executed.
+
+*statement and an expression.A statement doesnt evaluate to a value and end with a semicolon while an expression evaluates to a value and doesnt end with a semicolon.A statement like the if statement can be made to evaluate to a value and thus becoming an expression.
