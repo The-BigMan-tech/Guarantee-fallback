@@ -1,0 +1,3 @@
+*in cpp,there is something called operator overloading which allows you to call methods in a more intuitive way by using operators.
+
+*in rust,we use macros to print,js uses the log method of the console object while python uses the global print function

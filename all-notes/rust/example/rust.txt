@@ -487,3 +487,39 @@ react requires that states must be immutable and editing them should return a ne
 ^make my own applock
 
 ^GCs like that in python also use weak referencing
+
+^godot and unity uses the scene based architecture while roblox and unreal engine uses a component based architecture
+*scene based architecture focuses more on scripts to define explicit behaviour
+*component based architecture focuses more on triggering events to define behaviour
+
+*There is also ecs too.but it isnt widely used
+
+*A query language allows one to directly talk to a database but orms can prevent sql attacks since they provide abstractions that separate sql queries from your data. 
+
+*abstractions protect you from mistakes that causes security vulnerabilities
+
+*enums are better than unit structs.enums are also more concise than structs incases where you have many similar types.you can even make an enum of structs.this also makes function signatures more concise.You can also write implementation blocks for enums
+
+*a prelude is a collection of items that are automatically included in every rust program
+
+*Rust doesnt directly allow null values but rather it provides an option type which means that a value may be present or absent.Its safer than working directly with a variable thats initially declared as null because it forces you to handle both cases and its enforced at compile time.This is loosely equivalent to a typescript union of an actual type and undefined except that rust enforces handling all cases at compile time while typescript doesnt and rust provides methods that makes it easier to work with than ts.Another thing that option<T> in rust handles better than typesecript,is that a variable thats of this type cant be directly used in arithmetic or any operation until its converted back to a valid type and the rust compiler will never allow it to compile to none.this ensures that we handle the case of a possibly null value before using it.
+
+*The option type is actually an enum.This makes its implementation easier.
+
+*Match case statements can handle both simple values and complex patterns that cant be handled by switch case statements that are mostly used to check for fixed constant values as match cases are made to work with enum data which can hold many data variants.They are also enforced to handle all paterns/cases and as such,they are exhaustive unlike switch case statements.It also doesnt allow data to fallthrough all the cases like the switch case.The switch case has to have a break at each arm to prevent this.The switch case uses the 'default' case to catch all other cases that want caught by the ladder while the match case statement can do likewise by using an arrow function that uses an underscore or a variable name to bind the state of the data to.They both have to be the last case in the ladder
+
+*_ in programming is used for signifying unused variables
+
+*enums in rust cannot only hold a collection of constants but also data variants
+
+*In rust,match case statements can bind to the state of an enum's data given that the enum data variant is made to hold data either as a tuple or a struct.This means that we can use the state of that enum in the function block of an arm.So you can match for patterns like Enum::Variant or bind to a value like Enum::Variant(state).
+
+*In rust,arrow functions can only be used in match case statements while in js,it can be used anywhere
+
+*Dunder methods in python are used to perform operator overloading which is changing the default behaviour of objects when used with built in operators.
+
+*A trait is like a struct in rust except that a trait holds method signatures while structs are for field signatures.A trait is mostly used when multiple structs share methods and there's a need to define a stucture for the methods.It is implemented by impl blocks.
+
+*Rust enforces snake case for function names whereas js and python dont.
+
+*in rust,you can type annotate the type of data next to its variable name using the : notation or directly appended to the value.

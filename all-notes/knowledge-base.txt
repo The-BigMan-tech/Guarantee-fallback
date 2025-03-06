@@ -408,24 +408,26 @@ SSG/pre rendering
 ^NEW
 *Next programming languages
 ^---------------------------------
-Gdscript for Godot--games
-C#---games
-python---data science and machine learning models
-Rust---system level control for my tauri apps
-C--to experiment with memory at the lowest level possible
+Gdscript for Godot--games.
+python---data science and machine learning models.
+Javascript.
+Rust---system level control for my tauri apps.
+C++--The truth is,i wanted to experiment with bare memory for educational purposes,so i was going to learn C but i also wanted to learn C# for game development.But the catch is that it will require me to learn two new programming languages and to make it worse,C is damn old like 50 year old and hasnt been majorly updated since 2011 so i decided to learn a language that balances the two and as such will kill two birds with on stone and thats the dangerous C++.Also it can be used to write exploit ware,reverse engineer software and hack games.
+
 
 
 *programming language strengths
-js--async,event driven and reactive programming,networking,apis and web apps
+js--async,event driven and reactive programming,networking,apis,web apps,animations and higher order functions
 typescript--will make you heavily appreciate type safety/static type checking
 rust--mem management and performance,directly accessing system resources and hardware,perform heavy computations faster in my tauri apps
-python--data science,machine learning,numerical computing,scripting,backend apis,Cython,pypy,Mojo-Powerful cli apps using the rich lib to help me at coding,for digital forensics,network security,data science,machine learning and exposing the ml model through an api with fast api
+python--data science,machine learning,numerical computing,scripting,backend apis,Cython,pypy,Mojo-Powerful cli apps using the rich lib to help me at coding,for digital forensics,network security,data science,white hat hacking,machine learning and exposing the ml model through an api with fast api
 c#--desktop apps and games.
+C--to experiment with memory at the lowest level possible
 
 
 ^other programming langs i acknowldege but may not learn
 solidity--web 3
-go--concurrency and cloud computing
+go--powerful concurrency model and as such,it is used in cloud computing
 powershell--task automation
 java--entrepise scale apps
 r--data science

@@ -1,3 +1,5 @@
+use std::fmt;
+
 fn main() {
     struct User<'long> {
         username:&'long str,
@@ -57,8 +59,64 @@ fn main() {
 
     enum MoneyValue {
         Cheap(i32),
-        Expensive(i32)
+        Expensive(i32),
+        Custom{value:i32}
     }
+    impl fmt::Display for MoneyValue {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            MoneyValue::Cheap(value) | MoneyValue::Custom{value} | MoneyValue::Expensive(value) => {
+                write!(f,"{}",value)
+            }
+        }
+    }
+}
     let gold:MoneyValue = MoneyValue::Expensive(8);
     let wood:MoneyValue = MoneyValue::Cheap(15);
+    let something:MoneyValue = MoneyValue::Custom { value: 13 };
+    println!("Gold is {} and wood is {} and something is {}",gold,wood,something);
+    
+    let some:Option<i32> = Some(10);
+    let some2:Option<i32> = None;
+    
+    fn handle_for_null_data(data:Option<i32>)->i32 {
+        match data {
+            Option::Some(value) => value,
+            Option::None => 0
+        }
+    }
+    println!("Handled null data for some1: {}",handle_for_null_data(some));
+    println!("Handled null data for some2: {}",handle_for_null_data(some2));
+
+    enum AuthEnum {
+        Authorized,
+        Unauthorized,
+        Pending
+    }
+    struct Gamer {
+        username:String,
+        auth_state:AuthEnum
+    }
+    fn check_for_auth(user:AuthEnum)->String {
+        match user {
+            AuthEnum::Authorized => String::from("Authorized"),
+            AuthEnum::Unauthorized =>String::from("Unauthorized"),
+            _=>String::from("Pending")
+        }
+    }
+    let gamer1:Gamer = Gamer {
+        username:String::from("Paul1234"),
+        auth_state:AuthEnum::Authorized
+    };
+    let gamer2:Gamer = Gamer {
+        username:String::from("Poke1234"),
+        auth_state:AuthEnum::Unauthorized
+    };
+    let gamer3:Gamer = Gamer {
+        username:String::from("Poke1234"),
+        auth_state:AuthEnum::Pending
+    };
+    println!("The gamer: {} is {}",gamer1.username,check_for_auth(gamer1.auth_state));
+    println!("The gamer: {} is {}",gamer2.username,check_for_auth(gamer2.auth_state));
+    println!("The gamer: {} is {}",gamer3.username,check_for_auth(gamer3.auth_state))
 }
