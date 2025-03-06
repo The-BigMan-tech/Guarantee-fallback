@@ -538,4 +538,60 @@ react requires that states must be immutable and editing them should return a ne
 
 *if statements,for and while loops tokens are just directives on how and when block scopes should be executed.
 
+*A let-else statement is just a more readable way of returning from an if-let scope.
+
 *statement and an expression.A statement doesnt evaluate to a value and end with a semicolon while an expression evaluates to a value and doesnt end with a semicolon.A statement like the if statement can be made to evaluate to a value and thus becoming an expression.
+
+*enums can hold units,tuples,contants and structs in rust
+
+*Nim has a completely tunable garbage collector meaning that you can disable it completely to switch to manual memory management
+
+*Application level and System level programming languages
+
+*Haskell is pure/declarative functional and one thing about the purely functional paradigm is that code is very predictable and reliable.It also provides a rich set of preludes/built in functions that makes writing many code instructions at an abstract level where you define what you want but you dont bother about how its done unlike the procedural programming paradigm.This means that the code is very minimal.
+
+*procedural,imperative functional,concurrent,declarative functional,object oriented,data query language,markup,style sheet,multi paradigm
+
+*The difference between declarative functional and imperative functional is that imperative functional produces side effects and also focuses more on how the steps are defined while declarative funtional is fully pure and provides a rich set of built in functions that abstracts away from the how.
+
+*in procedural,everything is made of statements meaning that you describe control flow and how a program should achieve a result but in declarative functional,everything is made of expressions meaning that you define what the result should like rather than how it should be done.Declarative functional langauges are just another layer of sweet abstraction.Declarative functional languages also provide a more intuitive and expressive way to write code but it requires a different way of thinking than imperative langauges.
+
+*programming paradigms are different from software design patterns
+
+*python and js support declarative functional styles but are primarily imperative and as such have more of an imperative functional style over declarative
+
+*js doesnt have direct control over memory and resources on the browser for security reasons but rather,it uses provided apis that exposes this functionality for js to use
+
+^disassembler,decompiler,debugger,dll injection,windows api
+
+*memory address and offset.Calculating offset with pointer arithmetic
+
+*external and internal cheat
+
+*system utilities and exploitware with rust
+
+*system level-clis and app level--guis
+
+*infecting a software with high priviledges
+
+*user mode vs kernel mode anti cheat
+
+*malware and cheat signatures
+
+^Lynx js from tik tok
+^Rs pack
+
+*As you go down the programming iceberg from high level to low level,the dangers increase as priviledges increase.A software that has more priviledges is more unsafe and vulnerable to one that hasnt.
+
+*A device driver is a software that allows an operating system to communicate with the hardware.It translates high level os commands to low level commands that the hardware can understand.There are kernel,user mode and virtual drivers.An OS acts as the middlema between the hardware and software ensuring that softwares reliably and safely interact with system resources.It uses a kernel driver as its core to directly communicate with the hardware.It is the core of the os and provides an interface for programs to communicate with the hardware through system calls to it.Kernel drivers operate at a high and unrestricted acces level to the hardware so its EXTREMELY DANGEROUS to create a software that operates at this level.Making system calls to the os is a safer way to do things.A user mode driver is a driver that allows the os to communicate with peripheral devices/hardware like a usb or printer in user space meaning that the interaction occurs in a restricted access space where crashes wont affect the entire system.It simplifies development and doesnt crash the entire system.
+
+*Apps work on system calls.A system call is a controlled interface provided by the os that allows programs to communicate with the hardware through it.Code written in rust or c provides prelude methods and functions whereby when used,it gets compiled to machine code that makes system calls to the os for hardware access meaning that programs dont operate at a kernel level which makes it safer.In assembly,you can directly write system calls to the os in code unlike c and rust that provides abstractions over those system calls.
+
+*low/system level languages are mostly compiled while high/application level languages are inetrepreted
+
+*so when they say that low level languages give you direct access to hardware resources,this access is provided by the programming language compiler to directly make system calls to the os that can affect the hardware but its still restricted because the os is another abstraction/layer behind this layer and beyond this layer,is a direct and dangerous level of hardware access.So there are two layers between a program and hardware access and the compilers like c and rust can only give you access to what they have which is the first layer while interpreted languages bring in a third layer infront of these two through their abstractions provided by the runtime environment like the garbage collector meaning that your code doesnt directly make system calls.More layers equates to more safety but lesser control and possibly less performance because of the overhead of going through all these layers.
+
+*rust allows you to write system level programs while also ensuring memory safety,type safety,concurrent safety and explicit error handling for runtime safety.
+
+*system access is abstracted by the programming language and hardware access is abstracted by the operaring system
+
