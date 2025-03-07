@@ -1,5 +1,6 @@
 use std::fmt;
-
+mod hello;
+mod example_one;
 fn main() {
     struct User<'long> {
         username:&'long str,
@@ -118,5 +119,38 @@ fn main() {
     };
     println!("The gamer: {} is {}",gamer1.username,check_for_auth(gamer1.auth_state));
     println!("The gamer: {} is {}",gamer2.username,check_for_auth(gamer2.auth_state));
-    println!("The gamer: {} is {}",gamer3.username,check_for_auth(gamer3.auth_state))
+    println!("The gamer: {} is {}",gamer3.username,check_for_auth(gamer3.auth_state));
+
+    let choice:Option<bool> = None;
+    match choice {
+        Option::Some(true)=>println!("The choice is yes"),
+        Option::Some(false)=>println!("The choice is no"),
+        Option::None=>println!("The user hasnt yet made his choice")
+    }
+    match choice {
+        Option::Some(value)=>println!("The choice is {}",value),
+        _=>println!("The user hasnt yet made his choice")
+    }
+    if let Option::Some(value) = choice {
+        println!("The choice is {}",value);
+    }else {
+        println!("The user hasnt yet made his choice")
+    };
+    fn return_choice(choice:Option<bool>)->bool {
+        let Option::Some(_state) = choice else {
+            return false
+        };
+        // return state;
+        let value = if let Option::Some(state) = choice {
+            println!("The choice is {}",state);
+            state
+        }else {
+            println!("The user hasnt yet made his choice");
+            false
+        };
+        return value
+    }
+    println!("The final value of the state is: {}",return_choice(choice));
+    hello::hello();
+    // example_one::example()
 }

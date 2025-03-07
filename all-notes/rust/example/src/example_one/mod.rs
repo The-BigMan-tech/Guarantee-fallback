@@ -1,3 +1,20 @@
+pub struct Profile {
+    pub username:String,
+    pub age:i32,
+    _password:String
+}
+impl Profile {
+    pub fn new(username:String,age:i32,password:String)->Profile {
+        return Profile {
+            username,
+            age,
+            _password:password
+        }
+    }
+    pub fn print_info(&self) {
+        println!("Your username is {} and your age is {} ",self.username,self.age);
+    }
+}
 fn hello(name:&str,age:i32)->&str {
     println!("Hello {}.Your age is {}",name,age);
     if age > 0 {
@@ -19,7 +36,7 @@ fn attempt3(text:String) {
 fn attempt4(text:&String) {
     println!("Received text3: {}",text)
 }
-fn main() {
+pub fn example() {
     let food:&str = "noodles";//*string literal */
     let mut juice:&str = "ribena";
     println!("Here is my food: {} and my juice {}",food,juice);
