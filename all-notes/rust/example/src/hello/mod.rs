@@ -1,6 +1,5 @@
 use crate::example_one as example;
-use example::Profile;
-use example::example;
+use example::{Profile,example};
 
 pub fn hello() {
     println!("Hello hello module");

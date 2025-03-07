@@ -644,3 +644,11 @@ react requires that states must be immutable and editing them should return a ne
 *we can use an import alias to prevent naming conlicts when bringing two imports with the same name into the namespace of the scope.
 
 *The pub use keyword is essentially re-exporting the module.It allows a shortcut defined by the use keyword to publicly available to the codebase.This is useful when you want to create two domains of how programmers will think of your library.People that want to work on it will think of accessing the module system through its individual components but programmers calling the library just want to use the features they want directly without having to know the different level of components to get there.
+
+*You can also use the super keyword to access content relative to the parent
+
+*To include external packages in your codebase,you should write them as a dependency in the cargo.toml file but each codebase has its own module system and the module system of an external codebase cant be included directly in another.so in order to use any of its content in a script in your own codebase,you have to bring the content from the external module system into its scope/namespace.This allows you to work with those items without having to reference the entire crate each time.
+
+*You can also use the wild operator to bring all the content from a  module into scope but itsnot recomended because of possible naming conflicts.
+
+*You can shorten the number of use * lines we have in a script by factoring out the common path and put the subpaths that differ in curly braces.
