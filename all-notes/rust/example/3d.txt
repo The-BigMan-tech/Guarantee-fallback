@@ -1,0 +1,39 @@
+*Rigs bring life to a 3d model through animation
+*when modelling first,should i create a proxy model first and then incrementally add details over it
+*and if the model has bends,is it best to model it without bends like straight then bend it later.Im talking about block based modelling
+
+*There are always properties:model properties,texture properties and animation properties.It is essentialy data that is used to fully describe an object in space.
+
+*Bones,nodes and joints.A bone is a collection of nodes/elements and a joint is where a bone is rigged
+*A bone is a folder,the nodes are cubes and the joints are pivots
+*smooth gradient
+
+*local scaling and global scaling
+
+*pivot,keyframes curve
+
+*so there is animation blending supported by the game engine like godot which is similar to tweening except that tweening is to create transitions between keyframes and is provided by the modelling software while the former is between animations
+
+*Animations can reveal texture leaks
+
+*BBmodel files are just json files with a specific format.
+*gltf can be in json or binary files and are used for web dev
+*obj is in a plain text format.It is a simple format and doesnt support animations and complex materials
+*Fbx is in binary or plain text format.The plain text format is readable while the binary format is more compact and efficient.It is best for exporting/importing 3d models between modelling softwares and game engines
+
+*the bin version is glb while the text format is gltf
+
+*The animation editor is a board of keyframes
+*The texture editor is a grid of pixels
+*The model editor is for editing models
+
+*sound  effect ad sound editor software.
+
+*key frame animation--timeline board
+*frame by frame animation
+
+*block based modelling vs mesh based modelling.Block based uses many cubes and relies on placement while mesh based use one mesh and rely on tranformation of individual components like edges,faces and vertices/points.Block based models are in a tree which creates a rig where one part controls another.It involves direct transformation of these bones or folders while mesh based model separates the rigging from the model where you create a bone and the mesh deforms to follow the animation of the bone.in block based model,the rig is not separate from the model ie the groups themselve sin the tree structure is the bone while in mesh based models,the bone is separate from the model and the model is skinned onto the bone to follow it.
+
+*Porting code over vs rewriting it,Key term here is preserve
+
+*optimization by compressing,by purging,by a faster algorithm

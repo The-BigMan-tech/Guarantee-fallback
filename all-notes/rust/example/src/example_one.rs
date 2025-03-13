@@ -30,7 +30,7 @@ fn attempt1(text:&mut String) {
 fn attempt2(text:&mut String) {
     println!("Received text2: {}",text)
 }
-fn attempt3(text:String) {
+fn _attempt3(text:String) {
     println!("Received text3: {}",text)
 }
 fn attempt4(text:&String) {

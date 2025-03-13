@@ -654,3 +654,5 @@ react requires that states must be immutable and editing them should return a ne
 *You can shorten the number of use * lines we have in a script by factoring out the common path and put the subpaths that differ in curly braces.
 
 *The recommended style to use for module files is the module_name.rs styel over the mod.rs style because having multiple mod.rs files can be confusing to navigate about if they are all opened in the editor at the same time.
+
+*low poly,high poly
