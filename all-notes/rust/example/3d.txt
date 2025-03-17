@@ -37,3 +37,124 @@
 *Porting code over vs rewriting it,Key term here is preserve
 
 *optimization by compressing,by purging,by a faster algorithm
+
+*Binary files are specific to the hardware and architecture they run on and as such,a bin file isnt cross compatible with other os.
+
+*Binary code is different from byte code.
+*assembler,compiler,interpreter,JIT compiler
+
+*assembly files are written in .asm files.
+*raw binary in .bin files
+*intermediate code in .dll files
+*executable binary code in .exe files
+
+*node js uses a jit compiler like C# and java
+
+*Distributing an exe vs a builder for self compilation
+
+*config files like properties are in .cfg or .properties cuz they are just mappings that hold k-v pairs while json documents are for serializing complex data
+
+*curseforge is a repo for mods
+
+*Full reloading and hot reloading
+
+*A java file is written in .java but the executable is .jar and its compiled at runtie by the jvm
+
+*i can change animation speed and model scale
+
+*Baking isnt embedding
+
+*gltf holds external resources like textures and animations by path references while glb embeds all of them in a single file
+
+*Io bound task is a taks that waits for input/output operations to complete and not computations while cpu bound tasks are tasks that are bound by computation.
+
+^The cpu is where the instructions are ran
+
+*The os is an abstraction over hardware services.It is a safe way to communicate with the hardware
+
+*Go runtime--M:N mapping,suspends,handles context switching.The runtime decides which goroutine runs on which OS thread(mapping) at any given time(context switching---saving state)
+*so context switching in go is to suspend or allow a goroutine to run
+
+*if a goroutine is deemed as suspended,does the go runtime refuse to map it to an os thread.The runtime continually checks the state of suspended goroutines. When a suspended goroutine becomes ready to run (e.g., it has the resources it needs), the runtime will then map it to an available OS thread for execution.The OS thread on which the goroutine was running may now be free to execute other goroutines. Is it that the go runtime will make the goroutine invisible to the os thread
+*The Go runtime can now schedule other goroutines to run on that OS thread. This means that even though the OS thread is still active, it can be utilized for other work while the original goroutine is waiting.
+*Once the condition that caused the goroutine to suspend is resolved (e.g., an I/O operation completes), the Go runtime can make the goroutine runnable again. At this point, it will be eligible to be scheduled on any available OS thread, not necessarily the same one it was using before.
+
+*goroutines are lightweight and user level while threads are kernel level
+
+^The os manages threading.Go runtime handles goroutine execution.
+
+*concurrency means making progress in multiple tasks at once and not necessarily parallelism where tasks are executed at the same time
+
+*coroutines are synchronous but it achieves cooperative concurrency by giving the developers explicit control of when the code will yield and resume execution of a piece of code.Is this a fourth type of concurrency and its similar to async where concurrency is still achieved in one thread
+
+*async is just an implicit version of coroutines although,you can still have explicit control using the await keyword
+
+*Time allocation
+synchronous
+Coroutines--explicit yielding and resuming
+Asynchronous--implicit yielding and resuming
+Multi-threading--time slicing managed by the os
+Goroutines---managed by the go runtime
+Multi-processing--many cpu cores
+
+*A technique to organically displace parts in an animation:by displacing one over the other in opposite direction at the same time that other one is displacing
+*android is a linux distro
+*the creator of linux made git to manage the dev of the linux kernel
+
+*Linux is a kernel.A distro is an os that uses that kernel as its core.The kernel was written in C
+
+*GNU itself is not a complete operating system; rather, it is a collection of free software components intended to be part of an operating system. The GNU Project provides essential utilities, libraries, and tools necessary for a functional system, but it lacked a fully functional kernel for many years until it adopted the linux kernel to create a full os
+
+*Many Linux distros use gnu utilities together with the linux kernel
+
+*The kernel itself is isolated from the user and it interacts with the hardware through drivers and users can only interact with it through system calls to utilities provided by an os.
+
+*An os is a combination of a kernel to communicate with the hardware and system utilities required to communicate with the kernel either through a cli or a gui while a distro is a complete operating system package that includes the kernel, system utilities, libraries, applications, and additional software tailored for specific use cases or user preferences.
+
+*They all communicate through system calls but the way you communicate with them in the user space is into two:gui or cli.
+
+*Code editor and an ide
+
+*so a text interface is just a subset of a gui particularly for text
+
+*interfaces are at the user level and they are used to indirectly make system calls to the os by the user
+
+*System calls from--Cli,Gui,text interface,
+*in the end,these commands are turned to binary data that makes system calls
+
+*The shell,the gui framework and a programming language
+
+*The programming interface,command line interface and graphical user interface.An interface is an indirect way to communicate with the os.The cli and programming interface use text but cli is command oriented while a programming interface is syntax oriented and a gui is visually oriented.
+
+?is a programming interface the strongest way to communicate with the os since the available insteractions/tasks you can do arent predefined even though the individual lines are instructions that are predefined,its done in a way that when combine with others creates a new task that was designed by the programming language.It allows for creative commands
+
+*Coding is made for problem solving while cpu commands are for direct commands to the cpu
+
+*Commands are better for direct system interactions while code is better for solving user world problems
+*Commands are closer to natural language while coding involves forging instructions.Commands are one off and direct instructions that gets executed immediately while coding involves writing instructions that adhere to a specfic syntax and are crafted with logic that will not get immediately executed by the system.They allow for creative instrcutions.A repl mimics the cli nature but for programming languages.
+
+*Commands are written in a terminal while code is written in a special text editor called a code editor.
+
+*Commands,arguments and flags
+
+*It is very dangerous to run commands that you dont know as it may have destructive behaviour and lead to irreversible and damaging effects.
+
+*Linux is more about communicating with the os through its powerful cli system
+
+*Code is more about developing apps by using logic and algorithm design to solve problems while commands are about getting direct feedback from a straight instruction to the os without crafting logic.Linux is best for its commands to make many instructions to the hardware while windows and mac are better for developing apps and assembly in as much being a programming language is more of a command rather than code since that one too is focused on direct cpu commands.The Cli can be seen as an abstraction layer over assembly language. While assembly allows direct interaction with the CPU, commands in the CLI can represent complex operations that would be tedious to implement in assembly
+
+*Most white hackers use linux commands for everyday tasks,tools for security testing and only write code when automating tasks,writing exploits,analyzing data for assessments or extending existing tools in what they provide.
+
+*so white hackers have a discovery mindset to writing code which is an iterative process that uses previous outputs as data to write new code and detect any vulnerability while application developers write code with a building mindset to solve problems.White hackers rely more on data while app developers rely more on logic and reasoning to solve their problems and deliver functionality
+
+*and thats why they mostly use commands because commands provide instant feedback which is data while app developers use coding which helps to craft instruction
+
+*Commands provide an immediate feedback cycle while coding involves a slower feedback cycle as it requires testing and debugging.This is because commands are data driven where any data you get is all you need to move to the next command while code requires a functionality to be reached before moving to the next step
+
+*The os provides communication with the kernel through a system call interface which is interacted through user level interfaces like the cli,gui or programming interface
+
+*Commands are broken down into three parts:the main instruction,arguments and flags
+
+*parasite polyglot
+
+*C style/curly braces vs indentation/colon style

@@ -422,3 +422,5 @@ todo:Check that beautiful sign up page that bolaji sent to me from dribbble
 todo:For conditionally applied classes,ill store them in a backtick string and for semantic purposes,ill use styled components
 
 ^XENOZ naruto edit amv
+
+*mypy is to python as eslint is to js

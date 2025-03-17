@@ -123,8 +123,14 @@ export class Small32 {
             this.log(`${chalk.green('Success:')}The array: \'${this.name}\' has decompressed successfully`);
         }
     }
-    public skipCompression() {
-        return (this.isCompressed==false)?this.array:(() => {this.log(`${chalk.red('Red flag:')}The array: \'${this.name}\' is already compressed so you can\'t skip the process`) })();
+    public skipCompression():number[] {
+        if (this.isCompressed == false) {
+            this.array = [...this.array]
+            return this.array 
+        }else {
+            this.log(`${chalk.red('Red flag:')}The array: \'${this.name}\' is already compressed so you can\'t skip the process`) 
+            return []
+        }
     }
     private dechunk():string[] {
         let chunk:string[] = ['','']

@@ -104,6 +104,8 @@ Astro
 svg preview
 Html to css autocompletions
 Graphql:Syntax highlighting
+Godot tools
+
 
 Regex previewer
 Paste json as code
