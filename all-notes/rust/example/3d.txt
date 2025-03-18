@@ -158,3 +158,14 @@ Multi-processing--many cpu cores
 *parasite polyglot
 
 *C style/curly braces vs indentation/colon style
+
+*Image data is stored in binary but turned to an array of integers for processing
+
+*Environment package installer vs project package installer
+
+*the standard output can be truncated.its the terminal/console and not the file system.This process of taking output somewher is called transport.
+
+*I used ristretto for rust as it a warm color
+*Octagon for typescript as it is a modern feel
+*Spectrum for c++ as its contrats highlights its complex code
+*Machine for python as its greenish tint gives a focus and comfortable feeling
