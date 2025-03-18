@@ -137,17 +137,15 @@ export class Small32 {
         this.array.forEach(num=>{
             if (num > 0) {
                 chunk[0] += num.toString()
-            }else {
-                chunk[1] += (Math.abs(num)).toString()
+                return
             }
+            chunk[1] += (Math.abs(num)).toString()
         })
         if (!(chunk[1].startsWith('9')) && chunk[1].endsWith('9')) {
             chunk[1] = chunk[1].slice(0,chunk[1].length-1)
         }
         // chunk[0] += !(chunk[0].endsWith('9'))?'9':'';👈
-        if (!(chunk[1])) {
-            chunk = [chunk[0]]
-        }
+        chunk = (!(chunk[1]))?[chunk[0]]:chunk
         return chunk
     }
     private read(chunk:string[]):number[] {
@@ -155,9 +153,7 @@ export class Small32 {
         chunk[0].startsWith('9')?originalArray.push(0):''//since 9 is a delimeter,it only appears first if there was a zero before it.
         originalArray = [...chunk[0].split('9').map((element)=>base9ToDecimal(element))]
         let negIndices = new Set(chunk[1]?[...chunk[1].split('9').map((element)=>base9ToDecimal(element))]:[])
-        // console.log('tiny.ts:152 => Tiny => read => negIndices:', negIndices);
         originalArray = originalArray.map((num,index)=>(negIndices.has(index))?(num * -1):num)
-        // console.log('tiny.ts:154 => Tiny => read => originalArray:', originalArray);
         return originalArray
     }
     private returnUncompressedArray():number[] {
