@@ -169,3 +169,32 @@ Multi-processing--many cpu cores
 *Octagon for typescript as it is a modern feel
 *Spectrum for c++ as its contrats highlights its complex code
 *Machine for python as its greenish tint gives a focus and comfortable feeling
+
+*kali linux is a linux distro that packages many security tools together along with default configurations,dependency management and modifications/optimizations to these tools to make them easily accessible to the developer experience.Since kali has a lot of community support,it has been battle tested to be the best kit for security.
+
+*These tools are made on linux because since linux is open sourced and customizable,one can tailor the os to work with these tools with the env they want and since its open source,there is more collaboration and many tools leverage linux cli to make many tasks easier and mostly because its widely used in servers
+
+*In essence, white hat hackers primarily use established security tools to perform their work, utilizing the CLI for efficiency and automation. They may only code when necessary, either to customize existing tools or develop new solutions to address specific challenges in cybersecurity.
+
+*securityware can be misused for malicious purposes.The reason why it is free and open to the public despite prior knowledge that it can be misused is because it provides a resource for others to learn about security,its open source nature/philosophy allows for easy collaboration,to raise awareness about vulnerabilities.They also do it for research.In general,putting limitations to these software for the public can make hinder more legitimate users than maicious ones
+
+*Control vs Distribution
+
+^Security research,security tools
+
+^Zaid Sabih courses on udemy--for learning how to build security software
+
+*White hackers hack to better secure their software while black hackers hack to have illegal priviledges to a software.
+
+*Whiete hat:Find a vulnerability,inform,defend against it.
+*Black hat:Find a vulnerability,exploit it,go to jail.
+
+*Many black hat hackers that hack by misusing security tools are the less experienced and its mostly the ethical hacker and the security software programmer that actually have the knowledge and the experience.This is because the script kiddies often focus on using available tools without a deep understanding of how they work. If a tool functions effectively for their purposes, they may not see the need to learn about the underlying technology.This leads to them only having surface knowledge as they primarily focus on attacks while ethical hackers invest time in learning how various security tools work, the vulnerabilities they exploit, and the defensive measures that can be implemented.Their goal is to identify and mitigate vulnerabilities within systems.
+
+*The professionals who use security tools to mitigate vulnerabilities--ethical/white hacker
+*Those who create the security software that ethical hackers use---security software developer
+*Those who misuse security software for attacks---black hat hackers
+*Those who write viruses and develop malware---large criminal organizations.They operate like businesses
+
+
+*Logic circuit design is a physical implementation of binary which is very bare bones

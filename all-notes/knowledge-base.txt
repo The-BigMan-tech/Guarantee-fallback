@@ -404,50 +404,47 @@ SSR
 SSG/pre rendering
 
 
-
-^NEW
-*Next programming languages
-^---------------------------------
-Gdscript for Godot--games.
-python,Cython and Mojo---data science and machine learning models.
-Javascript and Typescript.
-Rust---system level control for my tauri apps.
-C++--The truth is,i wanted to experiment with bare memory for educational purposes,so i was going to learn C but i also wanted to learn C# for game development.But the catch is that it will require me to learn two new programming languages and to make it worse,C is damn old like 50 year old and hasnt been majorly updated since 2011 so i decided to learn a language that balances the two and as such will kill two birds with on stone and thats the dangerous C++.Also it can be used to write exploit ware,reverse engineer software and hack games.
+*ORDER OF PUT IN EFFORT
+^Specialized usage level
+^-----------------------
+python and Cython  ==>data science,numerical computing,scripting,backend apis,pypy,mypy-Powerful cli apps using the rich lib to help me at coding,for digital forensics,network security,white hat hacking,machine learning and exposing the ml model through an api with fast api
+Javascript and Typescript  ==>async,event driven and reactive programming,networking,apis,web apps,animations and higher order functions.TS will make you heavily appreciate type safety/static type checking
+Rust  ==>system level control for my tauri apps.
 
 
-*Generalize in these programming languages
-Go--strong concurrency model.very fast
-Assembly--reverse engineering
-Linux
-Embedded programming-raspberry pi with python and arduino with c++
-Digital design
+^General usage level
+^-------------------
+Kali linux
+Building security software
+Godot
+C++ ==>The truth is,i wanted to experiment with bare memory for educational purposes,so i was going to learn C but i also wanted to learn C# for game development.But the catch is that it will require me to learn two new programming languages and to make it worse,C is damn old like 50 year old and hasnt been majorly updated since 2011 so i decided to learn a language that balances the two and as such will kill two birds with on stone and thats the dangerous C++.Also it can be used to write exploit ware,reverse engineer software and hack games.
+Go  ==>strong concurrency model.very fast
 
-*Parallel/GPU programming languages
+
+^Basic usage level
+^-----------------
+Assembly--reverse engineering with Ghidra
+Hardware description language--Verilog
+
+
+^Hobby level
+^-----------------
 Bend
 Mojo
+Embedded programming-raspberry pi with python and arduino with c++
+
+
+^Familiarity level
+^-------------------
 CUDA
-
-*programming language strengths
-js--async,event driven and reactive programming,networking,apis,web apps,animations and higher order functions
-typescript--will make you heavily appreciate type safety/static type checking
-rust--mem management and performance,directly accessing system resources and hardware,perform heavy computations faster in my tauri apps
-python--data science,machine learning,numerical computing,scripting,backend apis,Cython,pypy,Mojo,mypy-Powerful cli apps using the rich lib to help me at coding,for digital forensics,network security,data science,white hat hacking,machine learning and exposing the ml model through an api with fast api
 c#--desktop apps and games.
+Zig
 C--to experiment with memory at the lowest level possible
-
-
-^other programming langs i acknowldege but may not learn
-C,C++,Rust,Zig,Nim
-
 nim--tunable garbage collector
-Assembly--for reverse engineering games thriugh disassembling
 solidity--web 3
-go--powerful concurrency model and as such,it is used in cloud computing
 powershell--task automation
 java--entrepise scale apps
-r--data science
-matlab--scientific computing
-c++--mem management
+R--data science
 julia--numerical computing
 ruby--web development
 lua--quick scripting
