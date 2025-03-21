@@ -777,5 +777,21 @@ react requires that states must be immutable and editing them should return a ne
 
 *An implementation is a variation of a programming language in terms of its compiler or interpreter.It represents a different way of writing the compiler or interpreter for that language, often with unique optimizations, features, or behaviors.Js has different implementations based on runtime environments like node js and the browser engine like v8,spider monkey.Python has cython,pypy etc.Different implementations have various optimizations.
 
+^Pypy is a jit compiler for python.its just like java rather an interpreter like cython.Old js usef an interpreter but modern engines now use a jit compiler.Its like C# and java.cython is a transpiler of python that converts python to c
+
+^In linux,bash is the go to programming language because of its command-oreiented nature.it is not like other programming languages for building but rather for utilizing the usage of many clis.You write prompts or commands not code
+
+^Compiler,Interpreter,Transpiler,Jit compiler
+
+^Web assembly is a compilation target.
+
+*A server and a database is just like your os to the file system
+
+*Jit compilers compiles code to bytecode which is a platform independent and intermediary format that can be compiled later to a specific platform
+
+^Api client,text interface,command interface,graphical interface
+*We use api clients to communicate with js servers
+
+*Commands are like queries.They are declarative and focus on getting data
 ?Abstraction vs control
 
