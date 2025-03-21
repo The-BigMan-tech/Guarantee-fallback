@@ -703,5 +703,79 @@ react requires that states must be immutable and editing them should return a ne
 
 *A code unit is the collection of bytes that makes a valid unicode character while a code point is a unique number assigned to each character in the unicode format which gets converted to code units
 
+*C++ like rust use utf-8 but allows for direct indexing but this is only safe when the characters are ascii.So you wont have to worry about boundaries and encoding until you start using unicode characters that span more than one byte unlike rust where it prevents you from ever indexing into a string so you have to care about this from the first time you want to access specific characters from a string upfront.Apart from this,the level of abstraction and control are the same.In both of them,if you need to safely access unicode characters from a string,you loop over a sequence that tokenizes the bytes into code units except that in rust,its provided in the standard library while in c++,its provided by user made libraries
+
+*in these system languages,you will be forced to learn about low level details even if you dont want to as long as you want to use these languages because you will literally not go anywhere using them without attempting to understand the details that you will normally wont care or procrastinate to learn if you are using python and js.
+
+*The char method returns an iterator of the unicode units that makes up a string.
+
+*There are two ways to create a sequences;a random access sequence or an iterator sequence.A random access sequence like a vector will require an allocation on the heap that will cost memory and reduce time performance because of allocation time but once complete,it becomes very fast for lookup operations while an iterator doesnt take any data from the heap because the data is yielded value by value as the code runs rather than storing it in a collection that will require allocation and thus,it optimizes space performance but its slower for lookups.An iterator is a function that yields values and retains state of where it is in the sequence.Yielding means that it will return the current value and hand over execution till its called again.
+
+*Char and slicing are both different ways of accessing unicode units from a string except that char is safer but requires you to loop over the iterator every time which might be less accessible when trying to access many characters as you have to store all of them in a vector first which will bring allocation costs on memory and speed while slicing allows you to directly access the data but requires upfront knowledge of the right character boundaries.They both conserve memory since they both dont take memory as slices just borrow the data while char iterates over the data.But slicing is more accessible for accessing many characters and its faster since it doesnt loop over anything as its direct access and it will even conserve more space if multiple-character accessibility is needed So these two methods are a trade-off between (speed and easier multi-character accessibility) or (safety and lack of prior boundary knowledge).Its better and recommended to start with chars for safety as it aligns with rust principles but use slicing for performance
+
+*The keys and values of a hashmap must be of the same type.
+
+*A vector is basically a heap allocated array
+
+*When treating an option object from a vector or hashmap,we can return a referece or a copy using the .copied method.If we don't want the value of returned to the variable to reflect any further changes to the vector or hashmap in the program but it will increase memory consumption although insignificant in the case of small integers,chars or booleans but we can choose to use a ref and not a copy if we want to opt for more memory savings and its ok or needed for it to reflect any changes to the collection in the program.
+
+*if the collection doesnt get updated in a way that affects previous values like push or insert operations,using a ref is better since it saves that extra 4 bytes or more and will still provide the same output as copying it.
+
+*You can use the .copied method on anything to copy data thats on the heap.
+
+^Borrowing it,owning it,copying it are the different ways to do assignments.A copy becomes independent of the source.The owner becomes the source while a borrow becomes dependent on the source
+
+*When looping over a collection in rust,we should use a ref to ensure that the loop doesnt own the data.An immutable one for read and a mutable one for write operations.
+
+*For keys and values that their data are on the stack,the heap owns the data but for data on the stack,the map copies its data
+
+*I cant pass references to a temporary heap allocated data like string objects used directly on the fly without an assignment.This is because it will lead to a dangling reference as the data will be dropped immediately after use because it doesnt have an owner.Rust prevents this from happening but not c++ where it will lead to undefined behaviour.You can work around this by lifting the temporary value to a variable that will take ownership of it and the program will execute safely without creating a dangling reference but if it were an integer,there is no need to lift it as its in stack memory and will be copied if needed.
+
+*The ownership model is the solution to all these mem management pitfalls but rust requires you to figure out how to work around it to still execute what you want but in a memory safe manner like through lifting temporaries which one will have to discover on his own making the programmer fully responsible for the memory usage of his program
+
+*You cannot have a mutable ref after an immutable one to prevent undefined behaviour in parts of the code that wants to read the same value and accidental modifications to the value before its used.
+
+*You cannot borrow a value mutably if the owner isnt declared to be mutable.This is to ensure that any data mutations is intentional and not accidental.Its a double check.Thats why variables are immutable by default.This is different from python and js where variables are mutable by default which can cause unintended side effects like when arrays are passed to functions.New devs wont know that they are passed by ref and can cause accidental modifications while in rust,even a vector thats passed by ref still requires permission before its modified.
+
+*Hashmaps must have unique keys so inserting a value with an existing key overwrites the old one
+
+*rust requires that you either have one mutable borrow or multiple immutable borrows but not at the same time.you can only create immutable refs after a mutable one which will invalidate the mutable one.The borrow checker is like a permission controller;immutable refs have read-only access while mutable ones have read and write access.
+
+*integers,booleans and chars are stored in the heap only when they are inside collections which are stored in the heap.So using those values requires a ref.The vector structure itself is stored in the stack because the pointers go to the stack but the intger data goes to the heap.So you can control the allocation of the integer data to either the stack or on the heap
+
+*mutability and immutability is independent of whether the data is stored in the stack or heap.the reason mutable integers go to the heap is because its allocation is fixed regardless of how the data is mutated which means that whether data goes to the stack or heap isnt about whether it will be changed later but whether rust knows that the allocated space for the data wont change after compile time.Integers have a predictable memory allocation according to their type regardless of how large the value is.The same for character and boolean which have a predictable allocation of one byte so all of these go to the stack.But we can never predict the space that a vector or a string will take and as such,they go to the heap.
+
+*You can read the value that a reference holds by directly using it but if you want to modify the data that mutable references borrow,you have to use the dereference operator *.This is to ensure that you are intentional about using the mutable reference to modify the value at a particular part of the codebase when you mistakenly meant to use it for reading at that point.
+
+*Assigning a variable that has stack allocated data to another variable copies the data unlike for heap allocated data like string which transfers ownership.If the variable holding the integer data doesnt change,copying it to another variable will be memory inefficient so using an immutable ref to another variable is better.But there are some complexities about opting for immutable refs because of memory efficiency;
+
+*There are three ways to modify the data stored in a variable:by overshadowing/redeclaring,by mutating it and by reassignment.Modifying a variable by directly assigning the variable to a different value after its initialiation and declarartion as mutable is modifying by reassignment.You cannot modify a variable like this after it has been borrowed like incrementing a variable after it has been borrowed by a ref.This is because it will hold its newly assigned data in a different location whether on the stack or on the heap and making the older one invalid.This will make the borrowed variable a dangling reference because it no longer references a valid memory.So there are three ways around this;You either perform the reassignment before borrowing it,2.you use a mutable reference to change it because it directly modifes the data at that address without changing its location unlike reassignment or 3.overshadowing the variable.This is because overshadowing is pretty interesting in how it works.Overshadowing redeclares a variable not just reassign it.It allocates data in a different address but it doesnt invalidate the old one because it declares the variable as if it were a new one entirely meaning that any borrows to it before it was overshadowed is still valid.The preferred approach is to use mutable refs unless you dont want mutability where you will then use overshadowing another way to prevent all of this as a whole so that you can still reassign to modify the variable after its been used by another variable,is to copy the data over to the other variable and not accessing it by reference.
+
+*order of priviledge:read-only,read and write,ownership
+
+*so one can start with rust if they dont want to shoot themselves in the foot but they will learn about mem management by working with the compiler when it throws them errors while starting with c++ means you are starting out writing buggy software then coming to rust for safety later.Rust is better for beginners,it forms good habits early unlike c++ where you suffer enough from the bad ones and then learn why the good habits exist.This is the nature of Rust to C++ and C++ to rust transitions.
+
+*panics and fallbacks are different ways of handling unexpexted behaviour.A panic will make the program to abort while a fallback will give the program a way of handling the situation.A fallback is more user friendly while a panic is necessary from stopping something critical from happening to the program.A fallback creates fault tolerant code that happens under expected conditions while panics should happen when under any normal circumstance,should something happen else allowing it to execute can lead to critical damage.The get() method fallbacks while indexing panics in vectors and unwrap panics while unwrap_or() fallbacks.
+
+*entry doesnt overwrite.It only writes a value to a key if the key doesnt exist and returns a mutabl ref to it to the map.
+
+*another thing is that panics shouldnt give stack traces as error outputs because every piece of this data can be used by attackers to know where in the codebase and perform variations of what they did to understand how the code responds to errors and over time,get full information about the error handling checks of the program and try how to crack their way around it by creating unchecked circumstances but having writing the program in rust will slow this down since memory and race condition vulnerabilities are removed by rust
+
+*Any information thats meant to be used only development that gets exposed to production environments is called a leak.A leak in itself doesnt mean an instant defeat to the program but it can expose enough information that hackers can use to craft sophisticated attacks.Using environment configuration files like .env files with a tool like Git leaks can help prevent this and anonymizing logs can prevent this isssue.
+
+*rust also ensures that you pay more attention to your code.
+
+*The or_insert method returns a mutable ref to the value of a specified key in a map.If the key exists,it returns a mutable ref to the value as it is else,it inserts the new value and return an immutable ref to that
+
+*attacks by memory corruption,by unsanitized inputs,race conditions,program intel
+
+*Inconsistent outputs
+
+*so a hash table is a function,an array and an optional linked list layer.The function takes a key and uses a function called the hash function to generate an index to the underlying array.The underlying array holds the data.But in the case of collisions which is when two keys maps to the same index,a method called chaining where the value at that index in the array is a pointer to a linked list where series of k-v pairs occur and secret key is like salting against rainbow tables where even if they get the input right,it will never collide with another key.It is used by the siphash function which rust implememens.It may not be the fastest but rust prioritizes security over performance.Hackers can take advantage of collisions by creating a vast amount of inputs that collides with others which creates multiple linked lists that can crash the program and slow it down for other users leading to Dos attacks.If they create keys that collide with legit data,they can use those keys to overwrite that data.Because of the way collisions are handled,keys dont get access to the same data even if they collide but existing entries can be overwritten and attackers can exploit dos attacks
+
+*Python and js use general purpose hashing for typical use cases and overall good perfromance but its not highly collision resistant like siphash that rust uses.
+
+*An implementation is a variation of a programming language in terms of its compiler or interpreter.It represents a different way of writing the compiler or interpreter for that language, often with unique optimizations, features, or behaviors.Js has different implementations based on runtime environments like node js and the browser engine like v8,spider monkey.Python has cython,pypy etc.Different implementations have various optimizations.
+
 ?Abstraction vs control
 
