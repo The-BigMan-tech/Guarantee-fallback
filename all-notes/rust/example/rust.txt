@@ -947,6 +947,8 @@ todo:Read rust chapter 9.2
 
 *so the clear method in rust doesnt remove the capacity meaning that if one wants to push to the vector after clearing it,there wont be any reallocations till it reaches the size of th evector before it was cleared while reassigning it to an empty vector refreshes the capacity meaning that there will be constant reallocations.clear is better if its going to be reused again very soon while reassigning it is better if its going to remain empty long term so that there is no wasted space
 
+*Use shadowing when you want to transform a value without modifying the original and want to limit the scope of the new variable.use mutation when you need to change the state of a variable throughout its lifetime
+
 C--raw pointers
 C++--smart pointers
 Zig--safe allocators
