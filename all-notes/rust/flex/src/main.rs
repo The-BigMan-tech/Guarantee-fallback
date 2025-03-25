@@ -14,13 +14,15 @@ impl Flex {
     }
     fn create_representation<T:Display + Into<i64>>(&self,num:T,offload:&mut Vec<u8>) {
         let num:i64 = num.into();
-        let sign_bit:u8 = if num >= 0 { 1 } else { 0 };
-        let parity_bit:u8 = if num.abs() % 2 == 0 { 0 } else { 1 };
+        let sign_bit:u8 = if num >= 0 { 1 } else { 0 };//tracks the sign
+        let parity_bit:u8 = if num.abs() % 2 == 0 { 0 } else { 1 };//retains the value
         let encoded_num:u8 = ((num.abs() as u8) << 2) | (sign_bit | (parity_bit << 1));
 
         let is_negative:bool = encoded_num & 1 == 0;
-        println!("Num before: {num} Encoding schema {encoded_num} is neg: {is_negative}");
-        let num_as_string:String = encoded_num.to_string();
+        let mut num_as_string:String = encoded_num.to_string();
+        if sign_bit==1 {//the minus is broken for larger numbers because of bit shift overflow.so i only made it to apply for negative numbers.meaning that the algorithm can take big positive numbers but only small negative numbers
+            num_as_string = num.to_string()
+        }
         let mut characters:Chars<'_> = num_as_string.chars();
         let mut index:i32 = 0;
 
@@ -44,13 +46,9 @@ impl Flex {
                         format!("220").parse::<u8>().unwrap()
                     }
                     else {
-                        println!("Reached some stuff");
                         if _character_1.len() < 2 {_character_1 = format!("0{_character_1}");}
-                        if (c1=='0') && (is_negative) {
-                            0
-                        }else {
-                            format!("1{_character_1}").parse::<u8>().unwrap()
-                        }
+                        if (c1=='0') && (is_negative) {0}
+                        else {format!("1{_character_1}").parse::<u8>().unwrap()}
                     }
                 }
             };
@@ -73,13 +71,11 @@ impl Flex {
             terminators.push(termination_index);
         }
         terminators.push((internal.len()) as i32);
-        println!("Terminators: {:?}",terminators);
         {
             let digits:&[u8] = {
                 let own_terminators:Vec<i32> = terminators;
                 let termination_start:usize = (own_terminators[ind] as usize) + 1;
                 let termination_end:usize = (own_terminators[ind+1] as usize) + 1;
-                println!("Termination start:{termination_start} termination end: {termination_end}");
                 let digits:&[u8] = {
                     if (termination_start == 1) && (termination_end == 1) {
                         &internal[..=0]
@@ -89,7 +85,6 @@ impl Flex {
                 };
                 digits
             };
-            println!("Digits: {:?}",digits);
             for digit in digits {
                 string_data += & { 
                     if digit < &100u8 {digit.to_string()}
@@ -99,21 +94,25 @@ impl Flex {
                     else {String::from("")}
                 }
             };
-            let num_to_return:i32 = string_data.parse::<i32>().unwrap();
+            let num_to_return:i32 = {
+                let string_data:String = string_data;
+                let num_to_return:i32 = string_data.parse::<i32>().unwrap();
+                num_to_return
+            };
+            let sign:i32 = if (num_to_return & 1) != 0 { 1 } else { -1 };
+            let number:i32 = (num_to_return >> 2) as i32;
+            let decoded_num:i32 = number * sign;
+            if decoded_num.abs() > 64 {//This is because if it returned a number higher negative number than -63,it means that the bits overflowed.
+                return T::from(num_to_return)
+            }
 
-            let sign = if (num_to_return & 1) != 0 { 1 } else { -1 };
-            let number = (num_to_return >> 2) as i32;
-            let decoded_num = number * sign;
-            
-            println!("Decoded number output:   {decoded_num}");
-            return T::from(num_to_return);
+            return T::from(decoded_num);
         }
     }
     fn push<T:Display+ Into<i64>>(&mut self,num:T) {
         let mut offload:Vec<u8> = vec![];
         self.create_representation(num, &mut offload);
         self.internal.append(&mut offload);
-        println!("New data to push: {:?}",offload)
     }
     fn clear(&mut self) {
         self.internal.clear();
@@ -123,10 +122,14 @@ impl Flex {
     }
 }
 fn main() {
-    let cars:Flex = Flex::new::<i32>([0,-1,-2,-3,-4,5,6,7,8,9].to_vec());
+    let mut cars:Flex = Flex::new([0,-63,2,-3,-4,-5,6,7,8,9,15,900].to_vec());
     println!("Internal Car re-representation: {:?}",cars.get_internal());
-    println!("Number at an index: {}",cars.get_data::<i32>(2));
+    println!("Number at an index: {}",cars.get_data::<i32>(1));
+    cars.push(20);
+    println!("{}",cars.get_data::<i32>(12));
+    let mut byte: u16 = 0b1100000010101011;
+    println!("{:08b}", byte)
     // flex_usage::try_flex();
 } 
-
+//Only works down to -63
 //when its a chunk that starts with zeros its 200 or 220 for one zero only.the one will be read as zero but it means thats the end of the last chunk.220-255 is still left to be utilized
