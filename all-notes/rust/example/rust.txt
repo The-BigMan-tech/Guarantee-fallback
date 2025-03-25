@@ -949,6 +949,33 @@ todo:Read rust chapter 9.2
 
 *Use shadowing when you want to transform a value without modifying the original and want to limit the scope of the new variable.use mutation when you need to change the state of a variable throughout its lifetime
 
+*Lsb and Rsb in bitwise operators
+
+*To get the binary of any number,you convert it to base 2 and pad it till you get 8 bits
+
+*binary shifts,bitwise or,not and and
+*logical operator
+
+*the zeros padded infront of a binary number till it reaches 8 bits are empty slots or placeholders while the last bits are the filled slots.When i do a bin num << 2,im telling the cpu to shift/move the position of the value in the occupied slots to two empty slots to the left leaving the previous slots empty for use.when this is converted back to base 10,it gives a differnt number entirely but since we are operating at the bit level,our concern is the internal rep of the number as bits and not the overall value.if i said bin >> 3,im telling it to shif the value to the next three empty slots to the right.Padding doesnt affect the value it only allows for consistent presentation.When you shift bits to occupy a different space on the byte when there is no more space,the bits that spilled out of the byte will be trashed
+
+*Box is also used to prevent stack overflow which can be caused by recursion.
+
+*Bitwise shifting can lead to spillage while lower number representation can lead to wrapping.The difference in the result of the effect is based on binary arithmetic principles.
+
+^bitwise operators can store more information at zero memory costs.
+^bitwise and,or and not
+^different scenario when wrapping.whats a buffer overflow
+^Lsb,Msb
+^buffer overflow
+
+*unsigned integers use the msb to store sign information while a signed integer uses all of its bits to store information.
+
+*a buffer is used in batching data to a temporary storage till its transferred somewhere like from disk to memory instead of directly writing to the destination which may take time.This allows the programmer to process the entire chunk at once instead of constant read/writes.file operations,input data and network data all utilize buffers for efficiency.when more data is taken to a buffer more than the allocated space,it lead to a buffer overflow which leads to memory corruption and unexpeted behaviour as it unintentionally affects adjacent memory blocks
+
+*Bitwise operators perform logical operators on the individual bits that makes up a value.Bitwise AND filters bits,OR combines them and NOT flips them.Bitwise AND is used for masking bits by isolating one and clearing others.Bitwise OR is used for enabling many flags/bits at the same time
+
+*in rust,i can write any variable's value in its value literal,binary literal or hexadecimal literal.You can in js but binary literals are always 8 bytes so its not as memory efficient as it looks but in rust,you can make it one byte or more.i can use binary directly to store many flags all in just one byte instead of many booleans that will take a byte each.
+
 C--raw pointers
 C++--smart pointers
 Zig--safe allocators
