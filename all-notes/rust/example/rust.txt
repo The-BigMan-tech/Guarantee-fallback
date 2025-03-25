@@ -939,6 +939,14 @@ todo:Read rust chapter 9.2
 
 *Rust has the following notations; the : notation,the :: notation,. notation,<> notation,::<> notation and the -> notation.If i want to specify type annotations,i use the : notation.For instance mtehods,its the . notation,for accessing anything from the module system and struct methods,its the :: notation, if i want to specify that a function takes generics and has lifetime information,i have to do it in its signature using the <> notation.if i want to call that same function and specify the type,ill use turbofish notation which is ::<>.If i create a struct and i want to type annotate the specific generic,its the the struct<> notation.To specify the return type of a function,we use the -> notation.In rust,i cant do methods on a generic directly without specifying the traits it implements.i can do that using the : notation infront of the generic or the where statement.
 
+*if a function makes minor modifications to a vector,its better to pass it a mutable ref to the function.if it significantly modifies it,its best to pass ownership of the vector to it and the function can return it back once its done using it.
+
+*The extend method copies the elements of right operand vector to another.append moves them  while + copies both vector operands to produce a new vector.Im sure the best here is append cuz its memory efficient
+
+*Copying creates reallocations while owning only adds a ref to that vector in memory and invalidates the previous vector from accessing it. and instance methods that takes immutable refs to self only intend to use methods and read values from it while those that a mutable ref to self are those that use its setters
+
+*so the clear method in rust doesnt remove the capacity meaning that if one wants to push to the vector after clearing it,there wont be any reallocations till it reaches the size of th evector before it was cleared while reassigning it to an empty vector refreshes the capacity meaning that there will be constant reallocations.clear is better if its going to be reused again very soon while reassigning it is better if its going to remain empty long term so that there is no wasted space
+
 C--raw pointers
 C++--smart pointers
 Zig--safe allocators
