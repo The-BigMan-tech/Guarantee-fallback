@@ -21,39 +21,30 @@ impl Flex {
             let mut index:i32 = 0;
 
             while let (Some(c1),c2) = (characters.next(),characters.next()) {
-                let mut character_1:String = String::from("");
-                if c1 == '0' {
-                    character_1 = String::from("20");
-                }else {
-                    character_1 = c1.to_string();
-                }
-                if let Some(c2) = c2 {
-                    let ch:u8 = format!("{character_1}{c2}").parse::<u8>().unwrap();
-                    if index + 1 == ((num_as_string.chars().count() as i32) - 1) {
-                        if ch < 100 {
-                            re_representation.push(format!("1{ch}").parse::<u8>().unwrap());
-                        }
-                        else if ch >= 200 {
-                            let ch2:u8 = ch - 200;
-                            re_representation.push(format!("21{ch2}").parse::<u8>().unwrap());
-                        }
+                let mut _character_1:String = String::from("");
+                _character_1 = if c1 == '0' {String::from("20")}else {c1.to_string()};
+                let data_to_push =  
+                    if let Some(c2) = c2 
+                    {
+                        let ch:u8 = format!("{_character_1}{c2}").parse::<u8>().unwrap();
+                        if index + 1 == ((num_as_string.chars().count() as i32) - 1) {
+                            if ch < 100 {format!("1{ch}").parse::<u8>().unwrap()}
+                            else if ch >= 200 {
+                                let ch2:u8 = ch - 200;
+                                format!("21{ch2}").parse::<u8>().unwrap()
+                            }
+                            else {ch}
+                        }else {ch}
+                    }
+                    else {
+                        if c1=='0' {format!("220").parse::<u8>().unwrap()}
                         else {
-                            re_representation.push(ch);
+                            if _character_1.len() < 2 {_character_1 = format!("0{_character_1}");}
+                            format!("1{_character_1}").parse::<u8>().unwrap()
                         }
-                    }else {
-                        re_representation.push(ch)
-                    }
-                }else {
-                    if c1=='0' {
-                        re_representation.push(format!("220").parse::<u8>().unwrap());
-                    }else {
-                        if character_1.len() < 2 {
-                            character_1 = format!("0{character_1}");
-                        }
-                        re_representation.push(format!("1{character_1}").parse::<u8>().unwrap());
-                    }
-                }
-                index += 2;
+                    };
+                    re_representation.push(data_to_push);
+                    index += 2;
             }
         }
         println!("Rerepresentation {:?}",re_representation);
@@ -67,9 +58,10 @@ impl Flex {
         let internal:&Vec<u8> = self.get_internal();
         let mut terminators:Vec<i32> = vec![0];
         for (index,num) in internal.iter().enumerate() {
-            if ((num >= &100u8) && (num < &200u8)) || (num >= &210u8) || (num == &220u8) {
-                terminators.push(index as i32);
-            }   
+            let termination_index = 
+                if ((num >= &100u8) && (num < &200u8)) || (num >= &210u8) || (num == &220u8) {index as i32}
+                else {continue};
+            terminators.push(termination_index);
         }
         let termination_start:usize = terminators[ind] as usize;
         let termination_true_start:usize = termination_start + 1;
@@ -78,26 +70,23 @@ impl Flex {
 
         let mut string_data:String = String::from("");
         for digit in digits {
-            if digit == &0u8 {
-                string_data += "-"
-            }else if digit < &100u8 {
-                string_data += &digit.to_string();
-            }else if (digit > &100u8) && (digit < &200u8)  {
-                string_data += &(digit-100).to_string();
-            }else if (digit >= &200u8) && (digit < &220u8) {
-                string_data += &(format!("0{}",digit.to_string().chars().last().unwrap()))
-            }else if digit == &220u8 {
-                string_data += "0"
-            }
+            let string_info:&str = if digit == &0u8 {"-"}
+                else if digit < &100u8 {&digit.to_string()}
+                else if (digit > &100u8) && (digit < &200u8)  {&(digit-100).to_string()}
+                else if (digit >= &200u8) && (digit < &220u8) {&(format!("0{}",digit.to_string().chars().last().unwrap()))}
+                else if digit == &220u8 {"0"}
+                else {""};
+            string_data += string_info;
         }
         return  string_data.parse::<i32>().unwrap();
     }
 }
 fn main() {
-    let shoes:Vec<i32> = vec![1234,20,901,43,90090000,235,900];
+    let shoes: Vec<i32> = vec![1234,20,901,43,90090000,23885,900,9899,8876,8,8,8];
     println!("Original bytes:{}",bytes(&shoes));
     let flex_shoes:Flex = Flex::new(shoes);
-    flex_shoes.get_data::<i32>(4);
+    let test_data:i32 = flex_shoes.get_data::<i32>(2);
+    println!("Test data: {test_data}");
     println!("Number of bytes of flexible vector:{}",bytes(&flex_shoes.internal))
 } 
 

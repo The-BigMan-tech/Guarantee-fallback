@@ -793,5 +793,163 @@ react requires that states must be immutable and editing them should return a ne
 *We use api clients to communicate with js servers
 
 *Commands are like queries.They are declarative and focus on getting data
+
+*You can choose panic and clean up or panic and abort.Clean up will step up through the code from where it panicked and free any memory that was used by the function while abort skips this.
+
+*Rust libraries can panic in response to code in our own codebase
+
+*Accessing a vector beyond its index will panic but in c,it will read past the memory block of the array leading to a buffer overread which is a vulnerability.The reason why rust panics here is so that it prevents this vulnerability from continuing running
+
+*You can allow backtraces.A backtrace is a display of the series of function calls that lead to the error.
+
+^result and option enum
+
+*Enum destructuring is taking out the encapsulated data from an enum variant.You can do this by pattern matching statements like match,if let and let else
+
+^Array unpacking,object destructuring and enum destructuring
+
+*if let and let else are when you only care about one pattern like option but match is better for patterns that returns the Result type
+
+*You can match an enum against a pattern and choose to destructure it
+
+*Pattern matching can be a bit verbose and as such,rust provide methods that shorten it;unwrap--which destructures the enum variant and panics if it isnt a success and expect which is the same as unwrap but allows us to control the panic message.The message in expect shouldnt be why it failed but why what assumption was wrong that made it to fail by convention
+
+*throw/assert and catch
+*Result type,panic,validation and expect
+
+*Rust chooses to propagate errors to the caller
+
+*the code should panic when assumptions that should always hold true have been violated and executing further can be insecure and harmful.Panic is also useful when an external library is bugged somewhere that your codebase cant fix so it panics as it isnt under the control of one's codebase
+
+*The standard library in rust panics when one tries to operate on invalid data because of safety vulnerabilities and returns a result for other errors.
+
+*There is a difference between recovering and fixing.Recovering means that even if there's an erro,the caller can go around it but when it panics,it can only proceed further when it fixes the way it calls it.A function can also panic if its contract as defined in its signature has been violated.
+
+todo:Read rust chapter 9.2
+
+*validation by parsing or by a class constructor
+
+*A way of validating user input is by using parsing which will parse the input to the correct type and return a result which can be an error if the parsing failed
+
+*Repeating many checks for data validation becomes cumbersome across many functions.We can instead lift the validation logic to a type that always guarantees that the data that we are working with is validated.We do this by using a struct that encapsulates the data we want to validate in a private field so that the caller cant directly modify this value.The constructor will validate the input and return an instance of the class if its valid or panic if its invalid.The data can then be accessed by a getter since we made the field private.This is more readable and safe
+
+*so there are two different paradigms in handling runtime errors;the error as value and error as an exception.Error as an exception is aimed for simplicity and primarily for user experience.Every runtime error that uses this paradigm stops the program as it throws the exception not because of a possible harm or vulnerability but because the programming language doesnt know what to do next and as such,it has to be caught explicitly by the program to guide the language on what to do or the programmer fixes his code.The programmer can fix his code if it isnt expected or catch it if its expected and can also throw an error explictly when an operation is meant to fail for some reason but the thing here is that every error can be caught allowing the program to proceed using the codebase with a possibility of mitigating security while Errors as value is a different approach.This paradigm goes for security and predicatbility.Errors here are explicit.Under normal circumstances,rust and the codebase wont throw an error that stops the program to stop at runtime but rather,any possibility of an error failing has to be explicitly stated by the programmer and the error is handed over to the user of the codebase to decide how to recover from it but when the program attempts to do something that violates normal conditions,rust or the codebase will throw an error that cant be recovered or done around as it is in exceptions where every exception can be caught.This is not because rust or the codebase doesnt know what to do but because if it proceeds,it may lead to severe damage to data or the user of the codebase.The reason why js and python go for exception is because of its use for developing user friendly applications while rust goes for error as value because being a system level language means that it has to be secure when using the resources it has priviledges to
+
+*Variable data that goes to the stack must be written at the signature
+
+*so are tuples fixed at compile time because its not possible to create a data structure that has different allocations for each element on the heap.So in vectors when i say vec i32,it tells rust that whenever i want to modify this vector,it only allocates and deallocates 4 bytes but if it were to hold multiple types,it will have variable allocations and rust cant predict the best allocation for the element that will be inserted into the array and if it did,it may lead to wasted memory.But js and python allow arrrays of different types but this is because they have runtime overhead that will come at the cost of performance which rust cant afford and even at that,in js,i cant create a typed array that has variable allocations like one is int32 and the other is int8 at runtime.So the overhead that js and python do for an array of different element types at runtime is resolving their types and not predicting variable allocations
+
+*Any predictable knowledge must be given at compile time.
+
+*Tuples are fixed at compile time because its not possible to create a data structure that has different allocations for each element on the heap.So in vectors when i say vec i32,it tells rust that whenever i want to modify this vector,it only allocates and deallocates 4 bytes but if it were to hold multiple types,it will have variable allocations and rust cant predict the best allocation for the element that will be inserted into the array and if it did,it may lead to wasted memory.But js and python allow arrrays of different types but this is because they have runtime overhead that will come at the cost of performance which rust cant afford and even at that,in js,i cant create a typed array that has variable allocations like one is int32 and the other is int8 at runtime.So the overhead that js and python do for an array of different element types at runtime is resolving their types and not predicting variable allocations
+
+*Runtime information cannot be known ahead of time.
+
+*Dynamic allocation is done at runtime but the individual elements that makes up the collection must have a fixed allocation size known at compile time
+
+*In c,c++ and zig,i can control the allocated space at runtime using condition checks except that zig allocators are safer and the intuitive way of using the language while c and c++ offer this at the cost of safety while rust doesnt give me control over the allocator so despite that it does dynamic allocation at runtime for shrinkable types like vector,the space to be allocated for each of the elements in the collection must be known by rust at compile time.Rust does this to ensure safety.
+
+*C,C++,Zig,Rust,Nim
+
+*so ? is a shorthand like unwrap.They both check for variants,destructure them and return it to a variable except that when unwrap encounters an error,it panics,for unwrap_or it recovers by returning a default value and for the ? operator,it propagates the error to the caller.? is good for propagation,unwrap is good when you are certain that an error shouldnt occur and unwrap_or is good for recovering from the error by providing a default value to fallback to.
+
+*Ways of matching and destructuring:match case block,if let block,let else block.
+
+*The structure of the struct and enum itself is stored on the stack as pointers but the actual allocation of the data varies on the type.If the data is of a fixed allocation,it is stored directly with the struct or enum but if its dynamic like string or vector,its stored on the heap and the field or variant is a pointer to its location in memory.
+
+*i32 for example,is stored on the stack but if its in a collection like vector or hashmap,it goes to the heap in a contiguous block but the actual vec structure is stored on the stack and it becomes a pointer to the first element.
+
+*So for vectors,structs and enums,the structure of it is on the stack but the data itself will be stored on the heap if its a vector or on the stack or heap if its a struct or enum. data can go to the stack or heap depending on whether its allocation is known ahead of time through a type annotation that has information of allocated space but vecs and hashmaps of anything moves data to the heap.
+
+*so with i32 in a vector,i can tell rust to only allocate 4 bytes for each data in the heap.so even if its 0 when i allocate 8 bytes,it will always take 8bytes of space regardless of whether the value fully uses the space.So type annotations can help me to control allocated spaces
+
+*An enum will take the size of its largest variant that means that even if a variant takes 1 byte of data,the entire enum instance itself will still take 8 bytes assuming that 8 bytes is the largest variant.This is a design choice because rust doesnt allow variable allocations for safety and predictability.Rust ensures that all allocation information is known at compile time.
+
+^Ill create an allocator that allocates the smallest space that can contain a particular variable at runtime but it means that the variable itself cant be modified after it has been pushed because it might be bigger than its allocated space after modification so it will be immutable but the collection itself can still be used to add or remove elements.If there is any needed to modify an element after,it will lead to a reallocation where the allocator will then calculate the smallest space that can hold it and then take it to the vector by replacing the one at the original index with it although it will lead to consnat reallocations on every modification so each element will be immutable by default.This is because the allocation itself is determined by its initial value.i want to use this to create an optimized vector since all the elements of a vector must take the largest allocated space for any of the elements which might lead to unused space from other variables
+
+*Rust allocates more space for strings than required to prevent constant reallocations
+
+* strings themselves also have predicatble allocations.its actually a vector of 1 byte per element.So strings have the perception of taking the smallest amount of size required for the string seeming like variable size allocation but its actually a predictable allocation.Its true that strings and vectors themselves have variable allocations but the elements in them have predictable allocations.
+
+*the problem about predictable memory allocations is that they must be true for all elements in the collection which is too general of an assumption that may lead to unused memory by some elements thus causing fragmentation
+
+^so this is the normal vector:Vec<i32> = vec![12345, 6789, 1000000, 2, 56, 789, 12, 345]; taking up 32 bytes but mine:Vec<i8>[12,34,-5,67,-89,10,-105,-2,-56,78,-9,12,34,-5].the 105 reads 5 zeros in this chunk.the positive number to the negative number concatenated together after removing the neg sign reassembles the original element separately from others.this will take 14 bytes.
+
+*so the rule is simple:chunk the integers in the vectors into two digits.the last one or two digit chunk that's part of the integer will have the - sign to indicate that its the last chunk so when it needs to get reassembled,all the elements from a positive chunk down to the neg one will be concatenated to give the original integer.the - will not be involved in the concatenation as its just an indicator that will be ignored during the concatenation process.To represent something like 100000,where zeros will be a chunk but will lose info as it will just be 0,it will use 200s to rep the count of zeros in this chunk by ignoring the leading two and reading the values after.This means that at most,it can rep 55 zeros which is big enough for many numbers.100s will be used to indicate that a chunk is negative.this will always be the starting chunk of an intger if its negative.it will ignore the leading 1 and count the remaining two digits as the chunk so 199 will be read as -99.The choice of purpose for the 100s and 200s is so that a large range of zeros can be rep while also allowing neg integer chunks of any size to be a valid i8 type as a chunk wont exceed two digits.The 100s can have the neg sign to indicate that its the last chunk for that integer.216 no longer rep 16 zeros but 6.the offset is 10 since 201-209 is used for sparse zeros 
+
+*this algorithm makes the individual elements of a vector to take the smallest amount of space it can take rather than every element taking the space of the largest integer that will not be utilized by all elements.A direct solution would have been to create an allocator that does variable sized allocations for each element in a vector but that will be complex.a workaround is the algorithm i made.It gives the perception of a variable sized allocator but it actually just takes advantage of the problem to create more accurate predictable allocations.it manipulates the problem to become the solution.thats a workaround rather than a direct solution to the problem like a new allocatorA vec<i32>[123456,90,12000] will have 12 bytes because rust will make each element take the size of the largest integer for predictable allocations but only the first is 4,the second is 1 and the third is 2.So my algorithm rerepresents the vector in a way that ensures that the element doesnt take more than required.My algorithm will turn this vector to: vec<i8>[12,34,-56,-90,12,-213].This array then takes 6 bytes.which is what it would have been if rust did variable based allocation.The first three chunks 12,34,-56 is 3 bytes.123456 can actually be rep in 3 bytes but because rust doesnt have i24,it rounds to 4 bytes but my algorithm makes it to only take 3 bytes.it reads from the first chunk and concatenates it with the adjacent one till it hits a chunk with a neg sign which indicates that that chunk is the last one for this number.the fourth chunk -90 is for the second element 90 which only takes one byte and 12000 is 12,-213 which reps 12000 in two bytes.If you use the vector from this algorithm it will seem like a normal vector that somehow uses some variable allocator but really,it represents the vector in a way that leads to more accurate space savings.its still uses an i8 so it is actually still using a predictable allocator
+
+*so a workaround is just a reinterpretation of the problem.It doesnt directly solve it but rather,it manipulates the limitations cleverly to become the solution which doesnt require changes to the underlying system .While a direct solution will require a new different approach to the underlying system which is more complex but leverages standard approaches that guide its implementation.Since the workaround doesnt actually change the internals,it leads to code thats easier to understand and doesnt require any new integrations.The workaround is a clever approach while the direct is a standard approach but both can achieve the same effect like my algorithm over using an actual variable allocator.
+
+*so in rust,the constructor explicitly returns an instance and its the instance methods that have access to self implicitly but in other programming langs like js and python,the constructor doesnt explicitly return an instance of the class but rather uses self to set parameters that belongs to that instance
+
+*match case,if let,let else,while let
+
+*its only &str slices that i can safely slice into
+
+*If you attempt to read past an array,it will lead to a buffer overread and if you attempt to store a larger integer than what was allocated,it will wrap around the value which will lead to heavy data loss
+
+*turbofish syntax is for supllying type annotation to functions that accepts them as generics
+
+*so usize is just a platform dependent unsigned integer.whats so different about this from u32 or u64.This ensures it can address the maximum possible size of a collection on the given platform.
+
+*all slices must be a ref because the size cant be known at compile time.A slice is just a view into a portion of an array or vector.
+
+*"" is for string literal while '' is for a character
+
+*References to temporaries are only valid in cases where the function copies the content from the reference and not borrow it like that in concatenation
+
+*To convert a string to a number,we use the parse method and for vice versa,we use the to string method.the parse method returns an option object.
+
+*generics are resolved at compile time
+
+*By using rust ownership system,you can create a function with an empty body and a signature that takes ownership of any variable passed to it to directly control deallocations.although this isnt a common practice and its still safe,its recommended to allow rust control the deallocations for you.
+
+*data on the stack can never escape its scope.it can only be copied to another while heap data can live beyond its scope by transferring ownership to data to another scope.This means that the lifetime of heap data can be extended while stack data cant.Box allows us to make stack data go to the heap for extending its lifetime
+
+*Box makes it easier to manage the lifetime of any data by making it have ownership semantics which is easier to understand than returning copies even if its at the end of the scope where it will be immediately dropped
+
+*Rc allows to create multiple owners ensuring that the data is only dropped after all the owners have gone out of scope.This is good for shared data
+
+*unsafe is a block of rust where rust allows the programmer to use raw pointers and the rust compiler wont check if its safe because there are no guarantees or rules.Its like proceed if you have acknowledged the consequences.
+
+*Any literal used in code without being assigned to a variable like in an if statement will be dropped after that line.does this temporary data go to the register
+
+*smart pointers are best for dynamic sized types,complex lifetimes and shared ownerships
+
+*The capacity of a vector is the amount of space allocated for any future elements that will be added onto the vector. This is not to be confused with the length of a vector, which specifies the number of actual elements within the vector. If a vector’s length exceeds its capacity, its capacity will automatically be increased, but its elements will have to be reallocated.
+
+*in order programming languages,if statemenst cant return values outside of its body to a variable directly but only to outside of a function like python and js and thats why there is a ? operator while rust allows any scope to return values directly from itself to a variable.this allows for explicitness
+
+*I cant typeannotate in function calls and loops only in signatures
+
+*Literals can also have type info appended to the end of their value in the case of integers
+
+*In rust,i cant directly access instance methods like i can in js because in js,a barebones instance is implicitly created first before my constructor uses it to set values which also allows the constructor to call instance methods directly but in rust,constructors can either create an empty instance,modify it and return it or they can directly return an instance of the struct in the end of their definition.For the first option,i have to create the self instance object first before accessing instance methods and then return that same object.For the second method,its more explicit but i wont be able to access instance methods or getters in the constrcutor.if i made an instance explicitly but returned a new struct instance at the end of the constructor it wont be the same object.So there is no valid way of combinin g the two options in rust
+
+*in rust,objects are actually instances of structs which means that they belong to the struct they were instantiated from.The are direct representation of the struct with concrete values.While typescript objects dont belong to their interfaces as they are literals/plain objects and only conform to the contract of the interface.They dont belong to anything unless you do so with classes.An interface cant have concrete methods defined on it meaning that an object that coforms to the interface must provide their own implementation of the method in order to use it while in rust,structs provide concrete implementations of methods ahead of time for objects instantiated with them
+
+*Structs and classes are similar but struct objects dont have to use the struct constructor.They can directly assign themselves as instances to the struct using the struct literal while classes require that the objects must be created from the constructor and structs dont support inheritance and polymorphism
+
+*the new keyword tells ts to create an instance and implicitly pass it to the constrcutor
+
+^Rust doesnt have null or undefined,it has option.it doesnt have void but rather,it has the unit struct() and it doesnt have the never type but rather the Result type.
+
+*A method that doesnt have self is a class method but if it has,its an instance method.Instance methods are the only time when rust implicitly passes self to the method.its that what the dot notation is for.
+
+*Rust has the following notations; the : notation,the :: notation,. notation,<> notation,::<> notation and the -> notation.If i want to specify type annotations,i use the : notation.For instance mtehods,its the . notation,for accessing anything from the module system and struct methods,its the :: notation, if i want to specify that a function takes generics and has lifetime information,i have to do it in its signature using the <> notation.if i want to call that same function and specify the type,ill use turbofish notation which is ::<>.If i create a struct and i want to type annotate the specific generic,its the the struct<> notation.To specify the return type of a function,we use the -> notation.In rust,i cant do methods on a generic directly without specifying the traits it implements.i can do that using the : notation infront of the generic or the where statement.
+
+C--raw pointers
+C++--smart pointers
+Zig--safe allocators
+Rust--Ownership
+Nim--Tunable garbage collector
+
+^&100u8,index as u32--Type casting
+^self hosting compiler
+
+^porting vs calling--interopability
+^work around,direct solution
+?errors as value vs exception
 ?Abstraction vs control
 
