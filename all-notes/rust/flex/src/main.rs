@@ -54,7 +54,8 @@ impl Flex {
     fn get_internal(&self)->&Vec<u8> {
         return &self.internal
     }
-    fn get_data<T>(&self,ind:usize)->i32 {
+    fn get_data<T>(&self,mut ind:usize)->i32 {
+        ind -= 1;
         let internal:&Vec<u8> = self.get_internal();
         let mut terminators:Vec<i32> = vec![0];
         let mut string_data:String = String::from("");
@@ -100,14 +101,14 @@ impl Flex {
     }
 }
 fn main() {
-    let shoes: Vec<i32> = vec![1234,20,901,43,90090000,23885,900,9899,8876,8,8,8];
+    let shoes: Vec<i32> = vec![1234,20,901,43,90090000,23885,900,9899,8876,8,7,8];
     println!("Original bytes:{}",bytes(&shoes));
 
     let mut flex_shoes:Flex = Flex::new(shoes);
     println!("Number of bytes of flexible vector:{}",bytes(&flex_shoes.internal));
 
     let re_rep:&Vec<u8> = flex_shoes.get_internal();
-    let test_data:i32 = flex_shoes.get_data::<i32>(2);
+    let test_data:i32 = flex_shoes.get_data::<i32>(11);
 
     println!("Test data: {test_data}");
     println!("Test re-rep: {:?}",re_rep);
@@ -126,6 +127,10 @@ fn main() {
 
     flex_shoes.reset();
     println!("Number of bytes of flexible vector:{}",bytes(&flex_shoes.internal));
+
+    let stats:Vec<i64> = vec![23,77,88,99,10,11,11,11,1,1,1,99,9,999,11,22,33,22,23,33,33];
+    let flex_stats:Flex = Flex::new(stats);
+    println!("Number of bytes of flexible vector:{}",bytes(&flex_stats.internal));
 } 
 
 //when its a chunk that starts with zeros its 200 or 220 for one zero only.the one will be read as zero but it means thats the end of the last chunk.220-255 is still left to be utilized
