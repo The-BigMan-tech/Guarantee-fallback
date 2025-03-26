@@ -976,6 +976,36 @@ todo:Read rust chapter 9.2
 
 *in rust,i can write any variable's value in its value literal,binary literal or hexadecimal literal.You can in js but binary literals are always 8 bytes so its not as memory efficient as it looks but in rust,you can make it one byte or more.i can use binary directly to store many flags all in just one byte instead of many booleans that will take a byte each.
 
+*You have to declare generics in the function signature before you use them
+
+*The <> notation is used for defining generics.Generics can lead to a mismatch error if many field use a genercic type but dont actually use different types at compile time.Its best to have only a few generics
+
+*When you recognize situations in your code with multiple struct or enum definitions that differ only in the types of the values they hold, you can avoid duplication by using generic types instead.
+
+*You can define generics on individual methods/functions but if you define generics in struct definitions,the entire impl block must have the generic type defined in its signature but it doesnt have to use it in any of its methods.This is so that any method in the impl block can get ready to use a field from the instance thats a generic.The reason this is so is that whenever you use the struct that has the generic,you must provide a type to it.you can provide a concrete type or another generic.impl blocks arent the struct so they cant access its generic directly so it has to supply types to it like everything else in the codebase.If it provides generics,it must use a generic from its scope which means that you have to define the impl block with its own generic using the <> notation.it can also supply a concrete type
+
+*Generics have zero runtime cost because rust expands the method,struct or enum that uses the generics for each concrete type used in the source code into duplicates at compile time.
+
+*Since rust is object based and not oop,you cant directly make struct fields private but you can work around it by encapsulating it in a module scope which keeps everything private unless explicitly stated public.which means that all the fields in the struct will be private and can only be accessed through methods and can only be instantiated by a constructor unless you mark specific fields public with the pub keyword.
+
+*Modules can be accessed through a relative path if they are declared in the same file where its used
+
+*Generics are too arbitrary so rust needs more informations on generics to validate their operations.Thats what a trait is.A trait is a method that a type implements
+
+*A struct,an impl block all encapsulated in a module is rust equivalent to a class. this class equivalent is made by composing a struct and an impl block together.Rust calls their methods associated functions that can behave like constructors.
+
+*impl blocks are associated with the struct.They dont belong to the struct.
+
+*traits are just contracts like structs.combined together,they are the equivalent of an interface in typescript.They are just contracts and any implementation must be done by impl blocks or providing concrete values in its assignment
+
+*traits are mostly used with generics because they are used for defining shared methods so that you can work with the same method but on different types.
+
+*polymorphism is when multiple objects or types have the same method signatures but different impls meaning that traits provide a form of polymorphism
+
+*all the methods from a trait are public by default cuz they are shared
+
+*we use the impl for block for traits
+
 C--raw pointers
 C++--smart pointers
 Zig--safe allocators
