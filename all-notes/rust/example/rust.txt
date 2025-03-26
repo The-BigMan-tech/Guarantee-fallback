@@ -1036,6 +1036,25 @@ todo:Read rust chapter 9.2
 
 *a bug in a c++ program that will cause undefined behaviour is one that c++ doesnt explicitly handle,understand its behaviour or state what should happen and they are left in the hands of the environment the program runs on which can cause unpredicatble and inconsistent results.
 
+*string literals go to the static storage which has a permanenet lifetime
+*you can write binary literals on any type.for a binary literal for a byte,you use a binary literal on u8
+
+*the static storage is storage that is directly included in the program's binary in the read only section of the program.Data stored in the static storage cant be computed at compile time
+
+*References in rust get invalidated when they go out of scope meaning that if the lifetime of the data they ref has a more extended lifetime like string literals,the ref gets invalidated but the string literal remains in the program which means that the data a reference refers to can outlive it and to prevent the otherwise where a ref mistakenly outlives its data which can create a dangling ref.
+
+*string literals are created at the compile time of the program and are more memnory efficient than heap allocated data because of no need for allocation costs.the compiler can reuse literals rather than creating unique instances each time.
+
+*a constant allows me to move any data that would have gone to the stack to be included in the programs binary to have a permanent lifetime while immutability doesnt affect its location but it prevents the data from accidentally mutated
+
+*a let variable is tied to the lifetime of its scope so outside its scope,it gets invalidated even if it holds a ref to static lifetime data but constants arent tied to the lifetime of their scope.they live throughout the program but arent visible outside of their scope so they dont get invalidated outside of their scope,they arent just visible.Its about Validity vs Visibility.Constants can be declared top level since they arent tied to any scope while let variables cant even though they ref static storage
+
+*lifetime annotations are just constraints that we must follow.They are used in functions to indicates that the returned reference will have the same lifetime as defined by any of the parameters of the function's choosing provided that its valid.They are used to ensure you dont mistakenly create dangling references.Rust replaces the lifetime placeholders with concrete values using the lifetimes of the parameters. if the params have the same lifetime annotation,rust takes the smaller one to ensure that the returned one isnt used beyond its scope but if they are different rust uses their separate lifetimes.the problem about using different annotations is that there you have to ensure that you return the one that lasts longer as rust cant know ahead of time which one will outlive the other.If you try to use the returned reference beyond the lifetime of the shorter input, the compiler will produce an error, preventing potential runtime issues.
+
+*lifetime annotations should have more descriptive names about the data over generic names
+
+^Rust has a bunch of ways of providing full and explicit access to the stack,heap and static memory.
+
 C--raw pointers
 C++--smart pointers
 Zig--safe allocators
