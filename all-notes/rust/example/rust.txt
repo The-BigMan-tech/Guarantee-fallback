@@ -1006,6 +1006,36 @@ todo:Read rust chapter 9.2
 
 *we use the impl for block for traits
 
+*A method that takes self is an instance method and one that doesnt is a class method.
+
+*when you have a library of classes,you dont have to code a new object from scratch but you can just inherit from any class you want and override some functionality.
+
+*There can be a default trait.which has an implementation but can be overriden.
+
+*the From method on any struct is a special constructor that takes an object of one type and return the struct type's equivalent of it
+
+*A trait encapsulated in a module block allows for a form of abstract classe.The difference here is that traits arent inherited,they are only implemented which means that a struct can impl the traits it chooses and override it.
+
+*The best part about implementation over inheritance is that one doesnt have to worry about inheritance heierarchy especially in languages like js that makes this difficult.you only focus on th functionality that it has.This means that new structs can be created by composing it of other blocks
+
+*string from,to string and format
+
+*A method in a trait can use self to call another method from the same trait even if that method on the trait doesnt have a default impl.this is because any struct that implements a trait must provide concrete impls to all the methods from that trait.but a method defined in a trait can use self to call any field or method particular to a struct that impls it.this is because traits arent meant to be shared so they are not directly associated with any struct that impls them.
+
+*A function can take a trait as a parameter instead of providing a concrete type which means that it takes any type that implements the trait by using the impl Trait syntax.It can take it as a ref or own it.The impl trait syntax is just syntatic sugar over the trait bound syntax.The impl trait syntax is better if each of the parameters take different types but implement a particular trait meaning that the function only cares about the traits the type has and not any relationship between the parameters types but if the function requires the parameters to be of the same type and implement the same trait,then the more verbose trait bound syntax is used.The + operator is used to specify that the paramter must have more traits.The where clause syntax is used to remove the clutter from the trait bound syntax by separating the trait information into its own block separate from the generic information.A function can also return a trait to specify that it returns any type that implements this trait.This is done with the impl trait syntax although you cant have the possibility of returning more than one kind of type that implements the trait meaning that if a function returns a type that implements a particular trait,it cant return one type in a conditional block for example and return another in another conditional block i.e they must be consistent
+
+*You can conditionally render implementations for an instance of any type by specifying trait bounds in its generic type info signature of the impl block.It means that it only renders implementations for that instance if the type it provided as a generic to the struct has the specified traits.The implementation block can also be made to conditionally implement traits and not just methods.This is called a blanket implementation.It ensures safety as it will be wrong for the impl blocks to assume that every instnace of the struct uses types that satisfy a particular trait
+
+*the conditionally rendered method impl block is for implementing methods only when a trait is satisfied while the conditional trait impl block is for implementing another trait when another trait is satisfied.
+
+*undefined is a variable that has been declared but hasnt been set to any value as the value is indeterminate till its initialized.So if an unitialized declared pointer is used in the code,it will lead to undefined behaviour as the memory address the pointer points to is undetermined and its very unsafe.a null pointer is a safer option as it tells the compiler that the pointer doesnt point to any valid memory address.
+
+*Dereferencing means accessing the value a pointer points to.If you try to dereference a null pointer,you are attempting to read/write to an invalid memory address which will lead to undefined behaviour.
+
+*An uninitialized pointer is a pointer that is declared but without a value.Rust doesnt allow it.
+
+*a bug in a c++ program that will cause undefined behaviour is one that c++ doesnt explicitly handle,understand its behaviour or state what should happen and they are left in the hands of the environment the program runs on which can cause unpredicatble and inconsistent results.
+
 C--raw pointers
 C++--smart pointers
 Zig--safe allocators
