@@ -1053,6 +1053,68 @@ todo:Read rust chapter 9.2
 
 *lifetime annotations should have more descriptive names about the data over generic names
 
+*0b is for binary literal while b"" is for byte string literal.The first is for manipulating data at the bit level while the second one is for writing strings in abyte format over utf-8.
+
+
+^----TO BE SUMMARIZED-----------^
+*A ref is a shell over a pointer
+
+*smart pointer,pointer and a ref.so they are the same thing in implementation.they are encapsulate pointers and have meta data but smart pointers manage themselves while refs are managed by the gc
+
+*a ref in rust is a pointer to the addres of an owner.since the ref doesnt point to heap allocated data,it doesnt need to be managed by itself,rust or the programmer,the stack pops this out automatically but a ref in js directly points to the heap allocated data so it has to be managed by the gc.so the difference here is that the first is an indirect/borrowed ref while the second is a direct gc ref
+
+*Reassigning changes the memory location of the data it holds on the heap.Redeclaring creates a variable with a new memory address on the stack that has the same name as the owner.It will also point to a separate memory address on the heap.It creates a new variable that overshadows the previous ones meaning that subsequent uses of that variable is to the new one not the old one.Mutating doesnt change the memory location of the data it holds.it changes the data directly at the location in the heap.
+
+*so a weak ref is direct ref to the heap allocated data but it doesnt increase the ref count in the gc for that data this means that in a gc language,all ref are direct refs and as such,they have to be managed by the gc but in rust,there can only be one direct ref which is the owner thats a smart pointer.all other refs are indirect and only point to the address of the owner.
+
+*To access the data that a pointer points to,you have to dereference it with the dereference operator * buut rust automatically does this when you want to access the data an owner points to.
+
+*ref to variable and ref to data
+*an owner is a smart pointer.
+*A pointer is a variable that holds the memory address of data on the heap
+
+*an owner becomes a ref only whenit encapsulates a pointer.a ref is a shell over a pointer and if an owner can have a pointer,its a ref except that in rust,an owner is a special kind of ref that can only be created once.other refs will have to be a borrowed ref. but in js,all references are treated equally.
+
+*The owner itself is stored on the stack.it contains a pointer,length and capacity information but the data it owns is on the heap.it uses internal pointers to access that data so the key here is to ensure that the stack data doesn't outlive the heap data.By keeping onwer data on the stack,it can get deallocated by the stack memory automatically.rust just checks that if it does,the heap data is dropped.C++ pointers to are stored on the stack but any heap allocated memory must be explicitly freed.whwn you transfer ownership in rust,rust copies the owner metadata from the original location in the stack and transfer it to the new variable in the new scope and invalidates the old one
+*the ref points to the owner and the owner points to the data if the data is on the heap. ref stores the location of the owner on the stack
+*if the ref is a pointer to the data,then isn't it the same as an owner in rust or is the difference that in rust,only one variable can hold the pointer data at a time while in js,many variables can hold that same pointervdata
+*a ref uses a pointer to access the data on the heap
+*a ref encapsulates a pointer and since it's a shell over a pointer,pointer operations can't be directly done on the reference
+*the owner of data is actually a ref to that data but the difference between this and refs that borrow is that refs that borrow points to the owner on the stack not directly to the heap data while owners point directly to the heap data
+*But if the owner only has an integer,the owner won't have any pointer.it has the integer directly in one of it's properties
+
+*so the gc has three types of algorithms;reachability,generation,compaction and when it runs
+*reachability--to free memory--runtime ref counting,marking
+*generation--splitting memory to young and old
+*compaction--trace and compact
+*when it runs---incrementally or concurrently
+
+*The gc uses more than one algorithm besides ref counting.Ref counting and marking are the two ways of determining reachability.Its limitation is that it cant handle cyclic ref.Another one is generational collection which is when younger refs are collected more frequently and older ones are collected less.This is based on the observation that younger ones have a shorter use case.It involves dividing the heap;reachable and unreachable,young and old.
+
+*so a cyclic ref doesnt affect the fact that they will both point to the same heap data except that cyclic ref will never allow any of the refs to drop to zero as there will always be a ref to the ref so it will never be garbage collected leading to a leak.A cyclic ref will be dropped once they go out of scope but if there is nay ref to any of the refs in the cycle,it prevents the other from dropping its count.
+
+*They also perform tracing which is when they mark and compact instead of cleaning to reduce fragmentation.also stop and copy to prevent fragmentation
+
+*so in rust because there is only one direct ref i.e the owner,the variable can drop the data after it goes out of scope but because in gc languages there is more than one direct ref,no variable can choose to drop it once it goes out of scope as it will invaldate others so ref counting has to be done where each direct ref increases the count and as they go out of scope,they drop the count.its only when the gc guarantees that there is no direct ref to data i.e all the direct refs have gone out of scope,it clears it.reachability means if there is anyone using the data
+
+*Gcs do their work incrementally or concurrently
+
+*so marking is by crawling through all direct refs in the code,if there is no direct ref to data on the heap which means it has gone out of scope,the gc will drop that memory on the heap
+
+*the gc doesnt run as the program runs but rather,at intervals like when the memory is reaching a threshold,when its explicitly called by the programmer or when there isnt enough space.This means that gc languages dont free memory as the program runs but only at intervals which can be less efficient if some data being used is very short lived.while in rust,rc doesnt include a gc,there is no code that manages ref counts.the owners are smart pointers so the last owner will deterministically free memory once it goes out of scope meaning that ref counting in this case,frees memory as soon as its not in use.
+
+*The owner cant outlive the data and a ref cant outlive the owner
+
+*the ownership model in rust as enforced by the borrow checker isnt a memory manager like the garbage collector.The gc is its own codebase that manages the memory of the application's codebase that uses the memory while the borrow checker doesnt manage the memory of my code.it only enforces rules.Its the owner themselves that manages deallocations.They are responsible for managing their own memory and the borrow checker ensures that they do.This is a smart pointer.It doesnt rely on anything to manage itself.This is because that since rust only allows one direct ref,each owner can be responsible for the memory they use but since gc languages use multiple direct ref,no direct ref can take an action or a decision on what should happen to the data it points to in memory so it requires the gc that watches out for them.but how does rust rc allow multiple direct refs without a gc and why cant other programming langs do mimic rc for a more efficient mem management unless it will require the programmer to understand the mem usage of their program as thats what they want to prevent so that they can focus on their apps
+
+*so in rust,every owner has a destructor thats called when they go out of scope.their scope lifetime is handled automatically by the stack because the owners themselves are on the stack.when their destructors are called,they free the memory they were pointing to.This makes them smart pointers.In rc,there can be multiple owners or multiple direct refs but this will create a scenario for making a gc like it is n js but this will lead to having another runtime which will not free mem as soon as the owners go out of scope and together with the runtime costs,it is not very efficient especially for rust standards.so rust makes many owners of the same rc instance to share a state called ref count.each time thy go out of scope and their destructor is called,they decrement this shared state and if another owner's destructor is called when the ref count is already zero,it frees the memory.This shifts ref counting ti the owner themeselves and not a separate runtime making the owners still smart pointers and deterministic unlike direct refs in js an python that dont manage themseleves and require the gc as a separate runtime
+
+^-----------------------------^
+
+xcode vs vosual studio
+swift vs c#.net
+
+
 ^Rust has a bunch of ways of providing full and explicit access to the stack,heap and static memory.
 
 C--raw pointers
