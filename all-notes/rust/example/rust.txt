@@ -1117,6 +1117,11 @@ todo:Read rust chapter 9.2
 
 *for loop uses a ref and not ownership of the vectors so that each loop counter doesnt own each element of the vector which will make it unusable after the loop.so vectors dont allow for loops to consume them unless they become iterators through the into iter method which rust calls implicitly if you try to directly consume a vector in a loop.i can also loop over it as a ref annd put both of them in a scope and continue execution in the outers scope to free the vector after loop is done.the scoping of the vector and the loop in a scope to drop the vector after the loop is good if maybe after the loop,i may use the vector for a few more lines but after that,its no longer needed
 
+*we dereferce twice when deref refs in rust because one is to get the address of the owner and the second is to get the address of the data it points to
+
+*i have to convert a vector to an iterator before doing functional operations
+
+^closure before io
 
 ^-----------------------------^
 
@@ -1140,3 +1145,32 @@ Nim--Tunable garbage collector
 ?errors as value vs exception
 ?Abstraction vs control
 
+*rust closures are anonymous functions unlike functions,closures can capture scope meaning that they are not isolated like funtions that require data that enters them to be explicitly stated.Closures allow one to skip type annotations.apart from the pipeline operator,a closure is syntatically similar to functions.liuke arrow functions,closures can remove the braces if they only have one expression.Closures must evaluate some expression on the variable they use so that rust can infer its type annotation in input and on return.if there is no expression for rust to infer the type,the first use case of the closure creates the inference info that rust will use subsequently.a variable can bind to a closure definition, and we can later call the closure by using the variable name and parentheses as if the variable name were a function name.
+
+*a closure is an anonymous function that can be stored in a variable.depending on what the closure captures the variables from its env for,it can capture it as an immutable ref,mutable ref or by ownership.The move keyword tells a closure to take ownership of all the variables it captures.
+
+*an fnonce trait is a closure that can be called.by default,all closures implement this trait.a closure that moves values applies only the fn once trait and can only be called once because the variables required for it to work have becom invalidated.FnMut is a closure that mutates the values it captures but it doesnt take ownership so it can be called more than once.Fn trait is applied to closures that dont mutate the variable they capture or dont even capture variables at all.they can be called multiple times safely.
+
+*Traits for closures in rust are rules on how a closure can be called.A higher order function or method can define traits in its signature that the caller must hold if they want to pass their closure to the function
+
+*anonymous functions are syntatic sugar over functions in all the languages but they have unique properties depending on the language.
+
+*An iterator is a special kind of generator.a generator is a function that yields values to the caller.Theres a difference between returning a value and yielding a value.returning a value returns a value to the caller and surrenders control flow back to the it while yielding a value gives the value to the caller but it doesnt terminate the control flow from the generator.the generator can be called again to resume from where it stopped to continue giving values.a generator is lazy.an iterator is a generator that iterates over a data structure and sequentially yields the value to the caller.Generators are lazy functions meaning that they compute their values on the fly instead of all at once like functions
+
+*calling next on an iterator eats it up or consume it.which is when calling the next value on the iterator increases where it is in the sequence.you can only call it as much times as it can yield values.The iter function only takes an immutable ref to the vector so that consuming the iterator doesnt take ownership of each element in the vector or modify it but you can use methods liek iter_mut that makes the iterator take mutable refs to each item in the vector and into_iter for ownership.
+
+*consuming adapters are methods that are called on iterators.they automatically call next on the iterator till they consume the whole thing.an example is sum.consuming methods take ownership of the iterator
+
+*iterator adapters like map are methods that are called on iterators that dont consume the iterator empty but rather,creates a new iterator that applies a closure on each element of the prev iterator but because these closures are called lazily,they must be consumed before they can be used and thats what the collect method is for.its for consuming iterators from iterator adapters.so the collect method collects the value from these iterators into a vector.
+
+^next,consumer adapter,iterator adapter
+
+*iteratiors in rust dont yield values like generators do,they instead use a struct to manage state and determine which values they should return.so they are actually just normal functions that give the perception of a generator while a generator in other programming langs can yield and resume execution and the state is managed by the langauge's runtime
+
+*the statement for zero cost abstractions is: you dont pay for what you dont use and you dont pay when you use it
+
+*range construct syntax [start..end] is analogous to the slice syntax in other langs; [start:end]. the range construct syntax in rust can create slices of arrays or vectors and iterators that produces values within that given range.This is also called range notation.The range object which is when its used directly without slicing doesnt directly create an iterator but rather an object that can be turned to an iterator to produce values sequentially as its implicitly done in for loops.
+
+*There are three types of doing ranging in for loops--range function like python,range object in rust and loop counter in c++ and js
+
+^11,12,14
