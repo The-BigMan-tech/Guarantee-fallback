@@ -1109,6 +1109,15 @@ todo:Read rust chapter 9.2
 
 *so in rust,every owner has a destructor thats called when they go out of scope.their scope lifetime is handled automatically by the stack because the owners themselves are on the stack.when their destructors are called,they free the memory they were pointing to.This makes them smart pointers.In rc,there can be multiple owners or multiple direct refs but this will create a scenario for making a gc like it is n js but this will lead to having another runtime which will not free mem as soon as the owners go out of scope and together with the runtime costs,it is not very efficient especially for rust standards.so rust makes many owners of the same rc instance to share a state called ref count.each time thy go out of scope and their destructor is called,they decrement this shared state and if another owner's destructor is called when the ref count is already zero,it frees the memory.This shifts ref counting ti the owner themeselves and not a separate runtime making the owners still smart pointers and deterministic unlike direct refs in js an python that dont manage themseleves and require the gc as a separate runtime
 
+*the difference between a ref and a smart pointer is that a ref doesnt manage any memory.in gc languages,refs dont manage the memory they use,so they are called refs.in rust,refs are indirect refs,they only point to the owner so there is no memory they need to manage and as such,they are termed refs while owners of String,Vec,Hashmap manage the deallocation of those data so they are termed smart pointers as part of a collection while Box and Rc,are smart pointers that only focus on the memory they use
+
+*memory usage in rust is more predicatble than in gc languages because memory is dropped as soon as its no longer in use
+
+*the algorithm used determines the speed and effective memory usage of an app regardless of either it provides abstractions or not but coding an app in a more memory controlled environment like rust can lead to unmatched performance if used well thoughtfully.even if you apply the same thought to another pl that uses gc,will rust outperfrom in terms of memory
+
+*for loop uses a ref and not ownership of the vectors so that each loop counter doesnt own each element of the vector which will make it unusable after the loop.so vectors dont allow for loops to consume them unless they become iterators through the into iter method which rust calls implicitly if you try to directly consume a vector in a loop.i can also loop over it as a ref annd put both of them in a scope and continue execution in the outers scope to free the vector after loop is done.the scoping of the vector and the loop in a scope to drop the vector after the loop is good if maybe after the loop,i may use the vector for a few more lines but after that,its no longer needed
+
+
 ^-----------------------------^
 
 xcode vs vosual studio
