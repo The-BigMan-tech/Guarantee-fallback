@@ -1174,3 +1174,76 @@ Nim--Tunable garbage collector
 *There are three types of doing ranging in for loops--range function like python,range object in rust and loop counter in c++ and js
 
 ^11,12,14
+
+**Smart pointers like String,Vec and Hashmap only store data structures in the heap but if you want to store data that would have normally gone to the stack but on the heap like integers,char and bool,you can use the Box smart pointer but putting a single value on the heap isn’t very useful, so you won’t use boxes by themselves in this way very often. 
+
+*Having values like a single i32 on the stack, where they’re stored by default, is more appropriate in the majority of situations and box doesnt provide any better memory performance.it just stores the data in the heap instead.But box is useful to preserver runtime in functions that return stack-allocated data so that rather than copying the data and returning it which will cost time,you can just transfer ownership of that value instead.
+
+*The reason why structs are allocated the sum of their fields is because the space will be big enough to contain all the fields that will be present while enums are allocated the size of their largest variant because only one variant can occur at a time so summing the two will be inefficient,if it were to allocate it the size of the smallest variant,it wont hold a variable thats of a larger variant and rust cant do flexible allocations at runtime to flexibly allocate space for it as rust ensures that all allocations must be predictable or known at compile time.
+
+*so a two way relationship breaks the ownership system because it becomes a recursive or cyclic structure and rust decides the memory allocation for a struct by summing the sizes of their fields or enum owner at compile time by giving it the size of its largest variant and if it were a recursive type,it will allocate an infinte amount of space to that type but it wont destroy the heap because rust will be lagging on determining the space to allocate to the type before it does use the space on the heap.
+
+*The enum owner itself will be the size of the largest variant and its stored on the stack but the data of the variant itself is stored on the heap and the amount of space it uses depends on its type annotation
+
+
+*A linked list is just an array that distributes its elements to random locations on the heap instead of a continuous block of memory.Since the memory address of each element is random,it cannot be indexed using pointer arithmetic to retrieve values which prevents access by index because a linked list disperses the elements on the heap and the only way to get the next element is by using the pointer of one element that will lead you to the next one but it will require you to start at the first element because lists like arrays decay to the pointer of the first element.The type of each element in a linked list has to be a struct that holds a value and the pointer to the next node in the list.
+
+*the cause of memory leak is not freeing memory after use and the cause of fragmentation is constant reallocations and reallocations also cost runtime.
+
+*Resizing vectors will create a reallocation where the compiler will look for a contiguos block that can hold its current size but to prevent constant reallocations,rust assigns a capacity which is extra space than the vector needs at the moment thats proportional to the size of the vector each time the vector grows to prevent the need for future reallocations if it grows in size.This may cause internal fragmentation because of the possibility that the vector will not use up all that space but if its not done,constant resizing like pushing will lead to  reallocations that will cause external fragmentation and external fragementation can cause resizing and future allocations to fail.clearing a vector removes the elements but keeps the capacity to prevent reallocations that will cause fragmentation but
+
+*but because external fragmentation will only affect Strings and Vectors and HashMaps because they each use contiguous blocks of memory for their implementation,linked lists can be allocated despite this because each of its elements are scattered bypassing external fragmentation.
+
+*stack data is for holding one value while heap data is for holding a bunch of values together.
+
+*structs and enums only take one block since rust calculates the size required for them so they go to the stack
+
+*null terminator or length as part of the metadata so that the compiler doesnt read past the block.
+
+^heap data is for collections
+^owners are stored on the stack but their values can be stored in the heap but the const are owners that are stored in static storage
+?is an owner a k-v structure
+^single linked lists in rust are created with recursive types using the Box pointer
+^recursive type and a cyclic type
+?does rust allow optional fields
+^boxes can do recursive type but not a cyclic type
+^smart pointers like vec,hashmap and string move stack allocated data to the heap but stores it in a collection that can grow and shrink.String is a smart pointer of characters
+?why do characters take 2 bytes
+
+*the heap doesnt have a neat grid structure or a particular layout
+*the stack is like putting wooden blocks of various heights on top of each other while the heap is a wide wooden board where the wooden blocks can be placed anywere without any layout drawn on the board like a grid that will define where the blocks should go.Each variable in the stack is its own memory block and each scope creates a stack frame which is a collection of these blocks stacked together in a collection and when the function exits,the stack frame is popped off.
+
+*if a struct is so large that it will lead to a stack overflow,you can use the box smart pointer to move it to the heap
+
+*the size of a vector is the number of elements it has while the capacity of the vector is the amount of space allocated to it whether its bigger or smaller than the actual size needed
+
+^enums is rust safer version of unions
+*so it isnt just rust where each element in the vector takes the largest memory that any of the elements take.even when using enums in rust or unions or variants in c++ to store a vector that seems to store elements of various types,it only keeps track of the type and doesnt affect the fact that each element will take the size of the largest type.Its just use to preserve type information.This is for simplicity,reduced overhead and to prevent inconsistency that can have undefined behaviour
+
+*the dynamic size is just determined by how many memory blocks it has.its flexible that blocks can be added and removed but the blocks themselves take a fixed space.by the functionality of heap to provide dynamic sizing which is just the placement or removal of memory blocks makes the heap just used for managing multiple memory blocks for a variable that stores other data
+
+*Data on the heap has a lifetime thats not tied to the scope of the program because they exist outside the program so they must be freed manually but rust enforces borrowing rules
+
+*The stack is for variables where the number of memory blocks that will be used for a variable must be known in advance or at compile time while the heap is for when the number of memory blocks to be used for a variable can be known at runtime
+
+*the stack can also hold multiple memory blocks for a variable but the reason why memory blocks cant be removed or added anywhere in the stack other than the top is because it will dirupt the lifo order which will cause the other blocks crumble down from the stack but in actual implementation:it will complicate predictability but in the heap,the memory block can be removed without affecting any other one
+
+*since the data on the stack is in a lifo order,you cant remove any block,you have to pop off the entire stack frame at once to clear any variable in a scope.
+
+*Because a Box<T> is a pointer, Rust always knows how much space a Box<T> needs: a pointer’s size doesn’t change based on the amount of data it’s pointing to. This means we can put a Box<T> inside the Cons variant instead of another List value directly. The Box<T> will point to the next List value that will be on the heap rather than inside the Cons variant. Conceptually, we still have a list, created with lists holding other lists, but this implementation is now more like placing the items next to one another rather than inside one another.
+
+*deref a box means taking ownership although one can reference the dereference to avoid ownership.
+
+*You cant return an option and another type in a match.they both have to return option so that the programmer explicitly handles the cases of no value
+
+*Its better to make structs own all their data for simplicity and removing the overhead of managing lifetime annotations even if the data wont shrink.
+
+*the diff between a smart pointer and a ref is that a smart pointer can manage its own mem while refs cant.refs in rust are indirect refs while smart pointers are direct refs
+
+
+*Using a pointer uses the memory address and not the actual value.To use the actual value stored at the address,you have to dereference it using the * operator,it is an operation on a pointer where you retrieve the data from the memory address that it points to.But now there are two types of smart pointers in rust;one-one smart pointer and a one-many smart pointer.You can only explicitly dereference a one-one smart pointer like Box and a mutable ref.for the Box,when moving a value out of the it,it is expicitly dereferenced but if i try to access fields on it,rust will automatically deref it for me so trying to deref it in this case will deref it twice and rust prevents it from compiling.After this operation, the Box is no longer valid for accessing the data since ownership has been transferred.It only allows explicit dereferencing on mutable refs and one-one smart pointers because if rust were to allow one to deref a one-many smart pointer like pointers to collections like vec,string or hashmap,it will lead to confusion and raises a lot of questions of what doing that actually means.Some may think that it will deref the entire collection but others and rust assumes that you typically want to access an element rather than the entire collection as it is consistent with how collections are usually used. so rust provides methods over these pointers and direct usage of the variable in reading and assignments that makes it clear what you are trying to do with that collection through the pointer.You cannot use an immutable ref to deref at all because if you use it to deref and assign,it will modify the value which can lead to races if anyone is going to use the immutable ref and if you use it to deref and return,it may transfer ownership which will make the immutable ref dangling.You can only deref an immutable variable in two strict conditions;if the data you are dereferencing to implements the copy trait or you are printing it to the standard output so that you dont move it out but rust does this implicitly in this way but mutable references have to be explicitly dereferenced when assigning the variables they point to to a new value and when they want to mutate the value they point to.
+
+*There is explicit and implicit dereferencing.You can explicitly dereference in two ways;dereference and assign or dereference and return.When the deref operator is on the left hand side of the assignment,its deref and modify but if its on the right,its deref and return.You can only deref and assign with mutable refs to data.You cannot deref and return with a mutable ref if the data doesnt implement the copy trait as rust doesnt allow mutable refs to move data form their owners if the owners are one-many smart pointers but you can for one-one smart pointer like the box and it will transfer ownership.
+
+
+*both get and indexing must return a reference to an element in the vector while remove removes it from the vector and give ownership of that value to a variable meaning that i cannot directly index into a String and give it to a variable.You have to do referencing and indexing at the same time to do this.If you remove an element from a vector,trying to access it will give index out of bounds error if the index of what you removed is greater than the new size of the vector 
