@@ -1247,3 +1247,48 @@ Nim--Tunable garbage collector
 
 
 *both get and indexing must return a reference to an element in the vector while remove removes it from the vector and give ownership of that value to a variable meaning that i cannot directly index into a String and give it to a variable.You have to do referencing and indexing at the same time to do this.If you remove an element from a vector,trying to access it will give index out of bounds error if the index of what you removed is greater than the new size of the vector 
+
+*boxing doesnt provide any better memory savings for integers or chars as their allocations are known at compile time and it only provides ownership.Boxing collections is pointless because vectors,strings and maps are smart pointers themselves designed to manage the memory they hold.Boxing is useful for structs when the structs have recursive and not cyclic types.
+
+*A tuple struct in Rust is a type of struct that is defined using a tuple-like syntax. Tuple structs allow you to create a new type with named fields, but unlike regular structs that have named fields, the fields in a tuple struct are accessed by their position (index) rather than by name.It isnt different from a tuple other than to give more meaning to grouped data.it also makes it more typesafe to work with
+
+*associated types are like the generics of traits
+
+*in rust,you can create functionality on operators for your types by using operator overloading.You do this by implementing traits while in python,you do this by using dunder methods.js doesnt support operator overloading.
+
+*in rust and python,operators are actually syntatic sugar over function calls only for user defined types while operators on default types like integers gets compiled directly to a cpu instructions.
+
+*the deref trait allows one to write code that uses a smart pointer as readably as a regular reference.it is called when the * operator is used on the type
+
+*deref coercion is when rust cnverts a ref on one type to a ref of another.When you have a type T that implements the Deref trait, Rust can automatically convert a reference of type &T to a reference of type &U, where U is the target type defined by Deref.The Target associated type defines what type the Deref implementation will convert to when dereferenced.
+
+*When you have a function defined to take a reference of one type, and you provide a reference to another type that implements the Deref trait to convert to the expected type, Rust will automatically perform this conversion behind the scenes.
+
+*the drop trait is automatically called when a struct goes out of scope.cleanup code in python is done with the with block which is a context manager while rust uses the drop trait while in js,its done manually.the resources that needs to be managed by the drop trait is not just memory in the case of smart pointers but also other resources like file handlers,network sockets 
+
+*rust doesnt allow one to call the drop method manually as its done automatocally when a variable goes out of scope and if you call the drop method,rust will still call it when the scope ends,causing a double free
+
+* the term destructor, which is the general programming term for a function that cleans up an instance. A destructor is analogous to a constructor, which creates an instance. The drop function in Rust is one particular destructor.
+
+*so i can implement my own smart pointers in rust
+
+*if a function doesnt use a variable,the compiler doesnt see the need to invoke the drop function but it still enforces its ownership rules but it wont bother calling the drop trait
+
+*copy is a trait and move is a trait
+
+*if multiple variables use the same data and we knew the last user of the data in advance,we wont have to use rc as we can just make the last person the owner and the owenrship rules will apply
+
+*Box::new takes ownership
+
+*in rust,if variable b is dependent on variable a either by ref or for assignment,there is no way b will outlive a because b cant be initialized before a since it depends on it and b wont be able to use the value of a outside of the scope of a as a will be invalidated so the only way around this is to declare b without a value outside of the scope of a and modify it in the scope of a so that b,the dependent will outlive a
+
+*Rc doesnt allow the owners to mutate the data as it will cause data races so the owners can only read the data.it doesnt feel much like a difference from immutable refs except that each owner is a pointer to the address of one owner but each owner is a direct pointer to the data on the heap meaning that it wont get dropped until all the owners are out of scope
+
+*Ref cell uses unsafe code to perform interior mutability which is mutating data with immutable refs
+
+*structs are stored on the stack and rust needs to know the memory to allocate to that struct at compile time and if a struct uses itself in its field,rust will have to calculate the size that that struct will take and again and again that will lead to a recursion so Box solves the problem of recursive type moving data to the heap which means that rust doesnt have to calculate the size all at once,it just stores a pointer to the field of the struct that refs the struct an since its a pointer,the data is shifted to the heap which allows for rust to opt in more memory blocks as more structs are added but Box requires that the data must have a single owner so if two structs ref themselves,Box wont decide who owns who to decide who is responsible for deallocating the memory once out of scope so Rc fixes this by doing what the Box does but also allowing multiple owmers of data to coexist by using ref counting.this ensures that the data is only dropped when all the owners go out of scope but to prevent memory leaks from cyclic ref,one can use a weak ref which wont affect the ref count
+
+*a declared variable is not mutable because its value hasnt been decided yet
+
+*Rc and refcell are only single threaded scenarios
+*Because RefCell<T> allows mutable borrows checked at runtime, you can mutate the value inside the RefCell<T> even when the RefCell<T> is immutable.Mutating the value inside an immutable value is the interior mutability pattern.Using RefCell<T> is one way to get the ability to have interior mutability, but RefCell<T> doesn’t get around the borrowing rules completely: the borrow checker in the compiler allows this interior mutability, and the borrowing rules are checked at runtime instead. If you violate the rules, you’ll get a panic! instead of a compiler error.
