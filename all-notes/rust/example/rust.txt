@@ -1292,3 +1292,84 @@ Nim--Tunable garbage collector
 
 *Rc and refcell are only single threaded scenarios
 *Because RefCell<T> allows mutable borrows checked at runtime, you can mutate the value inside the RefCell<T> even when the RefCell<T> is immutable.Mutating the value inside an immutable value is the interior mutability pattern.Using RefCell<T> is one way to get the ability to have interior mutability, but RefCell<T> doesn’t get around the borrowing rules completely: the borrow checker in the compiler allows this interior mutability, and the borrowing rules are checked at runtime instead. If you violate the rules, you’ll get a panic! instead of a compiler error.
+
+*In python and js,functions can capture variables from their environment or outer scope meaning that they can share and modify the same data by moving data to the top level scope.The global keyword can move any variable from any scope to the top level scope to implement sharing of data across functions while in rust,functions are completely isolated meaning that they cant capture variables from their environment only child scopes can capture variables from the parent scopes while functions requires you to pass any data that it will use from the parent scope to it to prevent accidental side effects but you can use closures which are anonymous functions that can capture data from their environment.
+
+*Persistence and sharing data amongs functions
+
+*global variables dont take data to the heap.they just move the scope of the variable to the top scope so that multiple functions can capture it
+
+^Code editors rely on consistent font sizes to correctly render cursor placement
+
+^update the flex type to have many traits and better performance
+
+*cyclic ref: when A->data,A has a ref count of 1 and when B->A,A now has a ref count of 2 because it contributes two pointers to the same data and B has a ref count of 1 because B contributes one pointer to the data so its now 2 for A and 1 for B and if A->B,B now has a ref count of 2 because it contributes two pointers to the data and A now increases to 3 because it now contributes 3 pointers to the data
+
+*the ref count of a doesnt just increase when it points to data on the heap,it also increases when another variable points to it
+
+*so there are two types of references;an external and an internal ref.A variable has an external ref when it points to data on the heap or another variable and has an internal ref when its pointed to by another variable.Given two refs A and B,A->data and A will have an external ref of 1 because it points to data on the heap.then I will want to create B so that B will share the data with A so it will be B->A.A now has an internal ref because its being pointed to by B so A now has two refs and B has on external ref because it points to A.then if A->B,B has one internal ref because its being pointed to by A making B to have two refs(one internal and one external).So now,both A and B have 2 refs count each.This doesnt affect the fact that they will both point to and share the same data on the heap but it will affect the ref count to that data.When the scope ends,they will only decrease by one ref count each and it will still have a ref to the data preventing it from being reclaimed.if A goes out of scope but B still exists, A's reference count will decrease, but B will still hold a reference to A, leading to a dangling reference if not managed properly.
+
+
+*A->data,B->A,A->B
+*ref counting has two types of ref--internal and external ref
+
+*Internal references do not contribute to the strong count. They are part of the relationships between instances but do not increase the count reported by Rc::strong_count().The total reference count is simply the sum of all external references to the underlying data.
+
+*there is a linear sequence of assignment,recursive and cyclic assignment.a linear assignment has a clear ownership flow and cannot happen with types like String
+
+*Rust doesnt allow recursive types because it doesnt know how much space to allocate for the struct and it doesnt allow cyclic types because it cannot determine how to drop these instances. They are waiting on each other to be dropped, leading to a situation where neither can be freed.So the same goes for Box.without a single owner,the memory can never be freed as no one is responsible for freeing it
+
+*the rust compiler complains if it is done directly but it wont if its done in a vector/indirectly but they are still cyclic types.i taught that this somehow bypassed rust because rust didnt complain but i cant even initiliaze any of the type because it requires the other struct to be created before that one which also requires a struct from the other type to be declared first to infinity.so even if rust didnt complain,i cant even do it.This is because in this situation,the compiler does not explicitly complain at the struct definition level, but it still creates a situation where initializing instances of either struct requires the other to exist first. This results in a circular dependency that makes it impossible to instantiate either struct.
+
+*The Rust compiler checks for ownership and borrowing rules but does not evaluate the logical flow of initialization in the same way. When you define types, it doesn't check if you can instantiate them based on their interdependencies.Even though the compiler allows the definitions, you won't be able to create instances of these structs because each constructor requires the other, leading to an infinite loop of dependencies.
+
+
+*Object oriented uses a constructor with the new keyword.prototype based doesnt create objects from anything its done on the fly but can adhere to an interface or optionally a constructor while object based uses the struct's name and pass the fields or optionally using an association
+
+
+*So making matt an Rc directly and creating another instance of that per student allows many students to share the same teacher instead of one student owning that one teacher.i cant directly access the fields of an Rc because like Box,it will move it out which isnt allowed since many students share the same data unlike Box where there is only one owner at a time
+
+*Rc new creates a new data to share and rc clone is tell one to be a shared owner of the data.rc clone refs an rc not a variable directly.Rc new and rc clone creates an rc except that rc new moves takes ownership of the data meaning that if its separate from the variable,the original variable will be invalid for reuse later so to properly utilize the rc,the data to be shared must be initialized as an rc directly so that others can use it with rc clone which doesnt take ownership but shares ownership allowing the data to be reused later.in other words,the variable to be shared should be initialized with rc new and the ones to share it should use rc clone.
+
+*the reason why we use rc in both is so that not one instance of eithet structs owns the other but rather share it
+
+*If student were just an Option<Student>, then Teacher would own the Student directly. This means when a Student is assigned to the student field, the Teacher would take ownership of the Student, and you wouldn't be able to use that Student elsewhere.
+
+* by using an rc on both sides,i prevent one from owning the other but rather sharing the other,i can reuse any of the instances on demand and it allows me to create a graph relationship between structs where each struct can refer back to the other instead of a single linear flow
+
+*so for a graph relationship,no one type owns the other but if it were a linear type although i can use rc on one side of the relationship to create a cycle,it wont allow me to use one after using the other
+
+*enumerate is a consumer adapter on an iterator.it returns the index and value
+
+*We can use types that use the interior mutability pattern only when we can ensure that the borrowing rules will be followed at runtime, even though the compiler can’t guarantee that. The unsafe code involved is then wrapped in a safe API, and the outer type is still immutable.
+
+
+*Refcell only allows one owner of data at a time so a refcell cant wrap an rc but an rc can wrap a ref cell.Refcell is just like box.The difference is that the rule that there can only be one mutable ref or many immutable refs but not both at the same time is checked at compile time for Box but it isnt possible to check it for Refcell at compile time but only at runtime.This means that the code for refcell has to be in an unsafe block so that rust doesnt prevent it from compiling and the rules are ensured to be enforced at runtime by the programmer and wrapped as safe code so that the compiler doesnt complain about it but since the rules are checked at runtime,refcell panics when you brea its rules unlike box that panics.The advantage of checking the borrowing rules at runtime instead is that certain memory-safe scenarios are then allowed, where they would’ve been disallowed by the compile-time checks.
+
+*thats why we have the unsafe block.for code that is guaranteed to be safe but rust doesnt understand this kind of code so it doesnt allow it.This means that the programmer has to ensure that the code follows borrowing rules at runtime and panic if they are violated.
+
+*Box<T> allows immutable or mutable borrows checked at compile time; Rc<T> allows only immutable borrows checked at compile time; RefCell<T> allows immutable or mutable borrows checked at runtime.
+
+*the reason why rc cant be mutable directly is because its a scenario thats memory safe but the compiler wont allow it because its not sure as it will allow for data races which will be a violation.The reason why box allows mutations is because there is a single owner so data races isnt possible.Mutating the value inside an immutable value is the interior mutability pattern.
+
+*because refcell uses runtime checks,we cant use notations like & and mut & as they are compile time notations.so we use methods like borrow and borrow_mut for borrowing immutably and mutably respectively.borrow returns a branch of the refcell smart pointer,Ref while borrow mut retunrns RefMut.
+
+*Rc<RefCell<data>> creates interior mutably because it bypasses the immutable shell of Rc allowing us to mutate the value inside the rc.this allows us to mutate the value while still having the safety of rc
+
+*Box is a type,the box smart pointer is Box::new.Rc is a type but its smart pointer is Rc:new for creating the data that will be shared and Rc::clone for sharing that shared data.Refcell is a type,the smart pointers are borrow and borrow_mut on the refcell data.the same way rc keeps track of the owners sharing the data,refcell keeps track of each immutable pointer created and decreases it each time one goes out of scope,when it reaches zero,the data it points to is dropped.Mutable smart pointers dont need to be counted since only one can be created at a time.If the ownership rule is violated,it panics
+
+*the reason why only one mut ref can be created at a time so that only one process can use it at a time and not multiple to prevent races
+
+*using refcell which checks for borrowing rules at runtime will mean code that wrongly uses it wont be known at runtime and there will be additional runtime used by refcell to keep track of borrows unlike other code that checks it at compile time.
+
+*Arc is the thread safe version of Rc and Mutex to RefCell
+
+*cycles are difficult but not impossible to do in rust.one has to ensure that there is a weak ref on one side of the relationship to break the cycle.a weak ref is an owner that doesnt affect the ref count.Rc::clone returns a strong ref pointer while Rc::downgrade returns a weak ref smart pointer
+
+*weak refs dont prevent what they share to be dropped meaning that what they share can be dropped if there are no strong refs to it but the variables that own the weak ref will still remain and their refs will be invalid.This will create a scenario where they remember the data they shared but they no longer have access to it.you can then use upgrade to check on that before accessing the data by the pointer
+
+*the side that has the weak ref depends on who i want to outlive the other
+
+*weak unlike rc doesnt directly return a pointer because of the possibility that it will be inavlid.it rather returns an option object in which you have to match before use making it more verbose to write
+
+*modules must be declared in the top-level scope because modules within functions wont be visible to the module system because it will only be available if the function is called

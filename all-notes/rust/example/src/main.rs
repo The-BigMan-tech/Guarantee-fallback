@@ -1,9 +1,13 @@
-use std::collections::HashMap;
-
 mod hello;
 mod example_one;
 mod example_two;
+mod error;
+mod flex;
+mod ten;
+mod closure;
 
+use std::collections::HashMap;
+use error::question_mark;
 fn main() {
     // example_two::example_two();
     // hello::hello();
@@ -108,4 +112,12 @@ fn main() {
         *count += 1;
     }
     println!("{map:?}");
+    let result: Result<i32, String> = question_mark();
+    println!("Result: {}",result.unwrap());
+
+    flex::flex();
+    ten::ten();
+    closure::close();
+    closure::smart();
+
 }

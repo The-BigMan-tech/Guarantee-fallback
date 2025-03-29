@@ -105,7 +105,7 @@ impl Flex {
     }
 }
 fn main() {
-    let mut cars:Flex = Flex::new([1,63,61,64,-9000000].to_vec());
+    let mut cars:Flex = Flex::new([-1,63,61,64,-9000000].to_vec());
     println!("Internal Car re-representation: {:?}",cars.get_internal());
     println!("Number at an index: {}",cars.get_data::<i32>(0));
     cars.push(20);
