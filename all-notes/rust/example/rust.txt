@@ -1373,3 +1373,35 @@ Nim--Tunable garbage collector
 *weak unlike rc doesnt directly return a pointer because of the possibility that it will be inavlid.it rather returns an option object in which you have to match before use making it more verbose to write
 
 *modules must be declared in the top-level scope because modules within functions wont be visible to the module system because it will only be available if the function is called
+
+*overshadowing can lead to confusion so its uncrecommended to use it
+
+*to make a field in a struct optional in rust,you must use the option eneum
+
+one-many smart pointer--Vec,String,Hashmap
+one-one--->Box,Refcell
+many-one--->Rc
+
+*Refcell is just box but enforces rules at runtime allowing for interior mutability.By putting refcell in an rc,rust can ensure that many owners cant mutate the data and even if they do,it will be one at a time because refcell only allows one owner.
+
+*You use rc on both sides of the relationship so that both types can be reused later and are independent from each other such that one doesnt drop because of another.The one that outlives the other should use weak.it will not affect the ref count which will make the other type to drop before it
+
+^explicit code can be more verbose to read but when you do read it,you fully understand what your program is doing because it doesnt hide anything from you
+
+*it only captures it by value if i want to print it in the closure unless i use the move keyword but when i assign it to another variable,it gets moved with or without the move keyword
+
+* you cannot directly create an implement block for a built in or generated type i.e through builtin type with generics because it will override its default behaviour so you have to implement traits instead to create new behaviour for the type
+
+*the to_owned method copies data only from a reference and creates an owned instance of that data while the clone method copies any object regardless of whether its a reference or not so its general purpose while to owned is optimized for references
+
+*The process of creating snapshots to save a particular state of data is often referred to as "cloning" or "copying" the data. This allows you to work with separate instances of the data, avoiding issues that arise from shared mutable references. Cloning helps in situations where you need to maintain distinct states for different variables or contexts.
+
+*upgrade turns a weak ref to a strong one but in an option object in case what it refs to is no longer there
+
+*long method chaining is used to access deeply nested types.The number of methods in a chain increases with how nested a type is
+
+*clarity is not equal to easy-readability.Code that is clear is very explicit and informs the programmer about everything that goes on in the program preventing wrong assumptions that can lead to bugs but makes it more verbose to write while code that is easily readable is more implicit but hides what the code does underneath that create wrong assumptions that can lead to bugs.The first creates more reliable code while the second creates rapid software.Bugs are harder to leak in rust than in typescript
+
+^the swap function of my Teacher:in the previous one,i effectively swapped the students the teachers were pointing to by using snapshots of their students but i didnt correctly update the students to reflect this modification because i changed the name property without actually changing the teacher objects they were pointing to so when the students of the teachers were swapped, the students were still tied to their original teachers, which resulted in the names being mixed up and the reason why it worked this time because i made the teacher property of each student point to their respective teachers post-modification.
+
+*linear relationship,recursive relationship and cyclic relationship

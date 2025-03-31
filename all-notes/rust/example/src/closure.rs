@@ -1,7 +1,7 @@
 use std::{cell::Ref, rc::{Rc,Weak}, vec};
 use std::cell::{RefCell,RefMut};
 
-use teacher::Teacher;
+use teacher::{Teacher, TeacherTraits};
 use student::Student;
 mod teacher{
     use super::{Rc,RefCell,Student,RefMut};
@@ -11,34 +11,75 @@ mod teacher{
     }
     impl Teacher {
         pub fn to_rc(name:&str,students:Vec<Rc<Student>>)->Rc<RefCell<Teacher>> {
-            return Rc::new(RefCell::new(Teacher {
+            Rc::new(RefCell::new(Teacher {
                 name:name.to_string(),students
-            }));
+            }))
         }
-        pub fn add_student(teacher:&Rc<RefCell<Teacher>>,student:&Rc<Student>) {
-            let mut mut_teacher: RefMut<'_, Teacher> = teacher.borrow_mut();
+    }
+    pub trait TeacherTraits {
+        fn teach(self:&Self,student:&Rc<Student>);
+    }
+    impl TeacherTraits for Rc<RefCell<Teacher>> {
+        fn teach(self:&Self,student:&Rc<Student>) {
+            let mut mut_teacher: RefMut<'_, Teacher> = self.borrow_mut();
             mut_teacher.students.push(Rc::clone(student));
         }
     }
 }
 mod student {
-    use super::{Teacher,RefCell,Weak,Rc};
+    use super::{Rc, RefCell, Teacher, Weak};
     pub struct Student {
         pub name:String,
         pub teacher:Weak<RefCell<Teacher>>
     }
     impl Student {
         pub fn to_rc(name:&str,teacher:&Rc<RefCell<Teacher>>)->Rc<Student> {
-            return Rc::new(Student {
+            Rc::new(Student {
                 name:name.to_string(),teacher:Rc::downgrade(teacher)
             })
         }
         pub fn get_teacher(&self)->Rc<RefCell<Teacher>> {
-            let teacher: Rc<RefCell<Teacher>> = self.teacher.upgrade().unwrap();
-            return teacher
+            let teacher: Option<Rc<RefCell<Teacher>>>= self.teacher.upgrade();
+            match teacher {
+                Some(value)=>value,
+                None=>Teacher::to_rc("", vec![])
+            }
         }
     }
 }
+pub fn cyclic() {
+    let matt: Rc<RefCell<Teacher>> = Teacher::to_rc("Matt", vec![]);
+    let paul: Rc<Student> = Student::to_rc("paul",&matt);
+    let john:Rc<Student>  = Student::to_rc("john", &matt);
+    matt.teach(&paul);
+    matt.teach(&john);
+
+    let matt_borrow: Ref<'_, Teacher> = matt.borrow();
+
+    let paul_teacher_rc: Rc<RefCell<Teacher>> = paul.get_teacher();
+    let paul_teacher: Ref<'_, Teacher> = paul_teacher_rc.borrow();
+
+    let john_teacher_rc: Rc<RefCell<Teacher>> = john.get_teacher();
+    let john_teacher: Ref<'_, Teacher> = john_teacher_rc.borrow();
+
+    println!("\nStudent: {}",paul.name);
+    if !paul_teacher.name.is_empty(){
+        println!("{} teacher is: {}",paul.name,paul_teacher.name)
+    }else {
+        println!("{} doesnt have any teacher",paul.name)
+    }
+    println!("\nStudent: {}",john.name);
+    if !john_teacher.name.is_empty() {
+        println!("{} teacher is: {}",john.name,john_teacher.name)
+    }else {
+        println!("{} doesnt have any teacher",john.name)
+    }
+    println!("\nTeacher: {}",matt_borrow.name);
+    for i in &matt_borrow.students {
+        println!("Student: {}",i.name)
+    }
+}
+
 
 pub fn close()->() {
     println!("Hello closed");
@@ -106,23 +147,5 @@ pub fn smart()->() {
     owner_a = Rc::clone(&owner_b);
     println!("A count: {}",Rc::strong_count(&owner_a));
     println!("B count: {}",Rc::strong_count(&owner_b));
-
-
-    let matt: Rc<RefCell<Teacher>> = Teacher::to_rc("Matt", vec![]);
-    let paul: Rc<Student> = Student::to_rc("paul",&matt);
-    let john:Rc<Student>  = Student::to_rc("john", &matt);
-    Teacher::add_student(&matt,&paul);
-    Teacher::add_student(&matt,&john);
-    let matt_borrow: Ref<'_, Teacher> = matt.borrow();
-
-
-    println!("\nTeacher: {}",matt_borrow.name);
-    for i in &matt_borrow.students {
-        println!("Student: {}",i.name)
-    }
-    println!("\nStudent: {}",paul.name);
-    println!("Teacher: {}",paul.get_teacher().borrow().name);
-
-    println!("\nStudent: {}",john.name);
-    println!("Teacher: {}",john.get_teacher().borrow().name);
+    
 }
