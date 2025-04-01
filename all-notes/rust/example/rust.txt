@@ -1458,3 +1458,95 @@ Mutex
 
 *redeclaring,reassignment,mutating through a deref or mutable borrrow
 ^dereferencing vs borrowing
+^semantic highlighting vs textmate grammer for syntax highlighting'
+
+*Race conditions, where threads are accessing data or resources in an inconsistent order
+*Deadlocks, where two threads are waiting for each other, preventing both threads from continuing
+
+*rust uses a 1:1 thread model
+
+^There is an array,an itrerator and a vector.an array can be gen by using the syntax; [x;y] where x is an element and y is the number of times it occurs.it will be generated at compile time.The [x..y] syntax is specific to range and slices.A range returns an iterator.(1..20) is a Range and this: [1..20] is an array that has a Range as its first element.the [] syntax is specific to arrays.for vectors you use the vec! macro or use the array syntax and convert it to a vec using to_vec.paranthesis () is only used for tuples and representing the order of operations and the rust compiler will flag it if you use it where its not needed for cleaner code.
+
+setTimeout and setInterval in js
+
+^Dynamically adjusting the timeout based on synchronous execution time
+
+*the program terminates as soon as the main thread is doen regardless of the state of the other threads.You can sleep the threads so that the main thread waits on other threads.Sleeping is a way for threads to wait on each other allowing them to take turns but it isnt guaranteed.
+
+*the output or order in which threads run is not guaranteed as it changes each time the program runs since the time slices will be calculated different each time but the order of async operations is guaranteed and controlled because everything is running on one thread
+
+*The join handler on a thread ensures that the main thread waits before join.
+
+*join blocks a thread until another finishes so where its placed can affect whether the threads will run concurrently or not while sleeping a thread doesnt block it but it delays a thread from executing which will allow other threads to run.Its the same thing as joining except that joining is more precise
+
+*sleeping a thread is delaying/pausing its execution for a specified duration which can allow other threads to run.Delay here means the thread doesnt do anything for that specified period of time.Its less precise to use to synchronize threads but its a general way of making threads wait on each other while joining blocks another thread until its done.its a more precise way to synchronize threads.The difference between blocking and delaying a thread is that blocking a thread prevents its execution while sleeping a thread means making it dormant for a specified duration of time
+
+*so rust prevent threads from borrowing values directly from their environment because the thread may outlive its function.They need to own it
+
+join,sleep
+events,flags,locks,messages
+
+match case is pattern matching syntax while if let and let else is destructurig syntax.thers array destructuring,object destructuring and enum destructuring.they follow the syntax let structure = variable
+perplexity
+
+*in a real app,we will want to handle the places where we put unwrap properly
+
+*one way to share data among threads is by using a channel which can send variables over threads
+
+*The transmitter has a send method that takes the value we want to send. The send method returns a Result<T, E> type, so if the receiver has already been dropped and there’s nowhere to send a value, the send operation will return an error. 
+
+*The receiver has two useful methods: recv and try_recv. We’re using recv, short for receive, which will block the main thread’s execution and wait until a value is sent down the channel. Once a value is sent, recv will return it in a Result<T, E>. When the transmitter closes, recv will return an error to signal that no more values will be coming.
+
+*The try_recv method doesn’t block, but will instead return a Result<T, E> immediately: an Ok value holding a message if one is available and an Err value if there aren’t any messages this time. Using try_recv is useful if this thread has other work to do while waiting for messages: we could write a loop that calls try_recv every so often, handles a message if one is available, and otherwise does other work for a little while until checking again.
+
+*The send function takes ownership of its parameter, and when the value is moved, the receiver takes ownership of it. This stops us from accidentally using the value again after sending it which prevents unexpected behaviour if the receiver modifies or drops the data before we continue using it
+
+*you can treat rx as an iterator.its useful when we want the receiver to be taking in values as they come
+
+*The channel's model is multiple producers and one receiver.You ca use the same receiver object but the transmitter object must be cloned because each thread will take ownership of each transmitter
+
+channels are a way of sharing data by ownership
+
+*mutexes are the thread safe version of refcell.like refcell,its used for safe mutability even when they are multiple owners by allowing only one thread to use a given data at a time by using locks the same way refcell ensures that even in an rc,there is only one owner at a time for the data and any changes has to be done by borrowing.
+
+*Rc and refcell is about ownership while mutex and arc is about sharing
+
+*The type system ensures that we acquire a lock before using the value in m. The type of m is Mutex<i32>, not i32, so we must call lock to be able to use the i32 value.As you might suspect, Mutex<T> is a smart pointer. More accurately, the call to lock returns a smart pointer called MutexGuard, wrapped in a LockResult that we handled with the call to unwrap. The MutexGuard smart pointer implements Deref to point at our inner data; the smart pointer also has a Drop implementation that releases the lock automatically when a MutexGuard goes out of scope, which happens at the end of the inner scope. As a result, we don’t risk forgetting to release the lock and blocking the mutex from being used by other threads, because the lock release happens automatically.
+
+*the only way to access the value in a mutex is with the lock and the lock is automatically dropped when the scope ends.the call to lock will fail if another thread holding the lock panics to prevent access to possibly corrupted data.The mutex then becomes posioned
+
+*the lock gets dropped automatically like what every other smart pointer does with their data
+
+^diff between rc and arc,atomic vs integer counting
+
+Because atomic operations are guaranteed to be atomic, they prevent data races. A data race occurs when two or more threads access the same memory location concurrently, and at least one of the accesses is a write.
+With atomic counting, you can safely increment or decrement a reference count from multiple threads without using locks, avoiding the overhead and complexity of lock management.
+
+Unfortunately, Rc<T> is not safe to share across threads. When Rc<T> manages the reference count, it adds to the count for each call to clone and subtracts from the count when each clone is dropped. But it doesn’t use any concurrency primitives to make sure that changes to the count can’t be interrupted by another thread. This could lead to wrong counts—subtle bugs that could in turn lead to memory leaks or a value being dropped before we’re done with it. What we need is a type exactly like Rc<T> but one that makes changes to the reference count in a thread-safe way.
+
+When multiple threads modify the reference count without synchronization, it results in a data race. This can lead to undefined behavior, crashes, or corrupted memory. For instance, if one thread decrements the count while another thread is still using the object, it might lead to a situation where the object is freed while still being accessed.
+
+a data race is when multiple threads access the same data and at least one of them is a write
+
+You might then wonder why all primitive types aren’t atomic and why standard library types aren’t implemented to use Arc<T> by default. The reason is that thread safety comes with a performance penalty that you only want to pay when you really need to. If you’re just performing operations on values within a single thread, your code can run faster if it doesn’t have to enforce the guarantees atomics provide.
+
+as complex as arc is,the usage of arc is the same as rc and and the usage of mutex is the same as refcell where we use lock instead of borrow and u can directly deref on the value to modify it without borrowing
+
+Mutex is like refcelll where the underlying data is a shared ref and when wrapped in an Arc,only one thread can use the data at a time even when multiple threads share the same data similar to how refcell only allows one owner at a time and refcell only allows one mutable borrow the same way mutex only allows one lock access at a time
+
+Mutex<T> comes with the risk of creating deadlocks. These occur when an operation needs to lock two resources and two threads have each acquired one of the locks, causing them to wait for each other forever
+
+deadlocks are like cyclic refs because cyclic refs makes the two variables wait on each other before they dropped and causing a leak while deadlocks makes two threads to wait on each other making them freeze forever.the first will cost you runtime and the second will cost you memory
+
+Marker traits in Rust are traits that do not have any methods or associated functions. They are used to convey additional information about a type, often related to properties or capabilities of that type. The most common examples of marker traits are Send and Sync.
+
+Send:
+A marker trait that indicates a type is safe to be transferred across thread boundaries.
+If a type implements Send, it means that instances of that type can be safely sent to another thread.
+
+Sync:
+A marker trait that indicates a type can be safely referenced from multiple threads simultaneously.
+If a type implements Sync, it means that you can have a reference to that type in multiple threads at the same time.
+
+When designing data structures, careful consideration must be given to what types are used within them. If a data structure contains a type that is not Send, it cannot be safely shared across threads.
+Similarly, if a data structure contains a type that is not Sync, it cannot be safely referenced simultaneously from multiple threads.
