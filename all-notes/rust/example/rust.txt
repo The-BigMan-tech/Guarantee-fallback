@@ -1404,4 +1404,57 @@ many-one--->Rc
 
 ^the swap function of my Teacher:in the previous one,i effectively swapped the students the teachers were pointing to by using snapshots of their students but i didnt correctly update the students to reflect this modification because i changed the name property without actually changing the teacher objects they were pointing to so when the students of the teachers were swapped, the students were still tied to their original teachers, which resulted in the names being mixed up and the reason why it worked this time because i made the teacher property of each student point to their respective teachers post-modification.
 
+^if i want to modify the property of a node like node A in a graph relationship,i have to make sure that all other nodes pointing to A point to the post-modified node A object instead of directly trying to change the property of the pre-modified nodeA object they point to.for example when i directly updated the properties of node A and node B which are the teachers,they swapped their students but the students in their arrays were pointing to the node they pointed to before the swapped so before,node A taught class A and node B taught class B but after the modification nodeA taught class B and node B taught class A but the students in class A still say they are taught by node A and the students in class B are still pointing to node B as their teacher.So they didnt reflect the change but the teachers did so it created the scenario were the teachers taught new students but the students still claimed that they are being taught by their old teacher.but after making each student in class A and B point to their teachers post modification,it correctly fixed the relationship.
+
+^This is because like in a school,if you change any of a teacher's students you have to equally imform the students about the changes so that there wont be any confusion.
+
 *linear relationship,recursive relationship and cyclic relationship
+
+*turning a vector to an iterable using iter is required to do functional things on a vector and the collect method is required to return a transformed vector.You can insert a function that does something on each of the elements which wont require collect but if the function applies a rule on the iterable to create a new transformed one,it requires a collect method.
+
+deref using & or as_x method vs to_x methods
+
+as,Type suffix vs type annotation
+from trait,into
+to_x,as_x,clone
+parse
+
+structured vs grouped data
+
+iter for working on the individual elements
+direct methods for working on the vector directly
+
+transformation,reduction,modification--take rules or closures
+
+*parse can be implemented on any type that has the FromStr
+
+^The rule of ownership is different from the rule of borrowing
+
+*You can only borrow an Rc immutably
+
+*the cow smart pointer represents either an owned or a borrowed value.if its owned,i can use it directly to modify the value and if its not,it is only read only and if i do want to modify it,it will create a copy and transfer ownership of that instance to my program.i can then create borrowed pointers to it using to_mut.It is short for copy on write which does what its name implies
+
+*smart containers.they are called smart containers cuz they are not focused on memory managemnt but collections
+String->::from is the smart pointer
+Vec->::new is the smart pointer
+Hasmap->::new is the smart pointer
+
+*Smart pointers->x-one relationships
+Box->::new is the smart pointer
+Rc->::new,Rc::clone 
+Weak->Rc::downgrade
+Cell
+RefCell->::new
+Cow->::Owned,Borrowed
+Pin
+Arc
+Mutex
+
+*iter_mut(): This method creates an iterator that yields mutable references to each element of the vector. This allows you to modify the elements directly.
+
+*functions and methods are in their own evironments while cloures are within another's environment
+
+*you cannot directly modify the value with a refcell pointer like you can do with box.you can only modify it by borrowing it with a ref.Rc directly reads by dereferencing like box.Cell allows direct deref over borrowng unlike Refcell but its only for values that can be copied like integers.It cannot be used for types that requires borrowing.Refcell is required for this.The reason why cell doesnt work for borrowed types because it will be more dangerous to allow interior mutability for owned types to prevent them from being dropped when modified.By not allowing direct deref,ownership cannot be transferred.Transferring owership doesnt change the mem address of the value it points to.
+
+*redeclaring,reassignment,mutating through a deref or mutable borrrow
+^dereferencing vs borrowing
