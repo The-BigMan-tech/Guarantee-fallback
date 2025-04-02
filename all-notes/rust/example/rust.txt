@@ -1534,19 +1534,76 @@ as complex as arc is,the usage of arc is the same as rc and and the usage of mut
 
 Mutex is like refcelll where the underlying data is a shared ref and when wrapped in an Arc,only one thread can use the data at a time even when multiple threads share the same data similar to how refcell only allows one owner at a time and refcell only allows one mutable borrow the same way mutex only allows one lock access at a time
 
-Mutex<T> comes with the risk of creating deadlocks. These occur when an operation needs to lock two resources and two threads have each acquired one of the locks, causing them to wait for each other forever
+*Mutex<T> comes with the risk of creating deadlocks. These occur when an operation needs to lock two resources and two threads have each acquired one of the locks, causing them to wait for each other forever.Deadlocks are like cyclic refs because cyclic refs makes the two variables wait on each other before they dropped and causing a leak while deadlocks makes two threads to wait on each other making them freeze forever.the first will cost you runtime and the second will cost you memory
 
-deadlocks are like cyclic refs because cyclic refs makes the two variables wait on each other before they dropped and causing a leak while deadlocks makes two threads to wait on each other making them freeze forever.the first will cost you runtime and the second will cost you memory
+*Marker traits in Rust are traits that do not have any methods or associated functions. They are used to convey additional information about a type, often related to properties or capabilities of that type. The most common examples of marker traits are Send and Sync.They are just used to mark them as safe.
 
-Marker traits in Rust are traits that do not have any methods or associated functions. They are used to convey additional information about a type, often related to properties or capabilities of that type. The most common examples of marker traits are Send and Sync.
+*Send:A marker trait that indicates a type is safe to be transferred across thread boundaries.If a type implements Send, it means that instances of that type can be safely sent to another thread.
 
-Send:
-A marker trait that indicates a type is safe to be transferred across thread boundaries.
-If a type implements Send, it means that instances of that type can be safely sent to another thread.
+*Sync:A marker trait that indicates a type can be safely referenced from multiple threads simultaneously.If a type implements Sync, it means that you can have a reference to that type in multiple threads at the same time.
 
-Sync:
-A marker trait that indicates a type can be safely referenced from multiple threads simultaneously.
-If a type implements Sync, it means that you can have a reference to that type in multiple threads at the same time.
+*When designing data structures, careful consideration must be given to what types are used within them. If a data structure contains a type that is not Send, it cannot be safely shared across threads.Similarly, if a data structure contains a type that is not Sync, it cannot be safely referenced simultaneously from multiple threads.
 
-When designing data structures, careful consideration must be given to what types are used within them. If a data structure contains a type that is not Send, it cannot be safely shared across threads.
-Similarly, if a data structure contains a type that is not Sync, it cannot be safely referenced simultaneously from multiple threads.
+tokio lib for rust
+
+*locking block the thread till it acquires the lock
+
+*if the shared data is read-only,i use arc alone,if its heavily modified,i should use mutex wrapped in an arc but if its heavily read but a little bit modified,i should use rwlock wrapped in an arc.
+
+js pioneers in async programming
+rust pioneers in thread safe code
+mojo and bend pioneer in gpu programming
+go pioneers in goroutine model
+
+*the higher the level of thread synchronization,the less concurrent the program becomes and to resolve this,we break down the syncs into multiple locks instead of just one and use more flexible locks like rw locks meaning that threads are better as they more independent but if they are heavily dependent one may resort to async for better concurrency
+
+*so async is better for heavily dependent concurrent operations because heavily dependent operations will just reduce to a single thread and async can still achieve concurrency on thread by prioritizing tasks while threads are for independent operations
+
+promises/futures and async/await
+
+parallelism is for cpu bound tasks
+async is for io bound tasks
+threading is for both generally
+
+cpu bound tasks are only as fast as the cpu while io bound tasks are only as fast as the speed of input and output
+
+*the term blocking is usually reserved for function calls that interact with files, the network, or other resources on the computer, because those are the cases where an individual program would benefit from the operation being non-blocking.
+
+*When an individual works on several different tasks before any of them is complete,it becomes concurrency.
+
+*heavily dependent operations are blocking because it requires an operation to finish before another starts.The more synchronized threads become,the more serial they become,the less concurrent they become while independent operations are non blocking meaning that they can operate indepently and they are only limited by the cpus speed.
+
+*interrupting ans switching between tasks.the async keyword is used for saying that a function can be interrupted and resumed
+
+rust uses the tokio runtime for async code.A runtime is an environment that executes or manages an aspect of a program
+
+Iterators do nothing unless you call their next method—whether directly or by using for loops or methodssuch as map that use next under the hood. Likewise, futures do nothing unless you explicitly ask them to.This laziness allows Rust to avoid running async code until it’s actually needed.
+
+*in rust,await is a postfix method thats chained to an async function.It allows us to chain async operations easily
+
+async operations in rust are lazy while async operations in js are postponed or reprioritized
+
+*in rust,async blocks get compiled into futures while async functions gets compiled to regular functions that return futures.The same in js,async is syntatic sugar for a function that returns a promise except that in rust,async functions wrap the entire block in a future while js only wraps the return value in a promise and this is because in rust,blocks are expressions that can return something while in js only the return keyword can return a value
+
+*promise is the main thing of async operations.a promise means that this operations shouldnt execute immediately but later
+
+* tokio is a rust program that executes async code by compiling async code into an orchestrated sync code by managing futures.This means that every async code in rust goes through a two way process to execution and cant be solely understood by the compiler.Its the same for go that uses a go-runtime to manage goroutines and js where the event loop is a runtime that manages async code.Threads in rust dont have their own runtime as its managed by the os.async io is the async runtime for python
+
+*in js code,async code can be directly executed because its bundled with a runtime while rust isnt
+
+*cargo installs the compiled depenedencies as separate executables that are linked to mine at runtime.The compiled dependencies are stored in the target folder.The cargo bundle tool will package my entire codebase along with the dependencies into a single installer
+
+*there is a debug build and a release build.The debug one is quickly compiled for dev while the release build is heavily optimized for production.cargo build and build release do these respectively.
+
+*futures are state machines like promises.They have states similar to idle,pending and done in promises.Now you can see why the compiler stopped us from making main itself an async function back in Listing 17-3. If main were an async function, something else would need to manage the state machine for whatever future main returned, but main is the starting point for the program!
+
+*I can ship apps as desktop apps,web apps and container apps.the first two are for users while the last one are for servers
+
+*tokio bundles the main function in an async runtime allowing us to use async code top level like in ts
+
+*Concurrency and parallelism are not the same thing. If you alternate between two tasks, then you are working on both tasks concurrently, but not in parallel. For it to qualify as parallel, you would need two people, one dedicated to each task.
+
+*async programming ensures that operations that cant be completed immediately are suspended
+
+^18,19,20
+^12,14,11

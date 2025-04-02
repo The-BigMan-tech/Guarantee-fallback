@@ -1,28 +1,46 @@
-use std::{cell::Ref, rc::{Rc,Weak}, vec};
+use std::{rc::{Rc,Weak}, vec};
 use std::cell::{RefCell,RefMut};
 
 use teacher::{Teacher, TeacherTraits};
-use student::Student;
+use student::{Student, StudentTraits};
 mod teacher{
     use super::{Rc,RefCell,Student,RefMut};
     pub struct Teacher {
         pub name:String,
-        pub students:Vec<Rc<Student>>
+        pub students:Vec<Rc<RefCell<Student>>>
     }
     impl Teacher {
-        pub fn to_rc(name:&str,students:Vec<Rc<Student>>)->Rc<RefCell<Teacher>> {
+        pub fn hire(name:&str)->Rc<RefCell<Teacher>> {
             Rc::new(RefCell::new(Teacher {
-                name:name.to_string(),students
+                name:name.to_string(),students:vec![]
             }))
         }
+        pub fn swap(teacher_1:&Rc<RefCell<Teacher>>,teacher_2:&Rc<RefCell<Teacher>>) {
+            let teacher_1_students: Vec<Rc<RefCell<Student>>> = teacher_1.borrow().students.to_owned();
+            let teacher_2_students:Vec<Rc<RefCell<Student>>> = teacher_2.borrow().students.to_owned();
+
+            teacher_1.borrow_mut().students = teacher_2_students;
+            teacher_2.borrow_mut().students = teacher_1_students;
+
+            let update_students = |student:&mut Rc<RefCell<Student>>,teacher:&Rc<RefCell<Teacher>>| {student.borrow_mut().teacher = Rc::downgrade(teacher);};
+            teacher_1.borrow_mut().students.iter_mut().for_each(|student |{update_students(student,teacher_1)});
+            teacher_2.borrow_mut().students.iter_mut().for_each(|student|{update_students(student,teacher_2)});
+        }
+        pub fn fire(_teacher:Rc<RefCell<Teacher>>) {}
     }
     pub trait TeacherTraits {
-        fn teach(self:&Self,student:&Rc<Student>);
+        fn teach(&self,student:&Rc<RefCell<Student>>);
+        fn get_students(&self)->Vec<String>;
     }
     impl TeacherTraits for Rc<RefCell<Teacher>> {
-        fn teach(self:&Self,student:&Rc<Student>) {
+        fn teach(&self,student:&Rc<RefCell<Student>>) {
             let mut mut_teacher: RefMut<'_, Teacher> = self.borrow_mut();
+            let mut mut_student: RefMut<'_, Student> = student.borrow_mut();
             mut_teacher.students.push(Rc::clone(student));
+            mut_student.teacher = Rc::downgrade(self)
+        }
+        fn get_students(&self)->Vec<String> {
+            return self.borrow().students.iter().map(|student| student.borrow().name.to_owned()).collect()
         }
     }
 }
@@ -33,66 +51,71 @@ mod student {
         pub teacher:Weak<RefCell<Teacher>>
     }
     impl Student {
-        pub fn to_rc(name:&str,teacher:&Rc<RefCell<Teacher>>)->Rc<Student> {
-            Rc::new(Student {
-                name:name.to_string(),teacher:Rc::downgrade(teacher)
-            })
+        pub fn enroll(name:&str)->Rc<RefCell<Student>> {
+            Rc::new(RefCell::new(Student {
+                name:name.to_string(),teacher:Rc::downgrade(&Teacher::hire(""))
+            }))
         }
-        pub fn get_teacher(&self)->Rc<RefCell<Teacher>> {
-            let teacher: Option<Rc<RefCell<Teacher>>>= self.teacher.upgrade();
-            match teacher {
-                Some(value)=>value,
-                None=>Teacher::to_rc("", vec![])
-            }
+    }
+    pub trait StudentTraits {
+        fn print_teacher(self:&Self);
+        fn get_teacher(self:&Self)->Option<Rc<RefCell<Teacher>>>;
+    }
+    impl StudentTraits for Rc<RefCell<Student>> {
+        fn print_teacher(self:&Self) {
+            if let Some(teacher) = self.get_teacher() {
+                println!("{} teacher is {}",self.borrow().name,teacher.borrow().name)
+            }else {
+                println!("{} has no teacher",self.borrow().name)
+            };
+        }
+        fn get_teacher(self:&Self)->Option<Rc<RefCell<Teacher>>> {
+            return self.borrow().teacher.upgrade()
         }
     }
 }
 pub fn cyclic() {
-    let matt: Rc<RefCell<Teacher>> = Teacher::to_rc("Matt", vec![]);
-    let paul: Rc<Student> = Student::to_rc("paul",&matt);
-    let john:Rc<Student>  = Student::to_rc("john", &matt);
+    println!("\nHello cyle\n");
+    let matt: Rc<RefCell<Teacher>> = Teacher::hire("Matt");
+    let paul: Rc<RefCell<Student>> = Student::enroll("paul");
+    let john: Rc<RefCell<Student>> = Student::enroll("john");
     matt.teach(&paul);
     matt.teach(&john);
+    Teacher::fire(matt);
 
-    let matt_borrow: Ref<'_, Teacher> = matt.borrow();
+    let andrew: Rc<RefCell<Teacher>> = Teacher::hire("Andrew");
+    let philip: Rc<RefCell<Teacher>> = Teacher::hire("Philip");
+    andrew.teach(&paul);
+    philip.teach(&john);
+    Teacher::swap(&andrew, &philip);
+    paul.print_teacher();
+    // Teacher::fire(andrew);
+    john.print_teacher();
 
-    let paul_teacher_rc: Rc<RefCell<Teacher>> = paul.get_teacher();
-    let paul_teacher: Ref<'_, Teacher> = paul_teacher_rc.borrow();
+    println!("{} students:{:?}",andrew.borrow().name,andrew.get_students());
+    println!("{} students:{:?}",philip.borrow().name,philip.get_students());
 
-    let john_teacher_rc: Rc<RefCell<Teacher>> = john.get_teacher();
-    let john_teacher: Ref<'_, Teacher> = john_teacher_rc.borrow();
-
-    println!("\nStudent: {}",paul.name);
-    if !paul_teacher.name.is_empty(){
-        println!("{} teacher is: {}",paul.name,paul_teacher.name)
-    }else {
-        println!("{} doesnt have any teacher",paul.name)
-    }
-    println!("\nStudent: {}",john.name);
-    if !john_teacher.name.is_empty() {
-        println!("{} teacher is: {}",john.name,john_teacher.name)
-    }else {
-        println!("{} doesnt have any teacher",john.name)
-    }
-    println!("\nTeacher: {}",matt_borrow.name);
-    for i in &matt_borrow.students {
-        println!("Student: {}",i.name)
-    }
+    let mut f: Box<i32> = Box::new(10);
+    *f = 50;
+    println!("f value: {f}");
 }
 
 
 pub fn close()->() {
     println!("Hello closed");
     let mut person:String = String::from("Hello world");
+    let person_2:String = String::from("sss");
     let items:Vec<&str> = vec!["one","two","three"];
 
-    let closed = move || {
+    let closed = || {
         person.push_str("Hi");
         let mut car: String = person;
         car.push_str("Hello world");
         println!("Here are your items: {:?}",items);
+        println!("{person_2}");
         return format!("Here is person: {car}");
     };
+    println!("{person_2}");
     println!("{}",closed());
     let v1: Vec<i32> = vec![1, 2, 3];
     let d:Vec<i32> =v1.iter().map(|x:&i32| x + 1).collect();

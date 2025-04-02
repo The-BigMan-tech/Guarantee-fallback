@@ -5,10 +5,16 @@ mod error;
 mod flex;
 mod ten;
 mod closure;
+mod threads;
 
 use std::collections::HashMap;
+use std::result::Result;
 use error::question_mark;
-fn main() {
+use mini_redis::Result as AsyncResult;
+
+
+#[tokio::main]
+async fn main() -> AsyncResult<()> {
     // example_two::example_two();
     // hello::hello();
 
@@ -112,12 +118,15 @@ fn main() {
         *count += 1;
     }
     println!("{map:?}");
-    let result: Result<i32, String> = question_mark();
+    let result:Result<i32, String>  = question_mark();
     println!("Result: {}",result.unwrap());
 
     flex::flex();
     ten::ten();
     closure::close();
     closure::smart();
-
+    closure::cyclic();
+    threads::thread();
+    threads::asyn().await;
+    return Ok(());
 }

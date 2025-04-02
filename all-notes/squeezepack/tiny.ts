@@ -37,14 +37,15 @@ export class Small32 {
         return this.array
     }
     //use this if you want to send the array over a network only if its compressed.
-    get data():Promise<Int32Array | string> {
+    get data():Promise<Int32Array | number[]> {
         return (async ()=> this.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' has been promised to compress later`))
             ().then(()=>{
                 this.compress_safely()
                 if (this.array instanceof Int32Array) {
                     return this.array;
                 }
-                return `${chalk.blue('Notice:')}The array: \'${this.name}\' did not benefit from the compression`;
+                this.log(`${chalk.blue('Notice:')}The array: \'${this.name}\' did not benefit from the compression`);
+                return this.array
             }
         );   
     }
@@ -167,8 +168,8 @@ export class Small32 {
         const normalArray:number[] = [...this.array];
         normalArray.push(num);
         this.array = normalArray;
-        return (async ()=>this.log(`${chalk.blue('Notice:')}Pushing was successful.The array: \'${this.name}\' has now been promised to compress`))()
-            .then(()=>{this.compress_safely()}
+        return (async ()=>this.log(`${chalk.blue('Notice:')}Pushing was successful.The array: \'${this.name}\' has now been promised to compress`))
+            ().then(()=>{this.compress_safely()}
         );
     }
     public at(index:number):number | undefined {
@@ -177,6 +178,12 @@ export class Small32 {
         return Number(element)
     }       
 }
+//168 bytes--32 bytes
+let stats = [23,77,88,99,10,11,11,11,1,1,1,99,9,999,11,22,33,22,23,33,33];
+let small_stats = new Small32('stats',false);
+small_stats.data = stats;
+console.log(await small_stats.data);
+
 //*when sending the compressed array over a network,send the this.state or await this.data in the response and then on the client side,create a new Tiny class object and set the compressed data setter to the array received over the network.This is to ensure that only the compressed array is received over the network and not the entire object 
 //It reduces the amount of space needed to allocate for the array and the data that is required to be sent over the network
 
