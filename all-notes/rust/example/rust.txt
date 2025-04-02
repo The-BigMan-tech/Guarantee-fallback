@@ -1607,3 +1607,8 @@ async operations in rust are lazy while async operations in js are postponed or 
 
 ^18,19,20
 ^12,14,11
+
+a chatbot app is stateful--can take longer prompts and keeps records of chats
+a chatbot in a search engine is stateless--requires shorter prompts
+
+commands,queries,code,prompts

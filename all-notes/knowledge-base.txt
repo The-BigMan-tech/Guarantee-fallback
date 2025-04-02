@@ -405,12 +405,39 @@ SSG/pre rendering
 
 *Digital ocean
 
+frontend developer--javascript
+backend developer--javascript,one can also use python
+desktop app developer--javascript,one can also use c# or swift
+mobile app developer---javascript,one can use kotlin or swift
+data engineer--program with python,one can use R
+machine learning developer--python,one can use R
+security software developer--rust,one can also use python
+systems programmer--rust,one can use C++
+game developer--C++,one can use c#
+
+scientific programming--matlab,julia
+gpu programmer
+blockchain developer
+embedded programming
+
+networking engineers--use python for automation
+penetration tester
+data scientist--databases and analysis tools like excel
+
+cloud developers---code apps that run on the cloud
+cloud engineer--manages the infrastructure
+devops engineer--ships code faster to the cloud
+cloud security
+
+^coding to build,coding to automate
+^developer and an engineer
+
 *ORDER OF PUT IN EFFORT
 ^Specialized usage level
 ^-----------------------
 python and Cython--from digital ocean,tutorialspoint,real python,idently  ==>data science,numerical computing,scripting,backend apis,pypy,mypy-Powerful cli apps using the rich lib to help me at coding,for digital forensics,network security,white hat hacking,machine learning and exposing the ml model through an api with fast api
 Javascript and Typescript--gfg,tutorialspoint,doc  ==>async,event driven and reactive programming,networking,apis,web apps,animations and higher order functions.TS will make you heavily appreciate type safety/static type checking
-Rust--from their doc  ==>system level control for my tauri apps.
+Rust--from their doc  ==> system level control for my tauri apps.
 
 
 ^General usage level
@@ -451,6 +478,3 @@ ruby--web development
 lua--quick scripting
 elixir
 haskell
-
-
-Go--extremely fast because of its concurrency model
