@@ -1612,3 +1612,123 @@ a chatbot app is stateful--can take longer prompts and keeps records of chats
 a chatbot in a search engine is stateless--requires shorter prompts
 
 commands,queries,code,prompts
+
+reverse engineering
+key generator
+
+promises/futures,async/await,micro task and macro tasks
+
+
+*async functions in rust are lazy meaning that they wont start executing unless you await them or you can spawn them which will execite them while in js,when you call an async function,it starts running immediately till it reaches an await
+
+*async threading is where the runtime leverages multiple threads from a pool but maps many tasks to a single thread instead of one task to a thread by making tasks that block the thread to yield control for another task to use that thread.But in async like js,tasks are ordered from non blocking to blocking and the sorted order of tasks is executed synchronously.pure async programming is about prioritizing tasks according to their blocking or non-blocking nature and executing that serially.in async,the code in the task is executed serially and once a part of it is blocking,the task yields control to the program and that task is postponed to run later after the non blocking ones finish
+
+*since async blocks are lazy,they dont execute till you await them or map them to a thread using spawn unlike threading that every new task spawns a new thread.
+
+the event loop handles async code
+the os handles threads
+the runtime handles async thread code
+
+*Spawning the task submits it to the Tokio scheduler, which then ensures that the task executes when it has work to do. The spawned task may be executed on the same thread as where it was spawned, or it may execute on a different runtime thread. The task can also be moved between threads after being spawned.
+
+*Async functions that are ran with await tells tokio that its part of the task that called it which means that the caller cannot continue executing until that one is finished and they are both on the same thread while running it by using spawn tells tokio that the caller does not require the task to continue executing so that task becomes independent from the caller and can be mapped to another or the same thread as the caller depending on tokio
+
+*its difficult to preduct the exact execution order of code written in threads or async-threads like tokio unlike js
+
+*when tokio comes across an awaited function,the awaited functions yield uts execution so that other tasks can execute on the same thread
+
+*When we say that a value is 'static, all that means is that it would not be incorrect to keep that value around forever. This is important because the compiler is unable to reason about how long a newly spawned task stays around. We have to make sure that the task is allowed to live forever, so that Tokio can make the task run as long as it needs to.
+
+*a tokio task must own all of the data it uses for the same reason why threads are made that way
+
+*When a task is awaiting, it yields control back to the Tokio runtime. If that task is to be resumed on a different thread, all data it holds must be safe to move between threads.If a task yields control at an .await, it must save the state it will use after the .await. If this state is not Send, the task cannot be safely resumed on another thread.
+
+*When you call await on a handle,you have to handle the result of wheteher the task failed or succeeded.You can choose to handle the error manually,use unwrap if you expect it to succeed or use the ? to return control to the caller with the error if it failed but if you call await on an async function,you directly get the variable.
+
+*await is a keyword and not a function call
+
+*join must be error handled in case the thread failed
+
+*async threading unlike async in js doesnt work by reprioritizing tasks to run later in order of their non-blocking/blocking nature at runtime but rather makes async code lazy meaning that any code that is wrapped in an async block most preferrably io tasks will never execute until you call await on it or spawn it as an independent task.If you await it,it means the task is dependent on the waiting result but if the task is not dependent on the waiting task,you can spawn it as an indepenedent task.If awaited,it yields control so that another tokio task can use the thread and when all non-waiting operations are done,the awaited task can go back to that thread and continue executing where it left off.if its spawned,then its independent.tokio will then map it to a different or the same thread where it then executes immediately so that it doesnt pause the execution of the task that called it.
+
+*In js,async blocks are executed immediately upon being called but when a micro or macro task is encountered and awaited,the function will yield control flow to the scope of the caller and if not,js will prioritize/defer it for later and execute the remainder of the async block.This means that js will essentially skip over it and execute the remaining block so that it executes the waiting operation later.
+
+*anything thats wrapped in a promise will be deferred to execute later while anything wrapped in a future wont execute at all till its awaited or spawned as a separate task.async blocks in both languages are syntatic sugar over promises and futures.Since their results are wrapped in both of them,you have to await them to get the result.when you call await,you are awaiting the result not the function so the reason why js executes an async block immediately when called till it reaches a promise or await its because its only the result that gets awaited but in rust,since blocks are expressions,the entire block itself is the result thats wrapped and since the wrapped result is not computed till you await on it,async functions in rust dont compute immediately when called and only compute when awaited.but since js prioritizes tasks,it computes the result when every non waiting operation is done but not tokio since tokio doesnt prioritize tasks.awaiting a result is telling the language to compute the result of the wrapped value immediately so it causes the function to compute in tokio.when you do tokio spawn,you await the task but not on the task that called it but rather as its own task and the result is wrapped in a result and not in a future unlike awaiting an async because it reps whether the task failed or not.A spawned task will not cause other tasks to fail if it does and the only way to get the state of this success is to return it to a variable that is to be awaited.
+
+*correction:tokio spawn doesnt internally await the task because await does two things.it not only eagerly execute the async block but it also yields execution on the thread to another task to execute so since spawned tasks are scheduled to run,they arent using any threads,so they cant be awaited to execute eagerly.it is mapped to a thread but not executed till the thread it was mapped to was yielded so that it can use it.as soon as the spawned task takes its turn on the thread,it executes eagerly.so there are two ways that async blocks can be executed eagerly.if they are part of another task,it must be awaited else if independent,they execute eagerly as soon as they take their turn on a thread.so the return of an awaited task,is the computed result but since a spawn eventually eagerly executes a task,the return of that is a handle which isnt the computed result but the computed result wrapped in a result stating whether the task failed or not
+
+*an interesting feature about tokio is that when you call an async function,the entire body of the function is wrapped in a future and returned to a variable and if its a scope marked as async,the entire body of the scope is wrapped in a future and returned to a variable which is different from normal scope and functions where its only the end that is returned to the variable meaning that the variable now needs to be awaited or spawned to eagerly execute the whole function and the return of that is now the computed result but it differs from js where its only the end thats wrapped in a promise.If js were to wrap the entire function body in a promise and return that,async functions wont execute immediately like they normally would but will be deferred till after everything else is done but is not possible since js functions arent expressions unless its a self-executing function.the async blocks in js are deferred meaning that they will eventually be executed but in tokio,they are lazy not deferred
+
+*since a thread must own all of its data,multiple ownership is the only way for threads to share data as they cant do it by ref as its unsafe since the thread may outlive the task where the variable they ref to lives.so arc must be used.so the use cases of rc and arc are different.rc is for graphically related structs while arc is specificaly for threads
+
+*an async task can be moved to another thread on every await so mutexes must be dropped before the await as mutexes is not send safe.
+
+handle
+sleep,join,await
+
+
+
+scope,closure,function,async scope,async function.there is no async closure
+
+*if Tokio suspends your task at an .await while the task is holding the lock, some other task may be scheduled to run on the same thread, and this other task may also try to lock that mutex, which would result in a deadlock as the task waiting to lock the mutex would prevent the task holding the mutex from releasing the mutex.Keep in mind that some mutex crates implement Send for their MutexGuards. In this case, there is no compiler error, even if you hold a MutexGuard across an .await. The code compiles, but it deadlocks!
+
+*The safest way to handle a mutex is to wrap it in a struct, and lock the mutex only inside non-async methods on that struct.This pattern guarantees that you won't run into the Send error, because the mutex guard does not appear anywhere in an async function. It also protects you from deadlocks, when using crates whose MutexGuard implements Send.
+
+*The tokio::sync::Mutex type provided by Tokio can also be used. The primary feature of the Tokio mutex is that it can be held across an .await without any issues. That said, an asynchronous mutex is more expensive than an ordinary mutex, and it is typically better to use one of the two other approaches which is the scope and the struct to hold a regular mutex
+
+12.1,12.4,12.5
+
+^bytes type
+
+*There is bytes type from stack allocated types and bytes type from the heap
+
+*The byte data from stack allocated types is a single value which is modified at the bit level since its made up of 1-8 bytes according to the type like u8,u16 or u32.You can directly modify it at the byte level by using byte literals and bitwise operators.But this treats the entire bytes as a value and not a sequence
+
+*A collection of bytes like vec<u8> where each u8 is a byte allows one to modify byte data as a sequence of smaller bytes and not as a whole value.This type of byte is used when the number of bytes grows and shrinks over time since it goes to the heap.A vector of bytes can do this but the Bytes object from the bytes crate is dedicated to handling a sequence of bytes and is more optimized for the task
+
+*The Bytes instance is an immutable view into the bytes data.If you want to modify the bytes,you have to use BytesMut.They allow for optimized manipulation of byte sequences.The bytes type is essentially an Arc<Vec<u8>> but with extra optimizations and unlike rc and arc,bytes guarantees immutability.its best for sending byte data over a network and manipulating files async
+
+*i have channels of different models and i can use enums to structure the different types of commands and put this in a file to create a single source of truth structure
+
+^self contained examples that are distict and not part of a project
+^incremental single project example documentation
+
+*If the asynchronous operation runs eagerly, the loop will repeatedly queue a new async_op to run without ensuring the previous operation completed. This results in implicit unbounded queuing. Callback based systems and eager future based systems are particularly susceptible to this.However, with Tokio and asynchronous Rust, the above snippet will not result in async_op running at all. This is because .await is never called. If the snippet is updated to use .await, then the loop waits for the operation to complete before starting over.
+
+*enums can hold unit variants,struct like variants and tuple like variants
+
+*using structs as a single source of truth for all mutex lock uses
+
+*so framing prevents errors during streaming of byte data by defining the possible variants the data being streamed can be.its better than just sending byte data crossing fingers that it doesnt get corrupted.It can cause the data to be silently corrupted.its also used to indicate the boundary of data
+
+*The poll method is what advances the future and determines whether it is ready to provide a value or needs to be polled again later.the poll method is what advances the future. When you call poll, you're essentially asking the future if it can provide a result. If it can't (i.e., it returns Poll::Pending), it indicates that the future needs to be polled again later.When a future is pending, it may register a waker, which is a mechanism that tells the runtime when the future can be polled again (for example, when I/O is ready).
+
+*select runs all the tasks concurrently till one matches the value first and the rest are dropped.it allows you to await multiple futures simultaneously and proceed with the one that completes first
+
+*When spawning tasks, the spawned async expression must own all of its data. The select! macro does not have this limitation. Each branch's async expression may borrow data and operate concurrently. Following Rust's borrow rules, multiple async expressions may immutably borrow a single piece of data or a single async expression may mutably borrow a piece of data.
+
+*The data variable is being borrowed immutably from both async expressions. When one of the operations completes successfully, the other one is dropped. Because we pattern match on Ok(_), if an expression fails, the other one continues to execute.only one handler can execute at a time so each branch can borrow mutably as well.
+
+*rayon is a lib that mainly provides parallel iterators
+
+^note your extensions
+^theres cargo add
+^dependi vs code,wallaby
+
+^github actions for a cd pipeline
+
+rust gives the js experience where the std library is small and most of what you will need is provided by the community and as such,it has a solid package manager called cargo as pnpm is to js
+
+code lldb,dependi
+rayon,tokio,thread api
+rayon,tokio,bytes,bacon
+
+rustup,rustc cargo
+
+*to turn a string into a vector for character access,use .chars().collect()
+
+*traits in rust allows you to extend the functionality of any type and create a type thats composed of characteristics of other types
+
+*k-v config files like cfg,toml and property and object config files like json and yaml
+
+terminal user interface

@@ -94,8 +94,9 @@ synchronous
 Coroutines--explicit yielding and resuming
 Asynchronous--implicit yielding and resuming
 Multi-threading--time slicing managed by the os
-Goroutines---managed by the go runtime
+Async-threading--goroutines and tokio blocks
 Multi-processing--many cpu cores
+Gpu processing--thousands of gpu cores
 
 *A technique to organically displace parts in an animation:by displacing one over the other in opposite direction at the same time that other one is displacing
 *android is a linux distro

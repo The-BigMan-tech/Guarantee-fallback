@@ -1,5 +1,8 @@
 use std::{sync::{mpsc, Arc, Mutex, MutexGuard}, thread::{self, JoinHandle}, time::Duration};
-
+use tokio;
+use tokio_stream::StreamExt;
+use tokio::task::JoinHandle as TokioHandle;
+use bytes::{BufMut, Bytes, BytesMut};
 
 pub fn thread() {
     println!("\nHello threads!!");
@@ -49,10 +52,67 @@ pub fn thread() {
 }
 
 pub async fn asyn() {
-    println!("\n\nHello async!!");
-    async fn hello() {
-        println!("Hello world");
+    println!("\nHello async!!\n");
+    async fn hello(name:&String) {
+        println!("Hello {name}");
     }
-    hello().await;
+    let name: String = String::from("name1");
+    hello(&name).await;
+    async fn fetch() {
+        println!("fetching data from file");
+        let name_2: String = String::from("name2");
+        let task: TokioHandle<()> = tokio::spawn(async move {
+            hello(&name_2).await;
+        });
+        task.await.unwrap();
+    }
+    tokio::spawn(fetch());
+    fetch().await;
+    let number: Arc<Mutex<i32>> = Arc::new(Mutex::new(0));
+    let num: Arc<Mutex<i32>> = Arc::clone(&number);
+    let num_1: Arc<Mutex<i32>> = Arc::clone(&number);
+    async fn print_num(num:Arc<Mutex<i32>>)->i32 {
+        println!("Processing num from async func: {}",num.lock().unwrap());
+        10
+    }
+    async fn print_number() {
+        println!("ten men");
+    }
+    let print_num_2 = async move {
+        let num_from_pointer:i32;
+        {
+            let mut num_pointer: MutexGuard<'_, i32> = num.lock().unwrap();
+            *num_pointer = 11;
+            num_from_pointer = *num_pointer;
+        }
+        print_number().await;
+        println!("Processing number {}",num_from_pointer);
+        6
+    };
+    let print_2_result: i32 = print_num_2.await;
+    println!("Here is print 2 result: {}",print_2_result);
+    // tokio::spawn(print_num_2);
+    let task_2: TokioHandle<i32> = tokio::spawn(print_num(num_1));
+    let task_2_result:i32 =  task_2.await.unwrap();
+    print_num(number).await;
+    println!("Here is task 2 by the way: {}",task_2_result);
     println!("End of async code");
+}
+
+pub async fn asyn_2() {
+    println!("\n\nHello async 2\n");
+    let data: Bytes = Bytes::from("Hello, world!");
+    println!("{:?}", data);
+
+    let mut buffer: BytesMut = BytesMut::with_capacity(32);
+    buffer.put_slice(b"Hello");
+    buffer.put_slice(b", world!");
+
+    println!("{buffer:?}");
+    let mut stream = tokio_stream::iter(&[1, 2, 3]);
+    while let Some(v) = stream.next().await {
+        println!("GOT = {:?}", v);
+    }
+    let f: i32 = 10;
+    println!("Value of f: {f}");
 }

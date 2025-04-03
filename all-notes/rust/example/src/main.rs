@@ -9,6 +9,8 @@ mod threads;
 
 use std::collections::HashMap;
 use std::result::Result;
+use std::thread;
+use std::time::Duration;
 use error::question_mark;
 use mini_redis::Result as AsyncResult;
 
@@ -127,6 +129,10 @@ async fn main() -> AsyncResult<()> {
     closure::smart();
     closure::cyclic();
     threads::thread();
-    threads::asyn().await;
+    let task_result: tokio::task::JoinHandle<()> = tokio::spawn(threads::asyn());
+    task_result.await.unwrap();
+    tokio::spawn(threads::asyn_2());
+    println!("END OF MAIN CODE");
+    thread::sleep(Duration::from_millis(20));
     return Ok(());
 }
