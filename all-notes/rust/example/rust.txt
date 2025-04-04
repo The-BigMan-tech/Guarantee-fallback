@@ -1732,3 +1732,27 @@ rustup,rustc cargo
 *k-v config files like cfg,toml and property and object config files like json and yaml
 
 terminal user interface
+
+*constants declared with the const keyword are not stored in static storage in the traditional sense. Instead, they are inlined wherever they are used, meaning their values are directly substituted into the code at compile time. This approach eliminates the need for memory allocation and indirection, providing performance benefits. Constants do not have a fixed address in memory and are not stored in a specific memory segment like static variable and because static variables have a fixed memory location,they can be modified
+
+stack,heap,static,no memory
+
+*task is managed by the runtime instead of the os
+
+jamb print
+whatsapp message about bowl
+my medicine
+cockroach
+
+non-waiting vs waiting
+
+?green threads
+?cooperative multitasking is coroutines
+
+?js async reprioritizes tasks
+?coroutines yield.manual control
+
+*threading is the os switches execution time between tasks 
+*yielding is when the tasks voluntarily give execution time to another task
+
+interrupting,suspending/deferring/reprioritizing
