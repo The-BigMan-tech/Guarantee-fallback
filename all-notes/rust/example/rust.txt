@@ -1740,9 +1740,7 @@ stack,heap,static,no memory
 *task is managed by the runtime instead of the os
 
 jamb print
-whatsapp message about bowl
 my medicine
-cockroach
 
 non-waiting vs waiting
 
@@ -1756,3 +1754,5 @@ non-waiting vs waiting
 *yielding is when the tasks voluntarily give execution time to another task
 
 interrupting,suspending/deferring/reprioritizing
+
+^booking rust owl till when it becomes widely used
