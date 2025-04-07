@@ -1769,3 +1769,7 @@ colon right type annotation
 contiguous memory,non contiguous memory and scattered memory
 
 allocator,gc,borrow checker
+*mobile apps---kotlin,swift,flutter,js with react expo
+type parser--dto
+
+*const values must be known at compile time and cannot depend on user input or runtime calculations.
