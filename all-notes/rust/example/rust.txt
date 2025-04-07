@@ -1756,3 +1756,16 @@ non-waiting vs waiting
 interrupting,suspending/deferring/reprioritizing
 
 ^booking rust owl till when it becomes widely used
+
+*data structures that structure data,those that group data and those that relate data.arrays group,object sructures and graphs relate
+
+^arrays are fixed in size.growable arrays are termed lists or vectors
+left type annotation
+right type annotation
+colon right type annotation
+
+*The reason why the values in a set must be unique is because the same value will lead to the same hash which is like you never added another element.if you could do it,will it cause mem vulnerabilities.sets uses the values to compute the hash while maps use the keys .sets use a hashfunction to compute the index and an array.While the array itself is contiguous in memory, the way elements are stored within the set (due to hashing and collision resolution) means that the actual values can be spread across different indices of the array. The elements may not be stored sequentially.
+
+contiguous memory,non contiguous memory and scattered memory
+
+allocator,gc,borrow checker

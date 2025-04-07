@@ -159,3 +159,30 @@ lazy and eager eval
 my definition of scalability
 
 its better to use uuid over index as keys for list rendered elemenets in react because the array will become unstable if the array frequently changes.
+
+break and rebuild--engineering
+visual
+intuitive strategic thinking
+
+genius learner--discovery,scientific
+sound
+adaptable strategic thinking
+
+exploratory
+food
+systemic strategic thinking
+
+animals
+space
+documentary--air crash investigation
+cars
+games
+
+^mechanics--->create mod and mc mods
+^logic circuit design---mc redstone
+^circuit design--->cad
+
+invest for interest
+invest for equity--part of the remainder/profit
+invest for sharing ownership--take part of the sales/company's worth
+invest for royalty--per product

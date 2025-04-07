@@ -405,15 +405,17 @@ SSG/pre rendering
 
 *Digital ocean
 
-frontend developer--javascript
-backend developer--javascript,one can also use python
+frontend developer/web apps--javascript
+backend developer/server apps packaged as containers--javascript,one can also use python
 desktop app developer--javascript,one can also use c# or swift
 mobile app developer---javascript,one can use kotlin or swift
 data engineer--program with python,one can use R
 machine learning developer--python,one can use R
 security software developer--rust,one can also use python
+developer apps--cli or tools,python,rust,js
 systems programmer--rust,one can use C++
 game developer--C++,one can use c#
+graohics programming--shading and rtx
 
 scientific programming--matlab,julia
 gpu programmer
