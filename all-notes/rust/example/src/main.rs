@@ -1,19 +1,12 @@
-mod hello;
-mod example_one;
-mod example_two;
-mod error;
-mod flex;
-mod ten;
-mod closure;
-mod threads;
-
+use example::*;
 use std::collections::HashMap;
 use std::result::Result;
 use std::thread;
 use std::time::Duration;
 use error::question_mark;
 use mini_redis::Result as AsyncResult;
-
+use std::env;
+use std::fs;
 
 #[tokio::main]
 async fn main() -> AsyncResult<()> {
@@ -134,5 +127,16 @@ async fn main() -> AsyncResult<()> {
     tokio::spawn(threads::asyn_2());
     println!("END OF MAIN CODE");
     thread::sleep(Duration::from_millis(20));
+
+    let mut args:Vec<String> = env::args().collect();
+    args.remove(0);
+    println!("Args: {args:?}");
+    if args.is_empty() == false {
+        let username:&String = &args[1];
+        let password:&String = &args[2];
+        println!("Hello user: {username}.Here is your password {password}");
+    }
+    let content:String = fs::read_to_string("./src/hello.txt").expect("Could not read file");
+    println!("Here is the file content: {content}");
     return Ok(());
 }

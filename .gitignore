@@ -2,6 +2,8 @@
 **/node_modules/
 **/.parcel-cache/
 **/dist/
+**/target/debug
+
 #Im ignoring this one because i can always regenerate it again with the rustlings package.
 **/rustlings
 

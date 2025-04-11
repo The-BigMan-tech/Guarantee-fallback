@@ -1739,9 +1739,6 @@ stack,heap,static,no memory
 
 *task is managed by the runtime instead of the os
 
-jamb print
-my medicine
-
 non-waiting vs waiting
 
 ?green threads
@@ -1773,3 +1770,161 @@ allocator,gc,borrow checker
 type parser--dto
 
 *const values must be known at compile time and cannot depend on user input or runtime calculations.
+
+*rust doesnt have unions like in ts but rather enums.so if you want something that can be one of many types,you have to use the enum and rust will force you to handle all the cases
+
+pixi js,phaser,babylon,three js
+
+*Accessing elements by get or indexing takes it by ref while using remove does it by ownership.The reference access is safer because it prevents ambiguity or confusion on which element a variable points to if the variable were to take ownership of the element in a vector.rust also prevents moving values out of smart containers and pointers unless allowed by the owership and borrowing rules
+
+*in js,truthy values implicitly evaluate to booleans on if checks but in rust,it must explicitly evaluate to a boolean regardless of whether the value is truthy or not
+
+*when doing an if check on a vector,use is empty and not checking if the length is greater than 0 as it will return different results.
+
+*idiomatic use statements with {} super,crate keyword,self keyword nand the * patter.i can either use the crate keyword or the projects name when accessing the module system from the root.when you declare a module in the main.rs file,it can be accessed anywhere in the codebase by using the code's ms but if modules are declared in the lib.rs file,it can only be used in the rest of the codebase if the main.rs file brings it to its own scope by doing the use project_name::x statement or if they individually get it through the same statement.
+
+*The lib.rs should be used for writing out the module system of your projcet so that the codebase can be reused,be tested since lib.rs files can be tested and not main and create a cleaner code structure by separating the module system from the main allowing the main to only package as much code just to start the program whithout having responsibility of the programs logic.so other rs files encapsulate the logic,the lib.rs declares the module system and the main file wraps all of this to an executable codebase.It also mounts all the modules declared in the lib.rs file into the ms.the lib.rs and the main.rs files are part of the root by default.code in the main will only run if the codebase is being ran as an executable.this is rust version of the if name == main check as it is in python.the crate keyword is for bringing code from the main.rs into the namespace while the name of the crate is used for bringing code from the lib.rs file into the namespace.The main function should not hold any responsibiliry of the programs logic meaning it shouldnt decide much but its should rather combine functions in a way that assembles the program.
+
+*the general go-to codebase structure is the starting script,logic scripts and the entrypoint script.Yhe starting script is where everything is mounted for execution.In react,its the main.tsx file,in nest js,its the main.ts file.Logic scripts are the scripts containing the different logical components of the codebase.in react,it is .tsx files and in nest js,it can be controllers,services,guards,pipes etc.The logical components are normally grouped into features in a feature-structure.The entrypoint file is the main file in each folder under the feature folder.since the feature folder is made up of many scripts,the entrypoint file encapsulates all the scripts in a particulatr feature into a single protable script.in next js,its page.tsx and in nest js,its module.ts.The entrypoint file can also be used to declare the import system of the scripts in each feature as it is required in nest js or the module system to define the module structure of the codebase as it is in rust.
+
+*modules are only accessible to whee they were defined but they are to be required to  be public if its to be used in another file like importing modules from lib.rs into the main script
+
+*i use the * pattern to import all the modules from the lib.rs file into the main file.
+
+*nest js allows detailed control of the route system
+
+*stack is for data that its allocation size is fixed not that the value itself is hardcoded into the codebase and not that the value cant be changed
+
+*you can also do tuple destructuring.Tuples can also be used for returning multiple items from a function.Vectors cant be directly destrcutured so its good shift indexing logic into another function that will return a tuple
+
+*a tuple is used for grouping data of any type but it is non growable.since tuples just purely group data,it might feel a bit arbritary to use when trying to meaningfully group data so tuple struct is used for that.vectors cant take multiple types because of runtime overhead and the only way to go around this is to use an enum of different types althoigh this is only used for preserving type information and each variant takes the largest size of its variant regardless of the actual size of the individual variant
+
+*There’s a tendency among many Rustaceans to avoid using clone to fix ownership problems because of its runtime cost.It’s better to have a working program that’s a bit inefficient than to try to hyperoptimize code on your first pass.
+
+*functions in rust should be mostly used for executing code or returning a value.If we want to return multiple values from a function,using a tuple will be good but if the multiple data returned requires more meaning to it,then returning a struct instance will be better as it structures the data.If it does this,it will be better to use object-based principles by turning the function into an associated function or method of the struct.object principles turns plain data to structured data.
+
+*its possible that the function can fail if the user didnt use the program correctly so a robust error hadling is required.
+
+*panicing is a developer problem when a codebase attempts to use another in a way that will lead to severe damage but for usage,returning a result is better because any operation that will come from the user that may fail will have to be handled robustly with the result type preventing the user's app from crashing and allowing it to continue.The main function can now decide how to handle the erro cases
+
+*a robust error handling check will make early condition checks so that the rest of the function can continue to proceed under safe assumptions.The condition checks should be precise so that on each failure,the program can return the exact error to the user.
+
+*the error value returned by any function is made to be handled by the main function and it cant be seen directly by the user.the best way to display this error is to use unwrap_or_else which is a non panic way of calling unwrap and more idiomatic than writing a match statement.It takes a closure which will print the precise error returned by the function to the standard output and exit the process not panic.
+
+*The process::exit function will stop the program immediately and return the number that was passed as the exit status code.The difference between this and panic is that this unlike panic is user friendly as it doesnt expose any code details to the user and only displaying a user readable message.its a user friendly way of abrupting the program
+
+*the main function sets up the program and handles all the error handling logic.other functions should return an error object in case of possible failure so that the main function can handle it.since the main function is mainly responsible for error handling,other functions shouldnt panic when they fail but rether propagate the error with the ? operator to the main function so that it can handle it.functions like this usually return unit structs or nothing wrapped around the Ok variant on success.This is because the function doesnt return a value we'll need but rather the status of the function.when this function does propagate an error,we dont use unwrap because unwrapping is used when the result wraps a value on success and since this function,doesnt return anything on success,we use if let because we only care about when the function fails.
+
+*the trait object type allows a variable to be of any type that implements a trait.its the variable usage counterpart of allowing any type that implements a trait in function signatures.This is mostly used for returning an error thats one error type of a vast amount of error types.
+
+^the codebase should transport standard messages to a file and only errors to the console
+
+exiting the process,panicing ,result
+*We’re also going to change the function name from new to build because many programmers expect new functions to never fail.
+
+concept based vs project based documentation
+
+match case,if let,let else,while let,unwrapping
+
+*the fs module is for operating on the file system as a whole while the File struct in the fs module is used for handling file operations on an opened file in an object based way
+
+*No module will be visible unless declared with the mod keyword.it can be in the root--main or lib preferrably lib or in any other module as a submodule.A feature folder will have many rs scripts and there will be an rs script that assembles all of them together by bringing it into its scope.That rs script is then declared as a module in the lib folder.
+
+^11,12.4,12.5,14
+^partial:17,tokio
+^18,19,20
+
+!install kali linux
+
+^ascii art
+
+^piping--creating dynamic programs
+^game with plugging dangling sockets 
+
+^whats a  linux x server for gui
+
+*packets are like electricity.they need to complete their path for the devices that rely on them to work.packets unlike electrons are just information that are sent as em waves.electricity is giverned by natural laws but packets are governed by protocols like http,tcp,rpc,graph ql
+
+code as object-java and c#
+code as procedures--python
+code as functions
+code as data structures
+
+^good to know:cobol,fortran,prolog,pascal,basic,abc,simula,lisp,ocaml
+
+*queries--database and knowledge base as its in logic programming,querying a codebase with graph ql
+
+^data wrangler extension
+^mypy linter
+^flake 8 linter
+^pyright linter
+
+what to do after submitting jamb exam
+
+*in app purchases,micro transactions
+logic programming,functional,data query
+
+information as logic vs data
+data--querying,analysis,machine learning
+
+Related data
+structured data
+grouped data--by sorting,filtering or just grouping
+plain data
+
+database vs the file system--structured vs plain data storage
+raw query,query builder,orms
+compiler,interpreter,jit compiler,transpiler,mapper,macro
+
+method chaining vs piping
+tailwind to css--mapping
+sass to css--compiled to css
+
+json vs csv
+polyglot,transpilation,ffi
+
+structured files--csv,json,yaml,cfg,properties
+plain files--log,scripts,text
+
+*classes are just blueprints but in sql,the database is responsible for performing operations on the data
+*objects are self contained.They are independent encapsulated pieces of data.The operations of the data and the data itself are in the same object.there is no external runtime performing operations on the data like a database.Objects are like smart data.
+
+minecraft,hytale,teardown,lay of the land,lego fortnite
+
+*Therefore, the only way to interact with an object is through its public API; code using the object shouldn’t be able to reach into the object’s internals and change data or behavior directly. This enables the programmer to change and refactor an object’s internals without needing to change the code that uses the object.
+
+*By keeping data encapsulated,it becomes easier to make updates to the codebase that uses the object because the object is the single source of truth of all operations on that object meaning that the only place to modify the codebase on its uasge of the encapsulated object is only in the object itself and notr the code using it
+
+*a trait in rust is like a class but only for methods.it can have many methods and each of the methods can be abstract or have default implementations that can be overriden or not.A struct object is then composed of traits not that it inherits the trait
+
+*The other reason to use inheritance relates to the type system: to enable a child type to be used in the same places as the parent type. This is also called polymorphism, which means that you can substitute multiple objects for each other at runtime if they share certain characteristics.
+
+*polymorphism is when you code with any object that has a certain behaviour without caring about what the object actually is.so the use of generics and trait bounds is polymorphism
+
+*Inheritance has recently fallen out of favor as a programming design solution in many programming languages because it’s often at risk of sharing more code than necessary. Subclasses shouldn’t always share all characteristics of their parent class but will do so with inheritance. This can make a program’s design less flexible. It also introduces the possibility of calling methods on subclasses that don’t make sense or that cause errors because the methods don’t apply to the subclass. In addition, some languages will only allow single inheritance (meaning a subclass can only inherit from one class), further restricting the flexibility of a program’s design.
+
+*so this makes mixins(multiple inheritance) and single inheritance less flexible and thats why rust uses composition
+
+*dynamically sized types like str and vec cannot be stored on the stack and thats why variables that uses them are pointers to that data in memory location either on the heap or binary storage in the case of strng literals.A dynamically sized type just needs to be behind a pointer.so &str is a pointer to the string literal in the static storage but the variable doesnt own the data and as such,any ither variable pointing to a literal of the same text points to the same data.they both share the same string literal and its only an imutable reference.But you cant str behind a Box because str is always a borrowed type.if it needs to be owned,String should be used instead
+
+*rust implicitly adds a sized trait bound to every function that uses a generic to ensure safety that every function works with a type thats known at compile time
+
+*rust dont call their object objects.The struct and impl blocks are separate definitions that are associtaed with each other.they are not under one definution as it is in other programming languages
+
+*the difference between code that uses a genric with a trait bound and one that uses a trait object is that generics are expanded into concrete types at compile time.the compiler will look for any definitions that uses a generic and expands it into concrete def at compile time by using type information from the callers.its a form of meta programming. while trait objects are substituted as the code is running making it work at runtime.Except that in generics,if a variable wre to take user input and is to be used in a function,the variable holding the user input must be type annotated so that the function using it as a generic works under safe assumptions while for trait objects variables,the exact type of tha variable isnt known and the program can only work under the assumption that the variable has a particular behaviour but not what specific type it is.
+
+*rust has a cycle method so i dont need to index with modulus to cycle through a vector
+
+*The advantage of using trait objects and Rust’s type system to write code similar to code using duck typing is that we never have to check whether a value implements a particular method at runtime or worry about getting errors if a value doesn’t implement a method but we call it anyway. Rust won’t compile our code if the values don’t implement the traits that the trait objects need.
+
+*the difference between generics and trait objects is that generics are only allowed in definitions and not variables because rust can expand the definition at runtime into concrete types at compile time but if variables were to take a dynamic type which can take user input,rust cant possibly get the concrete type fof the variable at compile time and thats where trait objects come in.For trait objects,rust will reoslve their concrete types at rutime based on what data type they are pointing to as their values.
+
+*generics and trait objects both allow for dynamic types but generics are only for defintions while trait objects are for variables.
+
+*so rust wont allow me to use a trait object variable if there is only one object implementing the trait,it will encourage me to use the struct directly,if there are more than one,it will encourage me to use an enum of the types that implements the trait.rust makes it difficult to se trait objects because there are work arounds to it.
+
+*the reason why rust was so difficult in allowing me to create trait objects was because rust doesnt allow trait objects that define any static methods which are methods that operate on the state of the object.This is under the fact that a static method is as good as a function and rust encourages the programmer to use generics and trait bounds on those method definitions to have a dynamic type system and declaring any variable that will be used in the function should be of a type that respects the constraints meaning that ruat only allows trait objects for traits that only have instance methods.This is to prevent you flopping when writing your code as a result of ambiguity.This is because using a variable that holds a trait object can become unpredictable later in the codebase if you eventually care about the type that the variable holds as the variable could have undergone mutations that changed it from one type to another as long as the type implemented a trait which can be hard to follow but using an enum of all the types that implements the trait is better because at first glance,youll know the possible types that a variable is.so trait objets are best for variables were you absolutely dont care what the variable type is and just the method it has.
+
+*rust will require that all variables to be type annotated for safety and if a variable must accept user input.rust will require you to call a method on it termed a parse method that will take the user input and return a string or an error ensuring that the variable will always be type safe.If the parsing meythod fails,it is conventional that it returns an erro object rather than panicing so that the caller can decide how to respond to the error.This means that the error must be handled to get the user input out whether by panicing by unwrapping or by recovering from it.So the error you'll get if it fails is a parsing error not one that reuslted because the variable was used in the codebase that assumed that the input confirmed to the type constraints.This is different from other programmin languages that lets your codebase to assume that the input confirms to the type annotation of the variable and will only crash after your codebase used it to a degree.But rust ensures that errors like this are explicitly caught by the programmer by enforcing that the programmer converts the input to the expected type before using it and it forces the programmer to handle the cases of a parsing error meaning that if there will be a runtime crash,its totally expected.The programmer can decide whether to crash the program or not.the only time rust will crash is if the program attempted to do illegal data access.If you want to collect args into a vector,collect will only parse it to strings so far from what ive seen making it safe since every piece of data can be inserted into quotation marks to create a string.its a guarantee that collect will never fail so its always safe.Collect only builds a vector from an iterator to the type that you want if the type is converting it to us guaranteed to parse.so if you want the vector to then become a vec of ints,you have to make a separate vec that maps through the old one and parse each element explicitly and still decide how the program should respond if the parsing fails.rust doenst care if you make it crash or recover,it just ensures that you dont leave the possibility it unchecked.
+
+^correction:generics can be used in variables except that the generic type must be declared in the function or struct def so that code calling it will pass values that rust can check against at compile time allowing for  compile time polymorphism while trait objects types are declared on the variable that uses them allowing for runtime polymorphism.The focus on instance methods on trait objects ensures that  they remain flexible and predictable, avoiding ambiguity.

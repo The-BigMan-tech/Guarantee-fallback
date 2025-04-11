@@ -1,7 +1,6 @@
 use std::{sync::{mpsc, Arc, Mutex, MutexGuard}, thread::{self, JoinHandle}, time::Duration};
-use tokio;
 use tokio_stream::StreamExt;
-use tokio::task::JoinHandle as TokioHandle;
+use tokio::{self,task::JoinHandle as TokioHandle};
 use bytes::{BufMut, Bytes, BytesMut};
 
 pub fn thread() {
@@ -113,6 +112,6 @@ pub async fn asyn_2() {
     while let Some(v) = stream.next().await {
         println!("GOT = {:?}", v);
     }
-    let f: i32 = 10;
+    let f: i32 = 30;
     println!("Value of f: {f}");
 }
