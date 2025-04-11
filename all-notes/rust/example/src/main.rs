@@ -1,3 +1,4 @@
+use example::obj::Movement;
 use example::*;
 use std::collections::HashMap;
 use std::result::Result;
@@ -8,6 +9,19 @@ use mini_redis::Result as AsyncResult;
 use std::env;
 use std::fs;
 
+pub struct Person;
+pub struct Animal;
+
+impl Movement for Person {
+    fn walk(&self) {
+        println!("I can walk");
+    }
+}
+impl Movement for Animal {
+    fn walk(&self) {
+        println!("I can walk");
+    }
+}
 #[tokio::main]
 async fn main() -> AsyncResult<()> {
     // example_two::example_two();
@@ -132,11 +146,18 @@ async fn main() -> AsyncResult<()> {
     args.remove(0);
     println!("Args: {args:?}");
     if args.is_empty() == false {
-        let username:&String = &args[1];
-        let password:&String = &args[2];
+        let username:i32 = (&args[0].to_owned()).parse::<i32>().unwrap();
+        let password:&String = &args[1];
         println!("Hello user: {username}.Here is your password {password}");
     }
     let content:String = fs::read_to_string("./src/hello.txt").expect("Could not read file");
     println!("Here is the file content: {content}");
+    let mut mark: Box<dyn Movement> = Box::new(Person {});
+    mark.walk();
+
+    mark = Box::new(Animal {});
+    mark.walk();
+    state::
+
     return Ok(());
 }

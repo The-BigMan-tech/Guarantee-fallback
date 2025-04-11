@@ -1928,3 +1928,62 @@ minecraft,hytale,teardown,lay of the land,lego fortnite
 *rust will require that all variables to be type annotated for safety and if a variable must accept user input.rust will require you to call a method on it termed a parse method that will take the user input and return a string or an error ensuring that the variable will always be type safe.If the parsing meythod fails,it is conventional that it returns an erro object rather than panicing so that the caller can decide how to respond to the error.This means that the error must be handled to get the user input out whether by panicing by unwrapping or by recovering from it.So the error you'll get if it fails is a parsing error not one that reuslted because the variable was used in the codebase that assumed that the input confirmed to the type constraints.This is different from other programmin languages that lets your codebase to assume that the input confirms to the type annotation of the variable and will only crash after your codebase used it to a degree.But rust ensures that errors like this are explicitly caught by the programmer by enforcing that the programmer converts the input to the expected type before using it and it forces the programmer to handle the cases of a parsing error meaning that if there will be a runtime crash,its totally expected.The programmer can decide whether to crash the program or not.the only time rust will crash is if the program attempted to do illegal data access.If you want to collect args into a vector,collect will only parse it to strings so far from what ive seen making it safe since every piece of data can be inserted into quotation marks to create a string.its a guarantee that collect will never fail so its always safe.Collect only builds a vector from an iterator to the type that you want if the type is converting it to us guaranteed to parse.so if you want the vector to then become a vec of ints,you have to make a separate vec that maps through the old one and parse each element explicitly and still decide how the program should respond if the parsing fails.rust doenst care if you make it crash or recover,it just ensures that you dont leave the possibility it unchecked.
 
 ^correction:generics can be used in variables except that the generic type must be declared in the function or struct def so that code calling it will pass values that rust can check against at compile time allowing for  compile time polymorphism while trait objects types are declared on the variable that uses them allowing for runtime polymorphism.The focus on instance methods on trait objects ensures that  they remain flexible and predictable, avoiding ambiguity.
+
+*stack trace-->file name,line number,call stack and context information as it is in python but not rust
+
+*Rust has modes to increase the verbosity of the stack trace for more details but its more straightforward than in js and python and less friendly as it doesnt provide much information about its context and is not that well formatted.This is because stack traces are for unexpected runtime crashes but since rust has explicit error handling,you dont need a stack trace to tell you where your code crashed as the codebase gives you enough information about where your code may crash so theres nothing unexpected that will become of it undermining the need for stack traces.Rust's stack traces provide clear information about where a panic occurred, but they do not need to be overly detailed like js and python since developers are typically aware of the risks in their code.The focus is on clarity and utility rather than extensive verbosity, which aligns with Rust's philosophy of safety and predictability.the purpose of stack traces is just to identify where errors should be properly handled and because of rust design,this is not needed
+
+*if the error is recoverable,then it can be logged out as a warning to a file or the console,if its something that requires the program to stop,it can be exited without panic by exiting the process and logging out why it exited but only if its critical level that it panics.
+
+*if one wants to do errors as values in python,it must return a value or an exception and not a string to prevent the caller from thinking that he has a valid value.exceptions are objects in python so they wont crash the program unless expliciltly raised and type checkers like mypy will ensure that you check for the type of the variable before you use it providing a pattern similar to rust.
+
+*the errors as value style does come at the cost of verbosity but its worth the benefits.it can save a lot of debugging time.This makes the software more reliable
+
+*error context information is making different types of errors like python that has type error,index error,assertion error etc. to help with stack trace info by reporting the nature of the error while rust stack trace doesnt have this context by default unless you provide custom error types but one will hardly need it in rust.Python ensures that raised exceptions are among its variety of errors making it easier to understand the error
+
+*js lacks this variety and only has a try catch for every error unless explicitly stated making js error handling model the least productive as it can complicate debugging.Since JavaScript does not enforce specific error types, developers often need to implement manual checks to determine the type of error. This can introduce additional complexity and increase the likelihood of bugs.This is why one relies more on logs in js than the stack trace but vice versa in python.
+
+^stack trace,logging,debugging,error handling--by values or exceptions
+
+generic exceptions
+structured exceptions--built in or custom
+checked exceptions
+result type exception pattern
+
+*java uses checked exceptions.Checked exceptions sit in between errors as values and exceptions in that checled exceptions come from functions that return a value or throw an exception and it forces the caller to catch the exception before proceeding.
+
+*rust encourages centralized error handling with the use of the propagation operator ?
+
+*the result type pattern is used to mimic error as value in an exception model language
+
+^pattern vs builtin feature
+
+*its best to create wrapper functions around the methods i call from external libs to use the result type pattern to make a consistent error handling model across my codebase
+
+*there are two ways of doing centralized error handling;by calling the centralized error hadnler or by propagating the error to the parent function that encapsulates the entire app to handle it.
+
+*encapsulation ensures a single source of truth for all state management in an object.the single source of truth pattern is heavily used by redux,prisma and graph ql
+
+*One disadvantage of using an enum is every place that checks the value of the enum will need a match expression or similar to handle every possible variant. This could get more repetitive than this trait object solution.trait objects are best when you really dont care about the tyoe itself but only the method it implements.
+
+*so if a struct has a field that can be one of many types but we only care about the method,then trait objects will make the code less verbose.With the state pattern, the methods on a struct type and the places we use them don’t need match expressions, and to add a new state, we would only need to add a new struct and implement the trait methods on that one struct.
+
+^take vs unwrap
+
+*encapsulation is not the state pattern.trait objects are used for implementing the state pattern
+
+observer pattern,singleton,builder,encapsulation,result type,factory,template/black box,decorator
+^design pattern
+^Architectural pattern--mvc,component,feature based
+
+*the state object pattern is where a field isnt of one type but one of many possible types.Its similar to an enum but the difference is that enums are used to hold state variants and the values dont transition or change from one to another once set because of its type annotation while states are objects that can allow transition to other object types because unlike an enum,states only care about the methods and not the type.Trait objects are used for states.generics to can do the same thing but its for polymorphism over the state pattern because since generics expand at compile time,the state cant transution to another type once it has been set making trait objects the perfect tool for this.
+
+*a state is created by defining a single trait and multiple states that implements the trait.they decide how data transitions from them to another and the object that holds a state object knows nothing about the different behavior of the states or when to transition between states.
+
+state pattern,encapsulation,generics
+
+*the state pattern ensures that the state isnt manged by the struct but rather by the individual states
+
+*the difference between an architectiral pattern and a design pattern is that architectural patterns for defining the structure of a project like mvc, component based,feature based etc while design pattern is for defining how to well design a solution in the codebase
+
+*When we create a new Post, we set its state field to a Some value that holds a Box. This Box points to a new instance of the Draft struct. This ensures whenever we create a new instance of Post, it will start out as a draft. Because the state field of Post is private, there is no way to create a Post in any other state! In the Post::new function, we set the content field to a new, empty String.

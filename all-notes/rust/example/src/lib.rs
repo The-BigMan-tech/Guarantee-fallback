@@ -6,9 +6,15 @@ pub mod flex;
 pub mod ten;
 pub mod closure;
 pub mod threads;
+pub mod state;
 
 pub mod wireless {
     pub fn wireless() {
         println!("This is a wireless connection")
+    }
+}
+pub mod obj {
+    pub trait Movement {
+        fn walk(&self);
     }
 }
