@@ -1987,3 +1987,19 @@ state pattern,encapsulation,generics
 *the difference between an architectiral pattern and a design pattern is that architectural patterns for defining the structure of a project like mvc, component based,feature based etc while design pattern is for defining how to well design a solution in the codebase
 
 *When we create a new Post, we set its state field to a Some value that holds a Box. This Box points to a new instance of the Draft struct. This ensures whenever we create a new instance of Post, it will start out as a draft. Because the state field of Post is private, there is no way to create a Post in any other state! In the Post::new function, we set the content field to a new, empty String.
+
+*as ref and as mut are the method versions of & and mut  & respectively
+
+*unit structs are just markers.I use them to represent states as their own instances over strings
+
+*if a field isnt dependent on a state,it isnt part of the state pattern
+
+*match is better for patterns as it shows my intent of managing states and i can easily handle more states later than changing how i handle the error each time unlike the unwrap family of methods
+
+*the diff between print and println or write and writeln is that the latter adds a newline at the end of the output
+
+*you can use the Any trait in Rust. This allows you to perform downcasting to determine the concrete type of the object at runtime.
+
+*the trait:trait syntax means that trait A extends trait B
+
+*the any type can be downcasted to a concretet type at runtime

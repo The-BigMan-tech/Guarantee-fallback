@@ -157,7 +157,7 @@ async fn main() -> AsyncResult<()> {
 
     mark = Box::new(Animal {});
     mark.walk();
-    state::
+    state::start();
 
     return Ok(());
 }
