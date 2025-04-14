@@ -150,14 +150,16 @@ async fn main() -> AsyncResult<()> {
         let password:&String = &args[1];
         println!("Hello user: {username}.Here is your password {password}");
     }
-    let content:String = fs::read_to_string("./src/hello.txt").expect("Could not read file");
-    println!("Here is the file content: {content}");
+    match fs::read_to_string("./src/hello.txt") {
+        Ok(content)=>println!("Here is the file content: {content}"),
+        Err(error)=>println!("Could not find the file.Details: {error}")
+    }
     let mut mark: Box<dyn Movement> = Box::new(Person {});
     mark.walk();
 
     mark = Box::new(Animal {});
     mark.walk();
     state::start();
-
+    state::two::start_two();
     return Ok(());
 }

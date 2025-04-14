@@ -2002,4 +2002,71 @@ state pattern,encapsulation,generics
 
 *the trait:trait syntax means that trait A extends trait B
 
-*the any type can be downcasted to a concretet type at runtime
+*the any type can be downcasted to a concretet type at runtime 
+
+*rust doesnt allow you to deref from an immutable ref because there can be more than one owner.
+*we make the transition method take box self so that the last state can return itself because if not,there is no way it can return self and satisy the return type if it took it as a ref and since the method is a trait,we have to change the definition in the trait block which will also cause others to change their def.we can make the last state to return Box::new(last) but since the previous state also does the same,it will reduce clarity
+
+^the take method is to take ownership of a value in a method from an immutable ref without bothering the ownership rules and copying the data.Thats why we wrapped the state in an option.not because it rep a part of the state but because its what we need to implement the state pattern
+
+observer pattern,state pattern
+
+*take is about ownersip and unwrap is about handling
+
+*theres a huge difference between generics and traity objects in how you can use them.if a struct took a genric as a field type,once expanded,the field type cant change to another type that impl the trait meaning that there can only be one type impl a trait thats used in a struct per instance which wont be able to do the state pattern thats why we use traiy objects for runtime polymorphism where the type that impl the trait isnt fixed but changes as the program runs allowing us to create states
+
+^the take method does a move and replace.
+
+*Each state is responsible for its own rules.a state decides how it transitions to a new state
+state vs enum
+
+*you van use unwrap if its guaranteed that something will never panic,else use a match case
+
+state rules and state specific behaviour which is when different states behave differently to the same rule.They can behave the same way like transitioning to the next state but produce different results but if they behave the same and produce the same result,then its best to move it to the object struct
+
+*the state pattern is when states manage a field of an object and not the object itself
+
+*i prefer to use rc over lifetimes and i didnt make the relationship between app and device bidirectional because i dont want to maintain the complexity of managing a graph relationship but lifetimes are better because of compile time guarantees but when it comes to graphs,rc is better
+
+*you can alsi use scopes to relax the borriw checker
+
+*With the state pattern, the Post methods and the places we use Post don’t need match expressions, and to add a new state, we would only need to add a new struct and implement the trait methods on that one struct.
+
+*state,payload-->new state
+
+*the traitA:traitB syntax is used to tell all implementors of traitA to also implement traitB
+
+component vs object/function--the former child can access parent data but not vice versa.a way around it is by passing data in the parent to the child for the child to mutate which will allow the parent to reflect the childs data but will cause prop drilling unless you use a global state management solution.the latter,parent objects or functions can access the data in a child but not vice versa unless a cyclic relationship is created.
+
+linear relationship--a single flow of owners
+
+recursive relationship--single flow of owners but a field can own the same type but its another one
+
+failed cyclic relationships--owner to owner breaks ownership rules.owner to borrow breaks borrowing rules.this is because its impossible to create the relationship without making the borrow mutable so that after creating the two variables to be related,you then use the mutable borrow to make one to borrow the other.But you cant,since you cant mutate something thats already borrowed because of race conditions.
+
+successful cyclic relationship--requires rc and refcell
+
+*rc is good for creating a cyclic relationship where A owns B and B owns A. but i want is that Device owns cpu but cpu borrows the device .I tried to do this as it was spelt by creating two different structs one for device and another for Cpu and made device own cpu in one of its fields and made cpu borrow a device in one of its fields.It works with ownership rules but it doesnt compile because it doesnt work with borrowing rules.this is because i have to make the device's field to the cpu to be wrapped in an option so that it can start as none and after i create the cpu,it can then take the cpu.since the cpu is made after the device,i can make the cpu to directly borrow the device but doing that for the device requires mutation which isnt allowed because cpu borrows device already.so a way around it is to use RefCell in an Rc  but it doesnt create the relationship i want.it makes A to own B and vice versa so i just used refcell which allows me to take the borrowing rules to runtime allowing me to create a cyclic relationship where A owns B but B borrows A.Not only that but i also merged them into one struct to simplify it into a single encapsulation.cpu is now a field of A that borrows A allowing it to manage all of the fields of A without owning A iteself
+
+owner to owner--one must be weak
+
+*the problem about this though is that i cant create two separate impl blocks for cpu and dveice sep sice they are essentially composed the same way.so i have to give cpu its own struct
+
+*so thats what unwrap or is used for.its used for quickly and safely handling none cases.also in ts,when you have a union,you can unsafely downcast it using assertion with the as keyword but rus forces you to check through all the patterns meaning that rust is more type safe than the king of typesafety;typescript
+
+*and i guess there is nothing like default value for parameters unlike ts.this is to prevent situations where the programmer is unaware of the value that is being passed to a function.It ensures that the programmer is aware of all the inputs that will go to a function
+
+*i cannot define inherent `impl` for a type outside of the crate where the type is defined because if i do,i will override the functionality of that type.instead rust encourages me to extend its functionality with traits.Traits can be used to compose and extend types.
+
+*lifetimes can only be underscore in variable annotations but must be specified in definitions
+
+*i figured it out.its not because the ref doesnt get dropped at the end of the scope normally but because i stated that the ref should live as long as the device which prevents any further immutable borrows
+
+*replacing through take and replace can satusy the borrowing rules despite moving
+
+*unwrap takes ownership of the data so you have to be careful of borrowing rules by using as_ref or as_mut
+
+organ rot power
+disuse of organs for regen
+texture space
+a space where changing the state of any mantter is a paradox and results in it compensating by returning a new matter to reflect the state while the original remains intact
