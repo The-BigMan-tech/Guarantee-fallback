@@ -2070,3 +2070,30 @@ organ rot power
 disuse of organs for regen
 texture space
 a space where changing the state of any mantter is a paradox and results in it compensating by returning a new matter to reflect the state while the original remains intact
+
+*Theres a difference between a method thats associated with a class and one that belongs to the class.i wonder if the one that belongs to the class gets bundled with the object while the other doesnt
+
+*module encapsulation vs class encapsulation
+
+*classes are blueprints.interfaces are contracts.i wonder which one structs are?
+
+*generics with traits create compile time polymorphism while trait objects with traits create runtime polymorphism.
+
+*there is no inheritance in rust,so theres nothing like super in methods.theres only composition which is done by traits
+
+one owner
+one owner,one mutable borrow
+one owner,many immutable borrows
+multiple owners
+
+put the device key in an rc
+
+*rust borrowing rules prevents you modifying the vector you are looping over which will cause unexpected behaviour.
+
+*Unexpected behaviour doesnt mean it will compromise the entire system but undefined behaviour does.System level languages like C++ are prone to undefined behaviour because of the low level access to resources while application level languages like python are prone to unexpected behaviour because of abstractions and hidden behaviour.rust is a language that provides safety for both scenarios
+
+haskell,elm
+haskell is safer because of immutability
+
+Haskell is more powerful and safer than elixir
+C++ is more powerful than C
