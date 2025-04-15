@@ -107,7 +107,7 @@ impl Flex {
                     x
                 }
             };
-            if digits.len() == 1 {
+            if (digits.len() == 1) && (digits[0].is_negative()){
                 string_data = format!("-{string_data}");
             }
             println!("String data: {string_data}");
@@ -135,7 +135,8 @@ impl Flex {
 fn main() {
     let mut cars:Flex = Flex::new([-17,63,61,64,-90000001,897].to_vec());
     println!("Internal Car re-representation: {:?}",cars.get_internal());
-    println!("Number at an index: {}",cars.get_data::<i8>(0));
+    let x:i32 = cars.get_data::<i32>(4);//the number of bytes the element you want to retieve takes.Requires head knowledge of which index has which numbe of bytes which isnt possible at runtime so using the biggest byte of the elemensts is preferrable.the vec still takes only the space that it needs for each element but when returning the element,it has to be the biggest size because of lack of runtime predictability
+    println!("Number at an index: {}",x);
     cars.push(20);
     cars.clear();
     cars.push(10);

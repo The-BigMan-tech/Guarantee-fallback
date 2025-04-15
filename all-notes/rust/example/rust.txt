@@ -2097,3 +2097,17 @@ haskell is safer because of immutability
 
 Haskell is more powerful and safer than elixir
 C++ is more powerful than C
+
+
+*This is object based programming
+
+object literals,class objects
+prototype object,class object,rust version
+
+*In other programming languages,composition isnt built in directly like in rust,rather it has to be done by using fields that references other object types.this means that composition in these languages are design patterns and not supported out of the box.
+
+*The difference between a design pattern and a built in feature is that a design pattern is done using available constructs while built in features are supported out of the box.
+
+*in rust,methids are just functions
+
+*Prototype instances,class instances and struct instances.the first one uses object literals,the second uses constructor and the third uses struct literals.the first one can have an interface but its just a contract not a blueprint to construct the instances from.Only the fields are copied and bundled for each object but the methods are lookups/references to their defintions in the class in case of class instances and impl blocks if its struct instances as it is in rust.prototype objects or plain objects have their own defintions because they are not constructed from any class to reference to.
