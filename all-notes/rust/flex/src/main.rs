@@ -1,4 +1,4 @@
-use std::{fmt::Display,str::{Chars, FromStr}, vec};
+use std::{fmt::{Debug, Display},str::{Chars, FromStr}, vec};
 mod flex_usage;
 
 struct Flex {
@@ -14,6 +14,8 @@ impl Flex {
     }
     fn create_representation<T:Display + Into<i64>>(&self,num:T,offload:&mut Vec<u8>) {
         let num:i64 = num.into();
+        if num.is_negative() {offload.push(255)}
+
         let num_as_string:String = num.abs().to_string();
         let mut characters:Chars<'_> = num_as_string.chars();
 
@@ -48,48 +50,74 @@ impl Flex {
     fn get_internal(&self)->&Vec<u8> {
         return &self.internal
     }
-    fn get_data<T:FromStr + From<i32>>(&self,ind:usize)->T {
+    fn get_data<T:FromStr + From<T> + Display>(&self,ind:usize)->T where T::Err :Debug {
         let internal:&Vec<u8> = self.get_internal();
+        let mut internal_signed:Vec<i32> = vec![];
+
+        for (index,element) in internal.iter().enumerate() {
+                if element != &255u8 {
+                    internal_signed.push(element.to_owned() as i32);
+                }else {
+                    let y = internal.get(index+1);
+                    match y {
+                        Some(value)=>{internal_signed.push((value.to_owned() as i32)* -1)},
+                        None=>{}
+                    }
+                }
+        }
+        println!("Internal signed: {internal_signed:?}");
         let mut terminators:Vec<i32> = vec![0];
         let mut string_data:String = String::from("");
-        for (index,num) in internal.iter().enumerate() {
+        for (index,num) in internal_signed.iter().enumerate() {
             let termination_index:i32 = {
-                if ((num == &0u8) || (num >= &100u8) && (num < &200u8)) || (num >= &210u8) || (num == &220u8) {index as i32}
+                if ((num.abs() == 0i32) || (num.abs() >= 100i32) && (num.abs() < 200i32)) || (num.abs() >= 210i32) || (num.abs() == 220i32) {index as i32}
                 else {continue}
             };
             terminators.push(termination_index);
         }
-        terminators.push((internal.len()) as i32);
+        terminators.push((internal_signed.len()) as i32);
         {
-            let digits:&[u8] = {
+            let digits:& [i32] = {
                 let own_terminators:Vec<i32> = terminators;
                 let mut termination_start:usize = (own_terminators[ind] as usize) + 1;
                 if ind == 0 {termination_start = 0;}
                 let termination_end:usize = (own_terminators[ind+1] as usize) + 1;
                 println!("Termination start: {termination_start}, End: {termination_end}");
-                let digits:&[u8] = {
-                    if (termination_start == 1) && (termination_end == 1) {&internal[..=0]}
-                    else {&internal[termination_start..termination_end]}
+                let digits:& [i32] = {
+                    if (termination_start == 1) && (termination_end == 1) {& internal_signed[..=0]}
+                    else {& internal_signed[termination_start..termination_end]}
                 };
                 digits
             };
             println!("Digits: {:?}",digits);
-            for digit in digits {
+            let mut digits:Vec<i32> = digits.to_owned();
+            if (digits[0].is_negative()) && (digits.len() > 1)  {
+                digits.remove(1);
+            }
+            println!("Digits 2: {:?}",digits);
+            for digit in &digits {
                 string_data += & { 
-                    if digit < &100u8 {digit.to_string()}
-                    else if (digit > &100u8) && (digit < &200u8)  {(digit-100).to_string()}
-                    else if (digit >= &200u8) && (digit < &220u8) {format!("0{}",digit.to_string().chars().last().unwrap())}
-                    else if digit == &220u8 {String::from("0")}
-                    else {String::from("")}
+                    let x = {
+                        if digit.abs() < 100i32 {digit.to_string()}
+                        else if (digit.abs() > 100i32) && (digit.abs() < 200i32)  {(digit.abs()-100).to_string()}
+                        else if (digit.abs() >= 200i32) && (digit.abs() < 220i32) {format!("0{}",digit.abs().to_string().chars().last().unwrap())}
+                        else if digit.abs() == 220i32 {String::from("0")}
+                        else {String::from("")}
+                    };
+                    x
                 }
             };
-            let num_to_return:i32 = {
+            if digits.len() == 1 {
+                string_data = format!("-{string_data}");
+            }
+            println!("String data: {string_data}");
+            let num_to_return:T = {
                 let string_data:String = string_data;
-                let num_to_return:i32 = string_data.parse::<i32>().unwrap();
+                let num_to_return:T = string_data.parse::<T>().unwrap();
                 num_to_return
             };
             println!("Num to return: {num_to_return}");
-            return  T::from(num_to_return);
+            return  num_to_return;
         }
     }
     fn push<T:Display+ Into<i64>>(&mut self,num:T) {
@@ -105,9 +133,9 @@ impl Flex {
     }
 }
 fn main() {
-    let mut cars:Flex = Flex::new([-1,63,61,64,-9000000].to_vec());
+    let mut cars:Flex = Flex::new([-17,63,61,64,-90000001,897].to_vec());
     println!("Internal Car re-representation: {:?}",cars.get_internal());
-    println!("Number at an index: {}",cars.get_data::<i32>(0));
+    println!("Number at an index: {}",cars.get_data::<i8>(0));
     cars.push(20);
     cars.clear();
     cars.push(10);
