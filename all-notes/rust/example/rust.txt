@@ -2171,4 +2171,36 @@ Nim,Go
 C#,Java
 Python,Typescript
 
+java--entreprise apps especially in banking
+java is like cobol--used for entreprise software
+
 *At first glance,macros and functions look like they do the same thing since they avoid repetition but there are subtle differences in their purpose and how they are implemented.functions are reusable isolated blocks of code that take parameters and use those parameters in its scope and are executed at runtime while macros dont take parameters and they expand to the actual code at compile time because they work at the ast level.Functions are for preventing repetition while macros are for writing a better syntax of doing the same thing.functions have to worry about ownership and borrowing rules to ensure they dont affect other code that will want to use those variables limiting the number of things you can do with them.while a macro doesnt worry about ownerhsip rules because it doesnt take parameters,it just uses it to expand into code
+
+entreprise--java,scala
+desktop apps-c#,swift
+systems apps--c,c++,rust
+mobile app--kotlin,swift,dart with flutter,javascript with expo,react native and lynx
+web apps-javascript,php
+backend web apps--javascript,ruby,elixir,python
+scientific computing--julia
+data querying--sql
+data analysis software--python,r
+machine learning--r,python
+digita forensics--python
+blockchain---solidity
+security software---rust,python
+taks automation on linux-bash
+task automation on windows---powershell
+quick scripting---lua
+games--c#,C++
+embedded systems--python,c
+gpu apps---cuda,mojo,bend
+cloud computing--go
+developer apps/clis--any good programming language
+plugin development--lua,teal which is typed lua
+
+
+niche use case and wide use case programming languages
+
+^note down arcane songs
+*a script is just a text file thats marked to be read by a programming language
