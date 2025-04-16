@@ -2170,3 +2170,5 @@ C,C++,Zig,Rust
 Nim,Go
 C#,Java
 Python,Typescript
+
+*At first glance,macros and functions look like they do the same thing since they avoid repetition but there are subtle differences in their purpose and how they are implemented.functions are reusable isolated blocks of code that take parameters and use those parameters in its scope and are executed at runtime while macros dont take parameters and they expand to the actual code at compile time because they work at the ast level.Functions are for preventing repetition while macros are for writing a better syntax of doing the same thing.functions have to worry about ownership and borrowing rules to ensure they dont affect other code that will want to use those variables limiting the number of things you can do with them.while a macro doesnt worry about ownerhsip rules because it doesnt take parameters,it just uses it to expand into code
