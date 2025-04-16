@@ -135,25 +135,20 @@ pub fn start() {
     println!("Tecno: {tecno:?}");
 }
 pub mod two{
-    use std::cell::RefCell;
     pub fn start_two() {
-        use std::cell::RefMut;
         use device::*;
         #[macro_use]
         mod device {
-            use std::cell::RefMut;
-            use super::RefCell;
-            pub struct Device<'device_life> {
+            pub struct Device {
                 pub name:String,
-                battery:u8,
-                pub cpu:CPU<'device_life>
+                pub battery:u8,
+                pub cpu:CPU
             }
-            pub struct CPU<'device_life> {
+            pub struct CPU {
                 pub memory:i32,
-                pub device:Option<&'device_life RefCell<Device<'device_life>>>,
             }
-            impl<'device_life> Device<'device_life> {
-                pub fn new(name:String,cpu:Option<CPU<'device_life>>)->Device<'device_life> {
+            impl Device {
+                pub fn new(name:String,cpu:Option<CPU>)->Device {
                     Device { 
                         name:name, 
                         battery:100,
@@ -161,56 +156,25 @@ pub mod two{
                     }
                 }
             }
-            impl <'device_life> CPU<'device_life> {
-                pub fn new()->CPU<'device_life> {
+            impl CPU {
+                pub fn new()->CPU {
                     CPU { 
                         memory:4000, 
-                        device:None,
+                    }
+                }
+                pub fn change_battery(&self,device:&Device)->u8 {
+                    if self.memory >= 4000 {
+                        device.battery + 100
+                    }else {
+                        device.battery
                     }
                 }
             }
-            pub trait DeviceFunctions<'device_life,'scope> {
-                fn integrate_components(&'device_life self,mutable:RefMut<'scope, Device<'device_life>>);
-                fn key(&self,mutable:RefMut<'scope, Device<'device_life>>)->RefMut<'scope, Device<'device_life>>;
-            }
-            impl<'device_life,'scope> DeviceFunctions<'device_life,'scope> for RefCell<Device<'device_life>> {
-                fn integrate_components(&'device_life self,mut mutable:RefMut<'scope, Device<'device_life>>) {
-                    mutable.cpu.device = Some(self);
-                }
-                fn key(&self,mutable:RefMut<'scope, Device<'device_life>>)->RefMut<'scope, Device<'device_life>> {
-                    mutable
-                }
-            }
-            #[macro_export]
-            macro_rules! modify_device {
-            ($device_key:expr=>$cpu:ident.$device:ident) => { 
-                {  
-                    let dev = $device_key;
-                    let y = dev.$cpu.$device.unwrap().key(dev);
-                    y
-                }
-            };
-        }
         }
         println!("\nTEST 2:\n");
-        let dell:RefCell<Device<'_>> = RefCell::new(Device::new(String::from("dells laptop"),None));
-        dell.integrate_components(dell.borrow_mut());
-
-        println!("Device name: {}",dell.borrow().name);
-        println!("Device memory: {}",dell.borrow().cpu.memory);
-
-        dell.borrow_mut().name = "ss".to_string();
-
-        let device_key: RefMut<'_, Device<'_>> = dell.borrow_mut();
-        device_key.cpu.device.unwrap().key(device_key).name = "a".to_string();
-
-        println!("Device memory: {}",dell.borrow().cpu.memory);
-        println!("Device name: {}",dell.borrow().name);
-
-        let device_key: RefMut<'_, Device<'_>> = dell.borrow_mut();
-        println!("Device name: {}",device_key.cpu.device.unwrap().key(device_key).name);
-
-        modify_device!(dell.borrow_mut()=>cpu.device).name = "hh".to_string();
-        println!("Device name: {}",dell.borrow().name);
+        let mut dell:Device = Device::new(String::from("dells laptop"),None);
+        println!("Device name: {}",dell.name);
+        dell.battery = dell.cpu.change_battery(&dell);
+        println!("Device battery: {}",dell.battery);
     }
 }

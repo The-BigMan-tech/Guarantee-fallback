@@ -2111,3 +2111,62 @@ prototype object,class object,rust version
 *in rust,methids are just functions
 
 *Prototype instances,class instances and struct instances.the first one uses object literals,the second uses constructor and the third uses struct literals.the first one can have an interface but its just a contract not a blueprint to construct the instances from.Only the fields are copied and bundled for each object but the methods are lookups/references to their defintions in the class in case of class instances and impl blocks if its struct instances as it is in rust.prototype objects or plain objects have their own defintions because they are not constructed from any class to reference to.
+
+*the state pattern.the child cant modify the parent directly but can still influence it by taking the state of the parent which should be passed explicitly each time and its own fields to return a new value that can be set directly in the calling code.its immutable
+
+reliability,scalability,safety,development time,robustness,performance,flexibility,verbosity
+
+*rust strict rules heavily influence design decisions unlike ts.The complexity of the ownership model and borrowing rules forces devs to opt for a simpler approach after fighting the compiler.since ts is flexible,it doesnt have much influence on design decisions.The slope of rust software is that it may start with trying to implement a design that will be too complex to implement in rust strict rules making dev initially slow but when you make the painful refactor to a simpler choice,it becomes easier and faster to update not to mention that the code is more reliable.menaing that rust will create a need or may force early refactors that can make the code more reliable in the long run.
+
+one-one dependent relationship.implemented as a linear flow of ownership-->state machine on the child
+
+*i could have used rc for that relationship where device has an rc to cpu and vice versa but i think the state machine is better for this scenario since its just a one-one relationship where a directly depends on b.it wont make sense for cpu to own device,but i could have made the device have a weak ref to the cpu cant outlive it but it means that the device can somehow outlive the cpu if the cpu gets dropped and it wont make sense for the device to be going without a cpu.it must either have a cpu or drop with the cpu which i cant do with rc.if i use string rcs on both sides,it will be cyclic.if i use two weak rcs,then it isnt rc anymore because no one is keeping the count.The owner and borrow would have worked but its almost impossible without fighting the compiler for hours.its very difficult to pull off even basic features of the relationship so i believe the state machine is the best for this but if A and B were relatied but independent then it will make sense to use Rc
+
+*the way a relationship should be implemented in the language should be the best one that reflects the model even though its not the original or intended design decision.
+
+?model,design decision,implementation,architecture pattern,design pattern,paradigm
+
+*Rust forces early refactors.Once the initial refactor is complete and the architecture is well-defined, scaling becomes more straightforward but in ts,there are hardly early refactors and can scale rapidly at first but then coming to a refactor later when it becomes less predictable and reliable
+
+cobol--business oriented paradigm
+sql---data query paradigm
+prolog--logic programming
+
+english words,programmatic words
+cobol,sql--mainly english words
+
+*functions dont have states and can only cause side effect.it can also be purely immutable.a class has states.
+
+kotlin,java,c#,scala,closure
+java,scala-entreprise apps
+kotlin--mobile apps
+c#-casual apps--desktop apps,games,mobile apps,web apps
+js---web apps,desktop,mobile,server apps
+
+script,module,library,framework,sdk
+
+.java
+.jar
+.class
+jre
+jdk
+jvm
+
+entrypoint--main function,class,the class keyword in java and the namespace in c# is the same effect of the mod keyword in rust
+
+entrypoint.encapsulation
+
+*ive noticed two different ways of handling the import system in programming languages.either the file system or a declaration system(what i termed it).the first one is used in python,js and lua where you import scripts directy from where they are located in the file system.the second one which is used in rust,java and c# use a system where you have to declare the script as a module,package or namespace and you dont import their scripts directly but rather hook up the code you want to use from their package/module/namespace system
+
+*in languages where they use file system imports like python,lua and ts,there is no entrypoint function neither a package/module/namespace declaration.you just start writing code directly in the script.I believe the reason for this is because since they use the filesystem for import/export,there is no need for starting your code in an entrypoint of a module you just do it directly but in java,c# and rust,you just dont write code directly in the script.it must always be in an entrypoint of a module/namespace.thats why they start their program with the module declration then the entrypoint to that module where execution of code can begin.this is because they use a declaration system for import/export.in rust and c++,you just start execution in an entrypoint without the entrypoint being in a module because they implicitly make the file that has the entrypoint a module.in rust,since you can only have one entrypoint per project,other scripts cant be implicitly declared as modules and as such,requires the mod keyword
+
+*interpreted languages are called scripting languages because of how quick you can write something that works but it is isnt inherently structured but compiled or jit compiled languages are called programming languages because they are very structured but more complex.scripting languages are the ones that use filesystem imports.they are all programming languages non the less but scripting languages is a term particularly for interpreted languages
+
+*Go uses a mixture of file system and declaration import.you declare the script under a package thats defined by the parent directory but you import it using its path to the package in the package system which resembles where it is in the file system.a single script isnt the package but rather,the package is divided in mutliple scripts.This is slighltly differnt from rust where one script is a module
+
+compiled languages,jit compiled languages,interpreted languages
+assembly
+C,C++,Zig,Rust
+Nim,Go
+C#,Java
+Python,Typescript
