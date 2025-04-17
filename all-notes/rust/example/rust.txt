@@ -2199,8 +2199,61 @@ cloud computing--go
 developer apps/clis--any good programming language
 plugin development--lua,teal which is typed lua
 
-
 niche use case and wide use case programming languages
 
 ^note down arcane songs
 *a script is just a text file thats marked to be read by a programming language
+
+sql,prolog,cobol,graphql
+
+^chapter 14,macro
+raw query,query builder,orm
+
+fs module,the file object
+
+json,yaml,xml,csv,env,toml,property,cfg,ini,txt,markdown
+
+*the structure of a database is on the interaction level but the actual storage is in a more complex and compact format and the database exposes its functionality as queries.You can programmatically interact with a database through a driver or an orm.Serializing data to a file stores the data in the way it is represented in the program like json directly represents how an object is stored,csv for tables and toml or cfg files for maps.if you store data through serialization,the program is the one that directly manipulates the data but for databases,the program doesnt do it directly but rather through the database
+
+file based storage/serialization,database storage
+
+*SQL injection attacks exploit vulnerabilities in the way applications handle user input, not the SQL language itself
+zod---input validation.it implements that validaed type pattern
+
+*the only way to be completely invulnerable to an attack is to not have the technology that the attack is designed for.
+
+*xml is for serialiing objects using markup syntax
+*json seriaizes objects in an object literal syntax which is c based
+*yaml serializes objects in an indentation based syntax
+
+*yaml is mostly used for configs while json is mostly used for data exchange between a server and a client
+*markdown is a merge between a markup and a txt file.its mostly used for doc,website text content
+*property is commonly used in Java applications for configuration settings.
+*cfg is often used for application settings. The format can vary significantly between app as there is no strict standard because of its loose format nature.
+*ini is commonly used for configuration settings in various applications, not limited to any specific platform.
+*toml more complex and structured than ini
+
+*macros are a form of meta programming
+
+*declarative macro.Macros also compare a value to patterns that are associated with particular code: in this situation, the value is the literal Rust source code passed to the macro; the patterns are compared with the structure of that source code; and the code associated with each pattern, when matched, replaces the code passed to the macro. This all happens during compilation.
+
+*The #[macro_export] annotation indicates that this macro should be made available whenever the crate in which the macro is defined is brought into scope. Without this annotation, the macro can’t be brought into scope.
+
+*the $ sign is to declare it as a macro variable
+*we use () to capture the entire pattern
+*The comma following $() indicates that a literal comma separator character must appear between each instance of the code that matches the code within $()
+
+*declarative macros,procedural macros.
+
+*Procedural macros accept some code as an input, operate on that code, and produce some code as an output rather than matching against patterns and replacing the code with other code as declarative macros do.When creating procedural macros, the definitions must reside in their own crate with a special crate type.proc macro reprsents a sequence of tokens
+
+poe--for general research
+perplexity--for more specific research
+
+*In java,the .java file is the source code,the .class file is the bytecode of the .java file.Its an IR of the source code so its platform independent and the .jar file is a bundle of all the .class files into a single file
+
+^databases with rust
+
+*distributing as a dependency or for execution
+
+*Dependency management in js is that you directly install the source code from the registry into your node modules folder as part of your project so that it gets jit compiled when your project gets executed.If you wwant to distribute your code as a frontend app,you use vite which bundles your code into a lightewight js file that can be deployed to a paas like vercel.when you want to distribute your code as a backend, you only ship your source code as it will be too heavy to also ship the node modules with it.This will make it lighter to distribute and youll typically use docker to distribute it so that the receiving end can use docker to install the dependencies.This is for distributing your code for execution but if you want to distriute it as a library,you directly upload the source code to the registry and state all of its dependencies.In rust,when you want to install dependencies,you have to download the source code directly somewhere in the target folder and when you want to compile your code,it compiles that source code with yours into a single exe.You can distribute this exe if its meant to be ran on the receiving end but if you want to distribute it as a library,you have to upload your source code to the registry and state its dependencies.In java,dependencies are installed as .jar files which is a bundle of multiple ir files (.class files) of the source code and the jvm can execute it.Its lighter to get the .jar files over the source code but not as light as an exe but its better because its platform independent.Its dynamically linked which means that its included in the source code at runtime meaning that it will have faster compile times but slower runtimes.C# does the same approach but the ir files are .dll files.C++ allows you to either install your dependencires as source code or compiled binaries(.exe) which can be statically or dynamically linked accordinng to preferences
