@@ -1,180 +1,150 @@
-use cpu::{CPU,UsageLevel};
-use device::Device;
-
-mod device {
-    use super::cpu::CPU;
-
-    #[derive(Debug)]
-    pub struct Device<'device> {
-        total_ram:i32,
-        ram_in_use:i32,
-        pub cpu:CPU<'device>
-    }
-    impl<'device> Device<'device> {
-        pub fn new(cpu:CPU<'device>)->Device<'device> {
-            Device { 
-                total_ram:4000, 
-                ram_in_use:0, 
-                cpu
-            }
-        }
-        pub fn total_ram(&self)->i32 {self.total_ram}
-        pub fn ram_in_use(&mut self)->&mut i32{&mut self.ram_in_use}
-    }
-}
-mod cpu {
-    use super::device::Device;
-
-    #[derive(Debug)]
-    pub struct CPU<'device> {
-        ram_usage:Option<Box<dyn ResourceUsage>>,
-        pub device:Option<&'device mut Device<'device>>
-    }
-    impl<'device> CPU<'device> {
-        pub fn new(device:Option<&'device mut Device<'device>>)->CPU<'device> {
-            let cpu = CPU {
-                ram_usage:Some(Box::new(Zero{})),
-                device
-            };
-            cpu
-        }
-        pub fn ram_usage(&self)->&Option<Box<dyn ResourceUsage>> {
-            &self.ram_usage
-        }
-        pub fn increase_ram_usage(&mut self) {
-            if let Some(usage) = self.ram_usage.take() {
-                //bad one
-                let ram_in_use = self.device.as_mut().unwrap().ram_in_use();
-                self.ram_usage = Some(usage.increase_res_usage());
-                *ram_in_use = self.ram_usage.as_ref().unwrap().ram_in_use(*ram_in_use);
-            }
-        }
-    }
-    pub trait ResourceUsage:std::fmt::Debug {
-        fn concrete(&self)->UsageLevel;
-        fn ram_in_use(&self,_memory_used:i32)->i32 {0}
-        fn increase_res_usage(self:Box<Self>)->Box<dyn ResourceUsage>;
-    }
-    pub enum UsageLevel {
-        High,
-        Medium,
-        Low,
-        Zero,
-    }
-    #[derive(Debug)]
-    struct High;
-    impl ResourceUsage for High {
-        fn concrete(&self)->UsageLevel {
-            UsageLevel::High
-        }
-        fn increase_res_usage(self:Box<Self>)->Box<dyn ResourceUsage> {
-            self
-        }
-        fn ram_in_use(&self,memory_used:i32)->i32 {
-            memory_used + 1000
-        }
-    }
-    #[derive(Debug)]
-    struct Medium;
-    impl ResourceUsage for Medium {
-        fn concrete(&self)->UsageLevel {
-            UsageLevel::Medium
-        }
-        fn increase_res_usage(self:Box<Self>)->Box<dyn ResourceUsage> {
-            Box::new(High{})
-        }
-        fn ram_in_use(&self,memory_used:i32)->i32 {
-            memory_used + 500
-        }
-    }
-    #[derive(Debug)]
-    struct Low;
-    impl ResourceUsage for Low {
-        fn concrete(&self)->UsageLevel {
-            UsageLevel::Low
-        }
-        fn increase_res_usage(self:Box<Self>)->Box<dyn ResourceUsage> {
-            Box::new(Medium{})
-        }
-        fn ram_in_use(&self,memory_used:i32)->i32 {
-            memory_used + 100
-        }
-    }
-    #[derive(Debug)]
-    struct Zero;
-    impl ResourceUsage for Zero {
-        fn concrete(&self)->UsageLevel {
-            UsageLevel::Zero
-        }
-        fn increase_res_usage(self:Box<Self>)->Box<dyn ResourceUsage> {
-            Box::new(Low{})
-        }
-    }
-}
-
-pub fn start() {
-    println!("\nHELLO APP\n");
-
-    let cpu: CPU<'_> = CPU::new(None);
-    let mut tecno: Device = Device::new(cpu);
-
-    let mut y = Device::new(CPU::new(None));
-    tecno.cpu.device = Some(&mut y);
-
-    tecno.cpu.increase_ram_usage();
-    tecno.cpu.increase_ram_usage();
-
-    let usage:UsageLevel = tecno.cpu.ram_usage().as_ref().unwrap().concrete();
-    match usage {
-        UsageLevel::High=>println!("High cpu usage"),
-        UsageLevel::Medium=>println!("Medium cpu usage"),
-        UsageLevel::Low=>println!("Low cpu usage"),
-        UsageLevel::Zero=>println!("No cpu usage"),
-    }
-    println!("Device memory in use: {}",tecno.ram_in_use());
-    println!("Tecno: {tecno:?}");
-}
 pub mod two{
     pub fn start_two() {
         use device::*;
-        #[macro_use]
         mod device {
-            pub struct Device {
+            use std::fmt::Debug;
+            use std::io::{self, Write};
+            #[derive(Clone,Debug)]
+            pub struct Device{
                 pub name:String,
-                pub battery:u8,
-                pub cpu:CPU
+                pub cpu:CPU,
+                memory:u16,//read by the cpu
+                memory_usage:u16,//managed by the cpu
+                battery:u8,
+                settings:Settings,//modified only through the device methods
             }
+            #[derive(Clone,Debug)]
             pub struct CPU {
-                pub memory:i32,
+                cpu_usage:UsageLevel
             }
-            impl Device {
-                pub fn new(name:String,cpu:Option<CPU>)->Device {
+            #[derive(Clone,Debug)]
+            pub struct Settings {
+                brightness:i32,
+                root:bool,
+            }
+            impl Device {//directly modifies
+                pub fn new(name:String,cpu:Option<CPU>)->Device{
                     Device { 
                         name:name, 
+                        memory:4000,
+                        memory_usage:0,
                         battery:100,
-                        cpu:cpu.unwrap_or(CPU::new())
+                        cpu:cpu.unwrap_or(CPU::new()),
+                        settings:Settings::new()
+                    }
+                }
+                pub fn change_memory_usage(&mut self,number:u16) {
+                    self.memory_usage = number;
+                }
+                pub fn settings(&self)->&Settings {
+                    &self.settings
+                }
+                pub fn increase_brightness(&mut self) {
+                    self.settings.brightness += 1;
+                }
+                pub fn try_enable_root(&self)->Result<Device,String> {
+                    if self.battery < 20 {
+                        return Err("Battery is too low to enable root".to_string())
+                    }
+                    let mut new_device: Device = self.to_owned();
+                    new_device.settings.root = true;
+                    Ok(new_device)
+                }
+            }
+            impl CPU {//partially a state machine.doesnt modify the device but it modifies itself.
+                pub fn new()->CPU {
+                    CPU { 
+                        cpu_usage:UsageLevel::Zero
+                    }
+                }
+                pub fn increase_memory_usage(&self,device:&Device)->Result<u16,u16> {
+                    if device.memory_usage < device.memory {
+                        Ok(device.memory_usage + 100)
+                    }else {
+                        Err(device.memory_usage)
+                    }
+                }
+                pub fn increase_cpu_usage(&mut self) {
+                    self.cpu_usage = self.cpu_usage.increase_res_usage();
+                }
+                pub fn cpu_usage(&self)->&UsageLevel {
+                    &self.cpu_usage
+                }
+            }
+            impl Settings {
+                pub fn new()->Settings {
+                    Settings { brightness:10, root:false }
+                }
+            }
+            pub trait SettingsProps {
+                fn brightness(&self)->i32;
+                fn root(&self)->bool;
+            }
+            impl SettingsProps for &Settings {
+                fn brightness(&self)->i32 {
+                    self.brightness
+                }
+                fn root(&self)->bool {
+                    self.root
+                }
+            }
+            #[derive(Debug,Clone)]
+            pub enum UsageLevel {
+                High,
+                Medium,
+                Low,
+                Zero,
+            }
+            impl UsageLevel {
+                fn increase_res_usage(&self) -> UsageLevel {
+                    match self {
+                        UsageLevel::High => self.clone(),
+                        UsageLevel::Medium => UsageLevel::High,
+                        UsageLevel::Low => UsageLevel::Medium,
+                        UsageLevel::Zero => UsageLevel::Low,
                     }
                 }
             }
-            impl CPU {
-                pub fn new()->CPU {
-                    CPU { 
-                        memory:4000, 
-                    }
-                }
-                pub fn change_battery(&self,device:&Device)->u8 {
-                    if self.memory >= 4000 {
-                        device.battery + 100
-                    }else {
-                        device.battery
-                    }
-                }
+            pub fn confirm_action() -> bool {
+                print!("Are you sure you want to enable root access? (y/n): ");
+                io::stdout().flush().unwrap(); // Ensure the prompt is displayed
+                let mut input: String = String::new();
+                io::stdin().read_line(&mut input).unwrap();
+                input.trim().eq_ignore_ascii_case("y")
             }
         }
         println!("\nTEST 2:\n");
+
         let mut dell:Device = Device::new(String::from("dells laptop"),None);
-        println!("Device name: {}",dell.name);
-        dell.battery = dell.cpu.change_battery(&dell);
-        println!("Device battery: {}",dell.battery);
+        let new_mem_usage: Result<_, _> = dell.cpu.increase_memory_usage(&dell);
+        match new_mem_usage {
+            Ok(value)=>dell.change_memory_usage(value),
+            Err(value)=>{
+                println!("Not enough memory,application may be slower");
+                dell.change_memory_usage(value)
+            },
+        }
+        dell.increase_brightness();
+
+        println!("Name: {}",dell.name);
+        println!("Brightness: {}",dell.settings().brightness());
+        println!("Has root access: {}",dell.settings().root());//false
+
+        let new_device: Device = dell.try_enable_root().unwrap();//dell isnt affected cuz only the new instace is rooted
+
+        if confirm_action() {
+            let old_device: Device = dell.to_owned();
+            dell = new_device; // Proceed with the change
+            //code can only use the old device in this block where it hasnt been dropped
+            println!("Old Device:Has root access: {}",old_device.settings().root())//false.
+        } else {
+            {new_device};
+            println!("Operation cancelled. Old device state preserved.");
+        }
+        println!("Has root access: {}",dell.settings().root());//true
+        dell.cpu.increase_cpu_usage();
+        println!("CPU Usage: {:?}",dell.cpu.cpu_usage());
+
+        println!("Device: {:?}",dell);
     }
 }
