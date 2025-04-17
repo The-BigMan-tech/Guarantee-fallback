@@ -2257,3 +2257,99 @@ perplexity--for more specific research
 *distributing as a dependency or for execution
 
 *Dependency management in js is that you directly install the source code from the registry into your node modules folder as part of your project so that it gets jit compiled when your project gets executed.If you wwant to distribute your code as a frontend app,you use vite which bundles your code into a lightewight js file that can be deployed to a paas like vercel.when you want to distribute your code as a backend, you only ship your source code as it will be too heavy to also ship the node modules with it.This will make it lighter to distribute and youll typically use docker to distribute it so that the receiving end can use docker to install the dependencies.This is for distributing your code for execution but if you want to distriute it as a library,you directly upload the source code to the registry and state all of its dependencies.In rust,when you want to install dependencies,you have to download the source code directly somewhere in the target folder and when you want to compile your code,it compiles that source code with yours into a single exe.You can distribute this exe if its meant to be ran on the receiving end but if you want to distribute it as a library,you have to upload your source code to the registry and state its dependencies.In java,dependencies are installed as .jar files which is a bundle of multiple ir files (.class files) of the source code and the jvm can execute it.Its lighter to get the .jar files over the source code but not as light as an exe but its better because its platform independent.Its dynamically linked which means that its included in the source code at runtime meaning that it will have faster compile times but slower runtimes.C# does the same approach but the ir files are .dll files.C++ allows you to either install your dependencires as source code or compiled binaries(.exe) which can be statically or dynamically linked accordinng to preferences
+
+for python--digital ocean,tutorialspoint,real python
+for js--geeks for geeks,turorialspoint,doc
+rust--the rust book
+c++--cpp crash course that i downloaded
+
+the official rust book
+a little more about rust macros
+black hat rust
+idiomatic rust
+
+*pdf attack by embedding js because some pdf readers are in the browser.
+*js can freakin hack my browser
+
+
+*By keeping settings private and exposing methods for modification, you prevent unintended side effects and maintain control over how the internal state is altered.
+
+*my device has a root access field in the settings but because the settings is private ,you cant accidentally change it unless you use methods on the device and the method will reluctantly try to convince you from doing this and if the process is interrupted like if the device battery dies ,the method will panic.so you can only do it if its intentional but even at that ,wont it be better if there was a way to revert from it.so what i'm thinking is that rather than the device owning the settings,it references the settings so that the device doesn't directly modify the settings even in its own methods but rather,the methods on the settings are state machines that return a new instance of the settings with the modifications so that the old setting object can still exist to be reverted to
+
+*so even if the settings field is just a reference and as such,it cant modify the settings,leaving it private is still safer so that they dont change what the device refers to and the method that performs modification on the root field which is sensitive will perform a lot of early condition checks else panic, so that it ensures that it continues under safe condition
+
+*i updated the code because try_enable_root must return the new state of the entire device and not just the settings.so it returns a device with all the root access and priviledges set.the dell can now own this new device making dell to have root access.but there will be a confirmation message before the code assigns dell to the new device and even after that,the old state of the dell is saved in a variable and can be stored in a cloud service for recovery.
+
+*making the enable root method immutable seems like the only way to enable root priviledges on the device and allowing the user to change their mind after it has been set because it operates on a new instance.if the user changes their mind,the new device instance will be dropped so that it doesnt consume memory and it doesnt go to the cloud and the old instance copy is dropped since dell has gone back to its previous state but if the user decides to proceed,the dell will change to the new device but the old device wont be dropped and it will be backed up to the cloud.This is made on the assumption that if the user changes their mind,there is no reason to keep the root version and since the dell didnt proceed with the new device,there is no reason to keep the snapshot but if they proceed,they may later want to revert back
+
+*my model where reading and modifying the settings is done.read operations are chained to the settings function that returns an immutable ref to the settings while direct modifications on the settings are done using the device methods.if you want to modify some parts of the device by leveraging the cpu,you can call any of the cpu methods which are state machines and you can assign the return values to the field of the device its meant for.
+
+*use the trait+trait syntax to indicate that something implements more than one trait either its a generic or another trait
+
+*The Debug trait is meant for developers. It provides a way to format your type for debugging purposes.The Display trait is meant for end-user output. It provides a way to format your type in a user-friendly manner.
+
+io-->stdout,stdin
+fs-->File and other file methods,
+env-->args
+
+*When you flush a buffer, all the data that has been written to the buffer but not yet sent to the output destination is immediately written out. This ensures that any pending data is processed.After flushing, the buffer is typically cleared or reset, making it ready for new data to be added. 
+
+*In a console application, flushing ensures that messages are displayed to the user without delay.When writing to files, flushing guarantees that all data is saved before the program continues or exits.In network programming, flushing can ensure that data packets are sent without waiting for the buffer to fill.
+
+*so buffers will only transport their data once its full but flushing forces it.io operations like transporting output,file operations and networking implictly use a buffer to prevent constant read/write operations to save runtime performance 
+
+enum state pattern
+functionally enhanced enum state pattern/functional enum state pattern
+structurally enhanced enum state pattern/Structural enum state pattern
+struct state pattern
+type state pattern
+
+They differ in their level of centralization and time of execution--compile time or runtime
+
+*In the classic/struct state pattern, each state is represented by a separate struct that implements a common trait. Each struct manages its own transitions and behaviors.The field representing the current state is typically a trait object allowing new states to be added at runtime.Each state struct encapsulates its own behavior and transition logic, leading to a more modular design. However, this can also lead to more boilerplate code and complexity.
+
+*The enum state pattern uses a single type to encapsulate all possible states making it easier to manage state transitions without needing separate structs for each state.The transition logic is handled within a method in the enum, which uses a match statement to determine how to transition from one state to another. This allows you to define the behavior of each state in a centralized location.
+
+*The type state pattern is similar to the struct state pattern in that state is decentralized into multiple structs but they dont implement a common trait and are not under a single struct.Transitioning to a new state requires creating a new instance, often leading to repeated variable declarations.
+
+*the enum state pattern is a compile-time state pattern.its far shorter and easier to read than the struct based state pattern and it creates a single source of truth for all possible states while the stuct based pattern is a runtime state pattern where state logic is decentralized between multiple structs.The choice between the (enum state pattern or the type state pattern) and the struct based oattern is based on whether you want compile time type safety or dynamism.
+
+
+*for most state problems where you know the exact number of states at compile tim,the enum state pattern is a good solution.Although,one can use the type state pattern if each state has complex behavior that requires a significant amount of code where separating them into distinct structs can improve readability and maintainability.When states are fundamentally different in structure or behavior, and you want to avoid the overhead of fitting them into a single enum.If each state requires unique methods that don’t apply to others, using separate structs can help keep the codebase clean. You can define methods that are specific to each state without needing to handle them in a centralized way.Enums require exhaustive matching when you handle them, which can become unwieldy if there are many states. With the type state pattern, you can manage transitions more fluidly by simply returning new instances without exhaustive checks.
+
+*the problem where: "each state has complex behavior that requires a significant amount of code where separating them into distinct structs can improve readability and maintainability" can be solved if we create separate functions that takes a specific variant that different variants can call once matched to prevent the match from being bloated.the problem where "states are fundamentally different in structure or behavior, and you want to avoid the overhead of fitting them into a single enum" can be solved because each variant can be a tuple containing a struct each with their own structure and implementations.
+
+*In the structurally enhanced enum state pattern, each variant of the enum contains a struct that has distinct structures and methods. This allows for different implementations and behaviors while still being managed under the same enum.The structure and behaviour are decentralized but under the enum.
+
+*The functionally enhanced enum state pattern involves using an enum where the variants share the same structure but differ in their implementations. You handle the functionality in separate functions that are called based on the matched variant.
+
+*while the regular enum state pattern is when the state are the same in structure and behaviour making it completely centralized
+
+*the only difference now between the structurally enhanced enum state pattern and the struct state pattern is that the latter is done at runtime and doesnt require exhaustive pattern matching.and in the enum based pattern,i dont require to implement a trait on the enum,i can just implement the enum directly
+
+*so for states that are known at compile time,you can use the structural enum state pattern unless when you want to prevent exhaustive pattern matching while being ok with multiple redeclarations with the type state pattern
+
+*the type state pattern cant be used in fields under any struct because it doesnt use an enum and requires redeclarations to change to a new type instance meaning that the state can never be under a field because doing so will not allow it to transition because you cant redeclare fields so its for states that arent being read or used by another struct but only functions specifically made for a type can be used on states that use the type state pattern.By using type-specific functions, the Type State Pattern ensures that only valid operations for a given state can be executed, enhancing safety and reducing the risk of invalid state transitions.
+
+*so the choice between the type state pattern and the different enum state patterns depends on whether i want the state to be managed by a function or under a struct.
+
+*the existence of state patterns is the requirement of a state type.A state an immutable type that can transition to other types by returning a new type using itself and payload data as information.
+
+*Introducing dedicated types for specific design patterns (like a state type) would largely be syntactic sugar. It could make the code more readable and expressive, but it wouldn't fundamentally change how state management is handled.If programming languages start adding numerous syntactic sugars for various design patterns, it risks bloating the language.
+
+^I may make a source-source compiler for syntatic sugar to design patterns.it will be shipped as a more expressive option not as a solution to a problem.it depends entrirely on preference and one doesnt have to worry about team adoption because it will turn it to the way many devs implement the pattern using your clear variable names.it is this that you show to the team.it converts this:state Level = High or Medium or Low; to #[derive(Debug, Clone)]pub enum Level {High,Medium,Low,}.
+
+*the primary goal of syntax sugar is for readability and expressiveness not to make the code any shorter or change its functionality.You can use syntatic sugar without knowing the underlying code it generates
+
+*src-src compilers work at the ast level.
+
+poe,perplexity
+windsurf,intellisense
+tabnine,copliot,sourcery
+
+vscode,visual studio,cursor,firebase studio,zed,jetbrains
+
+*softwae architecture--minimum feature complete software but extended with extensions for customizability
+code editor vs an ide
+
+vscode is the linux and jetbrains the windows of the code editing world.vscode supports a wide array of languages and can be tailored for any use case.

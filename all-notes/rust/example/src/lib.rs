@@ -7,6 +7,7 @@ pub mod ten;
 pub mod closure;
 pub mod threads;
 pub mod state_2;
+pub mod macro_use;
 
 pub mod wireless {
     pub fn wireless() {
