@@ -2542,3 +2542,23 @@ newtype pattern achieves a lightweight encapsulation
 *so a slice is an array but it doesnt have a fixed memory size and can grow only because its normally a ref into a part of another collection like a vector or string and thats why the notation is &[type] while arrays are fixed sized collections meaning that they go to the stack and their syntax is [type;number].The addition of number is because arrays are fixed in size and because of stack overflow,we can use box to move the arrays to the heap to become Box<[type;number]> and this will be more runtime efficient than a Vec<type> because the boxed array only gets allocated once as it allocates all the space it needs in a single request while the vector will constantly reallocate if the size of the items exceed the capacity.while Box<[type]> is a slice but because its boxed,it means that its stored on the heap and the variable owns the data removing the & operator that signifies borrowing and since slices are not fixed,the boxed slice can increase in size and since the slice is a view to a vector,we can create it from viewing into a vector and cloning the vector to an instance that Box<[u8]> will own causing the allocator to allocate a large chunk of memory while still allowing it to increase in size
 
 *so data types in general have default allocation strategies like i32,bool,char,arrays,structs,enums on the stack but Vec,String and Hashmaps on the heap but one can use Box to move stack values to the heap allowing for allocation strategies that can create recursive types,accept dynamically sized types,extend lifetimes,ensuring that stack data is not copied by ensuring ownership for efficiency and taking advantage of the properties of stack variables when they go to the heap for runtime performance making Box the rust way of controlling allocation.Other smart pointers like rc,refcell,arc,mutex,cow,weak are all variations of box but for other use cases
+
+*By default, generic functions will work only on types that have a known size at compile time. However, you can use the special syntax ?Trait to relax it.A trait bound on ?Sized means “T may or may not be Sized” and this notation overrides the default that generic types must have a known size at compile time. The ?Trait syntax with this meaning is only available for Sized, not any other traits.Also note that we switched the type of the t parameter from T to &T. Because the type might not be Sized, we need to use it behind some kind of pointer. In this case, we’ve chosen a reference.
+
+*Function pointers implement all three of the closure traits (Fn, FnMut, and FnOnce), meaning you can always pass a function pointer as an argument for a function that expects a closure. It’s best to write functions using a generic type and one of the closure traits so your functions can accept either functions or closures.
+
+*variables that their values are functions are function pointers and they have concrete fn pointer type annotations.
+
+*Closures are anonymous functions that captures values from their environment.Variables that points to closures can be type annotated as function pointers provided that they are fn trait closures meaning that they dont capture values because they wont have the isolated nature of normal functions if they were to capture values from their environment.In function definitions,if you want to accept a closure,it has to be a generic that implements the respective closure trait and if its a return,the return type must use the impl trait syntax to state the function returns a type that implements the trait since closures dont have a concrete type.The reason they dont have concrete types is because each closure that captures a variable has a unique behaviour that cant be type annotated.Instead of having a concrete type, closures implement one of the Fn, FnMut, or FnOnce traits. This allows them to be treated polymorphically, meaning you can use them in contexts that require any function-like behavior without needing to specify an exact type.
+
+*functions can accept generics that implement a trait,they can return any value that implements a trait and trait objects can be used for any type that implements a trait
+
+
+declarative macro
+procedural macro--function like,attribute like,derive like
+using extern for ffi
+
+asm and sql macros
+
+11,14
+12.4,12.5
