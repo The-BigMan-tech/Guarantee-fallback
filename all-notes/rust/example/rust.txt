@@ -2114,7 +2114,7 @@ prototype object,class object,rust version
 
 *the state pattern.the child cant modify the parent directly but can still influence it by taking the state of the parent which should be passed explicitly each time and its own fields to return a new value that can be set directly in the calling code.its immutable
 
-reliability,scalability,safety,development time,robustness,performance,flexibility,verbosity
+reliability,scalability,safety,development time,robustness,performance,flexibility,verbosity,transparency
 
 *rust strict rules heavily influence design decisions unlike ts.The complexity of the ownership model and borrowing rules forces devs to opt for a simpler approach after fighting the compiler.since ts is flexible,it doesnt have much influence on design decisions.The slope of rust software is that it may start with trying to implement a design that will be too complex to implement in rust strict rules making dev initially slow but when you make the painful refactor to a simpler choice,it becomes easier and faster to update not to mention that the code is more reliable.menaing that rust will create a need or may force early refactors that can make the code more reliable in the long run.
 
@@ -2503,3 +2503,42 @@ powershell,bash,applescript
 *specifying a trait bound on a trait is called a super trait.The trait that every type that implements another trait must require is called the super trait.The supertrait syntax is trait name:another trait
 
 *It’s possible to get around the orphan rule restriction by using the newtype pattern, which involves creating wrapping the external type in a tuple struct thats local to our crate.There is no runtime performance penalty for using this pattern, and the wrapper type is elided at compile time.The reason why the orphan rule doesnt allow you to implement a trait on an external type is because the external type may have its own implementations of the external trait and if you implement an external trait on that,you will end up overriding it.The only safe operations are implementing an external trait on an internal type because the internal type doesnt have any implementation yet of that external type and implementing an internal trait for external type is also safe because there is no way that the external type implemented your local internal trait.The newtype pattern ensures that the external trait on the external type is converted to an external trait on an internal type.But the wrapper wont inherit the traits of its inner type unless we impl the deref trait that derefs the wrapper for us to call vec methods each time we use it.But if we want to be specific about which ones we want it to implement,we have to do it manually
+
+states,units
+newtypes--type aliases or tuple structs
+type aliases-for providing simpler types over other ones and for adding units to our types
+
+newtype pattern achieves a lightweight encapsulation
+
+*custom types vs type aliases
+
+*type aliases arent treated as new types so they are treated as their underlying types.However, using this method, we don’t get the type checking benefits that we get from the newtype pattern discussed earlier. In other words, if we mix up Kilometers and i32 values somewhere, the compiler will not give us an error.This requires operator overloading to specify how the specific type should be treated
+
+*the point of type aliases is to reduce repetition and increase readability and expressiveness.You can also put a genric in the type alias
+
+*the ! type is for types that never return.Functions tha return this are called diverging function
+*the continue statement implicitly returns never.It can be used in match arms despite that match arms requires that each arm must return the same type because ! can never have a value and thus,rust decides that the type of guess is the one from the rest of the match arms.This decision is made because continue doesn’t return a value but instead, it moves control back to the top of the loop
+
+*the panic macro has the ! type
+
+*the two places the ! type is used is for the continue statement,the panic macro and a forever loop block because a forever loop will never give control flow back to the program.
+
+*Void is different from never.In rust,unit structs termed as void in other languages refers to a function that returns a value while never means that the function will never return
+
+*a slice is a structure that holds a pointer to the first element and the length of the slice as usize types.Usize is a platform dependent unsigned type.It is a reference into a collection.A slice will always be twice the size of an usize.
+
+*indexes and memory addresses are of the usize type
+
+*a trait is a dynamically sized type because different types that implement the trait can be of different sizes.we cant directly store dynamically sized types in a variable,we can only store a pointer in it to its location in the heap where it can grow and shrink in size at runtime.
+
+*so for heap allocated data like vec and string,the sizes are dynamic but the allocated space for each memory block is predcitable and consistent at compile time but for trait objects,it isnt possible because of ambiguity.there is not enough information to know which type will implement the trait and as such,rust cant make consistent memory blocks for this type on the heap.So rust decides at runtime which type it points to and the allocator can use that type size to create the memory blocks for that type.This overhead is done at the rust level because the allocator always needs to receive predictable memory block sizes for a given type explaining why i have dyn trait.When you create a Box<dyn SomeTrait>, it contains a fat pointer with two parts:A pointer to the data (the concrete type implementing the trait) and a pointer to the vtable, which helps with dynamic dispatch for method calls.
+
+*so is the reason why i cant have vec<dyn trait> is because despite that vec is dynamic,vec expects that the memory space for each block on the heap must be known at compile time and dyn trait isnt compatible with that but i can have a Box<dyn trait> because Box unlike vec is prepared for when the memory block will only be known at runtime. another interesting thing is that i can use vec in place of box to do recursive types because the type has a fixed memory block use but box is used for convenience as it only points to one value.
+
+*Box can become a fat pointer
+
+*Vec<enum> type where the enum is a variant of many types allows for heterogeinity but it only preserves type information.each variant of the enum still takes up the space of the largest variant making it take the same memory as a vector of homogenous types but a Vec<Box<dyn trait>> is the solution to the memory part.the problem here is that even if the elements only take as much space savings as they need,there is extra 40 bytes per element because of the fat pointer and allocator overhead.This dangerously increases the space complexity.so Vec<Box<dyn trait>> is used for polymorphism not memory efficiency
+
+*so a slice is an array but it doesnt have a fixed memory size and can grow only because its normally a ref into a part of another collection like a vector or string and thats why the notation is &[type] while arrays are fixed sized collections meaning that they go to the stack and their syntax is [type;number].The addition of number is because arrays are fixed in size and because of stack overflow,we can use box to move the arrays to the heap to become Box<[type;number]> and this will be more runtime efficient than a Vec<type> because the boxed array only gets allocated once as it allocates all the space it needs in a single request while the vector will constantly reallocate if the size of the items exceed the capacity.while Box<[type]> is a slice but because its boxed,it means that its stored on the heap and the variable owns the data removing the & operator that signifies borrowing and since slices are not fixed,the boxed slice can increase in size and since the slice is a view to a vector,we can create it from viewing into a vector and cloning the vector to an instance that Box<[u8]> will own causing the allocator to allocate a large chunk of memory while still allowing it to increase in size
+
+*so data types in general have default allocation strategies like i32,bool,char,arrays,structs,enums on the stack but Vec,String and Hashmaps on the heap but one can use Box to move stack values to the heap allowing for allocation strategies that can create recursive types,accept dynamically sized types,extend lifetimes,ensuring that stack data is not copied by ensuring ownership for efficiency and taking advantage of the properties of stack variables when they go to the heap for runtime performance making Box the rust way of controlling allocation.Other smart pointers like rc,refcell,arc,mutex,cow,weak are all variations of box but for other use cases
