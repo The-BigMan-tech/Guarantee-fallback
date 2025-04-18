@@ -2265,6 +2265,7 @@ c++--cpp crash course that i downloaded
 
 the official rust book
 a little more about rust macros
+rust reference
 black hat rust
 idiomatic rust
 
@@ -2353,3 +2354,152 @@ vscode,visual studio,cursor,firebase studio,zed,jetbrains
 code editor vs an ide
 
 vscode is the linux and jetbrains the windows of the code editing world.vscode supports a wide array of languages and can be tailored for any use case.
+
+node based programming
+block based programming
+
+*Although the code might be okay, if the Rust compiler doesn’t have enough information to be confident, it will reject the code. In these cases, you can use unsafe code to tell the compiler, “Trust me, I know what I’m doing.” Be warned, however, that you use unsafe Rust at your own risk: if you use unsafe code incorrectly, problems can occur due to memory unsafety,
+
+*the reason why i dont have to do that module boilerplate like it is in C# and java is because rust implicitly uses the script name as the module.
+
+*It’s important to understand that unsafe doesn’t turn off the borrow checker or disable any other of Rust’s safety checks: if you use a reference in unsafe code, it will still be checked. The unsafe keyword only gives you access to these five features that are then not checked by the compiler for memory safety
+
+*In addition, unsafe does not mean the code inside the block is necessarily dangerous or that it will definitely have memory safety problems: the intent is that as the programmer, you’ll ensure the code inside an unsafe block will access memory in a valid way.
+
+*wrapping unsafe code in a safe api allows me to call the function without doing it in an unsafe block preventing my entire codebase from being under unsafe.is this called an unsafe leak
+
+*rust warns of using the unsafe block if i dont use any of the unsafe features
+
+*Reserve unsafe for situations where you need to perform operations that cannot be expressed in safe Rust, such as dereferencing raw pointers, calling C functions, or dealing with mutable static variables.Ensure that your unsafe code is well-tested. Since you bypass Rust's safety guarantees, bugs can lead to undefined behavior and its use should be reduced to clearly defined situations
+
+*unsafe rust gives me access to raw pointers.They are allowed to ignore the borrowing rules by having both immutable and mutable pointers or multiple mutable pointers to the same location.Aren’t guaranteed to point to valid memory,are allowed to be null,don’t implement any automatic cleanup
+
+
+
+*you can use the raw borrow operator to create raw pointers.raw pointers to local variables are valid because they point to a variable that has valid data and you can write pointers to arbitrary memory addresses by using the assertion operator to turn a platform dependent int size type(usize) memory address into a pointer under safe code because a pointer is just a variable that has the memory address of another variable but there is no reason why you will want to write a pointer like this because the data at that address may be invalid but you cant dereference raw pointers or read the data being pointed to.The reason why creating a raw pointer is safe because it does no harm and it’s only when we try to access the value that it points at that we might end up dealing with an invalid value.Raw pointers allows us to go without the borrowing rules
+
+*the two major times when youll use unsafe code is if you are interfacing with c libraries or building a safe abstraction that the compiler cant understand
+
+
+*The second type of operation you can perform in an unsafe block is calling unsafe functions. Unsafe functions and methods look exactly like regular functions and methods, but they have an extra unsafe before the rest of the definition. The unsafe keyword in this context indicates the function has requirements we need to uphold when we call this function, because Rust can’t guarantee we’ve met these requirements. By calling an unsafe function within an unsafe block, we’re saying that we’ve read this function’s documentation and take responsibility for upholding the function’s contracts.
+
+*calling an unsafe function in safe code will throw an error and it requires you to put it under an unsafe code to call it which tells rust that you take the responsibiluty of calling the function and you adhere to the contract
+
+*unsafe blocks should be as small as possible ensuring that only operations that need it are in the block as unsafe operations may not be needed across the whole function body.
+
+*assertion macro panics if a condition isnt met.
+
+*you must call an unsafe function in an unsafe function but unsafe blocks can be wrapped in a safe api,so you can execute them in a safe function
+
+*scopes and closures can access values from their parent scopes while unsafe scopes cant.This restriction is a safety feature. By requiring explicit access to variables, Rust helps ensure that you are aware of the potential risks involved with those variables.Pointers in an unsafe block cant point to variables outside the block.This means that variables in an unsafe block are only made in the unsafe block and arent accessible outside the unsafe block
+
+*performing operations directly on a pointer is pointer arithmetic but accessing the value at that address is dereferencing
+
+*calling code from external languages should be marked unsafe because the code doesnt uphold to rust rules and rust cant guarantee that
+
+^ABI--for foreign function interface
+^transpiling for interop
+^understand how to call c++ code with unsafe
+^ipc for interop
+
+screaming snake case
+
+*static variables space are fixed at compile time but you can mutate them at runtime
+
+*the body of an unsafe function must also be unsafe
+
+*for static variables theres nothing like ownership rules on it.thats why its unsafe to mutate it.because mutiple parts of the codebase can be reading the static variable and the variable isnt responsible for the memory at all.The requirement that references to static mutable variables can only be created via raw pointers helps make the safety requirements for using them more obvious.
+
+*you cant use mutable static variables outside of unsafe blocks
+
+*Whenever we write an unsafe function, it is idiomatic to write a comment starting with SAFETY and explaining what the caller needs to do to call the function safely. Likewise, whenever we perform an unsafe operation, it is idiomatic to write a comment starting with SAFETY to explain how the safety rules are upheld.
+
+^more bout miri
+
+*it is very dangerous to create a pointer to a random memory address
+
+*rust doesnt allow you to directly uses the struct literal if there are any private fields
+
+^Under normal conditions,i cant access any of the private fields under a struct outside of its public methods.But something interesting about structs is that the sequence of the memory addresses of the fields under the struct is tied to the order in which they were defined and according to their types.Fields of the same type use the same base memory address with consistent offsets between them.This means that if i have a pointer to a public field of a particular type in a struct,i can add a byte offset to that pointer to access all other fields of the same type under the struct regardless of whether its public or private.You can add a byte offset to a pointer of any public field to get the memory address of any private field of any type but they arent consistent from what ive seen and it has to be made on observations and feedback.But the interesting thing is that even when the memory address is to the one of the private field after performing the offset,trying to deref it to get the value will only get you scribbles because the type of the public pointer expects one thing but the type at the memory address of the private field is another type.so you get a random instance of the public field type with gibberish data.This can easily be fixed by casting the pointer to the type of the private field.If one attempts to do this,then using a pointer to the struct instance is better because it decays to a pointer to the first field thats a pointer giving you a place to start although you can use any field of your liking but the memory address of the struct feels better so you dont memorize fields.Also,since a pointer to a struct points to the first field that has a pointer,you can point directly to a private field by simply pointing to the struct if the private field is the first field with a pointer.Casting pointers can make the mem addresses incorrect because it may point to the next memory address that has the type your are looking for.Im not sure if this behavipur i stated is globally applied to rust programs or just mine.but all these deductions are based on my observations.All of this is only available under unsafe rust.^This isnt a vulnerability in the struct system,its just common knowledge about how memory addresses work.It will only become a vulnerability if there is a fault in the software's algorithm that doesnt safely handle pointers allowing users to craft inputs that will trick the program meaning that pointer arithmetic is dangerous and the program shouldnt use it to return values.Users can also use a memory address manipulator like cheat engine to directly change the values at memory addresses.This only works for local software and softwares can use anti cheat systems to debunk these methods.The layout of structs can change with optimizations, so relying on specific byte offsets can be fragile.Relying on specific memory layouts can be fragile because any changes in the struct's definition (like adding/removing fields or changing their types) can break your assumptions and my assumptions can fail on another platform.
+
+^these are correct but fragile assumptions
+
+
+^The only reason why i knew this because i could view the memory addresses in the console looking for the offset between them but for an app that i didnt build,i have to attempt to do this by deref at the addresses using the feedback i get to proceed but this will take so much longer time.
+
+
+under normal behaviour
+From an input basis,you cant attack a simple technology because there is no purpose in attacking it.You cant rewire something that it isnt yours i.e on the server as opposed to the client.
+From a rewire basis,you can attack a technology so that others that use it,inherit exploits.--hacking
+
+under unexpected behaviour
+you can rewire what you cant own.if i have a sql database,i only borrow it to the client so i cant modify the database its only if i give it input to attack it
+if i own it,i can rewire it
+
+if its on the server ,the client cant own it but he can mutably borrow it to rewire it.
+
+normal behaviour is when the user doeesnt directly modify the underlying technology.he only borrows it and gives input that can take advantage of the tech.This is an exploit
+
+unepxected behaviour is when the tech doesnt give the expected output because it has been mutated directly.Cannot happen if its on the server because the user only borrows it.
+
+
+Something that doesnt perform computation cannot be exploited like a potato.
+A technology that performs one computation and performs it well to the letter can be exploited.
+
+A software cannot be more secure than a potato.You cannot hack or explot it.It cant get more secure than a calculator.Every technology that always give the expected output for a given input can be exploited.a tech that does exactly what you tell it to do can be exploited.An exploit isnt a vulnerability an exploit means it can be taken advantage of.But the exploit in itself is useless because what do you want to take advantage of the technology.its when the technology is used in another software,that it becomes a problem.So every software that uses technologies inherit the exploit of those technologies.If that exploit is leaked/exposed to the client,it becomes a vulnerability.Safely handling the use of technologies in a software prepares against exploits.If you dont have the technology that has exploits,you have higher security than one that uses them even safely because the exploit isnt there to begin with.Every software is composed of exploits.An exploit is a trait that leads to a vulnerability.The more technologies you remove,you remove exploits but the less computation it can perform till it becomes a potato.
+
+You dont own the software,you can only own the environment that the software runs on.This creates a mutable shell around it that allows you to rewire everything
+
+
+*rust has zero cost abstractions meaning that non of its abstractions cost runtime performance
+
+*rust is the modern chad of systems programmig.C++ is bloated unnecessarily and retains a lot of legacy syntax
+
+Swift--apple platform
+C#--windows platform
+Kotlin--android platform
+Dart--android platform
+javascript--react native,expo,ionic,lynx
+
+*level of control
+C,C++,Zig,Rust,Nim,Go
+
+*easiness
+GO,Nim,zig,C,Rust,C++ 
+
+*feature rich
+nim,zig,C,Go,Rust,C++
+C,nim
+
+
+*nim is the sytem level brother of python
+*mojo is the gpu level brother of python
+
+zig and nim use a single page documentation
+rust has a multipage documentation
+
+^legacy syntax vs modern syntax
+
+*automation languages
+powershell,bash,applescript
+
+*you can use miri to safe check unsafe code
+
+*associated trait types are used to defer type checking in traits to their implementations over their signatures
+
+*associated types are identical to using generics in traits except that you dont have to supply them on every call to a trait method because its only defined once in the implementation
+
+*generics can have a default concrete type
+
+*rust doesnt allow you to create operators or overwrite them but you can implement them for your types
+
+*we use a default concrete type to extend the functionality of the trait without breaking its implementation
+
+*if you have different impl blocks for the same type but each of them implement a method under the same name,rust will by default call the one directlty implemented on that type over the trait implementations when called.if you want to specify,you have to call the methods in the trait impl blocks with the trait name then the method using the syntax Trait::method(self) syntax.This is similar to the static method syntax.Every instance methods can be called by their static methods.The only time when you do this is to clear disambiguity to the rust compiler.This is termed method ambiguity and its a counter form of ploymorphism but isnt termed counter polymorphism.Using this syntax requires that the method takes a parameter of self whetether immutable,mutably or by ownership.we use the fully qualified syntax: <Type as Trait>::method() if there is ethod ambiguity and the method doesnt take a parameter to self.This is because this situation has more method ambiguity because the trait doesnt know which type implementation of the trait to call.so casting a type to a trait resolves this.
+
+*Traditional Polymorphism: Different types, different implementations of the same method.
+*Counterform of Polymorphism: Same type, different implementations of the same method, leading to method disambiguation.
+
+*specifying a trait bound on a trait is called a super trait.The trait that every type that implements another trait must require is called the super trait.The supertrait syntax is trait name:another trait
+
+*It’s possible to get around the orphan rule restriction by using the newtype pattern, which involves creating wrapping the external type in a tuple struct thats local to our crate.There is no runtime performance penalty for using this pattern, and the wrapper type is elided at compile time.The reason why the orphan rule doesnt allow you to implement a trait on an external type is because the external type may have its own implementations of the external trait and if you implement an external trait on that,you will end up overriding it.The only safe operations are implementing an external trait on an internal type because the internal type doesnt have any implementation yet of that external type and implementing an internal trait for external type is also safe because there is no way that the external type implemented your local internal trait.The newtype pattern ensures that the external trait on the external type is converted to an external trait on an internal type.But the wrapper wont inherit the traits of its inner type unless we impl the deref trait that derefs the wrapper for us to call vec methods each time we use it.But if we want to be specific about which ones we want it to implement,we have to do it manually

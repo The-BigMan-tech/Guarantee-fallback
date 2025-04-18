@@ -1,6 +1,8 @@
 use example::obj::Movement;
 use example::*;
 use std::collections::HashMap;
+use std::fmt::Debug;
+use std::path::Display;
 use std::result::Result;
 use std::thread;
 use std::time::Duration;
@@ -161,5 +163,25 @@ async fn main() -> AsyncResult<()> {
     mark.walk();
     state_2::two::start_two();
     macro_use::start();
+
+    trait Hello<T=String> where T:Debug {
+        type Data;
+        fn echo(&self,data:T)->Self::Data;
+    }
+    #[derive(Debug)]
+    struct Country {
+        continent:String
+    }
+    impl Hello for Country{
+        type Data = String;
+        fn echo(&self,data:String) -> Self::Data {
+            data
+        }
+    }
+    let egypt:Country = Country {
+        continent:String::from("Africa")
+    };
+    println!("{}",egypt.echo(egypt.continent.clone()));
+    
     return Ok(());
 }

@@ -4,6 +4,7 @@ pub mod two{
         mod device {
             use std::fmt::Debug;
             use std::io::{self, Write};
+            use std::println;
             #[derive(Clone,Debug)]
             pub struct Device{
                 pub name:String,
@@ -43,9 +44,7 @@ pub mod two{
                     self.settings.brightness += 1;
                 }
                 pub fn try_enable_root(&self)->Result<Device,String> {
-                    if self.battery < 20 {
-                        return Err("Battery is too low to enable root".to_string())
-                    }
+                    if self.battery < 20 {Err(String::from("Battery not enough"))?};
                     let mut new_device: Device = self.to_owned();
                     new_device.settings.root = true;
                     Ok(new_device)
