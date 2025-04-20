@@ -2582,4 +2582,86 @@ allocation strategies--compile time and growable heap allocation
 *ui languages
 
 signature based detection
-heuristic 
+heuristic based detection
+behavioural based detection
+
+*low level access isnt root/kernel access
+
+*so signature based analysis is when the antivirus scans the compiled binaries of the files and compare it to known compiled binaries that are malicious.it works only on known viruses and cant adapt.Behavioural analysis doesnt check the file itself but runs it and watches how it runs for any behaviour thats typical to malwares like attempting to access critical parts of the system while heuristic analysis examines the compiled binary for patterns known to malware but not exact matches to signatures
+
+*malwares can evade signature detection by the following:
+Malware can modify its code each time it infects a new system. This means that while its behavior remains the same, the actual binary signature changes, making it difficult for signature-based detection to recognize it.
+
+Similar to polymorphism, metamorphic malware rewrites its own code entirely upon replication. This can lead to significant changes in its structure, making it even harder to detect.
+
+Malware may encrypt its payload and only decrypt it in memory during execution. This means that the signature of the encrypted file appears benign, while the malicious behavior occurs during runtime.
+
+Malware authors often use packers to compress or obfuscate the malware code. When the packed malware is executed, it unpacks itself, which can change the signature during the unpacking process.
+
+*a code editor is a text editor supercharged for coding
+visual studio,vs code,sublime text,jetbrains ides
+
+*ml libs use c++ but they expose their functionalities in python
+^ill try to make the auto free engine in rust as an experimental alternative to the borrow checker for rust code.
+
+*so in user mode,any memory that isnt freed by a program will remain till the program exits but in kernel mode,it will remain till the system reboots
+
+*Virtual memory is what prevents a program from pointing to the address another program is using.Each process runs in its own virtual address space. This means that the addresses a program uses are not directly tied to physical memory addresses. Each program believes it has access to a complete range of memory addresses.The operating system maintains a page table for each process, mapping virtual addresses to physical addresses. When a program tries to access a memory address, the CPU uses this mapping to translate the virtual address to a physical address.If a program attempts to access a memory address that it does not own,If a program attempts to access a memory address that it does not own.this typically terminates the offending program. This isolation helps prevent malicious or faulty programs from interfering with each other's memory, enhancing system stability and security.If one program crashes, it does not affect the memory space of other running programs.
+
+*virtual memory is an os service
+
+*In user mode,my program runs directly on the cpu but any form of resource access is done through system calls to os services
+
+*Sytem level and app level languages have the same level of access i.e they both operate in user mode but the difference is how much they expose this access to the programmer.
+
+*so to get things straight,programs run directly or indirectly on the cpu.Compiled programs run directly on the cpu while interpreted programs run on the interpreter but the interpreter itself runs on the cpu.The cpu just executes instructions but cannot execute instructions that interface with hardware resources.That functionality is managed by the os.The os is the complete software that allows software to communicate with the hardware.Its composed of system call,the kernel,device drivers.The device drivers are the closest to hardware you can get.They directly make commands specifically for the hardware that the computer uses as specified by the manufacturer.Because of how sensitive this is,it exposes its functionality to the kernel as a kernel api.The kernel uses the api to communicate with the device drivers.Its the part of the os that handles all the responsiblities concerning the hardware resources of the computer while each device drivers focus on a single responsibility.The kernel then exposes its services safely to programs through system calls.Programs can run in two modes;user mode and kernel mode.A user mode program uses system calls to safely interface with the hardware while a kernel mode app uses the kernel api provided by the drivers to interface with the hardware which operates on the same level as the kernel which is dangerous because the kernel safely handles the kernel api while the program may not.A kernel mode program is a kernel driver.all programming languages have the same levelof access to hardware but they expose this access at different layers of abstractions.They group multiple system calls that are probably written in asm into a system library.A system library is a collection of system calls provided by the programming language as a standard library to the programmer to make it easy to request os services.For example,a vector creation in rust is probably loads of system calls but exposed as a safe and simple api that makes it difficult for it to break but for assembly,you make barebones system calls.So the level of hardware control is System library--->System calls-->Kernel--->Kernel Api--->Device drivers-->Hardware
+
+*programs are compiled to target two types of platforms;the os and the cpu.So for a program to be cross platform,it has run on many cpu and os platforms
+
+*one can use system calls to programmatically do all these things.so is a utility software for packaging what one could have done programmatically into a software that makes it eaiser to interface with
+
+user mode system software
+kernel mode system software
+
+cpu--registers
+disk--os,bootloader,fs
+Ram
+Rom/flash memory
+buses
+motherboard
+
+instructions are sent from the device driver to the hardware through a bus
+
+*When a program is opened,its instructions are mounted onto the code segment of the ram and the cpu reads from the instructions from there.The initial values of static variables are baked into the compiled bin of the program and once it starts,it goes to the data segment of the ram where it remains globally available
+
+*The ram is made up of the code segment,data segment,stack,the heap and the os creates multiple virtual rams complete with all the types of memory for each process that are all mapped to a single ram by using the page table.Each process has its own page table, which keeps track of which virtual pages correspond to which physical frames in RAM.
+
+disk is split into partitions or divisions---boot loader
+
+*rom contains firmware.which has the bios.It boots the hardware devices when the computer is turned on and it loads the bootloader from the disk into RAM to start the operating system.
+
+firmware is a software thats embedded into a hardware like the bios.It contains the most basic functionalities of the hardware that device drivers can leverage.it goes to a non volatile memory like the rom or flash memory.Its not baked in
+
+*A device driver communicates with hardware directly but leverage firmware if present
+
+cpu uses buses for port i/o
+
+every hardware device exposes an address which can be either a port address or a memory address
+
+Hardware devices have registers, which are small storage locations used to control the device and hold data.
+
+*so device drivers communicate with the hardware by using memory io or port io.Every hardware has data and control registers which have two types of addresses;a memory and a port address as specified by the manufacturer.For memory io,the cpu already has a range of addresses to access as specifed by the address bus width.when the cpu wants to communicate with any hardware,it directly reads and writes to the memory address of the hardware registers and the address bus transmits this signals to the hardware with the right address.it simulates a ram access to the hardware.Hardware registers also have port addresses but the addresses are not directly accessible by the cpu but rather,the cpu uses particular io instructions that leverage data buses to send data to the hardware that has the right port address.Unlike hardware devices, RAM does not have control registers because it is a passive storage medium. It doesn't perform operations on its own; instead, it simply holds data.Control registers in hardware devices are used to configure and control the device's operation.This means only hardware devices that can perform operations on their own that have control registers.memory io for hardware devices that are internal to the computer like disks,rom while port io are for devices that accept user input like keyboard or give output like monitor
+
+*so hardware devices have some processing abilities but they are super specific in what commands they can accept and its only the cpu that can run various interactions leveraging specifc commands for different hardware devices.what the cpu is at the fundamental level is an orchestrator of hardware commands but the cpu can only understand binary because hardware devices only understand electricity and binary is a mapping to electric signals--on and off
+
+cpu is made up of the alu,control unit,registers
+
+*so the alu is actually the part of the cpu that performs computations.it has the simplest form of computations which are arithmetic and logical operations.the control unit reads the instructions from the code segment and feeds the alu and the alu delivers the outputs to registers.It also communicates with hardware through memory addresses by fetching instructions, generating addresses for data access, and sending control signals to manage operations.
+
+a calculator is an embedded device
+embedded devices-mini devices that have the simplest of hardware--arduino,raspberry pi
+
+
+*The law of composability is that simple units that can only do a finite number of things at the most basic level can be combined to perform complex operations.like the cells in living organisms and instructions in computation
+
+cpu architecture
