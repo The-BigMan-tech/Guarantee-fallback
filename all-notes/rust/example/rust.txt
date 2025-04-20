@@ -2446,10 +2446,12 @@ unepxected behaviour is when the tech doesnt give the expected output because it
 Something that doesnt perform computation cannot be exploited like a potato.
 A technology that performs one computation and performs it well to the letter can be exploited.
 
-A software cannot be more secure than a potato.You cannot hack or explot it.It cant get more secure than a calculator.Every technology that always give the expected output for a given input can be exploited.a tech that does exactly what you tell it to do can be exploited.An exploit isnt a vulnerability an exploit means it can be taken advantage of.But the exploit in itself is useless because what do you want to take advantage of the technology.its when the technology is used in another software,that it becomes a problem.So every software that uses technologies inherit the exploit of those technologies.If that exploit is leaked/exposed to the client,it becomes a vulnerability.Safely handling the use of technologies in a software prepares against exploits.If you dont have the technology that has exploits,you have higher security than one that uses them even safely because the exploit isnt there to begin with.Every software is composed of exploits.An exploit is a trait that leads to a vulnerability.The more technologies you remove,you remove exploits but the less computation it can perform till it becomes a potato.
+A software cannot be more secure than a potato.You cannot hack or explot it.
 
-You dont own the software,you can only own the environment that the software runs on.This creates a mutable shell around it that allows you to rewire everything
 
+You dont own the software,you can only own the environment that the software runs on.This creates a mutable shell around it that allows you to rewire everything.
+
+My hypothesis about cyber security:The most secure device is a device that cannot perform computation which is not possible as it will essentially become a potato.Every technology that always give the expected output for a given input can be exploited.a tech that does exactly what you tell it to do can be exploited.An exploit isnt a vulnerability an exploit means it can be taken advantage of.But the exploit in itself is useless because what do you want to take advantage of the technology.its when the technology is used in another software,that it becomes a problem.So every software that uses technologies inherit the exploit of those technologies.If that exploit is leaked/exposed to the client,it becomes a vulnerability.Safely handling the use of technologies in a software prepares against exploits.If you dont have the technology that has exploits,you have higher security than one that uses them even safely because the exploit isnt there to begin with.Every software is composed of exploits.An exploit is a trait that leads to a vulnerability.The more technologies you remove,you remove exploits but the less computation it can perform till it becomes a potato.
 
 *rust has zero cost abstractions meaning that non of its abstractions cost runtime performance
 
@@ -2562,3 +2564,22 @@ asm and sql macros
 
 11,14
 12.4,12.5
+
+testing,macros,tokio
+
+pointers
+allocators
+smart pointers
+ownership model
+reference counting
+garbage collector--ref,tracing
+tunable garbage collector
+auto free engine---no extra runtime like the gc.the variables arent deterministic like owners in rust.doesnt enforce rules like the rust borrow checker but places free where it believes it can safely be freed.its done at runtime so theres zero runtime overhead.the ownership model prevents memory leaks and dangling refs but the borrowing rules prevents race conditions
+
+allocation strategies--compile time and growable heap allocation
+*cloure
+
+*ui languages
+
+signature based detection
+heuristic 
