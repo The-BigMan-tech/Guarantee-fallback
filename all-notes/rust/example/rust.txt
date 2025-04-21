@@ -2191,6 +2191,7 @@ blockchain---solidity
 security software---rust,python
 taks automation on linux-bash
 task automation on windows---powershell
+Server/System/Network/Database Admin---powershell
 quick scripting---lua
 games--c#,C++
 embedded systems--python,c
@@ -2714,3 +2715,37 @@ Ui development languages--C#,Flutter,Javascript,Kotlin,Swift
 *c# is mostly for ui development,after that game development and after that,backend and entreprise development 
 
 *so the language to start to get bugged down to computer fundamentals is python.the best for those that want to start with ui development is either js,c#,flutter,kotlin or swift.If they want to get to web ui,js is the best,if they want to go for desktop ui,then ill say c# even though you can use js to build desktop apps but c# is more specialized for this.if they want to go for mobile dev,then kotlin.its their pick based on what platform they want it on or swift although js and c# can do this cross platform but mobile app isnt their main focus.If they want ui development in general whether mobile or desktop,then flutter will be the best because its 99% a ui language although c# is more dominant for desktop apps.If they want a language that will teach them the fundamentals from the system level,ill say they should start with either python or a ui language first because new devs will want to start with getting faster feedback cycles then,they can transition to system level langs if the details matter to them.if they want to start with game dev but also the computer fundamentals along with it,ill say c# over godot.because godot assumes some programming skills before learning their engine although beginner friendly.They can later go to C++ if they are interested in system programming for game dev.
+
+sectional divisons and semantic dvisions of asm code
+
+asm is instruction and operands like a + b but with an infix notation like add a ,b
+instructions are cpu instructions that perform the most basic form of computation just like how arithmetic operators perform the most basic form of maths.
+
+operation,registers,data
+
+directives
+
+there is a difference between learning programming from the mathematical aspect and from the engineering aspect
+
+linuxfromscrath nasm assembler
+
+register operand,memory operand,literal operand
+
+*msys2 a package manager for system level languages
+
+^i installed nasm and the c++ compiler by using msys2
+*to make a language support extension,i have to make a lexer for a syntax highlighter and an lsp for intellisense.
+
+^To get asm working,i installed nasm in msys2 to assemble it into an .o file and used gcc in mingw to link it to an exe and then executed it.
+
+*i installed gcc and nasm in msys32 but i can only use both of them in msys64 because the bin files went to msys 64
+
+this is the cmd to run in msys64 for running the asm code: 
+nasm -f elf64 hello.asm -o hello.o && gcc hello.o -o hello && ./hello.exe && rm hello.exe hello.o
+
+
+& "C:\msys64\msys2_shell.cmd" -mingw64 -defterm -no-start -here -c "cd /c/Users/USER/Desktop/The-Web/Code-references/all-notes/rust/disk_usage_analyzer/src && nasm -f elf64 hello.asm -o hello.o && gcc hello.o -o hello && ./hello.exe && rm hello.exe hello.o"
+
+
+*shell scripting--chaining multiple cmds to supercharge my workflow when doing something by automating tasks
+^I ended up creating a powershell script to automate the entire thing
