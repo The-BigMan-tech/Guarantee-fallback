@@ -182,6 +182,71 @@ async fn main() -> AsyncResult<()> {
         continent:String::from("Africa")
     };
     println!("{}",egypt.echo(egypt.continent.clone()));
-    
+
+    use std::any::Any;
+    use std::mem;
+    trait Flexible:Debug + Any + AsAny {
+        fn value(&self)->i16;
+    }
+
+    #[derive(Debug)]
+    struct Int8(i8);
+    impl Flexible for Int8 {
+        fn value(&self)->i16 {
+            (&self.0).clone() as i16
+        }
+    }
+
+    #[derive(Debug)]
+    struct Int16(i16);
+    impl Flexible for Int16 {
+        fn value(&self) -> i16 {
+            (&self.0).clone()
+        }
+    }
+    trait AsAny {
+        fn as_any(&self) -> &dyn Any;
+    }
+    impl AsAny for Int8 {
+        fn as_any(&self) -> &dyn Any {
+            self
+        }
+    }
+    impl AsAny for Int16 {
+        fn as_any(&self) -> &dyn Any {
+            self
+        }
+    }
+
+    let x: Box<dyn Flexible> = Box::new(Int8(127));
+    let y: Box<dyn Flexible> = Box::new(Int16(2000));
+    println!("Value of x: {} and y: {}",x.value(),y.value());
+
+    let z:Vec<Box<dyn Flexible>> = vec![x,y];
+    println!("Z: {:?}",z);
+
+    for item in &z {
+        if let Some(_) = item.as_any().downcast_ref::<Int8>() {
+            println!("Size = {} byte",mem::size_of::<Int8>());
+        } else if let Some(_) = item.as_any().downcast_ref::<Int16>() {
+            println!("Size = {} bytes",mem::size_of::<Int16>());
+        }
+    };
+    let slab: Box<[u16;10]> = Box::new([0;10]);
+    println!("Slab: {:?}",slab);
+
+    fn returns_closure(square:fn(i32)->i32) -> impl FnMut(i32)->i32 {
+        move |x: i32| {
+            square(x) + 10
+        }
+    }
+    let func:fn(i32)->i32 = |x:i32| x * x;
+    println!("closure value: {}",func(10));
+
+    let mut g = returns_closure(func);
+    println!("closure value 2: {:?}",&g(2));
+
     return Ok(());
 }
+
+//stored flexibly but derefs to the highest space
