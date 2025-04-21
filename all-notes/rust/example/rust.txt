@@ -2665,3 +2665,52 @@ embedded devices-mini devices that have the simplest of hardware--arduino,raspbe
 *The law of composability is that simple units that can only do a finite number of things at the most basic level can be combined to perform complex operations.like the cells in living organisms and instructions in computation
 
 cpu architecture
+
+*so hardware devices are electrical devices designed for computation but in the case of embedded devices,they are just electrical devices except for the micro controller.hardware can only understand electricity in both cases
+
+*so markup is for the structure of the document and stylesheets is for the presetation and visual of the document 
+
+*div is used to break your document into divisions
+
+markups are turned to the dom which is an ast of the markup
+
+lexer breaks the code into tokens
+parser brings the tokens structurally to construct an ast
+the semantic analyzer checks if the ast is syntatically and meaningfully correct
+code generator converst the ast to an ir
+The optimizer optimizes the ir for efficiency
+code generator converts the optimized ir to asm
+an assembler converts it to machine code
+
+*when building a compiler with LLVM, developers primarily focus on the lexer and parser, while leveraging LLVM’s IR for code generation.
+
+*in memory and file data structures.asts are an in memory data structure
+
+*The ir is the level between high level src code and asm but ist not meant to be hand written.it serves different purposes depending on the nature of the language.for compiled languages,its used as a target to perform optimizations that will be tedious or ineffective at the asm level and not possible at the source code level.for jit compiled languages like c# and js,its used to ensure cross compatibility of code.for browsers,web asm is an ir to allow for interopability across languages in the browser and for interpreted languages like python and lua,its directly interpreted.
+
+gpu asm
+gpu shading language
+gpu parallel language
+
+*so processors are hardware devices that can perform fundamental computations to execute an instruction.CPUs and GPUs are the two kinds of processors but GPUs are specially designed for parallelism and rendering graphics without having the hardware orchestration of the CPU
+
+*so the two types of gpu languages are shading languages and parallel processing languages.Shading langs are made for rendering graphics at high quality while parallel langs are for utilizing multiple gpu cores for processing.Glsl and hlsl are for shading and mojo,bend and cuda are for parallel processing.glsl,hlsl and cuda have a C like syntax making them the gpu counterpart of c
+asm
+
+hex binary
+different java jit compilers---libjdk,oraclejdk
+
+directx,opengl,web gl
+three js,babylon js
+
+*so the three types of ui libraries are markup/component based ui,imperative widget ui and declarative widget ui.Markup/component based ui is when the ui is defined in a markup-like syntax tailored for a particular language like jsx for react and XAML for C#.They bundle the markup and the code that makes it interacive into reusable components.The markup and the code can be in separate files like in c# or together like react which i believe its the only one that puts them in a single file.Js,C# and Kotlin use this approach.The widget architecture is where the ui is a singleton object.The two approaches to this is the imperative or declaratove approach.The declarative approach is when the ui is written as an object tree in its literal notation form which looks more programmatic than markup.They are composed in a hierarchy.Flutter and swift employ this approach.while imperative widget architecture is the same as the declarative version where the ui is an instance of the widget class but its not written as an object tree but rather different instances of differnt widgets are added imperatively to the main widget instance.Python gui libs like kivy and pyqt do this approach although kivy also provides a declarative approach that uses a format that resembles markup but with indentation
+
+react native,expo,lynx,ionic
+
+dart is mostly known for flutter and flutter can make desktop and mobile apps making it a good UI language
+
+Ui development languages--C#,Flutter,Javascript,Kotlin,Swift
+
+*c# is mostly for ui development,after that game development and after that,backend and entreprise development 
+
+*so the language to start to get bugged down to computer fundamentals is python.the best for those that want to start with ui development is either js,c#,flutter,kotlin or swift.If they want to get to web ui,js is the best,if they want to go for desktop ui,then ill say c# even though you can use js to build desktop apps but c# is more specialized for this.if they want to go for mobile dev,then kotlin.its their pick based on what platform they want it on or swift although js and c# can do this cross platform but mobile app isnt their main focus.If they want ui development in general whether mobile or desktop,then flutter will be the best because its 99% a ui language although c# is more dominant for desktop apps.If they want a language that will teach them the fundamentals from the system level,ill say they should start with either python or a ui language first because new devs will want to start with getting faster feedback cycles then,they can transition to system level langs if the details matter to them.if they want to start with game dev but also the computer fundamentals along with it,ill say c# over godot.because godot assumes some programming skills before learning their engine although beginner friendly.They can later go to C++ if they are interested in system programming for game dev.
