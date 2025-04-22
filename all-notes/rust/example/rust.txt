@@ -2701,7 +2701,7 @@ asm
 hex binary
 different java jit compilers---libjdk,oraclejdk
 
-directx,opengl,web gl
+?directx,opengl,web gl
 three js,babylon js
 
 *so the three types of ui libraries are markup/component based ui,imperative widget ui and declarative widget ui.Markup/component based ui is when the ui is defined in a markup-like syntax tailored for a particular language like jsx for react and XAML for C#.They bundle the markup and the code that makes it interacive into reusable components.The markup and the code can be in separate files like in c# or together like react which i believe its the only one that puts them in a single file.Js,C# and Kotlin use this approach.The widget architecture is where the ui is a singleton object.The two approaches to this is the imperative or declaratove approach.The declarative approach is when the ui is written as an object tree in its literal notation form which looks more programmatic than markup.They are composed in a hierarchy.Flutter and swift employ this approach.while imperative widget architecture is the same as the declarative version where the ui is an instance of the widget class but its not written as an object tree but rather different instances of differnt widgets are added imperatively to the main widget instance.Python gui libs like kivy and pyqt do this approach although kivy also provides a declarative approach that uses a format that resembles markup but with indentation
@@ -2748,4 +2748,12 @@ nasm -f elf64 hello.asm -o hello.o && gcc hello.o -o hello && ./hello.exe && rm 
 
 
 *shell scripting--chaining multiple cmds to supercharge my workflow when doing something by automating tasks
-^I ended up creating a powershell script to automate the entire thing
+^I ended up creating a powershell script to automate the entire thing as well as task.json in vs code so that i dont have to change the filename or dir each time.there is also terminal keeper for automation in vscode.
+
+Task.json and terminal keeper are an in ide automation tool
+
+^environment setup is annoying thing to get especially for js and asm.powershell is used to automate environment setups.
+
+*pub use is used for reexporting an item that has been included in ypur name space.this allows you and others using your code to easily access the item you want deep in the module hierarchy without changing the module structure
+
+*a library that is made up of multiple seprate libraries is called a workspace

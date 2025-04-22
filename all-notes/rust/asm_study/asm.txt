@@ -1,0 +1,125 @@
+*the asm file is divided into three divisions,the data section,the bss section and the text section
+
+*The data section is used for declaring initialized data or constants.This data does not change at runtime.
+*The bss section is for decaring variables
+*the text section is where the code starts
+
+*comments begin with a semicolon
+
+*asm statements can either be an instruction or a directive.The instruction tells the cpu what to do and it translates to binary.directives dont get converted to machine code
+
+*an asm statement consits of an instruction,operand and optionally a comment.the left operand is the destination and the right is the src.
+
+*segments in asm tell the cpu which regions in memory various parts of the asm code will be executed.they are logical divisions that tell the assembler and linker how to organize your program’s code and data.
+
+^The registers are grouped into three categories;General registers,Flag registers, and Segment registers.
+^The general registers are further divided into the following groups;Data registers and Pointer registers
+
+*data registers are used for arithmetic and logical operations
+
+*so registers can be of various sizes and there is only per type.A register type can come across various sizes depending on the architecture.the format RnameX is for 64 bit,EnameX is for 32 bit,nameX is for 16 bit,nameL is for 8 bit.if i use a part of a register,icant use the remaining part independently and if i mix registers,it  will hurt performance but i dont always have to use the highest form of registers but i should use the one best for the data type im handling to reduce the size of the instructions as smaller registers lead to smaller register sizes but i shouldnt always mix differnt types of the same register because of their overlapping behaviour.
+
+*the X means extended
+
+*so the rax is for holing operands and results in arithmetic operations and the return values of functions,rcx is used for counter variables like the loop iterator and rdx is used as a secondary data segment which is used in io like writing to the std output and it passes args to functions
+
+*Writing to a smaller part (e.g., EAX) affects only the lower part, and for 32-bit writes, zeroes out the upper 32 bits of the 64-bit register.Writing to AX or AL only affects the lower 16 or 8 bits, leaving the rest unchanged
+
+*Index registers are used for index addressing.SI is the src index and DI is the destination index.
+
+*Pointer registers in x86-64 architecture are registers primarily used to hold memory addresses (pointers) rather than raw data values
+
+*RIP (Instruction Pointer):Holds the address of the next instruction to execute. It is a special pointer register that controls program flow. You cannot directly modify it with typical instructions, but it is used implicitly for control flow and RIP-relative addressing.
+
+*so the rsi and rdi are registers used to store pointers to a src data and its destination.its used to move values from one address to another.
+
+*OF, DF, and TF are single-bit flags inside the FLAGS register.They act like boolean flags controlling CPU status or behavior.OF is used in control flow decisions; DF controls string operation direction; TF enables debugging mode.so they all use the FLAGS register.only Of is used for control flow,the others are for setting cpu states for influencing its behaviour and not program branching
+
+runtime mod loading system
+compile time mod loading system
+
+*Register addressing,Immediate addressing,Memory addressing
+*The first operand defines the length of the data.Memory addressing are stored in variables and referred by the variable names.
+
+*we use the [variable] notation for memory addressing which gets the address of the variable instead of the value.
+
+*mov moves the value from a source to a destination
+
+*you write something to a register and then call the kernel or a win api function
+
+*Both instructions affect the Carry and Overflow flag.
+
+version control and forward compatibility
+
+*l means little endian and H means high endian
+
+*A register is for storing operands
+*D register is for storing the multiplier
+
+*The jmp instruction is used for conditional branching by changing the offset value in the ip
+
+^implement high level constructs in asm.
+^know which operations disturb the src and destination operands
+
+*instructions that only take one operand assumes that one of the operands are in a particular register
+
+*so general registers are actually named according to their integer;R1-R16 but they are mapped to different names for convention
+
+using all 64 bits of a register:Rint,RnameX
+32 bits:RintD,EnameX
+16 bits:RintW,nameX
+8 bits:RintB,nameL
+
+*number base notation
+0x--base 16 or hex notation
+0q--base 8 or octal notation
+0b--base 2 or binary notation
+0d--base 10 or decimal notation
+
+bytes,word,double word,quad word,ten
+the x means extended and L and H for 8 bit registers mean higher and lower halves.Historical reasons is why H still exist.Modern day version is L
+
+The register names are A,B,C,D, SP,BP, SI,DI
+A for accumulator
+B for base
+C for count
+D for data
+
+SP means stack pointer
+BP means base pointer
+
+SI means source index
+DI means destination index
+
+general registers can either hold data or addresses.
+
+The accumulator is used for holding data for arithmetic operations
+The data register is used in assiciation with the accumulator for arithmetic
+
+in other word,Ax is essentially the left operand and Dx is essentially the right as in A * B where A is left and B is right and the size of the registers used depends on the size of the operands.This is only true for * or / from what ive seen
+
+The count register is used for counting for iterations
+
+The B register is for holding memory addresses for pointer arithmetic
+
+the sp is for pointing to the stack
+the bp is for pointing to function parameters
+
+si and di are used for pointing to a src and destination address.
+
+white---unconfirmed info
+*green--confirmed info
+?blue--for questions
+^yellow--requires attention
+todo:orange--todo
+!red:anything urgent i should do
+
+mov means write to a portion of an integer register.the size of the portion is determined by the type like EBX means the 32 bit from the second general register.
+
+define directive is used for creating variables in the data segment
+
+im sure the general purpose registers that werent given a conventional name means that you can use it without the restriction of convention
+
+.bss is for writable static data while .data is for immutable static variables
+
+theres something called addressing in assembly,if its the destination,it does something at that address but if its the src,using  registers means working on the address and not the value itself

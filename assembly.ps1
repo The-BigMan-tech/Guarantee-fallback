@@ -1,6 +1,6 @@
 param([string]$asm_file_name,[string]$folderPath)
-
 $workDir = $folderPath -replace '\\','/'
+
 #*Path to the msys2 shell
 $msys2Shell = "C:/msys64/msys2_shell.cmd"
 
