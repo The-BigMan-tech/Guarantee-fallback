@@ -2757,3 +2757,25 @@ Task.json and terminal keeper are an in ide automation tool
 *pub use is used for reexporting an item that has been included in ypur name space.this allows you and others using your code to easily access the item you want deep in the module hierarchy without changing the module structure
 
 *a library that is made up of multiple seprate libraries is called a workspace
+
+^lldb and gdb are the debuggers for system level languages.code lldb integrates lldb in vscode
+
+*i use lldb for rust,c++ because i can use it through vscode gui
+*i use gdb for asm because i vs code doesnt allow me to set breakpoints in asm and has no gui support for debugging asm so i am stuck with the terminal thats why i use gdb for this
+
+*The incremental folder is part of Cargo's incremental compilation feature, which aims to speed up the build process by only recompiling parts of the code that have changed. Here’s how it works.
+
+*rust has incremental compilation making build times faster.
+
+^Assembly is much simpler than most programming languages, learn the basic operations and registers and that's pretty much it. The hard part is keeping track of all what’s going on in your head and understanding the hardware
+
+^uno edit
+
+^The problem is that assembly language itself is deceptively simple
+
+^many of today’s programmers have grown up with fast CPUs, whose speed has made up for poor coding habits and, as such, many of these programmers have never had to learn how to write fast code.
+
+^Code optimization
+^Algorithm optimization--optimizing the implementaion or choosing a more efficient algorithm
+
+^Time complexity is important.

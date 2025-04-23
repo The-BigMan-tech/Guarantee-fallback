@@ -14,8 +14,8 @@ segment .text
     mov ECX,-11             
     call GetStdHandle
 
-    logic:mov RCX,RAX                
-    lea RDX,[rel name]    
+    logic:mov RCX,RAX   
+    lea RDX,[rel name]       
     mov R8D,person_len     
     mov R9D,0
     call WriteConsoleA

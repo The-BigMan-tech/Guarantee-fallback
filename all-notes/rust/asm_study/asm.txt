@@ -334,11 +334,25 @@ function prlogue and epilogue
 
 the caller pushes values to the stack for passing them as parameters or saving the state of caller reserved registers which are registers that may have been modifed by the function while the function moves and not pushes local variables to the stack and pushes callee reserved registers which are registers that the function is not meant to modify and it done,it must be popped off to revert it back to its original state
 
-?state the uses of the registers
-implementing higher level constructs in asm
-interfacing with my own rust library
+
+^implementing higher level constructs in asm
+^interfacing with my own rust library
 
 so i dont have to write the prologue or epilogue of the function since its written in rust.i just have to manage the caller responsibility
 
 x64 means that the registers are 64 bits wide
 x32 means that the registers are 32 bits wide
+
+*so the object file is a binary file that contains metadata in a symbol table which contains info about addresses and variables and the linker uses the metadata along with the binary to create a full executable binary
+
+*so asm is for purely writing the processing side of a program and for everything else,i will need to call the kernel or more preferrably functions from a language standard library
+
+*so the registers and their uses are General,flag and segment registers.The general registers can either store data or pointers.they are A,B,C,D,BP,SP,DI,SI,R8-R15.A and D is used for storing operands for arithmetic or logical operations.B is for storing memory addresses like those in pointers or other registers.C is for the loop counter,BP is for storing the current stack frame and using it as a ref to get the parameters and local variables of a function by adding or subtracting an offset.The SP registers is for reserving space for data on the stack by decrementing it and cleaning local variables off the stack by incrementing it,IP is the instruction pointer and its not managed directly but through jump instructions and labels,DI and SI are for string operations,R8-R15 are reserved for calling conventions or for more general use cases.Their use cases and their names is by convention and not by hardware details.Their actual hardware names are R0-R15.Flags registers are for setting various flags for controlling the flow of the program or changing the cpu state.The segment registers were once used to point to the starting addresses of different memory regions but are now unused in modern asm code because they have default to using 0 as the base since you can access any memory region from 0 as the memory regions are arranged sequentially on the ram but they still exist for backwards compatibillity.
+
+*The instruction xor reg, reg is a common way to clear a register. This operation sets the register rdi to zero (since x XOR x = 0 for any value x). It is a concise and efficient way to reset a register.
+
+*$ is a special symbol that refers to the current address in the data segment.so doing $ - name subtracts the current address with tat of the name giving the length of the previous string since strings are a sequence of chars
+
+*Carriage Return (CR) is a control character used to reset the position of the cursor to the beginning of a line in a text display. In ASCII, it's represented by the value 13. When used in combination with Line Feed (LF), which is represented by 10, it creates a new line on many systems, especially in Windows. The typical sequence for a new line in Windows is CR LF (i.e., 13, 10).
+
+*The rel keyword in assembly language is used to indicate that an address is relative. This is particularly useful in position-independent code, where the exact memory address of a label may not be known at compile time.Usage: When you use lea RDX, [rel name], it loads the address of the label name relative to the current instruction pointer. This ensures that the address is calculated correctly regardless of where the code is loaded in memory, making it more flexible and portable.
