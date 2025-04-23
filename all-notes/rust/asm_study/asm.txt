@@ -122,4 +122,223 @@ im sure the general purpose registers that werent given a conventional name mean
 
 .bss is for writable static data while .data is for immutable static variables
 
-theres something called addressing in assembly,if its the destination,it does something at that address but if its the src,using  registers means working on the address and not the value itself
+theres something called addressing in assembly,if its the destination,it does something at that address but if its the src,using  registers means working on the address and not the value itself.doing [] is used to get the value at that address
+
+?interesting behaviour when you use a label as a variable instead of a name in the data segment
+
+some instructions that dont use or are not using enough operands expect that they are in specific registers as according to convention.for example,mul expects that the multiplicand is in the ax register and the call instruction that calls functions expect that the arguments are in specific registers in a particular order.
+
+Xmmm regsters
+
+?abi
+the remaining r8 to r15 are for call arguments
+
+instructions like mul and div that dont have destination operands but only src operands,the destination is in another register.function calls either use up or preserve registers.
+
+instructions like jmp expect that the operands are in particular registers
+
+instructions are defined by the processor instruction set meaning that they are fixed instructions like mov,add,sub.they are processed by the alu
+
+some instructions are not part of the hardware set but on the asm level like directives for convenience
+
+*PIE means your program randomizes the address it uses each time it loads.This prevents attackers from hacking the programs memory so cheat engine manipulates memory by performing an offset on a base address thats provided by the user but that base address will always change each time the program boots up
+
+0b is for binary literals
+normal numbers are for value
+0x is for memory addresses
+
+so base notation can be 0xnum or 0numx
+
+a left shift is multiplying by two,two left shifts multiply by 4
+shifting to the right divides the value by 2 but it loses the sign
+
+bitwise operators
+logical bit operators
+
+The compiler/assembler/linker generally makes the code execute only. If you try to store to those addresses, you will get a segfault.The CPU has special features that enforce these permissions. If you try to defeat the permissions, a segfault exception is thrown.
+
+virtual memory mapping
+swapping inactive programs to the disk
+compress other secondary programs so that the memory can be used by the primary running program
+map the primary runnin program memory to the disk
+kill another program when there is no other choice
+
+
+*a page is a mapping between the ram or a disk space to a virtual memory when a program exceeds the page size,it has a page fault.
+
+the stack grows downward meaning that it has a limited amount of space given to it by the os 
+
+the ram is like an array of memory types.they all have the base address of 0 which is the starting address of the code segment.the code segment is at the bottom,above it is the unintiliazed data segment which has a fixed upper and lower bound but the data there is mutable.this is for mutable static variables.Above this is the initiliazed data segment which is for immutable static variables.above this is the heap which has a fixed lower bound but an unfixed higher bound which means that the virtual ram heap of a program starts with a very small space but can grow as data is allocated till it reaches the limit of its virtual memory.The stack is above the heap and it has a fixed upper bound but an unfixed lower bound.This means that the stack has limited room to grow just like the heap but it is set by the os and not by the hardwares limitations.The stack grows downward and the heap grows upward.this means that the memory addresses of the heap increases as the heap grows and that of the stac decreases as it grows.The memory a program consumes when it starts is the sum of its code segment and data segment.the heap and stack is kept minimal and increases on demand.A page is 3 bytes.
+
+instructions are baked into the hardwares circuitry so the reason why we dont have any processing on the ram is because if we were to have for example and add circuit in the ram,we will have to mapp millions of memory addresses together in different combination with each combination having their own adder which is not computationally and resourcively feasible.So thats why the cpu has registers and they are limited so that we can centralize all operations in a single circuit.We can just have an adder in the cpu without registers to store the operands so that the cpu can add values on the fly but it will be too slow to fetch data to and fro from the memory for every operation we have.
+
+*The alu is the part of the cpu that processes instructions
+
+registers are for mounting data into the cpu for procesing
+
+
+two types of instructions--load instruction,process instruction.process instruction can be arithmetic,logical or statements
+
+general purpose registers--two name types--hardware names and their conventional names--the hardware names uses integers and the conventional names uses letters.The letters A,B,C,D,SP,BP,SI,DI are the conventional names with RX,EX,X,L as the conventional size modifiers.The integers 0,1,2,3,4,5,6,7 are their hardware names with B,W,D,Q as their hardware size modifiers.The other 8-15 registers dont have conventional names so you acces them by their hardware names.
+
+The rip register is the pointer to the code segment that the cpu uses and increments automatically to access the next instruction
+
+different sizes of the same general purpose registers access a specific portion of the general purpose register itself while for flag registers,they only access one bit of the FLAGS register since a flag is a state of 1 or 0 meaning yes or no.The Flags register is 16 bits meaning that they are 16 different flags that can be stored in them
+
+the segment registers were once used to store the starting address of the various regions of the ram like the code segment,the data segment and the stack where the starting addresses were used as offsets but later,the starting addreses were conventionally set to 0 for all data meaning that by using an offset alone,you can point to all the regions of memory on the ram but for backwards compatibility reasons,they are still there
+
+
+There are two types of flag registers;cpu controlled flags and program controlled flags.cpu controlled flags are set by the cpu but read by the program to control the state of the program and vice versa for the program controlled flags.
+
+there is another bitwise operation called rotation.its the same as shift but the lost bit becomes the highest or lowest bit of the new value.Its used for preserving the sign in right shift operations
+
+Bitwise shift
+Bitwise rotation 
+Bitwise logical 
+
+setting a bit means changing the value to 1 and clearing it means changing it to zero
+
+Numbers are directly converted to their base2 form for processing.Larger numbers will consume more bits than smaller ones.letters and symbols are stored in their ascii or unicode value which are given decimal values in the case of ascii and unicode points in the case of unicode which is then converted to their binary representation.Ascii characters are 8 bits or 1 byte meaning that the maximum of characters ascii can hold is 255 from the eqn (2^n) -1.while unicode values can be more than one byte.utf-8 means the lowest value is 8bits or a byte as values can be one-four depending on the character while utf-16 means the lowest bits a value takes is 16 bits or two bytes regardless of whether it can be rep in lower terms.The first one is for conserving memory while the second one is for consistency and ease of use.
+
+(2^n)-1 states the range of values that can be represented by n number of bits.
+
+The formular for setting a bit in a binary literal is x | (1<<n) where x is the binary literal and n is the bit position and for clearing a particular bit we use x & ~(1<<n).
+
+every data type is represented between 1-8 bytes so the reason why data can go up to kb or mbs is because that data is a collection or structure containing other datatypes of 1-8 bytes.Structures like objects in js or structs in rust have fixed sizes so they dont grow with input size but collections grow with input size because elements can be added or removed on demand.This is called space complexity and its the reason why something composed of small types can increase to megabytes of ram.fixed sizes like arrays,structs,chars and boolean values dont have to worry about space complexity because their space is constant.
+
+
+^single page documentation,multi page documentation,project based doc,example/concept based doc,ref based doc
+
+*Types of text based learning materials
+Documentation
+Reference material--like a doc but purely for references
+Cheat sheets
+journals
+Code notebooks
+repls
+demo scripts
+
+the structure of an asm line is [label]:instruction operands(separated by commas)[;comments].
+The instruction is encoded as opcode and it is read directly from the code segment region of the memory and the cpu immediately executes it.The operands are encoded as a sequence of bytes
+
+; in asm isnt a  delimeter but a mark for comments
+
+The different regions of the ram have a starting index or memory address.the lowest is 0 and the highest is 0xFFFFFFFF.hex literals can store up to 100s of values.im not sure though but memory addresses are 32-bits wide
+
+The operands can be destination,source syntax (intel syntax) or source,destination (AT&T syntax).The nasm assembler uses the intel syntax while the gas assembler uses the AT&T syntax.
+
+Addressing modes are the means by which operands to instructions are described and how they execute. 
+
+registers also have addresses in the cpu.
+
+!i have to change that -no-pie option later
+
+load a value from memory and store it in the register or directly store a value into a register
+
+constants in rust are inlined into hardcoded values meaning that they are stored directly in the code segment.
+
+The way an operand is defined is called addressing.If its from memory,its copied.if its from the register,its moved.
+
+register operands-Rather than memory being the source or destination, the operand is a register.The notation is just using the register name.Its a direct way to use a register as a src and the destination.
+
+immediate operands--This mode moves a constant into a register. The constant is encoded in the instruction, after the opcode.
+
+indirect operands--This mode uses a register as the address of a memory location to be operated on e.g. load from, store to.the notation is [register].if its on the src side,it means load the data from this address and if its on the destination side it means store the value in this address.using this on addresses of registers is an indirect way of using the registers.its used on structs.it can also be [variable] to load data from a variables address or store it at that address.variables always have to be used by the cpu like this for processing because unlike register,the cpu cant directly access the variable so using the variable directly without addressiing it in [] brackets just gives the memory address.doing [variable] doesnt return the value at that address but just means that the cpu must operate in whatever is in that address.so [variable + 2] means operate on the (variables address + 2) address.The 2 is the offset.[register] is used for stack operations like those on [rsp] for the stack and [rbp] for memory addressing data thats on the data segment or the heap i believe
+
+*my asm env setup
+A good syntax highlighter
+Learning resources
+Assembling automation with powershell and vscode task
+The gdb debugger
+^what i need now is a disassembler
+
+^Machine instructions generally fall into three categories: data movement,arithmetic,logic,and control-flow---conditions and procedures
+
+so the types of operands are registers,memory or constant values
+
+rbp is for stack frames.function parameters are pushed from right to left
+
+The calling convention is a protocol about how to call and return from routines.Given a set of calling convention rules, a programmer does not need to examine the definition of a subroutine to determine how parameters should be passed to that subroutine.Furthermore, given a set of calling convention rules, high-level language compilers can be made to follow the rules, thus allowing hand-coded assembly language routines and high-level language routines to call one another. 
+
+The C calling convention is based heavily on the use of the hardware-supported stack. It is based on the push, pop, call, and ret instructions. Subroutine parameters are passed on the stack. Registers are saved on the stack, and local variables used by subroutines are placed in memory on the stack.
+
+The calling convention is broken into two sets of rules. The first set of rules is employed by the caller of the subroutine, and the second set of rules is observed by the writer of the subroutine (the callee). It should be emphasized that mistakes in the observance of these rules quickly result in fatal program errors since the stack will be left in an inconsistent state; 
+
+
+^Disassembler,Debugger,Decompiler.Disassemble the program into a folder,decompile it into another folder,read it and find the region you are looking for and map it to the asm code to better uderstand the asm code.then debug the asm code to understand it and modify it
+
+
+the result is stored in the eax register
+
+parameters can be pushed onto the stack or follow an order and once it exceeds the order,it is pushed onto the stack
+
+the stack grows downward in memory but the data grows upward.this is because the stack has a fixed upper bound and inserting data at the top requires the entire stack to shift downwards.
+
+the sp register points to the top of the stack
+
+only words or double words can be saved on the stack and not a byte.meaning that each stack cell has 4 bytes each.since the stack is minimal in size,we have to decrement a value from the stack pointer so that the stack can grow downward leaving a cell for another data to enter.Because the function is meant to preserve the values of the registers to return it back to a consistent state,the function must save the state of the register before using it by pushing it onto the stack.After the function is done using the registers,it pops them off the stack to restore them to their original values so popping values from the stack does two things;it frees the stack and restores the registers to their original values
+
+A,C,D registers are expected to be modified by the function so the function must push them onto the stack before using them to ensure that they can be reverted to their original state in case the caller wants to use those registers.The function stores the result in the eax register.The function is meant to revert all registers to their original state after it finishes after the call so that the caller can use the registers with the knowledge that the function didnt modify any of the registers
+
+the a,c,d registers are the registers that the function might use.the parameters are pushed onto the stack before the call in an inverted order
+
+because we cannot directly control the ip,we use labels with the jmp command to indirectly control it
+
+
+*function calls take their arguments from the stack while system calls take their arguments from registers.system calls can take their args from A,DI,SI,D,C,R8,R9.A system call can start from any of the registers but it must follow the order from wherever it started for the args.
+
+the function may use A,D,C so it must revert them to their original state after finishing.
+
+after the function,since the caller pushed the parameters onto the stack,he must pop it of the stack after the function finishes.
+
+saved registers are the registers that the function might use after being called.the caller should push them onto the stack before calling the function and pop them off the stack after calling the function to restore them to their original state.
+
+^caller reserved--A,C,D,R8,R9
+function reserved---SP,BP
+
+the function stores the result in the eax register
+
+calling pushes the return address to the stack
+
+the call stack is used for holding function frames which keeps track of which functions were called.the bp register points to the current stack frame.stack frames allow functions to call each other.A stack frame is a point of reference for accessing the parameters and local variables in a function.
+
+the return address is separate from the rbp
+
+caller reserved registers,parameters,the return address
+
+sp is used for controlling the size of the stack and returning the function thats being called currently so that the bp can use that instead of its parent function
+
+so the meaningful value of ebp is when we save the value of the esp to it.the reason why we push it every time we call a function so that we can save the stack frame for each function meaning that the bp is the register for implementing stack frames
+
+so i can push any data of any size to the stack directly by moving it to the address currently being pointed to by the stack pointer but because of performance reasons,i mov it into a register which is 8 or 4 bytes according to the architecture which will pad the integer to 4 or 8 bytes before pushing that value onto the stack to ensure a consistent offset and that all parameters have consistent sizes on the stack
+
+^callee reserved--B,SI,DI,BP,R12,R13,R14,R15
+
+by decrementing the bp,i get the local variables and by incrementing it,i get the parameters
+
+so in visualization terms,the stack grows upwards but in reality,it grows downwards.the first one is just a learning tool until you get to the real details in asm
+
+ret returns back to the return address as pushed by the call command
+
+so the stack has a fixed upper and lower bound in the ram but the space is not usable till i reserve it by decrementing the stack pointer but the heap is kept minimal when the program starts and increases in size on demand meaning that it has a fixed lower bound but an unfixed higher bound which is limited by the process virtual memory
+
+there are two ways to add values to the stack,the first is through the push and the second is through direct moving.When i push values to the stack,the sp decrements to accomidate the new data.This is used for pushing parameters onto the stack before making the function calls and saving the state of caller reserved registers like the A,C,D registers so that they can be reverted to their original state after the function uses them because it is expected that the function may use these registers and store the results in the A register.The second way to take values to the stack is by moving them directly to it but this requires that space is reserved for them by decrementing the sp and then they can be moved by using the bp with a negative decrement.Pushing is for saving state so that after popping,it can be reverted to its original state but moving a value directly is for values like local variables that arent meant to be preserved after function calls so they get cleared when the sp is updated to point to the stack frame in the bp
+
+so the stack and base pointer are specially used for managing the stack
+
+so system calls on linux and winapi have different conventions in the order of how they use these registers as parameters.DI,SI,D,C,R8,R9 and the stack is the order in linux but C,D,R8,R9 and the stack is the order in windows
+
+so for modern asm code,im supposed to use the registers for the first ones and the stack for the rest and if the caller wants to use the values of the registers that the function modifies,it must push them before the call and pop them afterwards.
+
+function prlogue and epilogue
+
+the caller pushes values to the stack for passing them as parameters or saving the state of caller reserved registers which are registers that may have been modifed by the function while the function moves and not pushes local variables to the stack and pushes callee reserved registers which are registers that the function is not meant to modify and it done,it must be popped off to revert it back to its original state
+
+?state the uses of the registers
+implementing higher level constructs in asm
+interfacing with my own rust library
+
+so i dont have to write the prologue or epilogue of the function since its written in rust.i just have to manage the caller responsibility
+
+x64 means that the registers are 64 bits wide
+x32 means that the registers are 32 bits wide
