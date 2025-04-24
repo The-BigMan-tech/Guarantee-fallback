@@ -448,7 +448,8 @@ Kali linux and bash--from reseaech
 Building security software--from Zaid Sabih on udemy
 Godot--from their doc
 C++ from that c++ pdf i downloaded ==>The truth is,i wanted to experiment with bare memory for educational purposes,so i was going to learn C but i also wanted to learn C# for game development.But the catch is that it will require me to learn two new programming languages and to make it worse,C is damn old like 50 year old and hasnt been majorly updated since 2011 so i decided to learn a language that balances the two and as such will kill two birds with on stone and thats the dangerous C++.Also it can be used to write exploit ware,reverse engineer software and hack games.
-Go --from digital ocean and the introduction to programming in go book ==>strong concurrency model.very fast
+Go --tutorialspoint,from digital ocean and the introduction to programming in go book ==>strong concurrency model.very fast
+Lua and Teal--for plugin development
 
 
 ^Basic usage level
@@ -477,7 +478,6 @@ java--entrepise scale apps
 R--data science
 julia--numerical computing
 ruby--web development
-lua--quick scripting
 elixir
 haskell
 Dart/FLutter
