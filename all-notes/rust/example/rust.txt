@@ -2740,12 +2740,6 @@ register operand,memory operand,literal operand
 
 *i installed gcc and nasm in msys32 but i can only use both of them in msys64 because the bin files went to msys 64
 
-this is the cmd to run in msys64 for running the asm code: 
-nasm -f elf64 hello.asm -o hello.o && gcc hello.o -o hello && ./hello.exe && rm hello.exe hello.o
-
-
-& "C:\msys64\msys2_shell.cmd" -mingw64 -defterm -no-start -here -c "cd /c/Users/USER/Desktop/The-Web/Code-references/all-notes/rust/disk_usage_analyzer/src && nasm -f elf64 hello.asm -o hello.o && gcc hello.o -o hello && ./hello.exe && rm hello.exe hello.o"
-
 
 *shell scripting--chaining multiple cmds to supercharge my workflow when doing something by automating tasks
 ^I ended up creating a powershell script to automate the entire thing as well as task.json in vs code so that i dont have to change the filename or dir each time.there is also terminal keeper for automation in vscode.
@@ -2781,3 +2775,11 @@ Task.json and terminal keeper are an in ide automation tool
 ^Time complexity is important.
 
 ^DONT FORGET MY FORWARD COMPATIBLE PLUGIN SYSTEM
+
+^Virtual file system
+
+^msys2 is my best package manager.i installed c++,lua,nasm and gcc easily with it without looking for the individual compilers.
+
+time complexity
+space complexity
+cyclomatic complexity
