@@ -2779,3 +2779,5 @@ Task.json and terminal keeper are an in ide automation tool
 ^Algorithm optimization--optimizing the implementaion or choosing a more efficient algorithm
 
 ^Time complexity is important.
+
+^DONT FORGET MY FORWARD COMPATIBLE PLUGIN SYSTEM
