@@ -2785,3 +2785,13 @@ space complexity
 cyclomatic complexity
 
 task.json and powershell
+
+void,null,undefined,never
+
+task.json,terminal keeper,code runner
+powershell
+
+
+custom css and js,token color customization,copying an extension folder
+
+*language support in a code editor is just an extension that provides syntax highlighting and intellisense for the language and a code runner that when you click the button,it runs a cmd to run the script

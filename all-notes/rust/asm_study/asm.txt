@@ -194,7 +194,9 @@ there is another bitwise operation called rotation.its the same as shift but the
 
 Bitwise shift
 Bitwise rotation 
-Bitwise logical 
+Bitwise logical--for setting flags generally
+
+bitwise shift + logical operators can set or clear a specific flag
 
 setting a bit means changing the value to 1 and clearing it means changing it to zero
 

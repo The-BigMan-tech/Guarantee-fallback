@@ -1,5 +1,8 @@
-param([string]$asm_file_name,[string]$folderPath)
-$workDir = $folderPath -replace '\\','/'
+param([string]$full_file_path)
+$file_path_object = Get-Item $full_file_path
+
+$asm_file_name = $file_path_object.BaseName -replace '\\','/'
+$workDir = $file_path_object.DirectoryName -replace '\\','/'
 
 #*Path to the msys2 shell
 $msys2Shell = "C:/msys64/msys2_shell.cmd"
