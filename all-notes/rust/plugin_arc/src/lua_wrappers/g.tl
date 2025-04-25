@@ -10,6 +10,14 @@ Hello(x);
 local interface Point
     x: integer
     y: integer
+    z:Point
 end
-local z:Point = {x=10,y=10}
-print(z.x,z.y)
+local z:Point = {
+    x=10,
+    y=10,
+    z={
+        x=10,
+        y=12
+    }
+}
+print(z.x,z.y,z.z.x)

@@ -1,3 +1,5 @@
+mod print;
+
 fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
     let mut output:Vec<i32> = vec![];
     let nums_ref: &Vec<i32> = &nums;
@@ -47,6 +49,7 @@ fn main() {
     println!("{r}");
     let y = 10;
     let v = vec!["jj"];
-    let g:Vec<String> = v.into();
-    println!("{:?}",v)
+    
+    println!("{:?}",v);
+    print::hello();
 }
