@@ -2795,3 +2795,8 @@ powershell
 custom css and js,token color customization,copying an extension folder
 
 *language support in a code editor is just an extension that provides syntax highlighting and intellisense for the language and a code runner that when you click the button,it runs a cmd to run the script
+
+preprocessor,compiler
+
+^dummy require--used for getting intellisense without the line escaping to the compiled script.no runtime required.
+
