@@ -2800,3 +2800,33 @@ preprocessor,compiler
 
 ^dummy require--used for getting intellisense without the line escaping to the compiled script.no runtime required.
 
+^i want to make a dynamic timer variable for js so that sleeps will be faster.its done by subtracting runtime from the initial timer that was set giving the illusion that js ran in multiple threads in addition to its async behaviour
+
+tradeoff visualizer
+mimal vector layout
+
+daylight song 
+
+i can learn digital design through redstone
+i can learn a bit of engineering if i want with the create mod
+
+*game engine architecture
+*plugin architecture
+
+^rust is my main system level language for making system software exposed as tauri apps to create that fancy react ui
+
+mlua provides interoperabilityu between rust and Lua by embedding an interpreter
+Tauri provides interoperability between js and rust
+I will just use a web server for python to provide interopability between it and rust
+
+^Godot rust
+
+shading languages
+spline,blockbench,blender
+
+
+godot and forge--a node or class that extends anoter with its own script attacthed to it
+react--a function that returns a node
+
+
+!I HATE OTHER PEOPLES SOFTWARE!!!!

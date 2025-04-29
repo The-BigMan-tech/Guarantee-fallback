@@ -416,14 +416,15 @@ developer apps--cli or tools,python,rust,js
 systems programmer--rust,one can use C++
 game developer--C++,one can use c#
 graohics programming--shading and rtx
+binary analysis---assembly
 
 scientific programming--matlab,julia
-gpu programmer
-blockchain developer
-embedded programming
+gpu programmer--cuda,bend,mojo
+blockchain developer--solidity
+embedded programming--arduino,python
 
 networking engineers--use python for automation
-penetration tester
+penetration tester--bash and kali linux
 data scientist--databases and analysis tools like excel
 
 cloud developers---code apps that run on the cloud
@@ -450,6 +451,7 @@ Godot,Gdscript--from their doc
 C++ from that c++ pdf i downloaded ==>The truth is,i wanted to experiment with bare memory for educational purposes,so i was going to learn C but i also wanted to learn C# for game development.But the catch is that it will require me to learn two new programming languages and to make it worse,C is damn old like 50 year old and hasnt been majorly updated since 2011 so i decided to learn a language that balances the two and as such will kill two birds with on stone and thats the dangerous C++.Also it can be used to write exploit ware,reverse engineer software and hack games.
 Go --tutorialspoint,from digital ocean and the introduction to programming in go book ==>strong concurrency model.very fast
 Lua and Teal--for plugin development
+C--as a study aid to reverse engineering
 
 
 ^Basic usage level

@@ -1,0 +1,13 @@
+summoner scrolls
+epic fight mods
+yadm weapon master mod
+better explosion
+fabric mods
+village
+golem spawn animation
+
+
+the sodium mod is an algorithm optimization.it replaces the enture minecrfat terrain rendering engine with theirs
+
+code optimiation is changing how the code is written.
+algorithm optimization is redesigning or improving an algorithm
