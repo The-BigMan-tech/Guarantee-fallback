@@ -2830,3 +2830,6 @@ react--a function that returns a node
 
 
 !I HATE OTHER PEOPLES SOFTWARE!!!!
+
+
+auto save,stage,commit,branch off,revert
