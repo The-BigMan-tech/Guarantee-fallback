@@ -2833,3 +2833,8 @@ react--a function that returns a node
 
 
 auto save,stage,commit,branch off,revert
+
+task manager forcefully terminates a process while quitting the app normally allows the app to do other things before terminating
+
+hydrangea
+monokai stone
