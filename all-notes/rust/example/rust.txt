@@ -2848,3 +2848,15 @@ scene,nodes,properties,script,function
 rust for system software,security software,tauri apps,godot games
 
 game dev is a side journey.my main journey is python,ts and rust so ill learn rust but godot on the side
+
+*The T-pose
+
+*parent rigging changes the original organizational structure of the model.it saves hours of work
+
+the cubes are not named but the groups are anatomically
+
+bones that are for animation are prefixed with piv_ while those that arent arent prefixed with anything to prevent ambiguity on which bone to use to animate
+
+so the direction of parental rigging depends on the anatomy of the model
+
+flip and reversing keyframes
