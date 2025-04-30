@@ -2838,3 +2838,13 @@ task manager forcefully terminates a process while quitting the app normally all
 
 hydrangea
 monokai stone
+
+Godot,Vscode,blockbench
+Vscode,browser,api client
+
+scene,nodes,properties,script,function
+
+*as soon as im done learning godot,ill move to using rust for my godot games.
+rust for system software,security software,tauri apps,godot games
+
+game dev is a side journey.my main journey is python,ts and rust so ill learn rust but godot on the side
