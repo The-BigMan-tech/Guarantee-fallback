@@ -2863,10 +2863,31 @@ flip and reversing keyframes
 
 *self learning-course-post course effect
 *application plateau/project paralysis
-*Grass is greener syndrome
-*skill disappointment
+*Grass is greener syndrome/language hopping
+*Course Project Disillusionment
+*Competence illusion effect
+*expertise dilution
+*learning paradox
+
+course difficulty vs industry difficulty
 
 awareness paradox
 metacognition
 
 scratch,java intro,lua intro,java intro 2,,html,lua,c++,go,python,c++,digital design,web dev,rust,asm,godot
+
+ai pair programming
+peer pair programming
+
+the urge to escape frustration while remaining in programming often manifests as language hopping
+
+Novelty Seeking: New languages provide temporary dopamine hits ("This syntax is cleaner!") without requiring deep mastery[^search3][^search6].
+
+ Each new language resets your mental models, wasting time on basic syntax instead of solving harder problems
+
+ leet code is a supplement
+
+ *T-shaped developer vs generalist.has only one vertical bar(knwoledge by depth) and other horizontal bars(knowledge by breadth)
+
+ *so js should always be the first choice for projects and adding others only when necessary as superpowers since im choosing js as my core expertise. This is the "JavaScript First, Superpowers Second" 
+ 

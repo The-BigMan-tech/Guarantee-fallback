@@ -440,13 +440,12 @@ cloud security
 ^-----------------------
 python and Cython--from digital ocean,tutorialspoint,real python,idently  ==>data science,numerical computing,scripting,backend apis,pypy,mypy-Powerful cli apps using the rich lib to help me at coding,for digital forensics,network security,white hat hacking,machine learning and exposing the ml model through an api with fast api
 Javascript and Typescript--gfg,tutorialspoint,doc  ==>async,event driven and reactive programming,networking,apis,web apps,animations and higher order functions.TS will make you heavily appreciate type safety/static type checking
-Rust--from their doc  ==> system level control for my tauri apps.
+Rust--from their doc  ==> system level control for my tauri apps,Building security software--from Zaid Sabih on udemy
 
 
 ^General usage level
 ^-------------------
 Kali linux and bash--from reseaech
-Building security software--from Zaid Sabih on udemy
 Godot,Gdscript--from their doc
 C++ from that c++ pdf i downloaded ==>The truth is,i wanted to experiment with bare memory for educational purposes,so i was going to learn C but i also wanted to learn C# for game development.But the catch is that it will require me to learn two new programming languages and to make it worse,C is damn old like 50 year old and hasnt been majorly updated since 2011 so i decided to learn a language that balances the two and as such will kill two birds with on stone and thats the dangerous C++.Also it can be used to write exploit ware,reverse engineer software and hack games.
 Go --tutorialspoint,from digital ocean and the introduction to programming in go book ==>strong concurrency model.very fast
