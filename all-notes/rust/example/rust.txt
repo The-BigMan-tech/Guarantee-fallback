@@ -2864,10 +2864,12 @@ flip and reversing keyframes
 *self learning-course-post course effect
 *application plateau/project paralysis
 *Grass is greener syndrome/language hopping
-*Course Project Disillusionment
-*Competence illusion effect
-*expertise dilution
+*Course Project Disillusionment/false perception of project difficulty because of a course
+*Competence illusion effect/Grinding leetcode in place of solving problems
+*expertise dilution/being a generalist
 *learning paradox
+*tutorial hell
+*imposter syndrome
 
 course difficulty vs industry difficulty
 
@@ -2891,3 +2893,6 @@ Novelty Seeking: New languages provide temporary dopamine hits ("This syntax is 
 
  *so js should always be the first choice for projects and adding others only when necessary as superpowers since im choosing js as my core expertise. This is the "JavaScript First, Superpowers Second" 
  
+in programming languages,names in themselves dont do anything.they are just there for readability and expressiveness.the true behaviour of a program is by the values and how they are used in a program except in cases of strict conventions but these conventions are not requirements but more like a contract and other certain contexts
+
+keyboard input is listened by keybinds
