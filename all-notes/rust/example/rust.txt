@@ -2860,3 +2860,13 @@ bones that are for animation are prefixed with piv_ while those that arent arent
 so the direction of parental rigging depends on the anatomy of the model
 
 flip and reversing keyframes
+
+*self learning-course-post course effect
+*application plateau/project paralysis
+*Grass is greener syndrome
+*skill disappointment
+
+awareness paradox
+metacognition
+
+scratch,java intro,lua intro,java intro 2,,html,lua,c++,go,python,c++,digital design,web dev,rust,asm,godot

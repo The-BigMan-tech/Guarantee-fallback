@@ -459,6 +459,7 @@ C--as a study aid to reverse engineering
 powershell--task automation
 Assembly--from tutorialspoint and reverse engineering with Ghidra
 Verilog--from chipverify.com
+Digital design
 
 
 ^Hobby level
@@ -466,7 +467,7 @@ Verilog--from chipverify.com
 Bend
 Mojo
 Embedded programming-raspberry pi with python and arduino with c++
-
+Dont forget the create mod.i know its not supposed to be here but im putting it.
 
 ^Familiarity level
 ^-------------------
