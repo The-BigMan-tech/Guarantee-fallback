@@ -2898,6 +2898,3 @@ in programming languages,names in themselves dont do anything.they are just ther
 keyboard input is listened by keybinds
 
 *keyframe editor and parental rigging reduces frame by frame animation
-
-eggplant
-eol
