@@ -2896,3 +2896,8 @@ Novelty Seeking: New languages provide temporary dopamine hits ("This syntax is 
 in programming languages,names in themselves dont do anything.they are just there for readability and expressiveness.the true behaviour of a program is by the values and how they are used in a program except in cases of strict conventions but these conventions are not requirements but more like a contract and other certain contexts
 
 keyboard input is listened by keybinds
+
+*keyframe editor and parental rigging reduces frame by frame animation
+
+eggplant
+eol
