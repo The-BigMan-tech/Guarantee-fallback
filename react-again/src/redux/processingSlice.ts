@@ -22,3 +22,4 @@ export const processingSlice = createSlice({
 export default processingSlice.reducer
 export const {increment,decrement} = processingSlice.actions
 export const selectValueFrom = (store:RootState):number => store.processing.value;
+

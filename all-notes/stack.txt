@@ -269,6 +269,7 @@ todo:Calculator
 todo:To-Do app
 todo:Kanban app
 todo:Chat app
+file manager
 
 Full stack app
 todo:Admin dashboard 

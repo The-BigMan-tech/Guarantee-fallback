@@ -1,0 +1,3 @@
+a thunk is a function that returns another function instead of a state.Its used for performing side effects
+
+ill use a progressive optimization technique where the core functionality is written in js at first using thunks and the code in the thunks is gradually replaced with rust calls

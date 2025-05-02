@@ -2900,3 +2900,21 @@ keyboard input is listened by keybinds
 *keyframe editor and parental rigging reduces frame by frame animation
 
 reserved syntax
+
+^Sensitive processing logic should never be performed on the client-side. Anything in your client-side code can be inspected and potentially manipulated by malicious users. This includes API keys, secrets, or complex algorithms that you want to protect.
+
+Client side processing is limited by the users cpu resources
+Server side processing is limited by network and io operations
+
+Client side processing can be manipulated directly
+Server side processing can only be manipulated through indirect attacks
+
+Client side processing increases the application size
+Server side processing reduces the application size
+
+tauri is a desktop app technology that doesnt support embedding a server instance directly into an app unlike electron but the benefit is that you can integerate performance critical parts with rust but any server side processing requires an external server setup like nest js instead of an integrated server setup built in directly with the project like next js.Although,if i want to make a server side desktop app purely,i can use electron since it supports server side solutions but embedding a server directly into an electron app will no longer qualify as a server since there will be many server instances per download so what i want is that when i make electron desktop apps that rely on server side processing,the electron app isnt part of the next js project but rather a wrapper around the url exposed by the next js server that one could have opened in a browser but i choose to expose my next js app as an electron app for an isolated experience from the browser
+
+
+security software,system apps with tauri,games with godot rust,
+
+so for react desktop apps, i can move processing to either the client or server side.Client side processing is limited by the users cpu resources while Server side processing is limited by network and io operations.For general app processing,i will use the client side under the redux folder.For performance critical operations,i will still leave it in the client side but i will use rust since tauri allows react and rust to interop.In the rust function,i can use multi-threading or tokio tasks for speed and since its written in rust,the code there is secure as rust binaries are extremely difficult to reverse engineer.I will move security sensitive operations and operations that needs to be managed by the admin to the server.I will use async js as async is the best concurrency model for waiting operations like network requests.It doesnt make the network request any faster but it will ensure that the app doesnt freeze on network requests.For an app that only uses client side processing,i will use tauri.I can use electron here instead but it has a bigger bundle size than tauri and for one that uses only server side processing,ill use an electron or tauri wrapper around a next js app.It doesnt really matter which one i use here since the app bundle will be very minimal as all of the processing is on the server but for consistency for which technology i use,a turi wrapper will be better.If i want to use client and server side processing in a desktop app,i can use an electron or tauri react app that does client side processing with redux and server side processing can be done through requests to an external server using axios or better yet,redux query.So i cant use next js here,because i can only make desktop apps that use a central next js server through a wrapper around its url and it wont be possible to make my app a wrapper and its own client side window at the same time so the external server has to be something else like nest js.For performance benefits where i can still use rust,tauri is the best option.So there is no ability difference between tauri and electron.They can both create client side desktop apps,function as wrappers and make requests for server side processing.The only thing is that electron can embed a server directly into a desktop instance but it will be impractical
