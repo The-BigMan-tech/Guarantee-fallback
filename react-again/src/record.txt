@@ -1,3 +1,25 @@
 a thunk is a function that returns another function instead of a state.Its used for performing side effects
 
 ill use a progressive optimization technique where the core functionality is written in js at first using thunks and the code in the thunks is gradually replaced with rust calls
+
+decoupling the implementation from the application
+
+*local file manager
+*cloud file manager
+
+redux thunks for client side processing with side effects
+rtk query for communicating with server side processing
+
+redux state
+reducers manages the state of the app
+thunks orchestrates state and call side effect functions
+side effect functions/utilities are separate and decoupled from the thunks
+
+components dispatch thunks
+
+undefined: Typically indicates that a variable has not been initialized. This can lead to ambiguous situations where it’s unclear whether the absence of a value is intentional or accidental.
+using null union ensures that a value can never be accidentally undefined
+
+switch on union for safety similar to match enum case in rust
+
+variables with no values leads to ambiguity about whether its intentional or by accident.so using null where possible is better so that you can clear this ambiguity and save productivity time from false bug hunting
