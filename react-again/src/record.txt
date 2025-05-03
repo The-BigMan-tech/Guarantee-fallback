@@ -42,3 +42,5 @@ react,tauri,pouch db,tailwind,daisy ui,redux
 hello pangea dnd,toastify,react router,framer motion,gsap,chart js
 
 ^uno edit funk download
+
+relative ui sizes only makes layout responsive and not content 

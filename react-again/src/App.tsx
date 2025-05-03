@@ -5,7 +5,7 @@ import Top from "./components/top/top"
 
 function App() {
     return (
-        <div className="flex h-[100vh] w-[100vw] gap-[0.7%] bg-[#242438] text-white">
+        <div className="flex h-[100vh] w-[100vw] gap-[0.7%] bg-[#242438] text-white ">
             <Sidebar/>  
             <div className="flex flex-col w-full">
                 <Top/>
