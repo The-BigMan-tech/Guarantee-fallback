@@ -23,3 +23,22 @@ using null union ensures that a value can never be accidentally undefined
 switch on union for safety similar to match enum case in rust
 
 variables with no values leads to ambiguity about whether its intentional or by accident.so using null where possible is better so that you can clear this ambiguity and save productivity time from false bug hunting
+
+implementation,utiilities
+safe wrappers
+selectors
+reducers
+thunks
+components
+
+custom hooks
+higher order thunks
+async thunks and create async thunks
+
+thunks dont return values.just dispatch actions
+
+
+react,tauri,pouch db,tailwind,daisy ui,redux
+hello pangea dnd,toastify,react router,framer motion,gsap,chart js
+
+^uno edit funk download

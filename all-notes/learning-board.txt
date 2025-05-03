@@ -84,4 +84,3 @@ uiverse.io
 *lego fox
 *tag based file explorer
 
-react,tauri,pouch db,tailwind,daisy ui,redux

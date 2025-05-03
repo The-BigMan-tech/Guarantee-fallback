@@ -14,6 +14,18 @@ export interface File {
     isHidden:boolean
     isReadOnly:boolean
 }
+export class FsResult<T>  {
+    public value:Error | null | T ;
+    constructor(value:Error | null | T) {
+        this.value = value
+    }
+    static Ok<U>(value:U) {
+        return new FsResult(value)
+    }
+    static Err(error:unknown) {
+        return new FsResult((error instanceof Error)?error:new Error("An unknown error occurred"))
+    }
+}
 async function getFileObject(filePath:string,content:'unread' | string): Promise<File> {
     const stats = await fs.stat(filePath);
     const fileName = path.basename(filePath);
@@ -30,18 +42,6 @@ async function getFileObject(filePath:string,content:'unread' | string): Promise
         isHidden: fileName.startsWith('.'),
         isReadOnly: !(stats.mode & 0o200), 
     };
-}
-class FsResult<T>  {
-    public value:Error | null | T ;
-    constructor(value:Error | null | T) {
-        this.value = value
-    }
-    static Ok<U>(value:U) {
-        return new FsResult(value)
-    }
-    static Err(error:unknown) {
-        return new FsResult((error instanceof Error)?error:new Error("An unknown error occurred"))
-    }
 }
 export async function readDirectory(dirPath:string):Promise<FsResult<File[] | null | Error>> {
     try {
@@ -97,7 +97,7 @@ export async function copyFile(source: string, destination: string): Promise<FsR
         return FsResult.Err(error);
     }
 }
-async function sample() {
+export async function sample() {
     const dirInput = "C:\\Users\\USER\\Desktop\\dummy-code\\Guarantee\\react-again\\src\\utils";
     const filesResult:FsResult<File[] | null | Error> = await readDirectory(dirInput);
     if (filesResult.value instanceof Error) {
@@ -122,6 +122,6 @@ async function sample() {
     }else {
         const content:string = readResult.value.content;
         console.log("File content",content);
+        console.log("Read file: ",readResult.value);
     }
 }
-sample()
