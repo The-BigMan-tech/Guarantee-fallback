@@ -16,6 +16,7 @@ Shape divider
 Font squirrel
 devdojo
 daily.dev
+istockphoto
 Is website down or just me check
 
 LEARNING RESOURCES

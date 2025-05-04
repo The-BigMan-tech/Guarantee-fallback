@@ -48,3 +48,13 @@ backend as a service or a nest js server
 ^uno edit funk download
 
 relative ui sizes only makes layout responsive and not content 
+
+client side apps--tauri with react,vue,svelte,rust for performance critical parts
+server side apps--tauri wrapper,next js,nuxt js,sveltekit
+client side with server side functionality---client side app with rtk query,Backend as a service/nest js server
+server side app with client side functionality----server side app but with (redux,client components,pouch db)
+
+implementation,interface,controller
+database,file system,app state
+
+
