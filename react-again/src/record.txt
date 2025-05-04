@@ -68,6 +68,8 @@ todo:resizable panels
 fixed units---requires manual responsiveness,is faster:%,vh/vw,rem
 relative units--constant calculations makes it automatic,slows perfromance:px
 
+relative unit for layout
+fixed units for content
 
 safe assignment
 
@@ -100,3 +102,9 @@ Jsx
 
 operations are better centralized than decentralized,have only one responsibility
 components are functions that return jsx.
+
+^fs,path and os,win api
+the os module is used to request general os services
+win api is specifically for window services
+
+todo:safe mode--changes to the fs through the app doesnt directly affect the real fs.this is to ensure the app safely access the fs.It will require a diffing algorithm and diff files that are loaded in memory.any attempt to write a file,writes to a diff file

@@ -6,7 +6,7 @@ import { useState,useMemo } from "react";
 export default function Sidebar() {
     const tabs:string[] = selector((store)=>selectTabs(store));
     const uniqueTabs: UniqueTab[] = useMemo(() => tabs.map(tab=>({ id: uniqueID(), name: tab })), [tabs]);
-    const tabImgs:Record<string,string> = {Recent:"",Desktop:"desktop.svg",Downloads:"",Documents:"",Images:"",Audios:"",RecycleBin:""};
+    const tabImgs:Record<string,string> = {Recent:"clock.svg",Desktop:"desktop.svg",Downloads:"download.svg",Documents:"book.svg",Images:"image.svg",Audios:"headphones.svg",Videos:"video.svg",RecycleBin:"trash.svg"};
     const [clickedTab,setClickedTab] = useState<string>('')
     function clickTab(tabId:string):void {
         setClickedTab(tabId)
@@ -24,7 +24,7 @@ export default function Sidebar() {
                 {uniqueTabs.map(tab=>
                     <div key={tab.id}>
                         <button onClick={()=>clickTab(tab.id)} className={`flex items-center cursor-pointer py-2.5 w-52 text-left pl-8 hover:border hover:border-slate-400 rounded-r-2xl ${clickedClass(tab.id)}`}>
-                            <img className="w-5 relative right-4" src={`./assets/${tabImgs[tab.name]}`} alt="" />
+                            <img className="w-4 relative right-4 shrink-0" src={`./assets/${tabImgs[tab.name]}`} alt="" />
                             <h1 className="font-robot-regular text-sm">{tab.name}</h1>
                         </button>
                     </div>
