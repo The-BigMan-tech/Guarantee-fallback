@@ -1,6 +1,8 @@
 import { createSlice,PayloadAction} from '@reduxjs/toolkit'
 import { RootState,AppThunk } from './store'
 import { FsResult,readDirectory,File} from '../utils/fileOperations';
+import path from 'path'
+import os from "node:os";
 
 type SortingOrder = 'name' | 'date' | 'type' | 'size';
 type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
@@ -11,7 +13,7 @@ export interface UniqueTab {
 }
 export interface processingSliceState {
     currentPath:string,
-    tabs:string[],
+    tabNames:string[],
     files:File[] | null,
     selectedFiles:File[] | null,
     error:string | null,
@@ -23,7 +25,7 @@ export interface processingSliceState {
 }
 const initialState:processingSliceState = {
     currentPath:"",
-    tabs:['Recent','Desktop','Downloads','Documents','Images','Audios','Videos','RecycleBin'],
+    tabNames:['Recent','Desktop','Downloads','Documents','Images','Audios','Videos','RecycleBin'],
     files:null,
     selectedFiles:null,
     error:null,
@@ -67,7 +69,7 @@ export default processingSlice.reducer;
 export const {setCurrentPath,setFiles,setError,setSearchQuery,setIsLoading,setSortBy,setView,setShowDetails} = processingSlice.actions;
 
 export const selectCurrentPath = (store:RootState):string => store.processing.currentPath;
-export const selectTabs = (store:RootState):string[] => store.processing.tabs;
+export const selectTabNames = (store:RootState):string[] => store.processing.tabNames;
 export const selectFiles = (store:RootState):File[] | null => store.processing.files;
 export const selectSelectedFiles = (store:RootState):File[] | null => store.processing.selectedFiles;
 export const selectError = (store:RootState):string | null => store.processing.error
@@ -77,11 +79,12 @@ export const selectSortBy = (store:RootState):SortingOrder => store.processing.s
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
 
-export async function openDirectory(filepath:string):Promise<AppThunk> {
-    return async (dispatch,) => {
-        const filesResult:FsResult<File[] | Error | null> = await readDirectory(filepath);
+export async function changeDirectory(tabName:string):Promise<AppThunk> {
+    return async (dispatch,)=> {
+        const folderPath = path.join(os.homedir(),tabName);
+        const filesResult:FsResult<File[] | Error | null> = await readDirectory(folderPath);
         if (filesResult.value instanceof Error) {
-            console.log(`Error occured while reading from the dir: ${filepath}: `,filesResult.value.message);
+            console.log(`Error occured while reading from the dir: ${folderPath}`,filesResult.value.message);
         }else if (filesResult.value == null) {
             console.log("Directory exists but there are no files in it");
         }else {
@@ -89,7 +92,6 @@ export async function openDirectory(filepath:string):Promise<AppThunk> {
             dispatch(setFiles(files))
             console.log("Files:",files);
         }
-        dispatch(setCurrentPath(filepath));
+        dispatch(setCurrentPath(folderPath));
     }
 }
-

@@ -1,15 +1,17 @@
-import { selectTabs,UniqueTab} from "../../redux/processingSlice"
-import { selector } from "../../redux/hooks"
+import { selectTabNames,UniqueTab,changeDirectory} from "../../redux/processingSlice"
+import { selector ,useAppDispatch} from "../../redux/hooks"
 import {v4 as uniqueID} from 'uuid'
 import { useState,useMemo } from "react";
 
 export default function Sidebar() {
-    const tabs:string[] = selector((store)=>selectTabs(store));
-    const uniqueTabs: UniqueTab[] = useMemo(() => tabs.map(tab=>({ id: uniqueID(), name: tab })), [tabs]);
+    const dispatch = useAppDispatch();
+    const tabNames:string[] = selector((store)=>selectTabNames(store));
+    const uniqueTabs: UniqueTab[] = useMemo(() => tabNames.map(tabName=>({ id: uniqueID(), name: tabName })), [tabNames]);
     const tabImgs:Record<string,string> = {Recent:"clock.svg",Desktop:"desktop.svg",Downloads:"download.svg",Documents:"book.svg",Images:"image.svg",Audios:"headphones.svg",Videos:"video.svg",RecycleBin:"trash.svg"};
     const [clickedTab,setClickedTab] = useState<string>('')
-    function clickTab(tabId:string):void {
+    async function clickTab(tabId:string,tabName:string):Promise<void> {
         setClickedTab(tabId)
+        dispatch(await changeDirectory(tabName));
     }
     function clickedClass(tabId:string):string {
         return (clickedTab === tabId)?"border border-gray-500 rounded-r-2xl bg-[#bccfe93c]":""
@@ -23,7 +25,7 @@ export default function Sidebar() {
             <div className="flex flex-col gap-4 mt-6">
                 {uniqueTabs.map(tab=>
                     <div key={tab.id}>
-                        <button onClick={()=>clickTab(tab.id)} className={`flex items-center cursor-pointer py-2.5 w-52 text-left pl-8 hover:border hover:border-slate-400 rounded-r-2xl ${clickedClass(tab.id)}`}>
+                        <button onClick={async ()=>await clickTab(tab.id,tab.name)} className={`flex items-center cursor-pointer py-2.5 w-52 text-left pl-8 hover:border hover:border-slate-400 rounded-r-2xl ${clickedClass(tab.id)}`}>
                             <img className="w-4 relative right-4 shrink-0" src={`./assets/${tabImgs[tab.name]}`} alt="" />
                             <h1 className="font-robot-regular text-sm">{tab.name}</h1>
                         </button>
