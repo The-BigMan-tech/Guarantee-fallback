@@ -4,7 +4,9 @@ export default function Sidebar() {
             <div className="border-b-2 border-slate-400 h-[9.5%] content-center">
                 <h1 className="font-semibold font-[Consolas]  relative left-[2%] sm:text-sm lg:text-lg">File manager</h1>
             </div>
-            <h1 className="text-transparent">Hello sidebar</h1>
+            <div className="ml-2">
+                <h1 className="ont-[Verdana]">My Files</h1>
+            </div>
         </div>
     )
 }

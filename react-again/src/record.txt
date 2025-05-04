@@ -37,9 +37,13 @@ async thunks and create async thunks
 
 thunks dont return values.just dispatch actions
 
-
 react,tauri,pouch db,tailwind,daisy ui,redux
-hello pangea dnd,toastify,react router,framer motion,gsap,chart js
+hello pangea dnd,toastify,react router,framer motion,gsap,chart js,three js
+next js,auth js,paystack,prisma,postgres sql,mongoose,mongo db
+formik,zod
+web3forms
+jotai
+backend as a service or a nest js server
 
 ^uno edit funk download
 
