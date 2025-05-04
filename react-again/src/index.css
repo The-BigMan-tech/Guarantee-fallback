@@ -4,10 +4,15 @@
 }
 @theme {
     --font-space-regular:'SpaceRegular';
+    --font-robot-regular:'RobotoRegular';
 }
 @layer components {
     @font-face {
         font-family: 'SpaceRegular';
         src: url('./fonts/space-mono/SpaceMono-Regular.ttf') format('truetype');
+    }
+    @font-face {
+        font-family: 'RobotoRegular';
+        src: url('./fonts/roboto-mono/RobotoMono-Regular.ttf') format('truetype');
     }
 }

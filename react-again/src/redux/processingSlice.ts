@@ -23,7 +23,7 @@ export interface processingSliceState {
 }
 const initialState:processingSliceState = {
     currentPath:"",
-    tabs:['Recent','Desktop','Document','Images','Audios','RecycleBin'],
+    tabs:['Recent','Desktop','Downloads','Documents','Images','Audios','Videos','RecycleBin'],
     files:null,
     selectedFiles:null,
     error:null,

@@ -6,27 +6,32 @@ import { useState,useMemo } from "react";
 export default function Sidebar() {
     const tabs:string[] = selector((store)=>selectTabs(store));
     const uniqueTabs: UniqueTab[] = useMemo(() => tabs.map(tab=>({ id: uniqueID(), name: tab })), [tabs]);
+    const tabImgs:Record<string,string> = {Recent:"",Desktop:"desktop.svg",Downloads:"",Documents:"",Images:"",Audios:"",RecycleBin:""};
     const [clickedTab,setClickedTab] = useState<string>('')
     function clickTab(tabId:string):void {
         setClickedTab(tabId)
     }
     function clickedClass(tabId:string):string {
-        return (clickedTab === tabId)?"border border-gray-500 rounded-r-2xl":""
+        return (clickedTab === tabId)?"border border-gray-500 rounded-r-2xl bg-[#bccfe93c]":""
     }
     return (
         <div className="flex flex-col bg-[#282a4a] h-[98%] w-[22%] border-r-2 border-slate-400">
-            <div className="border-b-2 border-slate-400 h-[9.5%] content-center">
-                <h1 className="relative left-8 font-space-regular font-bold text-[#a3bae6] text-lg">File manager</h1>
+            <div className="border-b-2 border-slate-400 h-[9.5%] content-center flex items-center gap-4">
+                <img className="w-10 ml-6" src="./assets/folder(1).png" alt="" />
+                <h1 className="font-space-regular font-bold text-[#7f9ee8] text-lg">Files</h1>
             </div>
-            <div className="flex flex-col gap-4 mt-10">
+            <div className="flex flex-col gap-4 mt-6">
                 {uniqueTabs.map(tab=>
                     <div key={tab.id}>
-                        <button onClick={()=>clickTab(tab.id)} className={`cursor-pointer py-3 w-52 text-left pl-8 ${clickedClass(tab.id)}`}>{tab.name}</button>
+                        <button onClick={()=>clickTab(tab.id)} className={`flex items-center cursor-pointer py-2.5 w-52 text-left pl-8 hover:border hover:border-slate-400 rounded-r-2xl ${clickedClass(tab.id)}`}>
+                            <img className="w-5 relative right-4" src={`./assets/${tabImgs[tab.name]}`} alt="" />
+                            <h1 className="font-robot-regular text-sm">{tab.name}</h1>
+                        </button>
                     </div>
                 )}
             </div>
-            <div className="absolute bottom-3 left-3">
-                <img className="w-36" src="./assets/pencil-folder.png" alt="" />
+            <div className="absolute bottom-0 left-3">
+                <img className="w-32" src="./assets/pencil-folder.png" alt="" />
             </div>
         </div>
     )
