@@ -5,6 +5,10 @@ import { FsResult,readDirectory,File} from '../utils/fileOperations';
 type SortingOrder = 'name' | 'date' | 'type' | 'size';
 type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
 
+export interface UniqueTab {
+    id:string,
+    name:string
+}
 export interface processingSliceState {
     currentPath:string,
     tabs:string[],
@@ -19,7 +23,7 @@ export interface processingSliceState {
 }
 const initialState:processingSliceState = {
     currentPath:"",
-    tabs:['Document','Images','Audios','Desktop','RecycleBin','Recent'],
+    tabs:['Recent','Desktop','Document','Images','Audios','RecycleBin'],
     files:null,
     selectedFiles:null,
     error:null,
@@ -63,6 +67,7 @@ export default processingSlice.reducer;
 export const {setCurrentPath,setFiles,setError,setSearchQuery,setIsLoading,setSortBy,setView,setShowDetails} = processingSlice.actions;
 
 export const selectCurrentPath = (store:RootState):string => store.processing.currentPath;
+export const selectTabs = (store:RootState):string[] => store.processing.tabs;
 export const selectFiles = (store:RootState):File[] | null => store.processing.files;
 export const selectSelectedFiles = (store:RootState):File[] | null => store.processing.selectedFiles;
 export const selectError = (store:RootState):string | null => store.processing.error

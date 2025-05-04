@@ -24,21 +24,14 @@ switch on union for safety similar to match enum case in rust
 
 variables with no values leads to ambiguity about whether its intentional or by accident.so using null where possible is better so that you can clear this ambiguity and save productivity time from false bug hunting
 
-implementation,utiilities
-safe wrappers
-selectors
-reducers
-thunks
-components
 
-custom hooks
-higher order thunks
 async thunks and create async thunks
 
 thunks dont return values.just dispatch actions
 
-react,tauri,pouch db,tailwind,daisy ui,redux
-hello pangea dnd,toastify,react router,framer motion,gsap,chart js,three js
+react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid
+
+hello pangea dnd,react router,framer motion,gsap,three js,
 next js,auth js,paystack,prisma,postgres sql,mongoose,mongo db
 formik,zod
 web3forms
@@ -58,3 +51,52 @@ implementation,interface,controller
 database,file system,app state
 
 
+TODO:download some assets
+TODO:finish the layout of the ui
+
+Todo:Art styles
+3d illustration art
+neumorphism art
+infographics
+svg art
+lottie animation
+
+todo:resizable panels
+
+3d illustration ai generator
+
+fixed units---requires manual responsiveness,is faster:%,vh/vw,rem
+relative units--constant calculations makes it automatic,slows perfromance:px
+
+
+safe assignment
+
+
+*so components gets rerendered across updates and only app state is saved across rerenders.return values from function calls arent saved but rather recalled on rerender and since uniqueid isnt a pure function because of the unpredictability of output,the previous ids get lost on rerenders and thus the need to cache their iutputs using useMemo is required
+
+*i could have made the conditional class logic inline by using the ternary operator but doing so will become catastrophic as the component grows because i will have to check each element that manages their own classes that they apply.moving it to a function that an element calls even if its one element makes it easier to reason about.the jsx shouldnt make any decisions on the app state or which classes to apply.they should just render ui.the only decision it makes is on what ui to render based on a condition it doesnt even check but one returned by a function.
+
+*sub functions are the functions within the component function that handles component state management logic.They often read from or modify component state without directly embedding that logic in the JSX.sub functions only make decisions based on the component state but when it comes to the app state or global state,they only dispatch thunks that handle that logic and they dont decide which thunks to dispatch conditionally because they will be influencing the global state.The subfunction determines which ui to render and the jsx follows.
+
+*jsx are no decision makers .the decision making is by sub functions even what to render is by a subfunction so a jsx rendering something conditionally is as directed by a subfunction.the subfunction will return its decision as either true or false and the jsx obeys.
+
+implementation,utiilities
+safe interface
+selectors,reducers
+thunks
+components
+
+custom hooks
+higher order thunks
+
+app state is global,component state is local
+
+components
+-----------
+State getter and setter
+Sub functions--event listeners,class functions,decision makers
+Jsx
+
+
+operations are better centralized than decentralized,have only one responsibility
+components are functions that return jsx.
