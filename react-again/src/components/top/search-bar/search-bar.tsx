@@ -1,7 +1,7 @@
 export default function SearchBar() {
     return (
-        <div className="bg-[#2b2d46] w-full border-b border-slate-400 shadow-sm py-[1%] flex items-center">
-            <input className="bg-[#4a4e7a] relative left-[68%] py-[0.7%] pl-[0.8%] w-[30%] outline-none text-white rounded-xl" type="text" placeholder="File search" />
+        <div className="bg-[#242438] w-full border-b border-[#3a3a3a] shadow-sm flex items-center h-[60%]">
+            <h1 className="text-transparent">h</h1>
         </div>
     )
 }

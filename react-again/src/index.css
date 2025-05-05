@@ -5,6 +5,7 @@
 @theme {
     --font-space-regular:'SpaceRegular';
     --font-robot-regular:'RobotoRegular';
+    --font-robot-light:'RobotoLight';
 }
 @layer components {
     @font-face {
@@ -14,5 +15,9 @@
     @font-face {
         font-family: 'RobotoRegular';
         src: url('./fonts/roboto-mono/RobotoMono-Regular.ttf') format('truetype');
+    }
+    @font-face {
+        font-family: 'RobotoLight';
+        src: url('./fonts/roboto-mono/RobotoMono-Light.ttf') format('truetype');
     }
 }

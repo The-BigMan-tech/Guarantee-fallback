@@ -29,7 +29,7 @@ async thunks and create async thunks
 
 thunks dont return values.just dispatch actions
 
-react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid
+^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid
 
 hello pangea dnd,react router,framer motion,gsap,three js,
 next js,auth js,paystack,prisma,postgres sql,mongoose,mongo db
@@ -39,6 +39,7 @@ jotai
 backend as a service or a nest js server
 
 ^uno edit funk download
+^Conquest edit,invincible season 3 edit
 
 relative ui sizes only makes layout responsive and not content 
 
@@ -56,7 +57,10 @@ TODO:finish the layout of the ui
 
 Todo:Art styles
 3d illustration art
-neumorphism art
+neumorphism and skeuomorphism art
+minimal ui art
+vibrant
+animated
 infographics
 svg art
 lottie animation
@@ -82,6 +86,54 @@ safe assignment
 
 *jsx are no decision makers .the decision making is by sub functions even what to render is by a subfunction so a jsx rendering something conditionally is as directed by a subfunction.the subfunction will return its decision as either true or false and the jsx obeys.
 
+*operations are better centralized than decentralized,have only one responsibility
+*components are functions that return jsx.
+
+*reusable styles will require a css file and not necessarily a style component or a string variable
+*reusabel jsx can be done with components and props
+
+*useMemo a hook for memoizing values in components.It helps optimize performance by recalculating values only when their dependencies change.Ideal for expensive calculations or derived data that you want to cache during component re-renders or for retaining the values of impure functions like a unique id generator
+
+*React.memo is a higher-order component that memoizes the entire component. It prevents re-renders of the component if its props have not changed.Ideal for optimizing functional components that do not depend on internal state and only rely on props for rendering.stateless child components can be memoized
+
+*regular function defintions for reusable logic and arrow functions for callbacks in hof
+*another use case of arrow functions i found is that it looks cleaner for components that accepts props.they are also used for type annotating functions in interfaces
+
+*most of the time,i dont use props because state can do everything i need but i think the ideal use case of props is for pure components.that is components that always return the same output from a given prop.unlike their parents,they dont have subfunctions to make any decision for themselves.they just take the sub functions of their parents and call them where appropriate non conditionally.They are mostly used to prevent rewriting jsx across a component.If they do make decisions,its only based on their own state.they dont make decisions about their parent state so they shouldnt directly have setters but rather subfunctions of the parents that do the decision when it comes to the parent state
+
+*arrow functions,props and memoization for child components
+
+
+^fs,path and os,win api
+the os module is used to request general os services
+win api is specifically for window services
+
+todo:safe mode--changes to the fs through the app doesnt directly affect the real fs.this is to ensure the app safely access the fs.It will require a diffing algorithm and diff files that are loaded in memory.any attempt to write a file,writes to a diff file
+
+design merging
+primary-complementary design
+
+
+lasnguage service provider--intellisense
+linter---real time analysis
+lexer---breaks the code into tokens
+parser---constructs the ast from tokens
+semantic analyzer--checks if the ast is syntatically correct
+ir code generator
+ir optimizer
+asm code genrator
+assembler
+binary
+
+?does php compile to html
+
+software architecture
+design architecture
+algorithm design
+
+
+
+
 implementation,utiilities
 safe interface
 selectors,reducers
@@ -99,12 +151,14 @@ State getter and setter
 Sub functions--event listeners,class functions,decision makers
 Jsx
 
+Child components--they are the same but they dont affect the state of their parents directly but rather use wrappers around setters provided by the parent and it should be changed non conditionally
 
-operations are better centralized than decentralized,have only one responsibility
-components are functions that return jsx.
+higher order components
 
-^fs,path and os,win api
-the os module is used to request general os services
-win api is specifically for window services
+stateful child,
+stateless child
 
-todo:safe mode--changes to the fs through the app doesnt directly affect the real fs.this is to ensure the app safely access the fs.It will require a diffing algorithm and diff files that are loaded in memory.any attempt to write a file,writes to a diff file
+custom hooks for reusable component logic
+stateless child components for optimization and reusable jsx
+
+anything that should cuase it to render when memoizing,should be passed a prop and checked for changes

@@ -1,6 +1,6 @@
 export default function ActionPane() {
     return (
-        <div className="bg-[#323552] w-full border-b border-slate-400 shadow-sm py-[1%]">
+        <div className="bg-[#242438] w-full border-b border-[#3a3a3a] shadow-sm h-[60%]">
             <h1 className="text-transparent">Hello action bar</h1>
         </div>
     )

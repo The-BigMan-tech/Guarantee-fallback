@@ -2,38 +2,43 @@ import { selectTabNames,UniqueTab,changeDirectory} from "../../redux/processingS
 import { selector ,useAppDispatch} from "../../redux/hooks"
 import {v4 as uniqueID} from 'uuid'
 import { useState,useMemo } from "react";
+import { Card } from "./card";
 
 export default function Sidebar() {
     const dispatch = useAppDispatch();
+
     const tabNames:string[] = selector((store)=>selectTabNames(store));
     const uniqueTabs: UniqueTab[] = useMemo(() => tabNames.map(tabName=>({ id: uniqueID(), name: tabName })), [tabNames]);
-    const tabImgs:Record<string,string> = {Recent:"clock.svg",Desktop:"desktop.svg",Downloads:"download.svg",Documents:"book.svg",Images:"image.svg",Audios:"headphones.svg",Videos:"video.svg",RecycleBin:"trash.svg"};
-    const [clickedTab,setClickedTab] = useState<string>('')
-    async function clickTab(tabId:string,tabName:string):Promise<void> {
+    const tabImgs:Record<string,string> = {Desktop:"desktop.svg",Downloads:"download.svg",Documents:"book.svg",Images:"image.svg",Audios:"headphones.svg",Videos:"video.svg",RecycleBin:"trash.svg"};
+    const [recentTabId,] = useState(uniqueID());
+    const [homeTabId,] = useState(uniqueID());
+    const [clickedTab,setClickedTab] = useState<string>(homeTabId)
+
+    async function clickTab(tabId:string,tabName:string | null):Promise<void> {
+        console.log("clicked tab id: ",tabId);
         setClickedTab(tabId)
-        dispatch(await changeDirectory(tabName));
+        if (tabName) {
+            dispatch(await changeDirectory(tabName));
+        }
     }
     function clickedClass(tabId:string):string {
-        return (clickedTab === tabId)?"border border-gray-500 rounded-r-2xl bg-[#bccfe93c]":""
+        console.log("clicked class tab id:",tabId);
+        return (clickedTab === tabId)?"bg-[#387de4fa] shadow-md rounded-3xl py-2 w-[90%] font-robot-regular":"py-3.5 w-[30%] font-sans "
     }
     return (
-        <div className="flex flex-col bg-[#282a4a] h-[98%] w-[22%] border-r-2 border-slate-400">
-            <div className="border-b-2 border-slate-400 h-[9.5%] content-center flex items-center gap-4">
-                <img className="w-10 ml-6" src="./assets/folder(1).png" alt="" />
-                <h1 className="font-space-regular font-bold text-[#7f9ee8] text-lg">Files</h1>
-            </div>
-            <div className="flex flex-col gap-4 mt-6">
-                {uniqueTabs.map(tab=>
+        <div className="flex flex-col bg-[#242438] h-[100%] w-[12%] border-r border-[#3a3a3a]">
+            <div className="flex flex-col mt-10">
+                <div>
+                    <Card {...{id:homeTabId,tabName:"Home",dirName:null,imgName:"house.svg",clickedTab,clickTab,clickedClass}}/>
+                    <Card {...{id:recentTabId,tabName:"Recent",dirName:null,imgName:"clock.svg",clickedTab,clickTab,clickedClass}}/>
+                </div>
+                <div className="border-t mt-4 pt-4 border-[#3a3a3a]">
+                    {uniqueTabs.map(tab=>
                     <div key={tab.id}>
-                        <button onClick={async ()=>await clickTab(tab.id,tab.name)} className={`flex items-center cursor-pointer py-2.5 w-52 text-left pl-8 hover:border hover:border-slate-400 rounded-r-2xl ${clickedClass(tab.id)}`}>
-                            <img className="w-4 relative right-4 shrink-0" src={`./assets/${tabImgs[tab.name]}`} alt="" />
-                            <h1 className="font-robot-regular text-sm">{tab.name}</h1>
-                        </button>
+                        <Card {...{id:tab.id,tabName:tab.name,dirName:tab.name,imgName:tabImgs[tab.name],clickedTab,clickTab,clickedClass}}/>
                     </div>
-                )}
-            </div>
-            <div className="absolute bottom-0 left-3">
-                <img className="w-32" src="./assets/pencil-folder.png" alt="" />
+                    )}
+                </div>
             </div>
         </div>
     )

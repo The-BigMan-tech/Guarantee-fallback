@@ -3,7 +3,7 @@ import ActionPane from "./action-pane/action-pane"
 
 export default function Top() {
     return (
-        <div className="relative w-full space-y-[0.6%]">
+        <div className="relative w-full h-[12%]">
             <SearchBar/>
             <ActionPane/>
         </div>
