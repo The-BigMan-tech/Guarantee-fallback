@@ -14,10 +14,10 @@ export default function Sidebar() {
     const [homeTabId,] = useState(uniqueID());
     const [clickedTab,setClickedTab] = useState<string>(homeTabId)
 
-    async function clickTab(tabId:string,tabName:string | null):Promise<void> {
+    async function clickTab(tabId:string,tabName:string):Promise<void> {
         console.log("clicked tab id: ",tabId);
         setClickedTab(tabId)
-        if (tabName) {
+        if (tabName !== "Recent") {
             dispatch(await changeDirectory(tabName));
         }
     }
@@ -29,13 +29,13 @@ export default function Sidebar() {
         <div className="flex flex-col bg-[#242438] h-[100%] w-[12%] border-r border-[#3a3a3a]">
             <div className="flex flex-col mt-10">
                 <div>
-                    <Card {...{id:homeTabId,tabName:"Home",dirName:null,imgName:"house.svg",clickedTab,clickTab,clickedClass}}/>
-                    <Card {...{id:recentTabId,tabName:"Recent",dirName:null,imgName:"clock.svg",clickedTab,clickTab,clickedClass}}/>
+                    <Card {...{id:homeTabId,tabName:"Home",imgName:"house.svg",clickedTab,clickTab,clickedClass}}/>
+                    <Card {...{id:recentTabId,tabName:"Recent",imgName:"clock.svg",clickedTab,clickTab,clickedClass}}/>
                 </div>
                 <div className="border-t mt-4 pt-4 border-[#3a3a3a]">
                     {uniqueTabs.map(tab=>
                     <div key={tab.id}>
-                        <Card {...{id:tab.id,tabName:tab.name,dirName:tab.name,imgName:tabImgs[tab.name],clickedTab,clickTab,clickedClass}}/>
+                        <Card {...{id:tab.id,tabName:tab.name,imgName:tabImgs[tab.name],clickedTab,clickTab,clickedClass}}/>
                     </div>
                     )}
                 </div>

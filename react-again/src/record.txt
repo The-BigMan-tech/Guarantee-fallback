@@ -162,3 +162,7 @@ custom hooks for reusable component logic
 stateless child components for optimization and reusable jsx
 
 anything that should cuase it to render when memoizing,should be passed a prop and checked for changes
+
+ui framework compatibility tools-mitosis,astro
+
+tauri uses wry as the webview library
