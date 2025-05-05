@@ -66,7 +66,6 @@ struct FileStat {
     modified_date: SystemTime,
     created_date: SystemTime,
     accessed_date: SystemTime,
-    is_hidden:bool,
     is_read_only:bool 
 }
 #[command]
