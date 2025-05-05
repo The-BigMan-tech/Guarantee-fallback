@@ -15,6 +15,7 @@ export interface processingSliceState {
     fsNodes:FsNode[] | null,
     selectedFsNodes:FsNode[] | null,
     error:string | null,
+    notice:string | null,
     searchQuery:string | null,
     isLoading:boolean,
     sortBy:SortingOrder,
@@ -27,6 +28,7 @@ const initialState:processingSliceState = {
     fsNodes:null,
     selectedFsNodes:null,
     error:null,
+    notice:null,
     searchQuery:null,
     isLoading:false,
     sortBy:'name',
@@ -46,6 +48,9 @@ export const processingSlice = createSlice({
         setError(state,action:PayloadAction<string>) {
             state.error = action.payload
         },
+        setNotice(state,action:PayloadAction<string>) {
+            state.notice = action.payload
+        },
         setSearchQuery(state,action:PayloadAction<string>) {
             state.searchQuery = action.payload
         },
@@ -64,53 +69,53 @@ export const processingSlice = createSlice({
     },
 })
 export default processingSlice.reducer;
-export const {setCurrentPath,setFsNodes,setError,setSearchQuery,setIsLoading,setSortBy,setView,setShowDetails} = processingSlice.actions;
+export const {setCurrentPath,setFsNodes,setError,setNotice,setSearchQuery,setIsLoading,setSortBy,setView,setShowDetails} = processingSlice.actions;
 
 export const selectCurrentPath = (store:RootState):string => store.processing.currentPath;
 export const selectTabNames = (store:RootState):string[] => store.processing.tabNames;
 export const selectFsNodes = (store:RootState):FsNode[] | null => store.processing.fsNodes;
 export const selectSelectedFsNodes = (store:RootState):FsNode[] | null => store.processing.selectedFsNodes;
-export const selectError = (store:RootState):string | null => store.processing.error
+export const selectError = (store:RootState):string | null => store.processing.error;
+export const selectNotice = (store:RootState):string | null => store.processing.notice;
 export const selectSearchQuery = (store:RootState):string | null => store.processing.searchQuery;
 export const selectIsLoading = (store:RootState):boolean => store.processing.isLoading;
 export const selectSortBy = (store:RootState):SortingOrder => store.processing.sortBy;
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
 
-export async function changeDirectoryFromHome(tabName:string):Promise<AppThunk> {
-    return async (dispatch,)=> {
-        let folderPath:string;
-        if (tabName == "Recent") {
-            return
-        }else if (tabName == "Home") {
-            folderPath = await join_with_home("");
+export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
+    return async (dispatch):Promise<void> =>{
+        const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
+        if (dirResult.value instanceof Error) {
+            dispatch(setError(dirResult.value.message))
+        }else if (dirResult.value == null) {
+            dispatch(setNotice("Directory is empty"));
         }else {
-            folderPath = await join_with_home(tabName)
-        }
-        const fsNodesResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
-        if (fsNodesResult.value instanceof Error) {
-            console.log(`Error occured while reading from the dir: ${folderPath}`,fsNodesResult.value.message);
-        }else if (fsNodesResult.value == null) {
-            console.log("Directory exists but there are no files in it");
-        }else {
-            const fsNodes:FsNode[] = fsNodesResult.value
-            dispatch(setFsNodes(fsNodes))
+            const fsNodes:FsNode[] = dirResult.value
+            dispatch(setFsNodes(fsNodes));
+            dispatch(setCurrentPath(folderPath));
             console.log("Files:",fsNodes);
         }
-        dispatch(setCurrentPath(folderPath));
     }
 }
-export async function readFsNode(node:FsNode):Promise<AppThunk> {
-    return async ():Promise<string | void> =>{
-        const fileResult:FsResult<FsNode | Error | null>  = await readFile(node.primary.nodePath);
+export async function returnFileWithContent(filePath:string):Promise<AppThunk> {//returns the file with its content read
+    return async (dispatch):Promise<FsNode | null> =>{
+        const fileResult:FsResult<FsNode | Error | null>  = await readFile(filePath);
         if (fileResult.value instanceof Error) {
-            console.log(`Error occured while reading the file: ${node.primary.nodePath}`,fileResult.value.message);
+            dispatch(setError(fileResult.value.message))
+            return null
         }else if (fileResult.value == null) {
-            console.log(`${node.primary.nodeName} is empty`);
+            dispatch(setNotice("File is empty"))
+            return null;
         }else {
-            const content:string = fileResult.value.primary.content;
-            console.log(`${node.primary.nodeName} File content: ${content}`);
-            return content
+            return fileResult.value
         }
+    }
+}
+export async function openDirectoryFromHome(tabName:string):Promise<AppThunk> {
+    return async ()=> {
+        if (tabName == "Recent") return;
+        const folderPath:string = await join_with_home((tabName == "Home")?"":tabName)
+        openDirectoryInApp(folderPath)
     }
 }

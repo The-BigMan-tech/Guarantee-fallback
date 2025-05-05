@@ -1,4 +1,4 @@
-import { selectTabNames,UniqueTab,changeDirectoryFromHome} from "../../redux/processingSlice"
+import { selectTabNames,UniqueTab,openDirectoryFromHome} from "../../redux/processingSlice"
 import { selector ,useAppDispatch} from "../../redux/hooks"
 import {v4 as uniqueID} from 'uuid'
 import { useState,useMemo } from "react";
@@ -16,7 +16,7 @@ export default function Sidebar() {
 
     async function clickTab(tabId:string,tabName:string):Promise<void> {
         setClickedTab(tabId)
-        dispatch(await changeDirectoryFromHome(tabName));
+        dispatch(await openDirectoryFromHome(tabName));
     }
     function clickedClass(tabId:string):string {
         return (clickedTab === tabId)?"bg-[#387de4fa] shadow-md rounded-3xl py-2 w-[90%] font-robot-regular":"py-3.5 w-[30%] font-sans "

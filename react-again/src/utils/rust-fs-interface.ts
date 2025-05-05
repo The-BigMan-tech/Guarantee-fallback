@@ -82,11 +82,11 @@ export async function readDirectory(dirPath:string):Promise<FsResult<FsNode[] | 
         return FsResult.Err(error)
     }
 }
-export async function readFile(nodePath: string): Promise<FsResult<FsNode | null | Error>> {
+export async function readFile(filePath: string): Promise<FsResult<FsNode | null | Error>> {
     try {
-        const content:string = await invoke('read_file', {path:nodePath});
-        const fsNode:FsNode = await getFsNode(nodePath,content);
-        return (content)?FsResult.Ok(fsNode):FsResult.Ok(null);
+        const content:string = await invoke('read_file', {path:filePath});
+        const fileNode:FsNode = await getFsNode(filePath,content);
+        return (content)?FsResult.Ok(fileNode):FsResult.Ok(null);
     } catch (error: unknown) {
         return FsResult.Err(error);
     }

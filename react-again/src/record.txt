@@ -181,3 +181,4 @@ delayed runtime error--error-prone code may not immediately cause runtime errors
 unsafe but protected like for a new unsafe block,a new process is spawned and if it crashes,the program skips it
 
 todo:vfs feature that uses a diffing algorithm
+todo:virtual folder
