@@ -1,5 +1,4 @@
-import fs from 'node:fs/promises'
-import path from 'node:path';
+import { invoke } from '@tauri-apps/api/core';
 
 export interface File {
     fullName: string,       
@@ -26,12 +25,19 @@ export class FsResult<T>  {
         return new FsResult((error instanceof Error)?error:new Error("An unknown error occurred"))
     }
 }
+interface FileStat {
+    size:number,
+    mtime:Date,
+    birthtime:Date,
+    atime:Date,
+    mode:boolean
+}
 async function getFileObject(filePath:string,content:'unread' | string): Promise<File> {
-    const stats = await fs.stat(filePath);
-    const fileName = path.basename(filePath);
+    const stats =  await invoke<FileStat>('fs_stat', {path:filePath});
+    const fileName = await invoke<string>('path_basename', {path:filePath});
     return {
         fullName:fileName,
-        extension:path.extname(fileName),
+        extension:await invoke<string>('path_extname', {path:fileName}),
         content:content,
         size: stats.size,
         filePath: filePath,
@@ -40,14 +46,19 @@ async function getFileObject(filePath:string,content:'unread' | string): Promise
         createdDate: stats.birthtime,
         accessedDate: stats.atime,
         isHidden: fileName.startsWith('.'),
-        isReadOnly: !(stats.mode & 0o200), 
+        isReadOnly:stats.mode, 
     };
+}
+export async function join_with_home(tabName:string):Promise<string> {
+    const path_from_home:string = await invoke<string>('join_with_home', {tabName});
+    return path_from_home
 }
 export async function readDirectory(dirPath:string):Promise<FsResult<File[] | null | Error>> {
     try {
-        const filePaths:string[] = await fs.readdir(dirPath);
+        const filePaths:string[] = await invoke<string[]>('read_dir', { dirPath });
         const fileObjects = filePaths.map(async (fileName) => {
-            const filePath = path.join(dirPath,fileName);
+            console.log("File name: ",fileName);
+            const filePath = await invoke<string>('path_join', {base:fileName,additional:dirPath});
             return await getFileObject(filePath,'unread')
         })
         const files: File[] = await Promise.all(fileObjects);
@@ -73,30 +84,7 @@ export async function writeFile(filePath: string, content: string): Promise<FsRe
         return FsResult.Err(error);
     }
 }
-export async function deleteFile(filePath: string): Promise<FsResult<null | Error>> {
-    try {
-        await fs.unlink(filePath);
-        return FsResult.Ok(null)
-    } catch (error: unknown) {
-        return FsResult.Err(error);
-    }
-}
-export async function renameFile(oldPath: string, newPath: string): Promise<FsResult<null | Error>> {
-    try {
-        await fs.rename(oldPath, newPath);
-        return FsResult.Ok(null)
-    } catch (error: unknown) {
-        return FsResult.Err(error);
-    }
-}
-export async function copyFile(source: string, destination: string): Promise<FsResult<null | Error>> {
-    try {
-        await fs.copyFile(source, destination);
-        return FsResult.Ok(null)
-    } catch (error: unknown) {
-        return FsResult.Err(error);
-    }
-}
+
 export async function sample() {
     const dirInput = "C:\\Users\\USER\\Desktop\\dummy-code\\Guarantee\\react-again\\src\\utils";
     const filesResult:FsResult<File[] | null | Error> = await readDirectory(dirInput);

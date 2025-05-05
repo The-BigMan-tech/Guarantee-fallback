@@ -3,7 +3,7 @@ import Top from "./components/top/top"
 
 function App() {
     return (
-        <div className="flex flex-col h-[100vh] w-[100vw] bg-[#242438] text-white">
+        <div className="flex flex-col h-[100vh] w-[100vw] bg-[#1f1f30] text-white">
             <Top/>
             <div className="flex w-full h-full">
                 <Sidebar/>  

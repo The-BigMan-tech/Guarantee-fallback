@@ -4,9 +4,9 @@ import {v4 as uniqueID} from 'uuid'
 import { useState,useMemo } from "react";
 import { Card } from "./card";
 
+
 export default function Sidebar() {
     const dispatch = useAppDispatch();
-
     const tabNames:string[] = selector((store)=>selectTabNames(store));
     const uniqueTabs: UniqueTab[] = useMemo(() => tabNames.map(tabName=>({ id: uniqueID(), name: tabName })), [tabNames]);
     const tabImgs:Record<string,string> = {Desktop:"desktop.svg",Downloads:"download.svg",Documents:"book.svg",Images:"image.svg",Audios:"headphones.svg",Videos:"video.svg",RecycleBin:"trash.svg"};
@@ -15,18 +15,14 @@ export default function Sidebar() {
     const [clickedTab,setClickedTab] = useState<string>(homeTabId)
 
     async function clickTab(tabId:string,tabName:string):Promise<void> {
-        console.log("clicked tab id: ",tabId);
         setClickedTab(tabId)
-        if (tabName !== "Recent") {
-            dispatch(await changeDirectory(tabName));
-        }
+        dispatch(await changeDirectory(tabName));
     }
     function clickedClass(tabId:string):string {
-        console.log("clicked class tab id:",tabId);
         return (clickedTab === tabId)?"bg-[#387de4fa] shadow-md rounded-3xl py-2 w-[90%] font-robot-regular":"py-3.5 w-[30%] font-sans "
     }
     return (
-        <div className="flex flex-col bg-[#242438] h-[100%] w-[12%] border-r border-[#3a3a3a]">
+        <div className="flex flex-col bg-[#1f1f30] h-[100%] w-[12%] border-r border-[#3a3a3a]">
             <div className="flex flex-col mt-10">
                 <div>
                     <Card {...{id:homeTabId,tabName:"Home",imgName:"house.svg",clickedTab,clickTab,clickedClass}}/>

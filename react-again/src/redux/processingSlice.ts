@@ -1,8 +1,6 @@
 import { createSlice,PayloadAction} from '@reduxjs/toolkit'
 import { RootState,AppThunk } from './store'
-import { FsResult,readDirectory,File} from '../utils/fileOperations';
-import path from 'path'
-import os from "node:os";
+import { FsResult,readDirectory,File,join_with_home} from '../utils/rust-fs-interface';
 
 type SortingOrder = 'name' | 'date' | 'type' | 'size';
 type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
@@ -81,7 +79,14 @@ export const selectShowDetails = (store:RootState):boolean => store.processing.s
 
 export async function changeDirectory(tabName:string):Promise<AppThunk> {
     return async (dispatch,)=> {
-        const folderPath = path.join(os.homedir(),tabName);
+        let folderPath:string;
+        if (tabName == "Recent") {
+            return
+        }else if (tabName == "Home") {
+            folderPath = await join_with_home("");
+        }else {
+            folderPath = await join_with_home(tabName)
+        }
         const filesResult:FsResult<File[] | Error | null> = await readDirectory(folderPath);
         if (filesResult.value instanceof Error) {
             console.log(`Error occured while reading from the dir: ${folderPath}`,filesResult.value.message);

@@ -166,3 +166,16 @@ anything that should cuase it to render when memoizing,should be passed a prop a
 ui framework compatibility tools-mitosis,astro
 
 tauri uses wry as the webview library
+
+todo:how to embed external binaries like node js into tauri
+calling rust from frontend
+calling frontend from rust
+bidirectional communication
+
+delayed runtime error--error-prone code may not immediately cause runtime errors till they are called.This is because writing error-prone code doesnt cause anything till you use them at runtime.
+
+^with wasm,you can interop any programming language with js.so i will use tauri or was to bridge rust with js
+
+unsafe but protected like for a new unsafe block,a new process is spawned and if it crashes,the program skips it
+
+todo:vfs feature that uses a diffing algorithm
