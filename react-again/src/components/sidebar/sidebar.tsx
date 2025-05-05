@@ -9,7 +9,7 @@ export default function Sidebar() {
     const dispatch = useAppDispatch();
     const tabNames:string[] = selector((store)=>selectTabNames(store));
     const uniqueTabs: UniqueTab[] = useMemo(() => tabNames.map(tabName=>({ id: uniqueID(), name: tabName })), [tabNames]);
-    const tabImgs:Record<string,string> = {Desktop:"desktop.svg",Downloads:"download.svg",Documents:"book.svg",Images:"image.svg",Audios:"headphones.svg",Videos:"video.svg",RecycleBin:"trash.svg"};
+    const tabImgs:Record<string,string> = {Desktop:"desktop.svg",Downloads:"download.svg",Documents:"book.svg",Pictures:"image.svg",Music:"headphones.svg",Videos:"video.svg",RecycleBin:"trash.svg"};
     const [recentTabId,] = useState(uniqueID());
     const [homeTabId,] = useState(uniqueID());
     const [clickedTab,setClickedTab] = useState<string>(homeTabId)

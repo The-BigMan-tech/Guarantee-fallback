@@ -1,6 +1,6 @@
 import { createSlice,PayloadAction} from '@reduxjs/toolkit'
 import { RootState,AppThunk } from './store'
-import { FsResult,readDirectory,File,join_with_home} from '../utils/rust-fs-interface';
+import { FsResult,readDirectory,FsNode,join_with_home} from '../utils/rust-fs-interface';
 
 type SortingOrder = 'name' | 'date' | 'type' | 'size';
 type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
@@ -12,8 +12,8 @@ export interface UniqueTab {
 export interface processingSliceState {
     currentPath:string,
     tabNames:string[],
-    files:File[] | null,
-    selectedFiles:File[] | null,
+    fsNodes:FsNode[] | null,
+    selectedFsNodes:FsNode[] | null,
     error:string | null,
     searchQuery:string | null,
     isLoading:boolean,
@@ -23,9 +23,9 @@ export interface processingSliceState {
 }
 const initialState:processingSliceState = {
     currentPath:"",
-    tabNames:['Desktop','Downloads','Documents','Images','Audios','Videos','RecycleBin'],
-    files:null,
-    selectedFiles:null,
+    tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos','RecycleBin'],
+    fsNodes:null,
+    selectedFsNodes:null,
     error:null,
     searchQuery:null,
     isLoading:false,
@@ -40,8 +40,8 @@ export const processingSlice = createSlice({
         setCurrentPath(state,action:PayloadAction<string>) {
             state.currentPath = action.payload
         },
-        setFiles(state,action:PayloadAction<File[]>) {
-            state.files = action.payload
+        setFsNodes(state,action:PayloadAction<FsNode[]>) {
+            state.fsNodes = action.payload
         },
         setError(state,action:PayloadAction<string>) {
             state.error = action.payload
@@ -64,12 +64,12 @@ export const processingSlice = createSlice({
     },
 })
 export default processingSlice.reducer;
-export const {setCurrentPath,setFiles,setError,setSearchQuery,setIsLoading,setSortBy,setView,setShowDetails} = processingSlice.actions;
+export const {setCurrentPath,setFsNodes,setError,setSearchQuery,setIsLoading,setSortBy,setView,setShowDetails} = processingSlice.actions;
 
 export const selectCurrentPath = (store:RootState):string => store.processing.currentPath;
 export const selectTabNames = (store:RootState):string[] => store.processing.tabNames;
-export const selectFiles = (store:RootState):File[] | null => store.processing.files;
-export const selectSelectedFiles = (store:RootState):File[] | null => store.processing.selectedFiles;
+export const selectFsNodes = (store:RootState):FsNode[] | null => store.processing.fsNodes;
+export const selectSelectedFsNodes = (store:RootState):FsNode[] | null => store.processing.selectedFsNodes;
 export const selectError = (store:RootState):string | null => store.processing.error
 export const selectSearchQuery = (store:RootState):string | null => store.processing.searchQuery;
 export const selectIsLoading = (store:RootState):boolean => store.processing.isLoading;
@@ -87,14 +87,14 @@ export async function changeDirectory(tabName:string):Promise<AppThunk> {
         }else {
             folderPath = await join_with_home(tabName)
         }
-        const filesResult:FsResult<File[] | Error | null> = await readDirectory(folderPath);
-        if (filesResult.value instanceof Error) {
-            console.log(`Error occured while reading from the dir: ${folderPath}`,filesResult.value.message);
-        }else if (filesResult.value == null) {
+        const fsNodesResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
+        if (fsNodesResult.value instanceof Error) {
+            console.log(`Error occured while reading from the dir: ${folderPath}`,fsNodesResult.value.message);
+        }else if (fsNodesResult.value == null) {
             console.log("Directory exists but there are no files in it");
         }else {
-            const files:File[] = filesResult.value
-            dispatch(setFiles(files))
+            const files:FsNode[] = fsNodesResult.value
+            dispatch(setFsNodes(files))
             console.log("Files:",files);
         }
         dispatch(setCurrentPath(folderPath));
