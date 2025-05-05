@@ -58,8 +58,7 @@ export async function readDirectory(dirPath:string):Promise<FsResult<File[] | nu
         const filePaths:string[] = await invoke<string[]>('read_dir', { dirPath });
         const fileObjects = filePaths.map(async (fileName) => {
             console.log("File name: ",fileName);
-            const filePath = await invoke<string>('path_join', {base:fileName,additional:dirPath});
-            return await getFileObject(filePath,'unread')
+            return await getFileObject(fileName,'unread')
         })
         const files: File[] = await Promise.all(fileObjects);
         return (files.length)?FsResult.Ok(files):FsResult.Ok(null);
