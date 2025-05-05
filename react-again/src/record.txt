@@ -143,8 +143,6 @@ components
 custom hooks
 higher order thunks
 
-app state is global,component state is local
-
 components
 -----------
 State getter and setter
@@ -154,6 +152,10 @@ Jsx
 Child components--they are the same but they dont affect the state of their parents directly but rather use wrappers around setters provided by the parent and it should be changed non conditionally
 
 higher order components
+
+
+
+app state is global,component state is local
 
 stateful child,
 stateless child

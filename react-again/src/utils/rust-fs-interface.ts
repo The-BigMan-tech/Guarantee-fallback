@@ -1,17 +1,24 @@
 import { invoke } from '@tauri-apps/api/core';
 
-export interface File {
-    fullName: string,       
-    extension:string,
-    content:'unread' | string,
-    size: number, 
-    filePath:string,    
+export interface FsPrimaryData {
+    nodeType:'File' | 'Folder'  
+    nodeName: string,    
+    nodePath:string,     
+    fileExtension:string | null,
+    content:'files' | 'pending' | string,
     iconPath:string,
-    modifiedDate: Date,
+}
+export interface FsMetadata {
+    sizeInBytes:number,
+    modifiedDate:Date,
     createdDate:Date,
     accessedDate:Date,
+    isReadOnly:boolean,
+}
+export interface FsNode {
+    primary:FsPrimaryData,
+    metadata:FsMetadata,
     isHidden:boolean
-    isReadOnly:boolean
 }
 export class FsResult<T>  {
     public value:Error | null | T ;
@@ -25,29 +32,31 @@ export class FsResult<T>  {
         return new FsResult((error instanceof Error)?error:new Error("An unknown error occurred"))
     }
 }
-interface FileStat {
-    size:number,
-    mtime:Date,
-    birthtime:Date,
-    atime:Date,
-    mode:boolean
+function getFsIcon(fileExtension:string | null):string {
+    if (fileExtension === "png") {
+        return ""//path to png icon
+    }else {
+        return ""//path to folder icon
+    }
 }
-async function getFileObject(filePath:string,content:'unread' | string): Promise<File> {
-    const stats =  await invoke<FileStat>('fs_stat', {path:filePath});
-    const fileName = await invoke<string>('path_basename', {path:filePath});
+async function getFsNode(nodePath:string,content:'files' | 'pending' | string): Promise<FsNode> {
+    const metadata:FsMetadata =  await invoke('fs_stat', {path:nodePath});
+    const nodeName:string = await invoke('path_basename', {path:nodePath});
+    const fileExtension:string | null = await invoke('path_extname', {path:nodeName})
+    const isHidden:boolean = nodeName.startsWith(".");
+    const iconPath:string = getFsIcon(fileExtension);
     return {
-        fullName:fileName,
-        extension:await invoke<string>('path_extname', {path:fileName}),
-        content:content,
-        size: stats.size,
-        filePath: filePath,
-        iconPath: '',
-        modifiedDate: stats.mtime,
-        createdDate: stats.birthtime,
-        accessedDate: stats.atime,
-        isHidden: fileName.startsWith('.'),
-        isReadOnly:stats.mode, 
-    };
+        primary:{
+            nodeType:(fileExtension)?'File':'Folder',
+            nodeName,
+            nodePath,
+            fileExtension,
+            content,
+            iconPath
+        },
+        metadata,
+        isHidden
+    }
 }
 export async function join_with_home(tabName:string):Promise<string> {
     const path_from_home:string = await invoke<string>('join_with_home', {tabName});

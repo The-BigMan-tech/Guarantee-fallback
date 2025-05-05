@@ -49,7 +49,8 @@ fn join_with_home(tab_name: &str) -> Result<String, String> {
 #[command]
 fn path_join(base: &str, additional: &str) -> PathBuf {
     let base_path: &Path = Path::new(base);
-    base_path.join(additional)
+    let joined_path: PathBuf = base_path.join(additional);
+    joined_path
 }
 #[command]
 fn path_extname(path: &str) -> Option<String> {
@@ -61,27 +62,28 @@ fn path_basename(path: &str) -> Option<String> {
 }
 #[derive(serde::Serialize)] // Ensure this trait is implemented for IPC serialization
 struct FileStat {
-    size: u64,
-    mtime: SystemTime,
-    birthtime: SystemTime,
-    atime: SystemTime,
-    mode:bool 
+    size_in_bytes: u64,
+    modified_date: SystemTime,
+    created_date: SystemTime,
+    accessed_date: SystemTime,
+    is_hidden:bool,
+    is_read_only:bool 
 }
 #[command]
 fn fs_stat(path: &str) -> Result<FileStat, String> {
     let metadata: fs::Metadata = fs::metadata(path).map_err(|e| e.to_string())?;
 
-    let size: u64 = metadata.len();
-    let mtime: SystemTime = metadata.modified().map_err(|e| e.to_string())?;
-    let atime: SystemTime = metadata.accessed().map_err(|e| e.to_string())?;
-    let birthtime: SystemTime = metadata.created().map_err(|e| e.to_string())?;
-    let mode: bool = metadata.permissions().readonly();
+    let size_in_bytes: u64 = metadata.len()/8;
+    let modified_date: SystemTime = metadata.modified().map_err(|e| e.to_string())?;
+    let created_date: SystemTime = metadata.created().map_err(|e| e.to_string())?;
+    let accessed_date: SystemTime = metadata.accessed().map_err(|e| e.to_string())?;
+    let is_read_only: bool = metadata.permissions().readonly();
 
     Ok(FileStat {
-        size,
-        mtime,
-        birthtime,
-        atime,
-        mode,
+        size_in_bytes,
+        modified_date,
+        created_date,
+        accessed_date,
+        is_read_only,
     })
 }
