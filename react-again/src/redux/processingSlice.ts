@@ -1,6 +1,6 @@
 import { createSlice,PayloadAction} from '@reduxjs/toolkit'
 import { RootState,AppThunk } from './store'
-import { FsResult,readDirectory,FsNode,join_with_home} from '../utils/rust-fs-interface';
+import { FsResult,readDirectory,readFile,FsNode,join_with_home} from '../utils/rust-fs-interface';
 
 type SortingOrder = 'name' | 'date' | 'type' | 'size';
 type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
@@ -77,7 +77,7 @@ export const selectSortBy = (store:RootState):SortingOrder => store.processing.s
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
 
-export async function changeDirectory(tabName:string):Promise<AppThunk> {
+export async function changeDirectoryFromHome(tabName:string):Promise<AppThunk> {
     return async (dispatch,)=> {
         let folderPath:string;
         if (tabName == "Recent") {
@@ -93,10 +93,24 @@ export async function changeDirectory(tabName:string):Promise<AppThunk> {
         }else if (fsNodesResult.value == null) {
             console.log("Directory exists but there are no files in it");
         }else {
-            const files:FsNode[] = fsNodesResult.value
-            dispatch(setFsNodes(files))
-            console.log("Files:",files);
+            const fsNodes:FsNode[] = fsNodesResult.value
+            dispatch(setFsNodes(fsNodes))
+            console.log("Files:",fsNodes);
         }
         dispatch(setCurrentPath(folderPath));
+    }
+}
+export async function readFsNode(node:FsNode):Promise<AppThunk> {
+    return async ():Promise<string | void> =>{
+        const fileResult:FsResult<FsNode | Error | null>  = await readFile(node.primary.nodePath);
+        if (fileResult.value instanceof Error) {
+            console.log(`Error occured while reading the file: ${node.primary.nodePath}`,fileResult.value.message);
+        }else if (fileResult.value == null) {
+            console.log(`${node.primary.nodeName} is empty`);
+        }else {
+            const content:string = fileResult.value.primary.content;
+            console.log(`${node.primary.nodeName} File content: ${content}`);
+            return content
+        }
     }
 }

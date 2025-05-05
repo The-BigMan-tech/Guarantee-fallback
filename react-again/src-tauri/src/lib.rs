@@ -8,20 +8,20 @@ use std::time::SystemTime;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![read_dir,join_with_home,path_join,path_extname,path_basename,fs_stat])
-    .setup(|app| {
-      if cfg!(debug_assertions) {
-        app.handle().plugin(
-          tauri_plugin_log::Builder::default()
-            .level(log::LevelFilter::Info)
-            .build(),
-        )?;
-      }
-      Ok(())
-    })
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![read_dir,join_with_home,path_join,path_extname,path_basename,fs_stat,read_file])
+        .setup(|app| {
+            if cfg!(debug_assertions) {
+                app.handle().plugin(
+                    tauri_plugin_log::Builder::default()
+                        .level(log::LevelFilter::Info)
+                        .build(),
+                )?;
+            }
+            Ok(())
+        })
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
 #[command]
 fn read_dir(dir_path: String) -> Result<Vec<PathBuf>, String> {
@@ -35,6 +35,10 @@ fn read_dir(dir_path: String) -> Result<Vec<PathBuf>, String> {
         }
     }
     Ok(file_paths) // Return the collected file paths
+}
+#[command]
+fn read_file(path: String) -> Result<String, String> {
+    fs::read_to_string(&path).map_err(|e| e.to_string())
 }
 #[command]
 fn join_with_home(tab_name: &str) -> Result<String, String> {

@@ -82,25 +82,12 @@ export async function readDirectory(dirPath:string):Promise<FsResult<FsNode[] | 
         return FsResult.Err(error)
     }
 }
-export async function readFile(filePath: string): Promise<FsResult<FsNode | null | Error>> {
+export async function readFile(nodePath: string): Promise<FsResult<FsNode | null | Error>> {
     try {
-        const content:string  = await fs.readFile(filePath, 'utf-8');
-        const fsNode:FsNode = await getFsNode(filePath,content);
+        const content:string = await invoke('read_file', {path:nodePath});
+        const fsNode:FsNode = await getFsNode(nodePath,content);
         return (content)?FsResult.Ok(fsNode):FsResult.Ok(null);
     } catch (error: unknown) {
         return FsResult.Err(error);
-    }
-}
-export async function sample() {
-    const dirInput = "C:\\Users\\USER\\Desktop\\dummy-code\\Guarantee\\react-again\\src\\utils";
-    const readResult:FsResult<FsNode | null | Error> = await readFile(`${dirInput}\\hello.txt`);
-    if (readResult.value instanceof Error) {
-        console.log("Error when reading the file",readResult.value);
-    }else if (readResult.value == null){
-        console.log("The file is empty");
-    }else {
-        const content:string = readResult.value.primary.content;
-        console.log("File content",content);
-        console.log("Read file: ",readResult.value);
     }
 }
