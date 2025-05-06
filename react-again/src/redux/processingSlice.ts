@@ -3,10 +3,10 @@ import { RootState,AppThunk } from './store'
 import { FsResult,readDirectory,readFile,FsNode,join_with_home} from '../utils/rust-fs-interface';
 import {v4 as uniqueID} from 'uuid';
 
-type SortingOrder = 'name' | 'date' | 'type' | 'size';
-type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
+export type SortingOrder = 'name' | 'date' | 'type' | 'size';
+export type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
 
-interface Message {
+export interface Message {
     id:string,
     message:string | null
 }
@@ -32,9 +32,8 @@ const initialState:processingSliceState = {
     tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos','RecycleBin'],
     fsNodes:null,
     selectedFsNodes:null,
-    uniqueError:null,
-    error:null,
-    notice:null,
+    error:{id:"",message:null},
+    notice:{id:"",message:null},
     searchQuery:null,
     isLoading:false,
     sortBy:'name',
@@ -52,10 +51,12 @@ export const processingSlice = createSlice({
             state.fsNodes = action.payload
         },
         setError(state,action:PayloadAction<string>) {
-            state.error = action.payload + uniqueID();
+            state.error.id = uniqueID();
+            state.error.message = action.payload;
         },
         setNotice(state,action:PayloadAction<string>) {
-            state.notice = action.payload
+            state.notice.id = uniqueID();
+            state.notice.message = action.payload
         },
         setSearchQuery(state,action:PayloadAction<string>) {
             state.searchQuery = action.payload
@@ -81,8 +82,8 @@ export const selectCurrentPath = (store:RootState):string => store.processing.cu
 export const selectTabNames = (store:RootState):string[] => store.processing.tabNames;
 export const selectFsNodes = (store:RootState):FsNode[] | null => store.processing.fsNodes;
 export const selectSelectedFsNodes = (store:RootState):FsNode[] | null => store.processing.selectedFsNodes;
-export const selectError = (store:RootState):string | null => store.processing.error;
-export const selectNotice = (store:RootState):string | null => store.processing.notice;
+export const selectError = (store:RootState):Message => store.processing.error;
+export const selectNotice = (store:RootState):Message => store.processing.notice;
 export const selectSearchQuery = (store:RootState):string | null => store.processing.searchQuery;
 export const selectIsLoading = (store:RootState):boolean => store.processing.isLoading;
 export const selectSortBy = (store:RootState):SortingOrder => store.processing.sortBy;

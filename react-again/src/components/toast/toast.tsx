@@ -1,11 +1,11 @@
 import { ToastContainer, toast,Bounce,ToastOptions } from 'react-toastify';
-import { selectError,selectNotice } from '../../redux/processingSlice';
+import { selectError,selectNotice,Message} from '../../redux/processingSlice';
 import { selector } from '../../redux/hooks';
 import { useEffect } from 'react';
 
 export default function Toasts() {
-    const error:string | null = selector(store=>selectError(store));
-    const notice:string | null = selector(store=>selectNotice(store));
+    const error:Message = selector(store=>selectError(store));
+    const notice:Message = selector(store=>selectNotice(store));
     useEffect(()=>{
         const error_config:ToastOptions = {
             position: "top-right",
@@ -18,8 +18,7 @@ export default function Toasts() {
             theme: "dark",
             transition: Bounce,
         }
-        const error_message:string = error?.slice(0,34) || "";
-        const errorToast = ()=> toast.error(error_message,error_config)
+        const errorToast = ()=> toast.error(error.message,error_config)
         errorToast()
     },[error])
     useEffect(()=>{
@@ -34,7 +33,7 @@ export default function Toasts() {
             theme: "dark",
             transition: Bounce,
         }
-        const noticeToast = ()=> toast.error(notice,notice_config)
+        const noticeToast = ()=> toast.error(notice.message,notice_config)
         noticeToast()
     },[notice])
     return <ToastContainer/>
