@@ -33,7 +33,7 @@ export interface processingSliceState {
 }
 const initialState:processingSliceState = {
     currentPath:"",
-    tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos','RecycleBin'],
+    tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos'],
     fsNodes:null,
     selectedFsNodes:null,
     error:{id:"",message:null},//the ids is to ensure that the same error can pop up twice
@@ -144,7 +144,6 @@ export function getParent():AppThunk<string | Error> {
     return (_,getState):string | Error =>{
         let currentPath:string = selectCurrentPath(getState());
         currentPath = currentPath.slice(0,currentPath.lastIndexOf('\\'));
-        console.log("Parent path: ",currentPath);
         return currentPath
     }
 }

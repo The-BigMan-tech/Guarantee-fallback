@@ -224,3 +224,5 @@ setup--scaffold your project,a clear architecture,make small of the backend to t
 ^vscode tabgroups
 
 *the thunks can also perform file system operations on the app level by leveraging other thunks
+
+todo:breadcrumbs,right click,file icons,details pane,changing the view and size
