@@ -34,8 +34,10 @@ export class FsResult<T>  {
 function getFsIcon(fileExtension:string | null):string {
     if (fileExtension === "png") {
         return ""//path to png icon
-    }else {
-        return ""//path to folder icon
+    }else if (!(fileExtension)) {
+        return "folder-solid.svg"//path to folder icon
+    }else {//file icon path is at the else instead of folder cuz i cant exhuast all posssible file types before writing the folder path under else
+        return "file-solid.svg"
     }
 }
 async function getFsNode(nodePath:string): Promise<FsNode> {

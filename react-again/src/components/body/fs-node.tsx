@@ -4,10 +4,19 @@ export default function FsNodeComponent(props:{fsNode:FsNode}) {
     function truncateName(name:string):string {
         return (name.length < 16)?name:`${name.slice(0,16)}...`
     }
+    function fixIconSize(path:string):string {
+        if (path == "folder-solid.svg") {
+            return "w-10"
+        }else if (path == "file-solid.svg") {
+            return "w-7"
+        }else {
+            return "w-7"//a reasonable default
+        }
+    }
     return (
-        <div className="flex flex-col items-center justify-center">
-            <img src={`./assets/file-icons/${props.fsNode.primary.iconPath}`} alt="" />
-            <h1 className="text-sm font-sans self-start">{truncateName(props.fsNode.primary.nodeName)}</h1>
+        <div className="flex flex-col items-center justify-center gap-2">
+            <img className={`${fixIconSize(props.fsNode.primary.iconPath)}`} src={`./assets/file-icons/${props.fsNode.primary.iconPath}`} alt="" />
+            <h1 className="text-sm font-sans">{truncateName(props.fsNode.primary.nodeName)}</h1>
         </div>
     )
 }
