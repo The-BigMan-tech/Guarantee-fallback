@@ -18,35 +18,29 @@ export default function Toasts() {
         theme: "dark",
         transition: Bounce,
     })
+    const [loading_toastConfig] = useState<ToastOptions>({
+        ...toastConfig,
+        pauseOnHover:false,
+        autoClose:false,
+        toastId:"loading"
+    })
     useEffect(()=>{
         if (error.message) {
-            const errorToast =()=> toast.error(error.message,toastConfig)
-            errorToast()
+            toast.error(error.message,toastConfig)
         }
     },[error,toastConfig])
     useEffect(()=>{
         if (notice.message) {
-            const noticeToast =()=> toast.info(notice.message,toastConfig)
-            noticeToast()
+            toast.info(notice.message,toastConfig)
         }
     },[notice,toastConfig])
     useEffect(()=>{
-        const loading_toast_config:ToastOptions = {
-            ...toastConfig,
-            pauseOnHover:false,
-            autoClose:false,
-            toastId:"loading"
+        if (loadingMessage !== "Done") {
+            toast.loading(loadingMessage,loading_toastConfig)
+        }else {
+            toast.done("loading")
+            toast.success(loadingMessage,{...toastConfig,autoClose:3000})
         }
-        console.log("Loading message value: ",loadingMessage)
-        const loadingToast =()=>{
-            if (loadingMessage !== "Done") {
-                toast.loading(loadingMessage,loading_toast_config)
-            }else {
-                toast.done("loading")
-                toast.success(loadingMessage,{...toastConfig,autoClose:3000})
-            }
-        }
-        loadingToast()
-    },[loadingMessage,toastConfig])
+    },[loadingMessage,toastConfig,loading_toastConfig])
     return <ToastContainer newestOnTop={true}/>
 }
