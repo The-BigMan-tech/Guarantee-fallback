@@ -32,8 +32,8 @@ export class FsResult<T>  {
     }
 }
 function getFsIcon(fileExtension:string | null):string {
-    if (fileExtension === "png") {
-        return ""//path to png icon
+    if ((fileExtension === "png") || (fileExtension === "jpg") || (fileExtension === "svg")) {
+        return "image-file.svg"//path to png icon
     }else if (!(fileExtension)) {
         return "folder-solid.svg"//path to folder icon
     }else {//file icon path is at the else instead of folder cuz i cant exhuast all posssible file types before writing the folder path under else
