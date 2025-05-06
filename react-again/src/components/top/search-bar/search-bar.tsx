@@ -1,9 +1,11 @@
+import { useEffect, useState } from "react";
 import { useAppDispatch,selector} from "../../../redux/hooks"
 import { openParentInApp,selectCurrentPath,selectTabNames} from "../../../redux/processingSlice"
 
 export default function SearchBar() {
     const dispatch = useAppDispatch();
     const currentPath:string = selector(store=>selectCurrentPath(store));
+    const [breadCrumbs,setBreadCrumbs] = useState<string[]>([]);
     const tabNames:Set<string> = new Set(selector(store=>selectTabNames(store)))
     async function goToParent() {
         await dispatch(await openParentInApp())
@@ -16,7 +18,13 @@ export default function SearchBar() {
             return false
         }
         return true
-    }   
+    }
+    useEffect(()=>{
+        setBreadCrumbs(currentPath.split("\\"))
+    },[currentPath])  
+    useEffect(()=>{
+        console.log("Breadcrumbs",breadCrumbs);
+    },[breadCrumbs]) 
     return (
         <div className="bg-[#1f1f30] w-full border-b border-[#3a3a3a] shadow-sm flex items-center h-[60%]">
             {shouldRenderArrow()

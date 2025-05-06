@@ -14,7 +14,7 @@ export default function Body() {
                 {uniqueFsNodes
                     ?<div className="grid sm:grid-cols-4 md:grid-cols-5 h-auto max-h-[96%] gap-x-[1.2%] gap-y-[5%] mt-[2%] ml-[1.5%] w-[99%] overflow-y-scroll overflow-x-hidden items-center justify-center">
                         {uniqueFsNodes.map((uniqueFsNode)=>
-                            <FsNodeComponent {...{key:uniqueFsNode.id,fsNode:uniqueFsNode.fsNode}}/>
+                            <FsNodeComponent key={uniqueFsNode.id} {...{fsNode:uniqueFsNode.fsNode}}/>
                         )}
                     </div>
                     :<h1 className="self-center justify-self-center relative top-[40vh] text-2xl font-[Consolas]">Empty</h1>
