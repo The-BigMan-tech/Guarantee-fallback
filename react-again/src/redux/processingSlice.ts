@@ -21,7 +21,7 @@ export interface processingSliceState {
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
-    loadingMessage:Message//for loading messages
+    loadingMessage:string | null//for loading messages
     searchQuery:string | null,//for storing the search query
     sortBy:SortingOrder,//sorting order of the files
     viewBy:View,//changes the layout of the folder content
@@ -34,7 +34,7 @@ const initialState:processingSliceState = {
     selectedFsNodes:null,
     error:{id:"",message:null},
     notice:{id:"",message:null},
-    loadingMessage:{id:"",message:null},
+    loadingMessage:null,
     searchQuery:null,
     sortBy:'name',
     viewBy:'details',
@@ -58,9 +58,8 @@ export const processingSlice = createSlice({
             state.notice.id = uniqueID();
             state.notice.message = action.payload
         },
-        setLoadingMessage(state,action:PayloadAction<string>) {
-            state.loadingMessage.id = uniqueID();
-            state.loadingMessage.message = action.payload
+        setLoadingMessage(state,action:PayloadAction<string | null>) {
+            state.loadingMessage = action.payload
         },
         setSearchQuery(state,action:PayloadAction<string>) {
             state.searchQuery = action.payload
@@ -84,7 +83,7 @@ export const selectFsNodes = (store:RootState):FsNode[] | null => store.processi
 export const selectSelectedFsNodes = (store:RootState):FsNode[] | null => store.processing.selectedFsNodes;
 export const selectError = (store:RootState):Message => store.processing.error;
 export const selectNotice = (store:RootState):Message => store.processing.notice;
-export const selectLoadingMessage = (store:RootState):Message => store.processing.loadingMessage;
+export const selectLoadingMessage = (store:RootState):string | null => store.processing.loadingMessage;
 export const selectSearchQuery = (store:RootState):string | null => store.processing.searchQuery;
 export const selectSortBy = (store:RootState):SortingOrder => store.processing.sortBy;
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
@@ -104,6 +103,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             const fsNodes:FsNode[] = dirResult.value
             dispatch(setFsNodes(fsNodes));
             dispatch(setCurrentPath(folderPath));
+            dispatch(setLoadingMessage("Done"))
             console.log("Files:",fsNodes);
         }
     }

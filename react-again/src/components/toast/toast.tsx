@@ -1,62 +1,52 @@
-import { ToastContainer, toast,Bounce,ToastOptions } from 'react-toastify';
+import { ToastContainer, toast,Bounce,ToastOptions} from 'react-toastify';
 import { selectError,selectNotice,selectLoadingMessage,Message} from '../../redux/processingSlice';
 import { selector } from '../../redux/hooks';
-import { useEffect } from 'react';
+import { useEffect, useState} from 'react';
 
 export default function Toasts() {
     const error:Message = selector(store=>selectError(store));
     const notice:Message = selector(store=>selectNotice(store));
-    const loadingMessage:Message = selector(store=>selectLoadingMessage(store));
+    const loadingMessage:string | null = selector(store=>selectLoadingMessage(store));
+    const [toastConfig] = useState<ToastOptions>({
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+        transition: Bounce,
+    })
     useEffect(()=>{
         if (error.message) {
-            const error_config:ToastOptions = {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: false,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "dark",
-                transition: Bounce,
-            }
-            const errorToast = ()=> toast.error(error.message,error_config)
+            const errorToast =()=> toast.error(error.message,toastConfig)
             errorToast()
         }
-    },[error])
+    },[error,toastConfig])
     useEffect(()=>{
         if (notice.message) {
-            const notice_config:ToastOptions = {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: false,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "dark",
-                transition: Bounce,
-            }
-            const noticeToast = ()=> toast.info(notice.message,notice_config)
+            const noticeToast =()=> toast.info(notice.message,toastConfig)
             noticeToast()
         }
-    },[notice])
+    },[notice,toastConfig])
     useEffect(()=>{
-        if (loadingMessage.message) {
-            const loading_config:ToastOptions = {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: false,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-                theme: "dark",
-                transition: Bounce,
-            }
-            const loadingToast = ()=>toast(loadingMessage.message,loading_config)
-            loadingToast()
+        const loading_toast_config:ToastOptions = {
+            ...toastConfig,
+            pauseOnHover:false,
+            autoClose:false,
+            toastId:"loading"
         }
-    },[loadingMessage])
+        console.log("Loading message value: ",loadingMessage)
+        const loadingToast =()=>{
+            if (loadingMessage !== "Done") {
+                toast.loading(loadingMessage,loading_toast_config)
+            }else {
+                toast.done("loading")
+                toast.success(loadingMessage,{...toastConfig,autoClose:3000})
+            }
+        }
+        loadingToast()
+    },[loadingMessage,toastConfig])
     return <ToastContainer newestOnTop={true}/>
 }
