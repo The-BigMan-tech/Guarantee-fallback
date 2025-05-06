@@ -9,7 +9,7 @@ export default function Body() {
         <>
             <div className="h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md">
                 {fsNodes
-                    ?<div className="grid grid-cols-4 gap-x-5 mt-[1.5%] ml-[1.5%] h-[96%] w-[95%] overflow-y-scroll overflow-x-hidden">
+                    ?<div className="grid grid-cols-4 gap-x-[1.2%] gap-y-[5%] mt-[1.5%] ml-[1.5%] h-[96%] w-[95%] overflow-y-scroll overflow-x-hidden">
                         {fsNodes.map((fsNode)=><FsNodeComponent {...{fsNode}}/>)}
                     </div>
                     :<h1>Empty</h1>
