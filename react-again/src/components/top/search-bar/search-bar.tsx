@@ -40,10 +40,10 @@ export default function SearchBar() {
         <div className="bg-[#1f1f30] w-full border-b border-[#3a3a3a] shadow-sm h-[60%]">
             <div className="flex items-center gap-5">
                 {shouldRenderArrow()
-                    ?<button onClick={goToParent} className="font-bold cursor-pointer relative left-10">{"<="}</button>
+                    ?<button onClick={goToParent} className="font-bold cursor-pointer absolute left-10">{"<="}</button>
                     :null
                 }
-                <div className="flex gap-4 ml-28">
+                <div className="flex gap-4 ml-40">
                     {uniqueBreadCrumbs.map((uniqueCrumb=>
                         <div key={uniqueCrumb.id}>
                             <h1 className="font-space-regular">{getCrumbArrow(uniqueCrumb.crumb)}</h1>
