@@ -1,10 +1,15 @@
 import { createSlice,PayloadAction} from '@reduxjs/toolkit'
 import { RootState,AppThunk } from './store'
 import { FsResult,readDirectory,readFile,FsNode,join_with_home} from '../utils/rust-fs-interface';
+import {v4 as uniqueID} from 'uuid';
 
 type SortingOrder = 'name' | 'date' | 'type' | 'size';
 type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
 
+interface Message {
+    id:string,
+    message:string | null
+}
 export interface UniqueTab {
     id:string,
     name:string
@@ -14,8 +19,8 @@ export interface processingSliceState {
     tabNames:string[],//home tabs
     fsNodes:FsNode[] | null,//current files loaded
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
-    error:string | null,//for writing app erros
-    notice:string | null,//for writing app info
+    error:Message//for writing app error
+    notice:Message,//for writing app info
     searchQuery:string | null,//for storing the search query
     isLoading:boolean,//stating whether the app is loading while its doing an app operation
     sortBy:SortingOrder,//sorting order of the files
@@ -27,6 +32,7 @@ const initialState:processingSliceState = {
     tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos','RecycleBin'],
     fsNodes:null,
     selectedFsNodes:null,
+    uniqueError:null,
     error:null,
     notice:null,
     searchQuery:null,
@@ -46,7 +52,7 @@ export const processingSlice = createSlice({
             state.fsNodes = action.payload
         },
         setError(state,action:PayloadAction<string>) {
-            state.error = action.payload;
+            state.error = action.payload + uniqueID();
         },
         setNotice(state,action:PayloadAction<string>) {
             state.notice = action.payload

@@ -199,3 +199,5 @@ toast emmitter is a local change while toast container is a global change to all
 ?i made a toast component that shows a toast everytime an error from the app state changes.to ensure that it pops up on every error,the errors must be unique which will work but the problem is that the same error will only show once until you enter another error and go back to the previous one
 
 ?errors can be handled,transported or both
+
+objects are for centralizing related data into a single variable

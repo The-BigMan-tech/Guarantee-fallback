@@ -18,7 +18,8 @@ export default function Toasts() {
             theme: "dark",
             transition: Bounce,
         }
-        const errorToast = ()=> toast.error(error,error_config)
+        const error_message:string = error?.slice(0,34) || "";
+        const errorToast = ()=> toast.error(error_message,error_config)
         errorToast()
     },[error])
     useEffect(()=>{
