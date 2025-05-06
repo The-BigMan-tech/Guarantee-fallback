@@ -5,7 +5,6 @@ export interface FsPrimaryData {
     nodeName: string,    
     nodePath:string,     
     fileExtension:string | null,
-    content:'files' | 'pending' | string,
     iconPath:string,
 }
 export interface FsMetadata {
@@ -39,29 +38,18 @@ function getFsIcon(fileExtension:string | null):string {
         return ""//path to folder icon
     }
 }
-function getFsContent(fsContent:string | null,hasFileExtension:boolean):string {
-    if (fsContent) {
-        return fsContent
-    }else if  (!(fsContent) && hasFileExtension) {
-        return 'pending'
-    }else {
-        return 'files'
-    }
-}
-async function getFsNode(nodePath:string,fsContent:string | null): Promise<FsNode> {
+async function getFsNode(nodePath:string): Promise<FsNode> {
     const metadata:FsMetadata =  await invoke('fs_stat', {path:nodePath});
     const nodeName:string = await invoke('path_basename', {path:nodePath});
     const fileExtension:string | null = await invoke('path_extname', {path:nodeName})
     const isHidden:boolean = nodeName.startsWith(".");
     const iconPath:string = getFsIcon(fileExtension);
-    const content:string = getFsContent(fsContent,Boolean(fileExtension))
     return {
         primary:{
             nodeType:(fileExtension)?'File':'Folder',
             nodeName,
             nodePath,
             fileExtension,
-            content,
             iconPath
         },
         metadata,
@@ -74,19 +62,18 @@ export async function join_with_home(tabName:string):Promise<string> {
 }
 export async function readDirectory(dirPath:string):Promise<FsResult<FsNode[] | null | Error>> {
     try {
-        const nodePaths:string[] = await invoke('read_dir', { dirPath });
-        const fsNodesPromise = nodePaths.map(async (nodePath) =>await getFsNode(nodePath,null))
+        const fsNodePaths:string[] = await invoke('read_dir', { dirPath });
+        const fsNodesPromise = fsNodePaths.map(async (fsNodePath) =>await getFsNode(fsNodePath))
         const fsNodes: FsNode[] = await Promise.all(fsNodesPromise);
         return (fsNodes.length)?FsResult.Ok(fsNodes):FsResult.Ok(null);
     }catch(error:unknown) {
         return FsResult.Err(error)
     }
 }
-export async function readFile(filePath: string): Promise<FsResult<FsNode | null | Error>> {
+export async function readFile(filePath: string): Promise<FsResult<string | null | Error>> {
     try {
         const content:string = await invoke('read_file', {path:filePath});
-        const fileNode:FsNode = await getFsNode(filePath,content);
-        return (content)?FsResult.Ok(fileNode):FsResult.Ok(null);
+        return (content)?FsResult.Ok(content):FsResult.Ok(null);
     } catch (error: unknown) {
         return FsResult.Err(error);
     }

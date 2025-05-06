@@ -83,6 +83,7 @@ export const selectSortBy = (store:RootState):SortingOrder => store.processing.s
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
 
+//*the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
         const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
@@ -98,17 +99,17 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
         }
     }
 }
-export async function returnFileWithContent(filePath:string):Promise<AppThunk> {//returns the file with its content read
-    return async (dispatch):Promise<FsNode | null> =>{
-        const fileResult:FsResult<FsNode | Error | null>  = await readFile(filePath);
-        if (fileResult.value instanceof Error) {
-            dispatch(setError(fileResult.value.message))
+export async function returnFileContent(filePath:string):Promise<AppThunk> {//returns the file with its content read
+    return async (dispatch):Promise<string | null> =>{
+        const contentResult:FsResult<string | Error | null>  = await readFile(filePath);
+        if (contentResult.value instanceof Error) {
+            dispatch(setError(contentResult.value.message))
             return null
-        }else if (fileResult.value == null) {
+        }else if (contentResult.value == null) {
             dispatch(setNotice("File is empty"))
             return null;
         }else {
-            return fileResult.value
+            return contentResult.value
         }
     }
 }
