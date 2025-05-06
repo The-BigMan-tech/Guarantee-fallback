@@ -94,7 +94,7 @@ export const selectShowDetails = (store:RootState):boolean => store.processing.s
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
-        dispatch(setLoadingMessage(`Loading the directory: ${await base_name(folderPath)}`))
+        dispatch(setLoadingMessage(`Loading the folder: ${await base_name(folderPath)}`))
         const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
         if (dirResult.value instanceof Error) {
             dispatch(setError(`The error:"${dirResult.value.message}" occured while loading the dir: "${folderPath}"`))
