@@ -60,6 +60,9 @@ export async function join_with_home(tabName:string):Promise<string> {
     const path_from_home:string = await invoke('join_with_home', {tabName});
     return path_from_home
 }
+export async function base_name(path:string):Promise<string> {
+    return await invoke('path_basename', {path});
+}
 export async function readDirectory(dirPath:string):Promise<FsResult<FsNode[] | null | Error>> {
     try {
         const fsNodePaths:string[] = await invoke('read_dir', { dirPath });

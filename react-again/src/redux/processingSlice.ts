@@ -1,6 +1,6 @@
 import { createSlice,PayloadAction} from '@reduxjs/toolkit'
 import { RootState,AppThunk } from './store'
-import { FsResult,readDirectory,readFile,FsNode,join_with_home} from '../utils/rust-fs-interface';
+import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name} from '../utils/rust-fs-interface';
 import {v4 as uniqueID} from 'uuid';
 
 export type SortingOrder = 'name' | 'date' | 'type' | 'size';
@@ -21,7 +21,7 @@ export interface processingSliceState {
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
-    loading:string,//stating whether the app is loading while its doing an app operation
+    loadingMessage:Message//for loading messages
     searchQuery:string | null,//for storing the search query
     sortBy:SortingOrder,//sorting order of the files
     viewBy:View,//changes the layout of the folder content
@@ -34,7 +34,7 @@ const initialState:processingSliceState = {
     selectedFsNodes:null,
     error:{id:"",message:null},
     notice:{id:"",message:null},
-    loading:"",
+    loadingMessage:{id:"",message:null},
     searchQuery:null,
     sortBy:'name',
     viewBy:'details',
@@ -58,9 +58,9 @@ export const processingSlice = createSlice({
             state.notice.id = uniqueID();
             state.notice.message = action.payload
         },
-        setLoading(state,action:PayloadAction<string>) {
-            console.log("Loading was called");
-            state.loading = action.payload
+        setLoadingMessage(state,action:PayloadAction<string>) {
+            state.loadingMessage.id = uniqueID();
+            state.loadingMessage.message = action.payload
         },
         setSearchQuery(state,action:PayloadAction<string>) {
             state.searchQuery = action.payload
@@ -77,15 +77,15 @@ export const processingSlice = createSlice({
     },
 })
 export default processingSlice.reducer;
-export const {setCurrentPath,setFsNodes,setError,setNotice,setSearchQuery,setLoading,setSortBy,setView,setShowDetails} = processingSlice.actions;
+export const {setCurrentPath,setFsNodes,setError,setNotice,setLoadingMessage,setSearchQuery,setSortBy,setView,setShowDetails} = processingSlice.actions;
 export const selectCurrentPath = (store:RootState):string => store.processing.currentPath;
 export const selectTabNames = (store:RootState):string[] => store.processing.tabNames;
 export const selectFsNodes = (store:RootState):FsNode[] | null => store.processing.fsNodes;
 export const selectSelectedFsNodes = (store:RootState):FsNode[] | null => store.processing.selectedFsNodes;
 export const selectError = (store:RootState):Message => store.processing.error;
 export const selectNotice = (store:RootState):Message => store.processing.notice;
+export const selectLoadingMessage = (store:RootState):Message => store.processing.loadingMessage;
 export const selectSearchQuery = (store:RootState):string | null => store.processing.searchQuery;
-export const selectLoading = (store:RootState):string => store.processing.loading;
 export const selectSortBy = (store:RootState):SortingOrder => store.processing.sortBy;
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
@@ -94,8 +94,7 @@ export const selectShowDetails = (store:RootState):boolean => store.processing.s
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
-        console.log("called open directory");
-        dispatch(setLoading(`Loading the directory "${folderPath}"`))
+        dispatch(setLoadingMessage(`Loading the directory: ${await base_name(folderPath)}`))
         const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
         if (dirResult.value instanceof Error) {
             dispatch(setError(`The error:"${dirResult.value.message}" occured while loading the dir: "${folderPath}"`))
@@ -111,7 +110,6 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
 }
 export async function returnFileContent(filePath:string):Promise<AppThunk> {//returns the file with its content read
     return async (dispatch):Promise<string | null> =>{
-        dispatch(setLoading("Reading file content"))
         const contentResult:FsResult<string | Error | null>  = await readFile(filePath);
         if (contentResult.value instanceof Error) {
             dispatch(setError(`The error "${contentResult.value.message}" occured when reading the file: "${filePath}"`))
@@ -125,10 +123,10 @@ export async function returnFileContent(filePath:string):Promise<AppThunk> {//re
     }
 }
 export async function openDirectoryFromHome(tabName:string):Promise<AppThunk> {
-    return async ()=> {
-        // dispatch(setError(`testing the error at tab ${tabName}`))
+    return async (dispatch)=> {
+        // dispatch(setNotice(`testing the notice at tab ${tabName}`))
         if (tabName == "Recent") return;
         const folderPath:string = await join_with_home((tabName == "Home")?"":tabName)
-        openDirectoryInApp(folderPath)
+        dispatch(await openDirectoryInApp(folderPath))
     }
 }
