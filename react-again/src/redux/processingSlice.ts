@@ -14,6 +14,10 @@ export interface UniqueTab {
     id:string,
     name:string
 }
+export interface UniqueFsNode {
+    id:string,
+    fsNode:FsNode
+}
 export interface processingSliceState {
     currentPath:string,//as breadcrumbs
     tabNames:string[],//home tabs
