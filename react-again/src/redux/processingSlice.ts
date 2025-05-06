@@ -89,7 +89,16 @@ export const selectSortBy = (store:RootState):SortingOrder => store.processing.s
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
 
-//*the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
+
+export function setLoadingConditionally(isLoading:boolean):AppThunk {
+    return (dispatch,getState)=>{
+        const prev_isLoading:boolean = selectIsLoading(getState())
+        if (prev_isLoading !== isLoading) {
+            dispatch(setIsLoading(isLoading))
+        }
+    }
+}
+//the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
         dispatch(setIsLoading(true))
@@ -102,6 +111,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             const fsNodes:FsNode[] = dirResult.value
             dispatch(setFsNodes(fsNodes));
             dispatch(setCurrentPath(folderPath));
+            dispatch(setIsLoading(false));
             console.log("Files:",fsNodes);
         }
     }
@@ -117,16 +127,18 @@ export async function returnFileContent(filePath:string):Promise<AppThunk> {//re
             dispatch(setNotice(`The following file is empty: ${filePath}`))
             return null;
         }else {
+            dispatch(setIsLoading(false))
             return contentResult.value
         }
     }
 }
 export async function openDirectoryFromHome(tabName:string):Promise<AppThunk> {
     return async (dispatch)=> {
-        dispatch(setError(`testing the error at tab ${tabName}`))
+        // dispatch(setError(`testing the error at tab ${tabName}`))
         dispatch(setIsLoading(true))
         if (tabName == "Recent") return;
         const folderPath:string = await join_with_home((tabName == "Home")?"":tabName)
         openDirectoryInApp(folderPath)
+        dispatch(setIsLoading(false))
     }
 }

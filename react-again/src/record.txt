@@ -203,3 +203,10 @@ toast emmitter is a local change while toast container is a global change to all
 objects are for centralizing related data into a single variable
 
 because the ids are supposed to be unique even for the same message,it has to be recomputed unlike elements in react list components that requires caching for the components to be properly tracked
+
+the loading toast
+type safety,memory safety,runtime safety
+difference between it will not x and it can never x
+notes in my jotter
+difference between safety and security
+builder mindset vs the engineer mindset
