@@ -18,10 +18,15 @@ export interface UniqueFsNode {
     id:string,
     fsNode:FsNode
 }
+interface CachedFolder {
+    path:string,
+    data:FsNode[]
+}
 export interface processingSliceState {
     currentPath:string,//as breadcrumbs
     tabNames:string[],//home tabs
     fsNodes:FsNode[] | null,//current files loaded
+    cache:CachedFolder[],
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
@@ -35,6 +40,7 @@ const initialState:processingSliceState = {
     currentPath:"",
     tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos'],
     fsNodes:null,
+    cache:[],
     selectedFsNodes:null,
     error:{id:"",message:null},//the ids is to ensure that the same error can pop up twice
     notice:{id:"",message:null},
@@ -51,8 +57,11 @@ export const processingSlice = createSlice({
         setCurrentPath(state,action:PayloadAction<string>) {
             state.currentPath = action.payload
         },
-        setFsNodes(state,action:PayloadAction<FsNode[]>) {
+        setFsNodes(state,action:PayloadAction<FsNode[] | null>) {
             state.fsNodes = action.payload
+        },
+        pushCache(state,action:PayloadAction<CachedFolder>) {
+            state.cache.push(action.payload)
         },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
@@ -80,7 +89,7 @@ export const processingSlice = createSlice({
     },
 })
 export default processingSlice.reducer;
-export const {setCurrentPath,setFsNodes,setError,setNotice,setLoadingMessage,setSearchQuery,setSortBy,setView,setShowDetails} = processingSlice.actions;
+export const {setCurrentPath,setFsNodes,pushCache,setError,setNotice,setLoadingMessage,setSearchQuery,setSortBy,setView,setShowDetails} = processingSlice.actions;
 export const selectCurrentPath = (store:RootState):string => store.processing.currentPath;
 export const selectTabNames = (store:RootState):string[] => store.processing.tabNames;
 export const selectFsNodes = (store:RootState):FsNode[] | null => store.processing.fsNodes;
@@ -92,11 +101,21 @@ export const selectSearchQuery = (store:RootState):string | null => store.proces
 export const selectSortBy = (store:RootState):SortingOrder => store.processing.sortBy;
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
+const selectCache = (store:RootState):CachedFolder[] | null =>store.processing.cache;
 
 
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
-    return async (dispatch):Promise<void> =>{
+    return async (dispatch,getState):Promise<void> =>{
+        console.log("Folder path for cached",folderPath);
+        
+        const cache:CachedFolder[] = selectCache(getState()) || [];
+        console.log("Cache: ",cache);
+        for (const cachedFolder of cache) {
+            if (folderPath == cachedFolder.path) {
+                dispatch(setFsNodes(cachedFolder.data))
+            }
+        }
         const folderName = await base_name(folderPath);
         dispatch(setLoadingMessage(`Loading the folder: ${(folderName=="USER")?"Home":folderName}`))
 
@@ -110,6 +129,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setFsNodes(fsNodes));
             dispatch(setCurrentPath(folderPath));
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
+            dispatch(pushCache({path:folderPath,data:fsNodes}))
             console.log("Files:",fsNodes);
         }
     }
@@ -134,7 +154,6 @@ export async function returnFileContent(filePath:string):Promise<AppThunk<Promis
 }
 export async function openDirectoryFromHome(tabName:string):Promise<AppThunk> {
     return async (dispatch)=> {
-        // dispatch(setNotice(`testing the notice at tab ${tabName}`))
         if (tabName == "Recent") return;
         const folderPath:string = await join_with_home((tabName == "Home")?"":tabName)
         dispatch(await openDirectoryInApp(folderPath))

@@ -227,4 +227,8 @@ setup--scaffold your project,a clear architecture,make small of the backend to t
 
 todo:breadcrumbs,right click,file icons,details pane,changing the view and size
 
-updating a state thats also a dependency in a use effect will cause an infinite call to that useEffect.You will want to break down that useEffect in two separate ones to prevent this issue while still retaining the desired intention:One for setting the state and another for reading it.In general,useEffect blocks shouldnt be large so that elements that dont logically depend on its dependencies wont render unnecsessarily.its best to use many use effect blocks that are just small enough to hold dependents than a big one
+updating a state thats also a dependency in a use effect will cause an infinite call to that useEffect.You will want to break down that useEffect in two separate ones to prevent this issue while still retaining the desired intention:One for setting the state and another for reading it.In general,useEffect blocks shouldnt be large so that elements that dont logically depend on its dependencies wont render unnecsessarily.its best to use many use effect blocks that are just small enough to hold dependents than a big one.
+
+*im storing cache data as part of the app state in memory and its only managed by thunks not components.components dont know the cache exxists
+
+bitiwse,unioon and logical or
