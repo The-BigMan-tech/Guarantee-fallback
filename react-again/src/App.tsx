@@ -8,7 +8,7 @@ function App() {
         <div className="flex flex-col h-[100vh] w-[100vw] bg-[#1f1f30] text-white">
             <Toasts/>
             <Top/>
-            <div className="flex w-full h-full items-center">
+            <div className="flex w-full h-full items-center overflow-hidden">
                 <Sidebar/>  
                 <Body/>
             </div>
