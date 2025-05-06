@@ -103,6 +103,8 @@ safe assignment
 
 *arrow functions,props and memoization for child components
 
+*Child components--they are the same but they dont affect the state of their parents directly but rather use wrappers around setters provided by the parent and it should be changed non conditionally
+
 
 ^fs,path and os,win api
 the os module is used to request general os services
@@ -131,29 +133,20 @@ software architecture
 design architecture
 algorithm design
 
-
-
-
+*---------------------------------------------------------------------------------
 implementation,utiilities
 safe interface
 selectors,reducers
 thunks
-components
+components--state getter and setter,sub functions and jsx
+Child components
+
+higher order components
+toast component
 
 custom hooks
 higher order thunks
-
-components
------------
-State getter and setter
-Sub functions--event listeners,class functions,decision makers
-Jsx
-
-Child components--they are the same but they dont affect the state of their parents directly but rather use wrappers around setters provided by the parent and it should be changed non conditionally
-
-higher order components
-
-
+*------------------------------------------------------------------------------------------
 
 app state is global,component state is local
 
@@ -182,3 +175,27 @@ unsafe but protected like for a new unsafe block,a new process is spawned and if
 
 todo:vfs feature that uses a diffing algorithm
 todo:virtual folder
+
+frontend dev--content but exhaustive
+backend dev--content but repetitive
+cyber security--new content generated every day because of emerging threats
+game dev--you can create any thing you can imagine as long as you can code it
+data science programmer--new content because data changes per business
+scientific programmer
+cloud developer
+
+the reason we use state on react instead of local variables for storing data is because components i react are functions and functions are stateless so when they rerender,the variable information gets reset but using state from a state hook ensures that the value persists across rerenders
+
+you can return jsx with or without () because () is for grouping data but since jsx only has a single parent,there is no difference in using it or not but using () allows you to indent it below the return.
+
+for a toast component that notifies the app on an error,define th error in the component and bind it to a use effect that calls the toast function to show the error but you should define the toast function in the use effect hook or it will always cause a rerender.you can define it outside of the hook but it will be more complex as you have to use useCallback to prevent unnecessary rerenders
+
+everything used in a use effect hook thats outside of its definition must be a dependency so that it accurately reflects the current data.if a variable isnt tied to rendering of the hook logically,its better to define it within th euse effec hook to prevent it from being a dependency
+
+*ui configuration to component with set attributes
+
+toast emmitter is a local change while toast container is a global change to all toasts
+
+?i made a toast component that shows a toast everytime an error from the app state changes.to ensure that it pops up on every error,the errors must be unique which will work but the problem is that the same error will only show once until you enter another error and go back to the previous one
+
+?errors can be handled,transported or both

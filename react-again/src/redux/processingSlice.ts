@@ -10,17 +10,17 @@ export interface UniqueTab {
     name:string
 }
 export interface processingSliceState {
-    currentPath:string,
-    tabNames:string[],
-    fsNodes:FsNode[] | null,
-    selectedFsNodes:FsNode[] | null,
-    error:string | null,
-    notice:string | null,
-    searchQuery:string | null,
-    isLoading:boolean,
-    sortBy:SortingOrder,
-    viewBy:View,
-    showDetailsPane:boolean
+    currentPath:string,//as breadcrumbs
+    tabNames:string[],//home tabs
+    fsNodes:FsNode[] | null,//current files loaded
+    selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
+    error:string | null,//for writing app erros
+    notice:string | null,//for writing app info
+    searchQuery:string | null,//for storing the search query
+    isLoading:boolean,//stating whether the app is loading while its doing an app operation
+    sortBy:SortingOrder,//sorting order of the files
+    viewBy:View,//changes the layout of the folder content
+    showDetailsPane:boolean//to show extra details like charts or disk usage
 }
 const initialState:processingSliceState = {
     currentPath:"",
@@ -46,7 +46,7 @@ export const processingSlice = createSlice({
             state.fsNodes = action.payload
         },
         setError(state,action:PayloadAction<string>) {
-            state.error = action.payload
+            state.error = action.payload;
         },
         setNotice(state,action:PayloadAction<string>) {
             state.notice = action.payload
@@ -86,11 +86,12 @@ export const selectShowDetails = (store:RootState):boolean => store.processing.s
 //*the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
+        dispatch(setIsLoading(true))
         const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
         if (dirResult.value instanceof Error) {
-            dispatch(setError(dirResult.value.message))
+            dispatch(setError(`This error:${dirResult.value.message} occured at the dir: ${folderPath}`))
         }else if (dirResult.value == null) {
-            dispatch(setNotice("Directory is empty"));
+            dispatch(setNotice(`The following directory is empty: ${folderPath}`));
         }else {
             const fsNodes:FsNode[] = dirResult.value
             dispatch(setFsNodes(fsNodes));
@@ -101,12 +102,13 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
 }
 export async function returnFileContent(filePath:string):Promise<AppThunk> {//returns the file with its content read
     return async (dispatch):Promise<string | null> =>{
+        dispatch(setIsLoading(true))
         const contentResult:FsResult<string | Error | null>  = await readFile(filePath);
         if (contentResult.value instanceof Error) {
-            dispatch(setError(contentResult.value.message))
+            dispatch(setError(`This error occurred: ${contentResult.value.message} when reading the file: ${filePath}`))
             return null
         }else if (contentResult.value == null) {
-            dispatch(setNotice("File is empty"))
+            dispatch(setNotice(`The following file is empty: ${filePath}`))
             return null;
         }else {
             return contentResult.value
@@ -114,7 +116,9 @@ export async function returnFileContent(filePath:string):Promise<AppThunk> {//re
     }
 }
 export async function openDirectoryFromHome(tabName:string):Promise<AppThunk> {
-    return async ()=> {
+    return async (dispatch)=> {
+        dispatch(setError(`testing the error at tab ${tabName}`))
+        dispatch(setIsLoading(true))
         if (tabName == "Recent") return;
         const folderPath:string = await join_with_home((tabName == "Home")?"":tabName)
         openDirectoryInApp(folderPath)

@@ -20,8 +20,8 @@ export interface FsNode {
     isHidden:boolean
 }
 export class FsResult<T>  {
-    public value:Error | null | T ;
-    constructor(value:Error | null | T) {
+    public value:T ;
+    constructor(value:T) {
         this.value = value
     }
     static Ok<U>(value:U) {
@@ -63,8 +63,8 @@ export async function join_with_home(tabName:string):Promise<string> {
 export async function readDirectory(dirPath:string):Promise<FsResult<FsNode[] | null | Error>> {
     try {
         const fsNodePaths:string[] = await invoke('read_dir', { dirPath });
-        const fsNodesPromise = fsNodePaths.map(async (fsNodePath) =>await getFsNode(fsNodePath))
-        const fsNodes: FsNode[] = await Promise.all(fsNodesPromise);
+        const fsNodesPromise:(Promise<FsNode>)[] = fsNodePaths.map(async (fsNodePath) =>await getFsNode(fsNodePath))
+        const fsNodes:FsNode[] = await Promise.all(fsNodesPromise);
         return (fsNodes.length)?FsResult.Ok(fsNodes):FsResult.Ok(null);
     }catch(error:unknown) {
         return FsResult.Err(error)
