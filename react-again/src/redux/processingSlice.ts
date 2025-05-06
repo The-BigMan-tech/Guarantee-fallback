@@ -32,9 +32,9 @@ const initialState:processingSliceState = {
     tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos','RecycleBin'],
     fsNodes:null,
     selectedFsNodes:null,
-    error:{id:"",message:null},
+    error:{id:"",message:null},//the ids is to ensure that the same error can pop up twice
     notice:{id:"",message:null},
-    loadingMessage:null,
+    loadingMessage:null,//no id here because only one thing can be loaded at a time
     searchQuery:null,
     sortBy:'name',
     viewBy:'details',
@@ -94,7 +94,7 @@ export const selectShowDetails = (store:RootState):boolean => store.processing.s
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
         const folderName = await base_name(folderPath);
-        dispatch(setLoadingMessage(`Loading the folder: ${folderName}`))
+        dispatch(setLoadingMessage(`Loading the folder: ${(folderName=="USER")?"Home":folderName}`))
 
         const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
         if (dirResult.value instanceof Error) {
@@ -105,13 +105,16 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             const fsNodes:FsNode[] = dirResult.value
             dispatch(setFsNodes(fsNodes));
             dispatch(setCurrentPath(folderPath));
-            dispatch(setLoadingMessage(`Done loading: ${folderName}`))
+            dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             console.log("Files:",fsNodes);
         }
     }
 }
 export async function returnFileContent(filePath:string):Promise<AppThunk> {//returns the file with its content read
     return async (dispatch):Promise<string | null> =>{
+        const fileName = await base_name(filePath);
+        dispatch(setLoadingMessage(`Loading the file: ${fileName}`))
+
         const contentResult:FsResult<string | Error | null>  = await readFile(filePath);
         if (contentResult.value instanceof Error) {
             dispatch(setError(`The error "${contentResult.value.message}" occured when reading the file: "${filePath}"`))
@@ -120,6 +123,7 @@ export async function returnFileContent(filePath:string):Promise<AppThunk> {//re
             dispatch(setNotice(`The following file is empty: ${filePath}`))
             return null;
         }else {
+            dispatch(setLoadingMessage(`Done loading: ${fileName}`));
             return contentResult.value
         }
     }
