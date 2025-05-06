@@ -140,3 +140,8 @@ export async function openDirectoryFromHome(tabName:string):Promise<AppThunk> {
         dispatch(await openDirectoryInApp(folderPath))
     }
 }
+export async function openParentInApp():Promise<AppThunk> {
+    return async (dispatch,getState)=>{
+
+    }
+}
