@@ -7,7 +7,12 @@ export default function Body() {
     return (
         <>
             <div className="h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md">
-                <h1 className="mt-10">Hello body</h1>
+                <div className="mt-6">
+                    {fsNodes
+                        ?<div></div>
+                        :<h1>Empty</h1>
+                    }
+                </div>
             </div>
         </>
     )

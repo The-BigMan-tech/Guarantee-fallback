@@ -1,7 +1,7 @@
 import { selectTabNames,UniqueTab,openDirectoryFromHome} from "../../redux/processingSlice"
 import { selector ,useAppDispatch} from "../../redux/hooks"
 import {v4 as uniqueID} from 'uuid'
-import { useState,useMemo } from "react";
+import { useState,useMemo, useEffect } from "react";
 import { Card } from "./card";
 
 
@@ -21,6 +21,9 @@ export default function Sidebar() {
     function clickedClass(tabId:string):string {
         return (clickedTab === tabId)?"bg-[#387de4fa] shadow-md rounded-3xl py-2 w-[90%] font-robot-regular":"py-3.5 w-[30%] font-sans "
     }
+    useEffect(()=>{
+        openDirectoryFromHome("Home").then(thunk=>dispatch(thunk));
+    },[dispatch])
     return (
         <div className="flex flex-col bg-[#1f1f30] h-[100%] w-[12%] border-r border-[#3a3a3a]">
             <div className="flex flex-col mt-10">
