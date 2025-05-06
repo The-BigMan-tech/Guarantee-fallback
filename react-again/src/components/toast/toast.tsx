@@ -1,4 +1,4 @@
-import { ToastContainer, toast,Bounce,ToastOptions} from 'react-toastify';
+import { ToastContainer, toast,Bounce,ToastOptions,Flip, Zoom} from 'react-toastify';
 import { selectError,selectNotice,selectLoadingMessage,Message} from '../../redux/processingSlice';
 import { selector } from '../../redux/hooks';
 import { useEffect, useState} from 'react';
@@ -22,6 +22,7 @@ export default function Toasts() {
         ...toastConfig,
         pauseOnHover:false,
         autoClose:false,
+        transition:Zoom,
         toastId:"loading"
     })
     useEffect(()=>{
@@ -35,11 +36,12 @@ export default function Toasts() {
         }
     },[notice,toastConfig])
     useEffect(()=>{
+        toast.dismiss();//to ensure that only one component shows a loading progress at a time.
         if (loadingMessage !== "Done") {
             toast.loading(loadingMessage,loading_toastConfig)
         }else {
             toast.done("loading")
-            toast.success(loadingMessage,{...toastConfig,autoClose:3000})
+            toast.success(loadingMessage,{...toastConfig,autoClose:3000,transition:Flip})
         }
     },[loadingMessage,toastConfig,loading_toastConfig])
     return <ToastContainer newestOnTop={true}/>
