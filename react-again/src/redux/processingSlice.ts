@@ -114,7 +114,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
         }
     }
 }
-export async function returnFileContent(filePath:string):Promise<AppThunk> {//returns the file with its content read
+export async function returnFileContent(filePath:string):Promise<AppThunk<Promise<string | null>>> {//returns the file with its content read
     return async (dispatch):Promise<string | null> =>{
         const fileName = await base_name(filePath);
         dispatch(setLoadingMessage(`Loading the file: ${fileName}`))
@@ -140,8 +140,21 @@ export async function openDirectoryFromHome(tabName:string):Promise<AppThunk> {
         dispatch(await openDirectoryInApp(folderPath))
     }
 }
+export function getParent():AppThunk<string | Error> {
+    return (_,getState):string | Error =>{
+        let currentPath:string = selectCurrentPath(getState());
+        currentPath = currentPath.slice(0,currentPath.lastIndexOf('\\'));
+        console.log("Parent path: ",currentPath);
+        return currentPath
+    }
+}
 export async function openParentInApp():Promise<AppThunk> {
-    return async (dispatch,getState)=>{
-
+    return async (dispatch)=>{
+        const parentPathResult:string | Error = await dispatch(getParent());
+        if (parentPathResult instanceof Error) {
+            dispatch(setError(parentPathResult.message))
+        }else {
+            dispatch(await openDirectoryInApp(parentPathResult))
+        }
     }
 }

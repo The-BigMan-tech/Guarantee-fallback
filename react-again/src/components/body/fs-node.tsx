@@ -22,7 +22,7 @@ export default function FsNodeComponent(props:{key:string,fsNode:FsNode}) {
         }
     }
     return (
-        <button key={props.key} onClick={()=>openFolder(props.fsNode)} className="flex flex-col items-center justify-center gap-2 cursor-pointer">
+        <button key={props.key} onDoubleClick={()=>openFolder(props.fsNode)} className="flex flex-col items-center justify-center gap-2 cursor-pointer">
             <img className={`${fixIconSize(props.fsNode.primary.iconPath)}`} src={`./assets/file-icons/${props.fsNode.primary.iconPath}`} alt="" />
             <h1 className="text-sm font-sans mb-5">{truncateName(props.fsNode.primary.nodeName)}</h1>
         </button>

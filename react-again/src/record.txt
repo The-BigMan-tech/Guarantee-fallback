@@ -222,3 +222,5 @@ even though thunks look like regular functions,they can only be called by dispat
 setup--scaffold your project,a clear architecture,make small of the backend to think of your app in terms of functionality,make small of the ui to think of the app in terms of user interactivity.use that mindset to finish setting up the framework of the backend.so that when you go back to the ui,you can easily add features to the backend and connect your ui to it.the backend may not be finished at this stage just enough for you to have a structure of what you are building
 
 ^vscode tabgroups
+
+*the thunks can also perform file system operations on the app level by leveraging other thunks
