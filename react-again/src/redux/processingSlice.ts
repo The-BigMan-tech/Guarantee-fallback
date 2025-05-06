@@ -77,7 +77,6 @@ export const processingSlice = createSlice({
 })
 export default processingSlice.reducer;
 export const {setCurrentPath,setFsNodes,setError,setNotice,setSearchQuery,setIsLoading,setSortBy,setView,setShowDetails} = processingSlice.actions;
-
 export const selectCurrentPath = (store:RootState):string => store.processing.currentPath;
 export const selectTabNames = (store:RootState):string[] => store.processing.tabNames;
 export const selectFsNodes = (store:RootState):FsNode[] | null => store.processing.fsNodes;
