@@ -6,7 +6,7 @@ import { useEffect, useState} from 'react';
 export default function Toasts() {
     const error:Message = selector(store=>selectError(store));
     const notice:Message = selector(store=>selectNotice(store));
-    const loadingMessage:string | null = selector(store=>selectLoadingMessage(store));
+    const loadingMessage:string = selector(store=>selectLoadingMessage(store)) || "";
     const [toastConfig] = useState<ToastOptions>({
         position: "top-right",
         autoClose: 5000,
@@ -36,12 +36,14 @@ export default function Toasts() {
         }
     },[notice,toastConfig])
     useEffect(()=>{
-        toast.dismiss();//to ensure that only one component shows a loading progress at a time.
-        if (loadingMessage !== "Done") {
-            toast.loading(loadingMessage,loading_toastConfig)
-        }else {
-            toast.done("loading")
-            toast.success(loadingMessage,{...toastConfig,autoClose:3000,transition:Flip})
+        if (loadingMessage) {
+            toast.dismiss();//to ensure that only one component shows a loading progress at a time.
+            if (!(loadingMessage.trim().startsWith("Done"))) {
+                toast.loading(loadingMessage,loading_toastConfig)
+            }else {
+                toast.done("loading")
+                toast.success(loadingMessage,{...toastConfig,autoClose:3000,transition:Flip})
+            }
         }
     },[loadingMessage,toastConfig,loading_toastConfig])
     return <ToastContainer newestOnTop={true}/>

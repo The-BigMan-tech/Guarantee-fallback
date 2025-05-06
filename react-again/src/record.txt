@@ -216,3 +216,5 @@ even though thunks look like regular functions,they can only be called by dispat
 *error transports---log files,console,toasts
 *safe interface,centralized error management,transport layer
 *capturing the error,handling the error,shipping the error
+
+*compile time errors,runtime errors,logic errors
