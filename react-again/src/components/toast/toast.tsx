@@ -1,12 +1,12 @@
 import { ToastContainer, toast,Bounce,ToastOptions } from 'react-toastify';
-import { selectError,selectNotice,selectIsLoading,Message} from '../../redux/processingSlice';
+import { selectError,selectNotice,selectLoading,Message} from '../../redux/processingSlice';
 import { selector } from '../../redux/hooks';
 import { useEffect } from 'react';
 
 export default function Toasts() {
     const error:Message = selector(store=>selectError(store));
     const notice:Message = selector(store=>selectNotice(store));
-    const isLoading:boolean = selector(store=>selectIsLoading(store));
+    const loading:string = selector(store=>selectLoading(store));
     useEffect(()=>{
         const error_config:ToastOptions = {
             position: "top-right",
@@ -49,8 +49,8 @@ export default function Toasts() {
             theme: "dark",
             transition: Bounce,
         }
-        const loadingToast = ()=>toast("Loading...",loading_config);
-        loadingToast()
-    },[isLoading])
+        const loadingToast = ()=>toast(loading,loading_config);
+        loadingToast();
+    },[loading])
     return <ToastContainer/>
 }

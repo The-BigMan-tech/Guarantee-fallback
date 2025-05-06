@@ -210,3 +210,5 @@ difference between it will not x and it can never x
 notes in my jotter
 difference between safety and security
 builder mindset vs the engineer mindset
+
+

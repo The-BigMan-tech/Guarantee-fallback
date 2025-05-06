@@ -21,8 +21,8 @@ export interface processingSliceState {
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
+    loading:string,//stating whether the app is loading while its doing an app operation
     searchQuery:string | null,//for storing the search query
-    isLoading:boolean,//stating whether the app is loading while its doing an app operation
     sortBy:SortingOrder,//sorting order of the files
     viewBy:View,//changes the layout of the folder content
     showDetailsPane:boolean//to show extra details like charts or disk usage
@@ -34,8 +34,8 @@ const initialState:processingSliceState = {
     selectedFsNodes:null,
     error:{id:"",message:null},
     notice:{id:"",message:null},
+    loading:"",
     searchQuery:null,
-    isLoading:false,
     sortBy:'name',
     viewBy:'details',
     showDetailsPane:true
@@ -58,11 +58,12 @@ export const processingSlice = createSlice({
             state.notice.id = uniqueID();
             state.notice.message = action.payload
         },
+        setLoading(state,action:PayloadAction<string>) {
+            console.log("Loading was called");
+            state.loading = action.payload
+        },
         setSearchQuery(state,action:PayloadAction<string>) {
             state.searchQuery = action.payload
-        },
-        setIsLoading(state,action:PayloadAction<boolean>) {
-            state.isLoading = action.payload
         },
         setSortBy(state,action:PayloadAction<SortingOrder>) {
             state.sortBy = action.payload
@@ -76,7 +77,7 @@ export const processingSlice = createSlice({
     },
 })
 export default processingSlice.reducer;
-export const {setCurrentPath,setFsNodes,setError,setNotice,setSearchQuery,setIsLoading,setSortBy,setView,setShowDetails} = processingSlice.actions;
+export const {setCurrentPath,setFsNodes,setError,setNotice,setSearchQuery,setLoading,setSortBy,setView,setShowDetails} = processingSlice.actions;
 export const selectCurrentPath = (store:RootState):string => store.processing.currentPath;
 export const selectTabNames = (store:RootState):string[] => store.processing.tabNames;
 export const selectFsNodes = (store:RootState):FsNode[] | null => store.processing.fsNodes;
@@ -84,61 +85,50 @@ export const selectSelectedFsNodes = (store:RootState):FsNode[] | null => store.
 export const selectError = (store:RootState):Message => store.processing.error;
 export const selectNotice = (store:RootState):Message => store.processing.notice;
 export const selectSearchQuery = (store:RootState):string | null => store.processing.searchQuery;
-export const selectIsLoading = (store:RootState):boolean => store.processing.isLoading;
+export const selectLoading = (store:RootState):string => store.processing.loading;
 export const selectSortBy = (store:RootState):SortingOrder => store.processing.sortBy;
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
 
 
-export function setLoadingConditionally(isLoading:boolean):AppThunk {
-    return (dispatch,getState)=>{
-        const prev_isLoading:boolean = selectIsLoading(getState())
-        if (prev_isLoading !== isLoading) {
-            dispatch(setIsLoading(isLoading))
-        }
-    }
-}
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
-        dispatch(setIsLoading(true))
+        console.log("called open directory");
+        dispatch(setLoading(`Loading the directory "${folderPath}"`))
         const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
         if (dirResult.value instanceof Error) {
-            dispatch(setError(`This error:${dirResult.value.message} occured at the dir: ${folderPath}`))
+            dispatch(setError(`The error:"${dirResult.value.message}" occured while loading the dir: "${folderPath}"`))
         }else if (dirResult.value == null) {
-            dispatch(setNotice(`The following directory is empty: ${folderPath}`));
+            dispatch(setNotice(`The following directory is empty: "${folderPath}"`));
         }else {
             const fsNodes:FsNode[] = dirResult.value
             dispatch(setFsNodes(fsNodes));
             dispatch(setCurrentPath(folderPath));
-            dispatch(setIsLoading(false));
             console.log("Files:",fsNodes);
         }
     }
 }
 export async function returnFileContent(filePath:string):Promise<AppThunk> {//returns the file with its content read
     return async (dispatch):Promise<string | null> =>{
-        dispatch(setIsLoading(true))
+        dispatch(setLoading("Reading file content"))
         const contentResult:FsResult<string | Error | null>  = await readFile(filePath);
         if (contentResult.value instanceof Error) {
-            dispatch(setError(`This error occurred: ${contentResult.value.message} when reading the file: ${filePath}`))
+            dispatch(setError(`The error "${contentResult.value.message}" occured when reading the file: "${filePath}"`))
             return null
         }else if (contentResult.value == null) {
             dispatch(setNotice(`The following file is empty: ${filePath}`))
             return null;
         }else {
-            dispatch(setIsLoading(false))
             return contentResult.value
         }
     }
 }
 export async function openDirectoryFromHome(tabName:string):Promise<AppThunk> {
-    return async (dispatch)=> {
+    return async ()=> {
         // dispatch(setError(`testing the error at tab ${tabName}`))
-        dispatch(setIsLoading(true))
         if (tabName == "Recent") return;
         const folderPath:string = await join_with_home((tabName == "Home")?"":tabName)
         openDirectoryInApp(folderPath)
-        dispatch(setIsLoading(false))
     }
 }
