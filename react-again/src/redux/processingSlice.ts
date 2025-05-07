@@ -3,9 +3,11 @@ import { RootState,AppThunk } from './store'
 import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name} from '../utils/rust-fs-interface';
 import {v4 as uniqueID} from 'uuid';
 
-type strictTabsType = 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos';
+type CachingState = 'pending' | 'success';
+type StrictTabsType = 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos';
 export type SortingOrder = 'name' | 'date' | 'type' | 'size';
 export type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
+
 export interface Message {
     id:string,
     message:string | null
@@ -27,6 +29,7 @@ export interface processingSliceState {//by using null unions instead of optiona
     tabNames:string[],//home tabs
     fsNodes:FsNode[] | null,//current files loaded
     cache:CachedFolder[],
+    aheadCachingState:CachingState
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
@@ -43,6 +46,7 @@ const initialState:processingSliceState = {
     tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos'],//Home and recent are only local to sidebar cuz there is no dir named home and recent on the fs
     fsNodes:null,
     cache:[],
+    aheadCachingState:'pending',
     selectedFsNodes:null,
     error:{id:"",message:null},//the ids is to ensure that the same error can pop up twice
     notice:{id:"",message:null},
@@ -72,6 +76,9 @@ export const processingSlice = createSlice({
         },
         shiftCache(state) {
             state.cache.shift()
+        },
+        setAheadCachingState(state,action:PayloadAction<CachingState>) {
+            state.aheadCachingState = action.payload
         },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
@@ -106,6 +113,7 @@ export const {
     pushToCache,
     replaceInCache,
     shiftCache,
+    setAheadCachingState,
     setError,
     setNotice,
     setLoadingMessage,
@@ -129,6 +137,7 @@ export const selectSortBy = (store:RootState):SortingOrder => store.processing.s
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
 const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
+const selectAheadCachingState = (store:RootState):CachingState => store.processing.aheadCachingState
 
 
 export async function returnFileContent(filePath:string):Promise<AppThunk<Promise<string | null>>> {//returns the file with its content read
@@ -171,6 +180,7 @@ function addToCache(data:CachedFolder):AppThunk {
                 console.log("Cache length is greater than 3");
                 dispatch(shiftCache())
             }
+            data.data.slice(0,101)//ensures that only a 100 fsnodes are stored in the cache
             dispatch(pushToCache(data))
         }
         console.log("Cache: ",appCache);
@@ -187,13 +197,15 @@ function openCachedDirInApp(folderPath:string):AppThunk {
         }
     }
 }
-export async function cacheAheadOfTime(tabName:strictTabsType):Promise<AppThunk>{
+export async function cacheAheadOfTime(tabName:StrictTabsType):Promise<AppThunk>{
     return async (dispatch)=>{
+        setAheadCachingState('pending')
         const folderPath = await join_with_home(tabName);
         const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
         if (!(dirResult.value instanceof Error) && (dirResult.value !== null)) {//i only care about the success case here because the operation was initiated by the app and not the user and its not required to succeed for the user to progress with the app
             const fsNodes:FsNode[] = dirResult.value;
             dispatch(addToCache({path:folderPath,data:fsNodes}));
+            setAheadCachingState('success')
         }
     }
 }
@@ -201,6 +213,8 @@ export async function cacheAheadOfTime(tabName:strictTabsType):Promise<AppThunk>
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch,getState):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
+        const aheadCachingState = selectAheadCachingState(getState());
+        console.log("State of ahead of time caching",aheadCachingState);
         //[] array means its loading not that its empty
         dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading to not look laggy
         dispatch(openCachedDirInApp(folderPath));//opens the cached dir in app in the meantime if any
@@ -222,12 +236,13 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setFsNodes(fsNodes));//opens the loaded dir as soon its done being processed
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             const tabNames:Set<string> = new Set(selectTabNames(getState()))
-            if (!(tabNames.has(folderName))) {//only caches the folder if it hasnt been attempted to be cached ahead of time and all the home tabs are cached ahead of time
+            if (!(tabNames.has(folderName)) || (aheadCachingState === "success")) {//only caches the folder if it hasnt been attempted to be cached ahead of time and all the home tabs are cached ahead of time
                 console.log("cached tab",folderName);
                 dispatch(addToCache({path:folderPath,data:fsNodes}));//performs caching while the user can interact with the dir in the app
             }
             console.log("Files:",fsNodes);
         }
+        //just ignore this.ive chosen to accept it
         // dispatch(setLoadingMessage(null))//to clear the loading message so that the unfreeze state resets back to false after an operation has finished loaded
     }
 }

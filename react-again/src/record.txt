@@ -146,7 +146,7 @@ toast component
 
 custom hooks
 higher order thunks
-cache utility
+cache utility--normal caching and ahead of time caching
 app.tsx for setting up the app on startup using useEffects.like opening a tab on startup and caching specific folders ahead of time
 *------------------------------------------------------------------------------------------
 
@@ -284,12 +284,16 @@ the name cacheAheadoftime is by its context or use case not that it caches ahead
 debouncing prevents unnecessary caching attempts.debouncing made the ahead of time caching faster than when it didnt have it because caching the home tabs can be skipped by the app when the users rapidly switch between tabs on app startup.Also,the thunk only caches one tab ahead of time so its in the app.tsx file that ill decide the order in which they will be dispathed.By making the thunk to only cache one at a time,i can configure the order later and prevent all of them to be in one big promise waiting to be resolved at the same time but instead in smaller promises.
 
 
-todo:but the problem is that caching needs to happen subsequently on every user click after the app has started so it should only skip it once but mine skips it unconditionally.so i have to use state to keep track of whether the aoc caching is successful and finished.so it will be pending | succeeded | failed.failed because the dir can be missing
-
-todo:caching them serially instead of all at once
-
 the pattern where the tabs are cached ahead of time sequentially automatically prevents the need for a throttle because opendir runs only after all the cachedaheadoftime functions because open dir awaits twice midway while the others only await once meaning that the app wont show the home tab till all the other tabs are cached ahead of time even though i placed openhome first.opendirinapp already caches the tab for me if it isnt being cached by the aheadoftime function so everything sorts out.So when i open the app,it starts at the home page and loads but while its loading that,the other tabs will be cached unlike where i did everything all at once under thunk where even after the home page loads,some may still be under caching.The only thing now is to ensure that the app remains uninteractive till the home page loads.
 
 its better to break async tasks that repeat tasks into independent async tasks so that they can be managed effectively
 
 so not only is the caching ahead of time but just in time meaning that once the home page loads,everything that was cached ahead of time is guaranteed to be cached.the feature where the other tabs are cached as soon as the home tab loads created itself out of the fact that the caching operations are async and separate
+
+todo:but the problem is that caching needs to happen subsequently on every user click after the app has started so it should only skip it once but mine skips it unconditionally.so i have to use state to keep track of whether the aoc caching is successful and finished.so it will be pending | succeeded | failed.failed because the dir can be missing.another reason for having this state is error.
+
+todo:freeze the ui on ahead of time caching
+
+todo:The cache is limited by instances but the individual fs nodes can vary so i have to also limit that
+
+todo:i have to serialize and deserialize the cache
