@@ -232,3 +232,12 @@ updating a state thats also a dependency in a use effect will cause an infinite 
 *im storing cache data as part of the app state in memory and its only managed by thunks not components.components dont know the cache exxists
 
 bitiwse,unioon and logical or
+
+push,pop
+unshift,shift
+indexing for replacing
+splice for inserting,deleting or replacing at any index
+
+freeze the ui on loading
+
+the asynchronous nature of the openInApp thunk is the reason why i dont see the results of the dir operation as soon as i opened it in the app but until i open another one even when i read the data only after performing an operation on it.

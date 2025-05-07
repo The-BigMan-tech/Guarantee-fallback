@@ -60,8 +60,14 @@ export const processingSlice = createSlice({
         setFsNodes(state,action:PayloadAction<FsNode[] | null>) {
             state.fsNodes = action.payload
         },
-        pushCache(state,action:PayloadAction<CachedFolder>) {
+        pushToCache(state,action:PayloadAction<CachedFolder>) {
             state.cache.push(action.payload)
+        },
+        replaceInCache(state,action:PayloadAction<{index:number,data:CachedFolder}>) {
+            state.cache[action.payload.index] = action.payload.data
+        },
+        shiftCache(state) {
+            state.cache.shift()
         },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
@@ -89,7 +95,7 @@ export const processingSlice = createSlice({
     },
 })
 export default processingSlice.reducer;
-export const {setCurrentPath,setFsNodes,pushCache,setError,setNotice,setLoadingMessage,setSearchQuery,setSortBy,setView,setShowDetails} = processingSlice.actions;
+export const {setCurrentPath,setFsNodes,pushToCache,replaceInCache,shiftCache,setError,setNotice,setLoadingMessage,setSearchQuery,setSortBy,setView,setShowDetails} = processingSlice.actions;
 export const selectCurrentPath = (store:RootState):string => store.processing.currentPath;
 export const selectTabNames = (store:RootState):string[] => store.processing.tabNames;
 export const selectFsNodes = (store:RootState):FsNode[] | null => store.processing.fsNodes;
@@ -101,16 +107,30 @@ export const selectSearchQuery = (store:RootState):string | null => store.proces
 export const selectSortBy = (store:RootState):SortingOrder => store.processing.sortBy;
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
-const selectCache = (store:RootState):CachedFolder[] | null =>store.processing.cache;
+const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
 
-
+function addToCache(data:CachedFolder):AppThunk {
+    return (dispatch,getState)=>{
+        const appCache = selectCache(getState());
+        const cachedPaths:string[] = appCache.map(folder=>folder.path);
+        const existingCacheIndex = cachedPaths.indexOf(data.path);
+        if (existingCacheIndex !== -1) {
+            console.log(data.path,"Cache already exists at index",existingCacheIndex);
+            dispatch(replaceInCache({index:existingCacheIndex,data}))
+        }else {
+            if (appCache.length > 10) {
+                dispatch(shiftCache())
+            }
+            dispatch(pushToCache(data))
+        }
+    }
+}
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch,getState):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
-        
-        const cache:CachedFolder[] = selectCache(getState()) || [];
-        console.log("Cache: ",cache);
+        dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading
+        const cache:CachedFolder[] = selectCache(getState());
         for (const cachedFolder of cache) {
             if (folderPath == cachedFolder.path) {
                 dispatch(setFsNodes(cachedFolder.data))
@@ -129,7 +149,8 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setFsNodes(fsNodes));
             dispatch(setCurrentPath(folderPath));
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
-            dispatch(pushCache({path:folderPath,data:fsNodes}))
+            dispatch(addToCache({path:folderPath,data:fsNodes}));
+            console.log("Cache: ",cache);
             console.log("Files:",fsNodes);
         }
     }

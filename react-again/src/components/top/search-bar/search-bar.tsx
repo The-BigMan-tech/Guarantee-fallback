@@ -16,7 +16,7 @@ export default function SearchBar() {
         const pathName = currentPath.slice(currentPath.lastIndexOf("\\") + 1);
         console.log("Path name",pathName);
         console.log("Tab names",tabNames,"included?",pathName in tabNames);
-        if (tabNames.has(pathName)) {
+        if (tabNames.has(pathName) || (pathName == "")) {
             return false
         }
         return true
