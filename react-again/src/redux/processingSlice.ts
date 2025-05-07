@@ -3,9 +3,9 @@ import { RootState,AppThunk } from './store'
 import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name} from '../utils/rust-fs-interface';
 import {v4 as uniqueID} from 'uuid';
 
+
 export type SortingOrder = 'name' | 'date' | 'type' | 'size';
 export type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
-
 export interface Message {
     id:string,
     message:string | null
@@ -36,6 +36,8 @@ export interface processingSliceState {
     viewBy:View,//changes the layout of the folder content
     showDetailsPane:boolean//to show extra details like charts or disk usage
 }
+
+
 const initialState:processingSliceState = {
     currentPath:"",
     tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos'],
@@ -50,6 +52,8 @@ const initialState:processingSliceState = {
     viewBy:'details',
     showDetailsPane:true
 }
+
+
 export const processingSlice = createSlice({
     name: 'processing',
     initialState,
@@ -94,8 +98,25 @@ export const processingSlice = createSlice({
         }
     },
 })
+
+
+export const {
+    setCurrentPath,
+    setFsNodes,
+    pushToCache,
+    replaceInCache,
+    shiftCache,
+    setError,
+    setNotice,
+    setLoadingMessage,
+    setSearchQuery,
+    setSortBy,
+    setView,
+    setShowDetails
+} = processingSlice.actions;
+
+
 export default processingSlice.reducer;
-export const {setCurrentPath,setFsNodes,pushToCache,replaceInCache,shiftCache,setError,setNotice,setLoadingMessage,setSearchQuery,setSortBy,setView,setShowDetails} = processingSlice.actions;
 export const selectCurrentPath = (store:RootState):string => store.processing.currentPath;
 export const selectTabNames = (store:RootState):string[] => store.processing.tabNames;
 export const selectFsNodes = (store:RootState):FsNode[] | null => store.processing.fsNodes;
@@ -144,7 +165,7 @@ function addToCache(data:CachedFolder):AppThunk {
             console.log(data.path,"Cache already exists at index",existingCacheIndex);
             dispatch(replaceInCache({index:existingCacheIndex,data}))
         }else {
-            if (appCache.length > 10) {
+            if (appCache.length > 3) {
                 dispatch(shiftCache())
             }
             dispatch(pushToCache(data))
@@ -158,30 +179,30 @@ function openCachedDirInApp(folderPath:string):AppThunk {
             if (folderPath == cachedFolder.path) {
                 dispatch(setFsNodes(cachedFolder.data))
             }
-            console.log("Cache: ",cache);
         }
+        console.log("Cache: ",cache);
     }
 }
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
-        dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading
-        openCachedDirInApp(folderPath);
+        dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading to not look laggy
+        openCachedDirInApp(folderPath);//opens the cached dir in app in the meantime if any
 
         const folderName = await base_name(folderPath);
         dispatch(setLoadingMessage(`Loading the folder: ${(folderName=="USER")?"Home":folderName}`))
-        const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
+        const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);//its fast because it doesnt load the file content
         if (dirResult.value instanceof Error) {
             dispatch(setError(`The error:"${dirResult.value.message}" occured while loading the dir: "${folderPath}"`))
         }else if (dirResult.value == null) {
             dispatch(setNotice(`The following directory is empty: "${folderPath}"`));
         }else {
             const fsNodes:FsNode[] = dirResult.value
-            dispatch(setFsNodes(fsNodes));
+            dispatch(setFsNodes(fsNodes));//opens the loaded dir as soon its done being processed
             dispatch(setCurrentPath(folderPath));
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
-            dispatch(addToCache({path:folderPath,data:fsNodes}));
+            dispatch(addToCache({path:folderPath,data:fsNodes}));//performs caching while the user can interact with the dir in the app
             console.log("Files:",fsNodes);
         }
     }
