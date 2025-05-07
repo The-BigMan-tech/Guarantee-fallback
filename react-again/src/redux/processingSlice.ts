@@ -22,7 +22,7 @@ interface CachedFolder {
     path:string,
     data:FsNode[]
 }
-export interface processingSliceState {
+export interface processingSliceState {//by using null unions instead of optional types,i ensure that my app doesnt accidenteally worked with an undefined value
     currentPath:string,//as breadcrumbs
     tabNames:string[],//home tabs
     fsNodes:FsNode[] | null,//current files loaded
@@ -205,7 +205,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
         }else if (dirResult.value == null) {
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             dispatch(setNotice(`The following directory is empty: "${folderPath}"`));
-            dispatch(setFsNodes(null))
+            dispatch(setFsNodes(null))//null fs nodes then means its empty
         }else {
             const fsNodes:FsNode[] = dirResult.value
             dispatch(setFsNodes(fsNodes));//opens the loaded dir as soon its done being processed
@@ -213,6 +213,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(addToCache({path:folderPath,data:fsNodes}));//performs caching while the user can interact with the dir in the app
             console.log("Files:",fsNodes);
         }
+        // dispatch(setLoadingMessage(null))//to clear the loading message so that the unfreeze state resets back to false after an operation has finished loaded
     }
 }
 export async function openParentInApp():Promise<AppThunk> {

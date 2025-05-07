@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 
 export default function FsNodeComponent(props:{fsNode:FsNode}) {
     const dispatch = useAppDispatch();
-    const loadingMessage:string = selector(store=>selectLoadingMessage(store)) || "";
-    const [shouldFreeze,setShouldFreeze] = useState<boolean>(true);
+    const loadingMessage:string  = selector(store=>selectLoadingMessage(store)) || "";
+    const [shouldUnFreeze,setShouldUnFreeze] = useState<boolean>(false);
 
     function truncateName(name:string):string {
         return (name.length < 16)?name:`${name.slice(0,16)}...`
@@ -21,22 +21,22 @@ export default function FsNodeComponent(props:{fsNode:FsNode}) {
         }
     }
     async function openFolder(fsNode:FsNode):Promise<void> {
-        if (!(shouldFreeze)) {
+        if (shouldUnFreeze) {
             if (fsNode.primary.nodeType == "Folder") {
                 dispatch(await openDirectoryInApp(fsNode.primary.nodePath))
             }
             return
         }
     }
-    function freezeClass():string {
-        return (shouldFreeze)?"opacity-30":"cursor-pointer"
+    function unFreezeClass():string {
+        return (shouldUnFreeze)?"opacity-100 cursor-pointer":""
     }
     useEffect(()=>{
-        setShouldFreeze(loadingMessage.trim().toLowerCase().startsWith("loading"))
-        console.log("should freeze ui",shouldFreeze);
-    },[loadingMessage,shouldFreeze])
+        setShouldUnFreeze(!(loadingMessage.trim().toLowerCase().startsWith("loading")))
+        console.log("should Unfreeze ui",shouldUnFreeze);
+    },[loadingMessage,shouldUnFreeze])
     return (
-        <button onDoubleClick={()=>openFolder(props.fsNode)} className={`flex flex-col items-center justify-center gap-2 ${freezeClass()}`}>
+        <button onDoubleClick={()=>openFolder(props.fsNode)} className={`flex flex-col items-center justify-center gap-2 opacity-30 ${unFreezeClass()}`}>
             <img className={`${fixIconSize(props.fsNode.primary.iconPath)}`} src={`./assets/file-icons/${props.fsNode.primary.iconPath}`} alt="" />
             <h1 className="text-sm font-sans mb-5">{truncateName(props.fsNode.primary.nodeName)}</h1>
         </button>
