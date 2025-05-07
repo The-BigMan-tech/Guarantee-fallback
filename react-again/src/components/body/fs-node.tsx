@@ -37,8 +37,7 @@ export default function FsNodeComponent(props:{fsNode:FsNode}) {
 
     useEffect(()=>{//todo:its re-rendering unnecessarily.fix it
         console.log("should Unfreeze ui",shouldUnFreeze);
-        console.log("Loading message",loadingMessage);
-    },[shouldUnFreeze,loadingMessage])
+    },[shouldUnFreeze])
 
     return (
         <button onDoubleClick={()=>openFolder(props.fsNode)} className={`flex flex-col items-center justify-center gap-2 opacity-30 ${unFreezeClass()}`}>
