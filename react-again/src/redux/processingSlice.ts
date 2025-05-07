@@ -136,8 +136,8 @@ export const selectSearchQuery = (store:RootState):string | null => store.proces
 export const selectSortBy = (store:RootState):SortingOrder => store.processing.sortBy;
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
+export const selectAheadCachingState = (store:RootState):CachingState => store.processing.aheadCachingState;
 const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
-const selectAheadCachingState = (store:RootState):CachingState => store.processing.aheadCachingState
 
 
 export async function returnFileContent(filePath:string):Promise<AppThunk<Promise<string | null>>> {//returns the file with its content read
@@ -197,15 +197,16 @@ function openCachedDirInApp(folderPath:string):AppThunk {
         }
     }
 }
-export async function cacheAheadOfTime(tabName:StrictTabsType):Promise<AppThunk>{
+export async function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean):Promise<AppThunk>{
     return async (dispatch)=>{
-        dispatch(setAheadCachingState('pending'))
         const folderPath = await join_with_home(tabName);
         const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
         if (!(dirResult.value instanceof Error) && (dirResult.value !== null)) {//i only care about the success case here because the operation was initiated by the app and not the user and its not required to succeed for the user to progress with the app
             const fsNodes:FsNode[] = dirResult.value;
             dispatch(addToCache({path:folderPath,data:fsNodes}));
-            dispatch(setAheadCachingState('success'))
+            if (isLast) {
+                dispatch(setAheadCachingState('success'))
+            }
         }
     }
 }
@@ -234,7 +235,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setFsNodes(fsNodes));//opens the loaded dir as soon its done being processed
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
 
-            const aheadCachingState = selectAheadCachingState(getState());
+            const aheadCachingState = selectAheadCachingState(getState());//dont move this from this block.it wont work.it has to be under the two awaits so that it gets loaded after the other thunks have been dispatched
             const tabNames:Set<string> = new Set(selectTabNames(getState()))
             console.log("State of ahead of time caching",aheadCachingState);
             if (!(tabNames.has(folderName)) || (aheadCachingState === "success")) {//only caches the folder if it hasnt been attempted to be cached ahead of time and all the home tabs are cached ahead of time

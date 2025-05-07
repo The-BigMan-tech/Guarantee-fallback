@@ -19,10 +19,10 @@ export default function Body() {
                             </div>
                         )}
                     </div>
-                    :<div>
+                    :<div className="self-center justify-self-center relative top-[40vh] text-2xl font-[Consolas]">
                         {uniqueFsNodes?.length == 0//if its still loading/if the list variable is an empty array,
-                            ?<h1 className="self-center justify-self-center relative top-[40vh] text-2xl font-[Consolas]">Loading content...</h1>
-                            :<h1 className="self-center justify-self-center relative top-[40vh] text-2xl font-[Consolas]">There is no content</h1>//if it loaded but its empty/if the list variable is null
+                            ?<h1>Loading content...</h1>
+                            :<h1>There is no content</h1>//if it loaded but its empty/if the list variable is null
                         }
                     </div>
                 }
