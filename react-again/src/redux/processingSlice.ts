@@ -158,6 +158,7 @@ function getParent():AppThunk<string> {
 }
 function addToCache(data:CachedFolder):AppThunk {
     return (dispatch,getState)=>{
+        console.log("Called add to cache");
         const appCache = selectCache(getState());
         const cachedPaths:string[] = appCache.map(folder=>folder.path);
         const existingCacheIndex = cachedPaths.indexOf(data.path);
@@ -166,21 +167,23 @@ function addToCache(data:CachedFolder):AppThunk {
             dispatch(replaceInCache({index:existingCacheIndex,data}))
         }else {
             if (appCache.length > 3) {
+                console.log("Cache length is greater than 3");
                 dispatch(shiftCache())
             }
             dispatch(pushToCache(data))
         }
+        console.log("Cache: ",appCache);
     }
 }
 function openCachedDirInApp(folderPath:string):AppThunk {
     return (dispatch,getState)=>{
+        console.log("called open dir in app");
         const cache:CachedFolder[] = selectCache(getState());
         for (const cachedFolder of cache) {
             if (folderPath == cachedFolder.path) {
                 dispatch(setFsNodes(cachedFolder.data))
             }
         }
-        console.log("Cache: ",cache);
     }
 }
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
@@ -188,7 +191,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
         dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading to not look laggy
-        openCachedDirInApp(folderPath);//opens the cached dir in app in the meantime if any
+        dispatch(openCachedDirInApp(folderPath));//opens the cached dir in app in the meantime if any
 
         const folderName = await base_name(folderPath);
         dispatch(setLoadingMessage(`Loading the folder: ${(folderName=="USER")?"Home":folderName}`))

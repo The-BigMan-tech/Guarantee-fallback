@@ -14,8 +14,6 @@ export default function SearchBar() {
     }
     function shouldRenderArrow():boolean {
         const pathName = currentPath.slice(currentPath.lastIndexOf("\\") + 1);
-        console.log("Path name",pathName);
-        console.log("Tab names",tabNames,"included?",pathName in tabNames);
         if (tabNames.has(pathName) || (pathName == "")) {
             return false
         }
@@ -23,7 +21,6 @@ export default function SearchBar() {
     }
     function getCrumbArrow(crumb:string):string {
         const lastCrumb = breadCrumbs.at(-1);
-        console.log("crumb",crumb,"lascrumb",lastCrumb);
         if (crumb !== lastCrumb) {//the last crumb is an empty space
             return crumb += " >"
         }else {
