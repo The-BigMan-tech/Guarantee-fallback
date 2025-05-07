@@ -294,5 +294,16 @@ The opendir function skips over caching tabs that have already been cached ahead
 
 he cache is limited by instances of 20 and the individual fsNodes array of each instance is limited to a 100
 
+i just realized that prints in async blocks may not show in the order they were executed.so they are a bit unreliable i believe
+
 todo:freeze the ui on ahead of time caching
 todo:i have to serialize and deserialize the cache
+
+*there is css,
+*sass 
+*tailwind css as in with @apply directive.its css syntax but for tailwind
+*tailwind themes as aliases
+*styled component
+*tailwind styled components
+
+*prolog is for old school ai
