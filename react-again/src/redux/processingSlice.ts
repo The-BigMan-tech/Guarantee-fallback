@@ -199,13 +199,13 @@ function openCachedDirInApp(folderPath:string):AppThunk {
 }
 export async function cacheAheadOfTime(tabName:StrictTabsType):Promise<AppThunk>{
     return async (dispatch)=>{
-        setAheadCachingState('pending')
+        dispatch(setAheadCachingState('pending'))
         const folderPath = await join_with_home(tabName);
         const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
         if (!(dirResult.value instanceof Error) && (dirResult.value !== null)) {//i only care about the success case here because the operation was initiated by the app and not the user and its not required to succeed for the user to progress with the app
             const fsNodes:FsNode[] = dirResult.value;
             dispatch(addToCache({path:folderPath,data:fsNodes}));
-            setAheadCachingState('success')
+            dispatch(setAheadCachingState('success'))
         }
     }
 }
@@ -213,8 +213,6 @@ export async function cacheAheadOfTime(tabName:StrictTabsType):Promise<AppThunk>
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch,getState):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
-        const aheadCachingState = selectAheadCachingState(getState());
-        console.log("State of ahead of time caching",aheadCachingState);
         //[] array means its loading not that its empty
         dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading to not look laggy
         dispatch(openCachedDirInApp(folderPath));//opens the cached dir in app in the meantime if any
@@ -235,7 +233,10 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             const fsNodes:FsNode[] = dirResult.value
             dispatch(setFsNodes(fsNodes));//opens the loaded dir as soon its done being processed
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
+
+            const aheadCachingState = selectAheadCachingState(getState());
             const tabNames:Set<string> = new Set(selectTabNames(getState()))
+            console.log("State of ahead of time caching",aheadCachingState);
             if (!(tabNames.has(folderName)) || (aheadCachingState === "success")) {//only caches the folder if it hasnt been attempted to be cached ahead of time and all the home tabs are cached ahead of time
                 console.log("cached tab",folderName);
                 dispatch(addToCache({path:folderPath,data:fsNodes}));//performs caching while the user can interact with the dir in the app
