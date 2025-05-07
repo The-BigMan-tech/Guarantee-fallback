@@ -45,7 +45,7 @@ export default function Toasts() {
                 toast.loading(loadingMessage,loading_toastConfig)
             }else {
                 toast.done("loading")
-                toast.success(loadingMessage,{...toastConfig,autoClose:1000,transition:Flip})
+                toast.success(loadingMessage,{...toastConfig,autoClose:500,transition:Flip})
             }
         }
     },[loadingMessage,toastConfig,loading_toastConfig])

@@ -40,7 +40,7 @@ export interface processingSliceState {//by using null unions instead of optiona
 
 const initialState:processingSliceState = {
     currentPath:"",
-    tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos','RecycleBin'],
+    tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos'],
     fsNodes:null,
     cache:[],
     selectedFsNodes:null,
