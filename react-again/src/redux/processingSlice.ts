@@ -166,7 +166,7 @@ function addToCache(data:CachedFolder):AppThunk {
             console.log(data.path,"Cache already exists at index",existingCacheIndex);
             dispatch(replaceInCache({index:existingCacheIndex,data}))
         }else {
-            if ((appCache.length+1) > 3) {
+            if ((appCache.length+1) > 10) {
                 console.log("Cache length is greater than 3");
                 dispatch(shiftCache())
             }
@@ -192,10 +192,12 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
         console.log("Folder path for cached",folderPath);
         dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading to not look laggy
         dispatch(openCachedDirInApp(folderPath));//opens the cached dir in app in the meantime if any
+        dispatch(setCurrentPath(folderPath));
 
         const folderName = await base_name(folderPath);
         dispatch(setLoadingMessage(`Loading the folder: ${(folderName=="USER")?"Home":folderName}`))
         const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);//its fast because it doesnt load the file content
+
         if (dirResult.value instanceof Error) {
             dispatch(setError(`The error:"${dirResult.value.message}" occured while loading the dir: "${folderPath}"`))
         }else if (dirResult.value == null) {
@@ -203,7 +205,6 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
         }else {
             const fsNodes:FsNode[] = dirResult.value
             dispatch(setFsNodes(fsNodes));//opens the loaded dir as soon its done being processed
-            dispatch(setCurrentPath(folderPath));
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             dispatch(addToCache({path:folderPath,data:fsNodes}));//performs caching while the user can interact with the dir in the app
             console.log("Files:",fsNodes);

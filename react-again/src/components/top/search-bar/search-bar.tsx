@@ -21,7 +21,7 @@ export default function SearchBar() {
     }
     function getCrumbArrow(crumb:string):string {
         const lastCrumb = breadCrumbs.at(-1);
-        if (crumb !== lastCrumb) {//the last crumb is an empty space
+        if ((crumb !== lastCrumb) && (crumb !== "USER")) {//the last crumb is an empty space
             return crumb += " >"
         }else {
             return crumb

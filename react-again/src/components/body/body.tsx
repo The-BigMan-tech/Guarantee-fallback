@@ -12,14 +12,14 @@ export default function Body() {
         <>
             <div className="h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md">
                 {uniqueFsNodes
-                    ?<div className="grid sm:grid-cols-4 md:grid-cols-5 h-auto max-h-[96%] gap-x-[1.2%] gap-y-[5%] mt-[2%] ml-[1.5%] w-[99%] overflow-y-scroll overflow-x-hidden items-center justify-center">
+                    ?<div className="grid sm:grid-cols-4 md:grid-cols-5 h-auto pb-5 max-h-[96%] gap-x-[1.2%] gap-y-[5%] mt-[2%] ml-[1.5%] w-[99%] overflow-y-scroll overflow-x-hidden items-center justify-center">
                         {uniqueFsNodes.map((uniqueFsNode)=>
                             <div key={uniqueFsNode.id} className="flex justify-center items-center">
                                 <FsNodeComponent  {...{fsNode:uniqueFsNode.fsNode}}/>
                             </div>
                         )}
                     </div>
-                    :<h1 className="self-center justify-self-center relative top-[40vh] text-2xl font-[Consolas]">Empty</h1>
+                    :<h1 className="self-center justify-self-center relative top-[40vh] text-2xl font-[Consolas]">No content</h1>
                 }
             </div>
         </>
