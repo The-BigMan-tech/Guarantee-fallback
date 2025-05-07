@@ -260,3 +260,7 @@ clearing the ui and transporting the error is better than crashing or exiting th
 freezing the ui
 
 so freezing the ui when reflecting cached data and while relaying to the users that the new data is reloading. is safe because the cached data may not reflect the new data so users may interact with an unstable state and it prevents unintended actions from layout shifts upon reloading.so it means that the cached data is there for the ux and immediate feedback so that the folder wont look empty all the time they click on it but the time of interactivity is still the same.
+
+todo:checking on exact matches of strings is error prone without consistency.change all of those to distinct states.But it will do for now.Using string transformations like decapitalizing the string and trimming off white spaces can make the match less sensitive and thus,less error prone.
+
+*you cannot compare objects or arrays in js since they are done by ref not value

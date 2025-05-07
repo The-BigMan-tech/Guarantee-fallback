@@ -190,6 +190,7 @@ function openCachedDirInApp(folderPath:string):AppThunk {
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
+        //[] array means its loading not that its empty
         dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading to not look laggy
         dispatch(openCachedDirInApp(folderPath));//opens the cached dir in app in the meantime if any
         dispatch(setCurrentPath(folderPath));

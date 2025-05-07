@@ -1,9 +1,13 @@
 import { FsNode } from "../../utils/rust-fs-interface"
-import { useAppDispatch } from "../../redux/hooks"
-import { openDirectoryInApp } from "../../redux/processingSlice";
+import { useAppDispatch,selector} from "../../redux/hooks"
+import { openDirectoryInApp,selectLoadingMessage} from "../../redux/processingSlice";
+import { useState } from "react";
 
 export default function FsNodeComponent(props:{fsNode:FsNode}) {
     const dispatch = useAppDispatch();
+    const loadingMessage:string = selector(store=>selectLoadingMessage(store)) || "";
+    const [isLoading] = useState<boolean>(loadingMessage.trim().toLowerCase().startsWith("loading"));
+
     function truncateName(name:string):string {
         return (name.length < 16)?name:`${name.slice(0,16)}...`
     }
@@ -17,9 +21,13 @@ export default function FsNodeComponent(props:{fsNode:FsNode}) {
         }
     }
     async function openFolder(fsNode:FsNode):Promise<void> {
-        if (fsNode.primary.nodeType == "Folder") {
-            dispatch(await openDirectoryInApp(fsNode.primary.nodePath))
+        if (!(isLoading)) {
+            if (fsNode.primary.nodeType == "Folder") {
+                dispatch(await openDirectoryInApp(fsNode.primary.nodePath))
+            }
+            return
         }
+        console.log("IS FROZEN");
     }
     return (
         <button onDoubleClick={()=>openFolder(props.fsNode)} className="flex flex-col items-center justify-center gap-2 cursor-pointer">

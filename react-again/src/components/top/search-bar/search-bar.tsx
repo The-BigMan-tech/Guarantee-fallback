@@ -40,7 +40,7 @@ export default function SearchBar() {
                     ?<button onClick={goToParent} className="font-bold cursor-pointer absolute left-10">{"<="}</button>
                     :null
                 }
-                <div className="flex gap-4 ml-40">
+                <div className="flex gap-4 ml-40 mt-3">
                     {uniqueBreadCrumbs.map((uniqueCrumb=>
                         <div key={uniqueCrumb.id}>
                             <h1 className="font-space-regular">{getCrumbArrow(uniqueCrumb.crumb)}</h1>

@@ -40,7 +40,7 @@ export default function Toasts() {
             toast.dismiss();//to ensure that only one component shows a loading progress at a time.
             if (loadingMessage == "") {//to remove the loading when there is an error cuz it cant be DONE if its an error
                 toast.done("loading")
-            }else if (!(loadingMessage.trim().startsWith("Done"))) {
+            }else if (!(loadingMessage.trim().toLowerCase().startsWith("done"))) {
                 toast.loading(loadingMessage,loading_toastConfig)
             }else {
                 toast.done("loading")
