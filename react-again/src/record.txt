@@ -290,10 +290,9 @@ its better to break async tasks that repeat tasks into independent async tasks s
 
 so not only is the caching ahead of time but just in time meaning that once the home page loads,everything that was cached ahead of time is guaranteed to be cached.the feature where the other tabs are cached as soon as the home tab loads created itself out of the fact that the caching operations are async and separate
 
-todo:but the problem is that caching needs to happen subsequently on every user click after the app has started so it should only skip it once but mine skips it unconditionally.so i have to use state to keep track of whether the aoc caching is successful and finished.so it will be pending | succeeded | failed.failed because the dir can be missing.another reason for having this state is error.
+The opendir function skips over caching tabs that have already been cached ahead of time.this is to prevent switching between tabs to cause unnecessary attempts to cache when the tabs are still being cached ahead of time.but it will be a problem as the cache wont update on subsequent folder updates so i made each aheadofcache function set a state that indicates to the app when it has finished.This is my way of invalidating the cache of the ahead of time caching
+
+he cache is limited by instances of 20 and the individual fsNodes array of each instance is limited to a 100
 
 todo:freeze the ui on ahead of time caching
-
-todo:The cache is limited by instances but the individual fs nodes can vary so i have to also limit that
-
 todo:i have to serialize and deserialize the cache
