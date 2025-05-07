@@ -125,17 +125,24 @@ function addToCache(data:CachedFolder):AppThunk {
         }
     }
 }
-//the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
-export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
-    return async (dispatch,getState):Promise<void> =>{
-        console.log("Folder path for cached",folderPath);
-        dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading
+function openCachedDirInApp(folderPath:string):AppThunk {
+    return (dispatch,getState)=>{
         const cache:CachedFolder[] = selectCache(getState());
         for (const cachedFolder of cache) {
             if (folderPath == cachedFolder.path) {
                 dispatch(setFsNodes(cachedFolder.data))
             }
+            console.log("Cache: ",cache);
         }
+    }
+}
+//the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
+export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
+    return async (dispatch):Promise<void> =>{
+        console.log("Folder path for cached",folderPath);
+        dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading
+        openCachedDirInApp(folderPath);
+        
         const folderName = await base_name(folderPath);
         dispatch(setLoadingMessage(`Loading the folder: ${(folderName=="USER")?"Home":folderName}`))
 
@@ -150,7 +157,6 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setCurrentPath(folderPath));
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             dispatch(addToCache({path:folderPath,data:fsNodes}));
-            console.log("Cache: ",cache);
             console.log("Files:",fsNodes);
         }
     }
