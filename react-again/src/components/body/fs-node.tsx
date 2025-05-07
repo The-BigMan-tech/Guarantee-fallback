@@ -1,12 +1,12 @@
 import { FsNode } from "../../utils/rust-fs-interface"
 import { useAppDispatch,selector} from "../../redux/hooks"
 import { openDirectoryInApp,selectLoadingMessage} from "../../redux/processingSlice";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function FsNodeComponent(props:{fsNode:FsNode}) {
     const dispatch = useAppDispatch();
     const loadingMessage:string = selector(store=>selectLoadingMessage(store)) || "";
-    const [isLoading] = useState<boolean>(loadingMessage.trim().toLowerCase().startsWith("loading"));
+    const [isLoading,setIsLoading] = useState<boolean>(true);
 
     function truncateName(name:string):string {
         return (name.length < 16)?name:`${name.slice(0,16)}...`
@@ -27,8 +27,11 @@ export default function FsNodeComponent(props:{fsNode:FsNode}) {
             }
             return
         }
-        console.log("IS FROZEN");
     }
+    useEffect(()=>{
+        setIsLoading(loadingMessage.trim().toLowerCase().startsWith("loading"))
+        console.log("should freeze ui",isLoading);
+    },[loadingMessage,isLoading])
     return (
         <button onDoubleClick={()=>openFolder(props.fsNode)} className="flex flex-col items-center justify-center gap-2 cursor-pointer">
             <img className={`${fixIconSize(props.fsNode.primary.iconPath)}`} src={`./assets/file-icons/${props.fsNode.primary.iconPath}`} alt="" />

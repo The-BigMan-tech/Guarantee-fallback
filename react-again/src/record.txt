@@ -264,3 +264,7 @@ so freezing the ui when reflecting cached data and while relaying to the users t
 todo:checking on exact matches of strings is error prone without consistency.change all of those to distinct states.But it will do for now.Using string transformations like decapitalizing the string and trimming off white spaces can make the match less sensitive and thus,less error prone.
 
 *you cannot compare objects or arrays in js since they are done by ref not value
+
+setTimeOut/interval,Promises,async/await are ways of async js
+
+*states in react only change when rendered so if they need update based on state changes,they have to be updted in a useEffect but if they use a global app state,they stay subscribed and update when the app state changes.But if a state that depends on another state thats subscribed to the apps global state,it wont update when the subscribed state responds to global state changes.it has to be listened to on a useEffect which manually updates the local state thats connected to the subscribed global state

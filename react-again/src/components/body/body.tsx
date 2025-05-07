@@ -2,15 +2,12 @@ import { selector } from "../../redux/hooks"
 import { selectFsNodes,UniqueFsNode} from "../../redux/processingSlice"
 import { FsNode} from "../../utils/rust-fs-interface"
 import FsNodeComponent from "./fs-node"
-import { useEffect, useMemo } from "react"
+import { useMemo } from "react"
 import {v4 as uniqueID} from "uuid"
 
 export default function Body() {
     const fsNodes:FsNode[] | null = selector(store=>selectFsNodes(store));
     const uniqueFsNodes: UniqueFsNode[] | null = useMemo(() => fsNodes?.map(fsNode=>({ id: uniqueID(),fsNode})) || null, [fsNodes]);
-    useEffect(()=>{
-
-    },[fsNodes])
     return (
         <>
             <div className="h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md">
