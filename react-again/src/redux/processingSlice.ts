@@ -166,7 +166,7 @@ function addToCache(data:CachedFolder):AppThunk {
             console.log(data.path,"Cache already exists at index",existingCacheIndex);
             dispatch(replaceInCache({index:existingCacheIndex,data}))
         }else {
-            if ((appCache.length-1) > 3) {
+            if ((appCache.length+1) > 3) {
                 console.log("Cache length is greater than 3");
                 dispatch(shiftCache())
             }
