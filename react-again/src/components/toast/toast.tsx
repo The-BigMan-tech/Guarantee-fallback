@@ -4,6 +4,8 @@ import { selector } from '../../redux/hooks';
 import { useEffect, useState} from 'react';
 
 export default function Toasts() {
+    //my design is that there can be multiple error and notice messages but only one loading message at a time
+    //there are multiple errors and notcie because of spamming and only one of loading to prevent ambiguity
     const error:Message = selector(store=>selectError(store));
     const notice:Message = selector(store=>selectNotice(store));
     const loadingMessage:string = selector(store=>selectLoadingMessage(store)) || "";
@@ -27,7 +29,8 @@ export default function Toasts() {
     })
     useEffect(()=>{
         if (error.message) {
-            toast.error(error.message,toastConfig)
+            toast.error(error.message,toastConfig);
+            toast.dismiss("loading")//since an error occured there is no reason why it should continue to show loading
         }
     },[error,toastConfig])
     useEffect(()=>{
@@ -38,9 +41,7 @@ export default function Toasts() {
     useEffect(()=>{
         if (loadingMessage) {
             toast.dismiss();//to ensure that only one component shows a loading progress at a time.
-            if (loadingMessage == "") {//to remove the loading when there is an error cuz it cant be DONE if its an error
-                toast.done("loading")
-            }else if (!(loadingMessage.trim().toLowerCase().startsWith("done"))) {
+            if (!(loadingMessage.trim().toLowerCase().startsWith("done"))) {
                 toast.loading(loadingMessage,loading_toastConfig)
             }else {
                 toast.done("loading")

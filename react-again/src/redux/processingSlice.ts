@@ -40,7 +40,7 @@ export interface processingSliceState {
 
 const initialState:processingSliceState = {
     currentPath:"",
-    tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos'],
+    tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos','RecycleBin'],
     fsNodes:null,
     cache:[],
     selectedFsNodes:null,
@@ -193,19 +193,19 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
         //[] array means its loading not that its empty
         dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading to not look laggy
         dispatch(openCachedDirInApp(folderPath));//opens the cached dir in app in the meantime if any
-        dispatch(setCurrentPath(folderPath));
+        dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
 
         const folderName = await base_name(folderPath);
         dispatch(setLoadingMessage(`Loading the folder: ${(folderName=="USER")?"Home":folderName}`))
         const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);//its fast because it doesnt load the file content
 
         if (dirResult.value instanceof Error) {
-            dispatch(setFsNodes([]))//to ensure that they dont interact with an unstable folder in the ui
-            dispatch(setLoadingMessage(""))
+            dispatch(setFsNodes(null))//to ensure that they dont interact with an unstable folder in the ui
             dispatch(setError(`The error:"${dirResult.value.message}" occured while loading the dir: "${folderPath}"`));
         }else if (dirResult.value == null) {
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             dispatch(setNotice(`The following directory is empty: "${folderPath}"`));
+            dispatch(setFsNodes(null))
         }else {
             const fsNodes:FsNode[] = dirResult.value
             dispatch(setFsNodes(fsNodes));//opens the loaded dir as soon its done being processed
