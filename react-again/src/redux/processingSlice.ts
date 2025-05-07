@@ -199,8 +199,11 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
         const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);//its fast because it doesnt load the file content
 
         if (dirResult.value instanceof Error) {
-            dispatch(setError(`The error:"${dirResult.value.message}" occured while loading the dir: "${folderPath}"`))
+            dispatch(setFsNodes([]))//to ensure that they dont interact with an unstable folder in the ui
+            dispatch(setLoadingMessage(""))
+            dispatch(setError(`The error:"${dirResult.value.message}" occured while loading the dir: "${folderPath}"`));
         }else if (dirResult.value == null) {
+            dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             dispatch(setNotice(`The following directory is empty: "${folderPath}"`));
         }else {
             const fsNodes:FsNode[] = dirResult.value

@@ -38,7 +38,9 @@ export default function Toasts() {
     useEffect(()=>{
         if (loadingMessage) {
             toast.dismiss();//to ensure that only one component shows a loading progress at a time.
-            if (!(loadingMessage.trim().startsWith("Done"))) {
+            if (loadingMessage == "") {//to remove the loading when there is an error cuz it cant be DONE if its an error
+                toast.done("loading")
+            }else if (!(loadingMessage.trim().startsWith("Done"))) {
                 toast.loading(loadingMessage,loading_toastConfig)
             }else {
                 toast.done("loading")

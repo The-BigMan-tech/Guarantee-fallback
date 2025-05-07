@@ -253,3 +253,5 @@ so even though the cached folders is fixed,the fsnodes in each folder can vary b
 
 metadata caching
 full data caching
+
+clearing the ui and transporting the error is better than crashing or exiting the process
