@@ -109,6 +109,32 @@ export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
 const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
 
+
+export async function returnFileContent(filePath:string):Promise<AppThunk<Promise<string | null>>> {//returns the file with its content read
+    return async (dispatch):Promise<string | null> =>{
+        const fileName = await base_name(filePath);
+        dispatch(setLoadingMessage(`Loading the file: ${fileName}`))
+
+        const contentResult:FsResult<string | Error | null>  = await readFile(filePath);
+        if (contentResult.value instanceof Error) {
+            dispatch(setError(`The error "${contentResult.value.message}" occured when reading the file: "${filePath}"`))
+            return null
+        }else if (contentResult.value == null) {
+            dispatch(setNotice(`The following file is empty: ${filePath}`))
+            return null;
+        }else {
+            dispatch(setLoadingMessage(`Done loading: ${fileName}`));
+            return contentResult.value
+        }
+    }
+}
+function getParent():AppThunk<string> {
+    return (_,getState):string  =>{
+        let currentPath:string = selectCurrentPath(getState());
+        currentPath = currentPath.slice(0,currentPath.lastIndexOf('\\'));
+        return currentPath
+    }
+}
 function addToCache(data:CachedFolder):AppThunk {
     return (dispatch,getState)=>{
         const appCache = selectCache(getState());
@@ -142,10 +168,9 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
         console.log("Folder path for cached",folderPath);
         dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading
         openCachedDirInApp(folderPath);
-        
+
         const folderName = await base_name(folderPath);
         dispatch(setLoadingMessage(`Loading the folder: ${(folderName=="USER")?"Home":folderName}`))
-
         const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
         if (dirResult.value instanceof Error) {
             dispatch(setError(`The error:"${dirResult.value.message}" occured while loading the dir: "${folderPath}"`))
@@ -161,45 +186,16 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
         }
     }
 }
-export async function returnFileContent(filePath:string):Promise<AppThunk<Promise<string | null>>> {//returns the file with its content read
-    return async (dispatch):Promise<string | null> =>{
-        const fileName = await base_name(filePath);
-        dispatch(setLoadingMessage(`Loading the file: ${fileName}`))
-
-        const contentResult:FsResult<string | Error | null>  = await readFile(filePath);
-        if (contentResult.value instanceof Error) {
-            dispatch(setError(`The error "${contentResult.value.message}" occured when reading the file: "${filePath}"`))
-            return null
-        }else if (contentResult.value == null) {
-            dispatch(setNotice(`The following file is empty: ${filePath}`))
-            return null;
-        }else {
-            dispatch(setLoadingMessage(`Done loading: ${fileName}`));
-            return contentResult.value
-        }
+export async function openParentInApp():Promise<AppThunk> {
+    return async (dispatch)=>{
+        const parentPathResult:string | Error = await dispatch(getParent());
+        dispatch(await openDirectoryInApp(parentPathResult))
     }
 }
-export async function openDirectoryFromHome(tabName:string):Promise<AppThunk> {
+export async function openDirFromHome(tabName:string):Promise<AppThunk> {
     return async (dispatch)=> {
         if (tabName == "Recent") return;
         const folderPath:string = await join_with_home((tabName == "Home")?"":tabName)
         dispatch(await openDirectoryInApp(folderPath))
-    }
-}
-export function getParent():AppThunk<string | Error> {
-    return (_,getState):string | Error =>{
-        let currentPath:string = selectCurrentPath(getState());
-        currentPath = currentPath.slice(0,currentPath.lastIndexOf('\\'));
-        return currentPath
-    }
-}
-export async function openParentInApp():Promise<AppThunk> {
-    return async (dispatch)=>{
-        const parentPathResult:string | Error = await dispatch(getParent());
-        if (parentPathResult instanceof Error) {
-            dispatch(setError(parentPathResult.message))
-        }else {
-            dispatch(await openDirectoryInApp(parentPathResult))
-        }
     }
 }
