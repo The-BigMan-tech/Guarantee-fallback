@@ -216,7 +216,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
 }
 export async function openParentInApp():Promise<AppThunk> {
     return async (dispatch)=>{
-        const parentPathResult:string | Error = await dispatch(getParent());
+        const parentPathResult:string = await dispatch(getParent());
         dispatch(await openDirectoryInApp(parentPathResult))
     }
 }
