@@ -3,7 +3,7 @@ import { RootState,AppThunk } from './store'
 import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name} from '../utils/rust-fs-interface';
 import {v4 as uniqueID} from 'uuid';
 
-
+type strictTabsType = 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos';
 export type SortingOrder = 'name' | 'date' | 'type' | 'size';
 export type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
 export interface Message {
@@ -40,7 +40,7 @@ export interface processingSliceState {//by using null unions instead of optiona
 
 const initialState:processingSliceState = {
     currentPath:"",
-    tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos'],
+    tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos'],//Home and recent are only local to sidebar cuz there is no dir named home and recent on the fs
     fsNodes:null,
     cache:[],
     selectedFsNodes:null,
@@ -162,11 +162,12 @@ function addToCache(data:CachedFolder):AppThunk {
         const appCache = selectCache(getState());
         const cachedPaths:string[] = appCache.map(folder=>folder.path);
         const existingCacheIndex = cachedPaths.indexOf(data.path);
-        if (existingCacheIndex !== -1) {
+        if (existingCacheIndex !== -1) {//if the cache already exists as -1 means it doesnt exist
             console.log(data.path,"Cache already exists at index",existingCacheIndex);
             dispatch(replaceInCache({index:existingCacheIndex,data}))
         }else {
-            if ((appCache.length+1) > 10) {
+            console.log("Caching the folder",data.path);
+            if ((appCache.length+1) > 20) {
                 console.log("Cache length is greater than 3");
                 dispatch(shiftCache())
             }
@@ -186,9 +187,19 @@ function openCachedDirInApp(folderPath:string):AppThunk {
         }
     }
 }
+export async function cacheAheadOfTime(tabName:strictTabsType):Promise<AppThunk>{
+    return async (dispatch)=>{
+        const folderPath = await join_with_home(tabName);
+        const dirResult:FsResult<FsNode[] | Error | null> = await readDirectory(folderPath);
+        if (!(dirResult.value instanceof Error) && (dirResult.value !== null)) {//i only care about the success case here because the operation was initiated by the app and not the user and its not required to succeed for the user to progress with the app
+            const fsNodes:FsNode[] = dirResult.value;
+            dispatch(addToCache({path:folderPath,data:fsNodes}));
+        }
+    }
+}
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
-    return async (dispatch):Promise<void> =>{
+    return async (dispatch,getState):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
         //[] array means its loading not that its empty
         dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading to not look laggy
@@ -210,7 +221,11 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             const fsNodes:FsNode[] = dirResult.value
             dispatch(setFsNodes(fsNodes));//opens the loaded dir as soon its done being processed
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
-            dispatch(addToCache({path:folderPath,data:fsNodes}));//performs caching while the user can interact with the dir in the app
+            const tabNames:Set<string> = new Set(selectTabNames(getState()))
+            if (!(tabNames.has(folderName))) {//only caches the folder if it hasnt been attempted to be cached ahead of time and all the home tabs are cached ahead of time
+                console.log("cached tab",folderName);
+                dispatch(addToCache({path:folderPath,data:fsNodes}));//performs caching while the user can interact with the dir in the app
+            }
             console.log("Files:",fsNodes);
         }
         // dispatch(setLoadingMessage(null))//to clear the loading message so that the unfreeze state resets back to false after an operation has finished loaded
@@ -225,7 +240,7 @@ export async function openParentInApp():Promise<AppThunk> {
 export async function openDirFromHome(tabName:string):Promise<AppThunk> {
     return async (dispatch)=> {
         if (tabName == "Recent") return;
-        const folderPath:string = await join_with_home((tabName == "Home")?"":tabName)
+        const folderPath:string = await join_with_home(tabName)
         dispatch(await openDirectoryInApp(folderPath))
     }
 }

@@ -147,6 +147,7 @@ toast component
 custom hooks
 higher order thunks
 cache utility
+app.tsx for setting up the app on startup using useEffects.like opening a tab on startup and caching specific folders ahead of time
 *------------------------------------------------------------------------------------------
 
 app state is global,component state is local
@@ -268,3 +269,27 @@ todo:checking on exact matches of strings is error prone without consistency.cha
 setTimeOut/interval,Promises,async/await are ways of async js
 
 *states in react only change when rendered so if they need update based on state changes,they have to be updted in a useEffect but if they use a global app state,they stay subscribed and update when the app state changes.But if a state that depends on another state thats subscribed to the apps global state,it wont update when the subscribed state responds to global state changes.it has to be listened to on a useEffect which manually updates the local state thats connected to the subscribed global state
+ 
+*my app only loads the immediate children of a dir and only loads the individual content when requested
+
+I will have done ahead of time caching where all child folders of an opened folder are cached but since i only load one generation of child folders at a time,i cant cache the child folders because the next generation of child folders under those ones havent been generated yet meaning i have to do that before caching the first generation child folders.This is possible but not feasible and will cost runtime even though it happens in the background as some child folders wont be included in the cache when the cache reaches its threshold making it to use extra runtime for nothing and the cache limit also means it will be unpredicatable to know which child folder remains in the cache.the purpose of ahead of time caching was to improve ux by caching other folders when a foder is opened so that users dont see loading for them but it isnt feasible.
+
+so if i want to do ahead of time caching,it has to be selective and only on app startup.selective ahead-of-time caching should definitely be optimized over time based on user behavior and performance metrics
+
+
+the way my caching mechanism is means that there is no different between it and a skeleton in the sense that it isnt interactive except that it shows more information than it.the cache ahead of time worked except that there has to be a decent amount of time before everyhting can be cached so the user seeing a cached downloads for example when clicking it for the first time depends on whether he was else where long enough.but i guess ill leave it like that.its better than not caching anything ahead of time.i can decide to prevent interactions till everything is cached ahead of time but it spoils the ux as users want to work with something as sooon as they see it loaded an they wont like long loading times
+
+the name cacheAheadoftime is by its context or use case not that it caches ahead of time.its a normal caching function but how its used qualifies it for that name.
+
+debouncing prevents unnecessary caching attempts.debouncing made the ahead of time caching faster than when it didnt have it because caching the home tabs can be skipped by the app when the users rapidly switch between tabs on app startup.Also,the thunk only caches one tab ahead of time so its in the app.tsx file that ill decide the order in which they will be dispathed.By making the thunk to only cache one at a time,i can configure the order later and prevent all of them to be in one big promise waiting to be resolved at the same time but instead in smaller promises.
+
+
+todo:but the problem is that caching needs to happen subsequently on every user click after the app has started so it should only skip it once but mine skips it unconditionally.so i have to use state to keep track of whether the aoc caching is successful and finished.so it will be pending | succeeded | failed.failed because the dir can be missing
+
+todo:caching them serially instead of all at once
+
+the pattern where the tabs are cached ahead of time sequentially automatically prevents the need for a throttle because opendir runs only after all the cachedaheadoftime functions because open dir awaits twice midway while the others only await once meaning that the app wont show the home tab till all the other tabs are cached ahead of time even though i placed openhome first.opendirinapp already caches the tab for me if it isnt being cached by the aheadoftime function so everything sorts out.So when i open the app,it starts at the home page and loads but while its loading that,the other tabs will be cached unlike where i did everything all at once under thunk where even after the home page loads,some may still be under caching.The only thing now is to ensure that the app remains uninteractive till the home page loads.
+
+its better to break async tasks that repeat tasks into independent async tasks so that they can be managed effectively
+
+so not only is the caching ahead of time but just in time meaning that once the home page loads,everything that was cached ahead of time is guaranteed to be cached.the feature where the other tabs are cached as soon as the home tab loads created itself out of the fact that the caching operations are async and separate
