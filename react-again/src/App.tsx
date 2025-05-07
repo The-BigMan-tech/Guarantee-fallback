@@ -4,12 +4,11 @@ import Toasts from "./components/toast/toast"
 import Body from "./components/body/body"
 import { selector, useAppDispatch } from "./redux/hooks"
 import { useEffect } from "react"
-import { openDirFromHome, selectAheadCachingState } from "./redux/processingSlice"
-import { cacheAheadOfTime } from "./redux/processingSlice"
+import { openDirFromHome, selectAheadCachingState ,cacheAheadOfTime} from "./redux/processingSlice"
 
 export default function App() {
     const dispatch = useAppDispatch();
-    const aotCacheState = selector(store=>selectAheadCachingState(store))
+    const aotCacheState = selector(store=>selectAheadCachingState(store));
 
     function unFreezeClass():string {
         return (aotCacheState == "success")?"":"opacity-30"
@@ -24,7 +23,6 @@ export default function App() {
         cacheAheadOfTime("Documents",false).then((thunk)=>dispatch(thunk))
         cacheAheadOfTime("Music",true).then((thunk)=>dispatch(thunk))
     },[dispatch])
-
     return (
         <div className="flex flex-col h-[100vh] w-[100vw] bg-[#1f1f30] text-white">
             <Toasts/>
