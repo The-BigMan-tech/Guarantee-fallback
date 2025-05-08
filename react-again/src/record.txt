@@ -355,3 +355,7 @@ todo:preview editor,text editor,diff writer
 todo:checking on exact matches of strings is error prone without consistency.change all of those to distinct states.But it will do for now.Using string transformations like decapitalizing the string and trimming off white spaces can make the match less sensitive and thus,less error prone.
 
 todo:right click,file icons,details pane,changing the view and size,disk usage progress bar
+
+todo:make a recent folder and cache everything under that recent folder
+
+items in the recent folder are links

@@ -4,7 +4,7 @@ import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name} from '
 import {v4 as uniqueID} from 'uuid';
 
 type CachingState = 'pending' | 'success';
-type StrictTabsType = 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos';
+type StrictTabsType = 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos';
 export type SortingOrder = 'name' | 'date' | 'type' | 'size';
 export type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
 
@@ -250,7 +250,6 @@ export async function openParentInApp():Promise<AppThunk> {
 }
 export async function openDirFromHome(tabName:string):Promise<AppThunk> {
     return async (dispatch)=> {
-        if (tabName == "Recent") return;
         const folderPath:string = await join_with_home(tabName)
         dispatch(await openDirectoryInApp(folderPath))
     }

@@ -59,7 +59,13 @@ async function getFsNode(nodePath:string): Promise<FsNode> {
     }
 }
 export async function join_with_home(tabName:string):Promise<string> {
-    const path_from_home:string = await invoke('join_with_home', {tabName:(tabName == "Home")?"":tabName});
+    let relPath:string = tabName;
+    if (tabName == "Recent") {
+        relPath = "AppData\\Roaming\\Microsoft\\Windows\\Recent"
+    }else if (tabName == "Home") {
+        relPath = ""
+    }
+    const path_from_home:string = await invoke('join_with_home', {tabName:relPath});
     return path_from_home
 }
 export async function base_name(path:string):Promise<string> {
