@@ -442,3 +442,5 @@ useMemo is for memoizing data while useCallback is for memoizing functions and R
 im choosing to use spreading to the fsnodes array instead of pushing to it incrementally.it has a bigger time complexity of O(n) since O(n + 5) = O(n) as i only concatenate an array of 5 elements at a time but in exchange of faster runtime by reducing constant ui updates instead of pushing which has an O(1) time complexity but costs runtime as the ui has to respond on each update
 
 increasing the time window of the throttle reduces the function call frequency but creates a lower chance of the function actually getting called if anything that will compromise the app should happen within that period
+
+i made element eviction from a cache to start at the 8th index instead of the first its the same effect as shifting but it does this starting from index 8 so that the ones that are cached ahead of time will be preserved on the cache threshold.

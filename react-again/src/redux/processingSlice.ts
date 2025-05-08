@@ -86,7 +86,7 @@ export const processingSlice = createSlice({
             state.cache[action.payload.index] = action.payload.data
         },
         shiftCache(state) {
-            state.cache.shift()
+            state.cache.splice(8,1)//its the same effect as shifting but it does this starting from index 8 so that the ones that are cached ahead of time will be preserved on the cache threshold
         },
         setAheadCachingState(state,action:PayloadAction<CachingState>) {
             state.aheadCachingState = action.payload
