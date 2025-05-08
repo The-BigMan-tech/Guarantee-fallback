@@ -147,7 +147,7 @@ toast component
 custom hooks
 higher order thunks
 cache utility--normal caching and ahead of time caching
-app.tsx for setting up the app on startup using useEffects.like opening a tab on startup and caching specific folders ahead of time
+app.tsx for setting up the app on startup using useEffects.like opening a tab on startup,caching specific folders ahead of time and deciding how the ui responds to aot caching
 *------------------------------------------------------------------------------------------
 
 app state is global,component state is local
@@ -296,6 +296,13 @@ he cache is limited by instances of 20 and the individual fsNodes array of each 
 
 i just realized that prints in async blocks may not show in the order they were executed.so they are a bit unreliable i believe
 
+there are two types of caching.just in time caching or ahead of time caching.jit caching costs runtime but no startup time while aot caching is vice versa.jit caching should be used to cache evrything because it ensures that only accessed data is cached but aot caching can be used to improve ux but it must be selective so that it doesnt take too much startup time or waste cpu and memory resources and must be async.
+
+jit caching is defined and initiated at the thunk level.
+
+the aot caching state is read by the app and used by the app to control the freezing of the ui and as such,it isnt manged by a thunk.the aot caching is defined at the thunk level but its initiated by the app and the app component that decides how the ui should respond to it
+
+
 todo:freeze the ui on ahead of time caching
 todo:i have to serialize and deserialize the cache
 
@@ -309,3 +316,9 @@ todo:i have to serialize and deserialize the cache
 *prolog is for old school ai
 
 if you dont invalidate a memoized component,it will see an older version of a state and not behave as expected
+
+*just in time/on demand/lazy
+*ahead of time/eager
+
+mine freezes the entire ui till everything is cached ahead of time.i can do a progressive aot caching where users can access data that has been aot cached
+

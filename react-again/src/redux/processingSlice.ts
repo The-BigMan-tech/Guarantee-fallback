@@ -212,7 +212,7 @@ export async function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean):Pr
 }
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
-    return async (dispatch,getState):Promise<void> =>{
+    return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
         //[] array means its loading not that its empty
         dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading to not look laggy
@@ -234,9 +234,6 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             const fsNodes:FsNode[] = dirResult.value
             dispatch(setFsNodes(fsNodes));//opens the loaded dir as soon its done being processed
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
-
-            const aheadCachingState = selectAheadCachingState(getState());//dont move this from this block.it wont work.it has to be under the two awaits so that it gets loaded after the other thunks have been dispatched
-            console.log("State of ahead of time caching",aheadCachingState);
             //since the ui remains frozen as its caching ahead of time,there is no need to add a debouncing mechanism to prevent the user from switching to another tab while its caching
             dispatch(addToCache({path:folderPath,data:fsNodes}));//performs caching while the user can interact with the dir in the app
             console.log("Files:",fsNodes);

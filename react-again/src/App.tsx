@@ -4,7 +4,7 @@ import Toasts from "./components/toast/toast"
 import Body from "./components/body/body"
 import { selector, useAppDispatch } from "./redux/hooks"
 import { useEffect } from "react"
-import { openDirFromHome, selectAheadCachingState ,cacheAheadOfTime} from "./redux/processingSlice"
+import { openDirFromHome, selectAheadCachingState ,cacheAheadOfTime } from "./redux/processingSlice"
 
 export default function App() {
     const dispatch = useAppDispatch();
