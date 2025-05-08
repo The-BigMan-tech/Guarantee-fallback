@@ -230,8 +230,6 @@ setup--scaffold your project,a clear architecture,make small of the backend to t
 
 *the thunks can also perform file system operations on the app level by leveraging other thunks
 
-todo:breadcrumbs,right click,file icons,details pane,changing the view and size,disk usage progress bar
-
 updating a state thats also a dependency in a use effect will cause an infinite call to that useEffect.You will want to break down that useEffect in two separate ones to prevent this issue while still retaining the desired intention:One for setting the state and another for reading it.In general,useEffect blocks shouldnt be large so that elements that dont logically depend on its dependencies wont render unnecsessarily.its best to use many use effect blocks that are just small enough to hold dependents than a big one.
 
 *im storing cache data as part of the app state in memory and its only managed by thunks not components.components dont know the cache exxists
@@ -265,7 +263,7 @@ freezing the ui
 
 so freezing the ui when reflecting cached data and while relaying to the users that the new data is reloading. is safe because the cached data may not reflect the new data so users may interact with an unstable state and it prevents unintended actions from layout shifts upon reloading.so it means that the cached data is there for the ux and immediate feedback so that the folder wont look empty all the time they click on it but the time of interactivity is still the same.
 
-todo:checking on exact matches of strings is error prone without consistency.change all of those to distinct states.But it will do for now.Using string transformations like decapitalizing the string and trimming off white spaces can make the match less sensitive and thus,less error prone.
+
 
 *you cannot compare objects or arrays in js since they are done by ref not value
 
@@ -305,9 +303,6 @@ jit caching is defined and initiated at the thunk level.
 
 the aot caching state is read by the app and used by the app to control the freezing of the ui and as such,it isnt manged by a thunk.the aot caching is defined at the thunk level but its initiated by the app and the app component that decides how the ui should respond to it
 
-
-todo:freeze the ui on ahead of time caching
-todo:i have to serialize and deserialize the cache
 
 *there is css,
 *sass 
@@ -354,3 +349,9 @@ only-once is the ideal condition and at-least once is the real condition
 theoretical designs mostly consider ideal conditions then it will convert to a practical design because it now starts to consider real world conditions
 
 app level startup operations more reliable to execute than on exit operations since the app only starts under some normal conditions that can reliably execute the startup function.The phrase "normal conditions" is crucial here. Startup operations are designed to execute under normal conditions. The application expects certain resources to be available, certain dependencies to be present, and certain configuration settings to be valid. If these conditions are not met, the startup operations may fail.
+
+todo:preview editor,text editor,diff writer
+
+todo:checking on exact matches of strings is error prone without consistency.change all of those to distinct states.But it will do for now.Using string transformations like decapitalizing the string and trimming off white spaces can make the match less sensitive and thus,less error prone.
+
+todo:right click,file icons,details pane,changing the view and size,disk usage progress bar
