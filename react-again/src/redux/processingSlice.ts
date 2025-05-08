@@ -147,7 +147,7 @@ export const selectSortBy = (store:RootState):SortingOrder => store.processing.s
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
 export const selectAheadCachingState = (store:RootState):CachingState => store.processing.aheadCachingState;
-const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
+export const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
 
 
 export async function returnFileContent(filePath:string):Promise<AppThunk<Promise<string | null>>> {//returns the file with its content read
@@ -284,7 +284,7 @@ export function loadCache():AppThunk {
         dispatch(setCache(cache.data))
     }
 }
-function storeCache():AppThunk {
+export function storeCache():AppThunk {
     return (_,getState)=>{
         localStorage.clear();//to clean the local storage before storing the cache
         const cache:CachedFolder[] = selectCache(getState());

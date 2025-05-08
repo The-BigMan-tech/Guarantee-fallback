@@ -25,7 +25,7 @@ export default function App() {
         cacheAheadOfTime("Documents",false).then((thunk)=>dispatch(thunk))
         cacheAheadOfTime("Music",true).then((thunk)=>dispatch(thunk))
     },[dispatch])
-    
+
     return (
         <div className="flex flex-col h-[100vh] w-[100vw] bg-[#1f1f30] text-white">
             <Toasts/>

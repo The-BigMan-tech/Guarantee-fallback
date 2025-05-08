@@ -29,7 +29,7 @@ async thunks and create async thunks
 
 thunks dont return values.just dispatch actions
 
-^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid
+^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid,throttle-debounce
 
 hello pangea dnd,react router,framer motion,gsap,three js,
 next js,auth js,paystack,prisma,postgres sql,mongoose,mongo db
@@ -382,10 +382,47 @@ Predictability: The order in which the promises are initiated is predictable. Th
 
 *so async and promise only defer the result not the operations leading to the result but the only operation that gets deferred is one that depends on a deferred result.The operation still runs when and where it would have without the async/await or Promise, but the code that depends on the result of that operation is deferred.
 
-IO operations like network requests,disk and databse operations are blocking and expensive to perform.There are three ways of doing them;continuously,at-least once and only-once.only-once is for ideal conditions but in reality,at-least once and continuously are the only ones that are computationally feasible but continuously is highly inefficient because it will block the main thread.if i make an app that launches a network request on every button click or the app wont work,the app will have an extremely poor performance because its heavily reliant on io operations and performing them continuously is runtime expensive and the app cant afford to make it async because it will lag on interactions.An app should use io operations but not heavily reliant on them.The at-least once approach is the most practical approach to handling io operations.It ensures that an app does an io operation at least once because its dangerous to make it run only once as external factors can break this guarantee especially on exit operations.It can be done in many ways such as a retry mechanism,based on frequency or asynchronously.
+*IO operations like network requests,disk and databse operations are blocking and expensive to perform.There are three ways of doing them;onEveryChange,at-least once,at-most once and only-once.only-once is feasible on startup but unreliably on exit.it is done assuming ideal conditions but in reality,at-least once and onChange are the only ones that are computationally feasible but onChange is highly inefficient because it will block the main thread.if i make an app that launches a network request on every button click or the app wont work,the app will have an extremely poor performance because its heavily reliant on io operations and performing them onChange is runtime expensive and the app cant afford to make it async because it will lag on interactions.An app should use io operations but not heavily reliant on them.The at-least once approach is the most practical approach to handling io operations.It ensures that an app does an io operation at least once because its dangerous to make it run only once as external factors can break this guarantee especially on exit operations.It can be done in many ways such as a retry mechanism,based on frequency or asynchronously.
 
 ?service workers and web workers
 
-so a side effect is when a function modifies a parameter in place/mutation or performs an io operation.Pure functions are more predictable because they dont have any side effect.if a function must perform a parameter side effect,the programmer must ensure that its clear and concise to preserve predictability but if the function performs an io side effect,it must be indempotent.its an io side effect function that intends to act like a pure function by ensuring the overall state change caused by the function is the same, regardless of how many times it's called with the same input.
+*so a side effect is when a function modifies a parameter in place/mutation or performs an io operation.Pure functions are more predictable because they dont have any side effect.if a function must perform a parameter side effect,the programmer must ensure that its clear and concise to preserve predictability but if the function performs an io side effect,it must be indempotent.its an io side effect function that intends to act like a pure function by ensuring the overall state change caused by the function is the same, regardless of how many times it's called with the same input.
 
-so an indempotent result is that:if i attempt to perform x multiple times with the same input,it only performs x once and does nothing on subsequent calls
+*so an indempotent result is that:if i attempt to perform x multiple times with the same input,it only performs x once and does nothing on subsequent calls
+
+^i want app.tsx to be responsible for persisting the inmemory cache and loading it again to memory and caching objects ahead of time.
+
+
+*Local storage has a limited storage capacity (typically around 5-10 MB per origin). If your cache grows too large, you could exceed this limit, leading to data loss or errors.Writing to local storage too frequently can impact performance, especially on low-end devices.Reading a large cache from local storage on app load can also cause a delay.
+
+*using a blind timer like setinterval is unsafe.it can perform unnecessary writes even if the data hasnt changed which wastes cpu resources.If the timer takes longer than programmed which can be influenced by external conditions like a slow device,the next setInterval execution will start before the previous one finishes. This can lead to race conditions, data corruption, or performance degradation.
+
+
+*The setInterval timer itself has a very minimal performance impact. The overhead of setting up and maintaining the timer is negligible. The real performance bottleneck is the localStorage.setItem() operation, which is synchronous and can block the main thread.
+
+
+A time window,time interval,timer
+
+
+*throttling and deboucning are both techniques used to limit the frequency of function calls based on a time window to improve performance except that throttling only calls the first or last function call to arrive within a time window while debouncing only calls a function after the function hasnt been called for a time period/a period of inactivity
+
+*leading throttling is that only the first call to arrive in the time window is executed while trailing is that the last call to arrive within the time period is called.The time window reset again to 0 to allow for new calls to arrive.
+
+*Throttling and debouncing can indirectly increase the likelihood of no race conditions.However, this is a side effect, not the primary goal. Debouncing doesn't provide any guarantees about the order in which requests are processed or responses are received. It just reduces the number of requests.Debouncing is a rate-limiting technique, not a synchronization mechanism.Throttling and debouncing dont know anything about the app data so they arent indempotent
+
+*The difference between at-most once and only-once is that at-most once only calls a function once within a time window ensuring that other calls during that time are ignored while only-once calls the function once within the app's life cycle.
+
+*the main issue of putting a throttle in a useEffect that listens to data that changes on every button click for example is often that the throttled function is being recreated on every state change. This defeats the purpose of throttling.
+
+at-least once uses an interval
+at-most once uses throttle or debouncing.at most once prevents unnecessary writes.
+
+^async database
+
+*onEveryChange + throttling = at-most once.so store data to local storage is throttled meaning that on every call to it which happens on every add to cache,only one will be executed during that time window.It will be more effective if i increase the time window so that if a user clicks a button like five times,it only calls the store function once and since the cache needs to be up to date,it has to be trailing throttling.A shorter time window will result in more frequent updates to localStorage, while a longer time window will reduce the frequency but potentially lead to slightly older data being stored
+
+*so if i used an interval like set interval,it will be an at-least once approach like store the cache to storage every 10 seconds but its more fragile because it makes an assumption that the cache may be updated within that time which cant be guaranteed because of different user behaviour and it will waste resources as there may be unnecessary writes
+
+*The types of io operation techniques are only-once,on-data-change,at-least once,at-most once,manual io
+
+*so only-once is the ideal io operation techique where the io operation is performed only when the app starts or exits.startups are feasible but work under assumptions while exit io operations can only work under absolute ideal conditions.At-least once,at-most once and on-every-change are the only practical approaches.at least once is better for retry io mechanisms like constantly trying a request till it succeeds but it requires that the functions are indempotent and its fragile for operations that depends on data changes,at-most once is best for io operations that depend on data changes.It combines on-every-change with rate limiting mechanisms like throttling or rate counting.on-every-change is the easy way out but highly discouraged because it significantly spoils performance.Manual io doesnt face the challenges of others because it shifts the responsibility to the user but it risks data loss if the app doesnt close gracefully,it creates an inconvenience for the user and it isnt best for background operations.on-data-change is feasible if the operation isnt meant to be frequently done and its lightweight
