@@ -206,10 +206,7 @@ export async function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean):Pr
         const folderPath = await join_with_home(tabName);
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath);
         if (!(dirResult.value instanceof Error) && (dirResult.value !== null)) {//i only care about the success case here because the operation was initiated by the app and not the user and its not required to succeed for the user to progress with the app
-            const fsNodes:FsNode[] = []
-            for (const fsNodePromise of dirResult.value) {
-                fsNodes.push(await fsNodePromise)
-            }
+            const fsNodes:FsNode[] = await Promise.all(dirResult.value);
             dispatch(addToCache({path:folderPath,data:fsNodes}));
             if (isLast) {
                 dispatch(setAheadCachingState('success'))
@@ -226,8 +223,9 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
         dispatch(openCachedDirInApp(folderPath));//opens the cached dir in app in the meantime if any
         dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
 
-        const folderName = await base_name(folderPath);
-        dispatch(setLoadingMessage(`Loading the folder: ${(folderName=="USER")?"Home":folderName}`))
+        let folderName = await base_name(folderPath);
+        folderName = (folderName=="USER")?"Home":folderName;
+        dispatch(setLoadingMessage(`Loading the folder: ${folderName}`))
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath);//its fast because it doesnt load the file content
 
         if (dirResult.value instanceof Error) {
@@ -238,11 +236,17 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setNotice(`The following directory is empty: "${folderPath}"`));
             dispatch(setFsNodes(null))//null fs nodes then means its empty
         }else {
-            for (const fsNodePromise of dirResult.value) {
-                const fsNode:FsNode = await fsNodePromise;
-                dispatch(pushToFsNodes(fsNode))
+            let fsNodes:FsNode[] = []
+            if (folderName == "Home") {//for user experience
+                for (const fsNodePromise of dirResult.value) {
+                    const fsNode:FsNode = await fsNodePromise;
+                    dispatch(pushToFsNodes(fsNode))
+                }
+                fsNodes = selectFsNodes(getState()) || []//fsnodes cant be null here because a series of fsnodes were already pushed above this line but the ts compiler cant infer that so i just provided a fallback value
+            }else {
+                fsNodes = await Promise.all(dirResult.value);
+                dispatch(setFsNodes(fsNodes))
             }
-            const fsNodes:FsNode[] = selectFsNodes(getState()) || []//fsnodes cant be null here because a series of fsnodes were already pushed above this line but the ts compiler cant infer that so i just provided a fallback value
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             //since the ui remains frozen as its caching ahead of time,there is no need to add a debouncing mechanism to prevent the user from switching to another tab while its caching
             dispatch(addToCache({path:folderPath,data:fsNodes}));//performs caching while the user can interact with the dir in the app
