@@ -337,4 +337,16 @@ Data that is relatively static.
 
 this wasnt immediately obvious because theoretically,it will provide a reliable exit and js cant warn the programmer about all possible operations that will unreliably run when placed in a use effect.so useeffect is for managing app resources that arent critical to the functionality of the app.if i need to persist data when the app exits,i have to create the solution myself.
 
-so external code safety can never be guaranteed because its the fundamental limit of computation as described by the halting problem.retry mechanism is a way to solve transient errors which are errors that only fail on a lack of certain conditions.fallback and fault tolerance
+so external code safety can never be guaranteed because its the fundamental limit of computation as described by the halting problem.
+
+retry mechanism is a way to solve transient errors which are errors that only fail on a lack of certain conditions.fallback,rollback,fault tolerance,indempotency means that performing the same operation many times is the same as performing it once.its like the safety of a pure function but in a function that does side effects
+
+*if i want to reliably persist data,i can use a polling mechanism,retry mechanism or checkpointing for persisting data.
+
+*so making a requirement like only once for a design architecture where the app only stores the data when the app is not in use is a bold requirement that makes it complex to guarantee.
+
+*so at-least once persistence is better than only-once persistence.so the limits of computation affects design decisions because under ideal conditions,one can design his app to only persist the data once the app is closed.In the real world, systems are subject to failures. "At-least-once" acknowledges this reality and prioritizes ensuring the data eventually gets persisted, even if it means potential duplicates.This is why persistent operations must be indemptotent and a retry mechanism must be implemented
+
+perfect reliability and predictability isnt possible in computation
+
+only-once is the ideal condition and at-least once is the real condition
