@@ -5,14 +5,14 @@ import { useState,useMemo } from "react";
 import { Card } from "./card";
 
 
-export default function Sidebar() {
+export default function Sidebar({unFreezeStartup}:{unFreezeStartup:()=>string}) {
     const dispatch = useAppDispatch();
     const tabNames:string[] = selector((store)=>selectTabNames(store));
     const uniqueTabs: UniqueTab[] = useMemo(() => tabNames.map(tabName=>({ id: uniqueID(), name: tabName })), [tabNames]);
     const tabImgs:Record<string,string> = {Desktop:"desktop.svg",Downloads:"download.svg",Documents:"book.svg",Pictures:"image.svg",Music:"headphones.svg",Videos:"video.svg",RecycleBin:"trash.svg"};
     const [recentTabId,] = useState(uniqueID());
     const [homeTabId,] = useState(uniqueID());
-    const [clickedTab,setClickedTab] = useState<string>(homeTabId)
+    const [clickedTab,setClickedTab] = useState<string>(homeTabId);
 
     async function clickTab(tabId:string,tabName:string):Promise<void> {
         setClickedTab(tabId)
@@ -22,7 +22,7 @@ export default function Sidebar() {
         return (clickedTab === tabId)?"bg-[#387de4fa] shadow-md rounded-3xl py-2 w-[90%] font-robot-regular":"py-3.5 w-[30%] font-sans "
     }
     return (
-        <div className="flex flex-col bg-[#1f1f30] h-[100%] w-[12%] border-r border-[#3a3a3a]">
+        <div className={`flex flex-col bg-[#1f1f30] h-[100%] w-[12%] border-r border-[#3a3a3a] ${unFreezeStartup()}`}>
             <div className="flex flex-col mt-10">
                 <div>
                     <Card {...{id:homeTabId,tabName:"Home",imgName:"house.svg",clickedTab,clickTab,clickedClass}}/>

@@ -10,7 +10,7 @@ export default function App() {
     const dispatch = useAppDispatch();
     const aotCacheState = selector(store=>selectAheadCachingState(store));
 
-    function unFreezeClass():string {
+    function unFreezeStartup():string {
         return (aotCacheState == "success")?"":"opacity-30"
     }
     //only open the home dir after the last one has finished so that it can check if the ahead of time caching succeeded or not
@@ -26,9 +26,9 @@ export default function App() {
     return (
         <div className="flex flex-col h-[100vh] w-[100vw] bg-[#1f1f30] text-white">
             <Toasts/>
-            <Top/>
-            <div className={`flex w-full h-full items-center overflow-hidden ${unFreezeClass()}`}>
-                <Sidebar/>  
+            <Top {...{unFreezeStartup}}/>
+            <div className="flex w-full h-full items-center overflow-hidden">
+                <Sidebar {...{unFreezeStartup}}/>  
                 <Body/>
             </div>
         </div>
