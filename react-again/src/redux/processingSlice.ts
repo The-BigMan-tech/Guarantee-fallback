@@ -3,6 +3,8 @@ import { RootState,AppThunk } from './store'
 import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name} from '../utils/rust-fs-interface';
 import {v4 as uniqueID} from 'uuid';
 
+
+type JsonCache = {data:CachedFolder[]}
 type CachingState = 'pending' | 'success';
 type StrictTabsType = 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos';
 export type SortingOrder = 'name' | 'date' | 'type' | 'size';
@@ -68,6 +70,9 @@ export const processingSlice = createSlice({
         setFsNodes(state,action:PayloadAction<FsNode[] | null>) {
             state.fsNodes = action.payload
         },
+        setCache(state,action:PayloadAction<CachedFolder[]>) {
+            state.cache = action.payload
+        },
         pushToFsNodes(state,action:PayloadAction<FsNode>) {
             state.fsNodes?.push(action.payload)
         },
@@ -114,6 +119,7 @@ export const {
     setCurrentPath,
     setFsNodes,
     pushToFsNodes,
+    setCache,
     pushToCache,
     replaceInCache,
     shiftCache,
@@ -267,5 +273,22 @@ export async function openDirFromHome(tabName:string):Promise<AppThunk> {
     return async (dispatch)=> {
         const folderPath:string = await join_with_home(tabName)
         dispatch(await openDirectoryInApp(folderPath))
+    }
+}
+export function loadCache():AppThunk {
+    return (dispatch) => {
+        const fallback:string = JSON.stringify({data:[]})
+        const cache_as_string:string = localStorage.getItem("appCache") || fallback;
+        const cache:JsonCache = JSON.parse(cache_as_string);
+        console.log("Deserialized cache",cache.data);
+        dispatch(setCache(cache.data))
+    }
+}
+function storeCache():AppThunk {
+    return (_,getState)=>{
+        localStorage.clear();//to clean the local storage before storing the cache
+        const cache:CachedFolder[] = selectCache(getState());
+        const json_cache:JsonCache = {data:cache}
+        localStorage.setItem("appCache",JSON.stringify(json_cache))
     }
 }
