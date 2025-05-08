@@ -28,7 +28,11 @@ export default function SearchBar() {
         }
     }   
     useEffect(()=>{
-        setBreadCrumbs(currentPath.split("\\"))
+        if (currentPath.endsWith("AppData\\Roaming\\Microsoft\\Windows\\Recent")) {
+            setBreadCrumbs(["Recent"])
+        }else {
+            setBreadCrumbs(currentPath.split("\\"))
+        }
     },[currentPath])  
     useEffect(()=>{
         console.log("Bread crumbs",breadCrumbs);

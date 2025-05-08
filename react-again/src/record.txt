@@ -295,7 +295,7 @@ The opendir function skips over caching tabs that have already been cached ahead
 
 he cache is limited by instances of 20 and the individual fsNodes array of each instance is limited to a 100
 
-i just realized that prints in async blocks may not show in the order they were executed.so they are a bit unreliable i believe
+i just realized that prints in async blocks may not show in the order they were executed.so they are a bit unreliable i believe.
 
 there are two types of caching.just in time caching or ahead of time caching.jit caching costs runtime but no startup time while aot caching is vice versa.jit caching should be used to cache evrything because it ensures that only accessed data is cached but aot caching can be used to improve ux but it must be selective so that it doesnt take too much startup time or waste cpu and memory resources and must be async.
 
@@ -359,3 +359,11 @@ todo:right click,file icons,details pane,changing the view and size,disk usage p
 todo:make a recent folder and cache everything under that recent folder
 
 items in the recent folder are links
+
+Therefore, removing await without a proper mechanism for handling the promises (like Promise.all or Promise.allSettled) effectively makes the code asynchronous in a way that's uncontrolled and unusable for your intended purpose
+
+incremental processing
+
+so i can get predictable incremental processing unlike removing the await blocks
+
+Predictability: The order in which the promises are initiated is predictable. The order in which they resolve might not be, but you can handle that.
