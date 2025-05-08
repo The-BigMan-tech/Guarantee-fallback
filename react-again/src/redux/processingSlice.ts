@@ -236,8 +236,9 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setNotice(`The following directory is empty: "${folderPath}"`));
             dispatch(setFsNodes(null))//null fs nodes then means its empty
         }else {
+            const aotCachingState = selectAheadCachingState(getState())
             let fsNodes:FsNode[] = []
-            if (folderName == "Home") {//for user experience
+            if ((folderName === "Home") && (aotCachingState === "pending")) {//for user experience
                 for (const fsNodePromise of dirResult.value) {
                     const fsNode:FsNode = await fsNodePromise;
                     dispatch(pushToFsNodes(fsNode))
