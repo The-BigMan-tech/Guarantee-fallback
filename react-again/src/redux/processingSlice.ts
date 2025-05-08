@@ -236,12 +236,9 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
 
             const aheadCachingState = selectAheadCachingState(getState());//dont move this from this block.it wont work.it has to be under the two awaits so that it gets loaded after the other thunks have been dispatched
-            const tabNames:Set<string> = new Set(selectTabNames(getState()))
             console.log("State of ahead of time caching",aheadCachingState);
-            if (!(tabNames.has(folderName)) || (aheadCachingState === "success")) {//only caches the folder if it hasnt been attempted to be cached ahead of time and all the home tabs are cached ahead of time
-                console.log("cached tab",folderName);
-                dispatch(addToCache({path:folderPath,data:fsNodes}));//performs caching while the user can interact with the dir in the app
-            }
+            //since the ui remains frozen as its caching ahead of time,there is no need to add a debouncing mechanism to prevent the user from switching to another tab while its caching
+            dispatch(addToCache({path:folderPath,data:fsNodes}));//performs caching while the user can interact with the dir in the app
             console.log("Files:",fsNodes);
         }
         //just ignore this.ive chosen to accept it
