@@ -76,8 +76,8 @@ export const processingSlice = createSlice({
         setCache(state,action:PayloadAction<CachedFolder[]>) {
             state.cache = action.payload
         },
-        pushToFsNodes(state,action:PayloadAction<FsNode>) {
-            state.fsNodes?.push(action.payload)
+        spreadToFsNodes(state,action:PayloadAction<FsNode[]>) {
+            state.fsNodes = [...(state.fsNodes || []),...action.payload]
         },
         pushToCache(state,action:PayloadAction<CachedFolder>) {
             state.cache.push(action.payload)
@@ -121,7 +121,7 @@ export const processingSlice = createSlice({
 export const {
     setCurrentPath,
     setFsNodes,
-    pushToFsNodes,
+    spreadToFsNodes,
     setCache,
     pushToCache,
     replaceInCache,
@@ -213,6 +213,7 @@ function openCachedDirInApp(folderPath:string):AppThunk {
 }
 export async function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean):Promise<AppThunk>{
     return async (dispatch)=>{
+        // dispatch(setAheadCachingState('pending'))
         const folderPath = await join_with_home(tabName);
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath);
         if (!(dirResult.value instanceof Error) && (dirResult.value !== null)) {//i only care about the success case here because the operation was initiated by the app and not the user and its not required to succeed for the user to progress with the app
@@ -251,7 +252,12 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             if ((folderName === "Home") && (aotCachingState === "pending")) {//for user experience
                 for (const fsNodePromise of dirResult.value) {
                     const fsNode:FsNode = await fsNodePromise;
-                    dispatch(pushToFsNodes(fsNode))
+                    fsNodes.push(fsNode);
+                    if (fsNodes.length == 1) {
+                        console.log("BATCHED FS NODES REACHED");
+                        dispatch(spreadToFsNodes(fsNodes))
+                        fsNodes = []
+                    }
                 }
                 fsNodes = selectFsNodes(getState()) || []//fsnodes cant be null here because a series of fsnodes were already pushed above this line but the ts compiler cant infer that so i just provided a fallback value
             }else {
@@ -296,9 +302,9 @@ function storeCache():AppThunk {
         console.log("STORE CACHE WAS CALLED",cache);
     }
 }
-const throttledStoreCache:throttle<()=>AppThunk> = throttle(7000,
+const throttledStoreCache:throttle<()=>AppThunk> = throttle(5000,
     (dispatch:AppDispatch)=>(dispatch(storeCache())),
-    {noLeading: false, noTrailing: false,}
+    {noLeading:true, noTrailing: false,}
 );
 
 

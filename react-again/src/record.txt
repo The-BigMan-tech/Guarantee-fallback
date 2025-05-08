@@ -435,4 +435,10 @@ consistently audit code that uses relatively old libraries.dont use absolutely o
 
 useMemo is for memoizing data while useCallback is for memoizing functions and React.memo is for memoizing components.They both take what the y memoize and a dependency that invalidates the memoization
 
-*so throttle + useEffect just gives us back on-data-change io but memoizing it gives us the at-most once io approach
+*so throttle + useEffect just gives us back on-data-change io but memoizing it gives us the at-most once io approach.
+
+*so faulty type errors result when a script that doesnt officially support types is given by external declaration files which may be incorrect or out of date.This can cause false and misleading compile time errors that will take hours to figure out.declaration files provides the ts compiler with information about the types of the data used in the codebase and if the information is broken,ts will falsely flag code as type errors.The ts compiler blidly relies on the d.ts information over runtime functionality because its impossible for the compiler to analyze runtime behaviour.so the work around is to use runtime behaviour to analyze declaration files
+
+im choosing to use spreading to the fsnodes array instead of pushing to it incrementally.it has a bigger time complexity of O(n) since O(n + 5) = O(n) as i only concatenate an array of 5 elements at a time but in exchange of faster runtime by reducing constant ui updates instead of pushing which has an O(1) time complexity but costs runtime as the ui has to respond on each update
+
+increasing the time window of the throttle reduces the function call frequency but creates a lower chance of the function actually getting called if anything that will compromise the app should happen within that period
