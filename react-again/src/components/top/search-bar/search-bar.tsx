@@ -14,7 +14,7 @@ export default function SearchBar() {
     }
     function shouldRenderArrow():boolean {
         const pathName = currentPath.slice(currentPath.lastIndexOf("\\") + 1);
-        if (tabNames.has(pathName) || (pathName == "")) {
+        if (tabNames.has(pathName) || (pathName == "") || (breadCrumbs[0] == "Recent")) {//if its the home path or the other paths from home or if in the recent folder
             return false
         }
         return true
@@ -41,7 +41,7 @@ export default function SearchBar() {
         <div className="bg-[#1f1f30] w-full border-b border-[#3a3a3a] shadow-sm h-[60%]">
             <div className="flex items-center gap-5">
                 {shouldRenderArrow()
-                    ?<button onClick={goToParent} className="font-bold cursor-pointer absolute left-10">{"<="}</button>
+                    ?<button onClick={goToParent} className="font-bold cursor-pointer absolute left-10 mt-3">{"<="}</button>
                     :null
                 }
                 <div className="flex gap-4 ml-40 mt-3">
