@@ -247,16 +247,17 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setNotice(`The following directory is empty: "${folderPath}"`));
             dispatch(setFsNodes(null))//null fs nodes then means its empty
         }else {
+            const cache = selectCache(getState())
             const aotCachingState = selectAheadCachingState(getState())
-            let fsNodes:FsNode[] = []
-            if ((folderName === "Home") && (aotCachingState === "pending")) {//for user experience
+            let fsNodes:FsNode[] = []//used to batch fsnodes for ui updates
+            if ((folderName === "Home") && (aotCachingState === "pending") && !(cache.length)) {//for user experience.if the home tab is opened and its still caching ahead of time and the cache is empty in otherwords,the first time using the app,show the files incrementally.other subsequent opens wont trigger this
                 for (const fsNodePromise of dirResult.value) {
                     const fsNode:FsNode = await fsNodePromise;
                     fsNodes.push(fsNode);
-                    if (fsNodes.length == 1) {
+                    if (fsNodes.length == 4) {//batch 4 fsnodes before reflecting it in the ui
                         console.log("BATCHED FS NODES REACHED");
-                        dispatch(spreadToFsNodes(fsNodes))
-                        fsNodes = []
+                        dispatch(spreadToFsNodes(fsNodes))//reflect the 4 fsnodes in the ui
+                        fsNodes = []//clear the batch array for a new batch
                     }
                 }
                 fsNodes = selectFsNodes(getState()) || []//fsnodes cant be null here because a series of fsnodes were already pushed above this line but the ts compiler cant infer that so i just provided a fallback value
