@@ -2,6 +2,7 @@ import { Action, configureStore } from '@reduxjs/toolkit'
 import processingReducer from './processingSlice'
 import { ThunkAction } from '@reduxjs/toolkit'
 
+
 const store = configureStore({
     reducer:{
         processing:processingReducer,

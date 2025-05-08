@@ -426,3 +426,13 @@ at-most once uses throttle or debouncing.at most once prevents unnecessary write
 *The types of io operation techniques are only-once,on-data-change,at-least once,at-most once,manual io
 
 *so only-once is the ideal io operation techique where the io operation is performed only when the app starts or exits.startups are feasible but work under assumptions while exit io operations can only work under absolute ideal conditions.At-least once,at-most once and on-every-change are the only practical approaches.at least once is better for retry io mechanisms like constantly trying a request till it succeeds but it requires that the functions are indempotent and its fragile for operations that depends on data changes,at-most once is best for io operations that depend on data changes.It combines on-every-change with rate limiting mechanisms like throttling or rate counting.on-every-change is the easy way out but highly discouraged because it significantly spoils performance.Manual io doesnt face the challenges of others because it shifts the responsibility to the user but it risks data loss if the app doesnt close gracefully,it creates an inconvenience for the user and it isnt best for background operations.on-data-change is feasible if the operation isnt meant to be frequently done and its lightweight
+
+consistently audit code that uses relatively old libraries.dont use absolutely old libraries
+
+*i can only throttle a normal function and not a thunk.Because the throttle is only controlling the outer function, the inner function is dispatched every time throttleStoreCache() is called (within the throttling window).You need to throttle the execution of the thunk, not the creation of it
+
+*so type assertion is to relax the ts compiler in situations where we are sure of the type but its too complex for ts to know that. You use them when you have more information about the type of a value than the compiler can infer.This often happens in situations where:You're working with complex libraries or APIs where the type definitions are not perfect.You're doing some advanced type manipulation that the compiler can't follow.You're absolutely certain about the type of a value, even though the compiler is complaining but if you're wrong about the type, the compiler won't catch the error, and you might end up with runtime issues.
+
+useMemo is for memoizing data while useCallback is for memoizing functions and React.memo is for memoizing components.They both take what the y memoize and a dependency that invalidates the memoization
+
+*so throttle + useEffect just gives us back on-data-change io but memoizing it gives us the at-most once io approach

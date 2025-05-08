@@ -1,7 +1,10 @@
+//@ts-expect-error :I intetionally didnt install the type files because they were misleading the compiler about how to call the throttle function which was falsely flagging my code
+import {throttle} from 'throttle-debounce';
 import { createSlice,PayloadAction} from '@reduxjs/toolkit'
 import { RootState,AppThunk } from './store'
 import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name} from '../utils/rust-fs-interface';
 import {v4 as uniqueID} from 'uuid';
+import { AppDispatch } from './store';
 
 
 type JsonCache = {data:CachedFolder[]}
@@ -194,6 +197,7 @@ function addToCache(data:CachedFolder):AppThunk {
             dispatch(pushToCache(data))
         }
         console.log("Cache: ",appCache);
+        throttledStoreCache(dispatch);
     }
 }
 function openCachedDirInApp(folderPath:string):AppThunk {
@@ -284,11 +288,17 @@ export function loadCache():AppThunk {
         dispatch(setCache(cache.data))
     }
 }
-export function storeCache():AppThunk {
+function storeCache():AppThunk {
     return (_,getState)=>{
-        localStorage.clear();//to clean the local storage before storing the cache
         const cache:CachedFolder[] = selectCache(getState());
         const json_cache:JsonCache = {data:cache}
         localStorage.setItem("appCache",JSON.stringify(json_cache))
+        console.log("STORE CACHE WAS CALLED",cache);
     }
 }
+const throttledStoreCache:throttle<()=>AppThunk> = throttle(7000,
+    (dispatch:AppDispatch)=>(dispatch(storeCache())),
+    {noLeading: false, noTrailing: false,}
+);
+
+

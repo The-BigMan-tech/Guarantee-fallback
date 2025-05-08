@@ -4,7 +4,7 @@ import Toasts from "./components/toast/toast"
 import Body from "./components/body/body"
 import { selector, useAppDispatch } from "./redux/hooks"
 import { useEffect } from "react"
-import { openDirFromHome, selectAheadCachingState ,cacheAheadOfTime,loadCache} from "./redux/processingSlice"
+import { openDirFromHome, selectAheadCachingState ,cacheAheadOfTime,loadCache,} from "./redux/processingSlice"
 
 export default function App() {
     const dispatch = useAppDispatch();
@@ -13,6 +13,7 @@ export default function App() {
     function unFreezeStartup():string {//the empty quote means its unfrozen because it doesnt affect opacity 
         return (aotCacheState == "success")?"":"opacity-30"
     }
+
     //only open the home dir after the last one has finished so that it can check if the ahead of time caching succeeded or not
     useEffect(()=>{
         dispatch(loadCache());
