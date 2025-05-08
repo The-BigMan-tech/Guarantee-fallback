@@ -307,3 +307,5 @@ todo:i have to serialize and deserialize the cache
 *tailwind styled components
 
 *prolog is for old school ai
+
+if you dont invalidate a memoized component,it will see an older version of a state and not behave as expected

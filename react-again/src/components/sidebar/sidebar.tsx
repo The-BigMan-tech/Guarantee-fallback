@@ -15,8 +15,10 @@ export default function Sidebar({unFreezeStartup}:{unFreezeStartup:()=>string}) 
     const [clickedTab,setClickedTab] = useState<string>(homeTabId);
 
     async function clickTab(tabId:string,tabName:string):Promise<void> {
-        setClickedTab(tabId)
-        dispatch(await openDirFromHome(tabName));
+        if (unFreezeStartup() !== "opacity-30") {
+            setClickedTab(tabId)
+            dispatch(await openDirFromHome(tabName));
+        }
     }
     function clickedClass(tabId:string):string {
         return (clickedTab === tabId)?"bg-[#387de4fa] shadow-md rounded-3xl py-2 w-[90%] font-robot-regular":"py-3.5 w-[30%] font-sans "
@@ -25,13 +27,13 @@ export default function Sidebar({unFreezeStartup}:{unFreezeStartup:()=>string}) 
         <div className={`flex flex-col bg-[#1f1f30] h-[100%] w-[12%] border-r border-[#3a3a3a] ${unFreezeStartup()}`}>
             <div className="flex flex-col mt-10">
                 <div>
-                    <Card {...{id:homeTabId,tabName:"Home",imgName:"house.svg",clickedTab,clickTab,clickedClass}}/>
-                    <Card {...{id:recentTabId,tabName:"Recent",imgName:"clock.svg",clickedTab,clickTab,clickedClass}}/>
+                    <Card {...{id:homeTabId,tabName:"Home",imgName:"house.svg",clickedTab,clickTab,clickedClass,unFreezeStartup}}/>
+                    <Card {...{id:recentTabId,tabName:"Recent",imgName:"clock.svg",clickedTab,clickTab,clickedClass,unFreezeStartup}}/>
                 </div>
                 <div className="border-t mt-4 pt-4 border-[#3a3a3a]">
                     {uniqueTabs.map(tab=>
                     <div key={tab.id}>
-                        <Card {...{id:tab.id,tabName:tab.name,imgName:tabImgs[tab.name],clickedTab,clickTab,clickedClass}}/>
+                        <Card {...{id:tab.id,tabName:tab.name,imgName:tabImgs[tab.name],clickedTab,clickTab,clickedClass,unFreezeStartup}}/>
                     </div>
                     )}
                 </div>
