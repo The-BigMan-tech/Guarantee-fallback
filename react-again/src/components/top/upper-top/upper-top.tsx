@@ -3,7 +3,7 @@ import { useAppDispatch,selector} from "../../../redux/hooks"
 import { openParentInApp,selectCurrentPath,selectTabNames} from "../../../redux/processingSlice"
 import {v4 as uniqueID} from "uuid"
 
-export default function SearchBar() {
+export default function UpperTop() {
     const dispatch = useAppDispatch();
     const currentPath:string = selector(store=>selectCurrentPath(store));
     const [breadCrumbs,setBreadCrumbs] = useState<string[]>([]);
@@ -14,7 +14,8 @@ export default function SearchBar() {
     }
     function shouldRenderArrow():boolean {
         const pathName = currentPath.slice(currentPath.lastIndexOf("\\") + 1);
-        if (tabNames.has(pathName) || (pathName == "") || (breadCrumbs[0] == "Recent")) {//if its the home path or the other paths from home or if in the recent folder
+        const inRecent:boolean = ((breadCrumbs[0] == "Recent") && (breadCrumbs.length == 1))
+        if (tabNames.has(pathName) || (pathName == "") || inRecent) {//if its the home path or the other paths from home or if in the recent folder
             return false
         }
         return true
@@ -28,26 +29,28 @@ export default function SearchBar() {
         }
     }   
     useEffect(()=>{
-        if (currentPath.endsWith("AppData\\Roaming\\Microsoft\\Windows\\Recent")) {
-            setBreadCrumbs(["Recent"])
-        }else {
-            setBreadCrumbs(currentPath.split("\\"))
-        }
+        const replacedPath = currentPath.replace(/.*\\AppData\\Roaming\\Microsoft\\Windows\\Recent/,"Recent");
+        const breadCrumbs = replacedPath.split("\\");
+        setBreadCrumbs(breadCrumbs)
     },[currentPath])  
+
     useEffect(()=>{
         console.log("Bread crumbs",breadCrumbs);
     },[breadCrumbs])
     return (
         <div className="bg-[#1f1f30] w-full border-b border-[#3a3a3a] shadow-sm h-[60%]">
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-5 mt-3">
+                <div className="ml-3 mr-6 font-space-regular text-[#cbdbf1]">
+                    <h1>File manager</h1>
+                </div>
                 {shouldRenderArrow()
-                    ?<button onClick={goToParent} className="font-bold cursor-pointer absolute left-10 mt-3">{"<="}</button>
+                    ?<button onClick={goToParent} className="font-bold cursor-pointer absolute left-36">{"<="}</button>
                     :null
                 }
-                <div className="flex gap-4 ml-40 mt-3">
+                <div className="flex gap-4 bg-[#387ce13a] py-1 px-2 rounded-xl">
                     {uniqueBreadCrumbs.map((uniqueCrumb=>
                         <div key={uniqueCrumb.id}>
-                            <h1 className="font-space-regular">{getCrumbArrow(uniqueCrumb.crumb)}</h1>
+                            <h1 className="font-robot-regular">{getCrumbArrow(uniqueCrumb.crumb)}</h1>
                         </div>
                     ))}
                 </div>
