@@ -459,7 +459,9 @@ todo:file actions like writing,editing,etc
 todo:file actions on a pane and on right click
 todo:a differ so that file operations only affect the diff
 todo:Changing the view layout and icon size
+todo:Change it from local storage to pouch db for async database
 todo:Details pane
 todo:disk usage progress bars
 todo:responsive
 
+react window uses virtualization which means it lazily loads the content to the viewport.
