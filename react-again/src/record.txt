@@ -360,10 +360,12 @@ todo:make a recent folder and cache everything under that recent folder
 
 items in the recent folder are links
 
-Therefore, removing await without a proper mechanism for handling the promises (like Promise.all or Promise.allSettled) effectively makes the code asynchronous in a way that's uncontrolled and unusable for your intended purpose
-
 incremental processing
 
 so i can get predictable incremental processing unlike removing the await blocks
 
 Predictability: The order in which the promises are initiated is predictable. The order in which they resolve might not be, but you can handle that.
+
+*so returning promises creates predictable async operations but removing await keyword on unresolved data will give unpredictable async operations.it may not behave as intended and is error prone.You're then trying to use data that might not be available yet, leading to errors and unpredictable behavior.
+
+im returning an array of fsnodes promises instead of processing it all at once before returning or rather than using a generator for them because its easier to write and understand than an async generator.

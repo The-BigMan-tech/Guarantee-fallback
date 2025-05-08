@@ -71,12 +71,11 @@ export async function join_with_home(tabName:string):Promise<string> {
 export async function base_name(path:string):Promise<string> {
     return await invoke('path_basename', {path});
 }
-export async function readDirectory(dirPath:string):Promise<FsResult<FsNode[] | null | Error>> {
+export async function readDirectory(dirPath:string):Promise<FsResult<(Promise<FsNode>)[] | null | Error>> {
     try {
         const fsNodePaths:string[] = await invoke('read_dir', { dirPath });
         const fsNodesPromise:(Promise<FsNode>)[] = fsNodePaths.map(async (fsNodePath) =>await getFsNode(fsNodePath))
-        const fsNodes:FsNode[] = await Promise.all(fsNodesPromise);
-        return (fsNodes.length)?FsResult.Ok(fsNodes):FsResult.Ok(null);
+        return (fsNodesPromise.length)?FsResult.Ok(fsNodesPromise):FsResult.Ok(null);
     }catch(error:unknown) {
         return FsResult.Err(error)
     }
