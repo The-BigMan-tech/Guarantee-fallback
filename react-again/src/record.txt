@@ -148,6 +148,7 @@ custom hooks
 higher order thunks
 cache utility--normal caching and ahead of time caching
 app.tsx for setting up the app on startup using useEffects.like opening a tab on startup,caching specific folders ahead of time and deciding how the ui responds to aot caching
+throttlers
 *------------------------------------------------------------------------------------------
 
 app state is global,component state is local
@@ -350,13 +351,10 @@ theoretical designs mostly consider ideal conditions then it will convert to a p
 
 app level startup operations more reliable to execute than on exit operations since the app only starts under some normal conditions that can reliably execute the startup function.The phrase "normal conditions" is crucial here. Startup operations are designed to execute under normal conditions. The application expects certain resources to be available, certain dependencies to be present, and certain configuration settings to be valid. If these conditions are not met, the startup operations may fail.
 
-todo:preview editor,text editor,diff writer
 
 todo:checking on exact matches of strings is error prone without consistency.change all of those to distinct states.But it will do for now.Using string transformations like decapitalizing the string and trimming off white spaces can make the match less sensitive and thus,less error prone.
 
-todo:right click,file icons,details pane,changing the view and size,disk usage progress bar
 
-todo:make a recent folder and cache everything under that recent folder
 
 items in the recent folder are links
 
@@ -444,3 +442,24 @@ im choosing to use spreading to the fsnodes array instead of pushing to it incre
 increasing the time window of the throttle reduces the function call frequency but creates a lower chance of the function actually getting called if anything that will compromise the app should happen within that period
 
 i made element eviction from a cache to start at the 8th index instead of the first its the same effect as shifting but it does this starting from index 8 so that the ones that are cached ahead of time will be preserved on the cache threshold.
+
+
+so html already has previews i can use like text area,video and img.i can just use that.is there any other previewer i may need
+
+^TODAY
+recent folder-fixed the breadcrumbs,added support for it and cached it ahead of time
+made incremental processing on the home tab
+did at-most once cache serialization with throttling
+preserved aot cached tabs when the cache reaches its threshold
+todo:framer motion
+todo:file icons
+todo:file search
+todo:previews--video,img,audio,text area tags,react pdf,highlight js,react player,mammoth js,three js,react window
+todo:file actions like writing,editing,etc
+todo:file actions on a pane and on right click
+todo:a differ so that file operations only affect the diff
+todo:Changing the view layout and icon size
+todo:Details pane
+todo:disk usage progress bars
+todo:responsive
+
