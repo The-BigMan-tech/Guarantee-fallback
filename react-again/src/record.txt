@@ -350,3 +350,7 @@ retry mechanism is a way to solve transient errors which are errors that only fa
 perfect reliability and predictability isnt possible in computation
 
 only-once is the ideal condition and at-least once is the real condition
+
+theoretical designs mostly consider ideal conditions then it will convert to a practical design because it now starts to consider real world conditions
+
+app level startup operations more reliable to execute than on exit operations since the app only starts under some normal conditions that can reliably execute the startup function.The phrase "normal conditions" is crucial here. Startup operations are designed to execute under normal conditions. The application expects certain resources to be available, certain dependencies to be present, and certain configuration settings to be valid. If these conditions are not met, the startup operations may fail.
