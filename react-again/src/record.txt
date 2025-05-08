@@ -206,7 +206,10 @@ objects are for centralizing related data into a single variable
 
 because the ids are supposed to be unique even for the same message,it has to be recomputed unlike elements in react list components that requires caching for the components to be properly tracked
 
-type safety,memory safety,runtime safety
+*CODE SAFETY
+type safety,memory safety,runtime safety,thread safety,access safety like mut refs
+logic safety,external safety
+
 difference between it will not x and it can never x
 notes in my jotter
 difference between safety and security
@@ -322,3 +325,16 @@ if you dont invalidate a memoized component,it will see an older version of a st
 
 mine freezes the entire ui till everything is cached ahead of time.i can do a progressive aot caching where users can access data that has been aot cached
 
+jit caching is best for unpredictable access patterns and frequently changing data
+aot caching is best for predictable patterns and very stable data
+
+AOT is best for
+Data that is accessed very frequently.
+Data that is critical for initial application functionality.
+Data that is relatively static.
+
+*so the reason why my component doesnt reliably call the cleanup function when it exits is not because of js or react but because its impossible to guarantee that the app will have a clean exit as many circumstances can prevent the app from closing in a stable state.task manager is an example of this,it forcefully exits a process but closing the window normally,gives the app the chance to cleanup and thats why force quit is faster than normal quitting.React's useEffect cleanup functions are designed to handle the component unmounting or when dependencies change. They are not intended to be a guaranteed "on-application-exit" mechanism
+
+this wasnt immediately obvious because theoretically,it will provide a reliable exit and js cant warn the programmer about all possible operations that will unreliably run when placed in a use effect.so useeffect is for managing app resources that arent critical to the functionality of the app.if i need to persist data when the app exits,i have to create the solution myself.
+
+so external code safety can never be guaranteed because its the fundamental limit of computation as described by the halting problem.retry mechanism is a way to solve transient errors which are errors that only fail on a lack of certain conditions.fallback and fault tolerance
