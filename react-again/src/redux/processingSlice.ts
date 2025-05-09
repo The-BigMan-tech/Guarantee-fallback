@@ -5,7 +5,7 @@ import { RootState,AppThunk } from './store'
 import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name} from '../utils/rust-fs-interface';
 import {v4 as uniqueID} from 'uuid';
 import { AppDispatch } from './store';
-import { watchImmediate, BaseDirectory } from '@tauri-apps/plugin-fs';
+import { watchImmediate, BaseDirectory, WatchEvent, WatchEventKind, WatchEventKindCreate, WatchEventKindModify, WatchEventKindRemove } from '@tauri-apps/plugin-fs';
 
 type JsonCache = {data:CachedFolder[]}
 type CachingState = 'pending' | 'success';
@@ -65,7 +65,7 @@ const initialState:processingSliceState = {
     fsNodes:null,
     cache:[],
     aheadCachingState:'pending',
-    invalidatedTabCache:{Home:false,Recent:false,Desktop:false,Downloads:false,Documents:false,Pictures:false,Music:false,Videos:false},
+    invalidatedTabCache:{Home:true,Recent:true,Desktop:true,Downloads:true,Documents:true,Pictures:true,Music:true,Videos:true},
     selectedFsNodes:null,
     error:{id:"",message:null},//the ids is to ensure that the same error can pop up twice
     notice:{id:"",message:null},
@@ -201,7 +201,7 @@ function getParent():AppThunk<string> {
         return currentPath
     }
 }
-function addToCache(data:CachedFolder):AppThunk {
+function addToCache(data:CachedFolder,tabName:string):AppThunk {
     return (dispatch,getState)=>{
         console.log("Called add to cache");
         const appCache = selectCache(getState());
@@ -216,10 +216,15 @@ function addToCache(data:CachedFolder):AppThunk {
                 console.log("Cache length is greater than 3");
                 dispatch(shiftCache())
             }
-            data.data.slice(0,101)//ensures that only a 100 fsnodes are stored in the cache
+            //i have to remove the slicing because the cache needs to be complete if its going to be validated for ui interactions
+            // data.data.slice(0,101)//ensures that only a 100 fsnodes are stored in the cache
             dispatch(pushToCache(data))
         }
         console.log("Cache: ",appCache);
+        if (isAHomeTab(tabName)) {//validates the cache because its up to date
+            console.log("Validated the cache",tabName);
+            dispatch(validateTabCache({tabName}))
+        }
         throttledStoreCache(dispatch);
     }
 }
@@ -241,12 +246,15 @@ export async function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean):Pr
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath);
         if (!(dirResult.value instanceof Error) && (dirResult.value !== null)) {//i only care about the success case here because the operation was initiated by the app and not the user and its not required to succeed for the user to progress with the app
             const fsNodes:FsNode[] = await Promise.all(dirResult.value);
-            dispatch(addToCache({path:folderPath,data:fsNodes}));
+            dispatch(addToCache({path:folderPath,data:fsNodes},tabName));
             if (isLast) {
                 dispatch(setAheadCachingState('success'))
             }
         }
     }
+}
+function isAHomeTab(folderName:string):folderName is AllTabTypes  {
+    return (folderName=="Home") || (folderName=="Recent") || (folderName=="Desktop")  || (folderName=="Downloads") || (folderName=="Documents") || (folderName=="Pictures") || (folderName=="Music") || (folderName=="Videos")
 }
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
@@ -257,8 +265,18 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
         dispatch(openCachedDirInApp(folderPath));//opens the cached dir in app in the meantime if any
         dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
 
-        let folderName = await base_name(folderPath);
+        let folderName:string = await base_name(folderPath);
         folderName = (folderName=="USER")?"Home":folderName;
+        const invalidatedTabs:TabCacheInvalidation = selectIvalidatedTabs(getState());
+        if (isAHomeTab(folderName)) {
+            console.log("Open dir invalidated cache",invalidatedTabs);
+            console.log("Open dir has found a home tab",folderName,invalidatedTabs[folderName]);
+            if (invalidatedTabs[folderName] == false) {//if it isnt invalidated,load the ui immediately
+                dispatch(setLoadingMessage(`Done loading: ${folderName}`));
+                return
+            }
+        }
+
         dispatch(setLoadingMessage(`Loading the folder: ${folderName}`))
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath);//its fast because it doesnt load the file content
 
@@ -290,7 +308,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             }
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             //since the ui remains frozen as its caching ahead of time,there is no need to add a debouncing mechanism to prevent the user from switching to another tab while its caching
-            dispatch(addToCache({path:folderPath,data:fsNodes}));//performs caching while the user can interact with the dir in the app
+            dispatch(addToCache({path:folderPath,data:fsNodes},folderName));//performs caching while the user can interact with the dir in the app
             console.log("Files:",fsNodes);
         }
         //just ignore this.ive chosen to accept it
@@ -344,13 +362,16 @@ export async function watchHomeTabs():Promise<AppThunk> {
                 await join_with_home("Music"),
                 await join_with_home("Videos"),
             ],
-            async (event) => {
-                console.log('logs directory event', event);
-                const triggeredPaths = event.paths;
-                for (const path of triggeredPaths) {
-                    let tabName:string = await base_name(path) as AllTabTypes;
-                    tabName = (tabName=="USER")?"Home":tabName;
-                    dispatch(invalidateTabCache({tabName:tabName as AllTabTypes}))
+            async (event:WatchEvent) => {
+                console.log('Logged directory event');
+                if (isCreate(event.type) || isModify(event.type) || isRemove(event.type)) {
+                    console.log("Logged modification",event.type);
+                    const triggeredPaths = event.paths;
+                    for (const path of triggeredPaths) {
+                        let tabName:string = await base_name(path);
+                        tabName = (tabName=="USER")?"Home":tabName;
+                        dispatch(invalidateTabCache({tabName:tabName as AllTabTypes}))
+                    }
                 }
             },
             {
@@ -360,4 +381,20 @@ export async function watchHomeTabs():Promise<AppThunk> {
         )
     }
 }
+
+function isCreate(kind: WatchEventKind): kind is { create: WatchEventKindCreate } {
+    return typeof kind === 'object' && 'create' in kind;
+}
+function isModify(kind: WatchEventKind): kind is { modify: WatchEventKindModify } {
+    if (typeof kind !== 'object' || !('modify' in kind)) return false;
+    const modifyKind = kind.modify;
+    if (modifyKind.kind === 'any') {
+        return false;
+    }
+    return true;
+}
+function isRemove(kind: WatchEventKind): kind is { remove: WatchEventKindRemove } {
+    return typeof kind === 'object' && 'remove' in kind;
+}
+
 

@@ -570,3 +570,7 @@ selective and non recursive watching the home tabs like i didi for selective ahe
 *Use your own Rust binaries or custom Rust code for low-level or app-specific file system operations where you need full control or specialized behavior.
 *Use Tauri plugins like the file watcher plugin for complex, cross-platform features that are already well implemented and maintained.
 *This balances control, security, maintainability, and development speed, playing to the strengths of Tauri’s architecture and ecosystem.
+
+i had to change permissions and capabilities
+
+*so using variable is type. is used for creating type guard functions
