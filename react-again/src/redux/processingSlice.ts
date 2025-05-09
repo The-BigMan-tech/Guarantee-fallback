@@ -65,7 +65,7 @@ const initialState:processingSliceState = {
     fsNodes:null,
     cache:[],
     aheadCachingState:'pending',
-    invalidatedTabCache:{Home:true,Recent:false,Desktop:false,Downloads:false,Documents:false,Pictures:false,Music:false,Videos:false},
+    invalidatedTabCache:{Home:true,Recent:true,Desktop:true,Downloads:true,Documents:true,Pictures:true,Music:true,Videos:true},
     selectedFsNodes:null,
     error:{id:"",message:null},//the ids is to ensure that the same error can pop up twice
     notice:{id:"",message:null},
@@ -225,6 +225,8 @@ function addToCache(data:CachedFolder,tabName:string):AppThunk {
         if (isAHomeTab(tabName)) {//validates the cache because its up to date
             console.log("Validated the cache",tabName);
             dispatch(validateTabCache({tabName}))//since the cache was just updated,it makes sense to validate it.Its the only point where its validated
+        }else {
+            console.log("Didnt validate the cache",tabName);
         }
         throttledStoreCache(dispatch);
     }
@@ -242,14 +244,14 @@ function openCachedDirInApp(folderPath:string):AppThunk {
 }
 export async function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean):Promise<AppThunk>{
     return async (dispatch)=>{
-        // dispatch(setAheadCachingState('pending'))
+        dispatch(setAheadCachingState('pending'))
         const folderPath = await join_with_home(tabName);
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath);
         if (!(dirResult.value instanceof Error) && (dirResult.value !== null)) {//i only care about the success case here because the operation was initiated by the app and not the user and its not required to succeed for the user to progress with the app
             const fsNodes:FsNode[] = await Promise.all(dirResult.value);
             dispatch(addToCache({path:folderPath,data:fsNodes},tabName));
             if (isLast) {
-                dispatch(setAheadCachingState('success'))
+                // dispatch(setAheadCachingState('success'))
             }
         }
     }
@@ -260,6 +262,7 @@ function isAHomeTab(folderName:string):folderName is AllTabTypes  {
 function isCacheValid(folderName:string):AppThunk<boolean> {
     return (dispatch,getState):boolean=>{
         const invalidatedTabs:TabCacheInvalidation = selectIvalidatedTabs(getState());
+        console.log("Invalidated tabs",invalidatedTabs);
         if ((isAHomeTab(folderName)) && (invalidatedTabs[folderName] == false)) {//if it isnt invalidated,load the ui immediately
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             return true
@@ -277,10 +280,11 @@ function optimizeUI(folderPath:string):AppThunk {
 }
 async function loadIncrementally(fsNodesPromise:(Promise<FsNode>)[],fsNodes:FsNode[] ):Promise<AppThunk<Promise<FsNode[]>>>{
     return async (dispatch,getState):Promise<FsNode[]> =>{
+        console.log("LOADING INC");
         for (const fsNodePromise of fsNodesPromise) {
             const fsNode:FsNode = await fsNodePromise;
             fsNodes.push(fsNode);
-            if (fsNodes.length == 4) {//batch 4 fsnodes before reflecting it in the ui
+            if (fsNodes.length == 5) {//batch 4 fsnodes before reflecting it in the ui
                 console.log("BATCHED FS NODES REACHED");
                 dispatch(spreadToFsNodes(fsNodes))//reflect the 4 fsnodes in the ui
                 fsNodes.length = 0//clear the batch array for a new batch
@@ -297,11 +301,12 @@ async function loadAtOnce(fsNodesPromise:(Promise<FsNode>)[]):Promise<AppThunk<P
         return fsNodes;
     }
 }
-function inHomePage(folderName:string):AppThunk<boolean> {
+function inHomePage(folderName:string):AppThunk<boolean> {//it will only run if the cache is empty.dont forget
     return (_,getState):boolean => {
         const cache = selectCache(getState())
         const aotCachingState = selectAheadCachingState(getState());
-        return ((folderName === "Home") && (aotCachingState === "pending") && !(cache.length))
+        console.log("Cache length",cache.length);
+        return ((folderName === "Home") && (aotCachingState === "pending"))
     }
 }
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
@@ -324,7 +329,8 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setFsNodes(null))//null fs nodes then means its empty
         }else {
             let fsNodes:FsNode[] = []//used to batch fsnodes for ui updates
-            if (inHomePage(folderName)) {//for user experience.if the home tab is opened and its still caching ahead of time and the cache is empty in otherwords,the first time using the app,show the files incrementally.other subsequent opens wont trigger this
+            if (dispatch(inHomePage(folderName))) {//for user experience.if the home tab is opened and its still caching ahead of time and the cache is empty in otherwords,the first time using the app,show the files incrementally.other subsequent opens wont trigger this
+                console.log("In home page was true");
                 fsNodes = await dispatch(await loadIncrementally(dirResult.value,fsNodes))
             }else {
                 fsNodes = await dispatch(await loadAtOnce(dirResult.value))
@@ -332,6 +338,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             dispatch(addToCache({path:folderPath,data:fsNodes},folderName));//performs caching while the user can interact with the dir in the app./since the ui remains frozen as its caching ahead of time,there is no need to add a debouncing mechanism to prevent the user from switching to another tab while its caching
             console.log("Files:",fsNodes);
+            dispatch(setAheadCachingState('success'))
         }
         //just ignore this.ive chosen to accept it
         // dispatch(setLoadingMessage(null))//to clear the loading message so that the unfreeze state resets back to false after an operation has finished loaded
@@ -409,7 +416,7 @@ export async function watchHomeTabs():Promise<AppThunk> {
                     for (const path of triggeredPaths) {
                         const parent = path.slice(0,path.lastIndexOf('\\'));
                         const tabName:string = await base_name(parent,true);
-                        dispatch(invalidateTabCache({tabName:tabName as AllTabTypes}))
+                        dispatch(invalidateTabCache({tabName:tabName as AllTabTypes}));
                     }
                 }
             },
