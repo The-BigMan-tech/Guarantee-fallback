@@ -424,22 +424,42 @@ at-most once uses throttle or debouncing.at most once prevents unnecessary write
 *The types of io operation techniques are only-once,at-least once,at-most once,reactive io,manual io
 *so only-once is the ideal io operation techique where the io operation is performed only when the app starts or exits.startups are feasible but work under assumptions while exit io operations can only work under absolute ideal conditions.At-least once,at-most once and on-every-change are the only practical approaches.at least once is better for retry io mechanisms like constantly trying a request till it succeeds but it requires that the functions are indempotent and its fragile for operations that depends on data changes,at-most once is best for io operations that depend on data changes.It combines reactive io with rate limiting mechanisms like throttling or rate counting.Reactive io deivers io operations on changes to the app state and its the easy way out but highly discouraged to be heavily relied on because it significantly spoils performance.Manual io doesnt face the challenges of others because it shifts the responsibility to the user but it risks data loss if the app doesnt close gracefully,it creates an inconvenience for the user and it isnt best for background operations.on-data-change is feasible if the operation isnt meant to be frequently done and its lightweight.many applications still require manual io for a lot of functionality like deleting a file when a user does it.
 
-*batching is not a way of delivering io like reactive,manual or at-most once.its just a way of handling how many io operations are done at a time.Its an optimization technique
+^Extra notes on io
+*the implementation of the trigger is what truly reveals the reliance
+*Io operations have this complexity because its outside the control of the codebase
+
+^IO optimization
+*batching,throttling and async io are optimization techniques on io operations not delivery triggers or semantics.because without them,it means that every trigger to an io operation will block the main thread to perform the io operation
+
+*Batching is not a way of delivering io like reactive,manual or at-most once.its just a way of handling how many io operations are done at a time.Its an optimization technique
+
+*Throttling is not necessary to achive at most once.its naturally at most once but throttling is an optimization mechanism
+
+*Asynchronous io operations
 
 ^IO delivery trigger:What triggers the io operation
 *manual io:Done in response to user events
-*reactive io:Done in response to changes in the app's state
+*reactive io:Done in response to changes in the app's state.
 *automatic io:Done automatically in the background like a retry mechanism
 
 ^IO delivery semantics:What are the guarantees that it will perform the io operation
 *only-once:The ideal approach where the io operation is done exactly once.It guarantees that the io operation will be done and only done once.It combines the guarantees of at-most and at-least once approach or the other way around that at-least once and at-most once approach are techniques that  only implement one guarantee because onl-once relies on assumptions and ideal conditions that rent just computationally feasible
 
-*At-most once io means that the operation is either done once or it isnt done at all.There is no guarantee that it will be done.But it guarantees the same operation wont be performed twice to prevent unnecessary io operations.It isnt reliable and cant be accepted if data loss is unacceptable.At-most once is the default because it doesnt implement any mechanisms like a retry or atomicity
+*At-most once io means that the operation is either done once or it isnt done at all.There is no guarantee that it will be done.But it guarantees the same operation wont be performed twice to prevent unnecessary io operations.It isnt reliable and cant be accepted if data loss is unacceptable.At-most-once is the default behavior when you don't have any retry or acknowledgement mechanisms like atomicity
 
 *at-least once:The io operation will be attempted multiple times till it succeeds.It ensures that an io operation will be done but doesnt guarantee the number of times it will be done which can lead to duplication if the operations arent indempotent and even if they are indempotent,it can waste runtime unnecessarily
 
-^Io operations have this complexity because its outside the control of the codebase
-*so it depends,if i use reactive io without a retyr mechanism,it naturally uses at-most once
+
+^How io trigger choice affects application dependency on the io
+*Reactive I/O (Highest Potential Dependency):This implies the highest dependency because the application's core state transitions are directly tied to the success of I/O. If the I/O fails, the application's behavior is immediately affected.
+*Its for io operations that are valuable and critical.should be used judiciously.It has a high trigger frequency
+
+*Manual I/O (Moderate Dependency): This implies a moderate dependency. The application functions independently of I/O until the user explicitly requests persistence. Data loss is somewhat acceptable otherwise the responsibility wont be shifted to the user, but it's still important enough to provide a mechanism for saving.
+*Its best for io operations that are valuable but not critical.It has a moderate trigger frequency
+
+*Automatic I/O (Variable Dependency):The implementaion decides how much the app relies on it
+*Whether its valuable,critical or not depends on the implementation.It also has a variable trigger frequency.You can use intervals or debouncing to do this.so even though reactive and manual io patterns can solve cases of critical and non-critical io operations,automatic io is done where conveniency is needed or if the io doesnt have any specific trigger rules that it just fits perfectly in the background.
+
 
 
 consistently audit code that uses relatively old libraries.dont use absolutely old libraries
