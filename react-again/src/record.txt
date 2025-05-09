@@ -590,10 +590,11 @@ false type errors
 *a way to ensure predictable behaviour is just to return the modified array to the caller so that regardless of mutation,the caller gets a consistent array state.If you mutate an array inside a function but don’t return it, the caller may not realize the array has changed, especially if the reference was reassigned internally.
 
 
-*make is cache valid only say loading success if its the last one to be cached
-*make the file watcher automatically reopen the dir on change
 
 smart loading cache validation is false on startup incase any changes happened to the fs when the app was closed as the app cant track it
+
+
+*make the file watcher automatically reopen the dir on change
 
 *The ui opacity and loading message is somehow tied to whether the cache is full or empty
 

@@ -159,7 +159,6 @@ export const {
     setShowDetails
 } = processingSlice.actions;
 
-
 export default processingSlice.reducer;
 export const selectCurrentPath = (store:RootState):string => store.processing.currentPath;
 export const selectTabNames = (store:RootState):string[] => store.processing.tabNames;
@@ -329,12 +328,14 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setFsNodes(null))//null fs nodes then means its empty
         }else {
             let fsNodes:FsNode[] = []//used to batch fsnodes for ui updates
-            if (dispatch(inHomePage(folderName))) {//for user experience.if the home tab is opened and its still caching ahead of time and the cache is empty in otherwords,the first time using the app,show the files incrementally.other subsequent opens wont trigger this
-                console.log("In home page was true");
-                fsNodes = await dispatch(await loadIncrementally(dirResult.value,fsNodes))
-            }else {
-                fsNodes = await dispatch(await loadAtOnce(dirResult.value))
-            }
+            fsNodes = await dispatch(await loadAtOnce(dirResult.value))
+            //*The inc processing is too slow.this is better.try to optmize if needed
+            // if (dispatch(inHomePage(folderName))) {//for user experience.if the home tab is opened and its still caching ahead of time and the cache is empty in otherwords,the first time using the app,show the files incrementally.other subsequent opens wont trigger this
+            //     console.log("In home page was true");
+            //     fsNodes = await dispatch(await loadIncrementally(dirResult.value,fsNodes))
+            // }else {
+            //     fsNodes = await dispatch(await loadAtOnce(dirResult.value))
+            // }
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             dispatch(addToCache({path:folderPath,data:fsNodes},folderName));//performs caching while the user can interact with the dir in the app./since the ui remains frozen as its caching ahead of time,there is no need to add a debouncing mechanism to prevent the user from switching to another tab while its caching
             console.log("Files:",fsNodes);
@@ -395,7 +396,7 @@ function isRemove(kind: WatchEventKind): kind is { remove: WatchEventKindRemove 
 }
 
 export async function watchHomeTabs():Promise<AppThunk> {
-    return async (dispatch)=>{
+    return async (dispatch,getState)=>{
         console.log("CALLED FILE WATCHER");
         await watchImmediate(
             [
@@ -412,11 +413,13 @@ export async function watchHomeTabs():Promise<AppThunk> {
                 console.log('Logged directory event');
                 if (isCreate(event.type) || isModify(event.type) || isRemove(event.type)) {
                     console.log("Logged modification",event);
+                    const currentPath = selectCurrentPath(getState());
                     const triggeredPaths = event.paths;
                     for (const path of triggeredPaths) {
                         const parent = path.slice(0,path.lastIndexOf('\\'));
                         const tabName:string = await base_name(parent,true);
                         dispatch(invalidateTabCache({tabName:tabName as AllTabTypes}));
+                        dispatch(await openDirectoryInApp(currentPath))
                     }
                 }
             },
