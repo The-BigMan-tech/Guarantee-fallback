@@ -498,6 +498,7 @@ recent folder-fixed the breadcrumbs,added support for it and cached it ahead of 
 made incremental processing on the home tab
 did at-most once cache serialization with throttling
 preserved aot cached tabs when the cache reaches its threshold
+smart reloading
 todo:framer motion
 todo:file icons
 todo:file search
@@ -512,7 +513,6 @@ todo:Details pane
 todo:disk usage progress bars
 todo:responsive
 todo:diffing algorithm
-todo:smart reloading
 
 react window uses virtualization which means it lazily loads the content to the viewport.
 
@@ -586,3 +586,5 @@ false type errors
 *most logic errors arent complex but just overlooked small mistakes that are good at hiding themselves in large codebases making the developer think an error occured as a result of a higher level logic.This is because they dont crash at runtime and are type safe,so its often believed that it worked as expected so one can think its something he forgot to do somewhere.they can be based on assumptions,incorrect condition checks,etc.assumptions can still be made even with type safety because a type doesnt describe the particular context of the data.I think the best way to avoid assumptions is to log data that you arent sure of but the other logic errors need good attention to detail
 
 *testing can prevent logic error
+
+*a way to ensure predictable behaviour is just to return the modified array to the caller so that regardless of mutation,the caller gets a consistent array state.If you mutate an array inside a function but don’t return it, the caller may not realize the array has changed, especially if the reference was reassigned internally.

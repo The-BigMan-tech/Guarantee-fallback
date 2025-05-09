@@ -68,8 +68,9 @@ export async function join_with_home(tabName:string):Promise<string> {
     const path_from_home:string = await invoke('join_with_home', {tabName:relPath});
     return path_from_home
 }
-export async function base_name(path:string):Promise<string> {
-    return await invoke('path_basename', {path});
+export async function base_name(path:string,userAsHome:boolean):Promise<string> {
+    const transformed_path = ((userAsHome) && (path=="USER"))?"Home":path;
+    return await invoke('path_basename', {path:transformed_path});
 }
 export async function readDirectory(dirPath:string):Promise<FsResult<(Promise<FsNode>)[] | null | Error>> {
     try {
