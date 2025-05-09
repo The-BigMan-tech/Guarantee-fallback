@@ -512,6 +512,7 @@ todo:Details pane
 todo:disk usage progress bars
 todo:responsive
 todo:diffing algorithm
+todo:smart reloading
 
 react window uses virtualization which means it lazily loads the content to the viewport.
 
@@ -530,10 +531,10 @@ file content is read on demand
 since only one dir can be opended at a time,opened dirs are cached
 cache instance limiting,fsnode limiting
 updating the cache on loading
-storing the cache at most once
+storing the cache using at most once and throttle approach 
 selective ahead of time caching
 incrmental loading
-todo:smart reloading--automatic io,background process
+todo:smart reloading--automatic io,background process.no need to worry about layout shifts in the sliced cached data.data will be added incrementally
 
 grid vs table
 
@@ -541,3 +542,15 @@ version control--diffing algorithm
 databases--effectively once,io approach
 
 translucent tb--acryclic,clear
+
+*im thinking of implementing smart loading in my file manager.my file manager can only read and store one dir at a time in the app state because of performance and memory but i use a cache to keep track of accessed dir data and display that whenever a user opens a dir while the app reads the dir again because of the possibility of data change in the fs between the caching and time of loading the dir.so what im thinking is that ill use a background process that can watch the file system of a dir and its only when that wathcer reports a change,that my app will reload the dir while displaying the cache data for the user to see progress,else the cached data becomes the loaded dir.no need to read it again
+
+*the purpose of the smart reloading is to prevent the app from reading unnecessarily from the filesystem when the cached data is up to date.without this,my app will have no way of validating if the cache is up to date with the fs and has no choice to go the safe route of rereading it while the cached data is being displayed to the user.Its going to watch only the immediate content of the dir since the cache data only has the path and data of the immediate directory not its children.the children are treated separately as their own instances in the cache to promote lazy loading.so ill have only six file watcher instances which means that its selective file watching.In case the file watcher didnt report changes for the app to reload the cache,i will have a function that runs every 10 seconds of inactivity to reload the dir of every cache
+
+smart loading is composed of a file watcher and a debounce function
+
+the only reason why the cache can be invalid in my app that it requires reloading is because changes to the file system can happen outside my app.if it were only within my app which isnt possible,it wont need to have a smart loading feature.Because external changes are the issue, a file system watcher is the ideal solution. It passively monitors the file system for changes made by other processes and triggers a cache reload only when necessary.
+
+^notify,home crate for rust
+
+file modifications are internal changes so my app doesnt need to refresh the page.the changes will then persist to the fs
