@@ -48,7 +48,6 @@ export interface processingSliceState {//by using null unions instead of optiona
     cache:CachedFolder[],
     aheadCachingState:CachingState,
     invalidatedTabCache:TabCacheInvalidation,
-    isWatching:boolean
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
@@ -67,7 +66,6 @@ const initialState:processingSliceState = {
     cache:[],
     aheadCachingState:'pending',
     invalidatedTabCache:{Home:true,Recent:false,Desktop:false,Downloads:false,Documents:false,Pictures:false,Music:false,Videos:false},
-    isWatching:false,
     selectedFsNodes:null,
     error:{id:"",message:null},//the ids is to ensure that the same error can pop up twice
     notice:{id:"",message:null},
@@ -114,9 +112,6 @@ export const processingSlice = createSlice({
         validateTabCache(state,action:PayloadAction<invalidationData>) {
             state.invalidatedTabCache[action.payload.tabName] = false
         },
-        setIsWatching(state,action:PayloadAction<boolean>) {
-            state.isWatching = action.payload
-        },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
             state.error.message = action.payload;
@@ -155,7 +150,6 @@ export const {
     setAheadCachingState,
     invalidateTabCache,
     validateTabCache,
-    setIsWatching,
     setError,
     setNotice,
     setLoadingMessage,
@@ -181,7 +175,6 @@ export const selectShowDetails = (store:RootState):boolean => store.processing.s
 export const selectAheadCachingState = (store:RootState):CachingState => store.processing.aheadCachingState;
 export const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
 const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
-const selectIsWatching = (store:RootState):boolean=>store.processing.isWatching;
 
 
 export async function returnFileContent(filePath:string):Promise<AppThunk<Promise<string | null>>> {//returns the file with its content read

@@ -523,6 +523,7 @@ io theory
 thread safety theory
 immutability theory
 indempotent theory
+test theory
 big o notation theory
 
 
@@ -582,4 +583,6 @@ runtime safe doesnt mean its logic prone.
 
 false type errors
 
-most logic errors arent complex just overlooked small mistakes that are good at hiding themselves in large codebases making the developer think its because of a higher level logic.they can be based on assumptions,incorrect condition checks,etc.assumptions can still be made even with type safety because a type doesnt describe the particular context of the data.I think the best way to 
+*most logic errors arent complex but just overlooked small mistakes that are good at hiding themselves in large codebases making the developer think an error occured as a result of a higher level logic.This is because they dont crash at runtime and are type safe,so its often believed that it worked as expected so one can think its something he forgot to do somewhere.they can be based on assumptions,incorrect condition checks,etc.assumptions can still be made even with type safety because a type doesnt describe the particular context of the data.I think the best way to avoid assumptions is to log data that you arent sure of but the other logic errors need good attention to detail
+
+*testing can prevent logic error
