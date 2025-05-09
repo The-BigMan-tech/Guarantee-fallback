@@ -48,6 +48,7 @@ export interface processingSliceState {//by using null unions instead of optiona
     cache:CachedFolder[],
     aheadCachingState:CachingState,
     invalidatedTabCache:TabCacheInvalidation,
+    isWatching:boolean
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
@@ -65,7 +66,8 @@ const initialState:processingSliceState = {
     fsNodes:null,
     cache:[],
     aheadCachingState:'pending',
-    invalidatedTabCache:{Home:true,Recent:true,Desktop:true,Downloads:true,Documents:true,Pictures:true,Music:true,Videos:true},
+    invalidatedTabCache:{Home:true,Recent:false,Desktop:false,Downloads:false,Documents:false,Pictures:false,Music:false,Videos:false},
+    isWatching:false,
     selectedFsNodes:null,
     error:{id:"",message:null},//the ids is to ensure that the same error can pop up twice
     notice:{id:"",message:null},
@@ -107,9 +109,13 @@ export const processingSlice = createSlice({
         },
         invalidateTabCache(state,action:PayloadAction<invalidationData>) {
             state.invalidatedTabCache[action.payload.tabName] = true
+            console.log("Invalidated the tab",state.invalidatedTabCache[action.payload.tabName]);
         },
         validateTabCache(state,action:PayloadAction<invalidationData>) {
             state.invalidatedTabCache[action.payload.tabName] = false
+        },
+        setIsWatching(state,action:PayloadAction<boolean>) {
+            state.isWatching = action.payload
         },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
@@ -149,6 +155,7 @@ export const {
     setAheadCachingState,
     invalidateTabCache,
     validateTabCache,
+    setIsWatching,
     setError,
     setNotice,
     setLoadingMessage,
@@ -174,6 +181,7 @@ export const selectShowDetails = (store:RootState):boolean => store.processing.s
 export const selectAheadCachingState = (store:RootState):CachingState => store.processing.aheadCachingState;
 export const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
 const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
+const selectIsWatching = (store:RootState):boolean=>store.processing.isWatching;
 
 
 export async function returnFileContent(filePath:string):Promise<AppThunk<Promise<string | null>>> {//returns the file with its content read
@@ -317,7 +325,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
 }
 export async function openParentInApp():Promise<AppThunk> {
     return async (dispatch)=>{
-        const parentPathResult:string = await dispatch(getParent());
+        const parentPathResult:string = dispatch(getParent());
         dispatch(await openDirectoryInApp(parentPathResult))
     }
 }
@@ -365,10 +373,11 @@ export async function watchHomeTabs():Promise<AppThunk> {
             async (event:WatchEvent) => {
                 console.log('Logged directory event');
                 if (isCreate(event.type) || isModify(event.type) || isRemove(event.type)) {
-                    console.log("Logged modification",event.type);
+                    console.log("Logged modification",event);
                     const triggeredPaths = event.paths;
                     for (const path of triggeredPaths) {
-                        let tabName:string = await base_name(path);
+                        const parent = path.slice(0,path.lastIndexOf('\\'));
+                        let tabName:string = await base_name(parent);
                         tabName = (tabName=="USER")?"Home":tabName;
                         dispatch(invalidateTabCache({tabName:tabName as AllTabTypes}))
                     }

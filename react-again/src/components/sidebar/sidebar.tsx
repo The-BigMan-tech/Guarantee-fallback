@@ -1,4 +1,4 @@
-import { selectTabNames,UniqueTab,openDirFromHome} from "../../redux/processingSlice"
+import { selectTabNames,UniqueTab,openDirFromHome } from "../../redux/processingSlice"
 import { selector ,useAppDispatch} from "../../redux/hooks"
 import {v4 as uniqueID} from 'uuid'
 import { useState,useMemo } from "react";

@@ -574,3 +574,12 @@ selective and non recursive watching the home tabs like i didi for selective ahe
 i had to change permissions and capabilities
 
 *so using variable is type. is used for creating type guard functions
+
+stale reads
+race conditions
+
+runtime safe doesnt mean its logic prone.
+
+false type errors
+
+most logic errors arent complex just overlooked small mistakes that are good at hiding themselves in large codebases making the developer think its because of a higher level logic.they can be based on assumptions,incorrect condition checks,etc.assumptions can still be made even with type safety because a type doesnt describe the particular context of the data.I think the best way to 

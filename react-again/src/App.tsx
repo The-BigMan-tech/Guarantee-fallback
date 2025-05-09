@@ -17,7 +17,6 @@ export default function App() {
     //only open the home dir after the last one has finished so that it can check if the ahead of time caching succeeded or not
     useEffect(()=>{
         dispatch(loadCache());
-        watchHomeTabs().then(thunk=>dispatch(thunk));
         openDirFromHome("Home").then(thunk=>dispatch(thunk));
         cacheAheadOfTime("Recent",false).then((thunk)=>dispatch(thunk));
         cacheAheadOfTime("Downloads",false).then((thunk)=>dispatch(thunk))
@@ -26,6 +25,7 @@ export default function App() {
         cacheAheadOfTime("Videos",false).then((thunk)=>dispatch(thunk))
         cacheAheadOfTime("Documents",false).then((thunk)=>dispatch(thunk))
         cacheAheadOfTime("Music",true).then((thunk)=>dispatch(thunk));
+        watchHomeTabs().then(thunk=>dispatch(thunk));
     },[dispatch])
 
     return (
