@@ -442,12 +442,20 @@ at-most once uses throttle or debouncing.at most once prevents unnecessary write
 *reactive io:Done in response to changes in the app's state.
 *automatic io:Done automatically in the background like a retry mechanism
 
-^IO delivery semantics:What are the guarantees that it will perform the io operation
-*only-once:The ideal approach where the io operation is done exactly once.It guarantees that the io operation will be done and only done once.It combines the guarantees of at-most and at-least once approach or the other way around that at-least once and at-most once approach are techniques that  only implement one guarantee because onl-once relies on assumptions and ideal conditions that rent just computationally feasible
+
+^IO delivery semantics/guarantees:What are the guarantees that it will perform the io operation
+*Exactly-once:The ideal approach where the io operation is done exactly once.It guarantees that the io operation will be done and only done once.It combines the guarantees of at-most and at-least once approach or the other way around that at-least once and at-most once approach are techniques that  only implement one guarantee because onl-once relies on assumptions and ideal conditions that rent just computationally feasible
+*Here,x = 1
 
 *At-most once io means that the operation is either done once or it isnt done at all.There is no guarantee that it will be done.But it guarantees the same operation wont be performed twice to prevent unnecessary io operations.It isnt reliable and cant be accepted if data loss is unacceptable.At-most-once is the default behavior when you don't have any retry or acknowledgement mechanisms like atomicity
+*Here,x = 0 or x = 1
 
 *at-least once:The io operation will be attempted multiple times till it succeeds.It ensures that an io operation will be done but doesnt guarantee the number of times it will be done which can lead to duplication if the operations arent indempotent and even if they are indempotent,it can waste runtime unnecessarily
+*Here, x >= 1
+
+*Effectively-once:approach is a practical attempt to do exactly-once and acknowleding real world cases where it may fail.its a real world approximation.Because of its complexity,its not used for applications but sophisticated systems like databases.
+*Here,x ~= 1
+
 
 
 ^How io trigger choice affects application dependency on the io
@@ -459,6 +467,8 @@ at-most once uses throttle or debouncing.at most once prevents unnecessary write
 
 *Automatic I/O (Variable Dependency):The implementaion decides how much the app relies on it
 *Whether its valuable,critical or not depends on the implementation.It also has a variable trigger frequency.You can use intervals or debouncing to do this.so even though reactive and manual io patterns can solve cases of critical and non-critical io operations,automatic io is done where conveniency is needed or if the io doesnt have any specific trigger rules that it just fits perfectly in the background.
+
+*so the trigger pattern is about how reliant your app is on the io operation while delivery is about the level of guarantee you expect that an io operation will perform and perform correctly.The trigger pattern defines when the io operation will be initiated.
 
 
 
@@ -495,6 +505,7 @@ todo:previews--video,img,audio,text area tags,react pdf,highlight js,react playe
 todo:file editing on the preview editor
 todo:file actions on a pane 
 todo:file actions on right click
+todo:index for in dir file actions and a transfer object for move-like file actions
 todo:Changing the view layout and icon size
 todo:Change it from local storage to pouch db for async database
 todo:Details pane
@@ -503,3 +514,30 @@ todo:responsive
 todo:diffing algorithm
 
 react window uses virtualization which means it lazily loads the content to the viewport.
+
+memory theory
+type theory
+error theory
+io theory
+thread safety theory
+immutability theory
+indempotent theory
+big o notation theory
+
+
+opens a dir to read its contents,gets the metadata and construct objects.doesnt read file content yet
+file content is read on demand
+since only one dir can be opended at a time,opened dirs are cached
+cache instance limiting,fsnode limiting
+updating the cache on loading
+storing the cache at most once
+selective ahead of time caching
+incrmental loading
+todo:smart reloading--automatic io,background process
+
+grid vs table
+
+version control--diffing algorithm
+databases--effectively once,io approach
+
+translucent tb--acryclic,clear
