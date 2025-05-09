@@ -284,7 +284,7 @@ async function loadIncrementally(fsNodesPromise:(Promise<FsNode>)[],fsNodes:FsNo
         for (const fsNodePromise of fsNodesPromise) {
             const fsNode:FsNode = await fsNodePromise;
             fsNodes.push(fsNode);
-            if (fsNodes.length == 5) {//batch 4 fsnodes before reflecting it in the ui
+            if (fsNodes.length == 10) {//batch 4 fsnodes before reflecting it in the ui
                 console.log("BATCHED FS NODES REACHED");
                 dispatch(spreadToFsNodes(fsNodes))//reflect the 4 fsnodes in the ui
                 fsNodes.length = 0//clear the batch array for a new batch
