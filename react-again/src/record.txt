@@ -417,13 +417,30 @@ at-most once uses throttle or debouncing.at most once prevents unnecessary write
 
 ^async database
 
-*onEveryChange + throttling = at-most once.so store data to local storage is throttled meaning that on every call to it which happens on every add to cache,only one will be executed during that time window.It will be more effective if i increase the time window so that if a user clicks a button like five times,it only calls the store function once and since the cache needs to be up to date,it has to be trailing throttling.A shorter time window will result in more frequent updates to localStorage, while a longer time window will reduce the frequency but potentially lead to slightly older data being stored
+*reactive io + throttling = at-most once.so store data to local storage is throttled meaning that on every call to it which happens on every add to cache,only one will be executed during that time window.It will be more effective if i increase the time window so that if a user clicks a button like five times,it only calls the store function once and since the cache needs to be up to date,it has to be trailing throttling.A shorter time window will result in more frequent updates to localStorage, while a longer time window will reduce the frequency but potentially lead to slightly older data being stored
 
 *so if i used an interval like set interval,it will be an at-least once approach like store the cache to storage every 10 seconds but its more fragile because it makes an assumption that the cache may be updated within that time which cant be guaranteed because of different user behaviour and it will waste resources as there may be unnecessary writes
 
-*The types of io operation techniques are only-once,on-data-change,at-least once,at-most once,manual io
+*The types of io operation techniques are only-once,at-least once,at-most once,reactive io,manual io
+*so only-once is the ideal io operation techique where the io operation is performed only when the app starts or exits.startups are feasible but work under assumptions while exit io operations can only work under absolute ideal conditions.At-least once,at-most once and on-every-change are the only practical approaches.at least once is better for retry io mechanisms like constantly trying a request till it succeeds but it requires that the functions are indempotent and its fragile for operations that depends on data changes,at-most once is best for io operations that depend on data changes.It combines reactive io with rate limiting mechanisms like throttling or rate counting.Reactive io deivers io operations on changes to the app state and its the easy way out but highly discouraged to be heavily relied on because it significantly spoils performance.Manual io doesnt face the challenges of others because it shifts the responsibility to the user but it risks data loss if the app doesnt close gracefully,it creates an inconvenience for the user and it isnt best for background operations.on-data-change is feasible if the operation isnt meant to be frequently done and its lightweight.many applications still require manual io for a lot of functionality like deleting a file when a user does it.
 
-*so only-once is the ideal io operation techique where the io operation is performed only when the app starts or exits.startups are feasible but work under assumptions while exit io operations can only work under absolute ideal conditions.At-least once,at-most once and on-every-change are the only practical approaches.at least once is better for retry io mechanisms like constantly trying a request till it succeeds but it requires that the functions are indempotent and its fragile for operations that depends on data changes,at-most once is best for io operations that depend on data changes.It combines on-every-change with rate limiting mechanisms like throttling or rate counting.on-every-change is the easy way out but highly discouraged because it significantly spoils performance.Manual io doesnt face the challenges of others because it shifts the responsibility to the user but it risks data loss if the app doesnt close gracefully,it creates an inconvenience for the user and it isnt best for background operations.on-data-change is feasible if the operation isnt meant to be frequently done and its lightweight
+*batching is not a way of delivering io like reactive,manual or at-most once.its just a way of handling how many io operations are done at a time.Its an optimization technique
+
+^IO delivery trigger:What triggers the io operation
+*manual io:Done in response to user events
+*reactive io:Done in response to changes in the app's state
+*automatic io:Done automatically in the background like a retry mechanism
+
+^IO delivery semantics:What are the guarantees that it will perform the io operation
+*only-once:The ideal approach where the io operation is done exactly once.It guarantees that the io operation will be done and only done once.It combines the guarantees of at-most and at-least once approach or the other way around that at-least once and at-most once approach are techniques that  only implement one guarantee because onl-once relies on assumptions and ideal conditions that rent just computationally feasible
+
+*At-most once io means that the operation is either done once or it isnt done at all.There is no guarantee that it will be done.But it guarantees the same operation wont be performed twice to prevent unnecessary io operations.It isnt reliable and cant be accepted if data loss is unacceptable.At-most once is the default because it doesnt implement any mechanisms like a retry or atomicity
+
+*at-least once:The io operation will be attempted multiple times till it succeeds.It ensures that an io operation will be done but doesnt guarantee the number of times it will be done which can lead to duplication if the operations arent indempotent and even if they are indempotent,it can waste runtime unnecessarily
+
+^Io operations have this complexity because its outside the control of the codebase
+*so it depends,if i use reactive io without a retyr mechanism,it naturally uses at-most once
+
 
 consistently audit code that uses relatively old libraries.dont use absolutely old libraries
 
@@ -433,7 +450,7 @@ consistently audit code that uses relatively old libraries.dont use absolutely o
 
 useMemo is for memoizing data while useCallback is for memoizing functions and React.memo is for memoizing components.They both take what the y memoize and a dependency that invalidates the memoization
 
-*so throttle + useEffect just gives us back on-data-change io but memoizing it gives us the at-most once io approach.
+*so throttle + useEffect just gives us back reactive io io but memoizing it gives us the at-most once io approach.
 
 *so faulty type errors result when a script that doesnt officially support types is given by external declaration files which may be incorrect or out of date.This can cause false and misleading compile time errors that will take hours to figure out.declaration files provides the ts compiler with information about the types of the data used in the codebase and if the information is broken,ts will falsely flag code as type errors.The ts compiler blidly relies on the d.ts information over runtime functionality because its impossible for the compiler to analyze runtime behaviour.so the work around is to use runtime behaviour to analyze declaration files
 
@@ -455,13 +472,14 @@ todo:framer motion
 todo:file icons
 todo:file search
 todo:previews--video,img,audio,text area tags,react pdf,highlight js,react player,mammoth js,three js,react window
-todo:file actions like writing,editing,etc
-todo:file actions on a pane and on right click
-todo:a differ so that file operations only affect the diff
+todo:file editing on the preview editor
+todo:file actions on a pane 
+todo:file actions on right click
 todo:Changing the view layout and icon size
 todo:Change it from local storage to pouch db for async database
 todo:Details pane
 todo:disk usage progress bars
 todo:responsive
+todo:diffing algorithm
 
 react window uses virtualization which means it lazily loads the content to the viewport.
