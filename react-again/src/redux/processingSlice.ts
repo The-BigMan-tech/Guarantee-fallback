@@ -5,11 +5,23 @@ import { RootState,AppThunk } from './store'
 import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name} from '../utils/rust-fs-interface';
 import {v4 as uniqueID} from 'uuid';
 import { AppDispatch } from './store';
-
+import { watchImmediate, BaseDirectory } from '@tauri-apps/plugin-fs';
 
 type JsonCache = {data:CachedFolder[]}
 type CachingState = 'pending' | 'success';
 type StrictTabsType = 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos';
+type AllTabTypes = 'Home' | 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos'
+type  invalidationData = {tabName:AllTabTypes}
+interface  TabCacheInvalidation {
+    Home:boolean,
+    Recent:boolean,
+    Desktop:boolean,
+    Downloads:boolean,
+    Documents:boolean,
+    Pictures:boolean,
+    Music:boolean,
+    Videos:boolean
+}
 export type SortingOrder = 'name' | 'date' | 'type' | 'size';
 export type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
 
@@ -34,7 +46,8 @@ export interface processingSliceState {//by using null unions instead of optiona
     tabNames:string[],//home tabs
     fsNodes:FsNode[] | null,//current files loaded
     cache:CachedFolder[],
-    aheadCachingState:CachingState
+    aheadCachingState:CachingState,
+    invalidatedTabCache:TabCacheInvalidation,
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
@@ -52,6 +65,7 @@ const initialState:processingSliceState = {
     fsNodes:null,
     cache:[],
     aheadCachingState:'pending',
+    invalidatedTabCache:{Home:false,Recent:false,Desktop:false,Downloads:false,Documents:false,Pictures:false,Music:false,Videos:false},
     selectedFsNodes:null,
     error:{id:"",message:null},//the ids is to ensure that the same error can pop up twice
     notice:{id:"",message:null},
@@ -91,6 +105,12 @@ export const processingSlice = createSlice({
         setAheadCachingState(state,action:PayloadAction<CachingState>) {
             state.aheadCachingState = action.payload
         },
+        invalidateTabCache(state,action:PayloadAction<invalidationData>) {
+            state.invalidatedTabCache[action.payload.tabName] = true
+        },
+        validateTabCache(state,action:PayloadAction<invalidationData>) {
+            state.invalidatedTabCache[action.payload.tabName] = false
+        },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
             state.error.message = action.payload;
@@ -127,6 +147,8 @@ export const {
     replaceInCache,
     shiftCache,
     setAheadCachingState,
+    invalidateTabCache,
+    validateTabCache,
     setError,
     setNotice,
     setLoadingMessage,
@@ -151,6 +173,7 @@ export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
 export const selectAheadCachingState = (store:RootState):CachingState => store.processing.aheadCachingState;
 export const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
+const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
 
 
 export async function returnFileContent(filePath:string):Promise<AppThunk<Promise<string | null>>> {//returns the file with its content read
@@ -307,5 +330,34 @@ const throttledStoreCache:throttle<()=>AppThunk> = throttle(5000,
     (dispatch:AppDispatch)=>(dispatch(storeCache())),
     {noLeading:true, noTrailing: false,}
 );
-
+export async function watchHomeTabs():Promise<AppThunk> {
+    return async (dispatch)=>{
+        console.log("CALLED FILE WATCHER");
+        await watchImmediate(
+            [
+                await join_with_home(""),//for home
+                await join_with_home("AppData\\Roaming\\Microsoft\\Windows\\Recent"),
+                await join_with_home("Desktop"),
+                await join_with_home("Downloads"),
+                await join_with_home("Documents"),
+                await join_with_home("Pictures"),
+                await join_with_home("Music"),
+                await join_with_home("Videos"),
+            ],
+            async (event) => {
+                console.log('logs directory event', event);
+                const triggeredPaths = event.paths;
+                for (const path of triggeredPaths) {
+                    let tabName:string = await base_name(path) as AllTabTypes;
+                    tabName = (tabName=="USER")?"Home":tabName;
+                    dispatch(invalidateTabCache({tabName:tabName as AllTabTypes}))
+                }
+            },
+            {
+                baseDir: BaseDirectory.Home,
+                recursive:false
+            }
+        )
+    }
+}
 

@@ -558,3 +558,15 @@ the only reason why the cache can be invalid in my app that it requires reloadin
 file modifications are internal changes so my app doesnt need to refresh the page.the changes will then persist to the fs
 
 *Tauri has a bunch of plugins and i already made som myself but the best practice is to leave my custom functions the way they are as they are stable and use tauri plugins on subsequent use cases of low level functions
+
+selective and non recursive watching the home tabs like i didi for selective ahead of time caching
+
+*by default, Tauri restricts access to potentially dangerous commands like file watching for security reasons.
+
+*This module prevents path traversal, not allowing parent directory accessors to be used (i.e. “/usr/path/to/../file” or ”../path/to/file” paths are not allowed). Paths accessed with this API must be either relative to one of the base directories or created with the path API.This means my app just cant access any path
+
+*tauri file watchers are saf and secure
+
+*Use your own Rust binaries or custom Rust code for low-level or app-specific file system operations where you need full control or specialized behavior.
+*Use Tauri plugins like the file watcher plugin for complex, cross-platform features that are already well implemented and maintained.
+*This balances control, security, maintainability, and development speed, playing to the strengths of Tauri’s architecture and ecosystem.

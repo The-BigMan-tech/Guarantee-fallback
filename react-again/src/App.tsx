@@ -4,7 +4,7 @@ import Toasts from "./components/toast/toast"
 import Body from "./components/body/body"
 import { selector, useAppDispatch } from "./redux/hooks"
 import { useEffect } from "react"
-import { openDirFromHome, selectAheadCachingState ,cacheAheadOfTime,loadCache,} from "./redux/processingSlice"
+import { openDirFromHome, selectAheadCachingState ,cacheAheadOfTime,loadCache,watchHomeTabs} from "./redux/processingSlice"
 
 export default function App() {
     const dispatch = useAppDispatch();
@@ -24,7 +24,8 @@ export default function App() {
         cacheAheadOfTime("Pictures",false).then((thunk)=>dispatch(thunk))
         cacheAheadOfTime("Videos",false).then((thunk)=>dispatch(thunk))
         cacheAheadOfTime("Documents",false).then((thunk)=>dispatch(thunk))
-        cacheAheadOfTime("Music",true).then((thunk)=>dispatch(thunk))
+        cacheAheadOfTime("Music",true).then((thunk)=>dispatch(thunk));
+        watchHomeTabs().then(thunk=>dispatch(thunk));
     },[dispatch])
 
     return (
