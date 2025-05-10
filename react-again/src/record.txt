@@ -601,3 +601,14 @@ added auto refreshing on top of smart loading
 todo:dont make the opacity of the ui tied to string data
 
 Breaking down a large task into smaller functions can give you a sense of progress and control. It feels less daunting to work on a series of small, manageable functions than to tackle a single, massive block of code.while the total number of lines of code might not decrease significantly, organizing code into smaller functions reduces cognitive load, improves readability, promotes reusability, and creates a psychological effect that makes the code feel smaller and more manageable.
+
+lazy dir reading
+lazy file reading
+caching opened dirs
+cache mamagement
+selective ahead of time caching
+cache persistence
+Incremental ui loading
+selective smart reloading
+auto reloading
+background auto reloading
