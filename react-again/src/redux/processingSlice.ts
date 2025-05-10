@@ -69,7 +69,7 @@ const initialState:processingSliceState = {
     selectedFsNodes:null,
     error:{id:"",message:null},//the ids is to ensure that the same error can pop up twice
     notice:{id:"",message:null},
-    loadingMessage:null,//no id here because only one thing can be loaded at a time
+    loadingMessage:"loading",//no id here because only one thing can be loaded at a time
     searchQuery:null,
     sortBy:'name',
     viewBy:'details',
@@ -398,6 +398,8 @@ function isRemove(kind: WatchEventKind): kind is { remove: WatchEventKindRemove 
 export async function watchHomeTabs():Promise<AppThunk> {
     return async (dispatch,getState)=>{
         console.log("CALLED FILE WATCHER");
+        dispatch(setFsNodes([]))
+        // dispatch(setLoadingMessage("loading"))
         await watchImmediate(
             [
                 await join_with_home(""),//for home

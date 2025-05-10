@@ -39,9 +39,11 @@ export default function Toasts() {
         }
     },[notice,toastConfig])
     useEffect(()=>{
-        if (loadingMessage) {
+        if ((loadingMessage) && (loadingMessage !== "loading")) {
+            console.log("Loading message value toast",loadingMessage);
             toast.dismiss();//to ensure that only one component shows a loading progress at a time.
             if (!(loadingMessage.trim().toLowerCase().startsWith("done"))) {
+                console.log("Loading message is loading",loadingMessage);
                 toast.loading(loadingMessage,loading_toastConfig)
             }else {
                 toast.done("loading")

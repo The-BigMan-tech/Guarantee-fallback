@@ -593,10 +593,9 @@ false type errors
 
 smart loading cache validation is false on startup incase any changes happened to the fs when the app was closed as the app cant track it
 
-
-*make the file watcher automatically reopen the dir on change
-
-*The ui opacity and loading message is somehow tied to whether the cache is full or empty
-
 the aot caching state is directly tied to the opacity od the app
 the loading message is directly tied to the opacity of the files
+
+added auto refreshing on top of smart loading
+
+todo:dont make the opacity of the ui tied to string data
