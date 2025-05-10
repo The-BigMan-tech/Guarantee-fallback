@@ -10,7 +10,7 @@ import Fuse from 'fuse.js';
 import { toast,ToastOptions,Bounce,Flip,Zoom} from 'react-toastify';
 
 
-const toastConfig:ToastOptions = {
+export const toastConfig:ToastOptions = {
     position: "top-center",
     autoClose: 5000,
     hideProgressBar: false,
@@ -412,6 +412,11 @@ const throttledStoreCache:throttle<()=>AppThunk> = throttle(5000,
 );
 export function searchFile(searchQuery:string):AppThunk {
     return (dispatch,getState)=>{
+        if (searchQuery.length == 0) {
+            toast.dismiss("loading")
+            dispatch(setSearchResults(null));
+            return
+        }
         const fsNodes:FsNode[] | null = selectFsNodes(getState())
         const options = {
             keys: ['primary.nodeName','primary.fileExtension',],

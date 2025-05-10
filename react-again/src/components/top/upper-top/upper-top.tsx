@@ -1,6 +1,6 @@
 import { useEffect, useState,useMemo, ChangeEvent} from "react";
 import { useAppDispatch,selector} from "../../../redux/hooks"
-import { openParentInApp,selectCurrentPath,selectTabNames,searchFile,loading_toastConfig} from "../../../redux/processingSlice"
+import { openParentInApp,selectCurrentPath,selectTabNames,searchFile,loading_toastConfig,toastConfig} from "../../../redux/processingSlice"
 import {v4 as uniqueID} from "uuid"
 //@ts-expect-error:As said in processing slice.ts,the type declaration for this module is incorrect
 import { debounce } from 'throttle-debounce';
@@ -37,12 +37,18 @@ export default function UpperTop() {
     function listenToQuery(event:ChangeEvent<HTMLInputElement>):void {
         setSearchQuery(event.target.value)
         toast.loading("Loading your search",loading_toastConfig)
-        debounceSearch()
+        debounceSearch(event.target.value)
     }
-    function search():void {
-        dispatch(searchFile(searchQuery));
+    function search(query:string):void {
+        if (query.length == 1) {
+            toast.info("Query is too short",{...toastConfig,toastId:"inf"})
+            toast.dismiss("loading")
+        }else {
+            toast.dismiss("inf")
+            dispatch(searchFile(query));
+        }
     }
-    const debounceSearch = debounce(5000,search,{ atBegin:true });
+    const debounceSearch = debounce(300,search,{ atBegin:true });
 
     useEffect(()=>{
         const replacedPath = currentPath.replace(/.*\\AppData\\Roaming\\Microsoft\\Windows\\Recent/,"Recent");

@@ -534,8 +534,10 @@ thread safety theory
 immutability theory
 indempotent theory
 test theory
+stale data theory
 big o notation theory
 
+*stale data theory concerns about the factors that causes the timing of read and write operations to the same data to be misalligned which causes working with inconsistent or outdated data
 
 opens a dir to read its contents,gets the metadata and construct objects.doesnt read file content yet
 file content is read on demand
@@ -628,8 +630,6 @@ implementation optimization
 
 multi threading read dir
 
-*auto catch engine
-
 *wrapping try catch in several areas of the codebase unnecessarily will only catch symptoms not errors.It wont help you find the root cause of a problem
 
 include,startswith,endswith,equality,particular case conversion for case insensitive searches
@@ -639,15 +639,19 @@ search library--typo tolerant,name based search but not content based search
 search engine--content based search
 vector database--content based search
 
+*Types of search
+keyword search
+fuzzy search
+index search
+semantic search
+
+low threshold--strict check,less noise
+higher threshold--loose checks,more noise
+
 
 prolog
 natural language processing
-
 vector database in rust
-
-keyword search
-semantic search
-fuzzy search
 
 if search result is none,display the fsnode array
 
@@ -667,3 +671,11 @@ sidebar,body,topbar,fsnodes
 ^throttling is better for continuous actions like writing to a disk
 
 *debouncing with leading execution is seamless which searching.its what ive been looking for.debouncing with trailing execution makes it feel a bit laggy but when it comes to writing data to a db,throttling with trailing is better than leading because it ensures that the writes are uo to date
+
+*so both throttling and debouncing optimize call frequencies but debouncing main concern is the final or initial state of data without caring about the guarantee that it will execute  while throttling main concern is to regulate function calls but also has caring about the initial or final data as a secondary concern.initial debouncing prioritizes responsiveness while trailing debouncing prioritizes the final data by leveraging inactivity
+
+strict and loose option
+
+*so stale state reads in react since states updates async can be avoided by passing it as a parameter to the function that relies on it or putting that function in a use effect 
+
+*so debouncing is meant to have a smaller time window while throttling can have a moderate sized time window depending on use case.Why?Debounce’s goal is to reduce noisy rapid calls by waiting for a pause, so a smaller delay keeps the UI responsive without flooding calls.Throttle’s goal is to limit call frequency over time, so the interval can be adjusted based on how often you want updates or saves to happen.
