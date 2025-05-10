@@ -425,7 +425,7 @@ export function searchFile(searchQuery:string):AppThunk {
             console.log("MATCHED FS NODES",matchedFsNodes);
             dispatch(setSearchResults(matchedFsNodes));
         }
-        toast.done("loading")
+        toast.dismiss();
         toast.success("Done searching",{...toastConfig,autoClose:500,transition:Flip})
     }
 }

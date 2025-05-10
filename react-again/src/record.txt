@@ -662,3 +662,8 @@ for an array,i use three states.null means its absent,[] means its present and [
 sidebar,body,topbar,fsnodes
 
 *so animation costs performance and as such,it must be selective.They must only load at key moments and not continuously
+
+^debouncing is better for actions that depend on inactivity like use input
+^throttling is better for continuous actions like writing to a disk
+
+*debouncing with leading execution is seamless which searching.its what ive been looking for.debouncing with trailing execution makes it feel a bit laggy but when it comes to writing data to a db,throttling with trailing is better than leading because it ensures that the writes are uo to date

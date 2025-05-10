@@ -40,7 +40,7 @@ export default function FsNodeComponent(props:{fsNode:FsNode}) {
             whileHover={{ scale: 1.1 }}
             initial={{ y:100}}  // Start 100px left and invisible
             animate={{ y: 0}}     // Animate to natural position and fully visible
-            transition={{ duration: 0.5, ease: 'easeOut' }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
             onDoubleClick={()=>openFolder(props.fsNode)} 
             className={`flex flex-col items-center justify-center gap-2 opacity-30 cursor-default ${unFreezeClass()}`}>
                 <img className={`${fixIconSize(props.fsNode.primary.iconPath)}`} src={`./assets/file-icons/${props.fsNode.primary.iconPath}`} alt="" />
