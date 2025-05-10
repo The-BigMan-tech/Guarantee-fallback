@@ -305,15 +305,27 @@ async function loadAtOnce(fsNodesPromise:(Promise<FsNode>)[]):Promise<AppThunk<P
 }
 function inHomePage(folderName:string):AppThunk<boolean> {//it will only run if the cache is empty.dont forget
     return (_,getState):boolean => {
-        const cache = selectCache(getState())
         const aotCachingState = selectAheadCachingState(getState());
-        console.log("Cache length",cache.length);
         return ((folderName === "Home") && (aotCachingState === "pending"))
+    }
+}
+/**
+ * It updates the ui by loading the fsnodes array into the app state using one of two rendering techniques depending if the dir is the home tab and returns a modified fsnodes that can be used for caching
+ */
+async function updateUI(folderName:string,fsNodes:FsNode[],value:(Promise<FsNode>)[]):Promise<AppThunk<Promise<FsNode[]>>> {
+    return async (dispatch):Promise<FsNode[]> => {
+        let localFsNodes = [...fsNodes];
+        if (dispatch(inHomePage(folderName))) {//for user experience.if the home tab is opened and its still caching ahead of time and the cache is empty in otherwords,the first time using the app,show the files incrementally.other subsequent opens wont trigger this
+            localFsNodes = await dispatch(await loadIncrementally(value,fsNodes))
+        }else {
+            localFsNodes = await dispatch(await loadAtOnce(value))
+        }
+        return localFsNodes
     }
 }
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
-    return async (dispatch,getState):Promise<void> =>{
+    return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
         const folderName:string = await base_name(folderPath,true);
         dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
@@ -333,14 +345,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setFsNodes(null))//null fs nodes then means its empty
         }else {
             let fsNodes:FsNode[] = []//used to batch fsnodes for ui updates
-            //*The inc processing is too slow.this is better.try to optmize if needed
-            if (dispatch(inHomePage(folderName))) {//for user experience.if the home tab is opened and its still caching ahead of time and the cache is empty in otherwords,the first time using the app,show the files incrementally.other subsequent opens wont trigger this
-                console.log("In home page was true");
-                console.log("FSNODES VALUE",selectFsNodes(getState()));
-                fsNodes = await dispatch(await loadIncrementally(dirResult.value,fsNodes))
-            }else {
-                fsNodes = await dispatch(await loadAtOnce(dirResult.value))
-            }
+            fsNodes = await dispatch(await updateUI(folderName,fsNodes,dirResult.value))
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             dispatch(addToCache({path:folderPath,data:fsNodes},folderName));//performs caching while the user can interact with the dir in the app./since the ui remains frozen as its caching ahead of time,there is no need to add a debouncing mechanism to prevent the user from switching to another tab while its caching
             console.log("Files:",fsNodes);
@@ -432,7 +437,7 @@ export async function watchHomeTabs():Promise<AppThunk> {
                             const currentPathBase:StrictTabsType = await base_name(currentPath,false) as StrictTabsType
                             if (currentPathBase == tabName) {//auto reload if the tab is currently opened
                                 dispatch(await openDirFromHome(tabName))
-                            }else {//auto reload the tab in the background ahead of time
+                            }else {//auto reload the tab in the background ahead of time.reloading it in the background is very fast because if no ui updates
                                 dispatch(setLoadingMessage("Changes detected.Refreshing the app in the background."))
                                 dispatch(await cacheAheadOfTime(tabName,true,false));
                                 dispatch(setLoadingMessage("Done refreshing the app"))
