@@ -493,6 +493,9 @@ i made element eviction from a cache to start at the 8th index instead of the fi
 
 so html already has previews i can use like text area,video and img.i can just use that.is there any other previewer i may need
 
+
+video,audio,txt,pdf,<> file,word,zip,json,xml,exe,msi
+
 ^TODAY
 recent folder-fixed the breadcrumbs,added support for it and cached it ahead of time
 made incremental processing on the home tab

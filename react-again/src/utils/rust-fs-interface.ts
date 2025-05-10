@@ -31,9 +31,35 @@ export class FsResult<T>  {
         return new FsResult((error instanceof Error)?error:new Error("An unknown error occurred"))
     }
 }
+function oneOfExtensions(fileExtension:string | null,...extensions:string[]):boolean {
+    if (fileExtension) {
+        for (const ext of extensions) {
+            if (fileExtension == ext) {
+                return true
+            }
+        }
+        return false
+    }else {
+        return false
+    }
+}
 function getFsIcon(fileExtension:string | null):string {
-    if ((fileExtension === "png") || (fileExtension === "jpg") || (fileExtension === "svg")) {
+    if (oneOfExtensions(fileExtension,"jpg","svg","png")) {
         return "image-file.svg"//path to png icon
+    }else if (fileExtension=="pdf") {
+        return "pdf-file.svg"
+    }else if (fileExtension == "txt") {
+        return "text-file.svg"
+    }else if (fileExtension == "zip") {
+        return "zip-file.svg"
+    }else if (fileExtension == "mp4") {
+        return "video-file.svg"
+    }else if (oneOfExtensions(fileExtension,"docx","doc")) {
+        return "word-file.svg"
+    }else if (oneOfExtensions(fileExtension,"ini","xml","json","cfg")) {
+        return "code-file.svg"
+    }else if (fileExtension == "mp3") {
+        return "audio-file.svg"
     }else if (!(fileExtension)) {
         return "folder-solid.svg"//path to folder icon
     }else {//file icon path is at the else instead of folder cuz i cant exhuast all posssible file types before writing the folder path under else
