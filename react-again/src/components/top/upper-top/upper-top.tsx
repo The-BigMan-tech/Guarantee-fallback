@@ -2,6 +2,8 @@ import { useEffect, useState,useMemo, ChangeEvent} from "react";
 import { useAppDispatch,selector} from "../../../redux/hooks"
 import { openParentInApp,selectCurrentPath,selectTabNames,searchFile} from "../../../redux/processingSlice"
 import {v4 as uniqueID} from "uuid"
+//@ts-expect-error:As said in processing slice.ts,the type declaration for this module is incorrect
+import { debounce } from 'throttle-debounce';
 
 export default function UpperTop() {
     const dispatch = useAppDispatch();
@@ -32,10 +34,13 @@ export default function UpperTop() {
     }   
     function listenToQuery(event:ChangeEvent<HTMLInputElement>):void {
         setSearchQuery(event.target.value)
+        debounceSearch()
     }
-    function throttledSearch():void {
+    function search():void {
         dispatch(searchFile(searchQuery))
     }
+    const debounceSearch = debounce(3000,search,{ atBegin: false });
+
     useEffect(()=>{
         const replacedPath = currentPath.replace(/.*\\AppData\\Roaming\\Microsoft\\Windows\\Recent/,"Recent");
         const breadCrumbs = replacedPath.split("\\");
