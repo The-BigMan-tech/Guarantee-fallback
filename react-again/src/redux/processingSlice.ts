@@ -260,7 +260,7 @@ export async function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean,aff
 function isAHomeTab(folderName:string):folderName is AllTabTypes  {
     return (folderName=="Home") || (folderName=="Recent") || (folderName=="Desktop")  || (folderName=="Downloads") || (folderName=="Documents") || (folderName=="Pictures") || (folderName=="Music") || (folderName=="Videos")
 }
-function isCacheValid(folderName:string):AppThunk<boolean> {
+function cacheIsValid(folderName:string):AppThunk<boolean> {
     return (dispatch,getState):boolean=>{
         const invalidatedTabs:TabCacheInvalidation = selectIvalidatedTabs(getState());
         console.log("Invalidated tabs",invalidatedTabs);
@@ -271,7 +271,7 @@ function isCacheValid(folderName:string):AppThunk<boolean> {
         return false
     }
 }
-function optimizeUI(folderPath:string):AppThunk {
+function displayCache(folderPath:string):AppThunk {
     return (dispatch)=>{
         //[] array means its loading not that its empty
         dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading to not look laggy
@@ -331,8 +331,8 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
         dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
         dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));
 
-        if (dispatch(isCacheValid(folderName))) {
-            dispatch(optimizeUI(folderPath));
+        if (dispatch(cacheIsValid(folderName))) {
+            dispatch(displayCache(folderPath));
             return
         }
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath);//its fast because it doesnt load the file content

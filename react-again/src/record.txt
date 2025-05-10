@@ -513,6 +513,7 @@ todo:Details pane
 todo:disk usage progress bars
 todo:responsive
 todo:diffing algorithm
+todo:smart automation,heavy customizations
 
 react window uses virtualization which means it lazily loads the content to the viewport.
 
@@ -612,3 +613,8 @@ Incremental ui loading
 selective smart reloading
 auto reloading
 background auto reloading
+
+time complexity optimizations
+implementation optimization
+
+multi threading read dir
