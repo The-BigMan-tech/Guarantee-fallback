@@ -17,7 +17,6 @@ export default function App() {
     useEffect(()=>{//everything here except for opening the home on startup is an optimization.
         dispatch(loadCache());
         watchHomeTabs().then(thunk=>dispatch(thunk));
-        openDirFromHome("Home").then(thunk=>dispatch(thunk));
         cacheAheadOfTime("Recent",false).then((thunk)=>dispatch(thunk));
         cacheAheadOfTime("Downloads",false).then((thunk)=>dispatch(thunk));
         cacheAheadOfTime("Desktop",false).then((thunk)=>dispatch(thunk));
@@ -25,6 +24,7 @@ export default function App() {
         cacheAheadOfTime("Videos",false).then((thunk)=>dispatch(thunk));
         cacheAheadOfTime("Documents",false).then((thunk)=>dispatch(thunk));
         cacheAheadOfTime("Music",true).then((thunk)=>dispatch(thunk));
+        openDirFromHome("Home").then(thunk=>dispatch(thunk))
     },[dispatch])
 
     return (

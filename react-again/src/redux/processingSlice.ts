@@ -312,12 +312,13 @@ function inHomePage(folderName:string):AppThunk<boolean> {//it will only run if 
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
-        dispatch(optimizeUI(folderPath))
         const folderName:string = await base_name(folderPath,true);
+        dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));
+        dispatch(optimizeUI(folderPath));
+
         if (dispatch(isCacheValid(folderName))) {
             return
         }
-        dispatch(setLoadingMessage(`Loading the folder: ${folderName}`))
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath);//its fast because it doesnt load the file content
         if (dirResult.value instanceof Error) {
             dispatch(setFsNodes(null))//to ensure that they dont interact with an unstable folder in the ui
