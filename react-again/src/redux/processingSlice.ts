@@ -7,7 +7,27 @@ import {v4 as uniqueID} from 'uuid';
 import { AppDispatch } from './store';
 import { watchImmediate, BaseDirectory, WatchEvent, WatchEventKind, WatchEventKindCreate, WatchEventKindModify, WatchEventKindRemove } from '@tauri-apps/plugin-fs';
 import Fuse from 'fuse.js';
+import { toast,ToastOptions,Bounce,Flip,Zoom} from 'react-toastify';
 
+
+const toastConfig:ToastOptions = {
+    position: "top-center",
+    autoClose: 5000,
+    hideProgressBar: false,
+    closeOnClick: false,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    theme: "dark",
+    transition: Bounce,
+}
+export const loading_toastConfig:ToastOptions = {
+    ...toastConfig,
+    pauseOnHover:false,
+    autoClose:false,
+    transition:Zoom,
+    toastId:"loading"
+}
 
 type JsonCache = {data:CachedFolder[]}
 type CachingState = 'pending' | 'success';
@@ -407,7 +427,8 @@ export function searchFile(searchQuery:string):AppThunk {
             console.log("MATCHED FS NODES",matchedFsNodes);
             dispatch(setSearchResults(matchedFsNodes));
         }
-        dispatch(setLoadingMessage("Done searching items"))
+        toast.done("loading")
+        toast.success("Done searching",{...toastConfig,autoClose:500,transition:Flip})
     }
 }
 function isCreate(kind: WatchEventKind): kind is { create: WatchEventKindCreate } {
