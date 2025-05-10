@@ -37,6 +37,7 @@ export default function FsNodeComponent(props:{fsNode:FsNode}) {
     },[loadingMessage])
     return (
         <motion.button
+            whileHover={{ scale: 1.1 }}
             initial={{ y:100}}  // Start 100px left and invisible
             animate={{ y: 0}}     // Animate to natural position and fully visible
             transition={{ duration: 0.5, ease: 'easeOut' }}

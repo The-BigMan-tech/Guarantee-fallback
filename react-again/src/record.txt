@@ -506,7 +506,7 @@ preserved aot cached tabs when the cache reaches its threshold
 smart reloading
 file icons--ongoing
 file search,debouncing
-todo:framer motion
+framer motion
 todo:previews--video,img,audio,text area tags,react pdf,highlight js,react player,mammoth js,three js,react window
 todo:file editing on the preview editor
 todo:file actions on a pane 
@@ -660,3 +660,5 @@ for an array,i use three states.null means its absent,[] means its present and [
 *from now on goin forward,ill do direct toasting in my thunks but gradually since a number of them still use the component.My toast component has lots of issues
 
 sidebar,body,topbar,fsnodes
+
+*so animation costs performance and as such,it must be selective.They must only load at key moments and not continuously
