@@ -410,18 +410,36 @@ const throttledStoreCache:throttle<()=>AppThunk> = throttle(5000,
     (dispatch:AppDispatch)=>(dispatch(storeCache())),
     {noLeading:true, noTrailing: false,}
 );
-export function searchFile(searchQuery:string):AppThunk {
-    return (dispatch,getState)=>{
+async function readRecursively(path:string,fsNodes:FsNode[]) {
+    const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(path);
+    if (dirResult.value == null || dirResult.value instanceof Error) {
+        return; // Skip invalid directories or errors
+    }
+    const localFsNodes:FsNode[] = await Promise.all(dirResult.value)
+    for (const fsNode of localFsNodes) {
+        if (fsNode.primary.nodeType == "File") {
+            fsNodes.push(fsNode)
+        }else if (fsNode.primary.nodeType == "Folder") {
+            readRecursively(fsNode.primary.nodePath,fsNodes)
+        }
+    }
+}
+export async function searchFile(searchQuery:string):Promise<AppThunk> {
+    return async (dispatch,getState)=>{
+        console.log("SEARCH QUERY LENGTH",searchQuery.length);
         if (searchQuery.length == 0) {
             toast.dismiss("loading")
             dispatch(setSearchResults(null));
             return
         }
-        const fsNodes:FsNode[] | null = selectFsNodes(getState())
+        const currentPath:string = selectCurrentPath(getState())
+        const fsNodes:FsNode[] = []
+        await readRecursively(currentPath,fsNodes);
+        console.log("Fsnodes Recursively",fsNodes);
         const options = {
             keys: ['primary.nodeName','primary.fileExtension',],
             includeScore: true,
-            threshold: 0.3,   
+            threshold: 0.4,   
         };
         if (fsNodes) {
             const fuse = new Fuse(fsNodes,options);
@@ -431,7 +449,7 @@ export function searchFile(searchQuery:string):AppThunk {
             dispatch(setSearchResults(matchedFsNodes));
         }
         toast.dismiss();
-        toast.success("Done searching",{...toastConfig,autoClose:500,transition:Flip})
+        toast.success("Done searching",{...toastConfig,autoClose:500,transition:Flip});
     }
 }
 function isCreate(kind: WatchEventKind): kind is { create: WatchEventKindCreate } {

@@ -2,9 +2,8 @@ import { useEffect, useState,useMemo, ChangeEvent} from "react";
 import { useAppDispatch,selector} from "../../../redux/hooks"
 import { openParentInApp,selectCurrentPath,selectTabNames,searchFile,loading_toastConfig,toastConfig} from "../../../redux/processingSlice"
 import {v4 as uniqueID} from "uuid"
-//@ts-expect-error:As said in processing slice.ts,the type declaration for this module is incorrect
-import { debounce } from 'throttle-debounce';
 import { toast } from "react-toastify";
+import { KeyboardEvent } from "react";
 
 
 export default function UpperTop() {
@@ -34,22 +33,24 @@ export default function UpperTop() {
             return crumb
         }
     }   
-    function listenToQuery(event:ChangeEvent<HTMLInputElement>):void {
+    function listenToQuery(event:ChangeEvent<HTMLInputElement>) {
         setSearchQuery(event.target.value)
-        toast.loading("Loading your search",loading_toastConfig)
-        debounceSearch(event.target.value)
     }
-    function search(query:string):void {
+    async function search(query:string) {
+        toast.loading("Loading your search",loading_toastConfig)
         if (query.length == 1) {
             toast.info("Query is too short",{...toastConfig,toastId:"inf"})
             toast.dismiss("loading")
         }else {
             toast.dismiss("inf")
-            dispatch(searchFile(query));
+            dispatch(await searchFile(query));
         }
     }
-    const debounceSearch = debounce(300,search,{ atBegin:true });
-
+    async function enterSearch(event:KeyboardEvent<HTMLInputElement>) {
+        if (event.key === 'Enter') {
+            await search(searchQuery)
+        }
+    }
     useEffect(()=>{
         const replacedPath = currentPath.replace(/.*\\AppData\\Roaming\\Microsoft\\Windows\\Recent/,"Recent");
         const breadCrumbs = replacedPath.split("\\");
@@ -76,7 +77,7 @@ export default function UpperTop() {
                         </div>
                     ))}
                 </div>
-                <input className="bg-[#5576c852] text-white outline-none py-1 pl-2 rounded-4xl font-robot-light w-64 absolute right-20" value={searchQuery} onChange={(event)=>listenToQuery(event)} type="text" placeholder="Your search here"/>
+                <input className="bg-[#5576c852] text-white outline-none py-1 pl-2 rounded-4xl font-robot-light w-64 absolute right-20" value={searchQuery} onChange={(event)=>listenToQuery(event)} onKeyDown={(event)=>enterSearch(event)}  type="text" placeholder="Your search here"/>
             </div>
         </div>
     )

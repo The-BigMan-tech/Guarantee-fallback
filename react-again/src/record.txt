@@ -507,9 +507,12 @@ smart reloading
 file icons--ongoing
 file search,debouncing
 framer motion
+todo:recursive file search
+todo:search result caching
+smart recursive file search--it only recursively reads the dir till it finds its search
 todo:previews--video,img,audio,text area tags,react pdf,highlight js,react player,mammoth js,three js,react window
 todo:file editing on the preview editor
-todo:file actions on a pane 
+todo:file actions on a pane --state modification,io operation for significant performance
 todo:file actions on right click
 todo:index for in dir file actions and a transfer object for move-like file actions
 todo:Changing the view layout and icon size
@@ -679,3 +682,19 @@ strict and loose option
 *so stale state reads in react since states updates async can be avoided by passing it as a parameter to the function that relies on it or putting that function in a use effect 
 
 *so debouncing is meant to have a smaller time window while throttling can have a moderate sized time window depending on use case.Why?Debounce’s goal is to reduce noisy rapid calls by waiting for a pause, so a smaller delay keeps the UI responsive without flooding calls.Throttle’s goal is to limit call frequency over time, so the interval can be adjusted based on how often you want updates or saves to happen.
+
+*so because the dir is large and there will be more files that may be relevant to the search,a threshold of 0.4 will be better and ill increase the debounce timer to 500-1000ms.
+
+*Directory size and variability: As you noted, directories can be very large or very small, and it’s hard to predict which directories will be searched again during the process lifecycle. Caching the entire recursive directory contents would consume significant memory and may quickly become stale or invalid.
+
+*Caching entire recursive directory reads is often impractical due to size and unpredictability, but caching search results keyed by query and path is a practical, memory-efficient way to improve search performance and user experience.
+
+todo:Recursively search till you get a good math score
+todo:ill do it as quick search and deep search
+^recursive search requires trailing debouncing unlike surface search that is better with leading debouncing
+
+^never await a throttle or debouncer
+
+*useref,usememo,usecallback
+
+*i removed debouncing for the search.the search only proceeds if the user presses enter as they are no async solutions to debouncing
