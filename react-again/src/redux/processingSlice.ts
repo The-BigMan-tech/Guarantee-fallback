@@ -276,7 +276,6 @@ function optimizeUI(folderPath:string):AppThunk {
         //[] array means its loading not that its empty
         dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading to not look laggy
         dispatch(openCachedDirInApp(folderPath));//opens the cached dir in app in the meantime if any
-        dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
     }
 }
 async function loadIncrementally(fsNodesPromise:(Promise<FsNode>)[],fsNodes:FsNode[] ):Promise<AppThunk<Promise<FsNode[]>>>{
@@ -317,6 +316,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
     return async (dispatch,getState):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
         const folderName:string = await base_name(folderPath,true);
+        dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
         dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));
 
         if (dispatch(isCacheValid(folderName))) {

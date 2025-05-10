@@ -535,7 +535,7 @@ updating the cache on loading
 storing the cache using at most once and throttle approach 
 selective ahead of time caching
 incrmental loading
-todo:smart reloading--automatic io,background process.no need to worry about layout shifts in the sliced cached data.data will be added incrementally
+smart reloading--automatic io,background process.no need to worry about layout shifts in the sliced cached data.data will be added incrementally
 
 grid vs table
 
