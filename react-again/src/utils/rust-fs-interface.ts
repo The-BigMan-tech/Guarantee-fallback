@@ -31,7 +31,7 @@ export class FsResult<T>  {
         return new FsResult((error instanceof Error)?error:new Error("An unknown error occurred"))
     }
 }
-function oneOfExtensions(fileExtension:string | null,...extensions:string[]):boolean {
+function isExt(fileExtension:string | null,...extensions:string[]):boolean {
     if (fileExtension) {
         for (const ext of extensions) {
             if (fileExtension == ext) {
@@ -44,7 +44,7 @@ function oneOfExtensions(fileExtension:string | null,...extensions:string[]):boo
     }
 }
 function getFsIcon(fileExtension:string | null):string {
-    if (oneOfExtensions(fileExtension,"jpg","svg","png")) {
+    if (isExt(fileExtension,"jpg","svg","png")) {
         return "image-file.svg"//path to png icon
     }else if (fileExtension=="pdf") {
         return "pdf-file.svg"
@@ -54,9 +54,9 @@ function getFsIcon(fileExtension:string | null):string {
         return "zip-file.svg"
     }else if (fileExtension == "mp4") {
         return "video-file.svg"
-    }else if (oneOfExtensions(fileExtension,"docx","doc")) {
+    }else if (isExt(fileExtension,"docx","doc")) {
         return "word-file.svg"
-    }else if (oneOfExtensions(fileExtension,"ini","xml","json","cfg")) {
+    }else if (isExt(fileExtension,"ini","xml","json","cfg")) {
         return "code-file.svg"
     }else if (fileExtension == "mp3") {
         return "audio-file.svg"
