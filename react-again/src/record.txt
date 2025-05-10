@@ -658,3 +658,5 @@ ill use debouncing on the search
 for an array,i use three states.null means its absent,[] means its present and [value] means it has values
 
 *from now on goin forward,ill do direct toasting in my thunks but gradually since a number of them still use the component.My toast component has lots of issues
+
+sidebar,body,topbar,fsnodes

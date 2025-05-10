@@ -274,7 +274,7 @@ export async function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean,aff
             const fsNodes:FsNode[] = await Promise.all(dirResult.value);
             dispatch(addToCache({path:folderPath,data:fsNodes},tabName));
             if ((isLast) && (affectOpacity)) {
-                dispatch(setAheadCachingState('success'))
+                // dispatch(setAheadCachingState('success'))
             }
         }
     }
@@ -300,7 +300,8 @@ function displayCache(folderPath:string):AppThunk {
         dispatch(openCachedDirInApp(folderPath));//opens the cached dir in app in the meantime if any
     }
 }
-async function loadIncrementally(fsNodesPromise:(Promise<FsNode>)[],fsNodes:FsNode[] ):Promise<AppThunk<Promise<FsNode[]>>>{
+//I am not actually using this functions.just exported it so that es lint will stop complaining.i may or may not use it later
+export async function loadIncrementally(fsNodesPromise:(Promise<FsNode>)[],fsNodes:FsNode[] ):Promise<AppThunk<Promise<FsNode[]>>>{
     return async (dispatch,getState):Promise<FsNode[]> =>{
         console.log("LOADING INC");
         const localFsNodes = [...fsNodes]
@@ -318,6 +319,13 @@ async function loadIncrementally(fsNodesPromise:(Promise<FsNode>)[],fsNodes:FsNo
         return fsNodes;
     }
 }
+//I exported this for the same reason as loadIncrementally
+export function inHomePage(folderName:string):AppThunk<boolean> {//it will only run if the cache is empty.dont forget
+    return (_,getState):boolean => {
+        const aotCachingState = selectAheadCachingState(getState());
+        return ((folderName === "Home") && (aotCachingState === "pending"))
+    }
+}
 async function loadAtOnce(fsNodesPromise:(Promise<FsNode>)[]):Promise<AppThunk<Promise<FsNode[]>>> {
     return async (dispatch):Promise<FsNode[]> =>{
         const fsNodes = await Promise.all(fsNodesPromise);
@@ -325,24 +333,14 @@ async function loadAtOnce(fsNodesPromise:(Promise<FsNode>)[]):Promise<AppThunk<P
         return fsNodes;
     }
 }
-function inHomePage(folderName:string):AppThunk<boolean> {//it will only run if the cache is empty.dont forget
-    return (_,getState):boolean => {
-        const aotCachingState = selectAheadCachingState(getState());
-        return ((folderName === "Home") && (aotCachingState === "pending"))
-    }
-}
 /**
  * It updates the ui by loading the fsnodes array into the app state using one of two rendering techniques depending if the dir is the home tab and returns a modified fsnodes that can be used for caching
  */
-async function updateUI(folderName:string,fsNodes:FsNode[],value:(Promise<FsNode>)[]):Promise<AppThunk<Promise<FsNode[]>>> {
+async function updateUI(fsNodes:FsNode[],value:(Promise<FsNode>)[]):Promise<AppThunk<Promise<FsNode[]>>> {
     return async (dispatch):Promise<FsNode[]> => {
         let localFsNodes = [...fsNodes];
-        if (dispatch(inHomePage(folderName))) {//for user experience.if the home tab is opened and its still caching ahead of time and the cache is empty in otherwords,the first time using the app,show the files incrementally.other subsequent opens wont trigger this
-            localFsNodes = await dispatch(await loadIncrementally(value,fsNodes))
-        }else {
-            localFsNodes = await dispatch(await loadAtOnce(value))
-        }
-        return localFsNodes
+        localFsNodes = await dispatch(await loadAtOnce(value))
+        return localFsNodes;
     }
 }
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
@@ -369,7 +367,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setFsNodes(null))//null fs nodes then means its empty
         }else {
             let fsNodes:FsNode[] = []//used to batch fsnodes for ui updates
-            fsNodes = await dispatch(await updateUI(folderName,fsNodes,dirResult.value))
+            fsNodes = await dispatch(await updateUI(fsNodes,dirResult.value))
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             dispatch(addToCache({path:folderPath,data:fsNodes},folderName));//performs caching while the user can interact with the dir in the app./since the ui remains frozen as its caching ahead of time,there is no need to add a debouncing mechanism to prevent the user from switching to another tab while its caching
             console.log("Files:",fsNodes);

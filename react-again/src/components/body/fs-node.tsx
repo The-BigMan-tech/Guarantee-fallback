@@ -2,6 +2,7 @@ import { FsNode } from "../../utils/rust-fs-interface"
 import { useAppDispatch,selector} from "../../redux/hooks"
 import { openDirectoryInApp,selectLoadingMessage} from "../../redux/processingSlice";
 import { useEffect, useState } from "react";
+import {motion} from "motion/react"
 
 export default function FsNodeComponent(props:{fsNode:FsNode}) {
     const dispatch = useAppDispatch();
@@ -35,9 +36,14 @@ export default function FsNodeComponent(props:{fsNode:FsNode}) {
         setShouldUnFreeze(!(loadingMessage.trim().toLowerCase().startsWith("loading")))
     },[loadingMessage])
     return (
-        <button onDoubleClick={()=>openFolder(props.fsNode)} className={`flex flex-col items-center justify-center gap-2 opacity-30 cursor-default ${unFreezeClass()}`}>
-            <img className={`${fixIconSize(props.fsNode.primary.iconPath)}`} src={`./assets/file-icons/${props.fsNode.primary.iconPath}`} alt="" />
-            <h1 className="text-sm font-sans mb-5">{truncateName(props.fsNode.primary.nodeName)}</h1>
-        </button>
+        <motion.button
+            initial={{ y:100}}  // Start 100px left and invisible
+            animate={{ y: 0}}     // Animate to natural position and fully visible
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            onDoubleClick={()=>openFolder(props.fsNode)} 
+            className={`flex flex-col items-center justify-center gap-2 opacity-30 cursor-default ${unFreezeClass()}`}>
+                <img className={`${fixIconSize(props.fsNode.primary.iconPath)}`} src={`./assets/file-icons/${props.fsNode.primary.iconPath}`} alt="" />
+                <h1 className="text-sm font-sans mb-5">{truncateName(props.fsNode.primary.nodeName)}</h1>
+        </motion.button>
     )
 }

@@ -13,9 +13,9 @@ export default function Body() {
     return (
         <>
             <div className="h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md">
-                {(uniqueSearchResults)
+                {(uniqueSearchResults)//if the user hasnt inputted any search query
                     ?<>
-                        {(uniqueSearchResults.length)
+                        {(uniqueSearchResults.length)//if the matched searches are empty
                             ?<FsDisplay {...{uniqueFsNodes:uniqueSearchResults}}/>
                             :<h1 className="text-white text-2xl absolute top-[50%] left-[50%] font-[Consolas]">No search results</h1>
                         }
