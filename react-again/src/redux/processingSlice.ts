@@ -6,6 +6,8 @@ import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name} from '
 import {v4 as uniqueID} from 'uuid';
 import { AppDispatch } from './store';
 import { watchImmediate, BaseDirectory, WatchEvent, WatchEventKind, WatchEventKindCreate, WatchEventKindModify, WatchEventKindRemove } from '@tauri-apps/plugin-fs';
+import Fuse from 'fuse.js';
+
 
 type JsonCache = {data:CachedFolder[]}
 type CachingState = 'pending' | 'success';
@@ -48,11 +50,11 @@ export interface processingSliceState {//by using null unions instead of optiona
     cache:CachedFolder[],
     aheadCachingState:CachingState,
     invalidatedTabCache:TabCacheInvalidation,
+    searchResults:FsNode[] | null,
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
     loadingMessage:string | null//for loading messages
-    searchQuery:string | null,//for storing the search query
     sortBy:SortingOrder,//sorting order of the files
     viewBy:View,//changes the layout of the folder content
     showDetailsPane:boolean//to show extra details like charts or disk usage
@@ -70,7 +72,7 @@ const initialState:processingSliceState = {
     error:{id:"",message:null},//the ids is to ensure that the same error can pop up twice
     notice:{id:"",message:null},
     loadingMessage:"loading",//no id here because only one thing can be loaded at a time
-    searchQuery:null,
+    searchResults:null,
     sortBy:'name',
     viewBy:'details',
     showDetailsPane:true
@@ -112,6 +114,9 @@ export const processingSlice = createSlice({
         validateTabCache(state,action:PayloadAction<invalidationData>) {
             state.invalidatedTabCache[action.payload.tabName] = false
         },
+        setSearchResults(state,action:PayloadAction<FsNode[]>) {
+            state.searchResults = action.payload
+        },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
             state.error.message = action.payload;
@@ -122,9 +127,6 @@ export const processingSlice = createSlice({
         },
         setLoadingMessage(state,action:PayloadAction<string | null>) {
             state.loadingMessage = action.payload
-        },
-        setSearchQuery(state,action:PayloadAction<string>) {
-            state.searchQuery = action.payload
         },
         setSortBy(state,action:PayloadAction<SortingOrder>) {
             state.sortBy = action.payload
@@ -153,7 +155,7 @@ export const {
     setError,
     setNotice,
     setLoadingMessage,
-    setSearchQuery,
+    setSearchResults,
     setSortBy,
     setView,
     setShowDetails
@@ -167,7 +169,7 @@ export const selectSelectedFsNodes = (store:RootState):FsNode[] | null => store.
 export const selectError = (store:RootState):Message => store.processing.error;
 export const selectNotice = (store:RootState):Message => store.processing.notice;
 export const selectLoadingMessage = (store:RootState):string | null => store.processing.loadingMessage;
-export const selectSearchQuery = (store:RootState):string | null => store.processing.searchQuery;
+export const selectSearchResults = (store:RootState):FsNode[] | null => store.processing.searchResults;
 export const selectSortBy = (store:RootState):SortingOrder => store.processing.sortBy;
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
@@ -388,8 +390,23 @@ const throttledStoreCache:throttle<()=>AppThunk> = throttle(5000,
     (dispatch:AppDispatch)=>(dispatch(storeCache())),
     {noLeading:true, noTrailing: false,}
 );
-
-
+export function searchFile(searchQuery:string):AppThunk {
+    return (dispatch,getState)=>{
+        const fsNodes:FsNode[] | null = selectFsNodes(getState())
+        const options = {
+            keys: ['primary.nodeName','primary.fileExtension',],
+            includeScore: true,
+            threshold: 0.3,   
+        };
+        if (fsNodes) {
+            const fuse = new Fuse(fsNodes,options);
+            const searchResult = fuse.search(searchQuery);
+            const matchedFsNodes: FsNode[] = searchResult.map(result => result.item);
+            console.log("MATCHED FS NODES",matchedFsNodes);
+            dispatch(setSearchResults(matchedFsNodes))
+        }
+    }
+}
 function isCreate(kind: WatchEventKind): kind is { create: WatchEventKindCreate } {
     return typeof kind === 'object' && 'create' in kind;
 }

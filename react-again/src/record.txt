@@ -29,7 +29,7 @@ async thunks and create async thunks
 
 thunks dont return values.just dispatch actions
 
-^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid,throttle-debounce
+^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid,throttle-debounce,fuse js
 
 hello pangea dnd,react router,framer motion,gsap,three js,
 next js,auth js,paystack,prisma,postgres sql,mongoose,mongo db
@@ -429,11 +429,13 @@ at-most once uses throttle or debouncing.at most once prevents unnecessary write
 *Io operations have this complexity because its outside the control of the codebase
 
 ^IO optimization
-*batching,throttling and async io are optimization techniques on io operations not delivery triggers or semantics.because without them,it means that every trigger to an io operation will block the main thread to perform the io operation
+*batching,throttling,debouncing and async io are optimization techniques on io operations not delivery triggers or semantics.because without them,it means that every trigger to an io operation will block the main thread to perform the io operation
 
 *Batching is not a way of delivering io like reactive,manual or at-most once.its just a way of handling how many io operations are done at a time.Its an optimization technique
 
 *Throttling is not necessary to achive at most once.its naturally at most once but throttling is an optimization mechanism
+
+*Debouncing:you know it already
 
 *Asynchronous io operations
 
@@ -504,7 +506,7 @@ preserved aot cached tabs when the cache reaches its threshold
 smart reloading
 todo:framer motion
 todo:file icons
-todo:file search
+todo:file search,debouncing
 todo:previews--video,img,audio,text area tags,react pdf,highlight js,react player,mammoth js,three js,react window
 todo:file editing on the preview editor
 todo:file actions on a pane 
@@ -512,11 +514,15 @@ todo:file actions on right click
 todo:index for in dir file actions and a transfer object for move-like file actions
 todo:Changing the view layout and icon size
 todo:Change it from local storage to pouch db for async database
+todo:File content search
 todo:Details pane
 todo:disk usage progress bars
 todo:responsive
 todo:diffing algorithm
 todo:smart automation,heavy customizations
+todo:vector database search
+
+todo:Learn search theory
 
 react window uses virtualization which means it lazily loads the content to the viewport.
 
@@ -621,3 +627,30 @@ time complexity optimizations
 implementation optimization
 
 multi threading read dir
+
+*auto catch engine
+
+*wrapping try catch in several areas of the codebase unnecessarily will only catch symptoms not errors.It wont help you find the root cause of a problem
+
+include,startswith,endswith,equality,particular case conversion for case insensitive searches
+glob patterns
+regexp
+search library--typo tolerant,name based search but not content based search
+search engine--content based search
+vector database--content based search
+
+
+prolog
+natural language processing
+
+vector database in rust
+
+keyword search
+semantic search
+fuzzy search
+
+if search result is none,display the fsnode array
+
+ill use debouncing on the search
+
+*The tooling ecosystem is beautiful

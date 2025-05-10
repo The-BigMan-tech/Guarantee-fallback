@@ -1,6 +1,6 @@
-import { useEffect, useState,useMemo} from "react";
+import { useEffect, useState,useMemo, ChangeEvent} from "react";
 import { useAppDispatch,selector} from "../../../redux/hooks"
-import { openParentInApp,selectCurrentPath,selectTabNames} from "../../../redux/processingSlice"
+import { openParentInApp,selectCurrentPath,selectTabNames,searchFile} from "../../../redux/processingSlice"
 import {v4 as uniqueID} from "uuid"
 
 export default function UpperTop() {
@@ -9,6 +9,8 @@ export default function UpperTop() {
     const [breadCrumbs,setBreadCrumbs] = useState<string[]>([]);
     const uniqueBreadCrumbs = useMemo(()=>breadCrumbs.map(crumb=>({ id: uniqueID(),crumb:crumb})),[breadCrumbs])
     const tabNames:Set<string> = new Set(selector(store=>selectTabNames(store)))
+    const [searchQuery,setSearchQuery] = useState<string>("");
+
     async function goToParent() {
         await dispatch(await openParentInApp())
     }
@@ -28,6 +30,12 @@ export default function UpperTop() {
             return crumb
         }
     }   
+    function listenToQuery(event:ChangeEvent<HTMLInputElement>):void {
+        setSearchQuery(event.target.value)
+    }
+    function throttledSearch():void {
+        dispatch(searchFile(searchQuery))
+    }
     useEffect(()=>{
         const replacedPath = currentPath.replace(/.*\\AppData\\Roaming\\Microsoft\\Windows\\Recent/,"Recent");
         const breadCrumbs = replacedPath.split("\\");
@@ -54,6 +62,7 @@ export default function UpperTop() {
                         </div>
                     ))}
                 </div>
+                <input className="bg-[#5576c852] text-white outline-none py-1 pl-2 rounded-4xl font-robot-light w-64 absolute right-20" value={searchQuery} onChange={(event)=>listenToQuery(event)} type="text" placeholder="Your search here"/>
             </div>
         </div>
     )
