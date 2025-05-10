@@ -42,7 +42,8 @@ export default function Toasts() {
         if ((loadingMessage) && (loadingMessage !== "loading")) {
             console.log("Loading message value toast",loadingMessage);
             toast.dismiss();//to ensure that only one component shows a loading progress at a time.
-            if (!(loadingMessage.trim().toLowerCase().startsWith("done"))) {
+            const trimmed_message = loadingMessage.trim().toLowerCase()
+            if (!(trimmed_message.startsWith("done") || trimmed_message.startsWith("changes"))) {
                 console.log("Loading message is loading",loadingMessage);
                 toast.loading(loadingMessage,loading_toastConfig)
             }else {

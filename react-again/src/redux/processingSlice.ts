@@ -241,16 +241,18 @@ function openCachedDirInApp(folderPath:string):AppThunk {
         }
     }
 }
-export async function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean):Promise<AppThunk>{
+export async function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean,affectOpacity:boolean):Promise<AppThunk>{
     return async (dispatch)=>{
-        dispatch(setAheadCachingState('pending'))
+        if (affectOpacity) {
+            dispatch(setAheadCachingState('pending'))
+        }
         const folderPath = await join_with_home(tabName);
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath);
         if (!(dirResult.value instanceof Error) && (dirResult.value !== null)) {//i only care about the success case here because the operation was initiated by the app and not the user and its not required to succeed for the user to progress with the app
             const fsNodes:FsNode[] = await Promise.all(dirResult.value);
             dispatch(addToCache({path:folderPath,data:fsNodes},tabName));
-            if (isLast) {
-                // dispatch(setAheadCachingState('success'))
+            if ((isLast) && (affectOpacity)) {
+                dispatch(setAheadCachingState('success'))
             }
         }
     }
@@ -422,9 +424,20 @@ export async function watchHomeTabs():Promise<AppThunk> {
                     const triggeredPaths = event.paths;
                     for (const path of triggeredPaths) {
                         const parent = path.slice(0,path.lastIndexOf('\\'));
-                        const tabName:string = await base_name(parent,true);
-                        dispatch(invalidateTabCache({tabName:tabName as AllTabTypes}));
-                        dispatch(await openDirectoryInApp(currentPath))
+                        const tabName:AllTabTypes = await base_name(parent,true) as AllTabTypes;
+                        dispatch(invalidateTabCache({tabName}));
+                        if (tabName == "Home") {//auto reload the home page if its opened because my function wasnt built to load the home page ahead of time in mind because its the first page that loads when you open the app
+                            dispatch(await openDirFromHome("Home"))
+                        }else {
+                            const currentPathBase:StrictTabsType = await base_name(currentPath,false) as StrictTabsType
+                            if (currentPathBase == tabName) {//auto reload if the tab is currently opened
+                                dispatch(await openDirFromHome(tabName))
+                            }else {//auto reload the tab in the background ahead of time
+                                dispatch(setLoadingMessage("Changes detected.Refreshing the app in the background."))
+                                dispatch(await cacheAheadOfTime(tabName,true,false));
+                                dispatch(setLoadingMessage("Done refreshing the app"))
+                            }
+                        }
                     }
                 }
             },
