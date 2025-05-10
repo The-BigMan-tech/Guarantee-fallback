@@ -39,7 +39,7 @@ export default function UpperTop() {
     function search():void {
         dispatch(searchFile(searchQuery))
     }
-    const debounceSearch = debounce(3000,search,{ atBegin: false });
+    const debounceSearch = debounce(2000,search,{ atBegin: false });
 
     useEffect(()=>{
         const replacedPath = currentPath.replace(/.*\\AppData\\Roaming\\Microsoft\\Windows\\Recent/,"Recent");

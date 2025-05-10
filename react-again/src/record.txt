@@ -504,9 +504,9 @@ made incremental processing on the home tab
 did at-most once cache serialization with throttling
 preserved aot cached tabs when the cache reaches its threshold
 smart reloading
+file icons--ongoing
+file search,debouncing
 todo:framer motion
-todo:file icons
-todo:file search,debouncing
 todo:previews--video,img,audio,text area tags,react pdf,highlight js,react player,mammoth js,three js,react window
 todo:file editing on the preview editor
 todo:file actions on a pane 
@@ -654,3 +654,5 @@ if search result is none,display the fsnode array
 ill use debouncing on the search
 
 *The tooling ecosystem is beautiful
+
+for an array,i use three states.null means its absent,[] means its present and [value] means it has values

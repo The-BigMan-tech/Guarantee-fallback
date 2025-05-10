@@ -114,7 +114,7 @@ export const processingSlice = createSlice({
         validateTabCache(state,action:PayloadAction<invalidationData>) {
             state.invalidatedTabCache[action.payload.tabName] = false
         },
-        setSearchResults(state,action:PayloadAction<FsNode[]>) {
+        setSearchResults(state,action:PayloadAction<FsNode[] | null>) {
             state.searchResults = action.payload
         },
         setError(state,action:PayloadAction<string>) {
@@ -329,6 +329,8 @@ async function updateUI(folderName:string,fsNodes:FsNode[],value:(Promise<FsNode
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
+        dispatch(setSearchResults(null))//to clear search results
+
         const folderName:string = await base_name(folderPath,true);
         dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
         dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));
@@ -403,8 +405,9 @@ export function searchFile(searchQuery:string):AppThunk {
             const searchResult = fuse.search(searchQuery);
             const matchedFsNodes: FsNode[] = searchResult.map(result => result.item);
             console.log("MATCHED FS NODES",matchedFsNodes);
-            dispatch(setSearchResults(matchedFsNodes))
+            dispatch(setSearchResults(matchedFsNodes));
         }
+        dispatch(setLoadingMessage("Done searching items"))
     }
 }
 function isCreate(kind: WatchEventKind): kind is { create: WatchEventKindCreate } {
