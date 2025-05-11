@@ -703,8 +703,8 @@ todo:freeze the ui when searching
 todo:terminate search,exit search results
 todo:one level search
 todo:spread search results.it will affect that output of no search results.ill leave set search results and use it to clear the search if the matched fs nodes is empty
-todo:if i spread,i can still use the mtion component
-todo:watch dir is broken!1!!!
+
+what happened to the cache
 i have to increase the batch number to 20
 ^recursive search will become a problem during stack overflow
 

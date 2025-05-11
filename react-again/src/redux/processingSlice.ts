@@ -71,6 +71,7 @@ export interface processingSliceState {//by using null unions instead of optiona
     aheadCachingState:CachingState,
     invalidatedTabCache:TabCacheInvalidation,
     searchResults:FsNode[] | null,
+    terminateSearch:boolean,
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
@@ -93,6 +94,7 @@ const initialState:processingSliceState = {
     notice:{id:"",message:null},
     loadingMessage:"loading",//no id here because only one thing can be loaded at a time
     searchResults:null,
+    terminateSearch:true,
     sortBy:'name',
     viewBy:'details',
     showDetailsPane:true
@@ -137,6 +139,9 @@ export const processingSlice = createSlice({
         setSearchResults(state,action:PayloadAction<FsNode[] | null>) {
             state.searchResults = action.payload
         },
+        setSearchTermination(state,action:PayloadAction<boolean>) {
+            state.terminateSearch = action.payload
+        },
         spreadToSearch(state,action:PayloadAction<FsNode[]>) {
             state.searchResults = [...(state.searchResults || []),...action.payload]
         },
@@ -179,6 +184,7 @@ export const {
     setNotice,
     setLoadingMessage,
     setSearchResults,
+    setSearchTermination,
     spreadToSearch,
     setSortBy,
     setView,
@@ -199,6 +205,7 @@ export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
 export const selectAheadCachingState = (store:RootState):CachingState => store.processing.aheadCachingState;
 export const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
+export const selectSearchTermination = (store:RootState):boolean =>store.processing.terminateSearch;
 const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
 
 
@@ -358,6 +365,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
         dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));
 
         if (dispatch(cacheIsValid(folderName))) {
+            console.log("DISPLAYING CACHE TO UI");
             dispatch(displayCache(folderPath));
             return
         }
@@ -433,21 +441,23 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string,dispatch:ThunkDispatch<{
 }
 function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,dispatch:ThunkDispatch<{processing: processingSliceState;}, unknown, Action>) {
     fsNodes.push(fsNode)//push the files
-    if (fsNodes.length == 20) {//to reduce ui flickering,only check for matches for the first 20 discovered files
-        searchUtil(fsNodes,searchQuery,dispatch)
-        fsNodes.length = 0
-    }
+    searchUtil(fsNodes,searchQuery,dispatch)
+    fsNodes.length = 0
 }
-async function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string,dispatch:ThunkDispatch<{processing: processingSliceState;}, unknown, Action>) {
+async function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string,dispatch:ThunkDispatch<{processing: processingSliceState;}, unknown, Action>,getState: () => {processing: processingSliceState;}) {
+    const shouldTerminate:boolean = selectSearchTermination(getState());
+    console.log("SHOULD TERMINATE",shouldTerminate);
     const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(path);
-    if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
+    console.log("DIR RESULT",dirResult.value);
+    if ((dirResult.value !== null) && !(dirResult.value instanceof Error) && !(shouldTerminate)) {
         const localFsNodes:FsNode[] = await Promise.all(dirResult.value)
+        console.log("Local fs nodes",localFsNodes);
         for (const fsNode of localFsNodes) {
             if (fsNode.primary.nodeType == "File") {
                 updateSearchResults(fsNode,fsNodes,searchQuery,dispatch)
             }else if (fsNode.primary.nodeType == "Folder") {
                 updateSearchResults(fsNode,fsNodes,searchQuery,dispatch)
-                await searchRecursively(fsNode.primary.nodePath,fsNodes,searchQuery,dispatch)//read the files of the folder and push that
+                await searchRecursively(fsNode.primary.nodePath,fsNodes,searchQuery,dispatch,getState)//read the files of the folder and push that
             }
         }
     }
@@ -455,16 +465,27 @@ async function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string
 export async function searchDir(searchQuery:string):Promise<AppThunk> {
     return async (dispatch,getState)=>{
         console.log("SEARCH QUERY LENGTH",searchQuery.length);
+        dispatch(setSearchTermination(false));
+        dispatch(setSearchResults([]))
         if (searchQuery.length == 0) {
-            toast.dismiss("loading")
+            toast.dismiss("loading");
             dispatch(setSearchResults(null));
+            dispatch(setSearchTermination(true))
             return
         }
-        const currentPath:string = selectCurrentPath(getState())
+        const currentPath:string = selectCurrentPath(getState());
         const fsNodes:FsNode[] = [];
-        await searchRecursively(currentPath,fsNodes,searchQuery,dispatch);
+        await searchRecursively(currentPath,fsNodes,searchQuery,dispatch,getState);
         toast.dismiss();
         toast.success("Done searching",{...toastConfig,autoClose:500,transition:Flip});
+        dispatch(setSearchTermination(true));
+    }
+}
+export function terminateSearch():AppThunk {
+    return (dispatch)=>{
+        dispatch(setSearchTermination(true))
+        toast.dismiss();
+        toast.info("Search terminated",{...toastConfig,autoClose:500,transition:Flip});
     }
 }
 function isCreate(kind: WatchEventKind): kind is { create: WatchEventKindCreate } {
