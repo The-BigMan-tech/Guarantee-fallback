@@ -698,19 +698,21 @@ strict and loose option
 
 *i removed debouncing for the search.the search only proceeds if the user presses enter as they are no async solutions to debouncing
 
-todo:Recursively search till you get a good math score.ill do it as quick search and deep search
-todo:freeze the ui when searching
-todo:terminate search,exit search results
-todo:one level search
+
 todo:spread search results.it will affect that output of no search results.ill leave set search results and use it to clear the search if the matched fs nodes is empty
 
 what happened to the cache
 i have to increase the batch number to 20
 ^recursive search will become a problem during stack overflow
 
+freeze the ui when searching
+terminate search,exit search results
 lazy dir reading + file search + setting search results
 recursive dir reading + file search + setting search results
 recursive dir reading <-> filesearch + spread search results
+batched searching--t prevent ui flickering
+only spreading when there is a result--to prevent ui flickering
+memory clean recursion
 
 i need to sort the array by files first before folder
 
@@ -720,3 +722,7 @@ not read:downloads,documents,home and throws an error
 read:recent,downloads,pictures,music,videos
 
 *The reason why recursive search failed want because of any file system or permission issues but because of the way the function was written
+
+todo:the read dir function throws some errors when used in the recursive search function but its safe to ignore for now.its correct i believe its with fs config or something
+
+*so by default,search libraries and engines do a full search but quick search works by aggressively filtering out the data using cheap methods before giving to the search library for analysis.its cheap because its easy to filter out items by using rules
