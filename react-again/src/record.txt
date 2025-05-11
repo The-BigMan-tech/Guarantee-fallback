@@ -714,11 +714,12 @@ recursive dir reading <-> filesearch + spread search results
 batched searching--t prevent ui flickering and reduce fuse instances
 only spreading when there is a result--to prevent ui flickering
 memory clean recursion
-todo:quick search
-todo:make the terminate and exit search nice buttons
+batched search but only updates the fuse instance not recreate it
+quick search
+todo:make the terminate,exit search and quick search nice buttons
 todo:spread the cache instead of setting it
 todo:refactor to the simpler pattern of async thunks
-batched search but only updates the fuse instance not recreate it
+
 
 i need to sort the array by files first before folder
 

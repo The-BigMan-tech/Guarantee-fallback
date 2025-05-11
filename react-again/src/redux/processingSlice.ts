@@ -283,7 +283,10 @@ function openCachedDirInApp(folderPath:string):AppThunk {
         const cache:CachedFolder[] = selectCache(getState());
         for (const cachedFolder of cache) {
             if (folderPath == cachedFolder.path) {
-                dispatch(setFsNodes(cachedFolder.data))
+                const cached_data = cachedFolder.data
+                for (let i=0;i<cached_data.length;i+=10) {
+                    dispatch(spreadToFsNodes(cached_data.slice(i,i+10)))
+                }
             }
         }
     }
