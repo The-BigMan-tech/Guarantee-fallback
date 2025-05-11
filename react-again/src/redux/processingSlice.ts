@@ -1,6 +1,6 @@
 //@ts-expect-error :I intetionally didnt install the type files because they were misleading the compiler about how to call the throttle function which was falsely flagging my code
 import {throttle} from 'throttle-debounce';
-import { createSlice,PayloadAction} from '@reduxjs/toolkit'
+import { Action, createSlice,PayloadAction, ThunkDispatch} from '@reduxjs/toolkit'
 import { RootState,AppThunk } from './store'
 import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name } from '../utils/rust-fs-interface';
 import {v4 as uniqueID} from 'uuid';
@@ -137,6 +137,9 @@ export const processingSlice = createSlice({
         setSearchResults(state,action:PayloadAction<FsNode[] | null>) {
             state.searchResults = action.payload
         },
+        spreadToSearch(state,action:PayloadAction<FsNode[]>) {
+            state.searchResults = [...(state.searchResults || []),...action.payload]
+        },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
             state.error.message = action.payload;
@@ -176,6 +179,7 @@ export const {
     setNotice,
     setLoadingMessage,
     setSearchResults,
+    spreadToSearch,
     setSortBy,
     setView,
     setShowDetails
@@ -410,19 +414,42 @@ const throttledStoreCache:throttle<()=>AppThunk> = throttle(5000,
     (dispatch:AppDispatch)=>(dispatch(storeCache())),
     {noLeading:true, noTrailing: false,}
 );
-async function readRecursively(path:string,fsNodes:FsNode[]) {
+function searchUtil(fsNodes:FsNode[],searchQuery:string,dispatch:ThunkDispatch<{processing: processingSliceState;}, unknown, Action>) {
+    const options = {
+        keys: ['primary.nodeName','primary.fileExtension',],
+        includeScore: true,
+        threshold: 0.4,   
+    };
+    console.log("FSNODES VALUE NOW",fsNodes);
+    const fuse:Fuse<FsNode> = new Fuse(fsNodes,options);
+    if (fsNodes) {
+        const searchResult = fuse.search(searchQuery);
+        const matchedFsNodes: FsNode[] = searchResult.map(result => result.item);
+        console.log("MATCHED FS NODES",matchedFsNodes);
+        if (matchedFsNodes.length) {//to reduce ui flickering,only spread to the search results if something matched
+            dispatch(spreadToSearch(matchedFsNodes));
+        }
+    }
+}
+async function readRecursively(path:string,fsNodes:FsNode[],searchQuery:string,dispatch:ThunkDispatch<{processing: processingSliceState;}, unknown, Action>) {
     const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(path);
-    if (dirResult.value == null) {
-        return
-    }else if (dirResult.value instanceof Error) {
-        toast.error(dirResult.value.message,toastConfig)
-    }else {
+    if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
+        console.log("No search errors here",path);
         const localFsNodes:FsNode[] = await Promise.all(dirResult.value)
         for (const fsNode of localFsNodes) {
             if (fsNode.primary.nodeType == "File") {
-                fsNodes.push(fsNode)
+                fsNodes.push(fsNode)//push the files
+                if (fsNodes.length == 20) {//to reduce ui flickering,only check for matches for the first 20 discovered files
+                    searchUtil(fsNodes,searchQuery,dispatch)
+                    fsNodes.length = 0
+                }
             }else if (fsNode.primary.nodeType == "Folder") {
-                await readRecursively(fsNode.primary.nodePath,fsNodes)
+                fsNodes.push(fsNode);//push the folder
+                if (fsNodes.length == 20) {
+                    searchUtil(fsNodes,searchQuery,dispatch)
+                    fsNodes.length = 0
+                }
+                await readRecursively(fsNode.primary.nodePath,fsNodes,searchQuery,dispatch)//read the files of the folder and push that
             }
         }
     }
@@ -436,21 +463,14 @@ export async function searchFile(searchQuery:string):Promise<AppThunk> {
             return
         }
         const currentPath:string = selectCurrentPath(getState())
-        const fsNodes:FsNode[] = []
-        await readRecursively(currentPath,fsNodes);
+        console.log("Current path for search",currentPath);
+
+        const fsNodes:FsNode[] = [];
+        
+        await readRecursively(currentPath,fsNodes,searchQuery,dispatch);
+
         console.log("Fsnodes Recursively",fsNodes);
-        const options = {
-            keys: ['primary.nodeName','primary.fileExtension',],
-            includeScore: true,
-            threshold: 0.4,   
-        };
-        if (fsNodes) {
-            const fuse = new Fuse(fsNodes,options);
-            const searchResult = fuse.search(searchQuery);
-            const matchedFsNodes: FsNode[] = searchResult.map(result => result.item);
-            console.log("MATCHED FS NODES",matchedFsNodes);
-            dispatch(setSearchResults(matchedFsNodes));
-        }
+    
         toast.dismiss();
         toast.success("Done searching",{...toastConfig,autoClose:500,transition:Flip});
     }

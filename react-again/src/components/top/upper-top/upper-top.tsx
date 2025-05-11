@@ -51,16 +51,17 @@ export default function UpperTop() {
             await search(searchQuery)
         }
     }
+    async function exitSearch() {
+        await search("");
+        setSearchQuery("")
+    }
     useEffect(()=>{
         const replacedPath = currentPath.replace(/.*\\AppData\\Roaming\\Microsoft\\Windows\\Recent/,"Recent");
         const breadCrumbs = replacedPath.split("\\");
         setBreadCrumbs(breadCrumbs)
+        setSearchQuery("")
     },[currentPath])  
-    useEffect(()=>{//This is to remove the search results when the query box is empty
-        if (searchQuery == "") {
-            searchFile(searchQuery).then(thunk=>dispatch(thunk))
-        }
-    },[searchQuery,dispatch])
+    
     useEffect(()=>{
         console.log("Bread crumbs",breadCrumbs);
     },[breadCrumbs])
@@ -81,7 +82,10 @@ export default function UpperTop() {
                         </div>
                     ))}
                 </div>
-                <input className="bg-[#5576c852] text-white outline-none py-1 pl-2 rounded-4xl font-robot-light w-64 absolute right-20" value={searchQuery} onChange={(event)=>listenToQuery(event)} onKeyDown={(event)=>enterSearch(event)}  type="text" placeholder="Your search here"/>
+                <div className="absolute right-20">
+                    <input className="bg-[#5576c852] text-white outline-none py-1 pl-2 rounded-4xl font-robot-light w-64" value={searchQuery} onChange={(event)=>listenToQuery(event)} onKeyDown={(event)=>enterSearch(event)}  type="text" placeholder="Your search here"/>
+                    <button className="cursor-pointer" onClick={exitSearch}>Exit search</button>
+                </div>
             </div>
         </div>
     )
