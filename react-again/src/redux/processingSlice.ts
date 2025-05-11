@@ -10,6 +10,11 @@ import Fuse from 'fuse.js';
 import { toast,ToastOptions,Bounce,Flip,Zoom} from 'react-toastify';
 
 
+const fuseOptions = {
+    keys: ['primary.nodeName','primary.fileExtension',],
+    includeScore: true,
+    threshold: 0.4,   
+};
 export const toastConfig:ToastOptions = {
     position: "top-center",
     autoClose: 5000,
@@ -72,6 +77,7 @@ export interface processingSliceState {//by using null unions instead of optiona
     invalidatedTabCache:TabCacheInvalidation,
     searchResults:FsNode[] | null,
     terminateSearch:boolean,
+    fuseInstance:Fuse<FsNode>,
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
@@ -95,6 +101,7 @@ const initialState:processingSliceState = {
     loadingMessage:"loading",//no id here because only one thing can be loaded at a time
     searchResults:null,
     terminateSearch:true,
+    fuseInstance:new Fuse([],fuseOptions),
     sortBy:'name',
     viewBy:'details',
     showDetailsPane:true
@@ -206,6 +213,7 @@ export const selectShowDetails = (store:RootState):boolean => store.processing.s
 export const selectAheadCachingState = (store:RootState):CachingState => store.processing.aheadCachingState;
 export const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
 export const selectSearchTermination = (store:RootState):boolean =>store.processing.terminateSearch;
+const selectFuseInstance = (store:RootState):Fuse<FsNode>=>store.processing.fuseInstance;
 const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
 
 
@@ -422,28 +430,28 @@ const throttledStoreCache:throttle<()=>AppThunk> = throttle(5000,
     (dispatch:AppDispatch)=>(dispatch(storeCache())),
     {noLeading:true, noTrailing: false,}
 );
-function searchUtil(fsNodes:FsNode[],searchQuery:string,dispatch:ThunkDispatch<{processing: processingSliceState;}, unknown, Action>) {
-    const options = {
-        keys: ['primary.nodeName','primary.fileExtension',],
-        includeScore: true,
-        threshold: 0.4,   
-    };
-    console.log("FSNODES VALUE NOW",fsNodes);
-    const fuse:Fuse<FsNode> = new Fuse(fsNodes,options);
-    if (fsNodes) {
-        const searchResult = fuse.search(searchQuery);
-        const matchedFsNodes: FsNode[] = searchResult.map(result => result.item);
-        console.log("MATCHED FS NODES",matchedFsNodes);
-        if (matchedFsNodes.length) {//to reduce ui flickering,only spread to the search results if something matched
-            dispatch(spreadToSearch(matchedFsNodes));
+function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
+    return (dispatch,getState) => {
+        console.log("FSNODES VALUE NOW",fsNodes);
+        if (fsNodes) {
+            const fuse = selectFuseInstance(getState());
+            fuse.setCollection(fsNodes);
+            const searchResult = fuse.search(searchQuery);
+            const matchedFsNodes: FsNode[] = searchResult.map(result => result.item);
+            console.log("MATCHED FS NODES",matchedFsNodes);
+            if (matchedFsNodes.length) {//to reduce ui flickering,only spread to the search results if something matched
+                dispatch(spreadToSearch(matchedFsNodes));
+            }
         }
     }
 }
-function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,dispatch:ThunkDispatch<{processing: processingSliceState;}, unknown, Action>,isLastFsNode:boolean) {
-    fsNodes.push(fsNode)//push the files
-    if (fsNodes.length == 20 || (isLastFsNode)) {
-        searchUtil(fsNodes,searchQuery,dispatch);
-        fsNodes.length = 0
+function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean):AppThunk {
+    return (dispatch)=>{
+        fsNodes.push(fsNode)//push the files
+        if (fsNodes.length == 20 || (isLastFsNode)) {
+            dispatch(searchUtil(fsNodes,searchQuery));
+            fsNodes.length = 0
+        }
     }
 }
 function aggressiveFilter(data:string,query:string):boolean {
@@ -452,6 +460,7 @@ function aggressiveFilter(data:string,query:string):boolean {
     }
     return false
 }
+//I wish i can make it a thunk.it will look better but it wont work like that because it uses non serializable values like the fuse instance
 async function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string,dispatch:ThunkDispatch<{processing: processingSliceState;}, unknown, Action>,getState: () => {processing: processingSliceState;}) {
     const shouldTerminate:boolean = selectSearchTermination(getState());
     console.log("SHOULD TERMINATE",shouldTerminate);
@@ -468,14 +477,14 @@ async function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string
             console.log("Is last fsnode",isLastFsNode);
             if (fsNode.primary.nodeType == "File") {
                 if (aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
-                    updateSearchResults(fsNode,fsNodes,searchQuery,dispatch,isLastFsNode)
+                    dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
                 }else {
                     console.log("Filtered out the file:",fsNode);
                 }
             }else if (fsNode.primary.nodeType == "Folder") {
                 //i cant do aggressive filter here because the files within the folder will be in custody
                 if (aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
-                    updateSearchResults(fsNode,fsNodes,searchQuery,dispatch,isLastFsNode)
+                    dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
                 }else {
                     console.log("Filtered out the folder");
                 }
