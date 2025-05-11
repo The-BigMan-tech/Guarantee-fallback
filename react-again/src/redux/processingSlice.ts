@@ -2,7 +2,7 @@
 import {throttle} from 'throttle-debounce';
 import { createSlice,PayloadAction} from '@reduxjs/toolkit'
 import { RootState,AppThunk } from './store'
-import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name} from '../utils/rust-fs-interface';
+import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name } from '../utils/rust-fs-interface';
 import {v4 as uniqueID} from 'uuid';
 import { AppDispatch } from './store';
 import { watchImmediate, BaseDirectory, WatchEvent, WatchEventKind, WatchEventKindCreate, WatchEventKindModify, WatchEventKindRemove } from '@tauri-apps/plugin-fs';
@@ -412,15 +412,18 @@ const throttledStoreCache:throttle<()=>AppThunk> = throttle(5000,
 );
 async function readRecursively(path:string,fsNodes:FsNode[]) {
     const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(path);
-    if (dirResult.value == null || dirResult.value instanceof Error) {
-        return; // Skip invalid directories or errors
-    }
-    const localFsNodes:FsNode[] = await Promise.all(dirResult.value)
-    for (const fsNode of localFsNodes) {
-        if (fsNode.primary.nodeType == "File") {
-            fsNodes.push(fsNode)
-        }else if (fsNode.primary.nodeType == "Folder") {
-            readRecursively(fsNode.primary.nodePath,fsNodes)
+    if (dirResult.value == null) {
+        return
+    }else if (dirResult.value instanceof Error) {
+        toast.error(dirResult.value.message,toastConfig)
+    }else {
+        const localFsNodes:FsNode[] = await Promise.all(dirResult.value)
+        for (const fsNode of localFsNodes) {
+            if (fsNode.primary.nodeType == "File") {
+                fsNodes.push(fsNode)
+            }else if (fsNode.primary.nodeType == "Folder") {
+                await readRecursively(fsNode.primary.nodePath,fsNodes)
+            }
         }
     }
 }

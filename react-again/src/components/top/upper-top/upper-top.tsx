@@ -56,7 +56,11 @@ export default function UpperTop() {
         const breadCrumbs = replacedPath.split("\\");
         setBreadCrumbs(breadCrumbs)
     },[currentPath])  
-
+    useEffect(()=>{//This is to remove the search results when the query box is empty
+        if (searchQuery == "") {
+            searchFile(searchQuery).then(thunk=>dispatch(thunk))
+        }
+    },[searchQuery,dispatch])
     useEffect(()=>{
         console.log("Bread crumbs",breadCrumbs);
     },[breadCrumbs])

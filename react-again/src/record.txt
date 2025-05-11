@@ -508,7 +508,6 @@ file icons--ongoing
 file search,debouncing
 framer motion
 todo:recursive file search
-todo:search result caching
 smart recursive file search--it only recursively reads the dir till it finds its search
 todo:previews--video,img,audio,text area tags,react pdf,highlight js,react player,mammoth js,three js,react window
 todo:file editing on the preview editor
