@@ -431,30 +431,28 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string,dispatch:ThunkDispatch<{
         }
     }
 }
-async function readRecursively(path:string,fsNodes:FsNode[],searchQuery:string,dispatch:ThunkDispatch<{processing: processingSliceState;}, unknown, Action>) {
+function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,dispatch:ThunkDispatch<{processing: processingSliceState;}, unknown, Action>) {
+    fsNodes.push(fsNode)//push the files
+    if (fsNodes.length == 20) {//to reduce ui flickering,only check for matches for the first 20 discovered files
+        searchUtil(fsNodes,searchQuery,dispatch)
+        fsNodes.length = 0
+    }
+}
+async function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string,dispatch:ThunkDispatch<{processing: processingSliceState;}, unknown, Action>) {
     const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(path);
     if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
-        console.log("No search errors here",path);
         const localFsNodes:FsNode[] = await Promise.all(dirResult.value)
         for (const fsNode of localFsNodes) {
             if (fsNode.primary.nodeType == "File") {
-                fsNodes.push(fsNode)//push the files
-                if (fsNodes.length == 20) {//to reduce ui flickering,only check for matches for the first 20 discovered files
-                    searchUtil(fsNodes,searchQuery,dispatch)
-                    fsNodes.length = 0
-                }
+                updateSearchResults(fsNode,fsNodes,searchQuery,dispatch)
             }else if (fsNode.primary.nodeType == "Folder") {
-                fsNodes.push(fsNode);//push the folder
-                if (fsNodes.length == 20) {
-                    searchUtil(fsNodes,searchQuery,dispatch)
-                    fsNodes.length = 0
-                }
-                await readRecursively(fsNode.primary.nodePath,fsNodes,searchQuery,dispatch)//read the files of the folder and push that
+                updateSearchResults(fsNode,fsNodes,searchQuery,dispatch)
+                await searchRecursively(fsNode.primary.nodePath,fsNodes,searchQuery,dispatch)//read the files of the folder and push that
             }
         }
     }
 }
-export async function searchFile(searchQuery:string):Promise<AppThunk> {
+export async function searchDir(searchQuery:string):Promise<AppThunk> {
     return async (dispatch,getState)=>{
         console.log("SEARCH QUERY LENGTH",searchQuery.length);
         if (searchQuery.length == 0) {
@@ -463,14 +461,8 @@ export async function searchFile(searchQuery:string):Promise<AppThunk> {
             return
         }
         const currentPath:string = selectCurrentPath(getState())
-        console.log("Current path for search",currentPath);
-
         const fsNodes:FsNode[] = [];
-        
-        await readRecursively(currentPath,fsNodes,searchQuery,dispatch);
-
-        console.log("Fsnodes Recursively",fsNodes);
-    
+        await searchRecursively(currentPath,fsNodes,searchQuery,dispatch);
         toast.dismiss();
         toast.success("Done searching",{...toastConfig,autoClose:500,transition:Flip});
     }
@@ -494,10 +486,10 @@ export async function watchHomeTabs():Promise<AppThunk> {
     return async (dispatch,getState)=>{
         console.log("CALLED FILE WATCHER");
         dispatch(setFsNodes([]))
-        // dispatch(setLoadingMessage("loading"))
+        dispatch(setLoadingMessage("loading"))
         await watchImmediate(
             [
-                await join_with_home(""),//for home
+                await join_with_home("Home"),//for home
                 await join_with_home("AppData\\Roaming\\Microsoft\\Windows\\Recent"),
                 await join_with_home("Desktop"),
                 await join_with_home("Downloads"),

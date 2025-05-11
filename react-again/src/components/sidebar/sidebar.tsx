@@ -1,8 +1,9 @@
-import { selectTabNames,UniqueTab,openDirFromHome } from "../../redux/processingSlice"
+import { selectTabNames,UniqueTab,openDirFromHome,loading_toastConfig} from "../../redux/processingSlice"
 import { selector ,useAppDispatch} from "../../redux/hooks"
 import {v4 as uniqueID} from 'uuid'
 import { useState,useMemo } from "react";
 import { Card } from "./card";
+import { toast } from "react-toastify";
 
 
 export default function Sidebar({unFreezeStartup}:{unFreezeStartup:()=>string}) {
@@ -16,6 +17,7 @@ export default function Sidebar({unFreezeStartup}:{unFreezeStartup:()=>string}) 
 
     async function clickTab(tabId:string,tabName:string):Promise<void> {
         if (unFreezeStartup() !== "opacity-30") {
+            toast.loading(`Loading the folder ${tabName}`,{...loading_toastConfig,position:"top-right",toastId:"loading-sidebar"});
             setClickedTab(tabId)
             dispatch(await openDirFromHome(tabName));
         }

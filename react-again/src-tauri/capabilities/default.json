@@ -11,6 +11,7 @@
     {
       "identifier": "fs:allow-watch",
       "allow": [
+        {"path": "$HOME"},
         {"path": "$HOME/**"}
       ]
     },

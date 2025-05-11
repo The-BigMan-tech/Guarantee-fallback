@@ -1,6 +1,6 @@
 import { useEffect, useState,useMemo, ChangeEvent} from "react";
 import { useAppDispatch,selector} from "../../../redux/hooks"
-import { openParentInApp,selectCurrentPath,selectTabNames,searchFile,loading_toastConfig,toastConfig} from "../../../redux/processingSlice"
+import { openParentInApp,selectCurrentPath,selectTabNames,searchDir,loading_toastConfig,toastConfig} from "../../../redux/processingSlice"
 import {v4 as uniqueID} from "uuid"
 import { toast } from "react-toastify";
 import { KeyboardEvent } from "react";
@@ -43,7 +43,7 @@ export default function UpperTop() {
             toast.dismiss("loading")
         }else {
             toast.dismiss("inf")
-            dispatch(await searchFile(query));
+            dispatch(await searchDir(query));
         }
     }
     async function enterSearch(event:KeyboardEvent<HTMLInputElement>) {
