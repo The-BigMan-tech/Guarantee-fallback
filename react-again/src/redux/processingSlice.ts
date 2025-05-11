@@ -1,6 +1,6 @@
 //@ts-expect-error :I intetionally didnt install the type files because they were misleading the compiler about how to call the throttle function which was falsely flagging my code
 import {throttle} from 'throttle-debounce';
-import { Action, createSlice,PayloadAction, ThunkDispatch} from '@reduxjs/toolkit'
+import { createSlice,PayloadAction} from '@reduxjs/toolkit'
 import { RootState,AppThunk } from './store'
 import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name } from '../utils/rust-fs-interface';
 import {v4 as uniqueID} from 'uuid';
@@ -447,11 +447,13 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
 function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean):AppThunk {
     return (dispatch)=>{
         fsNodes.push(fsNode)//push the files
+        console.log("UPDATED YOUR SEARCH",fsNode);
         if (fsNodes.length == 20 || (isLastFsNode)) {
             dispatch(searchUtil(fsNodes,searchQuery));
             fsNodes.length = 0
         }
     }
+
 }
 function aggressiveFilter(data:string,query:string):boolean {
     if (data.trim().toLowerCase().includes(query.trim().toLowerCase())) {
@@ -459,7 +461,7 @@ function aggressiveFilter(data:string,query:string):boolean {
     }
     return false
 }
-//I wish i can make it a thunk.it will look better but it wont work like that because it uses non serializable values like the fuse instance
+//*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
 function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
         const shouldTerminate:boolean = selectSearchTermination(getState());
@@ -476,14 +478,16 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
                 const isLastFsNode = localFsNodes.indexOf(fsNode) == (localFsNodes.length-1)
                 console.log("Is last fsnode",isLastFsNode);
                 if (fsNode.primary.nodeType == "File") {
-                    if (aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
+                    if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
+                        console.log("PASSED YOUR FILE TO UPDATE",fsNode.primary.nodePath);
                         dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
                     }else {
-                        console.log("Filtered out the file:",fsNode);
+                        console.log("Filtered out the file:",fsNode.primary.nodePath);
                     }
                 }else if (fsNode.primary.nodeType == "Folder") {
                     //i cant do aggressive filter here because the files within the folder will be in custody
-                    if (aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
+                    if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
+                        console.log("PASSED YOUR FOLDER TO UPDATE",fsNode.primary.nodePath);
                         dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
                     }else {
                         console.log("Filtered out the folder");
