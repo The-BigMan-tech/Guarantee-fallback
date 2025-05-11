@@ -15,6 +15,8 @@ const fuseOptions = {
     includeScore: true,
     threshold: 0.4,   
 };
+const fuseInstance = new Fuse([],fuseOptions)
+
 export const toastConfig:ToastOptions = {
     position: "top-center",
     autoClose: 5000,
@@ -77,7 +79,6 @@ export interface processingSliceState {//by using null unions instead of optiona
     invalidatedTabCache:TabCacheInvalidation,
     searchResults:FsNode[] | null,
     terminateSearch:boolean,
-    fuseInstance:Fuse<FsNode>,
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
@@ -101,7 +102,6 @@ const initialState:processingSliceState = {
     loadingMessage:"loading",//no id here because only one thing can be loaded at a time
     searchResults:null,
     terminateSearch:true,
-    fuseInstance:new Fuse([],fuseOptions),
     sortBy:'name',
     viewBy:'details',
     showDetailsPane:true
@@ -213,7 +213,6 @@ export const selectShowDetails = (store:RootState):boolean => store.processing.s
 export const selectAheadCachingState = (store:RootState):CachingState => store.processing.aheadCachingState;
 export const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
 export const selectSearchTermination = (store:RootState):boolean =>store.processing.terminateSearch;
-const selectFuseInstance = (store:RootState):Fuse<FsNode>=>store.processing.fuseInstance;
 const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
 
 
@@ -431,10 +430,10 @@ const throttledStoreCache:throttle<()=>AppThunk> = throttle(5000,
     {noLeading:true, noTrailing: false,}
 );
 function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
-    return (dispatch,getState) => {
+    return (dispatch) => {
         console.log("FSNODES VALUE NOW",fsNodes);
         if (fsNodes) {
-            const fuse = selectFuseInstance(getState());
+            const fuse:Fuse<FsNode> = fuseInstance;
             fuse.setCollection(fsNodes);
             const searchResult = fuse.search(searchQuery);
             const matchedFsNodes: FsNode[] = searchResult.map(result => result.item);
@@ -461,34 +460,36 @@ function aggressiveFilter(data:string,query:string):boolean {
     return false
 }
 //I wish i can make it a thunk.it will look better but it wont work like that because it uses non serializable values like the fuse instance
-async function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string,dispatch:ThunkDispatch<{processing: processingSliceState;}, unknown, Action>,getState: () => {processing: processingSliceState;}) {
-    const shouldTerminate:boolean = selectSearchTermination(getState());
-    console.log("SHOULD TERMINATE",shouldTerminate);
-    if (shouldTerminate) {
-        return
-    }
-    const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(path);
-    console.log("DIR RESULT",dirResult.value);
-    if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
-        const localFsNodes:FsNode[] = await Promise.all(dirResult.value)
-        console.log("Local fs nodes",localFsNodes);
-        for (const fsNode of localFsNodes) {
-            const isLastFsNode = localFsNodes.indexOf(fsNode) == (localFsNodes.length-1)
-            console.log("Is last fsnode",isLastFsNode);
-            if (fsNode.primary.nodeType == "File") {
-                if (aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
-                    dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
-                }else {
-                    console.log("Filtered out the file:",fsNode);
+function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>> {
+    return async (dispatch,getState)=>{
+        const shouldTerminate:boolean = selectSearchTermination(getState());
+        console.log("SHOULD TERMINATE",shouldTerminate);
+        if (shouldTerminate) {
+            return
+        }
+        const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(path);
+        console.log("DIR RESULT",dirResult.value);
+        if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
+            const localFsNodes:FsNode[] = await Promise.all(dirResult.value)
+            console.log("Local fs nodes",localFsNodes);
+            for (const fsNode of localFsNodes) {
+                const isLastFsNode = localFsNodes.indexOf(fsNode) == (localFsNodes.length-1)
+                console.log("Is last fsnode",isLastFsNode);
+                if (fsNode.primary.nodeType == "File") {
+                    if (aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
+                        dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                    }else {
+                        console.log("Filtered out the file:",fsNode);
+                    }
+                }else if (fsNode.primary.nodeType == "Folder") {
+                    //i cant do aggressive filter here because the files within the folder will be in custody
+                    if (aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
+                        dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                    }else {
+                        console.log("Filtered out the folder");
+                    }
+                    await dispatch(searchRecursively(fsNode.primary.nodePath,fsNodes,searchQuery))//read the files of the folder and push that
                 }
-            }else if (fsNode.primary.nodeType == "Folder") {
-                //i cant do aggressive filter here because the files within the folder will be in custody
-                if (aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
-                    dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
-                }else {
-                    console.log("Filtered out the folder");
-                }
-                await searchRecursively(fsNode.primary.nodePath,fsNodes,searchQuery,dispatch,getState)//read the files of the folder and push that
             }
         }
     }
@@ -506,7 +507,7 @@ export async function searchDir(searchQuery:string):Promise<AppThunk> {
         }
         const currentPath:string = selectCurrentPath(getState());
         const fsNodes:FsNode[] = [];
-        await searchRecursively(currentPath,fsNodes,searchQuery,dispatch,getState);
+        await dispatch(searchRecursively(currentPath,fsNodes,searchQuery));
         toast.dismiss();
         toast.success("Done searching",{...toastConfig,autoClose:500,transition:Flip});
         dispatch(setSearchTermination(true));

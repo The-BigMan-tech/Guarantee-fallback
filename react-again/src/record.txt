@@ -29,13 +29,12 @@ async thunks and create async thunks
 
 thunks dont return values.just dispatch actions
 
-^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid,throttle-debounce,fuse js
+^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid,throttle-debounce,fuse js,jotai
 
 hello pangea dnd,react router,framer motion,gsap,three js,
 next js,auth js,paystack,prisma,postgres sql,mongoose,mongo db
 formik,zod
 web3forms
-jotai
 backend as a service or a nest js server
 
 ^uno edit funk download
@@ -149,6 +148,8 @@ higher order thunks
 cache utility--normal caching and ahead of time caching
 app.tsx for setting up the app on startup using useEffects.like opening a tab on startup,caching specific folders ahead of time and deciding how the ui responds to aot caching
 throttlers
+
+jotai atoms--for unserializable data
 *------------------------------------------------------------------------------------------
 
 app state is global,component state is local
@@ -710,12 +711,18 @@ terminate search,exit search results
 lazy dir reading + file search + setting search results
 recursive dir reading + file search + setting search results
 recursive dir reading <-> filesearch + spread search results
-batched searching--t prevent ui flickering
+batched searching--t prevent ui flickering and reduce fuse instances
 only spreading when there is a result--to prevent ui flickering
 memory clean recursion
+todo:quick search
+todo:refactor all of the search functions to thunks instead of plain functions
+todo:spread the cache instead of setting it
+todo:refactor to the simpler pattern of async thunks
+batched search but only updates the fuse instance not recreate it
 
 i need to sort the array by files first before folder
 
+^The state management paradigms is the one of the major studies in react
 
 *for some reason,my recusrive search can;
 not read:downloads,documents,home and throws an error
@@ -726,3 +733,22 @@ read:recent,downloads,pictures,music,videos
 todo:the read dir function throws some errors when used in the recursive search function but its safe to ignore for now.its correct i believe its with fs config or something
 
 *so by default,search libraries and engines do a full search but quick search works by aggressively filtering out the data using cheap methods before giving to the search library for analysis.its cheap because its easy to filter out items by using rules
+
+*two things.so quick search/aggressive filtering reduces the objects for processing down to 70-90% which is good but secondly,i had to embed the search with the recursion because i tried doing the recursion first then search but it had lack of transparency about the progress of the app.the app remains stale for minutes without seeing any result till later.so i embedded the search directly in the recursion.as it recurses through a file,it searches it for a match but because of ui and performance,i batched it to 20 to be searched through at a time per recursion.if the new fuse instance is a bottleneck,i can easily move it to the app state so that only a single instance will exist
+
+*so bigger batch size will increase performance by reducing the number of fuse instances per update but it will reduce ui repsonsiveness.But to make this better,i can combine it with set collection which creates a double optimization.It only updates the collection only on every 20 updates or so
+
+*The quick serch + the batch + updating single fuse instance increased the speed by a margin.If i didnt embed the search to the recursion.this wont be possible
+
+
+*Serializable values are plain JavaScript data that can be safely converted to a storable format (like JSON), such as:primitives,plain objects and arrays while functions,class instances,promises and anything that cant be serialized with json.stringify are non serializable values.
+
+*so redux performs serialization checks on thunks and if a non-serializable value is within a thunk,it will throw an error and fail.so if i want to use unserializable valye,i have to handle dispatch and get state manually.If you manually handle dispatch and getState inside a regular async function (not as a thunk), you avoid this middleware check because you’re not dispatching non-serializable data as actions.Redux state is menat to be kept free of unserializable data because of debugging and as such,escaping it like this isnt recommended.
+
+*so to prevent unserializable data problems in redux that can cause debugging later,i should move it to janother state management solution paradigm that allows this without compromising any quality like the atomic state management of jotai.Newsflash:I dont need jotai for that,i can just move it above the app state in the same file and use it globally across thunks creating a global singleton.This means that singletons which are very uncommon have the use case of performance where recreating an object is costly
+
+*so unserializable data in redux can be solved by moving it globally above the app state and singletons have discouraged use cases because of shared mutation but redux uses a singleton object to store the app state.its safe here because reducers which causes state updates are immutable by defaul.They return a new state without modifying the old onet.The syntax of mutability under reducers is actually using the immer library under the hood which makes immutability look like mutation.Im also using a singleton fuse instance but its safe since im only mutating it in one place under a single threaded environment and its a utility object (index) rather than application state.So singleton are best when constructing a new instance of the object will be too expensive and it makes sense for it to be used globally.but i belive this is the only encouraged use case of a singleton.
+
+so you are telling me that i can create a thunk that returns an async callback in a normal thunk.so i await outside the dispatch like await dispatch thunk.what is now a thunk that has a type annotation of Promise<AppThunk> that returns an async callback and i call await inside the dispacth like dispatch await thunk.whats the difference.The promise thunk is a redundant pattern.refactor to the simpler one
+
+*so there are three async thunk patterns
