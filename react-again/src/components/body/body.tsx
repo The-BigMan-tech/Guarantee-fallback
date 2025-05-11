@@ -1,5 +1,5 @@
 import { selector } from "../../redux/hooks"
-import { selectFsNodes,UniqueFsNode,selectSearchResults} from "../../redux/processingSlice"
+import { selectFsNodes,UniqueFsNode,selectSearchResults,selectSearchTermination} from "../../redux/processingSlice"
 import { FsNode} from "../../utils/rust-fs-interface"
 import FsDisplay from "./fs-display"
 import { useMemo } from "react"
@@ -9,7 +9,8 @@ export default function Body() {
     const fsNodes:FsNode[] | null = selector(store=>selectFsNodes(store));
     const uniqueFsNodes: UniqueFsNode[] | null = useMemo(() => fsNodes?.map(fsNode=>({ id: uniqueID(),fsNode})) || null, [fsNodes]);
     const searchResults:FsNode[] | null = selector(store=>selectSearchResults(store))
-    const uniqueSearchResults:UniqueFsNode[] | null = useMemo(()=>searchResults?.map(fsNode=>({id:uniqueID(),fsNode})) || null,[searchResults])
+    const uniqueSearchResults:UniqueFsNode[] | null = useMemo(()=>searchResults?.map(fsNode=>({id:uniqueID(),fsNode})) || null,[searchResults]);
+    const shouldTerminateSearch:boolean = selector(store=>selectSearchTermination(store))
     return (
         <>
             <div className="h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md">
@@ -17,7 +18,13 @@ export default function Body() {
                     ?<>
                         {(uniqueSearchResults.length)//if the matched searches are empty
                             ?<FsDisplay {...{uniqueFsNodes:uniqueSearchResults}}/>
-                            :<h1 className="text-white text-2xl absolute top-[50%] left-[50%] font-[Consolas]">No search results</h1>
+                            :<>
+                                {(shouldTerminateSearch)
+                                    ?<h1 className="text-white text-2xl absolute top-[50%] left-[50%] font-[Consolas]">No search results</h1>
+                                    :<h1 className="text-white text-2xl absolute top-[50%] left-[50%] font-[Consolas]">Still searching...</h1>
+                                }
+                            </>
+                            
                         }
                     </>
                     :<FsDisplay {...{uniqueFsNodes}}/>

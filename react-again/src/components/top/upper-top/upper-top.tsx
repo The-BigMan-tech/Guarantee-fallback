@@ -1,6 +1,6 @@
 import { useEffect, useState,useMemo, ChangeEvent} from "react";
 import { useAppDispatch,selector} from "../../../redux/hooks"
-import { openParentInApp,selectCurrentPath,selectTabNames,searchDir,loading_toastConfig,toastConfig,terminateSearch} from "../../../redux/processingSlice"
+import { openParentInApp,selectCurrentPath,selectTabNames,searchDir,loading_toastConfig,toastConfig,terminateSearch,toggleQuickSearch, selectQuickSearch} from "../../../redux/processingSlice"
 import {v4 as uniqueID} from "uuid"
 import { toast } from "react-toastify";
 import { KeyboardEvent } from "react";
@@ -13,6 +13,7 @@ export default function UpperTop() {
     const uniqueBreadCrumbs = useMemo(()=>breadCrumbs.map(crumb=>({ id: uniqueID(),crumb:crumb})),[breadCrumbs])
     const tabNames:Set<string> = new Set(selector(store=>selectTabNames(store)))
     const [searchQuery,setSearchQuery] = useState<string>("");
+    const quickSearch = selector(store=>selectQuickSearch(store))
 
     async function goToParent() {
         await dispatch(await openParentInApp())
@@ -55,6 +56,9 @@ export default function UpperTop() {
         await search("");
         setSearchQuery("")
     }
+    function toggleQuickSearching() {
+        dispatch(toggleQuickSearch())
+    }
     function quitSearch() {
         dispatch(terminateSearch());
     }
@@ -86,6 +90,10 @@ export default function UpperTop() {
                     ))}
                 </div>
                 <div className="absolute right-20">
+                    <label className="label cursor-pointer gap-2">
+                        <span className="label-text">quick search</span>
+                        <input type="checkbox" checked={quickSearch} onChange={toggleQuickSearching} className="checkbox" />
+                    </label>
                     <input className="bg-[#5576c852] text-white outline-none py-1 pl-2 rounded-4xl font-robot-light w-64" value={searchQuery} onChange={(event)=>listenToQuery(event)} onKeyDown={(event)=>enterSearch(event)}  type="text" placeholder="Your search here"/>
                     <button className="cursor-pointer" onClick={exitSearch}>Exit search</button>
                     <button className="cursor-pointer" onClick={quitSearch}>Terminate search</button>

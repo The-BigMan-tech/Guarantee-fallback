@@ -79,6 +79,7 @@ export interface processingSliceState {//by using null unions instead of optiona
     invalidatedTabCache:TabCacheInvalidation,
     searchResults:FsNode[] | null,
     terminateSearch:boolean,
+    quickSearch:boolean,
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
@@ -102,6 +103,7 @@ const initialState:processingSliceState = {
     loadingMessage:"loading",//no id here because only one thing can be loaded at a time
     searchResults:null,
     terminateSearch:true,
+    quickSearch:true,
     sortBy:'name',
     viewBy:'details',
     showDetailsPane:true
@@ -149,6 +151,9 @@ export const processingSlice = createSlice({
         setSearchTermination(state,action:PayloadAction<boolean>) {
             state.terminateSearch = action.payload
         },
+        setQuickSearch(state,action:PayloadAction<boolean>) {
+            state.quickSearch = action.payload
+        },
         spreadToSearch(state,action:PayloadAction<FsNode[]>) {
             state.searchResults = [...(state.searchResults || []),...action.payload]
         },
@@ -192,6 +197,7 @@ export const {
     setLoadingMessage,
     setSearchResults,
     setSearchTermination,
+    setQuickSearch,
     spreadToSearch,
     setSortBy,
     setView,
@@ -213,6 +219,7 @@ export const selectShowDetails = (store:RootState):boolean => store.processing.s
 export const selectAheadCachingState = (store:RootState):CachingState => store.processing.aheadCachingState;
 export const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
 export const selectSearchTermination = (store:RootState):boolean =>store.processing.terminateSearch;
+export const selectQuickSearch = (store:RootState):boolean=>store.processing.quickSearch;
 const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
 
 
@@ -456,10 +463,16 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
 
 }
 function aggressiveFilter(data:string,query:string):boolean {
-    if (data.trim().toLowerCase().includes(query.trim().toLowerCase())) {
+    if ((data.trim().toLowerCase().includes(query.trim().toLowerCase()))) {
         return true
     }
     return false
+}
+export function toggleQuickSearch():AppThunk {
+    return (dispatch,getState)=>{
+        const quickSearch:boolean = selectQuickSearch(getState());
+        dispatch(setQuickSearch(!(quickSearch)))
+    }
 }
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
 function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>> {
@@ -472,25 +485,34 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(path);
         console.log("DIR RESULT",dirResult.value);
         if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
-            const localFsNodes:FsNode[] = await Promise.all(dirResult.value)
+            const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
+            const quickSearch:boolean = selectQuickSearch(getState());
             console.log("Local fs nodes",localFsNodes);
             for (const fsNode of localFsNodes) {
                 const isLastFsNode = localFsNodes.indexOf(fsNode) == (localFsNodes.length-1)
                 console.log("Is last fsnode",isLastFsNode);
-                if (fsNode.primary.nodeType == "File") {
-                    if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
-                        console.log("PASSED YOUR FILE TO UPDATE",fsNode.primary.nodePath);
+                if (fsNode.primary.nodeType == "File") {//passing islast is necessary for quick search even if it matches or not because it needs to terminate the batch if the one that survived is the only match for example and not the last at the same time
+                    if (quickSearch) {
+                        if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
+                            console.log("PASSED YOUR FILE TO UPDATE",fsNode.primary.nodePath);
+                            dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                        }else {
+                            console.log("Filtered out the file:",fsNode.primary.nodePath);
+                        }
+                    }else {//update regardless
                         dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
-                    }else {
-                        console.log("Filtered out the file:",fsNode.primary.nodePath);
                     }
                 }else if (fsNode.primary.nodeType == "Folder") {
                     //i cant do aggressive filter here because the files within the folder will be in custody
-                    if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
-                        console.log("PASSED YOUR FOLDER TO UPDATE",fsNode.primary.nodePath);
-                        dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                    if (quickSearch) {
+                        if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
+                            console.log("PASSED YOUR FOLDER TO UPDATE",fsNode.primary.nodePath);
+                            dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                        }else {
+                            console.log("Filtered out the folder");
+                        }
                     }else {
-                        console.log("Filtered out the folder");
+                        dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
                     }
                     await dispatch(searchRecursively(fsNode.primary.nodePath,fsNodes,searchQuery))//read the files of the folder and push that
                 }

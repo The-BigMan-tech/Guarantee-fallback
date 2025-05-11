@@ -715,7 +715,7 @@ batched searching--t prevent ui flickering and reduce fuse instances
 only spreading when there is a result--to prevent ui flickering
 memory clean recursion
 todo:quick search
-todo:refactor all of the search functions to thunks instead of plain functions
+todo:make the terminate and exit search nice buttons
 todo:spread the cache instead of setting it
 todo:refactor to the simpler pattern of async thunks
 batched search but only updates the fuse instance not recreate it
