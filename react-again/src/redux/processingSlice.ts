@@ -15,7 +15,7 @@ const fuseOptions = {
     includeScore: true,
     threshold: 0.4,   
 };
-const fuseInstance = new Fuse([],fuseOptions)
+const fuseInstance:Fuse<FsNode> = new Fuse([],fuseOptions)
 
 export const toastConfig:ToastOptions = {
     position: "top-center",
@@ -241,13 +241,10 @@ export async function returnFileContent(filePath:string):Promise<AppThunk<Promis
         }
     }
 }
-function getParent():AppThunk<string> {
-    return (_,getState):string  =>{
-        let currentPath:string = selectCurrentPath(getState());
-        currentPath = currentPath.slice(0,currentPath.lastIndexOf('\\'));
-        return currentPath
-    }
-}
+
+
+
+//^CACHING RELATED
 function addToCache(data:CachedFolder,tabName:string):AppThunk {
     return (dispatch,getState)=>{
         console.log("Called add to cache");
@@ -283,12 +280,13 @@ function openCachedDirInApp(folderPath:string):AppThunk {
         const cache:CachedFolder[] = selectCache(getState());
         for (const cachedFolder of cache) {
             if (folderPath == cachedFolder.path) {
-                const cached_data = cachedFolder.data
-                for (let i=0;i<cached_data.length;i+=10) {
-                    dispatch(spreadToFsNodes(cached_data.slice(i,i+10)))
-                }
+                const cached_data = cachedFolder.data;
+                dispatch(setFsNodes(cached_data));
+                return
             }
         }
+        //  [] array means its loading not that its empty
+        dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading to not look laggy
     }
 }
 export async function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean,affectOpacity:boolean):Promise<AppThunk>{
@@ -307,9 +305,6 @@ export async function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean,aff
         }
     }
 }
-function isAHomeTab(folderName:string):folderName is AllTabTypes  {
-    return (folderName=="Home") || (folderName=="Recent") || (folderName=="Desktop")  || (folderName=="Downloads") || (folderName=="Documents") || (folderName=="Pictures") || (folderName=="Music") || (folderName=="Videos")
-}
 function cacheIsValid(folderName:string):AppThunk<boolean> {
     return (dispatch,getState):boolean=>{
         const invalidatedTabs:TabCacheInvalidation = selectIvalidatedTabs(getState());
@@ -321,13 +316,34 @@ function cacheIsValid(folderName:string):AppThunk<boolean> {
         return false
     }
 }
-function displayCache(folderPath:string):AppThunk {
-    return (dispatch)=>{
-        //[] array means its loading not that its empty
-        dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading to not look laggy
-        dispatch(openCachedDirInApp(folderPath));//opens the cached dir in app in the meantime if any
+export function loadCache():AppThunk {
+    return (dispatch) => {
+        const fallback:string = JSON.stringify({data:[]})
+        const cache_as_string:string = localStorage.getItem("appCache") || fallback;
+        const cache:JsonCache = JSON.parse(cache_as_string);
+        console.log("Deserialized cache",cache.data);
+        dispatch(setCache(cache.data))
     }
 }
+function storeCache():AppThunk {
+    return (_,getState)=>{
+        const cache:CachedFolder[] = selectCache(getState());
+        const json_cache:JsonCache = {data:cache}
+        localStorage.setItem("appCache",JSON.stringify(json_cache))
+        console.log("STORE CACHE WAS CALLED",cache);
+    }
+}
+const throttledStoreCache:throttle<()=>AppThunk> = throttle(5000,
+    (dispatch:AppDispatch)=>(dispatch(storeCache())),
+    {noLeading:true, noTrailing: false,}
+);
+function isAHomeTab(folderName:string):folderName is AllTabTypes  {
+    return (folderName=="Home") || (folderName=="Recent") || (folderName=="Desktop")  || (folderName=="Downloads") || (folderName=="Documents") || (folderName=="Pictures") || (folderName=="Music") || (folderName=="Videos")
+}
+
+
+
+//^LOADING RELATED
 //I am not actually using this functions.just exported it so that es lint will stop complaining.i may or may not use it later
 export async function loadIncrementally(fsNodesPromise:(Promise<FsNode>)[],fsNodes:FsNode[] ):Promise<AppThunk<Promise<FsNode[]>>>{
     return async (dispatch,getState):Promise<FsNode[]> =>{
@@ -354,20 +370,16 @@ export function inHomePage(folderName:string):AppThunk<boolean> {//it will only 
         return ((folderName === "Home") && (aotCachingState === "pending"))
     }
 }
-async function loadAtOnce(fsNodesPromise:(Promise<FsNode>)[]):Promise<AppThunk<Promise<FsNode[]>>> {
-    return async (dispatch):Promise<FsNode[]> =>{
-        const fsNodes = await Promise.all(fsNodesPromise);
-        dispatch(setFsNodes(fsNodes));
-        return fsNodes;
-    }
-}
+
+
+//^OPEN DIR RELATED
 /**
  * It updates the ui by loading the fsnodes array into the app state using one of two rendering techniques depending if the dir is the home tab and returns a modified fsnodes that can be used for caching
  */
-async function updateUI(fsNodes:FsNode[],value:(Promise<FsNode>)[]):Promise<AppThunk<Promise<FsNode[]>>> {
+function updateUI(value:(Promise<FsNode>)[]):AppThunk<Promise<FsNode[]>> {
     return async (dispatch):Promise<FsNode[]> => {
-        let localFsNodes = [...fsNodes];
-        localFsNodes = await dispatch(await loadAtOnce(value))
+        const localFsNodes = await Promise.all(value);
+        dispatch(setFsNodes(localFsNodes));
         return localFsNodes;
     }
 }
@@ -375,15 +387,16 @@ async function updateUI(fsNodes:FsNode[],value:(Promise<FsNode>)[]):Promise<AppT
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
+        dispatch(openCachedDirInApp(folderPath));
         dispatch(setSearchResults(null))//to clear search results
-
+        
         const folderName:string = await base_name(folderPath,true);
         dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
-        dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));
+        dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));//the loading message freezes the ui
 
         if (dispatch(cacheIsValid(folderName))) {
-            console.log("DISPLAYING CACHE TO UI");
-            dispatch(displayCache(folderPath));
+            console.log("CACHE IS VALID");
+            dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             return
         }
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath);//its fast because it doesnt load the file content
@@ -396,7 +409,7 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
             dispatch(setFsNodes(null))//null fs nodes then means its empty
         }else {
             let fsNodes:FsNode[] = []//used to batch fsnodes for ui updates
-            fsNodes = await dispatch(await updateUI(fsNodes,dirResult.value))
+            fsNodes = await dispatch(updateUI(dirResult.value))
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             dispatch(addToCache({path:folderPath,data:fsNodes},folderName));//performs caching while the user can interact with the dir in the app./since the ui remains frozen as its caching ahead of time,there is no need to add a debouncing mechanism to prevent the user from switching to another tab while its caching
             console.log("Files:",fsNodes);
@@ -418,34 +431,23 @@ export async function openDirFromHome(tabName:string):Promise<AppThunk> {
         dispatch(await openDirectoryInApp(folderPath))
     }
 }
-export function loadCache():AppThunk {
-    return (dispatch) => {
-        const fallback:string = JSON.stringify({data:[]})
-        const cache_as_string:string = localStorage.getItem("appCache") || fallback;
-        const cache:JsonCache = JSON.parse(cache_as_string);
-        console.log("Deserialized cache",cache.data);
-        dispatch(setCache(cache.data))
+function getParent():AppThunk<string> {
+    return (_,getState):string  =>{
+        let currentPath:string = selectCurrentPath(getState());
+        currentPath = currentPath.slice(0,currentPath.lastIndexOf('\\'));
+        return currentPath
     }
 }
-function storeCache():AppThunk {
-    return (_,getState)=>{
-        const cache:CachedFolder[] = selectCache(getState());
-        const json_cache:JsonCache = {data:cache}
-        localStorage.setItem("appCache",JSON.stringify(json_cache))
-        console.log("STORE CACHE WAS CALLED",cache);
-    }
-}
-const throttledStoreCache:throttle<()=>AppThunk> = throttle(5000,
-    (dispatch:AppDispatch)=>(dispatch(storeCache())),
-    {noLeading:true, noTrailing: false,}
-);
+
+
+
+//^SEARCH RELARED
 function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
     return (dispatch) => {
         console.log("FSNODES VALUE NOW",fsNodes);
         if (fsNodes) {
-            const fuse:Fuse<FsNode> = fuseInstance;
-            fuse.setCollection(fsNodes);
-            const searchResult = fuse.search(searchQuery);
+            fuseInstance.setCollection(fsNodes);
+            const searchResult = fuseInstance.search(searchQuery);
             const matchedFsNodes: FsNode[] = searchResult.map(result => result.item);
             console.log("MATCHED FS NODES",matchedFsNodes);
             if (matchedFsNodes.length) {//to reduce ui flickering,only spread to the search results if something matched
@@ -549,6 +551,10 @@ export function terminateSearch():AppThunk {
         toast.info("Search terminated",{...toastConfig,autoClose:500,transition:Flip});
     }
 }
+
+
+
+//^SMART RELOADING RELATED
 function isCreate(kind: WatchEventKind): kind is { create: WatchEventKindCreate } {
     return typeof kind === 'object' && 'create' in kind;
 }

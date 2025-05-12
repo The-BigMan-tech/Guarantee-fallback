@@ -1,10 +1,13 @@
 import { FsNode } from "../../utils/rust-fs-interface"
 import { useAppDispatch,selector} from "../../redux/hooks"
 import { openDirectoryInApp,selectLoadingMessage} from "../../redux/processingSlice";
-import { useEffect, useState } from "react";
+import { useEffect, useState} from "react";
 import {motion} from "motion/react"
 
-export default function FsNodeComponent(props:{fsNode:FsNode}) {
+interface Props {
+    fsNode:FsNode
+}
+export const FsNodeComponent = (props:Props)=> {
     const dispatch = useAppDispatch();
     const loadingMessage:string  = selector(store=>selectLoadingMessage(store)) || "";
     const [shouldUnFreeze,setShouldUnFreeze] = useState<boolean>(false);

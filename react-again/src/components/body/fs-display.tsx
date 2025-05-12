@@ -1,4 +1,4 @@
-import FsNodeComponent from "./fs-node"
+import { FsNodeComponent } from "./fs-node"
 import { UniqueFsNode } from "../../redux/processingSlice"
 
 export default function FsDisplay({uniqueFsNodes}:{uniqueFsNodes:UniqueFsNode[] | null}) {

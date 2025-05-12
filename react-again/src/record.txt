@@ -756,3 +756,6 @@ so you are telling me that i can create a thunk that returns an async callback i
 
 *Refactoring large existing codebases all at once can be risky and time-consuming. It’s often better to stabilize the project first.You can keep the current verbose thunk patterns working and stable for now.For new features or ongoing work, adopt simpler, idiomatic async patterns (like createAsyncThunk or properly typed async thunks that return promises).Over time, you can gradually refactor older code to the new pattern as you touch it, improving maintainability incrementally.This incremental approach reduces risk and spreads out the effort.
 
+useMemo,useCallback,React.memo,useRef,useState
+
+*more layers of dispatching makes the app slower but it can encapsulate logic for readability
