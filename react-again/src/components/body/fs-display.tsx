@@ -5,7 +5,7 @@ export default function FsDisplay({uniqueFsNodes}:{uniqueFsNodes:UniqueFsNode[] 
     return (
         <>
             {uniqueFsNodes?.length//if there is content,render the fs components
-                ?<div className="grid sm:grid-cols-4 md:grid-cols-5 h-auto pb-5 pt-5 max-h-[96%] gap-x-[1.2%] gap-y-[5%] mt-[2%] ml-[1.5%] w-[99%] overflow-y-scroll overflow-x-hidden items-center justify-center">
+                ?<div className="grid sm:grid-cols-4 md:grid-cols-5 h-auto pb-10 pt-5 max-h-[96%] gap-x-[1.2%] gap-y-[5%] mt-[2%] ml-[1.5%] w-[99%] overflow-y-scroll overflow-x-hidden items-center justify-center">
                     {uniqueFsNodes.map((uniqueFsNode)=>
                         <div key={uniqueFsNode.id} className="flex justify-center items-center">
                             <FsNodeComponent  {...{fsNode:uniqueFsNode.fsNode}}/>

@@ -717,7 +717,7 @@ memory clean recursion
 batched search but only updates the fuse instance not recreate it
 quick search
 todo:make the terminate,exit search and quick search nice buttons
-todo:spread the cache instead of setting it
+todo:fix the overflow of the breadcrumbs
 todo:refactor to the simpler pattern of async thunks
 
 
@@ -759,3 +759,8 @@ so you are telling me that i can create a thunk that returns an async callback i
 useMemo,useCallback,React.memo,useRef,useState
 
 *more layers of dispatching makes the app slower but it can encapsulate logic for readability
+
+native ui toolkit--provided by the os
+web renderer--provided by the browser--has wide support for 3d and animations
+flutter engine--pixel perfect,has support for animations
+

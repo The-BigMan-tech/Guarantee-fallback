@@ -1,9 +1,10 @@
 import { useEffect, useState,useMemo, ChangeEvent} from "react";
 import { useAppDispatch,selector} from "../../../redux/hooks"
-import { openParentInApp,selectCurrentPath,selectTabNames,searchDir,loading_toastConfig,toastConfig,terminateSearch,toggleQuickSearch, selectQuickSearch} from "../../../redux/processingSlice"
+import { openParentInApp,selectCurrentPath,selectTabNames,searchDir,loading_toastConfig,toastConfig,terminateSearch,toggleQuickSearch, selectQuickSearch, selectSearchResults} from "../../../redux/processingSlice"
 import {v4 as uniqueID} from "uuid"
 import { toast } from "react-toastify";
 import { KeyboardEvent } from "react";
+import { FsNode } from "../../../utils/rust-fs-interface";
 
 
 export default function UpperTop() {
@@ -13,7 +14,8 @@ export default function UpperTop() {
     const uniqueBreadCrumbs = useMemo(()=>breadCrumbs.map(crumb=>({ id: uniqueID(),crumb:crumb})),[breadCrumbs])
     const tabNames:Set<string> = new Set(selector(store=>selectTabNames(store)))
     const [searchQuery,setSearchQuery] = useState<string>("");
-    const quickSearch = selector(store=>selectQuickSearch(store))
+    const quickSearch = selector(store=>selectQuickSearch(store));
+    const searchResults:FsNode[] | null = selector(store=>selectSearchResults(store))
 
     async function goToParent() {
         await dispatch(await openParentInApp())
@@ -52,10 +54,6 @@ export default function UpperTop() {
             await search(searchQuery)
         }
     }
-    async function exitSearch() {
-        await search("");
-        setSearchQuery("")
-    }
     function toggleQuickSearching() {
         dispatch(toggleQuickSearch())
     }
@@ -68,7 +66,11 @@ export default function UpperTop() {
         setBreadCrumbs(breadCrumbs)
         setSearchQuery("")
     },[currentPath])  
-    
+    useEffect(()=>{
+        if (searchResults == null) {
+            setSearchQuery("")
+        }
+    },[searchResults])
     useEffect(()=>{
         console.log("Bread crumbs",breadCrumbs);
     },[breadCrumbs])
@@ -95,8 +97,7 @@ export default function UpperTop() {
                         <input type="checkbox" checked={quickSearch} onChange={toggleQuickSearching} className="checkbox" />
                     </label>
                     <input className="bg-[#5576c852] text-white outline-none py-1 pl-2 rounded-4xl font-robot-light w-64" value={searchQuery} onChange={(event)=>listenToQuery(event)} onKeyDown={(event)=>enterSearch(event)}  type="text" placeholder="Your search here"/>
-                    <button className="cursor-pointer" onClick={exitSearch}>Exit search</button>
-                    <button className="cursor-pointer" onClick={quitSearch}>Terminate search</button>
+                    <button className="cursor-pointer" onClick={quitSearch}>Terminate</button>
                 </div>
             </div>
         </div>
