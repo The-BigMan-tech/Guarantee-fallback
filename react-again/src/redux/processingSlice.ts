@@ -158,6 +158,10 @@ export const processingSlice = createSlice({
         spreadToSearch(state,action:PayloadAction<FsNode[]>) {
             state.searchResults = [...(state.searchResults || []),...action.payload]
         },
+        pushToSearch(state,action:PayloadAction<FsNode>) {
+            state.searchResults = state.searchResults || []
+            state.searchResults.push(action.payload)
+        },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
             state.error.message = action.payload;
@@ -200,6 +204,7 @@ export const {
     setSearchTermination,
     setQuickSearch,
     spreadToSearch,
+    pushToSearch,
     setSortBy,
     setView,
     setShowDetails
@@ -461,12 +466,8 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
         }
     }
 }
-function removeLastDot(str) {
-    const lastDotIndex = str.lastIndexOf('.');
-    if (lastDotIndex !== -1) {
-        return str.slice(0, lastDotIndex);
-    }
-    return str;
+function removeAllDots(str:string):string {
+    return str.replace(/\./g, '');
 }
 function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
@@ -478,23 +479,29 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         fsNodes.push(fsNode)//push the files
         if (fsNodes.length >= searchBatchSize || (isLastFsNode)) {
             //This early termination is done at the batch level
+            let anyExactMatches:boolean = false
             const quickSearch:boolean = selectQuickSearch(getState());
             for (const fsNodeInBatch of fsNodes) {
-                const trimmedNode = removeLastDot(fsNodeInBatch.primary.nodeName.trim().toLowerCase());//making it insensitive to file extensions because the node can be a folder or a file and he search query can target either depending on whether an extension was included or not
-                const trimmedQuery = searchQuery.trim().toLowerCase();
-                const isExactMatch = (trimmedNode == trimmedQuery)
+                const trimmedNode = removeAllDots(fsNodeInBatch.primary.nodeName.trim().toLowerCase());//making it insensitive to file extensions because the node can be a folder or a file and he search query can target either depending on whether an extension was included or not
+                const trimmedQuery = removeAllDots(searchQuery.trim().toLowerCase());
+                const isExactMatch = (trimmedNode.startsWith(trimmedQuery))
                 console.log("Quick search",quickSearch,"Query length",searchQuery.length,"Exact match",isExactMatch,"trimmed node",trimmedNode,"trimmed query",trimmedQuery);
                 if ((quickSearch) && (searchQuery.length >= 10) && isExactMatch) {
                     console.log("Found early result!!");
-                    dispatch(setSearchResults([fsNodeInBatch]));
-                    dispatch(setSearchTermination(true));
-                    fsNodes.length = 0;//prevents stale data
-                    return
+                    dispatch(pushToSearch(fsNodeInBatch));
+                    anyExactMatches = true
                 }
             }
-            dispatch(searchUtil(fsNodes,searchQuery));
-            fsNodes.length = 0;
-            searchBatchCount += 1
+            if (anyExactMatches) {//i believe that this means that when it reaches the last node of the batch,it will check if there were any exact matches.if so,terminate and return else,proceed with fuzzy search
+                console.log("Terminated early!!");
+                dispatch(setSearchTermination(true));
+                fsNodes.length = 0;//prevents stale data
+                return
+            }else {
+                dispatch(searchUtil(fsNodes,searchQuery));
+                fsNodes.length = 0;
+                searchBatchCount += 1
+            }
         }
     }
 }

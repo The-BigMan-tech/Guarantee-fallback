@@ -718,6 +718,7 @@ memory clean recursion
 batched search but only updates the fuse instance not recreate it
 quick search--applies an aggressive filter on the data before searching
 search batch optimization:The batch is small at first for responsiveness and then bigger later
+quick search--does early termination on long queries
 todo:make the terminate,exit search and quick search nice buttons
 todo:fix the overflow of the breadcrumbs
 todo:refactor to the simpler pattern of async thunks
@@ -776,8 +777,6 @@ flutter engine--pixel perfect,has support for animations
 
 *because shorter strings are naturally fuzzy,early termination wont be useful but longer strings usually demand exact matches so early termination will be useful.Early termination can also be useful for shorter queries if the queries are semantically complete like add.svg.
 
-early termination for longer strings and exact matches only on quick search,batch level exact matches
-early termination for short strings if they are semantically complete
 sorting based on score only if quick search is off
 
 
@@ -795,3 +794,12 @@ sorting based on score only if quick search is off
 check for exct match on file extension if present in the node
 how did many of them even survive that dangerous filter
 the exact match is insensitive to file extensions in case of folders
+
+*so i should always have it in the back of my mind that my app may not behave as expected under edge cases
+
+*i think a better check is to remove the dots from both the fsnode name and the search query and check if the search query is included in the fsnode name.in case of false positives,what if instead of including afterwards,it does startswith instead.so car wont match for scar but it will for cargo.it reduces the false positives.so if it doesnt match exactly,then includes can be a fallback but a query thats 10 + chars long probably knows what is saying so the startswith already reduces the probability of returning a false positive and having includes as a fallback is as good as not having starts with which increases false positives.and since this is done per batch and not per node to catch a wide array of false positives,i think it will be better to accumulate the results of existing matches instead of returning on the first match so that if doesnt return a false positive but a series of possible results.since all of this happens when the search is quick mode,i believe that users dont expect to get definite matches so having an accumulation of matches not just a single exact match is acceptable.The thing is that it will run the entire batch but its only 15.its less expensive than running search util.If it doesnt match at all,it proceed to fuzzy search as a fallback.this optimization only applies to long queries.for short ones,the default fuzzy search will work
+
+
+remove the dots
+do a starts with
+accumulate result
