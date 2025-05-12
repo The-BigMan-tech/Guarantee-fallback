@@ -81,6 +81,7 @@ export interface processingSliceState {//by using null unions instead of optiona
     searchResults:FsNode[] | null,
     terminateSearch:boolean,
     quickSearch:boolean,
+    searchScores:number[],
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
@@ -103,6 +104,7 @@ const initialState:processingSliceState = {
     notice:{id:"",message:null},
     loadingMessage:"loading",//no id here because only one thing can be loaded at a time
     searchResults:null,
+    searchScores:[],
     terminateSearch:true,
     quickSearch:true,
     sortBy:'name',
@@ -162,6 +164,12 @@ export const processingSlice = createSlice({
             state.searchResults = state.searchResults || []
             state.searchResults.push(action.payload)
         },
+        pushToSearchScores(state,action:PayloadAction<number>) {
+            state.searchScores.push(action.payload)
+        },
+        setSearchScores(state,action:PayloadAction<number[]>) {
+            state.searchScores = action.payload
+        },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
             state.error.message = action.payload;
@@ -205,6 +213,8 @@ export const {
     setQuickSearch,
     spreadToSearch,
     pushToSearch,
+    pushToSearchScores,
+    setSearchScores,
     setSortBy,
     setView,
     setShowDetails
@@ -226,6 +236,7 @@ export const selectAheadCachingState = (store:RootState):CachingState => store.p
 export const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
 export const selectSearchTermination = (store:RootState):boolean =>store.processing.terminateSearch;
 export const selectQuickSearch = (store:RootState):boolean=>store.processing.quickSearch;
+const selectSearchScores = (store:RootState):number[]=>store.processing.searchScores;
 const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
 
 
@@ -457,11 +468,18 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
         console.log("FSNODES VALUE NOW",fsNodes);
         if (fsNodes) {
             fuseInstance.setCollection(fsNodes);
-            const searchResult = fuseInstance.search(searchQuery);
-            const matchedFsNodes: FsNode[] = searchResult.map(result => result.item);
+            const searchResults = fuseInstance.search(searchQuery);
+            const matchedFsNodes: FsNode[] = searchResults.map(result => result.item);
             console.log("MATCHED FS NODES",matchedFsNodes);
             if (matchedFsNodes.length) {//to reduce ui flickering,only spread to the search results if something matched
                 dispatch(spreadToSearch(matchedFsNodes));
+                searchResults.map(result=>{//only push the scores if there are any matched results
+                    if (result.score) {
+                        dispatch(pushToSearchScores(result.score))
+                    }else {
+                        console.log("SCORES ARENT ALLIGNED WITH THE MATCHED RESULTS!!!");
+                    }
+                })
             }
         }
     }
@@ -492,6 +510,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                     anyExactMatches = true
                 }
             }
+            //any exact matches can only have the possibility of being true if quick search is on
             if (anyExactMatches) {//i believe that this means that when it reaches the last node of the batch,it will check if there were any exact matches.if so,terminate and return else,proceed with fuzzy search
                 console.log("Terminated early!!");
                 dispatch(setSearchTermination(true));
@@ -563,7 +582,8 @@ export async function searchDir(searchQuery:string):Promise<AppThunk> {
     return async (dispatch,getState)=>{
         console.log("SEARCH QUERY LENGTH",searchQuery.length);
         dispatch(setSearchTermination(false));
-        dispatch(setSearchResults([]))
+        dispatch(setSearchResults([]));
+        dispatch(setSearchScores([]));
         searchBatchCount = 0;
         if (searchQuery.length == 0) {
             toast.dismiss("loading");
@@ -574,6 +594,26 @@ export async function searchDir(searchQuery:string):Promise<AppThunk> {
         const currentPath:string = selectCurrentPath(getState());
         const fsNodes:FsNode[] = [];
         await dispatch(searchRecursively(currentPath,fsNodes,searchQuery));
+
+        const quickSearch = selectQuickSearch(getState());
+        const shouldTerminate:boolean = selectSearchTermination(getState());
+        if (!(quickSearch) && !(shouldTerminate)) {
+            toast.loading("Sorting search results:",{...loading_toastConfig,position:"bottom-right"});
+            const searchResults:FsNode[] = selectSearchResults(getState()) || [];
+            const resultScores:number[] = selectSearchScores(getState());
+            if (searchResults.length === resultScores.length) {//i believe this will only fail when theres no search result
+                const pairedResults = searchResults.map((node, i) => ({
+                    node,
+                    score: resultScores[i],
+                }));
+                dispatch(setSearchScores([]))
+                pairedResults.sort((a, b) => a.score - b.score);
+                const sortedResults = pairedResults.map(pair => pair.node);
+                dispatch(setSearchResults(sortedResults));
+                console.log("sorted the search results");
+            }
+        }
+
         toast.dismiss();
         toast.success("Done searching",{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
         dispatch(setSearchTermination(true));

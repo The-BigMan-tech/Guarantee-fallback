@@ -719,6 +719,7 @@ batched search but only updates the fuse instance not recreate it
 quick search--applies an aggressive filter on the data before searching
 search batch optimization:The batch is small at first for responsiveness and then bigger later
 quick search--does early termination on long queries
+quick search doesnt sort results,full search does
 todo:make the terminate,exit search and quick search nice buttons
 todo:fix the overflow of the breadcrumbs
 todo:refactor to the simpler pattern of async thunks
@@ -800,6 +801,20 @@ the exact match is insensitive to file extensions in case of folders
 *i think a better check is to remove the dots from both the fsnode name and the search query and check if the search query is included in the fsnode name.in case of false positives,what if instead of including afterwards,it does startswith instead.so car wont match for scar but it will for cargo.it reduces the false positives.so if it doesnt match exactly,then includes can be a fallback but a query thats 10 + chars long probably knows what is saying so the startswith already reduces the probability of returning a false positive and having includes as a fallback is as good as not having starts with which increases false positives.and since this is done per batch and not per node to catch a wide array of false positives,i think it will be better to accumulate the results of existing matches instead of returning on the first match so that if doesnt return a false positive but a series of possible results.since all of this happens when the search is quick mode,i believe that users dont expect to get definite matches so having an accumulation of matches not just a single exact match is acceptable.The thing is that it will run the entire batch but its only 15.its less expensive than running search util.If it doesnt match at all,it proceed to fuzzy search as a fallback.this optimization only applies to long queries.for short ones,the default fuzzy search will work
 
 
+*the reason why it changed from remove ext to removing all the dots + prefix matching is because of edge cases and i believe it works well for a variety of them at the cost of more search results but with the intention that the search is on quick when this happens and the fact that quick filters out many of the nodes and its done per batch means that it wont just terminate the search on the first match but possible matches.The filter happens as it searches recursively but it doesnt need to be ahead of time filtering because only filtered nodes escape to the batch and also,trying to use a robust extension parser is error prone and can be complex
+
+*i reduced the query size required for this to something small for testing and it works flawlessly.cargo matched fifteen folders at first but when i reduced the query length requiremnt to 5 to check if early termination worked,it reduced the search to just 5 and it happened that the folder i was looking for was there.The probability is high but not guaranteed
+
+*its true that the chances are high and not guaranteed but the exact percentage depends on the distribution of the fs in my app state,filtering logic and batch size. Larger batches increase the likelihood that your target node appears in a batch, but also increase processing cost.this is expected of quick searches.they are meant to be approximate results.so when will users need quick search over the more accurate deep search that doesnt filter or terminate early
+
+*so quick search even if it may not feel all that quick to the user from the deep search actually performs optimizations under the hood.the performance will be visible when the folder is very large or if the device is slower and if the device is already fast,having it faster wont hurt.
+
+*the third and last thing i want to add to quick search thats not in full search is that full search will sort the results based on score before returning wile quick search wont.this will make quick search seem fatser as full search will have to sort the results based on relevancy.is this needed
+
+*since search util oly gets calledper batch,it doesnt return large results but it returns sorted results only for that batch.so sorted batches will be added infront of other sorted batches that may have less relevancy so i believe this should happen at a higher level than the search util:It can happen at the very first function that initiates the search 
+
 remove the dots
 do a starts with
 accumulate result
+
+a better way to force quit the function
