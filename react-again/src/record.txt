@@ -431,6 +431,7 @@ at-most once uses throttle or debouncing.at most once prevents unnecessary write
 
 ^IO optimization
 *batching,throttling,debouncing and async io are optimization techniques on io operations not delivery triggers or semantics.because without them,it means that every trigger to an io operation will block the main thread to perform the io operation
+*Batching is based on count while debouncing and throttling is based on time
 
 *Batching is not a way of delivering io like reactive,manual or at-most once.its just a way of handling how many io operations are done at a time.Its an optimization technique
 
@@ -711,11 +712,13 @@ terminate search,exit search results
 lazy dir reading + file search + setting search results
 recursive dir reading + file search + setting search results
 recursive dir reading <-> filesearch + spread search results
-batched searching--t prevent ui flickering and reduce fuse instances
+batched searching--to prevent ui flickering and reduce fuseinstances
 only spreading when there is a result--to prevent ui flickering
 memory clean recursion
 batched search but only updates the fuse instance not recreate it
 quick search
+search batch optimization:The batch is small at first for responsiveness and then bigger later
+todo:search threshold optimization
 todo:make the terminate,exit search and quick search nice buttons
 todo:fix the overflow of the breadcrumbs
 todo:refactor to the simpler pattern of async thunks
@@ -764,3 +767,10 @@ native ui toolkit--provided by the os
 web renderer--provided by the browser--has wide support for 3d and animations
 flutter engine--pixel perfect,has support for animations
 
+*,im attempting to speed performance by only searching when 20 files have been stacked.This increases perf by reducing the number of times i call fuse search which causes overhead but results are seen less quick
+
+*stale data theory encourages that variables should be scoped to prevent unexpected data races.If it were to be global because of persistence,it must only be used and modified in one place,if it does not need to trigger UI updates or be tracked as part of your Redux app state and you want to avoid unnecessary complexity of storing transient control values in Redux.Meaning that global variables in redux are best for configuration that dont cause the ui to react.This is because redux state is expected to trigger ui updates
+
+^batch processing vs stream processing
+
+*so the working principle is that some optimizations in general can be present but depending on the input size or the device,the effect may be subtle to significantThese types of optimizations are subtle optimizations.They are meant to improve the worst case scenario of performance to  something better while other optimizations provide significant result regardless of the device or input data.These are algorithm optimizations.

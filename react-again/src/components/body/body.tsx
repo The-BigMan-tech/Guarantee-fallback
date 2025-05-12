@@ -32,7 +32,7 @@ export default function Body() {
                         {(uniqueSearchResults.length)//if the matched searches are empty
                             ?<div className="flex flex-col items-center pb-10 h-full">
                                 {(isSearchTerminated)
-                                    ?<button className="cursor-pointer absolute top-16 text-[#9bbaea] font-bold" onClick={exitSearch}>Clear search results</button>
+                                    ?<button className="cursor-pointer absolute top-16 text-[#9beaea] font-bold" onClick={exitSearch}>Clear search results</button>
                                     :null
                                 }
                                 <FsDisplay {...{uniqueFsNodes:uniqueSearchResults}}/>

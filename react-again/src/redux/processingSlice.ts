@@ -15,7 +15,8 @@ const fuseOptions = {
     includeScore: true,
     threshold: 0.4,   
 };
-const fuseInstance:Fuse<FsNode> = new Fuse([],fuseOptions)
+const fuseInstance:Fuse<FsNode> = new Fuse([],fuseOptions);
+let searchBatchCount:number = 0;
 
 export const toastConfig:ToastOptions = {
     position: "top-center",
@@ -462,11 +463,16 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
 }
 function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean):AppThunk {
     return (dispatch)=>{
+        let searchBatchSize = 5;
+        if (searchBatchCount > 0) {
+            searchBatchSize = 15
+        }
+        console.log("SEARCH BATCH SIZE",searchBatchSize);
         fsNodes.push(fsNode)//push the files
-        console.log("UPDATED YOUR SEARCH",fsNode);
-        if (fsNodes.length == 20 || (isLastFsNode)) {
+        if (fsNodes.length >= searchBatchSize || (isLastFsNode)) {
             dispatch(searchUtil(fsNodes,searchQuery));
-            fsNodes.length = 0
+            fsNodes.length = 0;
+            searchBatchCount += 1
         }
     }
 }
