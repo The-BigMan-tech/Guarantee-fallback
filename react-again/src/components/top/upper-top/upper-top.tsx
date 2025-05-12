@@ -88,12 +88,12 @@ export default function UpperTop() {
                         </div>
                     ))}
                 </div>
-                <div className="absolute right-20">
-                    <label className="label cursor-pointer gap-2">
-                        <span className="label-text">quick search</span>
-                        <input type="checkbox" checked={quickSearch} onChange={toggleQuickSearching} className="checkbox" />
+                <div className="absolute right-32 flex gap-8 items-center">
+                    <input className="bg-[#5576c852] text-white outline-none py-1 pl-3 rounded-4xl font-robot-regular w-64" value={searchQuery} onChange={(event)=>listenToQuery(event)} onKeyDown={(event)=>enterSearch(event)}  type="text" placeholder="Your search here"/>
+                    <label className="label cursor-pointer gap-2 flex items-center">
+                        <span className="label-text text-[#b6deef] font-bold">Quick search</span>
+                        <input type="checkbox" checked={quickSearch} onChange={toggleQuickSearching} className="daisy-checkbox daisy-checkbox-primary" />
                     </label>
-                    <input className="bg-[#5576c852] text-white outline-none py-1 pl-2 rounded-4xl font-robot-light w-64" value={searchQuery} onChange={(event)=>listenToQuery(event)} onKeyDown={(event)=>enterSearch(event)}  type="text" placeholder="Your search here"/>
                 </div>
             </div>
         </div>

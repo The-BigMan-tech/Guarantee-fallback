@@ -509,11 +509,10 @@ smart reloading
 file icons--ongoing
 file search,debouncing
 framer motion
-todo:recursive file search
-smart recursive file search--it only recursively reads the dir till it finds its search
+recursive file search
 todo:previews--video,img,audio,text area tags,react pdf,highlight js,react player,mammoth js,three js,react window
 todo:file editing on the preview editor
-todo:file actions on a pane --state modification,io operation for significant performance
+todo:file actions on a pane --in-state modification and io operation for significant performance
 todo:file actions on right click
 todo:index for in dir file actions and a transfer object for move-like file actions
 todo:Changing the view layout and icon size
@@ -629,6 +628,7 @@ selective smart reloading
 auto reloading
 background auto reloading
 on demand recursive file search
+quick search
 
 time complexity optimizations
 implementation optimization
@@ -720,7 +720,7 @@ quick search--applies an aggressive filter on the data before searching
 search batch optimization:The batch is small at first for responsiveness and then bigger later
 quick search--does early termination on long queries
 quick search doesnt sort results,full search does
-todo:make the terminate,exit search and quick search nice buttons
+make the quick search a nice button
 todo:fix the overflow of the breadcrumbs
 todo:refactor to the simpler pattern of async thunks
 
