@@ -1,6 +1,6 @@
 import { useEffect, useState,useMemo, ChangeEvent} from "react";
 import { useAppDispatch,selector} from "../../../redux/hooks"
-import { openParentInApp,selectCurrentPath,selectTabNames,searchDir,loading_toastConfig,toastConfig,terminateSearch,toggleQuickSearch, selectQuickSearch, selectSearchResults} from "../../../redux/processingSlice"
+import { openParentInApp,selectCurrentPath,selectTabNames,searchDir,loading_toastConfig,toastConfig,toggleQuickSearch, selectQuickSearch, selectSearchResults} from "../../../redux/processingSlice"
 import {v4 as uniqueID} from "uuid"
 import { toast } from "react-toastify";
 import { KeyboardEvent } from "react";
@@ -40,7 +40,7 @@ export default function UpperTop() {
         setSearchQuery(event.target.value)
     }
     async function search(query:string) {
-        toast.loading("Loading your search",loading_toastConfig)
+        toast.loading("Loading your search",{...loading_toastConfig,position:"bottom-right"})
         if (query.length == 1) {
             toast.info("Query is too short",{...toastConfig,toastId:"inf"})
             toast.dismiss("loading")
@@ -56,9 +56,6 @@ export default function UpperTop() {
     }
     function toggleQuickSearching() {
         dispatch(toggleQuickSearch())
-    }
-    function quitSearch() {
-        dispatch(terminateSearch());
     }
     useEffect(()=>{
         const replacedPath = currentPath.replace(/.*\\AppData\\Roaming\\Microsoft\\Windows\\Recent/,"Recent");
@@ -97,7 +94,6 @@ export default function UpperTop() {
                         <input type="checkbox" checked={quickSearch} onChange={toggleQuickSearching} className="checkbox" />
                     </label>
                     <input className="bg-[#5576c852] text-white outline-none py-1 pl-2 rounded-4xl font-robot-light w-64" value={searchQuery} onChange={(event)=>listenToQuery(event)} onKeyDown={(event)=>enterSearch(event)}  type="text" placeholder="Your search here"/>
-                    <button className="cursor-pointer" onClick={quitSearch}>Terminate</button>
                 </div>
             </div>
         </div>

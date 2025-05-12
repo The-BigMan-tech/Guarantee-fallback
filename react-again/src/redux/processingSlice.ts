@@ -469,7 +469,6 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
             fsNodes.length = 0
         }
     }
-
 }
 function aggressiveFilter(data:string,query:string):boolean {
     if ((data.trim().toLowerCase().includes(query.trim().toLowerCase()))) {
@@ -544,7 +543,7 @@ export async function searchDir(searchQuery:string):Promise<AppThunk> {
         const fsNodes:FsNode[] = [];
         await dispatch(searchRecursively(currentPath,fsNodes,searchQuery));
         toast.dismiss();
-        toast.success("Done searching",{...toastConfig,autoClose:500,transition:Flip});
+        toast.success("Done searching",{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
         dispatch(setSearchTermination(true));
     }
 }
