@@ -601,19 +601,15 @@ export async function searchDir(searchQuery:string):Promise<AppThunk> {
             toast.loading("Sorting search results:",{...loading_toastConfig,position:"bottom-right"});
             const searchResults:FsNode[] = selectSearchResults(getState()) || [];
             const resultScores:number[] = selectSearchScores(getState());
-            if (searchResults.length === resultScores.length) {//i believe this will only fail when theres no search result
-                const pairedResults = searchResults.map((node, i) => ({
-                    node,
-                    score: resultScores[i],
-                }));
-                dispatch(setSearchScores([]))
+            if (searchResults.length > 0 && (searchResults.length === resultScores.length)) {//i believe this will only fail when theres no search result
+                const pairedResults = searchResults.map((node, i) => ({node,score: resultScores[i]}));
                 pairedResults.sort((a, b) => a.score - b.score);
                 const sortedResults = pairedResults.map(pair => pair.node);
                 dispatch(setSearchResults(sortedResults));
+                dispatch(setSearchScores([]));
                 console.log("sorted the search results");
             }
         }
-
         toast.dismiss();
         toast.success("Done searching",{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
         dispatch(setSearchTermination(true));

@@ -818,3 +818,5 @@ do a starts with
 accumulate result
 
 a better way to force quit the function
+
+*i cleared the scores immediately afer the paired result because the ui doesnt react to it so i was attempting to free memory early but despite the micro optimzation,i should dispatch it after for clarity and readability that im not using the state only after sorting.It minimizes the risk of subtle bugs if any UI or middleware unexpectedly depends on scores during or after sorting.The performance difference is typically negligible unless you’re working with extremely large datasets or very tight memory constraints.
