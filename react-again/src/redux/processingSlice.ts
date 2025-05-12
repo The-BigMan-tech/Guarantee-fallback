@@ -461,8 +461,15 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
         }
     }
 }
-function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean):AppThunk {
-    return (dispatch)=>{
+function removeLastDot(str) {
+    const lastDotIndex = str.lastIndexOf('.');
+    if (lastDotIndex !== -1) {
+        return str.slice(0, lastDotIndex);
+    }
+    return str;
+}
+function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean):AppThunk<Promise<void>> {
+    return async (dispatch,getState)=>{
         let searchBatchSize = 5;
         if (searchBatchCount > 0) {
             searchBatchSize = 15
@@ -470,6 +477,21 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         console.log("SEARCH BATCH SIZE",searchBatchSize);
         fsNodes.push(fsNode)//push the files
         if (fsNodes.length >= searchBatchSize || (isLastFsNode)) {
+            //This early termination is done at the batch level
+            const quickSearch:boolean = selectQuickSearch(getState());
+            for (const fsNodeInBatch of fsNodes) {
+                const trimmedNode = removeLastDot(fsNodeInBatch.primary.nodeName.trim().toLowerCase());//making it insensitive to file extensions because the node can be a folder or a file and he search query can target either depending on whether an extension was included or not
+                const trimmedQuery = searchQuery.trim().toLowerCase();
+                const isExactMatch = (trimmedNode == trimmedQuery)
+                console.log("Quick search",quickSearch,"Query length",searchQuery.length,"Exact match",isExactMatch,"trimmed node",trimmedNode,"trimmed query",trimmedQuery);
+                if ((quickSearch) && (searchQuery.length >= 10) && isExactMatch) {
+                    console.log("Found early result!!");
+                    dispatch(setSearchResults([fsNodeInBatch]));
+                    dispatch(setSearchTermination(true));
+                    fsNodes.length = 0;//prevents stale data
+                    return
+                }
+            }
             dispatch(searchUtil(fsNodes,searchQuery));
             fsNodes.length = 0;
             searchBatchCount += 1
@@ -502,31 +524,27 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
             const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
             const quickSearch:boolean = selectQuickSearch(getState());
             console.log("Local fs nodes",localFsNodes);
-            for (const fsNode of localFsNodes) {
-                const isLastFsNode = localFsNodes.indexOf(fsNode) == (localFsNodes.length-1)
+            for (const [localIndex,fsNode] of localFsNodes.entries()) {
+                const isLastFsNode = localIndex == (localFsNodes.length-1)
                 console.log("Is last fsnode",isLastFsNode);
                 if (fsNode.primary.nodeType == "File") {//passing islast is necessary for quick search even if it matches or not because it needs to terminate the batch if the one that survived is the only match for example and not the last at the same time
                     if (quickSearch) {
                         if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
                             console.log("PASSED YOUR FILE TO UPDATE",fsNode.primary.nodePath);
-                            dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
-                        }else {
-                            console.log("Filtered out the file:",fsNode.primary.nodePath);
-                        }
+                            await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                        }else {console.log("Filtered out the file:",fsNode.primary.nodePath);}
                     }else {//update regardless
-                        dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                        await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
                     }
                 }else if (fsNode.primary.nodeType == "Folder") {
                     //i cant do aggressive filter here because the files within the folder will be in custody
                     if (quickSearch) {
                         if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
                             console.log("PASSED YOUR FOLDER TO UPDATE",fsNode.primary.nodePath);
-                            dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
-                        }else {
-                            console.log("Filtered out the folder");
-                        }
+                            await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                        }else {console.log("Filtered out the folder");}
                     }else {
-                        dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                        await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
                     }
                     await dispatch(searchRecursively(fsNode.primary.nodePath,fsNodes,searchQuery))//read the files of the folder and push that
                 }
@@ -539,6 +557,7 @@ export async function searchDir(searchQuery:string):Promise<AppThunk> {
         console.log("SEARCH QUERY LENGTH",searchQuery.length);
         dispatch(setSearchTermination(false));
         dispatch(setSearchResults([]))
+        searchBatchCount = 0;
         if (searchQuery.length == 0) {
             toast.dismiss("loading");
             dispatch(setSearchResults(null));

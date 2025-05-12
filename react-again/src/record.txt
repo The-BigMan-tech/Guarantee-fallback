@@ -716,9 +716,8 @@ batched searching--to prevent ui flickering and reduce fuseinstances
 only spreading when there is a result--to prevent ui flickering
 memory clean recursion
 batched search but only updates the fuse instance not recreate it
-quick search
+quick search--applies an aggressive filter on the data before searching
 search batch optimization:The batch is small at first for responsiveness and then bigger later
-todo:search threshold optimization
 todo:make the terminate,exit search and quick search nice buttons
 todo:fix the overflow of the breadcrumbs
 todo:refactor to the simpler pattern of async thunks
@@ -774,3 +773,25 @@ flutter engine--pixel perfect,has support for animations
 ^batch processing vs stream processing
 
 *so the working principle is that some optimizations in general can be present but depending on the input size or the device,the effect may be subtle to significantThese types of optimizations are subtle optimizations.They are meant to improve the worst case scenario of performance to  something better while other optimizations provide significant result regardless of the device or input data.These are algorithm optimizations.
+
+*because shorter strings are naturally fuzzy,early termination wont be useful but longer strings usually demand exact matches so early termination will be useful.Early termination can also be useful for shorter queries if the queries are semantically complete like add.svg.
+
+early termination for longer strings and exact matches only on quick search,batch level exact matches
+early termination for short strings if they are semantically complete
+sorting based on score only if quick search is off
+
+
+*Why early termination on first exact match may not always work
+*Exact matches might appear anywhere in the dataset, not necessarily near the start.
+*If you stop searching immediately on the first exact match, you might miss other exact matches deeper in the tree that could be equally or more relevant.
+*If the dataset is large and the exact match is near the end, early termination won’t help much because you still have to scan most of the data.
+*Sometimes, no exact matches exist at all, so you still need to run the full fuzzy search.
+
+*if i do sort,it may take time depending on the sorting algorithm js uses and how long the tree is.it may outweigh the benefit of early termination.so they are two solutions.first,i can choose to make this feature happen only if quick search is on as it indicates that the users expect to find results quickly and secondly,i can check for exact matches for every batch instead of ever node to increase the possiblity but not guaranteed to capture more nodes that also have exact matches down the tree and since quick search cuts down 70-90% of nodes using cheap filtering,the possibility that exact matches will be included in a bach is also higher.so if i do that early termination check here,i can capture a decent amount of exact matches not to mention the user doesnt expect every match to show since he said quick search
+
+*searches is meant to be case insensitive
+
+*it sets the search result once it finds an immediate match
+check for exct match on file extension if present in the node
+how did many of them even survive that dangerous filter
+the exact match is insensitive to file extensions in case of folders
