@@ -27,7 +27,7 @@ export const FsNodeComponent = (props:Props)=> {
     async function openFolder(fsNode:FsNode):Promise<void> {
         if (shouldUnFreeze) {
             if (fsNode.primary.nodeType == "Folder") {
-                dispatch(await openDirectoryInApp(fsNode.primary.nodePath))
+                await dispatch(openDirectoryInApp(fsNode.primary.nodePath))
             }
             return
         }

@@ -722,7 +722,6 @@ quick search--does early termination on long queries
 quick search doesnt sort results,full search does
 make the quick search a nice button
 todo:truncate the bread crumbs when its too big
-todo:debounce the enter
 
 
 i need to sort the array by files first before folder

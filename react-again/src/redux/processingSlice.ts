@@ -219,7 +219,6 @@ export const {
     setView,
     setShowDetails
 } = processingSlice.actions;
-
 export default processingSlice.reducer;
 export const selectCurrentPath = (store:RootState):string => store.processing.currentPath;
 export const selectTabNames = (store:RootState):string[] => store.processing.tabNames;
@@ -405,7 +404,7 @@ function updateUI(value:(Promise<FsNode>)[]):AppThunk<Promise<FsNode[]>> {
     }
 }
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
-export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
+export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
         const folderName:string = await base_name(folderPath,true);
@@ -442,13 +441,13 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
 export function openParentInApp():AppThunk<Promise<void>> {
     return async (dispatch)=>{
         const parentPathResult:string = dispatch(getParent());
-        dispatch(await openDirectoryInApp(parentPathResult))
+        await dispatch(openDirectoryInApp(parentPathResult))
     }
 }
 export function openDirFromHome(tabName:string):AppThunk<Promise<void>> {
     return async (dispatch)=> {
         const folderPath:string = await join_with_home(tabName)
-        dispatch(await openDirectoryInApp(folderPath))
+        await dispatch(openDirectoryInApp(folderPath))
     }
 }
 function getParent():AppThunk<string> {
@@ -473,10 +472,8 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
             if (matchedFsNodes.length) {//to reduce ui flickering,only spread to the search results if something matched
                 dispatch(spreadToSearch(matchedFsNodes));
                 searchResults.map(result=>{//only push the scores if there are any matched results
-                    if (result.score) {
+                    if (result.score) {//to prevent ts from complaining because if there are matched results,this can never fail.this is here to help ts know my code is valid
                         dispatch(pushToSearchScores(result.score))
-                    }else {
-                        console.log("SCORES ARENT ALLIGNED WITH THE MATCHED RESULTS!!!");
                     }
                 })
             }
@@ -494,22 +491,24 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         }
         console.log("SEARCH BATCH SIZE",searchBatchSize);
         fsNodes.push(fsNode)//push the files
-        if (fsNodes.length >= searchBatchSize || (isLastFsNode)) {
+        if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
             //This early termination is done at the batch level
             let anyRoughMatches:boolean = false
             const quickSearch:boolean = selectQuickSearch(getState());
-            for (const fsNodeInBatch of fsNodes) {
-                const trimmedNode = removeAllDots(fsNodeInBatch.primary.nodeName.trim().toLowerCase());//making it insensitive to file extensions because the node can be a folder or a file and he search query can target either depending on whether an extension was included or not
-                const trimmedQuery = removeAllDots(searchQuery.trim().toLowerCase());
-                const isExactMatch = (trimmedNode.startsWith(trimmedQuery))
-                console.log("Quick search",quickSearch,"Query length",searchQuery.length,"Exact match",isExactMatch,"trimmed node",trimmedNode,"trimmed query",trimmedQuery);
-                if ((quickSearch) && (searchQuery.length >= 10) && isExactMatch) {
-                    console.log("Found early result!!");
-                    dispatch(pushToSearch(fsNodeInBatch));
-                    anyRoughMatches = true
+            if (quickSearch) {//only performing this loop if quick search is on.it will be a waste if it runs on full search
+                for (const fsNodeInBatch of fsNodes) {
+                    const trimmedNode = removeAllDots(fsNodeInBatch.primary.nodeName.trim().toLowerCase());//making it insensitive to file extensions because the node can be a folder or a file and he search query can target either depending on whether an extension was included or not
+                    const trimmedQuery = removeAllDots(searchQuery.trim().toLowerCase());
+                    const isRoughMatch = (trimmedNode.startsWith(trimmedQuery))
+                    console.log("Quick search",quickSearch,"Query length",searchQuery.length,"Exact match",isRoughMatch,"trimmed node",trimmedNode,"trimmed query",trimmedQuery);
+                    if ((searchQuery.length >= 10) && isRoughMatch) {
+                        console.log("Found early result!!");
+                        dispatch(pushToSearch(fsNodeInBatch));
+                        anyRoughMatches = true
+                    }
                 }
             }
-            //any exact matches can only have the possibility of being true if quick search is on
+            //any rough matches can only have the possibility of being true if quick search is on
             if (anyRoughMatches) {//i believe that this means that when it reaches the last node of the batch,it will check if there were any exact matches.if so,terminate and return else,proceed with fuzzy search
                 console.log("Terminated early!!");
                 dispatch(setSearchTermination(true));
