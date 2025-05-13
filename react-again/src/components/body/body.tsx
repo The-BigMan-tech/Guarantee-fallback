@@ -22,12 +22,18 @@ export default function Body() {
     function quitSearch() {
         dispatch(terminateSearch());
     }
+    function truncateStart(str:string, maxLength:number) {
+        if (str.length <= maxLength) {
+            return str; 
+        }
+        return '...' + str.slice(str.length - (maxLength - 3));
+    }
     return (
         <>
             <div className="h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md">
                 {!(isSearchTerminated)//show the terminate button while its searching
                     ?<div className="absolute top-16 left-[50%] flex gap-3">
-                        <h1>Path: {searchProgress?.path}</h1>
+                        <h1 className="absolute right-[50%]">Path: {truncateStart(searchProgress?.path || "",40)}</h1>
                         <button className="cursor-pointer text-[#eaa09b] font-bold" onClick={quitSearch}>Terminate</button>
                     </div>
                     :null

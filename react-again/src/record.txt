@@ -850,3 +850,4 @@ web worker to make it faster
 
 use rust search instead
 
+truncating a string to an ellipsis (...)
