@@ -863,3 +863,18 @@ truncating a string to an ellipsis (...)
 *so if a folder has 10 folders,i can show overall progress for each folder that completes but it will be in 10 units because the search doesnt know the number of files under those dir until it recurses through them so their own individual progress will be under their record
 
 *the reason for this bug isnt what you expect.it failed this entire time because as quick search was on,90% of the nodes werent processed so they werent updated
+
+*so what i did to fix this bug is called dismantling where i had to painfully teardown a function big chunk of code into simplest form so that i can understand how the bug works.i now have to use version control to add back the complexity little by little while ensuring its correctness instead of reverting back to the complexity and trying to add the fix i discovered over there
+
+*Yes, what you did to fix the bug is indeed a well-recognized and effective debugging strategy often referred to as dismantling, simplification, or reduction. It involves breaking down a complex function or codebase into its simplest working form to isolate and understand the root cause of a bug. Then, using version control, you incrementally add back complexity, verifying correctness at each step.
+
+*However, reverse engineering also applies when you analyze any system or codebase to gain deeper understanding, regardless of whether you originally wrote it or have source access ().
+
+*You took your own complex function and dismantled it into simpler parts to understand and isolate the bug.
+
+This process is essentially "going backward" through your code’s logic and structure to recover a clearer understanding - which aligns with the concept of reverse engineering ().
+
+Even though you have the source, the complexity or lack of documentation makes the code effectively a "black box" that you need to analyze and comprehend.
+
+Your use of version control to incrementally rebuild complexity after isolating the issue is a practical application of design recovery and program comprehension, subfields of reverse engineering ().
+
