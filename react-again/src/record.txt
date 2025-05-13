@@ -852,4 +852,6 @@ use rust search instead
 
 truncating a string to an ellipsis (...)
 
-*the fragment element <></> is used for grouping tags or components in jsx when you dont want the grouping to affect their layout as it is for div and other semantic containers
+*the fragment element <></> is used for grouping tags or components in jsx when you dont want the grouping to affect their layout as it is for div and other semantic containers.i use it especially when putting conditional rendring in my code as it has to be under a tag.
+
+*the data you are mutating in a recursion should be outside of the recursion to prevent it from resetting
