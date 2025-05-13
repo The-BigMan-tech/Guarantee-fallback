@@ -32,10 +32,13 @@ export default function Body() {
         <>
             <div className="h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md">
                 {!(isSearchTerminated)//show the terminate button while its searching
-                    ?<div className="absolute top-16 left-[50%] flex gap-3">
-                        <h1 className="absolute right-[50%]">Path: {truncateStart(searchProgress?.path || "",40)}</h1>
-                        <button className="cursor-pointer text-[#eaa09b] font-bold" onClick={quitSearch}>Terminate</button>
-                    </div>
+                    ?<>
+                        <div className="absolute top-16 left-[20%] flex items-center">
+                            <h1 className="text-[#e49a7b] font-semibold font-sans">Path: </h1>
+                            <h1 className="font-[Consolas] text-sm">{truncateStart(searchProgress?.path || "",30)}</h1>
+                        </div>
+                        <button className="cursor-pointer text-[#eaa09b] font-bold absolute top-16 left-[50%]" onClick={quitSearch}>Terminate</button>
+                    </>
                     :null
                 }
                 {(uniqueSearchResults)//if the user hasnt inputted any search query
@@ -43,7 +46,7 @@ export default function Body() {
                         {(uniqueSearchResults.length)//if the matched searches are not empty
                             ?<div className="flex flex-col items-center pb-10 h-full">
                                 {(isSearchTerminated)
-                                    ?<button className="cursor-pointer absolute top-16 text-[#9beaea] font-bold" onClick={exitSearch}>Clear search results</button>
+                                    ?<button className="cursor-pointer absolute top-16 text-white font-bold" onClick={exitSearch}>Clear search results</button>
                                     :null
                                 }
                                 <FsDisplay {...{uniqueFsNodes:uniqueSearchResults}}/>
