@@ -500,52 +500,14 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
 function removeAllDots(str:string):string {
     return str.replace(/\./g, '');
 }
-function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean,path:string):AppThunk<Promise<void>> {
-    return async (dispatch,getState)=>{
+function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean,path:string,totalNodes:number):AppThunk {
+    return (dispatch,getState)=>{
         const progress:SearchProgress = {...selectSearchProgress(getState())[path]}
-        let searchBatchSize = 5;//with this,i wont need the or islastnode check
-        if (searchBatchCount > 0) {
-            searchBatchSize = 15
-        }
-        const isQueryLong:boolean = searchQuery.length >= 10
-        console.log("SEARCH BATCH SIZE",searchBatchSize);
         fsNodes.push(fsNode)//push the files
-        //*I removed the or islast fs node check here and it seems to work without it.not sure cuz if only one element goes to the batch,how will it ever run this.its because i changed the batch size to 5 then 15
-        if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
-            const nodeCount:number = fsNodes.length;
-            //This early termination is done at the batch level
-            let anyRoughMatches:boolean = false
-            const quickSearch:boolean = selectQuickSearch(getState());
-            if (quickSearch) {//only performing this loop if quick search is on.it will be a waste if it runs on full search
-                for (const fsNodeInBatch of fsNodes) {
-                    const trimmedNode = removeAllDots(fsNodeInBatch.primary.nodeName.trim().toLowerCase());//making it insensitive to file extensions because the node can be a folder or a file and he search query can target either depending on whether an extension was included or not
-                    const trimmedQuery = removeAllDots(searchQuery.trim().toLowerCase());
-                    const isRoughMatch = (trimmedNode.startsWith(trimmedQuery))
-                    console.log("Quick search",quickSearch,"Query length",searchQuery.length,"Exact match",isRoughMatch,"trimmed node",trimmedNode,"trimmed query",trimmedQuery);
-                    if (isQueryLong && isRoughMatch) {
-                        console.log("Found early result!!");
-                        dispatch(pushToSearch(fsNodeInBatch));
-                        anyRoughMatches = true;
-                    }
-                }
-            }
-            //any rough matches can only have the possibility of being true if quick search is on
-            if (anyRoughMatches) {//i believe that this means that when it reaches the last node of the batch,it will check if there were any exact matches.if so,terminate and return else,proceed with fuzzy search
-                console.log("Terminated early!!");
-                dispatch(setSearchTermination(true));
-                fsNodes.length = 0;
-                return
-            }else if (quickSearch && !(anyRoughMatches) && isQueryLong) {
-                console.log("Discarded this batch");
-            }else {
-                dispatch(searchUtil(fsNodes,searchQuery));
-            }
-            //this code will run regardless as it isnt part of any of if branches under this scope so its for things that should run regardless of the case
-            progress.searchedNodes += nodeCount
-            dispatch(setProgress({key:path,progress}))
-            searchBatchCount += 1;
-            fsNodes.length = 0//prevents stale data
-        }
+        dispatch(searchUtil(fsNodes,searchQuery));
+        progress.searchedNodes += 1
+        dispatch(setProgress({key:path,progress:{...progress,totalNodes:totalNodes}}))
+        fsNodes.length = 0//prevents stale data
     }
 }
 function aggressiveFilter(data:string,query:string):boolean {
@@ -572,7 +534,7 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
         console.log("DIR RESULT",dirResult.value);
         if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
             const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
-            const totalNodes:number = localFsNodes.length;
+            let totalNodes:number = localFsNodes.length;
             dispatch(setProgress({
                 key:path,
                 progress:{
@@ -589,20 +551,26 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
                     if (quickSearch) {
                         if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
                             console.log("PASSED YOUR FILE TO UPDATE",fsNode.primary.nodePath);
-                            await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))
-                        }else {console.log("Filtered out the file:",fsNode.primary.nodePath);}
+                            dispatch(updateSearchResults(fsNode,[],searchQuery,isLastFsNode,path,totalNodes))
+                        }else {
+                            totalNodes -= 1
+                            console.log("Filtered out the file:",fsNode.primary.nodePath);
+                        }
                     }else {//update regardless
-                        await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))
+                        dispatch(updateSearchResults(fsNode,[],searchQuery,isLastFsNode,path,totalNodes))
                     }
                 }else if (fsNode.primary.nodeType == "Folder") {
                     //i cant do aggressive filter here because the files within the folder will be in custody
                     if (quickSearch) {
                         if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
                             console.log("PASSED YOUR FOLDER TO UPDATE",fsNode.primary.nodePath);
-                            await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))
-                        }else {console.log("Filtered out the folder");}
+                            dispatch(updateSearchResults(fsNode,[],searchQuery,isLastFsNode,path,totalNodes))
+                        }else {
+                            totalNodes -= 1
+                            console.log("Filtered out the folder");
+                        }
                     }else {
-                        await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))
+                        dispatch(updateSearchResults(fsNode,[],searchQuery,isLastFsNode,path,totalNodes))
                     }
                     await dispatch(searchRecursively(fsNode.primary.nodePath,fsNodes,searchQuery))//read the files of the folder and push that
                 }

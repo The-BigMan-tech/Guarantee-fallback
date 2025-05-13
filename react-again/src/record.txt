@@ -861,3 +861,5 @@ truncating a string to an ellipsis (...)
 *arrays can be used across recursions oly when treated as a whole like in batch processing but when indexing particular values,records are better
 
 *so if a folder has 10 folders,i can show overall progress for each folder that completes but it will be in 10 units because the search doesnt know the number of files under those dir until it recurses through them so their own individual progress will be under their record
+
+*the reason for this bug isnt what you expect.it failed this entire time because as quick search was on,90% of the nodes werent processed so they werent updated
