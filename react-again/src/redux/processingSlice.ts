@@ -501,8 +501,9 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
 function removeAllDots(str:string):string {
     return str.replace(/\./g, '');
 }
-function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean):AppThunk<Promise<void>> {
+function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean,totalNodes:number):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
+        let processedNodes = 0;
         let searchBatchSize = 5;
         if (searchBatchCount > 0) {
             searchBatchSize = 15
@@ -525,22 +526,26 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                         dispatch(pushToSearch(fsNodeInBatch));
                         anyRoughMatches = true
                     }
+                    processedNodes += 1;//increase the progress per node;
+                    dispatch(setSearchPercentage((processedNodes/totalNodes)*100))
                 }
             }
             //any rough matches can only have the possibility of being true if quick search is on
             if (anyRoughMatches) {//i believe that this means that when it reaches the last node of the batch,it will check if there were any exact matches.if so,terminate and return else,proceed with fuzzy search
                 console.log("Terminated early!!");
                 dispatch(setSearchTermination(true));
-                fsNodes.length = 0;//prevents stale data
-                return
+                fsNodes.length = 0;//prevents stale data;
+                return//no need to increase the progress here since this branch only executes on quick search and the branch above takes care of progress when quick search is on
             }else if (quickSearch && !(anyRoughMatches) && isQueryLong) {
                 console.log("Discarded this batch");
                 fsNodes.length = 0;
-                return
+                return//no need to increase the progress here because the batch was discarded
             }else {
                 dispatch(searchUtil(fsNodes,searchQuery));
                 fsNodes.length = 0;
-                searchBatchCount += 1
+                searchBatchCount += 1;
+                processedNodes += searchBatchSize;//increase the progress per batch
+                dispatch(setSearchPercentage((processedNodes/totalNodes)*100));
             }
         }
     }
@@ -569,6 +574,8 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
         console.log("DIR RESULT",dirResult.value);
         if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
             const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
+            const totalNodes:number = localFsNodes.length;
+
             const quickSearch:boolean = selectQuickSearch(getState());
             console.log("Local fs nodes",localFsNodes);
             for (const [localIndex,fsNode] of localFsNodes.entries()) {
@@ -578,20 +585,20 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
                     if (quickSearch) {
                         if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
                             console.log("PASSED YOUR FILE TO UPDATE",fsNode.primary.nodePath);
-                            await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                            await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,totalNodes))
                         }else {console.log("Filtered out the file:",fsNode.primary.nodePath);}
                     }else {//update regardless
-                        await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                        await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,totalNodes))
                     }
                 }else if (fsNode.primary.nodeType == "Folder") {
                     //i cant do aggressive filter here because the files within the folder will be in custody
                     if (quickSearch) {
                         if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
                             console.log("PASSED YOUR FOLDER TO UPDATE",fsNode.primary.nodePath);
-                            await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                            await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,totalNodes))
                         }else {console.log("Filtered out the folder");}
                     }else {
-                        await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                        await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,totalNodes))
                     }
                     await dispatch(searchRecursively(fsNode.primary.nodePath,fsNodes,searchQuery))//read the files of the folder and push that
                 }

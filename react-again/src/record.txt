@@ -30,6 +30,7 @@ async thunks and create async thunks
 thunks dont return values.just dispatch actions
 
 ^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid,throttle-debounce,fuse js,jotai
+wasm
 
 hello pangea dnd,react router,framer motion,gsap,three js,
 next js,auth js,paystack,prisma,postgres sql,mongoose,mongo db
@@ -838,3 +839,14 @@ lazy recursive search,quick search or indexing support
 *For small folders, the difference is small but measurable; quick search still outperforms full search.For large datasets, the performance gap will likely widen, making quick search even more valuable for fast feedback.Users expect full search results to be sorted by relevance, so skipping sorting in full search is usually not acceptable so the perf based on sorting is more accurate.so based on this and on a small folder i searched on with a particular query,quick search at best is 3.123 secs while full search at best is 3.338 seconds.when i performed quick search on a long query that is >= 10 chars longs,quick search finished at 1.858 secs at best while full search finished in 2.705 seconds at best while quick search finished at 1.937 secs at worst while full search performed at 2.872 secs at worst
 
 *i believe my quick search is best when you know part of or the entire spelling of a file or folder regardless of case and dot placement because it has a high chance of escaping the aggressive filtering and batch skipping of quick search while full search is when you don't really remember the spelling correctly or if you want similar results to show
+
+*the only thing that can spoil my recursive search is stack overflow
+
+i can make my search faster by swapping out the search library i used with a faster one since the use of the search librray is just in one small function.my search logic itself isnt small.its made up of four robust functions as i showed earlier but the function that actually uses the fuse instance is small.thats where i can easily change the library without affecting the search logic of my app at all.if the fuse js instance were used all over all the functions that constitute the search,it will then be a problem because the search library is directly baked into my apps functionality
+
+so if i want for example,i can switch it with a rust version for optimal speed but this is only a note not a necessity.I will just compile it to wasm and use it instead of a tauri ipc protocol
+
+web worker to make it faster
+
+use rust search instead
+

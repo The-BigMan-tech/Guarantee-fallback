@@ -98,6 +98,7 @@ export async function base_name(path:string,userAsHome:boolean):Promise<string> 
     const transformed_path = ((userAsHome) && (path == await join_with_home("Home")))?"Home":path;
     return await invoke('path_basename', {path:transformed_path});
 }
+//im still leaving it to return fsnode promises instead of the fsnodes directly in case i want to add inc loading later
 export async function readDirectory(dirPath:string):Promise<FsResult<(Promise<FsNode>)[] | null | Error>> {
     try {
         const fsNodePaths:string[] = await invoke('read_dir', { dirPath });
