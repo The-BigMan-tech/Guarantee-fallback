@@ -39,29 +39,19 @@ export default function UpperTop() {
     function listenToQuery(event:ChangeEvent<HTMLInputElement>) {
         setSearchQuery(event.target.value)
     }
-    function search(query:string) {
+    async function search(query:string) {
         toast.loading("Loading your search",{...loading_toastConfig,position:"bottom-right"})
         if (query.length == 1) {
             toast.info("Query is too short",{...toastConfig,toastId:"inf"})
             toast.dismiss("loading")
         }else {
             toast.dismiss("inf")
-            dispatch(searchDir(query));
+            await dispatch(searchDir(query));
         }
-    }
-    function debounceSearch(wait:number) {
-        let timeout:NodeJS.Timeout;
-        return ()=>{
-            clearTimeout(timeout);
-            timeout = setTimeout(()=>{
-                search(searchQuery)
-            },wait);
-        };
     }
     async function enterSearch(event:KeyboardEvent<HTMLInputElement>) {
         if (event.key === 'Enter') {
-            const debouncedSearch = debounceSearch(5000);
-            debouncedSearch();
+            await search(searchQuery);
         }
     }
     function toggleQuickSearching() {

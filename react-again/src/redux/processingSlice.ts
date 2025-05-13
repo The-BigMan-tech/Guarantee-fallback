@@ -580,6 +580,8 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
 export function searchDir(searchQuery:string):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
         console.log("SEARCH QUERY LENGTH",searchQuery.length);
+        //debouncing this function never works so what i did to prevent spamming is to terminate the previoud search before instatiating this new one
+        dispatch(setSearchTermination(true));
         dispatch(setSearchTermination(false));
         dispatch(setSearchResults([]));
         dispatch(setSearchScores([]));
