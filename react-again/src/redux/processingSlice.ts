@@ -489,6 +489,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         if (searchBatchCount > 0) {
             searchBatchSize = 15
         }
+        const isQueryLong:boolean = searchQuery.length >= 10
         console.log("SEARCH BATCH SIZE",searchBatchSize);
         fsNodes.push(fsNode)//push the files
         if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
@@ -501,7 +502,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                     const trimmedQuery = removeAllDots(searchQuery.trim().toLowerCase());
                     const isRoughMatch = (trimmedNode.startsWith(trimmedQuery))
                     console.log("Quick search",quickSearch,"Query length",searchQuery.length,"Exact match",isRoughMatch,"trimmed node",trimmedNode,"trimmed query",trimmedQuery);
-                    if ((searchQuery.length >= 10) && isRoughMatch) {
+                    if (isQueryLong && isRoughMatch) {
                         console.log("Found early result!!");
                         dispatch(pushToSearch(fsNodeInBatch));
                         anyRoughMatches = true
@@ -513,6 +514,10 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                 console.log("Terminated early!!");
                 dispatch(setSearchTermination(true));
                 fsNodes.length = 0;//prevents stale data
+                return
+            }else if (quickSearch && !(anyRoughMatches) && isQueryLong) {
+                console.log("Discarded this batch");
+                fsNodes.length = 0;
                 return
             }else {
                 dispatch(searchUtil(fsNodes,searchQuery));
@@ -578,6 +583,7 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
 }
 export function searchDir(searchQuery:string):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
+        const startTime = performance.now();
         console.log("SEARCH QUERY LENGTH",searchQuery.length);
         //debouncing this function never works so what i did to prevent spamming is to terminate the previoud search before instatiating this new one
         dispatch(setSearchTermination(true));
@@ -610,8 +616,11 @@ export function searchDir(searchQuery:string):AppThunk<Promise<void>> {
                 console.log("sorted the search results");
             }
         }
+        const endTime = performance.now();
+        const timeInMs = endTime - startTime;
+        const timeInSeconds = (timeInMs / 1000).toFixed(3);
         toast.dismiss();
-        toast.success("Done searching",{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
+        toast.success(`Done searching in ${timeInSeconds} seconds`,{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
         dispatch(setSearchTermination(true));
     }
 }

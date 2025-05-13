@@ -509,7 +509,7 @@ smart reloading
 file icons--ongoing
 file search,debouncing
 framer motion
-recursive file search
+lazy recursive file search
 todo:previews--video,img,audio,text area tags,react pdf,highlight js,react player,mammoth js,three js,react window
 todo:file editing on the preview editor
 todo:file actions on a pane --in-state modification and io operation for significant performance
@@ -718,7 +718,7 @@ memory clean recursion
 batched search but only updates the fuse instance not recreate it
 quick search--applies an aggressive filter on the data before searching
 search batch optimization:The batch is small at first for responsiveness and then bigger later
-quick search--does early termination on long queries
+quick search--does early termination and fast batch skipping on long queries
 quick search doesnt sort results,full search does
 make the quick search a nice button
 todo:truncate the bread crumbs when its too big
@@ -823,3 +823,11 @@ a better way to force quit the function
 changing app state vs routing
 
 *set timeout in js is used for implementing delays,throttling and debouncing.debouncing is mostly used for search box and infinite scroll
+
+*one thing i changed in my update search result was that before,as you know,if a query is long and quick search is on,it will attempt to check for very rough matches without involving fuse and if theres a rough match,it will terminate the search and the results will be displayed.the thing is that you insisted that it should fallback to fuse through the searchutil function if there were no rough matches but if so,it will even be slower than full search if the query wasnt present at that batch.for all we know,the result that the user is looking for may be in another batch and not the current one so wasting resources by falling back to fuse if none was found isnt the best approach i believe.so what i changed it to is that if there werent any rough matches in the batch in quick search mode,it doesnt fallback to search util but rather,it clears the batch and returns so that another batch can be processed.This optimization for quick search will discard a lot of results so using a query length guard when the query is long can ensure that the query is intentional.This ensures prefix matching only activates for longer, more specific queries where prefix matches are likely intentional.
+
+*many modern file managers use indexing for file search and fallback to a full fs search when the search isnt satisfied by the index so they dont provide options for quick or full search.but it has the complexity of being stale.mine uses lazy recursion searching where the search lazily recurses through the directory till it finds the targeted file.depending on the mode,the recursion can be very fast or full but the recursion in general is optimized enough.As it finds matched queries during the recursion,it updates the ui.it doesnt recurse everything first before performing a search.otherwise,there will be a lack of progress and quick search wont be possible because quick search operates on the fly.
+
+indexing
+recursive search
+lazy recursive search,quick search or indexing support
