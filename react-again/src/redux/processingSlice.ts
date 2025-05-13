@@ -617,6 +617,7 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
                         await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,searchedNodes))
                     }
                     await dispatch(searchRecursively(fsNode.primary.nodePath,fsNodes,searchQuery))//read the files of the folder and push that
+                    dispatch(setSrchProgressPath(path));
                 }
             }
         }
