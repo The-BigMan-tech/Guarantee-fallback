@@ -534,11 +534,11 @@ memory theory
 type theory
 error theory
 io theory
-thread safety theory
+Synchronization theory
 immutability theory
 indempotent theory
 test theory
-stale data theory
+Concurrency data theory
 big o notation theory
 
 *stale data theory concerns about the factors that causes the timing of read and write operations to the same data to be misalligned which causes working with inconsistent or outdated data
@@ -855,3 +855,9 @@ truncating a string to an ellipsis (...)
 *the fragment element <></> is used for grouping tags or components in jsx when you dont want the grouping to affect their layout as it is for div and other semantic containers.i use it especially when putting conditional rendring in my code as it has to be under a tag.
 
 *the data you are mutating in a recursion should be outside of the recursion to prevent it from resetting
+
+*so the problem with my function is just the fundamental limit of computing.no computation can consistently or predictable modify a shared state like an array over a recursion.its just isnt possible
+
+*arrays can be used across recursions oly when treated as a whole like in batch processing but when indexing particular values,records are better
+
+*so if a folder has 10 folders,i can show overall progress for each folder that completes but it will be in 10 units because the search doesnt know the number of files under those dir until it recurses through them so their own individual progress will be under their record

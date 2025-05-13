@@ -1,5 +1,5 @@
 import { selector } from "../../redux/hooks"
-import { selectFsNodes,UniqueFsNode,selectSearchResults,selectSearchTermination,searchDir,terminateSearch,selectSearchProgress} from "../../redux/processingSlice"
+import { selectFsNodes,UniqueFsNode,selectSearchResults,selectSearchTermination,searchDir,terminateSearch,selectSearchProgress,SearchProgress} from "../../redux/processingSlice"
 import { FsNode} from "../../utils/rust-fs-interface"
 import FsDisplay from "./fs-display"
 import { useEffect, useMemo } from "react"
@@ -13,7 +13,7 @@ export default function Body() {
     const searchResults:FsNode[] | null = selector(store=>selectSearchResults(store))
     const uniqueSearchResults:UniqueFsNode[] | null = useMemo(()=>searchResults?.map(fsNode=>({id:uniqueID(),fsNode})) || null,[searchResults]);
     const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store));
-    const searchProgress = selector(store=>selectSearchProgress(store));
+    const searchProgress:Record<string,SearchProgress> = selector(store=>selectSearchProgress(store));
     
 
     async function exitSearch() {
@@ -29,24 +29,13 @@ export default function Body() {
         return '...' + str.slice(str.length - (maxLength - 3));
     }
     useEffect(()=>{
-        console.log(`TOTAL NODES TO SEARCH: `,searchProgress?.totalNodes);
-        console.log(`SEARCHED NODES: `,searchProgress?.searchedNodes);
+        console.log("Search progress",JSON.stringify(searchProgress,null,2));
     },[searchProgress])
     return (
         <>
             <div className="h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md">
                 {!(isSearchTerminated)//show the terminate button while its searching
                     ?<>
-                        <div className="absolute top-16 left-[20%] flex items-center justify-center">
-                            {(searchProgress)
-                                ?<>
-                                    <h1>Percent {searchProgress.searchedNodes/searchProgress.totalNodes * 100}%</h1>
-                                    <h1 className="text-[#e49a7b] font-semibold font-sans">Path: </h1>
-                                    <h1 className="font-[Consolas] text-sm">{truncateStart(searchProgress?.path || "",30)}</h1>
-                                </>
-                                :null
-                            }
-                        </div>
                         <button className="cursor-pointer text-[#eaa09b] font-bold absolute top-16 left-[50%]" onClick={quitSearch}>Terminate</button>
                     </>
                     :null
