@@ -36,7 +36,7 @@ export const FsNodeComponent = (props:Props)=> {
         return (shouldUnFreeze)?"opacity-100 cursor-pointer":""
     }
     useEffect(()=>{
-        setShouldUnFreeze(!(loadingMessage.trim().toLowerCase().startsWith("loading")))
+        setShouldUnFreeze(!(loadingMessage.trim().toLowerCase().startsWith("loading")));
     },[loadingMessage])
     return (
         <motion.button

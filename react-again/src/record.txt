@@ -831,3 +831,10 @@ changing app state vs routing
 indexing
 recursive search
 lazy recursive search,quick search or indexing support
+
+^Perf on search checks
+*the difference between quick search and full search on a small folder when full search performed a sort on relevance was 3.123 for quick search at its best and 3.338 for full search at its best.the difference here lies more in the sort than the cheap filter.but without full search performing  a sort,its perf at best was 3.365 while quick search was 3.113 because of the cheap filtering.so quick search outperforms full search with or without sorting but full search normally should sort because its expected so quick search outperforms full search at the cost of inaccuracy
+
+*For small folders, the difference is small but measurable; quick search still outperforms full search.For large datasets, the performance gap will likely widen, making quick search even more valuable for fast feedback.Users expect full search results to be sorted by relevance, so skipping sorting in full search is usually not acceptable so the perf based on sorting is more accurate.so based on this and on a small folder i searched on with a particular query,quick search at best is 3.123 secs while full search at best is 3.338 seconds.when i performed quick search on a long query that is >= 10 chars longs,quick search finished at 1.858 secs at best while full search finished in 2.705 seconds at best while quick search finished at 1.937 secs at worst while full search performed at 2.872 secs at worst
+
+*i believe my quick search is best when you know part of or the entire spelling of a file or folder regardless of case and dot placement because it has a high chance of escaping the aggressive filtering and batch skipping of quick search while full search is when you don't really remember the spelling correctly or if you want similar results to show

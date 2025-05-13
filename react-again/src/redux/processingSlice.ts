@@ -55,6 +55,10 @@ interface  TabCacheInvalidation {
 export type SortingOrder = 'name' | 'date' | 'type' | 'size';
 export type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
 
+interface SearchProgress {
+    path:string,
+    percentageProgress:number
+}
 export interface Message {
     id:string,
     message:string | null
@@ -82,6 +86,7 @@ export interface processingSliceState {//by using null unions instead of optiona
     terminateSearch:boolean,
     quickSearch:boolean,
     searchScores:number[],
+    searchProgress:SearchProgress | null,
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
@@ -107,6 +112,7 @@ const initialState:processingSliceState = {
     searchScores:[],
     terminateSearch:true,
     quickSearch:true,
+    searchProgress:null,
     sortBy:'name',
     viewBy:'details',
     showDetailsPane:true
@@ -170,6 +176,14 @@ export const processingSlice = createSlice({
         setSearchScores(state,action:PayloadAction<number[]>) {
             state.searchScores = action.payload
         },
+        setSearchPercentage(state,action:PayloadAction<number>) {
+            state.searchProgress = state.searchProgress || {path:"",percentageProgress:0}
+            state.searchProgress.percentageProgress = action.payload
+        },
+        setSrchProgressPath(state,action:PayloadAction<string>) {
+            state.searchProgress = state.searchProgress || {path:"",percentageProgress:0};
+            state.searchProgress.path = action.payload
+        },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
             state.error.message = action.payload;
@@ -215,10 +229,13 @@ export const {
     pushToSearch,
     pushToSearchScores,
     setSearchScores,
+    setSearchPercentage,
+    setSrchProgressPath,
     setSortBy,
     setView,
     setShowDetails
 } = processingSlice.actions;
+
 export default processingSlice.reducer;
 export const selectCurrentPath = (store:RootState):string => store.processing.currentPath;
 export const selectTabNames = (store:RootState):string[] => store.processing.tabNames;
@@ -235,6 +252,7 @@ export const selectAheadCachingState = (store:RootState):CachingState => store.p
 export const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
 export const selectSearchTermination = (store:RootState):boolean =>store.processing.terminateSearch;
 export const selectQuickSearch = (store:RootState):boolean=>store.processing.quickSearch;
+export const selectSearchProgress = (store:RootState):SearchProgress | null =>store.processing.searchProgress;
 const selectSearchScores = (store:RootState):number[]=>store.processing.searchScores;
 const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
 
