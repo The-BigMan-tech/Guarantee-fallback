@@ -1,5 +1,5 @@
 import { selector } from "../../redux/hooks"
-import { selectFsNodes,UniqueFsNode,selectSearchResults,selectSearchTermination,searchDir,terminateSearch} from "../../redux/processingSlice"
+import { selectFsNodes,UniqueFsNode,selectSearchResults,selectSearchTermination,searchDir,terminateSearch,selectSearchProgress} from "../../redux/processingSlice"
 import { FsNode} from "../../utils/rust-fs-interface"
 import FsDisplay from "./fs-display"
 import { useMemo } from "react"
@@ -12,8 +12,10 @@ export default function Body() {
     const uniqueFsNodes: UniqueFsNode[] | null = useMemo(() => fsNodes?.map(fsNode=>({ id: uniqueID(),fsNode})) || null, [fsNodes]);
     const searchResults:FsNode[] | null = selector(store=>selectSearchResults(store))
     const uniqueSearchResults:UniqueFsNode[] | null = useMemo(()=>searchResults?.map(fsNode=>({id:uniqueID(),fsNode})) || null,[searchResults]);
-    const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store))
+    const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store));
+    const searchProgress = selector(store=>selectSearchProgress(store));
     
+
     async function exitSearch() {
         await dispatch(searchDir(""));
     }
@@ -24,7 +26,10 @@ export default function Body() {
         <>
             <div className="h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md">
                 {!(isSearchTerminated)//show the terminate button while its searching
-                    ?<button className="cursor-pointer absolute top-16 left-[50%] text-[#eaa09b] font-bold" onClick={quitSearch}>Terminate</button>
+                    ?<div className="absolute top-16 left-[50%] flex gap-3">
+                        <h1>Path: {searchProgress?.path}</h1>
+                        <button className="cursor-pointer text-[#eaa09b] font-bold" onClick={quitSearch}>Terminate</button>
+                    </div>
                     :null
                 }
                 {(uniqueSearchResults)//if the user hasnt inputted any search query

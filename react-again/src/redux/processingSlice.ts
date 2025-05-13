@@ -57,8 +57,11 @@ export type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'co
 
 interface SearchProgress {
     path:string,
-    percentageProgress:number
+    searchedNodes:number,
+    totalNodes:number
 }
+const fallbackSearchProgress = {path:"",searchedNodes:0,totalNodes:0};
+
 export interface Message {
     id:string,
     message:string | null
@@ -176,13 +179,20 @@ export const processingSlice = createSlice({
         setSearchScores(state,action:PayloadAction<number[]>) {
             state.searchScores = action.payload
         },
-        setSearchPercentage(state,action:PayloadAction<number>) {
-            state.searchProgress = state.searchProgress || {path:"",percentageProgress:0}
-            state.searchProgress.percentageProgress = action.payload
+        setSearchedNodes(state,action:PayloadAction<number>) {
+            state.searchProgress = state.searchProgress || fallbackSearchProgress
+            state.searchProgress.searchedNodes += action.payload
+        },
+        setTotalNodesToSearch(state,action:PayloadAction<number>) {
+            state.searchProgress = state.searchProgress || fallbackSearchProgress;
+            state.searchProgress.totalNodes = action.payload
         },
         setSrchProgressPath(state,action:PayloadAction<string>) {
-            state.searchProgress = state.searchProgress || {path:"",percentageProgress:0};
+            state.searchProgress = state.searchProgress || fallbackSearchProgress
             state.searchProgress.path = action.payload
+        },
+        setSearchProgress(state,action:PayloadAction<SearchProgress | null>) {
+            state.searchProgress = action.payload
         },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
@@ -229,8 +239,10 @@ export const {
     pushToSearch,
     pushToSearchScores,
     setSearchScores,
-    setSearchPercentage,
+    setSearchedNodes,
+    setTotalNodesToSearch,
     setSrchProgressPath,
+    setSearchProgress,
     setSortBy,
     setView,
     setShowDetails
@@ -501,9 +513,8 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
 function removeAllDots(str:string):string {
     return str.replace(/\./g, '');
 }
-function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean,totalNodes:number):AppThunk<Promise<void>> {
+function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean,searchedNodes:number[]):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
-        let processedNodes = 0;
         let searchBatchSize = 5;
         if (searchBatchCount > 0) {
             searchBatchSize = 15
@@ -526,8 +537,8 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                         dispatch(pushToSearch(fsNodeInBatch));
                         anyRoughMatches = true
                     }
-                    processedNodes += 1;//increase the progress per node;
-                    dispatch(setSearchPercentage((processedNodes/totalNodes)*100))
+                    searchedNodes[0] += 1
+                    dispatch(setSearchedNodes(searchedNodes[0]));//increase the progress per node since this branch loops over each node in the branch
                 }
             }
             //any rough matches can only have the possibility of being true if quick search is on
@@ -544,8 +555,8 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                 dispatch(searchUtil(fsNodes,searchQuery));
                 fsNodes.length = 0;
                 searchBatchCount += 1;
-                processedNodes += searchBatchSize;//increase the progress per batch
-                dispatch(setSearchPercentage((processedNodes/totalNodes)*100));
+                searchedNodes[0] += searchBatchSize
+                dispatch(setSearchedNodes(searchedNodes[0]));//increase the progress per batch
             }
         }
     }
@@ -565,9 +576,12 @@ export function toggleQuickSearch():AppThunk {
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
 function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
+        dispatch(setSrchProgressPath(path));//set the path of the search progress to the currently processed path
+
         const shouldTerminate:boolean = selectSearchTermination(getState());
         console.log("SHOULD TERMINATE",shouldTerminate);
         if (shouldTerminate) {
+            dispatch(setSearchProgress(null));//set search progress to null when terminated
             return
         }
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(path);
@@ -575,6 +589,8 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
         if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
             const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
             const totalNodes:number = localFsNodes.length;
+            const searchedNodes = [0];//i need to directly mutate it to preserve changes across calls so i wrapped it in an array
+            dispatch(setTotalNodesToSearch(totalNodes));
 
             const quickSearch:boolean = selectQuickSearch(getState());
             console.log("Local fs nodes",localFsNodes);
@@ -585,20 +601,20 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
                     if (quickSearch) {
                         if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
                             console.log("PASSED YOUR FILE TO UPDATE",fsNode.primary.nodePath);
-                            await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,totalNodes))
+                            await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,searchedNodes))
                         }else {console.log("Filtered out the file:",fsNode.primary.nodePath);}
                     }else {//update regardless
-                        await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,totalNodes))
+                        await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,searchedNodes))
                     }
                 }else if (fsNode.primary.nodeType == "Folder") {
                     //i cant do aggressive filter here because the files within the folder will be in custody
                     if (quickSearch) {
                         if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
                             console.log("PASSED YOUR FOLDER TO UPDATE",fsNode.primary.nodePath);
-                            await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,totalNodes))
+                            await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,searchedNodes))
                         }else {console.log("Filtered out the folder");}
                     }else {
-                        await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,totalNodes))
+                        await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,searchedNodes))
                     }
                     await dispatch(searchRecursively(fsNode.primary.nodePath,fsNodes,searchQuery))//read the files of the folder and push that
                 }
@@ -625,7 +641,7 @@ export function searchDir(searchQuery:string):AppThunk<Promise<void>> {
         const currentPath:string = selectCurrentPath(getState());
         const fsNodes:FsNode[] = [];
         await dispatch(searchRecursively(currentPath,fsNodes,searchQuery));
-
+        
         const quickSearch = selectQuickSearch(getState());
         const shouldTerminate:boolean = selectSearchTermination(getState());
         if (!(quickSearch) && !(shouldTerminate)) {
@@ -647,6 +663,7 @@ export function searchDir(searchQuery:string):AppThunk<Promise<void>> {
         toast.dismiss();
         toast.success(`Done searching in ${timeInSeconds} seconds`,{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
         dispatch(setSearchTermination(true));
+        dispatch(setSearchProgress(null));//set the search progress to null by the time im done searching
     }
 }
 export function terminateSearch():AppThunk {
