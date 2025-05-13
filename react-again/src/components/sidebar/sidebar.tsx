@@ -21,7 +21,7 @@ export default function Sidebar({unFreezeStartup}:{unFreezeStartup:()=>string}) 
         if ((unFreezeStartup() !== "opacity-30") && (shouldTerminateSearch)) {
             toast.loading(`Loading the folder ${tabName}`,{...loading_toastConfig,position:"top-right",toastId:"loading-sidebar"});
             setClickedTab(tabId)
-            dispatch(await openDirFromHome(tabName));
+            await dispatch(openDirFromHome(tabName));
         }
     }
     function freezeOnSearch() {

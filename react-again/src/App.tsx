@@ -16,15 +16,15 @@ export default function App() {
     //only open the home dir after the last one has finished so that it can check if the ahead of time caching succeeded or not
     useEffect(()=>{//everything here except for opening the home on startup is an optimization.
         dispatch(loadCache());
-        watchHomeTabs().then(thunk=>dispatch(thunk));
-        cacheAheadOfTime("Recent",false,true).then((thunk)=>dispatch(thunk));
-        cacheAheadOfTime("Downloads",false,true).then((thunk)=>dispatch(thunk));
-        cacheAheadOfTime("Desktop",false,true).then((thunk)=>dispatch(thunk));
-        cacheAheadOfTime("Pictures",false,true).then((thunk)=>dispatch(thunk));
-        cacheAheadOfTime("Videos",false,true).then((thunk)=>dispatch(thunk));
-        cacheAheadOfTime("Documents",false,true).then((thunk)=>dispatch(thunk));
-        cacheAheadOfTime("Music",true,true).then((thunk)=>dispatch(thunk));
-        openDirFromHome("Home").then(thunk=>dispatch(thunk))
+        dispatch(watchHomeTabs());
+        dispatch(cacheAheadOfTime("Recent",false,true))
+        dispatch(cacheAheadOfTime("Downloads",false,true));
+        dispatch(cacheAheadOfTime("Desktop",false,true))
+        dispatch(cacheAheadOfTime("Pictures",false,true))
+        dispatch(cacheAheadOfTime("Videos",false,true))
+        dispatch(cacheAheadOfTime("Documents",false,true))
+        dispatch(cacheAheadOfTime("Music",true,true))
+        dispatch(openDirFromHome("Home"))//it will cache the home tab ahead of time after loading
     },[dispatch])
 
     return (

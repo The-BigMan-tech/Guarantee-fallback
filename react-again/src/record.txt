@@ -721,8 +721,8 @@ search batch optimization:The batch is small at first for responsiveness and the
 quick search--does early termination on long queries
 quick search doesnt sort results,full search does
 make the quick search a nice button
-todo:fix the overflow of the breadcrumbs
-todo:refactor to the simpler pattern of async thunks
+todo:truncate the bread crumbs when its too big
+todo:debounce the enter
 
 
 i need to sort the array by files first before folder
@@ -820,3 +820,7 @@ accumulate result
 a better way to force quit the function
 
 *i cleared the scores immediately afer the paired result because the ui doesnt react to it so i was attempting to free memory early but despite the micro optimzation,i should dispatch it after for clarity and readability that im not using the state only after sorting.It minimizes the risk of subtle bugs if any UI or middleware unexpectedly depends on scores during or after sorting.The performance difference is typically negligible unless you’re working with extremely large datasets or very tight memory constraints.
+
+changing app state vs routing
+
+*set timeout in js is used for implementing delays,throttling and debouncing.debouncing is mostly used for search box and infinite scroll

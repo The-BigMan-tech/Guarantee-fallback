@@ -15,7 +15,7 @@ export default function Body() {
     const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store))
     
     async function exitSearch() {
-        dispatch(await searchDir(""));
+        await dispatch(searchDir(""));
     }
     function quitSearch() {
         dispatch(terminateSearch());
@@ -29,7 +29,7 @@ export default function Body() {
                 }
                 {(uniqueSearchResults)//if the user hasnt inputted any search query
                     ?<>
-                        {(uniqueSearchResults.length)//if the matched searches are empty
+                        {(uniqueSearchResults.length)//if the matched searches are not empty
                             ?<div className="flex flex-col items-center pb-10 h-full">
                                 {(isSearchTerminated)
                                     ?<button className="cursor-pointer absolute top-16 text-[#9beaea] font-bold" onClick={exitSearch}>Clear search results</button>

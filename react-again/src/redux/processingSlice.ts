@@ -240,7 +240,7 @@ const selectSearchScores = (store:RootState):number[]=>store.processing.searchSc
 const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
 
 
-export async function returnFileContent(filePath:string):Promise<AppThunk<Promise<string | null>>> {//returns the file with its content read
+export function returnFileContent(filePath:string):AppThunk<Promise<string | null>> {//returns the file with its content read
     return async (dispatch):Promise<string | null> =>{
         const fileName = await base_name(filePath,false);
         dispatch(setLoadingMessage(`Loading the file: ${fileName}`))
@@ -310,7 +310,7 @@ function openCachedDirInApp(folderPath:string):AppThunk {
         dispatch(setFsNodes([]))//ensures that clicking on another tab wont show the previous one while loading to not look laggy
     }
 }
-export async function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean,affectOpacity:boolean):Promise<AppThunk>{
+export function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean,affectOpacity:boolean):AppThunk<Promise<void>>{
     return async (dispatch)=>{
         if (affectOpacity) {
             dispatch(setAheadCachingState('pending'))
@@ -408,13 +408,12 @@ function updateUI(value:(Promise<FsNode>)[]):AppThunk<Promise<FsNode[]>> {
 export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
+        const folderName:string = await base_name(folderPath,true);
+        dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));//the loading message freezes the ui
         dispatch(openCachedDirInApp(folderPath));
+        dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
         dispatch(setSearchResults(null))//to clear search results
         
-        const folderName:string = await base_name(folderPath,true);
-        dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
-        dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));//the loading message freezes the ui
-
         if (dispatch(cacheIsValid(folderName))) {
             console.log("CACHE IS VALID");
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
@@ -440,13 +439,13 @@ export async function openDirectoryInApp(folderPath:string):Promise<AppThunk> {/
         // dispatch(setLoadingMessage(null))//to clear the loading message so that the unfreeze state resets back to false after an operation has finished loaded
     }
 }
-export async function openParentInApp():Promise<AppThunk> {
+export function openParentInApp():AppThunk<Promise<void>> {
     return async (dispatch)=>{
         const parentPathResult:string = dispatch(getParent());
         dispatch(await openDirectoryInApp(parentPathResult))
     }
 }
-export async function openDirFromHome(tabName:string):Promise<AppThunk> {
+export function openDirFromHome(tabName:string):AppThunk<Promise<void>> {
     return async (dispatch)=> {
         const folderPath:string = await join_with_home(tabName)
         dispatch(await openDirectoryInApp(folderPath))
@@ -497,7 +496,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         fsNodes.push(fsNode)//push the files
         if (fsNodes.length >= searchBatchSize || (isLastFsNode)) {
             //This early termination is done at the batch level
-            let anyExactMatches:boolean = false
+            let anyRoughMatches:boolean = false
             const quickSearch:boolean = selectQuickSearch(getState());
             for (const fsNodeInBatch of fsNodes) {
                 const trimmedNode = removeAllDots(fsNodeInBatch.primary.nodeName.trim().toLowerCase());//making it insensitive to file extensions because the node can be a folder or a file and he search query can target either depending on whether an extension was included or not
@@ -507,11 +506,11 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                 if ((quickSearch) && (searchQuery.length >= 10) && isExactMatch) {
                     console.log("Found early result!!");
                     dispatch(pushToSearch(fsNodeInBatch));
-                    anyExactMatches = true
+                    anyRoughMatches = true
                 }
             }
             //any exact matches can only have the possibility of being true if quick search is on
-            if (anyExactMatches) {//i believe that this means that when it reaches the last node of the batch,it will check if there were any exact matches.if so,terminate and return else,proceed with fuzzy search
+            if (anyRoughMatches) {//i believe that this means that when it reaches the last node of the batch,it will check if there were any exact matches.if so,terminate and return else,proceed with fuzzy search
                 console.log("Terminated early!!");
                 dispatch(setSearchTermination(true));
                 fsNodes.length = 0;//prevents stale data
@@ -578,7 +577,7 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
         }
     }
 }
-export async function searchDir(searchQuery:string):Promise<AppThunk> {
+export function searchDir(searchQuery:string):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
         console.log("SEARCH QUERY LENGTH",searchQuery.length);
         dispatch(setSearchTermination(false));
@@ -641,7 +640,7 @@ function isRemove(kind: WatchEventKind): kind is { remove: WatchEventKindRemove 
     return typeof kind === 'object' && 'remove' in kind;
 }
 
-export async function watchHomeTabs():Promise<AppThunk> {
+export function watchHomeTabs():AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
         console.log("CALLED FILE WATCHER");
         dispatch(setFsNodes([]))
@@ -668,14 +667,14 @@ export async function watchHomeTabs():Promise<AppThunk> {
                         const tabName:AllTabTypes = await base_name(parent,true) as AllTabTypes;
                         dispatch(invalidateTabCache({tabName}));
                         if (tabName == "Home") {//auto reload the home page if its opened because my function wasnt built to load the home page ahead of time in mind because its the first page that loads when you open the app
-                            dispatch(await openDirFromHome("Home"))
+                            await dispatch(openDirFromHome("Home"))
                         }else {
                             const currentPathBase:StrictTabsType = await base_name(currentPath,false) as StrictTabsType
                             if (currentPathBase == tabName) {//auto reload if the tab is currently opened
-                                dispatch(await openDirFromHome(tabName))
+                                await dispatch(openDirFromHome(tabName))
                             }else {//auto reload the tab in the background ahead of time.reloading it in the background is very fast because if no ui updates
                                 dispatch(setLoadingMessage("Changes detected.Refreshing the app in the background."))
-                                dispatch(await cacheAheadOfTime(tabName,true,false));
+                                await dispatch(cacheAheadOfTime(tabName,true,false));
                                 dispatch(setLoadingMessage("Done refreshing the app"))
                             }
                         }

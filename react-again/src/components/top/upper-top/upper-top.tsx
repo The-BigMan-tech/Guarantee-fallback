@@ -18,7 +18,7 @@ export default function UpperTop() {
     const searchResults:FsNode[] | null = selector(store=>selectSearchResults(store))
 
     async function goToParent() {
-        await dispatch(await openParentInApp())
+        await dispatch(openParentInApp())
     }
     function shouldRenderArrow():boolean {
         const pathName = currentPath.slice(currentPath.lastIndexOf("\\") + 1);
@@ -39,19 +39,29 @@ export default function UpperTop() {
     function listenToQuery(event:ChangeEvent<HTMLInputElement>) {
         setSearchQuery(event.target.value)
     }
-    async function search(query:string) {
+    function search(query:string) {
         toast.loading("Loading your search",{...loading_toastConfig,position:"bottom-right"})
         if (query.length == 1) {
             toast.info("Query is too short",{...toastConfig,toastId:"inf"})
             toast.dismiss("loading")
         }else {
             toast.dismiss("inf")
-            dispatch(await searchDir(query));
+            dispatch(searchDir(query));
         }
+    }
+    function debounceSearch(wait:number) {
+        let timeout:NodeJS.Timeout;
+        return ()=>{
+            clearTimeout(timeout);
+            timeout = setTimeout(()=>{
+                search(searchQuery)
+            },wait);
+        };
     }
     async function enterSearch(event:KeyboardEvent<HTMLInputElement>) {
         if (event.key === 'Enter') {
-            await search(searchQuery)
+            const debouncedSearch = debounceSearch(5000);
+            debouncedSearch();
         }
     }
     function toggleQuickSearching() {
@@ -60,7 +70,7 @@ export default function UpperTop() {
     useEffect(()=>{
         const replacedPath = currentPath.replace(/.*\\AppData\\Roaming\\Microsoft\\Windows\\Recent/,"Recent");
         const breadCrumbs = replacedPath.split("\\");
-        setBreadCrumbs(breadCrumbs)
+        setBreadCrumbs(breadCrumbs);
         setSearchQuery("")
     },[currentPath])  
     useEffect(()=>{
@@ -88,7 +98,7 @@ export default function UpperTop() {
                         </div>
                     ))}
                 </div>
-                <div className="absolute right-32 flex gap-8 items-center">
+                <div className="absolute right-24 flex gap-8 items-center">
                     <input className="bg-[#5576c852] text-white outline-none py-1 pl-3 rounded-4xl font-robot-regular w-64" value={searchQuery} onChange={(event)=>listenToQuery(event)} onKeyDown={(event)=>enterSearch(event)}  type="text" placeholder="Your search here"/>
                     <label className="label cursor-pointer gap-2 flex items-center">
                         <span className="label-text text-[#b6deef] font-bold">Quick search</span>
