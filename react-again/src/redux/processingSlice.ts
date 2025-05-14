@@ -567,10 +567,11 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                     const lastThreshold = progress.lastThreshold;
                     const percent = (progress.searchedNodes / progress.totalNodes) * 100;
                     console.log("PATH",path,"PERCENT",percent);
-                    // Find highest threshold <= percent
                     const currentThreshold = thresholds.filter(t => t <= percent).reduce((max, t) => (t > max ? t : max), 0);
                     if (currentThreshold > lastThreshold) {
-                        Promise.resolve().then(()=>dispatch(updateProgressThreshold({path,lastThreshold:currentThreshold})))
+                        setTimeout(()=>{
+                            dispatch(updateProgressThreshold({path,lastThreshold:currentThreshold}))
+                        },0)
                     }else {
                         dispatch(updateProgressThreshold({path,lastThreshold:currentThreshold}))
                     }

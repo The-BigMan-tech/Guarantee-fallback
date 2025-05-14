@@ -540,6 +540,7 @@ indempotency theory
 test theory
 Concurrency data theory-stale reads and race conditions
 debugging theory--step through/detail hunting debugging,dismantling debugging
+reactivity and state theory
 big o notation theory
 
 *stale data theory concerns about the factors that causes the timing of read and write operations to the same data to be misalligned which causes working with inconsistent or outdated data
@@ -982,5 +983,7 @@ the more hallmarks,the more progressive the bars but the slower the app.balance 
 strict equality
 threshold crossing
 ranging
+milestone progress
 
 *for small folders, it’s normal and expected that you go straight to 100%. There simply aren’t enough nodes to hit intermediate thresholds.
+
