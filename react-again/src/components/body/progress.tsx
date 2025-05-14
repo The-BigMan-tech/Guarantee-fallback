@@ -14,18 +14,8 @@ export default function Progress({searchProgress}:{searchProgress:Record<string,
         console.log("Hello progress component");
     },[searchProgress])
     return (
-        <div className="flex flex-col w-[30%] border border-red-400 h-[94%] relative top-3 overflow-y-scroll overflow-x-hidden">
-            {Object.entries(searchProgress).length === 0 
-                ?<p>No active search progress.</p>
-                :<div className="flex flex-col text-sm gap-5 ">
-                    {Object.entries(searchProgress).map(([path, progress]) => 
-                        <div key={path}>
-                            <h1>Current path: {truncateStart(path,20)}</h1>
-                            <h1>Progress: {progress.lastThreshold}</h1>
-                        </div>
-                    )}
-                </div>
-            }
+        <div className="flex flex-col bg-[#141428] w-[20%]">
+            <h1>Hello progress</h1>
         </div>
     )
 }
