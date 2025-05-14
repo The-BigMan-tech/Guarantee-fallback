@@ -502,6 +502,7 @@ function removeAllDots(str:string):string {
 }
 function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:string,isQueryLong:boolean):AppThunk<boolean> {
     return (dispatch):boolean=>{
+        //This early termination is done at the batch level
         if (quickSearch) {//only performing this loop if quick search is on.it will be a waste if it runs on full search
             for (const fsNodeInBatch of fsNodes) {
                 const trimmedNode = removeAllDots(fsNodeInBatch.primary.nodeName.trim().toLowerCase());//making it insensitive to file extensions because the node can be a folder or a file and he search query can target either depending on whether an extension was included or not
@@ -544,9 +545,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         console.log("SEARCH BATCH SIZE FOR FSNODES",searchBatchSize,"FSNODES",fsNodes);
         fsNodes.push(fsNode)//push the files
         if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
-            //This early termination is done at the batch level
-            let anyRoughMatches:boolean = false
-            anyRoughMatches = dispatch(longQueryOptimization(quickSearch,fsNodes,searchQuery,isQueryLong))
+            const anyRoughMatches:boolean = dispatch(longQueryOptimization(quickSearch,fsNodes,searchQuery,isQueryLong))
             if (anyRoughMatches) {//i believe that this means that when it reaches the last node of the batch,it will check if there were any exact matches.if so,terminate and return else,proceed with fuzzy search
                 console.log("Terminated early!!");
                 dispatch(setSearchTermination(true));
@@ -559,10 +558,11 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                 return
             }else {
                 dispatch(searchUtil(fsNodes,searchQuery));
+                dispatch(updateProgress(quickSearch,fsNodes.length,path))
+                searchBatchCount += 1;
+                fsNodes.length = 0//prevents stale data
+                return
             }
-            dispatch(updateProgress(quickSearch,fsNodes.length,path))
-            searchBatchCount += 1;
-            fsNodes.length = 0//prevents stale data
         }
     }
 }
