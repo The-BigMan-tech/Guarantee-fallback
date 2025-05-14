@@ -987,3 +987,4 @@ milestone progress
 
 *for small folders, it’s normal and expected that you go straight to 100%. There simply aren’t enough nodes to hit intermediate thresholds.
 
+*In languages like Rust and Python, where asynchronous concurrency is not the default or native model, stale updates and subtle bugs related to concurrency typically arise only when you explicitly use threading or async features.

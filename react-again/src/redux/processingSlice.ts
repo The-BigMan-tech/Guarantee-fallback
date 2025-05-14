@@ -563,7 +563,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                 if (!quickSearch) {//only do progress on full search
                     dispatch(addToSearchedNodes({path,searchedNodes:nodeCount}))
                     const progress:SearchProgress = selectSearchProgress(getState())[path]
-                    const thresholds = [25, 55, 85, 100];
+                    const thresholds = [20, 45, 75, 85, 100];
                     const lastThreshold = progress.lastThreshold;
                     const percent = (progress.searchedNodes / progress.totalNodes) * 100;
                     console.log("PATH",path,"PERCENT",percent);
