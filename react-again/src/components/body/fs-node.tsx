@@ -3,11 +3,15 @@ import { useAppDispatch,selector} from "../../redux/hooks"
 import { openDirectoryInApp,selectLoadingMessage} from "../../redux/processingSlice";
 import { useEffect, useState} from "react";
 import {motion} from "motion/react"
+import { memo } from "react";
 
+function areEqual(prevProps: Props, nextProps: Props) {
+    return prevProps.fsNode == nextProps.fsNode
+}
 interface Props {
     fsNode:FsNode
 }
-export const FsNodeComponent = (props:Props)=> {
+export const FsNodeComponent = memo((props:Props)=> {
     const dispatch = useAppDispatch();
     const loadingMessage:string  = selector(store=>selectLoadingMessage(store)) || "";
     const [shouldUnFreeze,setShouldUnFreeze] = useState<boolean>(false);
@@ -50,4 +54,4 @@ export const FsNodeComponent = (props:Props)=> {
                 <h1 className="text-sm font-sans mb-5">{truncateName(props.fsNode.primary.nodeName)}</h1>
         </motion.button>
     )
-}
+},areEqual)
