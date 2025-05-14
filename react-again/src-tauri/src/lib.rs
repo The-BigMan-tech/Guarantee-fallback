@@ -32,8 +32,15 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+#[derive(serde::Serialize,serde::Deserialize)]
+#[serde(rename_all = "lowercase")] 
+pub enum SortOrder {
+    Arbitrary,
+    Alphabetical,
+    Date, // Sort by modified date, oldest to newest
+}
 #[command]
-fn read_dir(dir_path: String) -> Result<Vec<PathBuf>, String> {
+fn read_dir(dir_path: String,order:SortOrder) -> Result<Vec<PathBuf>, String> {
     println!("I was invoked from JavaScript!");
     let entries: fs::ReadDir = fs::read_dir(&dir_path).map_err(|e| e.to_string())?;
     let mut file_paths: Vec<PathBuf> = Vec::new();
@@ -41,6 +48,25 @@ fn read_dir(dir_path: String) -> Result<Vec<PathBuf>, String> {
         match entry {
             Ok(entry) => file_paths.push(entry.path()),
             Err(e) => return Err(e.to_string()), // Handle entry error
+        }
+    }
+    match order {
+        SortOrder::Arbitrary => {
+            // Do nothing, keep the original order
+            println!("Arbritrary order selected")
+        }
+        SortOrder::Alphabetical => {
+            file_paths.sort_by_key(|path| path.file_name().map(|name| name.to_os_string()));
+            println!("Alphabetical order selected")
+        }
+        SortOrder::Date => {
+            // Sort by modified date, oldest first
+            println!("Date order selected")
+            file_paths.sort_by_key(|path| {
+                fs::metadata(path)
+                    .and_then(|meta| meta.modified())
+                    .unwrap_or(SystemTime::UNIX_EPOCH)
+            });
         }
     }
     Ok(file_paths) // Return the collected file paths

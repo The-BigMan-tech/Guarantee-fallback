@@ -536,9 +536,10 @@ error theory
 io theory
 Synchronization theory
 immutability theory
-indempotent theory
+indempotency theory
 test theory
-Concurrency data theory
+Concurrency data theory-stale reads and race conditions
+debugging theory--step through/detail hunting debugging,dismantling debugging
 big o notation theory
 
 *stale data theory concerns about the factors that causes the timing of read and write operations to the same data to be misalligned which causes working with inconsistent or outdated data
@@ -884,3 +885,12 @@ Your use of version control to incrementally rebuild complexity after isolating 
 
 passing redux state across function calls will save perf instead of reselcting
 passing an object is unnecessary and can cuase perf if you only need one part of it in the calling function.pass that part instead.
+
+
+arbritary order
+alphabetical order
+modified date order
+
+*the cost of pre sorting this is a bit of performance but rust sorting should make this time negligible even on larger data sets.its worth seeing the result earlier in the search and if they do,the users can terminate the search from searching further.the time it would have taken to search further may even be significantly larger than sorting not to mention the sorting is in rust.so this is an optimization on both quick and full search while other actions like opening the dir can be in arbritary order
+
+*i think ill leave the score sorting in js for now until i see a real perf bottleneck.cuz the rust part is a bit ocomplex to read and mange the genric

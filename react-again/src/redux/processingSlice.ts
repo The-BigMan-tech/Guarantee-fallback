@@ -332,7 +332,7 @@ export function cacheAheadOfTime(tabName:StrictTabsType,isLast:boolean,affectOpa
             dispatch(setAheadCachingState('pending'))
         }
         const folderPath = await join_with_home(tabName);
-        const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath);
+        const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath,'arbitrary');
         if (!(dirResult.value instanceof Error) && (dirResult.value !== null)) {//i only care about the success case here because the operation was initiated by the app and not the user and its not required to succeed for the user to progress with the app
             const fsNodes:FsNode[] = await Promise.all(dirResult.value);
             dispatch(addToCache({path:folderPath,data:fsNodes},tabName));
@@ -435,7 +435,7 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             return
         }
-        const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath);//its fast because it doesnt load the file content
+        const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath,'arbitrary');//its fast because it doesnt load the file content
         if (dirResult.value instanceof Error) {
             dispatch(setFsNodes(null))//to ensure that they dont interact with an unstable folder in the ui
             dispatch(setError(`The error:"${dirResult.value.message}" occured while loading the dir: "${folderPath}"`));
@@ -540,7 +540,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         const isQueryLong:boolean = searchQuery.length >= 10
         let searchBatchSize = 5;//with this,i wont need the or islastnode check
         if (searchBatchCount > 0) {
-            searchBatchSize = 15
+            searchBatchSize = 20
         }
         console.log("SEARCH BATCH SIZE FOR FSNODES",searchBatchSize,"FSNODES",fsNodes);
         fsNodes.push(fsNode)//push the files
@@ -586,13 +586,14 @@ function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void
         if (shouldTerminate) {
             return
         }
-        const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(path);
+        const quickSearch:boolean = selectQuickSearch(getState());
+        const order = (quickSearch)?'alphabetical':'date'
+        const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(path,order);
         console.log("DIR RESULT",dirResult.value);
         if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
             const fsNodes:FsNode[] = []
             const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
             const totalNodes:number = localFsNodes.length;
-            const quickSearch:boolean = selectQuickSearch(getState());
             console.log("Local fs nodes",localFsNodes);
             if (!quickSearch) {
                 dispatch(setProgress({
@@ -664,7 +665,7 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
             if (searchResults.length > 0 && (searchResults.length === resultScores.length)) {//i believe this will only fail when theres no search result
                 const pairedResults = searchResults.map((node, i) => ({node,score: resultScores[i]}));
                 pairedResults.sort((a, b) => a.score - b.score);
-                const sortedResults = pairedResults.map(pair => pair.node);
+                const sortedResults = pairedResults.map(pair => pair.node);//safer,clearer and optimized enough to return each node as a copy into the array rather than directly mutating paired results in an attemp to save memory
                 dispatch(setSearchResults(sortedResults));
                 dispatch(setSearchScores([]));
                 console.log("sorted the search results");
