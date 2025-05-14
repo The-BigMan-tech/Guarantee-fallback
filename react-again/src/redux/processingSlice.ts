@@ -519,6 +519,20 @@ function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:
         return false
     }
 }
+function updateProgress(quickSearch:boolean,nodeCount:number,path:string):AppThunk {
+    return (dispatch,getState)=>{
+        if (!quickSearch) {//only do progress on full search
+            const progress:SearchProgress = selectSearchProgress(getState())[path]
+            dispatch(setProgress({
+                key:path,
+                progress:{
+                    totalNodes:progress.totalNodes,
+                    searchedNodes:progress.searchedNodes + nodeCount
+                }
+            }))
+        }
+    }
+}
 function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean,path:string):AppThunk {
     return (dispatch,getState)=>{
         const quickSearch:boolean = selectQuickSearch(getState());
@@ -546,16 +560,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
             }else {
                 dispatch(searchUtil(fsNodes,searchQuery));
             }
-            if (!quickSearch) {//only do progress on full search
-                const progress:SearchProgress = selectSearchProgress(getState())[path]
-                dispatch(setProgress({
-                    key:path,
-                    progress:{
-                        totalNodes:progress.totalNodes,
-                        searchedNodes:progress.searchedNodes + fsNodes.length
-                    }
-                }))
-            }
+            dispatch(updateProgress(quickSearch,fsNodes.length,path))
             searchBatchCount += 1;
             fsNodes.length = 0//prevents stale data
         }
