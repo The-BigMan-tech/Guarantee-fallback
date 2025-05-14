@@ -971,6 +971,16 @@ the more hallmarks,the more progressive the bars but the slower the app.balance 
 
 *so this means that redux reducers should be pure and indempotent relative to the app state
 
-*so the problem is that using strict equality is fragile because of floating point,i cant use >= because it will return true for all intermediate values above the first threshold so i think the best approach is a range.so it wont be discrete thresholds like 20,50,100 but ranged thresholds like 0-20,40-60,80-100,.if i use ranges,they must be padded to ensure that it doesnt become <=100 scenario which will always return true
+*so the problem is that using strict equality is fragile because of floating point,i cant use >= which means when crossing an upper bound because it will return true for all intermediate values above the first threshold so i think the best approach is a range.so it wont be discrete thresholds like 20,50,100 but ranged thresholds like 0-20,40-60,80-100,.if i use ranges,they must be padded to ensure that it doesnt become <=100 scenario which will always return true.
 
-*You use .some() instead of .forEach() when you want to stop iterating early as soon as a condition is met, because:.some() stops and returns true immediately when its callback returns a truthy value..forEach() always iterates over all elements and cannot be stopped or broken out of early (except by throwing an exception).This means .some() is more efficient when you only need to check if any element satisfies a condition and want to avoid unnecessary iterations.
+*You use .some() instead of .forEach() when you want to stop iterating early as soon as a condition is met, because:.some() stops and returns true immediately when its callback returns a truthy value..forEach() always iterates over all elements and cannot be stopped or broken out of early (except by throwing an exception).This means .some() is more efficient when you only need to check if any element satisfies a condition and want to avoid unnecessary iterations.so it only requires the last threshold not because it will unnecessarily update the search progress twice for the same path making the data be false and inconsistent
+
+*so its because im using range,im using last threhold tracking.in an ideal scenario,thresholds should be at strict equality but in practice ,this is the best approach unless you want to round it but multiple numbers can round to the same value and can cause duplicates but last threshold tracking can prevent that here so the true reason why we dont go for the easy way to reach the ideal solution through rounding because values that are very close to the threshold may round off it even a little missing the threshold like 50.5 will round to 51 but there is no threshiold for 51.so the reason why my code failed before was because i was thinking of it working under ideal conditions
+
+*so code that looks logically sound will misbehave just because they were made under the assumption of ideal conditions.so there are ideal conditions,practical conditions and edge cases.making your code under the mind of ideal conditions may or may not cause it to break.its a small chance based on the circumstances but making your code with practical conditions in mind ensures that your code behaves correctly in a wide array of cirucmstances.only that small 2-5% are edge cases
+
+strict equality
+threshold crossing
+ranging
+
+*for small folders, it’s normal and expected that you go straight to 100%. There simply aren’t enough nodes to hit intermediate thresholds.
