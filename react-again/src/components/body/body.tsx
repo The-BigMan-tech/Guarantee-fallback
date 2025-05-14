@@ -2,7 +2,7 @@ import { selector } from "../../redux/hooks"
 import { selectFsNodes,UniqueFsNode,selectSearchResults,selectSearchTermination,searchDir,terminateSearch,selectSearchProgress,SearchProgress} from "../../redux/processingSlice"
 import { FsNode} from "../../utils/rust-fs-interface"
 import FsDisplay from "./fs-display"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState,useTransition } from "react"
 import {v4 as uniqueID} from "uuid"
 import { useAppDispatch } from "../../redux/hooks"
 import Progress from "./progress"
@@ -16,7 +16,9 @@ export default function Body() {
     const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store));
     const searchProgress:Record<string,SearchProgress> = selector(store=>selectSearchProgress(store));
     const [thereIsProgress] = useState<boolean>(Object.keys(searchProgress).length > 0)
-    const [showProgressWin,setShowProgressWin] = useState<boolean>(true)
+    const [showProgressWin,setShowProgressWin] = useState<boolean>(true);
+    const [displayedSearchResults, setDisplayedSearchResults] = useState<UniqueFsNode[] | null>(null);
+    const [isPending, startTransition] = useTransition();
 
     async function exitSearch() {
         await dispatch(searchDir("",0));
@@ -42,6 +44,15 @@ export default function Body() {
     useEffect(()=>{
         console.log("Search progress",JSON.stringify(searchProgress,null,2));
     },[searchProgress])
+    useEffect(() => {
+        if (uniqueSearchResults) {
+            startTransition(() => {
+                setDisplayedSearchResults(uniqueSearchResults);
+            });
+        } else {
+            setDisplayedSearchResults(null);
+        }
+    }, [uniqueSearchResults]);
     return (
         <>
             <div className="h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md">
@@ -49,15 +60,18 @@ export default function Body() {
                     ?<button className="cursor-pointer text-[#eaa09b] font-bold absolute top-16 left-[50%]" onClick={quitSearch}>Terminate</button>
                     :null
                 }
-                {(uniqueSearchResults)//if the user hasnt inputted any search query because no query means no results
+                {(displayedSearchResults)//if the user hasnt inputted any search query because no query means no results
                     ?<>
-                        {(uniqueSearchResults.length)//if the matched searches are not empty
+                        {(displayedSearchResults.length)//if the matched searches are not empty
                             ?<div className="flex flex-col items-center pb-10 h-full">
                                 {(isSearchTerminated)
                                     ?<button className="cursor-pointer absolute top-16 text-white font-bold" onClick={exitSearch}>Clear search results</button>
                                     :null
                                 }
-                                <FsDisplay {...{uniqueFsNodes:uniqueSearchResults,width:widthOnProgress(),toggleProgressWin,thereIsProgress}}/>
+                                {isPending
+                                    ?<div>Loading search results...</div>
+                                    :<FsDisplay {...{uniqueFsNodes:displayedSearchResults,width:widthOnProgress(),toggleProgressWin,thereIsProgress}}/>
+                                }
                             </div>
                             :<>
                                 {(isSearchTerminated)

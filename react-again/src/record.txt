@@ -726,6 +726,7 @@ quick search doesnt show progress
 make the quick search a nice button
 pre sorting based on mode to increase the chance of seeing your result early
 breadth first recursion over depth first
+useTransition optimizations
 todo:truncate the bread crumbs when its too big
 
 
@@ -912,7 +913,19 @@ selective web workers for recursive search.cam be applied to the heaviest part o
 score sorting implemented in rust
 indexing
 caching terminated searches only so that if searched again,it can continue where it left off
-so my search could have been a second or instantly for all we know if not for the ui.so to optimize,i have to throttle ui updates,memoize components,restructure my components for isolated re-renders,offload ui updates to web workers or most effectively,virtualization
+
+^UI OPTIMIZATIONS
+Redux web workers
+Memoization
+Throttled reducers
+Breaking down components
+Virtualization
+useTransition
+decoupling the redux state to a local state in a react component that is under a transition
+
+*so if i want to tranistion a redux state in a component,i should create a separate state that is of the same type and under a useeffect,whenever the redux state changes,i update the state under a transition.ill use this to render instead of the redux state directly
+
+*so my search could have been a second or instantly for all we know if not for the ui.so to optimize,i have to throttle ui updates,memoize components,restructure my components for isolated re-renders,offload ui updates to web workers or most effectively,virtualization,useTransition
 
 virtualization with react window and throttling
 
@@ -933,3 +946,8 @@ algortithm optimization--time and memoy optimizations
 code optimization
 
 *i just realized that ui affects the speed of the search cuz if the search updates the ui,the ui has to repsond to that change before the search proceeds.because i added more ui elements for showing progress,it directly affected the search time by a second
+
+computation vs rendering
+eagerly computed but lazily rendered
+
+*i think for my use case,using use transition without throttling is better because depending on the folder thats being searched in,results may not come too often and delaying results when they do come when they are very little will damage ux.with use transition,i get 0.1 -0.2 seconds difference than without it on a small folder with a short query.so as the folder gets larger,i believe the benefit will increase
