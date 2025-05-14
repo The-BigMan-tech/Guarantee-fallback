@@ -15,7 +15,7 @@ export default function Body() {
     const uniqueSearchResults:UniqueFsNode[] | null = useMemo(()=>searchResults?.map(fsNode=>({id:uniqueID(),fsNode})) || null,[searchResults]);
     const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store));
     const searchProgress:Record<string,SearchProgress> = selector(store=>selectSearchProgress(store));
-    const [thereIsProgress] = useState<boolean>(Object.keys(searchProgress).length > 0)
+    const [thereIsProgress,setThereIsProgress] = useState<boolean>(false)
     const [showProgressWin,setShowProgressWin] = useState<boolean>(true);
     const [displayedSearchResults, setDisplayedSearchResults] = useState<UniqueFsNode[] | null>(null);
     const [isPending, startTransition] = useTransition();
@@ -36,13 +36,14 @@ export default function Body() {
         return thereIsProgress && showProgressWin
     }
     function widthOnProgress():string {
-        return (openProgressWindow())?'w-[75%]':'w-[99%]'
+        return (openProgressWindow())?'w-[75%]':'w-[90%]'
     }
     function toggleProgressWin() {
         setShowProgressWin(!showProgressWin)
     }
     useEffect(()=>{
         console.log("Search progress",JSON.stringify(searchProgress,null,2));
+        setThereIsProgress(Object.keys(searchProgress).length > 0);
     },[searchProgress])
     useEffect(() => {
         if (uniqueSearchResults) {
@@ -55,7 +56,7 @@ export default function Body() {
     }, [uniqueSearchResults]);
     return (
         <>
-            <div className="h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md">
+            <div className={`h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md ${widthOnProgress()}`}>
                 {!(isSearchTerminated)//show the terminate button while its searching
                     ?<button className="cursor-pointer text-[#eaa09b] font-bold absolute top-16 left-[50%]" onClick={quitSearch}>Terminate</button>
                     :null
@@ -70,7 +71,7 @@ export default function Body() {
                                 }
                                 {isPending
                                     ?<div>Loading search results...</div>
-                                    :<FsDisplay {...{uniqueFsNodes:displayedSearchResults,width:widthOnProgress(),toggleProgressWin,thereIsProgress}}/>
+                                    :<FsDisplay {...{uniqueFsNodes:displayedSearchResults,toggleProgressWin,thereIsProgress}}/>
                                 }
                             </div>
                             :<>
@@ -82,13 +83,13 @@ export default function Body() {
                             
                         }
                     </>
-                    :<FsDisplay {...{uniqueFsNodes,width:widthOnProgress(),toggleProgressWin,thereIsProgress}}/>
-                }
-                {(openProgressWindow())
-                    ?<Progress {...{searchProgress}}/>
-                    :null
+                    :<FsDisplay {...{uniqueFsNodes,toggleProgressWin,thereIsProgress}}/>
                 }
             </div>
+            {(openProgressWindow())
+                ?<Progress {...{searchProgress}}/>
+                :null
+            }
         </>
     )
 }

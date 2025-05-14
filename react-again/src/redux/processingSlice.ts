@@ -653,7 +653,8 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         if (searchQuery.length == 0) {
             toast.dismiss("loading");
             dispatch(setSearchResults(null));
-            dispatch(setSearchTermination(true))
+            dispatch(setSearchTermination(true));
+            dispatch(setWholeSearchProgress({}));
             return
         }
         const currentPath:string = selectCurrentPath(getState());
@@ -680,7 +681,6 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         toast.dismiss();
         toast.success(`Done searching in ${timeInSeconds} seconds`,{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
         dispatch(setSearchTermination(true));
-        dispatch(setWholeSearchProgress({}))
     }
 }
 export function terminateSearch():AppThunk {

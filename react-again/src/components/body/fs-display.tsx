@@ -3,19 +3,18 @@ import { UniqueFsNode } from "../../redux/processingSlice"
 
 interface Props {
     uniqueFsNodes:UniqueFsNode[] | null,
-    width:string,
     thereIsProgress:boolean,
     toggleProgressWin:()=>void
 }
-export default function FsDisplay({uniqueFsNodes,width,toggleProgressWin,thereIsProgress}:Props) {
+export default function FsDisplay({uniqueFsNodes,toggleProgressWin,thereIsProgress}:Props) {
     return (
-        <>
+        <>  
+            {(thereIsProgress)//this is to toggle the progress window only when proress is happening while searching
+                ?<button onClick={toggleProgressWin} className="absolute right-10 cursor-pointer top-16">progress</button>
+                :null
+            }
             {uniqueFsNodes?.length//if there is content,render the fs components
-                ?<div className={`grid sm:grid-cols-4 md:grid-cols-5 h-auto pb-10 pt-5 max-h-[96%] gap-x-[1.2%] gap-y-[5%] mt-[2%] ml-[1.5%] ${width} overflow-y-scroll overflow-x-hidden items-center justify-center`}>
-                    {(thereIsProgress)//this is to toggle the progress window only when proress is happening while searching
-                        ?<button onClick={toggleProgressWin} className="absolute right-10 cursor-pointer top-14">progress</button>
-                        :null
-                    }
+                ?<div className='grid sm:grid-cols-4 md:grid-cols-5 h-auto pb-10 pt-5 max-h-[96%] gap-x-[1.2%] gap-y-[5%] mt-[2%] w-[100%] overflow-y-scroll overflow-x-hidden items-center justify-center'>
                     {uniqueFsNodes.map((uniqueFsNode)=>
                         <div key={uniqueFsNode.id} className="flex justify-center items-center">
                             <FsNodeComponent  {...{fsNode:uniqueFsNode.fsNode}}/>
