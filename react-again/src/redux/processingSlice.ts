@@ -503,19 +503,28 @@ function removeAllDots(str:string):string {
 function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean,path:string):AppThunk {
     return (dispatch,getState)=>{
         const quickSearch:boolean = selectQuickSearch(getState());
-        fsNodes.push(fsNode)//push the files
-        dispatch(searchUtil(fsNodes,searchQuery));
-        if (!quickSearch) {//only do progress on full search
-            const progress:SearchProgress = selectSearchProgress(getState())[path]
-            dispatch(setProgress({
-                key:path,
-                progress:{
-                    totalNodes:progress.totalNodes,
-                    searchedNodes:progress.searchedNodes + fsNodes.length
-                }
-            }))
+        const isQueryLong:boolean = searchQuery.length >= 10
+        let searchBatchSize = 5;//with this,i wont need the or islastnode check
+        if (searchBatchCount > 0) {
+            searchBatchSize = 15
         }
-        fsNodes.length = 0//prevents stale data
+        console.log("SEARCH BATCH SIZE FOR FSNODES",searchBatchSize,"FSNODES",fsNodes);
+        fsNodes.push(fsNode)//push the files
+        if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
+            dispatch(searchUtil(fsNodes,searchQuery));
+            if (!quickSearch) {//only do progress on full search
+                const progress:SearchProgress = selectSearchProgress(getState())[path]
+                dispatch(setProgress({
+                    key:path,
+                    progress:{
+                        totalNodes:progress.totalNodes,
+                        searchedNodes:progress.searchedNodes + fsNodes.length
+                    }
+                }))
+            }
+            searchBatchCount += 1;
+            fsNodes.length = 0//prevents stale data
+        }
     }
 }
 function aggressiveFilter(data:string,query:string):boolean {
