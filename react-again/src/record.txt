@@ -724,6 +724,7 @@ quick search--does early termination and fast batch skipping on long queries
 quick search doesnt sort results,full search does
 quick search doesnt show progress
 make the quick search a nice button
+pre sorting based on mode to increase the chance of seeing your result early
 todo:truncate the bread crumbs when its too big
 
 
@@ -894,3 +895,13 @@ modified date order
 *the cost of pre sorting this is a bit of performance but rust sorting should make this time negligible even on larger data sets.its worth seeing the result earlier in the search and if they do,the users can terminate the search from searching further.the time it would have taken to search further may even be significantly larger than sorting not to mention the sorting is in rust.so this is an optimization on both quick and full search while other actions like opening the dir can be in arbritary order
 
 *i think ill leave the score sorting in js for now until i see a real perf bottleneck.cuz the rust part is a bit ocomplex to read and mange the genric
+
+*i did a benchmark and sorting the array based on search mode before processing has little perf impact.i got 3.1 with the sorting and 3 without it.so the speed is nearly the same or if not the same in practice with the benefit that you may see your results earlier rather than later down the search
+
+*the search is already as optimized as it can get.batching,pre sorting,lazy recursion with ui updates along the way,the perf boost that quick search has:applies an aggressive filter on the data before searching,does early termination and fast batch skipping on long queries,doesnt sort results,it doesnt show progress and the batch changes from 5 for responsiveness to 15 for efficiency.so thats all.The search exp is complete
+
+*the diff for another query i did is 2 seconds even for the full search.so depending on how large the folder is.users can use my full search for insights even if its just a few seconds extra while the default is instant but my quick search option is good for instant results even if its just two seconds late and sometimes,the default file manager can take its time and the only note of progress is the results that pops up and a progress bar that goes to 99% and stops for a while.mine shows progress bars on folders as they are being recursed whie also showing results in full search mode.so my file manager can stand out in search experience
+
+
+skim search
+auto suggestion,will require recursing too

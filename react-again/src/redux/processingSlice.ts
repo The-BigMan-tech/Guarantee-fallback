@@ -540,7 +540,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         const isQueryLong:boolean = searchQuery.length >= 10
         let searchBatchSize = 5;//with this,i wont need the or islastnode check
         if (searchBatchCount > 0) {
-            searchBatchSize = 20
+            searchBatchSize = 15
         }
         console.log("SEARCH BATCH SIZE FOR FSNODES",searchBatchSize,"FSNODES",fsNodes);
         fsNodes.push(fsNode)//push the files
@@ -625,7 +625,7 @@ function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void
                             console.log("PASSED YOUR FOLDER TO UPDATE",fsNode.primary.nodePath);
                             dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))
                         }else {
-                            console.log("Filtered out the folder");
+                            console.log("Filtered out the folder",fsNode.primary.nodePath);
                         }
                     }else {
                         dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))

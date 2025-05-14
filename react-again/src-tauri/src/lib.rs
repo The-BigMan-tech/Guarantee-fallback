@@ -53,15 +53,15 @@ fn read_dir(dir_path: String,order:SortOrder) -> Result<Vec<PathBuf>, String> {
     match order {
         SortOrder::Arbitrary => {
             // Do nothing, keep the original order
-            println!("Arbritrary order selected")
+            println!("Arbritrary order selected");
         }
         SortOrder::Alphabetical => {
             file_paths.sort_by_key(|path| path.file_name().map(|name| name.to_os_string()));
-            println!("Alphabetical order selected")
+            println!("Alphabetical order selected");
         }
         SortOrder::Date => {
             // Sort by modified date, oldest first
-            println!("Date order selected")
+            println!("Date order selected");
             file_paths.sort_by_key(|path| {
                 fs::metadata(path)
                     .and_then(|meta| meta.modified())
