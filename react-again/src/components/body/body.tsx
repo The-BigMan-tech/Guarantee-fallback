@@ -26,23 +26,16 @@ export default function Body() {
     function quitSearch() {
         dispatch(terminateSearch());
     }
-    function truncateStart(str:string, maxLength:number) {
-        if (str.length <= maxLength) {
-            return str; 
-        }
-        return '...' + str.slice(str.length - (maxLength - 3));
-    }
     function openProgressWindow():boolean {
         return thereIsProgress && showProgressWin
     }
     function widthOnProgress():string {
-        return (openProgressWindow())?'w-[80%]':'w-[90%]'
+        return (openProgressWindow())?'w-[70%]':'w-[90%]'
     }
     function toggleProgressWin() {
         setShowProgressWin(!showProgressWin)
     }
     useEffect(()=>{
-        console.log("Search progress",JSON.stringify(searchProgress,null,2));
         setThereIsProgress(Object.keys(searchProgress).length > 0);
     },[searchProgress])
     useEffect(() => {
