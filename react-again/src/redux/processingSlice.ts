@@ -529,15 +529,6 @@ function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:
         return false
     }
 }
-type ThresholdRange = {min:number,max:number}
-function isInThresholdRange(num: number, ranges: ThresholdRange[]): boolean {
-    return ranges.some(range => {
-        return num >= range.min && num <= range.max
-    });
-}
-function getCurrentThresholdIndex(percent: number, ranges: ThresholdRange[]): number {
-    return ranges.findIndex(range => percent >= range.min && percent <= range.max);
-}
 function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean,path:string):AppThunk {
     return (dispatch,getState)=>{
         const quickSearch:boolean = selectQuickSearch(getState());
