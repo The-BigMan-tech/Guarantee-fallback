@@ -36,7 +36,7 @@ export default function Body() {
         return thereIsProgress && showProgressWin
     }
     function widthOnProgress():string {
-        return (openProgressWindow())?'w-[75%]':'w-[90%]'
+        return (openProgressWindow())?'w-[80%]':'w-[90%]'
     }
     function toggleProgressWin() {
         setShowProgressWin(!showProgressWin)

@@ -35,7 +35,7 @@ export default function Sidebar({unFreezeStartup}:{unFreezeStartup:()=>string}) 
         return (clickedTab === tabId)?"bg-[#387de4fa] shadow-md rounded-3xl py-2 w-[90%] font-robot-regular":"py-3.5 w-[30%] font-sans "
     }
     return (
-        <div className={`flex flex-col bg-[#1f1f30] h-[100%] w-[12%] border-r border-[#3a3a3a] ${unFreezeStartup()} ${freezeOnSearch()}`}>
+        <div className={`flex flex-col bg-[#1f1f30] h-[100%] w-[12%] border-r border-[#3a3a3a] shrink-0 ${unFreezeStartup()} ${freezeOnSearch()}`}>
             <div className="flex flex-col mt-10">
                 <div>
                     <Card {...{id:homeTabId,tabName:"Home",imgName:"house.svg",clickedTab,clickTab,clickedClass,unFreezeStartup}}/>
