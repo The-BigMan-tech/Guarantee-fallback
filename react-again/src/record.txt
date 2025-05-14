@@ -906,12 +906,30 @@ modified date order
 showing progress
 
 
-^Backup optimizations
+^Backup search optimizations
 a rust search library
-web workers for recursive search
+selective web workers for recursive search.cam be applied to the heaviest part of the search
 score sorting implemented in rust
+indexing
+caching terminated searches only so that if searched again,it can continue where it left off
+so my search could have been a second or instantly for all we know if not for the ui.so to optimize,i have to throttle ui updates,memoize components,restructure my components for isolated re-renders,offload ui updates to web workers or most effectively,virtualization
 
+virtualization with react window and throttling
+
+*so these are my backup optimizations for the search only in case of bottlenecks and if i do implement them,it wont be all at once but only the one best for the situation
 
 *so removing the await will work but will become unpredictable because it runs concurrently but by seprating the loop into two separate ones,it becomes safer and more predictable.I also believe breadth first traversal will provide results quicker because it wont waste time just in one folder before searching the next.so breadth first and depth first traversal have the same time complexity but breadth first evenly distributes progress which can give a sense of speed and concurrency because it makes more progress in a smaller amount of time even if the overall time is the same.so because DFS "remembers" only the current path it is exploring meaning its space complexity depends on the maximum depth of the search tree and BFS "remembers" all nodes at the current frontier level meaning that its space complexity depends on the maximum width of the graph at any level (O(w)), which can be much larger than the depth in wide graphs..BFS consumes more space as a tradeoff for distributing progress.bfs is best for wide graphs while dfs is best for narrow graphs.i believe the fs is wide graph so bfs searching will be better for showing progress.
 
 *simple code structure changes while still preserving its functionality can change progress distribution and space complexity but the time complexity remains the same since i ddidnt deduct or add anything
+
+*so breadth first traversal and presorting are progress based optimizations not time based optimizations
+
+*with the breadth first traversal,i got many results instantly but it still finsihed searching at 3 seconds.while back in the depth first method,it sill finished at 3 seconds but i only got 1-2 results before the rest later in the 3 seconds.this bfs alone nails my searching exp after i taught it couldnt be any more optimized
+
+ui optimization
+progress optmization
+subtle optimization
+algortithm optimization--time and memoy optimizations
+code optimization
+
+*i just realized that ui affects the speed of the search cuz if the search updates the ui,the ui has to repsond to that change before the search proceeds.because i added more ui elements for showing progress,it directly affected the search time by a second

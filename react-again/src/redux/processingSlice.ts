@@ -680,6 +680,7 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         toast.dismiss();
         toast.success(`Done searching in ${timeInSeconds} seconds`,{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
         dispatch(setSearchTermination(true));
+        dispatch(setWholeSearchProgress({}))
     }
 }
 export function terminateSearch():AppThunk {
