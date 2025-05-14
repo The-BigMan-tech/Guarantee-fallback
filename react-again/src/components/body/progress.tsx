@@ -6,7 +6,7 @@ export default function Progress({searchProgress}:{searchProgress:Record<string,
         console.log("Hello progress component");
     },[])
     return (
-        <div className="flex flex-col bg-[#141428] w-[20%]">
+        <div className="flex flex-col w-[20%]">
             <h1>Hello progress</h1>
         </div>
     )

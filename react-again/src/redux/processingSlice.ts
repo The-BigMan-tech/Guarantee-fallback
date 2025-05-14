@@ -177,8 +177,11 @@ export const processingSlice = createSlice({
         setSearchScores(state,action:PayloadAction<number[]>) {
             state.searchScores = action.payload
         },
-        setProgress(state,action:PayloadAction<{key:string,progress:SearchProgress}>) {
-            state.searchProgress[action.payload.key] = action.payload.progress;
+        updateSearchProgress(state,action:PayloadAction<{path:string,searchedNodes:number}>) {
+            state.searchProgress[action.payload.path].searchedNodes += action.payload.searchedNodes;
+        },
+        setProgress(state,action:PayloadAction<{path:string,progress:SearchProgress}>) {
+            state.searchProgress[action.payload.path] = action.payload.progress
         },
         setWholeSearchProgress(state,action:PayloadAction<Record<string,SearchProgress>>) {
             state.searchProgress = action.payload
@@ -228,6 +231,7 @@ export const {
     pushToSearch,
     pushToSearchScores,
     setSearchScores,
+    updateSearchProgress,
     setProgress,
     setWholeSearchProgress,
     setSortBy,
@@ -520,20 +524,6 @@ function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:
         return false
     }
 }
-function updateProgress(quickSearch:boolean,nodeCount:number,path:string):AppThunk {
-    return (dispatch,getState)=>{
-        if (!quickSearch) {//only do progress on full search
-            const progress:SearchProgress = selectSearchProgress(getState())[path]
-            dispatch(setProgress({
-                key:path,
-                progress:{
-                    totalNodes:progress.totalNodes,
-                    searchedNodes:progress.searchedNodes + nodeCount
-                }
-            }))
-        }
-    }
-}
 function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean,path:string):AppThunk {
     return (dispatch,getState)=>{
         const quickSearch:boolean = selectQuickSearch(getState());
@@ -543,6 +533,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         console.log("SEARCH BATCH SIZE FOR FSNODES",searchBatchSize,"FSNODES",fsNodes);
         fsNodes.push(fsNode)//push the files
         if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
+            const nodeCount:number = fsNodes.length;
             const anyRoughMatches:boolean = dispatch(longQueryOptimization(quickSearch,fsNodes,searchQuery,isQueryLong))
             if (anyRoughMatches) {//i believe that this means that when it reaches the last node of the batch,it will check if there were any exact matches.if so,terminate and return else,proceed with fuzzy search
                 console.log("Terminated early!!");
@@ -551,15 +542,21 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                 return
             }else if (quickSearch && !(anyRoughMatches) && isQueryLong) {
                 console.log("Discarded this batch");
-                searchBatchCount += 1;
                 fsNodes.length = 0//prevents stale data
                 return
             }else {
                 dispatch(searchUtil(fsNodes,searchQuery));
-                dispatch(updateProgress(quickSearch,fsNodes.length,path))
+                if (!quickSearch) {//only do progress on full search
+                    const progress:SearchProgress = selectSearchProgress(getState())[path]
+                    if ((progress.searchedNodes/progress.totalNodes) * 100 >= 50) {
+                        Promise.resolve().then(()=>dispatch(updateSearchProgress({path,searchedNodes:nodeCount})))
+                    }else {
+                        dispatch(updateSearchProgress({path,searchedNodes:nodeCount}))
+                    }
+                }
                 searchBatchCount += 1;
                 fsNodes.length = 0//prevents stale data
-                return
+                return;
             }
         }
     }
@@ -595,7 +592,7 @@ function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void
             console.log("Local fs nodes",localFsNodes);
             if (!quickSearch) {
                 dispatch(setProgress({
-                    key:path,
+                    path,
                     progress:{
                         totalNodes,
                         searchedNodes:0

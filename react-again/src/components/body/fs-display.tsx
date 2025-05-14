@@ -10,7 +10,7 @@ export default function FsDisplay({uniqueFsNodes,toggleProgressWin,thereIsProgre
     return (
         <>  
             {(thereIsProgress)//this is to toggle the progress window only when proress is happening while searching
-                ?<button onClick={toggleProgressWin} className="absolute right-10 cursor-pointer top-16">progress</button>
+                ?<button onClick={toggleProgressWin} className="absolute right-20 cursor-pointer top-16">progress</button>
                 :null
             }
             {uniqueFsNodes?.length//if there is content,render the fs components

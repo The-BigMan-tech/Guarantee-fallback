@@ -727,6 +727,7 @@ make the quick search a nice button
 pre sorting based on mode to increase the chance of seeing your result early
 breadth first recursion over depth first
 useTransition optimizations
+progress is at certain points because of rerenders but the styling updates flawlessly
 todo:truncate the bread crumbs when its too big
 
 
@@ -951,3 +952,17 @@ computation vs rendering
 eagerly computed but lazily rendered
 
 *i think for my use case,using use transition without throttling is better because depending on the folder thats being searched in,results may not come too often and delaying results when they do come when they are very little will damage ux.with use transition,i get 0.1 -0.2 seconds difference than without it on a small folder with a short query.so as the folder gets larger,i believe the benefit will increase
+
+*so because in a folder many batches are done rapidly in a sync manner,react never gets a chance to update per batch but since folder processing have awaits inserted in between them,i give react a chance to update meaning that computationally,progress is happening per batch but react only renders per folder in this scenario.
+
+todo:transition the search progress
+
+*so it will optimize perf,not show inc progress but what if i have two forms of updateprogress one async and one sync.if im in a certain percentage of the batch,i use await update but for the rest,i use update so react can update progress displays across certain points in the batch but not at every point by always using await because it will degrade perfa
+
+*so by using await at certain thresholds of processing and not at every point,i dont force rerenders and i can increase ux by showing incremental progress.ill  then use normal updates for the rest.so this takes advantage of when react updates while also understanding that too many updates will destroy perf since this is done recursively.so theoretically or ideally,my progress bar will render per batch but under real scenarios of perf,this is the best approach
+
+*another thing is that i wont want the progress bar to be jumping,it wont look smooth to the user so render-wise,its at ceratin points but styling-wise,i can apply transitions at the style level so that when it jumps,the progress bar visually moves to that point instead of jumping directly.so users will think its continuously inc not knowing its just styling
+
+*so computationally,progress is continuously updated,render-wise,its at discrete points but styling-wise is continuous
+
+so using exact equality on a floating value is fragile.using a threshold like >= is better.using set timeout will queue it as a macro task which will be slower than queuing it as a microtask because it will be uneccessarily deferred so using promise.resolve allows me to resolve on a promise which isnt there but it allows my update to be queued as a mcrotask.so from an effect standpoint,they both defer it but paying attention to the techniques used shows that they are different
