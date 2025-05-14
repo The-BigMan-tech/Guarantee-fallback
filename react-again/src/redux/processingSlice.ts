@@ -57,7 +57,8 @@ export type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'co
 
 export interface SearchProgress {
     searchedNodes:number,
-    totalNodes:number
+    totalNodes:number,
+    lastThreshold:number
 }
 
 export interface Message {
@@ -177,8 +178,9 @@ export const processingSlice = createSlice({
         setSearchScores(state,action:PayloadAction<number[]>) {
             state.searchScores = action.payload
         },
-        updateSearchProgress(state,action:PayloadAction<{path:string,searchedNodes:number}>) {
+        updateSearchProgress(state,action:PayloadAction<{path:string,searchedNodes:number,lastThreshold:number}>) {
             state.searchProgress[action.payload.path].searchedNodes += action.payload.searchedNodes;
+            state.searchProgress[action.payload.path].lastThreshold = action.payload.lastThreshold
         },
         setProgress(state,action:PayloadAction<{path:string,progress:SearchProgress}>) {
             state.searchProgress[action.payload.path] = action.payload.progress
@@ -524,6 +526,12 @@ function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:
         return false
     }
 }
+type ThresholdRange = {min:number,max:number}
+function isInThresholdRange(num: number, ranges: ThresholdRange[]): boolean {
+    return ranges.some(range => {
+        return num >= range.min && num <= range.max
+    });
+}
 function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean,path:string):AppThunk {
     return (dispatch,getState)=>{
         const quickSearch:boolean = selectQuickSearch(getState());
@@ -548,10 +556,19 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                 dispatch(searchUtil(fsNodes,searchQuery));
                 if (!quickSearch) {//only do progress on full search
                     const progress:SearchProgress = selectSearchProgress(getState())[path]
-                    if ((progress.searchedNodes/progress.totalNodes) * 100 >= 50) {
-                        Promise.resolve().then(()=>dispatch(updateSearchProgress({path,searchedNodes:nodeCount})))
+                    const percent:number = (progress.searchedNodes/progress.totalNodes) * 100;
+                    const lastThreshold:number = progress.lastThreshold;
+                    console.log("PATH",path,"PERCENT",percent);
+                    const thresholdRanges: ThresholdRange[] = [
+                        { min: 15, max: 25 },
+                        { min: 45, max: 55 },
+                        { min: 75, max: 85 },
+                        { min: 95, max: 100 },
+                    ];
+                    if (isInThresholdRange(percent,thresholdRanges)) {
+                        Promise.resolve().then(()=>dispatch(updateSearchProgress({path,searchedNodes:nodeCount,lastThreshold})))
                     }else {
-                        dispatch(updateSearchProgress({path,searchedNodes:nodeCount}))
+                        dispatch(updateSearchProgress({path,searchedNodes:nodeCount,lastThreshold}))
                     }
                 }
                 searchBatchCount += 1;
@@ -595,7 +612,8 @@ function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void
                     path,
                     progress:{
                         totalNodes,
-                        searchedNodes:0
+                        searchedNodes:0,
+                        currentThreshold:0
                     }
                 }));
             }

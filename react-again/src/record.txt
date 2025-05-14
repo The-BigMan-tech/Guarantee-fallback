@@ -966,3 +966,11 @@ todo:transition the search progress
 *so computationally,progress is continuously updated,render-wise,its at discrete points but styling-wise is continuous
 
 so using exact equality on a floating value is fragile.using a threshold like >= is better.using set timeout will queue it as a macro task which will be slower than queuing it as a microtask because it will be uneccessarily deferred so using promise.resolve allows me to resolve on a promise which isnt there but it allows my update to be queued as a mcrotask.so from an effect standpoint,they both defer it but paying attention to the techniques used shows that they are different
+
+the more hallmarks,the more progressive the bars but the slower the app.balance is needed.every benefit of a coding strategy comes with tradeoffs.i think the 5 thresholds will do.css transitions can make these point transitions flawless
+
+*so this means that redux reducers should be pure and indempotent relative to the app state
+
+*so the problem is that using strict equality is fragile because of floating point,i cant use >= because it will return true for all intermediate values above the first threshold so i think the best approach is a range.so it wont be discrete thresholds like 20,50,100 but ranged thresholds like 0-20,40-60,80-100,.if i use ranges,they must be padded to ensure that it doesnt become <=100 scenario which will always return true
+
+*You use .some() instead of .forEach() when you want to stop iterating early as soon as a condition is met, because:.some() stops and returns true immediately when its callback returns a truthy value..forEach() always iterates over all elements and cannot be stopped or broken out of early (except by throwing an exception).This means .some() is more efficient when you only need to check if any element satisfies a condition and want to avoid unnecessary iterations.
