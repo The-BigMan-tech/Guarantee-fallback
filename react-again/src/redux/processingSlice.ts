@@ -500,6 +500,25 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
 function removeAllDots(str:string):string {
     return str.replace(/\./g, '');
 }
+function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:string,isQueryLong:boolean):AppThunk<boolean> {
+    return (dispatch):boolean=>{
+        if (quickSearch) {//only performing this loop if quick search is on.it will be a waste if it runs on full search
+            for (const fsNodeInBatch of fsNodes) {
+                const trimmedNode = removeAllDots(fsNodeInBatch.primary.nodeName.trim().toLowerCase());//making it insensitive to file extensions because the node can be a folder or a file and he search query can target either depending on whether an extension was included or not
+                const trimmedQuery = removeAllDots(searchQuery.trim().toLowerCase());
+                const isRoughMatch = (trimmedNode.startsWith(trimmedQuery))
+                console.log("Quick search",quickSearch,"Query length",searchQuery.length,"Exact match",isRoughMatch,"trimmed node",trimmedNode,"trimmed query",trimmedQuery);
+                if (isQueryLong && isRoughMatch) {
+                    console.log("Found early result!!");
+                    dispatch(pushToSearch(fsNodeInBatch));
+                    return true;
+                }
+            }
+            return false
+        }
+        return false
+    }
+}
 function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean,path:string):AppThunk {
     return (dispatch,getState)=>{
         const quickSearch:boolean = selectQuickSearch(getState());
@@ -511,7 +530,22 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         console.log("SEARCH BATCH SIZE FOR FSNODES",searchBatchSize,"FSNODES",fsNodes);
         fsNodes.push(fsNode)//push the files
         if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
-            dispatch(searchUtil(fsNodes,searchQuery));
+            //This early termination is done at the batch level
+            let anyRoughMatches:boolean = false
+            anyRoughMatches = dispatch(longQueryOptimization(quickSearch,fsNodes,searchQuery,isQueryLong))
+            if (anyRoughMatches) {//i believe that this means that when it reaches the last node of the batch,it will check if there were any exact matches.if so,terminate and return else,proceed with fuzzy search
+                console.log("Terminated early!!");
+                dispatch(setSearchTermination(true));
+                fsNodes.length = 0;
+                return
+            }else if (quickSearch && !(anyRoughMatches) && isQueryLong) {
+                console.log("Discarded this batch");
+                searchBatchCount += 1;
+                fsNodes.length = 0//prevents stale data
+                return
+            }else {
+                dispatch(searchUtil(fsNodes,searchQuery));
+            }
             if (!quickSearch) {//only do progress on full search
                 const progress:SearchProgress = selectSearchProgress(getState())[path]
                 dispatch(setProgress({

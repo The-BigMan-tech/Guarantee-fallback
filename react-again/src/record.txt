@@ -881,3 +881,5 @@ Your use of version control to incrementally rebuild complexity after isolating 
 
 
 *before,every recursed file shared the same batch,now each recursion call has its own independent batch
+
+passing redux state across function calls will save perf instead of reselcting
