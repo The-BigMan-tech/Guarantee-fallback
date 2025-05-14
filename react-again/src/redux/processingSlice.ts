@@ -538,10 +538,8 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
     return (dispatch,getState)=>{
         const quickSearch:boolean = selectQuickSearch(getState());
         const isQueryLong:boolean = searchQuery.length >= 10
-        let searchBatchSize = 5;//with this,i wont need the or islastnode check
-        if (searchBatchCount > 0) {
-            searchBatchSize = 15
-        }
+        const searchBatchSize = searchBatchCount > 0 ? 15 : 5;
+
         console.log("SEARCH BATCH SIZE FOR FSNODES",searchBatchSize,"FSNODES",fsNodes);
         fsNodes.push(fsNode)//push the files
         if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
@@ -630,6 +628,11 @@ function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void
                     }else {
                         dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))
                     }
+                }
+            }
+            //breadth first traversal
+            for (const fsNode of localFsNodes) {
+                if (fsNode.primary.nodeType == "Folder") {
                     await dispatch(searchRecursively(fsNode.primary.nodePath,searchQuery))//read the files of the folder and push that
                 }
             }

@@ -725,6 +725,7 @@ quick search doesnt sort results,full search does
 quick search doesnt show progress
 make the quick search a nice button
 pre sorting based on mode to increase the chance of seeing your result early
+breadth first recursion over depth first
 todo:truncate the bread crumbs when its too big
 
 
@@ -902,6 +903,15 @@ modified date order
 
 *the diff for another query i did is 2 seconds even for the full search.so depending on how large the folder is.users can use my full search for insights even if its just a few seconds extra while the default is instant but my quick search option is good for instant results even if its just two seconds late and sometimes,the default file manager can take its time and the only note of progress is the results that pops up and a progress bar that goes to 99% and stops for a while.mine shows progress bars on folders as they are being recursed whie also showing results in full search mode.so my file manager can stand out in search experience
 
+showing progress
 
-skim search
-auto suggestion,will require recursing too
+
+^Backup optimizations
+a rust search library
+web workers for recursive search
+score sorting implemented in rust
+
+
+*so removing the await will work but will become unpredictable because it runs concurrently but by seprating the loop into two separate ones,it becomes safer and more predictable.I also believe breadth first traversal will provide results quicker because it wont waste time just in one folder before searching the next.so breadth first and depth first traversal have the same time complexity but breadth first evenly distributes progress which can give a sense of speed and concurrency because it makes more progress in a smaller amount of time even if the overall time is the same.so because DFS "remembers" only the current path it is exploring meaning its space complexity depends on the maximum depth of the search tree and BFS "remembers" all nodes at the current frontier level meaning that its space complexity depends on the maximum width of the graph at any level (O(w)), which can be much larger than the depth in wide graphs..BFS consumes more space as a tradeoff for distributing progress.bfs is best for wide graphs while dfs is best for narrow graphs.i believe the fs is wide graph so bfs searching will be better for showing progress.
+
+*simple code structure changes while still preserving its functionality can change progress distribution and space complexity but the time complexity remains the same since i ddidnt deduct or add anything

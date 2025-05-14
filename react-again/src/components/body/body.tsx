@@ -17,7 +17,7 @@ export default function Body() {
     
 
     async function exitSearch() {
-        await dispatch(searchDir(""));
+        await dispatch(searchDir("",0));
     }
     function quitSearch() {
         dispatch(terminateSearch());
