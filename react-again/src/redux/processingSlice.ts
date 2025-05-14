@@ -500,13 +500,21 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
 function removeAllDots(str:string):string {
     return str.replace(/\./g, '');
 }
-function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean,path:string,totalNodes:number):AppThunk {
+function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean,path:string):AppThunk {
     return (dispatch,getState)=>{
-        const progress:SearchProgress = {...selectSearchProgress(getState())[path]}
+        const quickSearch:boolean = selectQuickSearch(getState());
         fsNodes.push(fsNode)//push the files
         dispatch(searchUtil(fsNodes,searchQuery));
-        progress.searchedNodes += 1
-        dispatch(setProgress({key:path,progress:{...progress,totalNodes:totalNodes}}))
+        if (!quickSearch) {//only do progress on full search
+            const progress:SearchProgress = selectSearchProgress(getState())[path]
+            dispatch(setProgress({
+                key:path,
+                progress:{
+                    totalNodes:progress.totalNodes,
+                    searchedNodes:progress.searchedNodes + fsNodes.length
+                }
+            }))
+        }
         fsNodes.length = 0//prevents stale data
     }
 }
@@ -523,7 +531,7 @@ export function toggleQuickSearch():AppThunk {
     }
 }
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
-function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>> {
+function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
         const shouldTerminate:boolean = selectSearchTermination(getState());
         console.log("SHOULD TERMINATE",shouldTerminate);
@@ -533,17 +541,20 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(path);
         console.log("DIR RESULT",dirResult.value);
         if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
+            const fsNodes:FsNode[] = []
             const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
-            let totalNodes:number = localFsNodes.length;
-            dispatch(setProgress({
-                key:path,
-                progress:{
-                    totalNodes,
-                    searchedNodes:0
-                }
-            }));
+            const totalNodes:number = localFsNodes.length;
             const quickSearch:boolean = selectQuickSearch(getState());
             console.log("Local fs nodes",localFsNodes);
+            if (!quickSearch) {
+                dispatch(setProgress({
+                    key:path,
+                    progress:{
+                        totalNodes,
+                        searchedNodes:0
+                    }
+                }));
+            }
             for (const [localIndex,fsNode] of localFsNodes.entries()) {
                 const isLastFsNode = localIndex == (localFsNodes.length-1);
                 console.log("Is last fsnode",isLastFsNode);
@@ -551,36 +562,33 @@ function searchRecursively(path:string,fsNodes:FsNode[],searchQuery:string):AppT
                     if (quickSearch) {
                         if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
                             console.log("PASSED YOUR FILE TO UPDATE",fsNode.primary.nodePath);
-                            dispatch(updateSearchResults(fsNode,[],searchQuery,isLastFsNode,path,totalNodes))
+                            dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))
                         }else {
-                            totalNodes -= 1
                             console.log("Filtered out the file:",fsNode.primary.nodePath);
                         }
                     }else {//update regardless
-                        dispatch(updateSearchResults(fsNode,[],searchQuery,isLastFsNode,path,totalNodes))
+                        dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))
                     }
                 }else if (fsNode.primary.nodeType == "Folder") {
                     //i cant do aggressive filter here because the files within the folder will be in custody
                     if (quickSearch) {
                         if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
                             console.log("PASSED YOUR FOLDER TO UPDATE",fsNode.primary.nodePath);
-                            dispatch(updateSearchResults(fsNode,[],searchQuery,isLastFsNode,path,totalNodes))
+                            dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))
                         }else {
-                            totalNodes -= 1
                             console.log("Filtered out the folder");
                         }
                     }else {
-                        dispatch(updateSearchResults(fsNode,[],searchQuery,isLastFsNode,path,totalNodes))
+                        dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))
                     }
-                    await dispatch(searchRecursively(fsNode.primary.nodePath,fsNodes,searchQuery))//read the files of the folder and push that
+                    await dispatch(searchRecursively(fsNode.primary.nodePath,searchQuery))//read the files of the folder and push that
                 }
             }
         }
     }
 }
-export function searchDir(searchQuery:string):AppThunk<Promise<void>> {
+export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
-        const startTime = performance.now();
         console.log("SEARCH QUERY LENGTH",searchQuery.length);
         //debouncing this function never works so what i did to prevent spamming is to terminate the previoud search before instatiating this new one
         dispatch(setSearchTermination(true));
@@ -597,8 +605,7 @@ export function searchDir(searchQuery:string):AppThunk<Promise<void>> {
             return
         }
         const currentPath:string = selectCurrentPath(getState());
-        const fsNodes:FsNode[] = [];
-        await dispatch(searchRecursively(currentPath,fsNodes,searchQuery));
+        await dispatch(searchRecursively(currentPath,searchQuery));
         
         const quickSearch = selectQuickSearch(getState());
         const shouldTerminate:boolean = selectSearchTermination(getState());

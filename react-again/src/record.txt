@@ -721,6 +721,7 @@ quick search--applies an aggressive filter on the data before searching
 search batch optimization:The batch is small at first for responsiveness and then bigger later
 quick search--does early termination and fast batch skipping on long queries
 quick search doesnt sort results,full search does
+quick search doesnt show progress
 make the quick search a nice button
 todo:truncate the bread crumbs when its too big
 
@@ -850,7 +851,7 @@ web worker to make it faster
 
 use rust search instead
 
-truncating a string to an ellipsis (...)
+*truncating a string to an ellipsis (...)
 
 *the fragment element <></> is used for grouping tags or components in jsx when you dont want the grouping to affect their layout as it is for div and other semantic containers.i use it especially when putting conditional rendring in my code as it has to be under a tag.
 
@@ -878,3 +879,5 @@ Even though you have the source, the complexity or lack of documentation makes t
 
 Your use of version control to incrementally rebuild complexity after isolating the issue is a practical application of design recovery and program comprehension, subfields of reverse engineering ().
 
+
+*before,every recursed file shared the same batch,now each recursion call has its own independent batch

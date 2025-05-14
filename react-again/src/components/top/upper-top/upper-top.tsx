@@ -40,13 +40,14 @@ export default function UpperTop() {
         setSearchQuery(event.target.value)
     }
     async function search(query:string) {
-        toast.loading("Loading your search",{...loading_toastConfig,position:"bottom-right"})
+        toast.loading("Loading your search",{...loading_toastConfig,position:"bottom-right"});
+        const startTime = performance.now();
         if (query.length == 1) {
             toast.info("Query is too short",{...toastConfig,toastId:"inf"})
             toast.dismiss("loading")
         }else {
             toast.dismiss("inf")
-            await dispatch(searchDir(query));
+            await dispatch(searchDir(query,startTime));
         }
     }
     async function enterSearch(event:KeyboardEvent<HTMLInputElement>) {
