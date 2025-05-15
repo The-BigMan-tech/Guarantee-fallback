@@ -1,11 +1,11 @@
 import { selector } from "../../redux/hooks"
-import { selectFsNodes,UniqueFsNode,selectSearchResults,selectSearchTermination,searchDir,terminateSearch,selectSearchProgress,SearchProgress} from "../../redux/processingSlice"
+import { selectFsNodes,UniqueFsNode,selectSearchResults,selectSearchTermination,searchDir,terminateSearch} from "../../redux/processingSlice"
 import { FsNode} from "../../utils/rust-fs-interface"
 import FsDisplay from "./fs-display"
 import { useEffect, useMemo, useState,useTransition } from "react"
 import {v4 as uniqueID} from "uuid"
 import { useAppDispatch } from "../../redux/hooks"
-import Progress from "./progress"
+
 
 export default function Body() {
     const dispatch = useAppDispatch();
@@ -14,9 +14,6 @@ export default function Body() {
     const searchResults:FsNode[] | null = selector(store=>selectSearchResults(store))
     const uniqueSearchResults:UniqueFsNode[] | null = useMemo(()=>searchResults?.map(fsNode=>({id:uniqueID(),fsNode})) || null,[searchResults]);
     const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store));
-    const searchProgress:Record<string,SearchProgress> = selector(store=>selectSearchProgress(store));
-    const [thereIsProgress,setThereIsProgress] = useState<boolean>(false)
-    const [showProgressWin,setShowProgressWin] = useState<boolean>(true);
     const [displayedSearchResults, setDisplayedSearchResults] = useState<UniqueFsNode[] | null>(null);
     const [isPending, startTransition] = useTransition();
 
@@ -26,18 +23,6 @@ export default function Body() {
     function quitSearch() {
         dispatch(terminateSearch());
     }
-    function openProgressWindow():boolean {
-        return thereIsProgress && showProgressWin
-    }
-    function widthOnProgress():string {
-        return (openProgressWindow())?'w-[80%]':'w-[90%]'
-    }
-    function toggleProgressWin() {
-        setShowProgressWin(!showProgressWin)
-    }
-    useEffect(()=>{
-        setThereIsProgress(Object.keys(searchProgress).length > 0);
-    },[searchProgress])
     useEffect(() => {
         if (uniqueSearchResults) {
             startTransition(() => {
@@ -49,7 +34,7 @@ export default function Body() {
     }, [uniqueSearchResults]);
     return (
         <>
-            <div className={`h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md ${widthOnProgress()}`}>
+            <div className={`h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md`}>
                 {!(isSearchTerminated)//show the terminate button while its searching
                     ?<button className="cursor-pointer text-[#eaa09b] font-bold absolute top-16 left-[50%]" onClick={quitSearch}>Terminate</button>
                     :null
@@ -64,7 +49,7 @@ export default function Body() {
                                 }
                                 {isPending
                                     ?<div>Loading search results...</div>
-                                    :<FsDisplay {...{uniqueFsNodes:displayedSearchResults,toggleProgressWin,thereIsProgress}}/>
+                                    :<FsDisplay {...{uniqueFsNodes:displayedSearchResults}}/>
                                 }
                             </div>
                             :<>
@@ -76,13 +61,9 @@ export default function Body() {
                             
                         }
                     </>
-                    :<FsDisplay {...{uniqueFsNodes,toggleProgressWin,thereIsProgress}}/>
+                    :<FsDisplay {...{uniqueFsNodes}}/>
                 }
             </div>
-            {(openProgressWindow())
-                ?<Progress {...{searchProgress}}/>
-                :null
-            }
         </>
     )
 }

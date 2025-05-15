@@ -178,18 +178,6 @@ export const processingSlice = createSlice({
         setSearchScores(state,action:PayloadAction<number[]>) {
             state.searchScores = action.payload
         },
-        addToSearchedNodes(state,action:PayloadAction<{path:string,searchedNodes:number}>) {
-            state.searchProgress[action.payload.path].searchedNodes += action.payload.searchedNodes;
-        },  
-        updateProgressThreshold(state,action:PayloadAction<{path:string,lastThreshold:number}>) {
-            state.searchProgress[action.payload.path].lastThreshold = action.payload.lastThreshold
-        },
-        setProgress(state,action:PayloadAction<{path:string,progress:SearchProgress}>) {
-            state.searchProgress[action.payload.path] = action.payload.progress
-        },
-        setWholeSearchProgress(state,action:PayloadAction<Record<string,SearchProgress>>) {
-            state.searchProgress = action.payload
-        },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
             state.error.message = action.payload;
@@ -235,10 +223,6 @@ export const {
     pushToSearch,
     pushToSearchScores,
     setSearchScores,
-    addToSearchedNodes,
-    updateProgressThreshold,
-    setProgress,
-    setWholeSearchProgress,
     setSortBy,
     setView,
     setShowDetails
@@ -529,7 +513,7 @@ function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:
         return false
     }
 }
-function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean,path:string):AppThunk {
+function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean):AppThunk {
     return (dispatch,getState)=>{
         const quickSearch:boolean = selectQuickSearch(getState());
         const isQueryLong:boolean = searchQuery.length >= 10
@@ -538,7 +522,6 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         console.log("SEARCH BATCH SIZE FOR FSNODES",searchBatchSize,"FSNODES",fsNodes);
         fsNodes.push(fsNode)//push the files
         if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
-            const nodeCount:number = fsNodes.length;
             const anyRoughMatches:boolean = dispatch(longQueryOptimization(quickSearch,fsNodes,searchQuery,isQueryLong))
             if (anyRoughMatches) {//i believe that this means that when it reaches the last node of the batch,it will check if there were any exact matches.if so,terminate and return else,proceed with fuzzy search
                 console.log("Terminated early!!");
@@ -551,22 +534,6 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                 return
             }else {
                 dispatch(searchUtil(fsNodes,searchQuery));
-                if (!quickSearch) {//only do progress on full search
-                    dispatch(addToSearchedNodes({path,searchedNodes:nodeCount}))
-                    const progress:SearchProgress = selectSearchProgress(getState())[path]
-                    const thresholds = [20, 45, 75, 85, 100];
-                    const lastThreshold = progress.lastThreshold;
-                    const percent = (progress.searchedNodes / progress.totalNodes) * 100;
-                    console.log("PATH",path,"PERCENT",percent);
-                    const currentThreshold = thresholds.filter(t => t <= percent).reduce((max, t) => (t > max ? t : max), 0);
-                    if (currentThreshold > lastThreshold) {
-                        setTimeout(()=>{
-                            dispatch(updateProgressThreshold({path,lastThreshold:currentThreshold}))
-                        },0)
-                    }else {
-                        dispatch(updateProgressThreshold({path,lastThreshold:currentThreshold}))
-                    }
-                }
                 searchBatchCount += 1;
                 fsNodes.length = 0//prevents stale data
                 return;
@@ -601,18 +568,7 @@ function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void
         if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
             const fsNodes:FsNode[] = []
             const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
-            const totalNodes:number = localFsNodes.length;
             console.log("Local fs nodes",localFsNodes);
-            if (!quickSearch) {
-                dispatch(setProgress({
-                    path,
-                    progress:{
-                        totalNodes,
-                        searchedNodes:0,
-                        lastThreshold:0
-                    }
-                }));
-            }
             for (const [localIndex,fsNode] of localFsNodes.entries()) {
                 const isLastFsNode = localIndex == (localFsNodes.length-1);
                 console.log("Is last fsnode",isLastFsNode);
@@ -620,24 +576,24 @@ function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void
                     if (quickSearch) {
                         if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
                             console.log("PASSED YOUR FILE TO UPDATE",fsNode.primary.nodePath);
-                            dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))
+                            dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
                         }else {
                             console.log("Filtered out the file:",fsNode.primary.nodePath);
                         }
                     }else {//update regardless
-                        dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))
+                        dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
                     }
                 }else if (fsNode.primary.nodeType == "Folder") {
                     //i cant do aggressive filter here because the files within the folder will be in custody
                     if (quickSearch) {
                         if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
                             console.log("PASSED YOUR FOLDER TO UPDATE",fsNode.primary.nodePath);
-                            dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))
+                            dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
                         }else {
                             console.log("Filtered out the folder",fsNode.primary.nodePath);
                         }
                     }else {
-                        dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode,path))
+                        dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
                     }
                 }
             }
@@ -658,14 +614,12 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         dispatch(setSearchTermination(false));
         dispatch(setSearchResults([]));
         dispatch(setSearchScores([]));
-        dispatch(setWholeSearchProgress({}));
         searchBatchCount = 0;
 
         if (searchQuery.length == 0) {
             toast.dismiss("loading");
             dispatch(setSearchResults(null));
             dispatch(setSearchTermination(true));
-            dispatch(setWholeSearchProgress({}));
             return
         }
         const currentPath:string = selectCurrentPath(getState());
