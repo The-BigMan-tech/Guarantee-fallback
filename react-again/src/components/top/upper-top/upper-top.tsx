@@ -1,9 +1,9 @@
-import { useEffect, useState,useMemo, ChangeEvent} from "react";
+import { useEffect, useState,ChangeEvent} from "react";
 import { useAppDispatch,selector} from "../../../redux/hooks"
 import { openParentInApp,selectCurrentPath,selectTabNames,searchDir,loading_toastConfig,toastConfig,toggleQuickSearch, selectQuickSearch, selectSearchResults} from "../../../redux/processingSlice"
 import {v4 as uniqueID} from "uuid"
 import { toast } from "react-toastify";
-import { KeyboardEvent } from "react";
+import { KeyboardEvent,useTransition } from "react";
 import { FsNode } from "../../../utils/rust-fs-interface";
 import Counter from "./counter";
 
@@ -12,12 +12,24 @@ export default function UpperTop() {
     const dispatch = useAppDispatch();
     const currentPath:string = selector(store=>selectCurrentPath(store));
     const [breadCrumbs,setBreadCrumbs] = useState<string[]>([]);
-    const uniqueBreadCrumbs = useMemo(()=>breadCrumbs.map(crumb=>({ id: uniqueID(),crumb:crumb})),[breadCrumbs])
+    const [uniqueBreadCrumbs,setUniqueBreadCrumbs] = useState<{id:string,crumb:string}[]>([])
     const tabNames:Set<string> = new Set(selector(store=>selectTabNames(store)))
     const [searchQuery,setSearchQuery] = useState<string>("");
     const quickSearch:boolean = selector(store=>selectQuickSearch(store));
     const searchResults:FsNode[] | null = selector(store=>selectSearchResults(store));
-    
+    const [transitionedBreadCrumbs, setTransitionedBreadCrumbs] = useState<{id:string,crumb:string}[]>([]);
+    const [isPending, startTransition] = useTransition();
+
+    useEffect(()=>{
+        setUniqueBreadCrumbs(()=>{
+            return breadCrumbs.map(crumb=>({ id: uniqueID(),crumb:crumb}))
+        })
+    },[breadCrumbs])
+    useEffect(()=>{
+        startTransition(() => {
+            setTransitionedBreadCrumbs(uniqueBreadCrumbs);
+        });
+    },[uniqueBreadCrumbs])
 
     async function goToParent() {
         await dispatch(openParentInApp())
@@ -85,11 +97,16 @@ export default function UpperTop() {
                     :null
                 }
                 <div className="flex gap-4 bg-[#387ce13a] py-1 px-2 rounded-xl">
-                    {uniqueBreadCrumbs.map((uniqueCrumb=>
-                        <div key={uniqueCrumb.id}>
-                            <h1 className="font-robot-regular">{getCrumbArrow(uniqueCrumb.crumb)}</h1>
-                        </div>
-                    ))}
+                    {isPending
+                        ?null
+                        :<>
+                            {transitionedBreadCrumbs.map((uniqueCrumb=>
+                                <div key={uniqueCrumb.id}>
+                                    <h1 className="font-robot-regular">{getCrumbArrow(uniqueCrumb.crumb)}</h1>
+                                </div>
+                            ))}
+                        </>
+                    }
                 </div>
                 <div className="absolute right-24 flex gap-8 items-center">
                     <input className="bg-[#5576c852] text-white outline-none py-1 pl-3 rounded-4xl font-robot-regular w-64" value={searchQuery} onChange={(event)=>listenToQuery(event)} onKeyDown={(event)=>enterSearch(event)}  type="text" placeholder="Your search here"/>

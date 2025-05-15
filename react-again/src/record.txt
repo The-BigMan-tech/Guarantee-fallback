@@ -995,3 +995,5 @@ milestone progress
 ?adding to searched nodes is still stale but since i have the lastThreshold,i can just use that as the percentaege.
 
 generating ids on memo isnt stable
+
+*due to React’s concurrency and batching behavior, especially with tight synchronous loops, it’s very challenging to track and render real-time progress for individual folders being searched. React batches state updates and defers rendering until the event loop yields, so UI updates inside tight loops often appear only after the entire loop finishes.

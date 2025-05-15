@@ -1,7 +1,7 @@
 import { selectTabNames,UniqueTab,openDirFromHome,loading_toastConfig, selectSearchTermination} from "../../redux/processingSlice"
 import { selector ,useAppDispatch} from "../../redux/hooks"
 import {v4 as uniqueID} from 'uuid'
-import { useState,useMemo } from "react";
+import { useState,useEffect} from "react";
 import { Card } from "./card";
 import { toast } from "react-toastify";
 
@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 export default function Sidebar({unFreezeStartup}:{unFreezeStartup:()=>string}) {
     const dispatch = useAppDispatch();
     const tabNames:string[] = selector((store)=>selectTabNames(store));
-    const uniqueTabs: UniqueTab[] = useMemo(() => tabNames.map(tabName=>({ id: uniqueID(), name: tabName })), [tabNames]);
+    const [uniqueTabs,setUniqueTabs] = useState<UniqueTab[]>([])
     const tabImgs:Record<string,string> = {Desktop:"desktop.svg",Downloads:"download.svg",Documents:"book.svg",Pictures:"image.svg",Music:"headphones.svg",Videos:"video.svg",RecycleBin:"trash.svg"};
     const shouldTerminateSearch:boolean = selector(store=>selectSearchTermination(store))
 
@@ -17,6 +17,12 @@ export default function Sidebar({unFreezeStartup}:{unFreezeStartup:()=>string}) 
     const [homeTabId,] = useState(uniqueID());
     const [clickedTab,setClickedTab] = useState<string>(homeTabId);
 
+    useEffect(()=>{
+        setUniqueTabs(()=>{
+            const newTabs:UniqueTab[] = tabNames.map(tab => ({ id: uniqueID(),name:tab}));
+            return newTabs
+        })
+    },[tabNames])
     async function clickTab(tabId:string,tabName:string):Promise<void> {
         if ((unFreezeStartup() !== "opacity-30") && (shouldTerminateSearch)) {
             toast.loading(`Loading the folder ${tabName}`,{...loading_toastConfig,position:"top-right",toastId:"loading-sidebar"});

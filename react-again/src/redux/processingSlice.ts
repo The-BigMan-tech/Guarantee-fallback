@@ -74,8 +74,6 @@ interface CachedFolder {
 }
 export interface NodeCount {
     path:string | null,
-    totalItems:number ,
-    items:number | null,
     save:boolean
 }
 export interface processingSliceState {//by using null unions instead of optional types,i ensure that my app doesnt accidenteally worked with an undefined value
@@ -113,7 +111,7 @@ const initialState:processingSliceState = {
     loadingMessage:"loading",//no id here because only one thing can be loaded at a time
     searchResults:null,
     searchScores:[],
-    nodeCount:{path:'',totalItems:0,items:0,save:false},
+    nodeCount:{path:'',save:false},
     terminateSearch:true,
     quickSearch:true,
     sortBy:'name',
@@ -180,23 +178,16 @@ export const processingSlice = createSlice({
             state.searchScores = action.payload
         },
         resetNodeCount(state) {
-            state.nodeCount = {path:'',totalItems:0,items:0,save:false}
+            state.nodeCount = {path:'',save:false}
         },
         clearNodeCount(state) {
-            state.nodeCount = {path:null,totalItems:0,items:null,save:false}
+            state.nodeCount = {path:null,save:false}
         },
         saveNodeCount(state) {
             state.nodeCount.save = true
         },
         setNodePath(state,action:PayloadAction<string>) {
             state.nodeCount.path = action.payload
-        },
-        setTotalItems(state,action:PayloadAction<number>) {
-            state.nodeCount.totalItems = action.payload
-        },
-        incItemCount(state,action:PayloadAction<number>) {
-            state.nodeCount.items = state.nodeCount.items || 0
-            state.nodeCount.items += action.payload
         },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
@@ -245,8 +236,6 @@ export const {
     setSearchScores,
     resetNodeCount,
     clearNodeCount,
-    setTotalItems,
-    incItemCount,
     saveNodeCount,
     setNodePath,
     setSortBy,
@@ -499,7 +488,7 @@ function getParent():AppThunk<string> {
 
 
 //^SEARCH RELARED
-function searchUtil(fsNodes:FsNode[],searchQuery:string,quickSearch:boolean):AppThunk<Promise<void>> {
+function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>> {
     return async (dispatch) => {
         console.log("FSNODES VALUE NOW",fsNodes);
         if (fsNodes) {
@@ -515,12 +504,6 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string,quickSearch:boolean):App
                     }
                 })
             };
-            if (!quickSearch) {//only do this on full search
-                const nodeLength = fsNodes.length
-                setTimeout(()=>{
-                    dispatch(incItemCount(nodeLength));
-                },0)
-            }
         }
     }
 }
@@ -548,20 +531,12 @@ function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:
     }
 }
 function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean):AppThunk<Promise<void>> {
-    return async (dispatch,getState)=>{
+    return async (dispatch,getState) =>{
         const quickSearch:boolean = selectQuickSearch(getState());
         const isQueryLong:boolean = searchQuery.length >= 10;
-        const nodeCount = selectNodeCount(getState());
-        const totalItems = nodeCount.totalItems;
         let searchBatchSize:number = 5;
         if (searchBatchCount > 0) {
-            if ((quickSearch) || (totalItems < 30)) {
-                searchBatchSize = 15
-            }else {
-                const thresholdCount = 10
-                searchBatchSize = Math.ceil(totalItems/ thresholdCount)
-                console.log("BATCH DIVISION FOR: ",nodeCount.path,"COUNT: ",searchBatchSize);
-            }
+            searchBatchSize = 15
         }
 
         console.log("SEARCH BATCH SIZE FOR FSNODES",searchBatchSize,"FSNODES",fsNodes);
@@ -572,13 +547,13 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                 console.log("Terminated early!!");
                 dispatch(setSearchTermination(true));
                 fsNodes.length = 0;
-                return
+                return 
             }else if (quickSearch && !(anyRoughMatches) && isQueryLong) {
                 console.log("Discarded this batch");
                 fsNodes.length = 0//prevents stale data
                 return
             }else {
-                await dispatch(searchUtil(fsNodes,searchQuery,quickSearch));
+                await dispatch(searchUtil(fsNodes,searchQuery));
                 searchBatchCount += 1;
                 fsNodes.length = 0//prevents stale data
                 return;
@@ -618,7 +593,6 @@ function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void
             if (!quickSearch) {//only show progress of crawled folders on full search
                 dispatch(resetNodeCount());
                 dispatch(setNodePath(path));
-                dispatch(setTotalItems(localFsNodes.length));
             }
             console.log("Local fs nodes",localFsNodes);
             for (const [localIndex,fsNode] of localFsNodes.entries()) {

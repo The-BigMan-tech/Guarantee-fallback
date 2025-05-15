@@ -2,7 +2,7 @@ import { selector } from "../../redux/hooks"
 import { selectFsNodes,UniqueFsNode,selectSearchResults,selectSearchTermination,searchDir,terminateSearch, selectCurrentPath} from "../../redux/processingSlice"
 import { FsNode} from "../../utils/rust-fs-interface"
 import FsDisplay from "./fs-display"
-import { useEffect, useState,useTransition } from "react"
+import { useEffect, useState } from "react"
 import {v4 as uniqueID} from "uuid"
 import { useAppDispatch } from "../../redux/hooks"
 
@@ -15,8 +15,7 @@ export default function Body() {
     const [uniqueSearchResults,setUniqueSearchResults] = useState<UniqueFsNode[] | null>();
     const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store));
     const currentPath = selector(store=>selectCurrentPath(store));
-    const [displayedSearchResults, setDisplayedSearchResults] = useState<UniqueFsNode[] | null>(null);
-    const [isPending, startTransition] = useTransition();
+
 
     async function exitSearch() {
         await dispatch(searchDir("",0));
@@ -44,15 +43,6 @@ export default function Body() {
             }else {return null}
         })
     },[searchResults])
-    // useEffect(() => {
-    //     if (uniqueSearchResults) {
-    //         startTransition(() => {
-    //             setDisplayedSearchResults(uniqueSearchResults);
-    //         });
-    //     } else {
-    //         setDisplayedSearchResults(null);
-    //     }
-    // }, [uniqueSearchResults]);
     return (
         <>
             <div className={`h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md`}>
@@ -68,12 +58,7 @@ export default function Body() {
                                     ?<button className="cursor-pointer absolute top-16 text-white font-bold" onClick={exitSearch}>Clear search results</button>
                                     :null
                                 }
-                                :<>
-                                    {isPending
-                                        ?<h1 className="text-white text-2xl absolute top-[50%] left-[45%] font-[Consolas]">Loading search results...</h1>
-                                        :<FsDisplay {...{uniqueFsNodes:uniqueSearchResults}}/>
-                                    }
-                                </>
+                                <FsDisplay {...{uniqueFsNodes:uniqueSearchResults}}/>
                             </div>
                             :<>
                                 {(isSearchTerminated)
