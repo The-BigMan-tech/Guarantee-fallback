@@ -75,7 +75,8 @@ interface CachedFolder {
 export interface NodeCount {
     path:string,
     totalItems:number,
-    items:number
+    items:number,
+    save:boolean
 }
 export interface processingSliceState {//by using null unions instead of optional types,i ensure that my app doesnt accidenteally worked with an undefined value
     currentPath:string,//as breadcrumbs
@@ -112,7 +113,7 @@ const initialState:processingSliceState = {
     loadingMessage:"loading",//no id here because only one thing can be loaded at a time
     searchResults:null,
     searchScores:[],
-    nodeCount:{path:'',totalItems:0,items:0},
+    nodeCount:{path:'',totalItems:0,items:0,save:false},
     terminateSearch:true,
     quickSearch:true,
     sortBy:'name',
@@ -179,7 +180,10 @@ export const processingSlice = createSlice({
             state.searchScores = action.payload
         },
         clearNodeCount(state) {
-            state.nodeCount = {path:'',totalItems:0,items:0}
+            state.nodeCount = {path:'',totalItems:0,items:0,save:false}
+        },
+        saveNodeCount(state) {
+            state.nodeCount.save = true
         },
         setNodePath(state,action:PayloadAction<string>) {
             state.nodeCount.path = action.payload
@@ -238,6 +242,7 @@ export const {
     clearNodeCount,
     setTotalItems,
     incItemCount,
+    saveNodeCount,
     setNodePath,
     setSortBy,
     setView,
@@ -589,9 +594,8 @@ function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void
             const fsNodes:FsNode[] = []
             const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
             if (!quickSearch) {//only show progress of crawled folders on full search
-                dispatch(setNodePath(''));//to give the counter a chance to save the path
-                dispatch(setNodePath(path));
                 dispatch(clearNodeCount());
+                dispatch(setNodePath(path));
                 dispatch(setTotalItems(localFsNodes.length));
             }
             console.log("Local fs nodes",localFsNodes);
@@ -623,6 +627,7 @@ function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void
                     }
                 }
             }
+            dispatch(saveNodeCount())
             //breadth first traversal
             for (const fsNode of localFsNodes) {
                 if (fsNode.primary.nodeType == "Folder") {

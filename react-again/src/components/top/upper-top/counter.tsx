@@ -11,7 +11,7 @@ export default function Counter() {
     const uniqueProgress = useMemo(()=>progress.map(node=>({ id: uniqueID(),data:node})),[progress])
 
     useEffect(()=>{
-        if (nodeCount.path.length == 0) {
+        if (nodeCount.save) {
             console.log("NODE COUNT LENGTH IS ZERO");
             setProgress(prev=>[...prev,nodeCount]);
         }
