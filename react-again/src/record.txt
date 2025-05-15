@@ -923,7 +923,9 @@ Throttled reducers
 Breaking down components
 Virtualization
 useTransition
+million js
 decoupling the redux state to a local state in a react component that is under a transition
+
 
 *so if i want to tranistion a redux state in a component,i should create a separate state that is of the same type and under a useeffect,whenever the redux state changes,i update the state under a transition.ill use this to render instead of the redux state directly
 
