@@ -1,5 +1,5 @@
 import { selector } from "../../redux/hooks"
-import { selectFsNodes,UniqueFsNode,selectSearchResults,selectSearchTermination,searchDir,terminateSearch} from "../../redux/processingSlice"
+import { selectFsNodes,UniqueFsNode,selectSearchResults,selectSearchTermination,searchDir,terminateSearch, selectCurrentPath} from "../../redux/processingSlice"
 import { FsNode} from "../../utils/rust-fs-interface"
 import FsDisplay from "./fs-display"
 import { useEffect, useState } from "react"
@@ -14,7 +14,7 @@ export default function Body() {
     const searchResults:FsNode[] | null = selector(store=>selectSearchResults(store))
     const [uniqueSearchResults,setUniqueSearchResults] = useState<UniqueFsNode[] | null>();
     const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store));
-
+    const currentPath = selector(store=>selectCurrentPath(store))
 
     async function exitSearch() {
         await dispatch(searchDir("",0));
@@ -22,6 +22,9 @@ export default function Body() {
     function quitSearch() {
         dispatch(terminateSearch());
     }
+    useEffect(()=>{
+        setUniqueFsNodes(null)
+    },[currentPath])
     useEffect(()=>{
         setUniqueFsNodes((prev)=>{
             console.log("FSNODE PROCESSING:",fsNodes);

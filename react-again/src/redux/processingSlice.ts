@@ -73,9 +73,9 @@ interface CachedFolder {
     data:FsNode[]
 }
 export interface NodeCount {
-    path:string,
-    totalItems:number,
-    items:number,
+    path:string | null,
+    totalItems:number | null,
+    items:number | null,
     save:boolean
 }
 export interface processingSliceState {//by using null unions instead of optional types,i ensure that my app doesnt accidenteally worked with an undefined value
@@ -179,8 +179,11 @@ export const processingSlice = createSlice({
         setSearchScores(state,action:PayloadAction<number[]>) {
             state.searchScores = action.payload
         },
-        clearNodeCount(state) {
+        resetNodeCount(state) {
             state.nodeCount = {path:'',totalItems:0,items:0,save:false}
+        },
+        clearNodeCount(state) {
+            state.nodeCount = {path:null,totalItems:null,items:null,save:false}
         },
         saveNodeCount(state) {
             state.nodeCount.save = true
@@ -192,6 +195,7 @@ export const processingSlice = createSlice({
             state.nodeCount.totalItems = action.payload
         },
         incItemCount(state,action:PayloadAction<number>) {
+            state.nodeCount.items = state.nodeCount.items || 0
             state.nodeCount.items += action.payload
         },
         setError(state,action:PayloadAction<string>) {
@@ -239,6 +243,7 @@ export const {
     pushToSearch,
     pushToSearchScores,
     setSearchScores,
+    resetNodeCount,
     clearNodeCount,
     setTotalItems,
     incItemCount,
@@ -324,7 +329,6 @@ function addToCache(data:CachedFolder,tabName:string):AppThunk {
 function openCachedDirInApp(folderPath:string):AppThunk {
     return (dispatch,getState)=>{
         console.log("called open dir in app");
-        dispatch(setFsNodes([]))
         const cache:CachedFolder[] = selectCache(getState());
         for (const cachedFolder of cache) {
             if (folderPath == cachedFolder.path) {
@@ -554,7 +558,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                 searchBatchSize = 15
             }else {
                 const thresholdCount = 5
-                searchBatchSize = Math.ceil(nodeCount.totalItems/thresholdCount)
+                searchBatchSize = Math.ceil(nodeCount.totalItems||0 / thresholdCount)
                 console.log("BATCH DIVISION FOR: ",nodeCount.path,"COUNT: ",searchBatchSize);
             }
         }
@@ -611,7 +615,7 @@ function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void
             const fsNodes:FsNode[] = []
             const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
             if (!quickSearch) {//only show progress of crawled folders on full search
-                dispatch(clearNodeCount());
+                dispatch(resetNodeCount());
                 dispatch(setNodePath(path));
                 dispatch(setTotalItems(localFsNodes.length));
             }

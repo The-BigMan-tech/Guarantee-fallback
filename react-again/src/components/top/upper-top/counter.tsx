@@ -26,7 +26,7 @@ export default function Counter() {
                 return [...prev,{id:uniqueID(),data:nodeCount}]
             });
         }
-        if ((nodeCount.totalItems == 0 ) && (nodeCount.items == 0)) {//each time the node count clears which is on each recursion,reset
+        if ((nodeCount.totalItems === null ) && (nodeCount.items === null)) {//each time the node count clears which is on each recursion,reset
             setProgress([])
         }
     },[nodeCount])
@@ -39,7 +39,7 @@ export default function Counter() {
         <div className="flex flex-col absolute right-5">
             {progress.map((node)=>
                 <div key={node.id} className="flex flex-col mb-4">
-                    <h1>Path: {truncateStart(node.data.path,20)}</h1>
+                    <h1>Path: {truncateStart(node.data.path || "",20)}</h1>
                     <h1>Searched: {node.data.items} / {node.data.totalItems} items</h1>
                 </div>
             )}
