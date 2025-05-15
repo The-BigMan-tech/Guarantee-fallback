@@ -31,7 +31,7 @@ export default function Body() {
             console.log("FSNODE PROCESSING:",fsNodes);
             if (fsNodes) {
                 const newNodes = fsNodes.map(node => ({ id: uniqueID(), fsNode: node }));
-                return [...prev || [],...newNodes]
+                return (fsNodes.length)?[...prev || [],...newNodes]:newNodes
             }else {return null}
         })
     },[fsNodes])

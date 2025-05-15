@@ -323,7 +323,6 @@ function openCachedDirInApp(folderPath:string):AppThunk {
             if (folderPath == cachedFolder.path) {
                 const cached_data = cachedFolder.data;
                 const cache_length = cached_data.length;
-                // dispatch(setFsNodes(cached_data))
                 const half_length = Math.floor(cache_length / 2); 
                 dispatch(setFsNodes(cached_data.slice(0,half_length)));
                 dispatch(spreadToFsNodes(cached_data.slice(half_length,cache_length)));
@@ -387,44 +386,11 @@ function isAHomeTab(folderName:string):folderName is AllTabTypes  {
 }
 
 
-
-//^LOADING RELATED
-//I am not actually using this functions.just exported it so that es lint will stop complaining.i may or may not use it later
-export async function loadIncrementally(fsNodesPromise:(Promise<FsNode>)[],fsNodes:FsNode[] ):Promise<AppThunk<Promise<FsNode[]>>>{
-    return async (dispatch,getState):Promise<FsNode[]> =>{
-        console.log("LOADING INC");
-        const localFsNodes = [...fsNodes]
-        for (const fsNodePromise of fsNodesPromise) {
-            const fsNode:FsNode = await fsNodePromise;
-            localFsNodes.push(fsNode);
-            console.log("Pushed fs node",localFsNodes.length);
-            if (localFsNodes.length == 1) {//batch 4 fsnodes before reflecting it in the ui
-                console.log("BATCHED FS NODES REACHED");
-                dispatch(spreadToFsNodes(localFsNodes))//reflect the 4 fsnodes in the ui
-                localFsNodes.length = 0//clear the batch array for a new batch
-            }
-        }
-        fsNodes = selectFsNodes(getState()) || []//fsnodes cant be null here because a series of fsnodes were already pushed above this line but the ts compiler cant infer that so i just provided a fallback value
-        return fsNodes;
-    }
-}
-//I exported this for the same reason as loadIncrementally
-export function inHomePage(folderName:string):AppThunk<boolean> {//it will only run if the cache is empty.dont forget
-    return (_,getState):boolean => {
-        const aotCachingState = selectAheadCachingState(getState());
-        return ((folderName === "Home") && (aotCachingState === "pending"))
-    }
-}
-
-
 //^OPEN DIR RELATED
-/**
- * It updates the ui by loading the fsnodes array into the app state using one of two rendering techniques depending if the dir is the home tab and returns a modified fsnodes that can be used for caching
- */
 function updateUI(value:(Promise<FsNode>)[]):AppThunk<Promise<FsNode[]>> {
     return async (dispatch):Promise<FsNode[]> => {
+        dispatch(setFsNodes([]))
         const localFsNodes = await Promise.all(value);
-        // dispatch(incFsNodesLen())
         dispatch(setFsNodes(localFsNodes));
         return localFsNodes;
     }
@@ -436,6 +402,7 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
         const folderName:string = await base_name(folderPath,true);
         
         dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));//the loading message freezes the ui
+        dispatch(setFsNodes([]))
         dispatch(openCachedDirInApp(folderPath));
         dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
         dispatch(setSearchResults(null))//to clear search results
