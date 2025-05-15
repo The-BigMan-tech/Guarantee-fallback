@@ -20,7 +20,7 @@ export default function Counter() {
         if (nodeCount.save) {
             console.log("NODE COUNT LENGTH IS ZERO");
             setProgress(prev=>{
-                if (prev.length > 7) {
+                if (prev.length > 6) {
                     prev.length = 0
                 }
                 return [...prev,{id:uniqueID(),data:nodeCount}]
@@ -37,22 +37,25 @@ export default function Counter() {
     },[progress])
 
     return (
-        <div className="flex flex-col absolute right-5">
+        <div className="flex flex-col absolute right-20 top-24">
             {progress[0]?.data.path//this repaired a symptom not a bug so you gotta fix it.Its to conditionally render this omly when progress is set
                 ?<>
                     {progress.map((node)=>
                         <div key={node.id} className="flex flex-col mb-4">
-                            <h1>Path: {truncateStart(node.data.path || "",20)}</h1>
-                            <progress className="daisy-progress daisy-progress-success w-44 rounded-2xl" value={node.data.items || 0} max={node.data.totalItems || 0}></progress>
+                            <div>
+                                <h1 className="font-bold text-[#7db8f1] text-sm">Searching:</h1>
+                                <h1 className="text-gray-400">{truncateStart(node.data.path || "",40)}</h1>
+                            </div>
+                            <progress className="daisy-progress daisy-progress-success w-56 rounded-2xl" value={node.data.items || 0} max={node.data.totalItems || 0}></progress>
                         </div>
                     )}
                 </>
                 :null
             }
-            {(!(quickSearch) && !(isSearchTerminated))
+            {/* {(!(quickSearch) && !(isSearchTerminated))
                 ?<h1>Searched: {nodeCount.items} / {nodeCount.totalItems} items</h1>
                 :null
-            }
+            } */}
         </div>
     )
 }
