@@ -324,6 +324,7 @@ function addToCache(data:CachedFolder,tabName:string):AppThunk {
 function openCachedDirInApp(folderPath:string):AppThunk {
     return (dispatch,getState)=>{
         console.log("called open dir in app");
+        dispatch(setFsNodes([]))
         const cache:CachedFolder[] = selectCache(getState());
         for (const cachedFolder of cache) {
             if (folderPath == cachedFolder.path) {
@@ -440,7 +441,7 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
         const folderName:string = await base_name(folderPath,true);
-        // dispatch(setFsNodes([]))
+        
         dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));//the loading message freezes the ui
         dispatch(openCachedDirInApp(folderPath));
         dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
