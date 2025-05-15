@@ -2,7 +2,7 @@ import { selector } from "../../redux/hooks"
 import { selectFsNodes,UniqueFsNode,selectSearchResults,selectSearchTermination,searchDir,terminateSearch} from "../../redux/processingSlice"
 import { FsNode} from "../../utils/rust-fs-interface"
 import FsDisplay from "./fs-display"
-import { useEffect, useMemo, useState,useTransition } from "react"
+import { useEffect, useState,useTransition } from "react"
 import {v4 as uniqueID} from "uuid"
 import { useAppDispatch } from "../../redux/hooks"
 
@@ -10,9 +10,9 @@ import { useAppDispatch } from "../../redux/hooks"
 export default function Body() {
     const dispatch = useAppDispatch();
     const fsNodes:FsNode[] | null = selector(store=>selectFsNodes(store));
-    const uniqueFsNodes: UniqueFsNode[] | null = useMemo(() => fsNodes?.map(fsNode=>({ id: uniqueID(),fsNode})) || null, [fsNodes]);
+    const [uniqueFsNodes,setUniqueFsNodes]  = useState<UniqueFsNode[] | null>([])
     const searchResults:FsNode[] | null = selector(store=>selectSearchResults(store))
-    const uniqueSearchResults:UniqueFsNode[] | null = useMemo(()=>searchResults?.map(fsNode=>({id:uniqueID(),fsNode})) || null,[searchResults]);
+    const [uniqueSearchResults,setUniqueSearchResults] = useState<UniqueFsNode[] | null>();
     const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store));
     const [displayedSearchResults, setDisplayedSearchResults] = useState<UniqueFsNode[] | null>(null);
     const [isPending, startTransition] = useTransition();
@@ -32,6 +32,22 @@ export default function Body() {
             setDisplayedSearchResults(null);
         }
     }, [uniqueSearchResults]);
+    useEffect(()=>{
+        setUniqueFsNodes(()=>{
+            if (fsNodes) {
+                const newNodes = fsNodes.map(node => ({ id: uniqueID(), fsNode: node }));
+                return newNodes
+            }else {return null}
+        })
+    },[fsNodes])
+    useEffect(()=>{
+        setUniqueSearchResults((prev)=>{
+            if (searchResults) {
+                const newNodes = searchResults.map(node => ({ id: uniqueID(), fsNode: node }));
+                return [...prev || [],...newNodes]
+            }else {return null}
+        })
+    },[searchResults])
     return (
         <>
             <div className={`h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md`}>

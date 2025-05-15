@@ -21,9 +21,9 @@ export default function Counter() {
         if (nodeCount.save) {
             console.log("NODE COUNT LENGTH IS ZERO");
             setProgress(prev=>{
-                if (prev.length > 7) {
-                    prev.length = 0
-                }
+                // if (prev.length > 7) {
+                //     prev.length = 0
+                // }
                 return [...prev,nodeCount]
             });
         }

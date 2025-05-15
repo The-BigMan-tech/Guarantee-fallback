@@ -993,3 +993,5 @@ milestone progress
 
 
 ?adding to searched nodes is still stale but since i have the lastThreshold,i can just use that as the percentaege.
+
+generating ids on memo isnt stable

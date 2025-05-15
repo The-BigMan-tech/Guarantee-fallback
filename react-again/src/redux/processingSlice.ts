@@ -430,6 +430,7 @@ export function inHomePage(folderName:string):AppThunk<boolean> {//it will only 
 function updateUI(value:(Promise<FsNode>)[]):AppThunk<Promise<FsNode[]>> {
     return async (dispatch):Promise<FsNode[]> => {
         const localFsNodes = await Promise.all(value);
+        // dispatch(incFsNodesLen())
         dispatch(setFsNodes(localFsNodes));
         return localFsNodes;
     }
@@ -439,6 +440,7 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
         const folderName:string = await base_name(folderPath,true);
+        // dispatch(setFsNodes([]))
         dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));//the loading message freezes the ui
         dispatch(openCachedDirInApp(folderPath));
         dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
@@ -509,7 +511,10 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string,quickSearch:boolean):App
                 })
             };
             if (!quickSearch) {//only do this on full search
-                dispatch(incItemCount(fsNodes.length))
+                const nodeLength = fsNodes.length
+                setTimeout(()=>{
+                    dispatch(incItemCount(nodeLength))
+                },0)
             }
         }
     }
@@ -540,8 +545,18 @@ function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:
 function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean):AppThunk {
     return (dispatch,getState)=>{
         const quickSearch:boolean = selectQuickSearch(getState());
-        const isQueryLong:boolean = searchQuery.length >= 10
-        const searchBatchSize = searchBatchCount > 0 ? 15 : 5;
+        const isQueryLong:boolean = searchQuery.length >= 10;
+        const nodeCount = selectNodeCount(getState());
+        let searchBatchSize:number = 5;
+        if (searchBatchCount > 0) {
+            if (quickSearch) {
+                searchBatchSize = 15
+            }else {
+                const thresholdCount = 5
+                searchBatchSize = Math.ceil(nodeCount.totalItems/thresholdCount)
+                console.log("BATCH DIVISION FOR: ",nodeCount.path,"COUNT: ",searchBatchSize);
+            }
+        }
 
         console.log("SEARCH BATCH SIZE FOR FSNODES",searchBatchSize,"FSNODES",fsNodes);
         fsNodes.push(fsNode)//push the files
@@ -589,6 +604,7 @@ function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void
         const quickSearch:boolean = selectQuickSearch(getState());
         const order = (quickSearch)?'alphabetical':'date'
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(path,order);
+        searchBatchCount = 0;
         console.log("DIR RESULT",dirResult.value);
         if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
             const fsNodes:FsNode[] = []
