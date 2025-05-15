@@ -26,7 +26,8 @@ export default function Counter() {
                 return [...prev,{id:uniqueID(),data:nodeCount}]
             });
         }
-        if ((nodeCount.totalItems === null ) && (nodeCount.items === null)) {//each time the node count clears which is on each recursion,reset
+        //this is fragile
+        if ((nodeCount.items === null ) && (nodeCount.path === null)) {//each time the node count clears which is on each recursion,reset
             setProgress([])
         }
     },[nodeCount])
