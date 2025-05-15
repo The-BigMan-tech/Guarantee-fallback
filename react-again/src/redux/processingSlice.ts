@@ -55,11 +55,6 @@ interface  TabCacheInvalidation {
 export type SortingOrder = 'name' | 'date' | 'type' | 'size';
 export type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
 
-export interface SearchProgress {
-    searchedNodes:number,
-    totalNodes:number,
-    lastThreshold:number
-}
 
 export interface Message {
     id:string,
@@ -88,7 +83,6 @@ export interface processingSliceState {//by using null unions instead of optiona
     terminateSearch:boolean,
     quickSearch:boolean,
     searchScores:number[],
-    searchProgress:Record<string,SearchProgress>,//search progress for tracking
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
@@ -114,7 +108,6 @@ const initialState:processingSliceState = {
     searchScores:[],
     terminateSearch:true,
     quickSearch:true,
-    searchProgress:{},
     sortBy:'name',
     viewBy:'details',
     showDetailsPane:true
@@ -244,7 +237,6 @@ export const selectAheadCachingState = (store:RootState):CachingState => store.p
 export const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
 export const selectSearchTermination = (store:RootState):boolean =>store.processing.terminateSearch;
 export const selectQuickSearch = (store:RootState):boolean=>store.processing.quickSearch;
-export const selectSearchProgress = (store:RootState):Record<string,SearchProgress> =>store.processing.searchProgress;
 const selectSearchScores = (store:RootState):number[]=>store.processing.searchScores;
 const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
 
