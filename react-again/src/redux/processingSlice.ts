@@ -72,6 +72,11 @@ interface CachedFolder {
     path:string,
     data:FsNode[]
 }
+export interface NodeCount {
+    path:string,
+    totalItems:number,
+    items:number
+}
 export interface processingSliceState {//by using null unions instead of optional types,i ensure that my app doesnt accidenteally worked with an undefined value
     currentPath:string,//as breadcrumbs
     tabNames:string[],//home tabs
@@ -83,6 +88,7 @@ export interface processingSliceState {//by using null unions instead of optiona
     terminateSearch:boolean,
     quickSearch:boolean,
     searchScores:number[],
+    nodeCount:NodeCount,//This is for number of nodes that have been searched during a search recursion
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
@@ -106,6 +112,7 @@ const initialState:processingSliceState = {
     loadingMessage:"loading",//no id here because only one thing can be loaded at a time
     searchResults:null,
     searchScores:[],
+    nodeCount:{path:'',totalItems:0,items:0},
     terminateSearch:true,
     quickSearch:true,
     sortBy:'name',
@@ -171,6 +178,18 @@ export const processingSlice = createSlice({
         setSearchScores(state,action:PayloadAction<number[]>) {
             state.searchScores = action.payload
         },
+        clearNodeCount(state) {
+            state.nodeCount = {path:'',totalItems:0,items:0}
+        },
+        setNodePath(state,action:PayloadAction<string>) {
+            state.nodeCount.path = action.payload
+        },
+        setTotalItems(state,action:PayloadAction<number>) {
+            state.nodeCount.totalItems = action.payload
+        },
+        incItemCount(state,action:PayloadAction<number>) {
+            state.nodeCount.items += action.payload
+        },
         setError(state,action:PayloadAction<string>) {
             state.error.id = uniqueID();
             state.error.message = action.payload;
@@ -216,6 +235,10 @@ export const {
     pushToSearch,
     pushToSearchScores,
     setSearchScores,
+    clearNodeCount,
+    setTotalItems,
+    incItemCount,
+    setNodePath,
     setSortBy,
     setView,
     setShowDetails
@@ -237,6 +260,7 @@ export const selectAheadCachingState = (store:RootState):CachingState => store.p
 export const selectCache = (store:RootState):CachedFolder[] =>store.processing.cache || [];
 export const selectSearchTermination = (store:RootState):boolean =>store.processing.terminateSearch;
 export const selectQuickSearch = (store:RootState):boolean=>store.processing.quickSearch;
+export const selectNodeCount = (store:RootState):NodeCount=>store.processing.nodeCount;
 const selectSearchScores = (store:RootState):number[]=>store.processing.searchScores;
 const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
 
@@ -463,7 +487,7 @@ function getParent():AppThunk<string> {
 
 
 //^SEARCH RELARED
-function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
+function searchUtil(fsNodes:FsNode[],searchQuery:string,quickSearch:boolean):AppThunk {
     return (dispatch) => {
         console.log("FSNODES VALUE NOW",fsNodes);
         if (fsNodes) {
@@ -478,6 +502,9 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk {
                         dispatch(pushToSearchScores(result.score))
                     }
                 })
+            };
+            if (!quickSearch) {//only do this on full search
+                dispatch(incItemCount(fsNodes.length))
             }
         }
     }
@@ -525,7 +552,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                 fsNodes.length = 0//prevents stale data
                 return
             }else {
-                dispatch(searchUtil(fsNodes,searchQuery));
+                dispatch(searchUtil(fsNodes,searchQuery,quickSearch));
                 searchBatchCount += 1;
                 fsNodes.length = 0//prevents stale data
                 return;
@@ -551,6 +578,7 @@ function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void
         const shouldTerminate:boolean = selectSearchTermination(getState());
         console.log("SHOULD TERMINATE",shouldTerminate);
         if (shouldTerminate) {
+            dispatch(clearNodeCount());
             return
         }
         const quickSearch:boolean = selectQuickSearch(getState());
@@ -560,6 +588,12 @@ function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void
         if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
             const fsNodes:FsNode[] = []
             const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
+            if (!quickSearch) {//only show progress of crawled folders on full search
+                dispatch(setNodePath(''));//to give the counter a chance to save the path
+                dispatch(setNodePath(path));
+                dispatch(clearNodeCount());
+                dispatch(setTotalItems(localFsNodes.length));
+            }
             console.log("Local fs nodes",localFsNodes);
             for (const [localIndex,fsNode] of localFsNodes.entries()) {
                 const isLastFsNode = localIndex == (localFsNodes.length-1);
@@ -638,6 +672,7 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         toast.dismiss();
         toast.success(`Done searching in ${timeInSeconds} seconds`,{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
         dispatch(setSearchTermination(true));
+        dispatch(clearNodeCount());
     }
 }
 export function terminateSearch():AppThunk {

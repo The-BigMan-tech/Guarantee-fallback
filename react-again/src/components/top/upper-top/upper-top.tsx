@@ -5,6 +5,7 @@ import {v4 as uniqueID} from "uuid"
 import { toast } from "react-toastify";
 import { KeyboardEvent } from "react";
 import { FsNode } from "../../../utils/rust-fs-interface";
+import Counter from "./counter";
 
 
 export default function UpperTop() {
@@ -14,8 +15,9 @@ export default function UpperTop() {
     const uniqueBreadCrumbs = useMemo(()=>breadCrumbs.map(crumb=>({ id: uniqueID(),crumb:crumb})),[breadCrumbs])
     const tabNames:Set<string> = new Set(selector(store=>selectTabNames(store)))
     const [searchQuery,setSearchQuery] = useState<string>("");
-    const quickSearch = selector(store=>selectQuickSearch(store));
-    const searchResults:FsNode[] | null = selector(store=>selectSearchResults(store))
+    const quickSearch:boolean = selector(store=>selectQuickSearch(store));
+    const searchResults:FsNode[] | null = selector(store=>selectSearchResults(store));
+    
 
     async function goToParent() {
         await dispatch(openParentInApp())
@@ -97,6 +99,7 @@ export default function UpperTop() {
                     </label>
                 </div>
             </div>
+            <Counter/>
         </div>
     )
 }

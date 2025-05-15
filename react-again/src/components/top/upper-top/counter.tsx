@@ -1,0 +1,38 @@
+import { selectQuickSearch,selectNodeCount,selectSearchTermination,NodeCount } from "../../../redux/processingSlice";
+import { selector } from "../../../redux/hooks";
+import { useEffect, useState ,useMemo} from "react";
+import {v4 as uniqueID} from 'uuid'
+
+export default function Counter() {
+    const quickSearch:boolean = selector(store=>selectQuickSearch(store));
+    const nodeCount:NodeCount = selector(store=>selectNodeCount(store));
+    const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store));
+    const [progress,setProgress] = useState<NodeCount[]>([]);
+    const uniqueProgress = useMemo(()=>progress.map(node=>({ id: uniqueID(),data:node})),[progress])
+
+    useEffect(()=>{
+        if (nodeCount.path.length == 0) {
+            console.log("NODE COUNT LENGTH IS ZERO");
+            setProgress(prev=>[...prev,nodeCount]);
+        }
+        if ((nodeCount.totalItems == 0 ) && (nodeCount.items == 0)) {
+            setProgress([])
+        }
+    },[nodeCount])
+
+    useEffect(()=>{
+        console.log("NODE PROGRESS: ",uniqueProgress);
+    },[uniqueProgress])
+
+    return (
+        <div className="flex flex-col">
+            {uniqueProgress.map((node)=>
+                <h1 key={node.id}>Searched: {node.data.items} / {node.data.totalItems} items</h1>
+            )}
+            {(!(quickSearch) && !(isSearchTerminated))
+                ?<h1>Searched: {nodeCount.items} / {nodeCount.totalItems} items</h1>
+                :null
+            }
+        </div>
+    )
+}
