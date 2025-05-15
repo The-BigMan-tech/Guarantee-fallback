@@ -517,8 +517,9 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string,quickSearch:boolean):App
             };
             if (!quickSearch) {//only do this on full search
                 const nodeLength = fsNodes.length
-                dispatch(incItemCount(nodeLength));
-                await new Promise(resolve => setTimeout(resolve, 0)); // yield to event loop
+                setTimeout(()=>{
+                    dispatch(incItemCount(nodeLength));
+                },0)
             }
         }
     }
