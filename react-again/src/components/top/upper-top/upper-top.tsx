@@ -53,6 +53,12 @@ export default function UpperTop() {
     function listenToQuery(event:ChangeEvent<HTMLInputElement>) {
         setSearchQuery(event.target.value)
     }
+    function truncateStart(str:string, maxLength:number) {
+        if (str.length <= maxLength) {
+            return str; 
+        }
+        return '...' + str.slice(str.length - (maxLength - 3));
+    }
     async function search(query:string) {
         toast.loading("Loading your search",{...loading_toastConfig,position:"bottom-right"});
         const startTime = performance.now();
@@ -73,7 +79,8 @@ export default function UpperTop() {
         dispatch(toggleQuickSearch())
     }
     useEffect(()=>{
-        const replacedPath = currentPath.replace(/.*\\AppData\\Roaming\\Microsoft\\Windows\\Recent/,"Recent");
+        let replacedPath = currentPath.replace(/.*\\AppData\\Roaming\\Microsoft\\Windows\\Recent/,"Recent");
+        replacedPath = truncateStart(replacedPath,45)
         const breadCrumbs = replacedPath.split("\\");
         setBreadCrumbs(breadCrumbs);
         setSearchQuery("")
