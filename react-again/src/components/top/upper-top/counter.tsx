@@ -42,7 +42,7 @@ export default function Counter() {
                     {progress.map((node)=>
                         <div key={node.id} className="flex flex-col mb-4">
                             <h1>Path: {truncateStart(node.data.path || "",20)}</h1>
-                            <h1>Searched: {node.data.items} / {node.data.totalItems} items</h1>
+                            <progress className="daisy-progress daisy-progress-success w-44 rounded-2xl" value={node.data.items || 0} max={node.data.totalItems || 0}></progress>
                         </div>
                     )}
                 </>
