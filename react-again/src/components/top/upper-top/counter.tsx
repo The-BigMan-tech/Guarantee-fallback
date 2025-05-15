@@ -37,12 +37,17 @@ export default function Counter() {
 
     return (
         <div className="flex flex-col absolute right-5">
-            {progress.map((node)=>
-                <div key={node.id} className="flex flex-col mb-4">
-                    <h1>Path: {truncateStart(node.data.path || "",20)}</h1>
-                    <h1>Searched: {node.data.items} / {node.data.totalItems} items</h1>
-                </div>
-            )}
+            {progress[0]?.data.path//this repaired a symptom not a bug so you gotta fix it.Its to conditionally render this omly when progress is set
+                ?<>
+                    {progress.map((node)=>
+                        <div key={node.id} className="flex flex-col mb-4">
+                            <h1>Path: {truncateStart(node.data.path || "",20)}</h1>
+                            <h1>Searched: {node.data.items} / {node.data.totalItems} items</h1>
+                        </div>
+                    )}
+                </>
+                :null
+            }
             {(!(quickSearch) && !(isSearchTerminated))
                 ?<h1>Searched: {nodeCount.items} / {nodeCount.totalItems} items</h1>
                 :null

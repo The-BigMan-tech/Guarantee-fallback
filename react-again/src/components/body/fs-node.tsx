@@ -1,6 +1,6 @@
 import { FsNode } from "../../utils/rust-fs-interface"
 import { useAppDispatch,selector} from "../../redux/hooks"
-import { openDirectoryInApp,selectLoadingMessage} from "../../redux/processingSlice";
+import { openDirectoryInApp,selectLoadingMessage,selectSearchTermination} from "../../redux/processingSlice";
 import { useEffect, useState} from "react";
 import {motion} from "motion/react"
 import { memo } from "react";
@@ -15,6 +15,8 @@ export const FsNodeComponent = memo((props:Props)=> {
     const dispatch = useAppDispatch();
     const loadingMessage:string  = selector(store=>selectLoadingMessage(store)) || "";
     const [shouldUnFreeze,setShouldUnFreeze] = useState<boolean>(false);
+    const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store));
+
 
     function truncateName(name:string):string {
         return (name.length < 16)?name:`${name.slice(0,16)}...`
@@ -40,8 +42,11 @@ export const FsNodeComponent = memo((props:Props)=> {
         return (shouldUnFreeze)?"opacity-100 cursor-pointer":""
     }
     useEffect(()=>{
-        setShouldUnFreeze(!(loadingMessage.trim().toLowerCase().startsWith("loading")));
-    },[loadingMessage])
+        setShouldUnFreeze(
+            !(loadingMessage.trim().toLowerCase().startsWith("loading")) &&
+            (isSearchTerminated)
+        );
+    },[loadingMessage,isSearchTerminated])
     return (
         <motion.button
             whileHover={{ scale: 1.1 }}
