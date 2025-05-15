@@ -551,13 +551,14 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         const quickSearch:boolean = selectQuickSearch(getState());
         const isQueryLong:boolean = searchQuery.length >= 10;
         const nodeCount = selectNodeCount(getState());
+        const totalItems = nodeCount.totalItems;
         let searchBatchSize:number = 5;
         if (searchBatchCount > 0) {
-            if (quickSearch) {
+            if ((quickSearch) || (totalItems < 30)) {
                 searchBatchSize = 15
             }else {
-                const thresholdCount = 5
-                searchBatchSize = Math.ceil(nodeCount.totalItems/ thresholdCount)
+                const thresholdCount = 10
+                searchBatchSize = Math.ceil(totalItems/ thresholdCount)
                 console.log("BATCH DIVISION FOR: ",nodeCount.path,"COUNT: ",searchBatchSize);
             }
         }
