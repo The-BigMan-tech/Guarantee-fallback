@@ -94,7 +94,8 @@ export interface processingSliceState {//by using null unions instead of optiona
     loadingMessage:string | null//for loading messages
     sortBy:SortingOrder,//sorting order of the files
     viewBy:View,//changes the layout of the folder content
-    showDetailsPane:boolean//to show extra details like charts or disk usage
+    showDetailsPane:boolean//to show extra details like charts or disk usage,
+    openedFile:FsNode | null
 }
 
 
@@ -116,7 +117,8 @@ const initialState:processingSliceState = {
     quickSearch:true,
     sortBy:'name',
     viewBy:'details',
-    showDetailsPane:true
+    showDetailsPane:true,
+    openedFile:null
 }
 
 
@@ -208,6 +210,9 @@ export const processingSlice = createSlice({
         },
         setShowDetails(state,action:PayloadAction<boolean>) {
             state.showDetailsPane = action.payload
+        },
+        setOpenedFile(state,action:PayloadAction<FsNode | null>) {
+            state.openedFile = action.payload
         }
     },
 })
@@ -240,7 +245,8 @@ export const {
     setNodePath,
     setSortBy,
     setView,
-    setShowDetails
+    setShowDetails,
+    setOpenedFile
 } = processingSlice.actions;
 
 export default processingSlice.reducer;
@@ -260,6 +266,7 @@ export const selectCache = (store:RootState):CachedFolder[] =>store.processing.c
 export const selectSearchTermination = (store:RootState):boolean =>store.processing.terminateSearch;
 export const selectQuickSearch = (store:RootState):boolean=>store.processing.quickSearch;
 export const selectNodeCount = (store:RootState):NodeCount=>store.processing.nodeCount;
+export const selectOpenedFile = (store:RootState):FsNode | null =>store.processing.openedFile;
 const selectSearchScores = (store:RootState):number[]=>store.processing.searchScores;
 const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
 
@@ -393,12 +400,13 @@ function updateUI(value:(Promise<FsNode>)[]):AppThunk<Promise<FsNode[]>> {
         const localFsNodes = await Promise.all(value);
         dispatch(setFsNodes(localFsNodes));
         return localFsNodes;
-    }
+    }   
 }
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
+        dispatch(setOpenedFile(null))
         const folderName:string = await base_name(folderPath,true);
         
         dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));//the loading message freezes the ui
@@ -717,5 +725,16 @@ export function watchHomeTabs():AppThunk<Promise<void>> {
         )
     }
 }
-
+export function openFile(fsNode:FsNode):AppThunk {
+    return (dispatch)=>{
+        dispatch(setCurrentPath(fsNode.primary.nodePath))
+        dispatch(setOpenedFile(fsNode))
+    }
+}
+export function cancelFile():AppThunk {
+    return (dispatch)=>{
+        dispatch(setOpenedFile(null));
+        dispatch(openParentInApp())
+    }
+}
 

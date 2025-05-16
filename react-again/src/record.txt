@@ -729,8 +729,7 @@ pre sorting based on mode to increase the chance of seeing your result early
 breadth first recursion over depth first
 useTransition optimizations
 progress is at certain points because of rerenders but the styling updates flawlessly
-todo:truncate the bread crumbs when its too big
-
+todo:fix the rendering of the arrow when in the home folder
 
 i need to sort the array by files first before folder
 

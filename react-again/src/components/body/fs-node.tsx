@@ -1,6 +1,6 @@
 import { FsNode } from "../../utils/rust-fs-interface"
 import { useAppDispatch,selector} from "../../redux/hooks"
-import { openDirectoryInApp,selectLoadingMessage,selectSearchTermination} from "../../redux/processingSlice";
+import { openDirectoryInApp,openFile,selectLoadingMessage,selectSearchTermination} from "../../redux/processingSlice";
 import { useEffect, useState} from "react";
 import {motion} from "motion/react"
 import { memo } from "react";
@@ -34,6 +34,8 @@ export const FsNodeComponent = memo((props:Props)=> {
         if (shouldUnFreeze) {
             if (fsNode.primary.nodeType == "Folder") {
                 await dispatch(openDirectoryInApp(fsNode.primary.nodePath))
+            }else if ((fsNode.primary.nodeType == "File")) {
+                dispatch(openFile(fsNode))
             }
             return
         }
