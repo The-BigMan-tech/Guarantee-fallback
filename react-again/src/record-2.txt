@@ -1,14 +1,44 @@
-react
-angular
-vue
-svelte
-astro
-alpine
-solid
-qwik
-preact
-next js,nuxt and svelte kit
-million js
+reactivity runtime--diffing algorithm and virtual dom
+change detection runtime--direct dom manipulation and zone based checking..change detecton is where the runtime watches for state changes,triggers a change cycle that updates the parts of the dom that needs to be updated
+
+vue is negligibly faster than react because their v-dom is simpler
+
+proxy based and normal reactivity runtime.in react,changes arent detected by a proxy,they are done directly on the virtual dom but in vue,they are detcted by a proxy before goin to the virtual dom
+
+preact runtime is fatser becuase it stripped everything from the react runtime except only for the essentials but at the cost of complexity support and robustness.
+
+in astro, each interactie component are managed by separate isolated runtimes while the others are static.the reason why these many runtimes dont consume memory the way you think is because as the runtimes are scoped to isolated components,they become very small as they dont have to manage big components or data.
+
+alpine is the modern alt to jquery
+java is the modern alt to cobol
+
+so the shadow dom is a natively supported feature that adds a small tree to a dom node to allow for scoping styles and scripts and lit modifies dom nodes by modifyingtheir shadow dom.Changes inside the Shadow DOM affect only the shadow subtree. Styles and scripts inside the shadow root are scoped and do not leak out or get overridden by global styles. Modifying the main DOM node directly affects the global DOM tree, where styles and scripts are shared and can conflict. Modifying the host element’s children directly changes the main DOM tree, affecting the entire document.DOM APIs like document.querySelector do not find elements inside the shadow DOM, which protects components from accidental interference by global scripts
+
+so the browser only renders the content of the shadow dom but its only the lit runtime that can write to it to update the ui
+
+so qwik ships the full page to the client,then on every user interaction,it sends the minimum js code required for it instead of sending the page and the entire js code to the client on request.so it ships tiny js code on interactivity instead of the entire js bundle when it sends the static page like next js
+
+million js adds flags to nodes at compile time to skip diffing entirely after analyzing the code for the parts that don't require it in place of direct Dom node mutation.it also does block from where instead of diffing the entire vdom,it only diffs the part of the Dom that has changed
+
+reactivity and rendering paradigms
+
+*babel,swc,pyreact
+
+*note:solid is 20-60% faster than svelte
+
+*Frameworks
+react--jsx compiler and reactivity runtime
+angular--multi-file component compiler and change detection runtime
+vue--sfc compiler and proxy based reactivity runtime
+svelte--sfc compiler and reactivity compiler
+astro--ssg compiler,many small isolated runtimes
+alpine--no ui compiler cux its written in plain html,uses vue runtime,its direct js in html
+solid--jsx compiler,no reactivity runtime but signals or smart state which are like smart pointers.
+preact--jsx compiler and a leaner/minimal/barebones reactivity runtime
+lit--directly in a ts file,no temp compiler and a shadow dom runtime
+next js---ssr.the components are compiled into html and sent to the client before also shipping the js code
+qwik---resumable ssr
+million js--compile time optimized v-dom
 
 react compiler
 
@@ -46,5 +76,12 @@ ui tests--test the effect on the outside not the inside.its a black box and decl
 backend testing--test the inside and not the outside because backend api contracts are very stable even across refactors and internal logic doesnt have any observable effects.its a white box test
 
 
+*Vite primarily optimizes your code for build-time bundling and initial load performance, not for runtime execution speed of your JavaScript code itself.
 
 
+
+so with solid,can i easily implement progress tracking than in react since solid allows me to finetune when components re-render
+
+*in react,ive been fighting the runtime to show progress while i dispatch progress in redux but solid makes it easy.i think thats the tradeoff of having a runtime over control.its difficult to control memory allocations and deallocations in a language that uses a gc because a gc is a runtime so it will only run when its the right time not when you want it to and forcing it to run will degrade perf,this is like the reactivity runtime.direct dom manipulation allows you to control when updates reflect on the ui but at the cost of complexity.it simply doesnt scale with big projects but a framewor like svelte that compiles your reactive looking code to direct dom manipulation can help to control rendering while still remaining declarartive.signals in solid are like smart pointers.they are tiny runtimes that still give you fine grained control over reactivity
+
+so react runtime is like the gc,signals are reactive pointers and direct dom manipulation is like direct memory management but for reactivity.so react runtime is like the gc,signals are reactive pointers and direct dom manipulation is like direct memory management but for reactivity
