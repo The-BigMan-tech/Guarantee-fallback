@@ -915,6 +915,7 @@ score sorting implemented in rust
 indexing
 caching terminated searches only so that if searched again,it can continue where it left off
 
+
 ^UI OPTIMIZATIONS
 Redux web workers
 Memoization
@@ -923,6 +924,7 @@ Breaking down components
 Virtualization
 useTransition
 million js
+react window
 decoupling the redux state to a local state in a react component that is under a transition
 
 
@@ -996,3 +998,124 @@ milestone progress
 generating ids on memo isnt stable
 
 *due to React’s concurrency and batching behavior, especially with tight synchronous loops, it’s very challenging to track and render real-time progress for individual folders being searched. React batches state updates and defers rendering until the event loop yields, so UI updates inside tight loops often appear only after the entire loop finishes.
+
+electron --node js services
+tauri--rust services
+
+optional chaining,undefined and type assertion X
+null union is safer,null coaellescing operatir
+result union is safer for error handling
+
+
+broswer services,
+node js services
+rust services
+web server--can only access the browser
+application server--can access node js services
+
+tauri window--uses webview,can only access browser services
+electron--uses node js instance,chromium and as such,it can access browser and node js services in the same project
+
+a js file can only run either in a browser context(client) or node js context(server) but not at the same time meaning that a project that requires the two will require two sep js files for each of the context
+
+react app-full client side and can only access browser services
+nest js service---full server side,can only access node js services
+electron--client side apps but with access to node js services
+tauri--client side app but can access rust services
+next js--server side apps but can use client components to access browser services
+
+there is backend services and system services
+
+backend services are separate from project dependencies.the diff is that dep are installed alon side the project while services are consumed by the project from another sep codebase through an api.
+
+system services are provided by std lib like node js or rust libraries
+
+technology,framework,solution,a service,an addon
+
+a dependency can be either client side only,server side only or context insensitive. i.e it works regardless of the env because it doesnt use any service special to either side to work
+
+std lib is a system service,
+database is an external service
+
+js lacks a std lib so node js is the only available ste of services for js
+
+hooks transform data
+memoization
+
+context api
+hoc
+global state solution
+state paradigms
+
+code optimization
+algorithm opt--time,mem
+
+checking against ids vs boolean array for selecting ui elements
+swapping out content vs routing
+svelte compiles to normal dom,react compiles to v-dom
+svelte doesnt use keys,react does
+styled components
+sfc,function,classes
+react keys--everything within a map that can render dynamically must have a key
+component lib--styled or unstyled components
+apine js--quick websites
+astro js with react
+hugo
+
+*website
+html,css solution,js
+hugo,css solution,alpine
+astro,css solution,react
+
+*desktop apps
+tauri
+electron
+
+*server side apps
+next js
+
+astro--mdx,partial hydration,ssg,seo,speed
+
+markdown in components vs mdx.they are functionally the same but mdx is easier and doesnt require breaking your cotent semantically to fit in your components
+
+ssg framework
+baas
+full backend api
+
+in memory cache,disk cache,in memory cache serialized to a disk
+
+service workers and web workers
+state solution,pouch db
+server state solution,database
+
+online web app--server side state logiv,a minimal client side state solution like jotai for caching and a backend as a service
+
+desktop app--redux state logic,rtk query to communicate with a baas or a full backend.
+
+The key is to avoid division of logic across solutions as solutions are supposed to be self contained
+
+networking
+system level interactions
+
+react and redux--self contained client side app solution
+next js--self contained server side app solution
+
+
+external servers are now used for building services and no longer full stack user apps.They were used to make mpa apps using a templating engine like pug or ejs.Examples of backend frameworks;graphql,django,ruby on rails,nest js,phoenix,trpc,socket io,spring boot,node js,express js.They are used to make services like;
+complex algorithms--machine learning models and  large scale entreprise algorithms
+legacy bridge
+specialized services--socket io for real time communication
+security services--for authentication and secure server side operations like payments
+supporting services--graphql service for querying data
+
+docker is used for distributing backend servers
+docker or platform as a service like vercel are used for distributing online web apps and can be connected with url on the browser or a client side window like a tauri desktop window which is just a view into a web from a url 
+installers are for distributing desktop apps using websites
+
+a web app can be desktop client app,browser client app,broswer server app.
+
+react + system level--tauri apps
+react + desktop app exp---electron apps
+react + networking--next js apps
+react + mobile--react native apps
+react + website--react and astro websites

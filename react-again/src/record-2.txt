@@ -1,0 +1,50 @@
+react
+angular
+vue
+svelte
+astro
+alpine
+solid
+qwik
+preact
+next js,nuxt and svelte kit
+million js
+
+react compiler
+
+jsx and sfc architecture
+
+*check
+intellisense
+ai in code editor
+ai chat
+
+
+react testing library
+vitest
+storybook
+cypress
+
+alts:playwright,jest
+
+*check
+formik,zod,immer library,auth js
+
+*check
+react router
+create async thunk,manual async thunk,unusual async thunk patterns
+assertion test
+observable test,implementation test
+declarative test,imperative test
+
+
+dom manipulation
+reactivity runtime
+
+ui tests--test the effect on the outside not the inside.its a black box and declarative testing.The reason its so because internal logic tests breaks easily on refactors not because of abrupt code changes but because ui refactors will heavily affect the way the test interacts with the components even if the logic is the same and correct and as such the test is brittle.
+
+backend testing--test the inside and not the outside because backend api contracts are very stable even across refactors and internal logic doesnt have any observable effects.its a white box test
+
+
+
+
