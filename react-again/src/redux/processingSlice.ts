@@ -322,18 +322,22 @@ function addToCache(data:CachedFolder,tabName:string):AppThunk {
         throttledStoreCache(dispatch);
     }
 }
-function openCachedDirInApp(folderPath:string):AppThunk {
-    return (dispatch,getState)=>{
+function openCachedDirInApp(folderPath:string):AppThunk<Promise<void>> {
+    return async (dispatch,getState)=>{
         console.log("called open dir in app");
         const cache:CachedFolder[] = selectCache(getState());
         for (const cachedFolder of cache) {
             if (folderPath == cachedFolder.path) {
                 const cached_data = cachedFolder.data;
-                dispatch(setFsNodes(cached_data));
-                // const cache_length = cached_data.length;
-                // const half_length = Math.floor(cache_length / 2); 
-                // dispatch(setFsNodes(cached_data.slice(0,half_length)));
-                // dispatch(spreadToFsNodes(cached_data.slice(half_length,cache_length)));
+                const cache_length = cached_data.length;
+                const slice_number = 10
+                if (cache_length < slice_number) {
+                    dispatch(setFsNodes(cached_data))
+                }else {
+                    dispatch(setFsNodes(cached_data.slice(0,slice_number)));
+                    await new Promise((resolve) => queueMicrotask(() => resolve(undefined)))
+                    dispatch(spreadToFsNodes(cached_data.slice(slice_number, cache_length)));
+                }
                 return
             }
         }
@@ -407,7 +411,7 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
         // dispatch(setFsNodes([]))
-        dispatch(openCachedDirInApp(folderPath));
+        await dispatch(openCachedDirInApp(folderPath));
         dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
 
         const folderName:string = await base_name(folderPath,true);

@@ -1119,3 +1119,16 @@ react + desktop app exp---electron apps
 react + networking--next js apps
 react + mobile--react native apps
 react + website--react and astro websites
+
+*because state updates in react happen concurrently,its unreliable to print the value of that state before or after state modifications.it has to be under a useeffect
+
+*spreading blindly is a goof way to preserve uniquely generated ids but it wont work as intended in every situation if there isnt a mechanism to invalidate the previous state and intehrating that into thunks to communicate that to the component is difficult.that technique worked in some cases like search results where the results is only used in one place but for something like a folder that is opened or used in multiple functions,it becomes difficult.the best apprach here is to extend the map with logic to reuse prev ids
+
+*using ids and memoizing on that id
+*spreading or extending the map to preserve ids
+
+*the reason why it felt laggy after i timed out the second dispath wasnt because my component wasnt listening properly but because the caller didnt wait for the second to finish so it ran all the other code it was supposed to do after loading which delayed the ui.
+
+*so in general,settimeout shouldnt be used to instruct the react runtime to flush ui updates but rather through promises and awaiting them as they are more predictable
+
+*the reason why im doing this instead of letting react to batch the ui updates is that fsnodes can be a big array and rendering everything at once can feel slower and less responsive so by rendering only a small subset of  it,the switch can feel instant and react can render everything else afterwards.

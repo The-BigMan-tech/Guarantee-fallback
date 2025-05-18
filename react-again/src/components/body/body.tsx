@@ -2,7 +2,7 @@ import { selector } from "../../redux/hooks"
 import { selectFsNodes,UniqueFsNode,selectSearchResults,selectSearchTermination,searchDir,terminateSearch,selectOpenedFile} from "../../redux/processingSlice"
 import { FsNode} from "../../utils/rust-fs-interface"
 import FsDisplay from "./fs-display"
-import { useEffect, useState } from "react"
+import { useEffect,useState } from "react"
 import {v4 as uniqueID} from "uuid"
 import { useAppDispatch } from "../../redux/hooks"
 import Preview from "./previews/preview"
@@ -17,7 +17,6 @@ export default function Body() {
     const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store));
     const openedFile = selector(store=>selectOpenedFile(store));
 
-
     async function exitSearch() {
         await dispatch(searchDir("",0));
     }
@@ -25,20 +24,32 @@ export default function Body() {
         dispatch(terminateSearch());
     }
     useEffect(()=>{
-        setUniqueFsNodes(()=>{
+        setUniqueFsNodes((prev)=>{
             console.log("FSNODE PROCESSING:",fsNodes);
             if (fsNodes) {
-                const newNodes = fsNodes.map(node => ({ id: uniqueID(), fsNode: node }));
+                const newNodes = fsNodes.map(node => {
+                    const prevNode = prev?.find((p) => p.fsNode.primary.nodePath === node.primary.nodePath);
+                    console.log("REUSED ID:",Boolean(prevNode));
+                    return {
+                        id: prevNode ? prevNode.id : uniqueID(),
+                        fsNode: node,
+                    };
+                });
                 return newNodes
-            }else {return null}
+            }else {
+                return null
+            }
         })
     },[fsNodes])
+    
     useEffect(()=>{
         setUniqueSearchResults((prev)=>{
             if (searchResults) {
                 const newNodes = searchResults.map(node => ({ id: uniqueID(), fsNode: node }));
                 return (searchResults.length)?[...prev || [],...newNodes]:newNodes
-            }else {return null}
+            }else {
+                return null
+            }
         })
     },[searchResults])
     return (
