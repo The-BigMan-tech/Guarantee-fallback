@@ -27,15 +27,15 @@ export default function Body() {
         setUniqueFsNodes((prev)=>{
             console.log("FSNODE PROCESSING:",fsNodes);
             if (fsNodes) {
-                const newNodes = fsNodes.map(node => {
-                    const prevNode = prev?.find((p) => p.fsNode.primary.nodePath === node.primary.nodePath);
+                return fsNodes.map((node,index) => {
+                    const prevNode = (prev && prev[index]) ? prev[index] : null;
+                    const shouldReuseID = prevNode && prevNode.fsNode.primary.nodePath === node.primary.nodePath
                     console.log("REUSED ID:",Boolean(prevNode));
                     return {
-                        id: prevNode ? prevNode.id : uniqueID(),
+                        id:shouldReuseID ? prevNode.id : uniqueID(),
                         fsNode: node,
                     };
                 });
-                return newNodes
             }else {
                 return null
             }

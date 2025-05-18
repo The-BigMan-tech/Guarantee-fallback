@@ -1135,3 +1135,5 @@ react + website--react and astro websites
 
 three ways of preserving ids for memoization:
 useMemo,spreading,smart map
+
+*i dont have to worry about the order or anything like that.a node in the fs has a unique path naturally so if the paths dont match,a new uuid is generated.this also means i should have made the keys the path instead of unique ids but its what it is
