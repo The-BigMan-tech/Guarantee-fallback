@@ -396,7 +396,6 @@ function isAHomeTab(folderName:string):folderName is AllTabTypes  {
 //^OPEN DIR RELATED
 function updateUI(value:(Promise<FsNode>)[]):AppThunk<Promise<FsNode[]>> {
     return async (dispatch):Promise<FsNode[]> => {
-        dispatch(setFsNodes([]))
         const localFsNodes = await Promise.all(value);
         dispatch(setFsNodes(localFsNodes));
         return localFsNodes;
@@ -410,7 +409,7 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
         const folderName:string = await base_name(folderPath,true);
         
         dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));//the loading message freezes the ui
-        dispatch(setFsNodes([]))
+        // dispatch(setFsNodes([]))
         dispatch(openCachedDirInApp(folderPath));
         dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
         dispatch(setSearchResults(null))//to clear search results
@@ -525,6 +524,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                 return 
             }else if (quickSearch && !(anyRoughMatches) && isQueryLong) {
                 console.log("Discarded this batch");
+                searchBatchCount = 0
                 fsNodes.length = 0//prevents stale data
                 return
             }else {

@@ -28,14 +28,14 @@ reactivity and rendering paradigms
 
 *Frameworks
 react--jsx compiler and reactivity runtime
-angular--multi-file component compiler and change detection runtime
+angular--mfc compiler and change detection runtime
 vue--sfc compiler and proxy based reactivity runtime
 svelte--sfc compiler and reactivity compiler
 astro--ssg compiler,many small isolated runtimes
 alpine--no ui compiler cux its written in plain html,uses vue runtime,its direct js in html
 solid--jsx compiler,no reactivity runtime but signals or smart state which are like smart pointers.
 preact--jsx compiler and a leaner/minimal/barebones reactivity runtime
-lit--directly in a ts file,no temp compiler and a shadow dom runtime
+lit--html template directly in a ts file,no temp compiler and a shadow dom runtime
 next js---ssr.the components are compiled into html and sent to the client before also shipping the js code
 qwik---resumable ssr
 million js--compile time optimized v-dom
@@ -85,3 +85,7 @@ so with solid,can i easily implement progress tracking than in react since solid
 *in react,ive been fighting the runtime to show progress while i dispatch progress in redux but solid makes it easy.i think thats the tradeoff of having a runtime over control.its difficult to control memory allocations and deallocations in a language that uses a gc because a gc is a runtime so it will only run when its the right time not when you want it to and forcing it to run will degrade perf,this is like the reactivity runtime.direct dom manipulation allows you to control when updates reflect on the ui but at the cost of complexity.it simply doesnt scale with big projects but a framewor like svelte that compiles your reactive looking code to direct dom manipulation can help to control rendering while still remaining declarartive.signals in solid are like smart pointers.they are tiny runtimes that still give you fine grained control over reactivity
 
 so react runtime is like the gc,signals are reactive pointers and direct dom manipulation is like direct memory management but for reactivity.so react runtime is like the gc,signals are reactive pointers and direct dom manipulation is like direct memory management but for reactivity
+
+*reactivity paradigm,state management paradigm
+
+solid unlike svelte doesnt compile reactivity to imperative dom manipulation.it just compiles your code into dom manipultion to start the page and setup signals that interact with the dom imperatively.its the signals that perform the reactivity at runtime unlike svelte that every form of reacvtivity is already compiled to dom manipulation
