@@ -329,10 +329,11 @@ function openCachedDirInApp(folderPath:string):AppThunk {
         for (const cachedFolder of cache) {
             if (folderPath == cachedFolder.path) {
                 const cached_data = cachedFolder.data;
-                const cache_length = cached_data.length;
-                const half_length = Math.floor(cache_length / 2); 
-                dispatch(setFsNodes(cached_data.slice(0,half_length)));
-                dispatch(spreadToFsNodes(cached_data.slice(half_length,cache_length)));
+                dispatch(setFsNodes(cached_data));
+                // const cache_length = cached_data.length;
+                // const half_length = Math.floor(cache_length / 2); 
+                // dispatch(setFsNodes(cached_data.slice(0,half_length)));
+                // dispatch(spreadToFsNodes(cached_data.slice(half_length,cache_length)));
                 return
             }
         }
@@ -405,13 +406,13 @@ function updateUI(value:(Promise<FsNode>)[]):AppThunk<Promise<FsNode[]>> {
 export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);
-        dispatch(setOpenedFile(null))
-        const folderName:string = await base_name(folderPath,true);
-        
-        dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));//the loading message freezes the ui
         // dispatch(setFsNodes([]))
         dispatch(openCachedDirInApp(folderPath));
         dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
+
+        const folderName:string = await base_name(folderPath,true);
+        dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));//the loading message freezes the ui
+        dispatch(setOpenedFile(null))
         dispatch(setSearchResults(null))//to clear search results
         
         if (dispatch(cacheIsValid(folderName))) {
