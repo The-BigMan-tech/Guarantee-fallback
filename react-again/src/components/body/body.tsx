@@ -2,8 +2,7 @@ import { selector } from "../../redux/hooks"
 import { selectFsNodes,UniqueFsNode,selectSearchResults,selectSearchTermination,searchDir,terminateSearch,selectOpenedFile} from "../../redux/processingSlice"
 import { FsNode} from "../../utils/rust-fs-interface"
 import FsDisplay from "./fs-display"
-import { useEffect,useState } from "react"
-import {v4 as uniqueID} from "uuid"
+import { useMemo } from "react"
 import { useAppDispatch } from "../../redux/hooks"
 import Preview from "./previews/preview"
 
@@ -11,9 +10,9 @@ import Preview from "./previews/preview"
 export default function Body() {
     const dispatch = useAppDispatch();
     const fsNodes:FsNode[] | null = selector(store=>selectFsNodes(store));
-    const [uniqueFsNodes,setUniqueFsNodes]  = useState<UniqueFsNode[] | null>([])
+    const uniqueFsNodes  = useMemo<UniqueFsNode[] | null>(()=>fsNodes?.map(node=>({id:node.primary.nodePath,fsNode: node})) || null,[fsNodes])
     const searchResults:FsNode[] | null = selector(store=>selectSearchResults(store))
-    const [uniqueSearchResults,setUniqueSearchResults] = useState<UniqueFsNode[] | null>();
+    const uniqueSearchResults = useMemo<UniqueFsNode[] | null>(()=>searchResults?.map(node => ({ id:node.primary.nodePath, fsNode: node })) || null,[searchResults]);
     const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store));
     const openedFile = selector(store=>selectOpenedFile(store));
 
@@ -23,35 +22,6 @@ export default function Body() {
     function quitSearch() {
         dispatch(terminateSearch());
     }
-    useEffect(()=>{
-        setUniqueFsNodes((prev)=>{
-            console.log("FSNODE PROCESSING:",fsNodes);
-            if (fsNodes) {
-                return fsNodes.map((node,index) => {
-                    const prevNode = (prev && prev[index]) ? prev[index] : null;
-                    const shouldReuseID = prevNode && prevNode.fsNode.primary.nodePath === node.primary.nodePath
-                    console.log("REUSED ID:",Boolean(prevNode));
-                    return {
-                        id:shouldReuseID ? prevNode.id : uniqueID(),
-                        fsNode: node,
-                    };
-                });
-            }else {
-                return null
-            }
-        })
-    },[fsNodes])
-    
-    useEffect(()=>{
-        setUniqueSearchResults((prev)=>{
-            if (searchResults) {
-                const newNodes = searchResults.map(node => ({ id: uniqueID(), fsNode: node }));
-                return (searchResults.length)?[...prev || [],...newNodes]:newNodes
-            }else {
-                return null
-            }
-        })
-    },[searchResults])
     return (
         <>
             <div className={`h-[100%] bg-[#1f1f30] w-[90%] shadow-md rounded-md`}>

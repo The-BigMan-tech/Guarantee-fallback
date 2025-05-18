@@ -1133,7 +1133,25 @@ react + website--react and astro websites
 
 *the reason why im doing this instead of letting react to batch the ui updates is that fsnodes can be a big array and rendering everything at once can feel slower and less responsive so by rendering only a small subset of  it,the switch can feel instant and react can render everything else afterwards.
 
-three ways of preserving ids for memoization:
-useMemo,spreading,smart map
+static key--uniqueness + useMemo
+dynamic key--local uuid + useMemo
+stable dynamic key--locally stable,globally stable.
+unsafe dynamic keys--indexes
+
+tracking,memoization
+
+locally stable dynamic keys--useEffect with a setter and a map or spread
+globally stable dynamic keys--use redux state
 
 *i dont have to worry about the order or anything like that.a node in the fs has a unique path naturally so if the paths dont match,a new uuid is generated.this also means i should have made the keys the path instead of unique ids but its what it is
+
+*so there are two types of keys;static keys,dynamic keys and stable dynamic keys.for a key to be preserved,it must be static or stable without falling short of being unique.a key is static if its naturally part of the data as under the app state like the path to a node in the fs.it doesnt come from the algorithm but if it doesnt have any natural uniquness,it can use dynamic keys which comes from the algorithm.but dynamic keys are regenerated on every component rerender which is good if the key is just used for tracking but if its needed for other things like memoization,then it must be preserved.a key is stable and dynamic if there is some way of preventing the key from being regenerated on every render.its either the dynamic key is generated ahead of time under the redux app state because the app state remains stable ad global as its isolated from component rerenders or the key must be set only once the data changes under a use effect in a component.This is a local stable dynamic key as opposed to a global stable dynamic key as stored in the redux state.Its stable because it doesnt change on every rerender but only when the data it requires changes but it doesnt preserve the data until spreading or mapping is done.spreading is simple but blind as it cant apply to every context while using a custom map function can include logic on where to preserve keys according to context.mine now uses a static key.it doesnt change whenever i load my program,its dictated by the path on the fs because they are naturally unique but before,i was trying to use local stable dynamic keys but it wasnt required for the kind of data i was handling.indexes are unstable dynamic keys cuz as opposed to regular dynamic keys that remain unique even though regenerated on rerender.they cant be used for tracking nor memoizing.its just the easy way out of react complaining about keys.its only for lists that their elements never change dynamically.i also realized something.i cant use state hook on a dynamic or static key cuz it only changes when the component rerenders but not necessarily when data changes.thats why when i used useState for my static keys,it didnt work as expected so i had to use useMemo and attactch a dependency so that whenever that datat changes even though the component doesnt rerender,the variable is recreated with the latest version of the data equipped with their static or dynamic keys.its when im trying to create locally stable dynamic keys,that i use a setter under a use effect with either spreading or a map.this is because useState alone is not reactive to data changes unless you update it explicitly.i think index keys are better termed unsafe dynamic keys. than unstable. a key is stable when it doesnt recompute its values on every rerender by preserving old key values i believe.so if a key is purely for tracking and not identity,then a dynamic key will work but if its used for identity for memorization,then using stable dynamic or static keys is better.i know that svelte doesnt use keys because its compiled so there is no runtime required to track nodes
+
+
+useState,useEffect,useMemo,useTransition,useCallback,useRef
+memo
+
+^paradigms
+reactivity paradigm
+state paradigm
+key paradigm
