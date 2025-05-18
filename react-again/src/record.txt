@@ -1132,3 +1132,6 @@ react + website--react and astro websites
 *so in general,settimeout shouldnt be used to instruct the react runtime to flush ui updates but rather through promises and awaiting them as they are more predictable
 
 *the reason why im doing this instead of letting react to batch the ui updates is that fsnodes can be a big array and rendering everything at once can feel slower and less responsive so by rendering only a small subset of  it,the switch can feel instant and react can render everything else afterwards.
+
+three ways of preserving ids for memoization:
+useMemo,spreading,smart map

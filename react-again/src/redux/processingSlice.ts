@@ -402,7 +402,15 @@ function isAHomeTab(folderName:string):folderName is AllTabTypes  {
 function updateUI(value:(Promise<FsNode>)[]):AppThunk<Promise<FsNode[]>> {
     return async (dispatch):Promise<FsNode[]> => {
         const localFsNodes = await Promise.all(value);
-        dispatch(setFsNodes(localFsNodes));
+        const nodes_length = localFsNodes.length;
+        const slice_number = 10
+        if (nodes_length < slice_number) {
+            dispatch(setFsNodes(localFsNodes))
+        }else {
+            dispatch(setFsNodes(localFsNodes.slice(0,slice_number)));
+            await new Promise((resolve) => queueMicrotask(() => resolve(undefined)))
+            dispatch(spreadToFsNodes(localFsNodes.slice(slice_number,nodes_length)));
+        }
         return localFsNodes;
     }   
 }
