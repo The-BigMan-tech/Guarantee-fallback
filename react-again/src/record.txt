@@ -1170,3 +1170,22 @@ rendering paradigm
 state paradigm
 key paradigm
 
+
+vscode,node js,git,postman,mongo db,postgres
+express js,nextjs/react
+
+code editor and rest client or browser
+
+*i used an array for both my in app state cache and fsnodes.the fsnodes[] array is used by my components directly for rendering so it makes sense to leave it as an array but cached data is also an array but its only used for lookup.this made me to loop through it to find the relevant cahed data im looking for costing performance.the same for this folder index.data structures that are used for lookups should be records not arrays for perf and ones that are directly rendered are better off as an array for easy rendering in a list
+
+
+heuristic skipping
+using index data to skip folders
+using index data to prioritize folder search based on their media files
+
+blind recursive search
+intelligent recursive search
+
+record over an array for 01
+
+array is great for rendering but record is best for lookups
