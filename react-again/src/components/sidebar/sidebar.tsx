@@ -10,7 +10,6 @@ export default function Sidebar({unFreezeStartup}:{unFreezeStartup:()=>string}) 
     const tabNames:string[] = selector((store)=>selectTabNames(store));
     const tabImgs:Record<string,string> = {Desktop:"desktop.svg",Downloads:"download.svg",Documents:"book.svg",Pictures:"image.svg",Music:"headphones.svg",Videos:"video.svg",RecycleBin:"trash.svg"};
     const shouldTerminateSearch:boolean = selector(store=>selectSearchTermination(store))
-    const [recentTabId,] = useState("Recent");
     const [homeTabId,] = useState("Home");
     const [clickedTab,setClickedTab] = useState<string>(homeTabId);
 
@@ -36,13 +35,11 @@ export default function Sidebar({unFreezeStartup}:{unFreezeStartup:()=>string}) 
             <div className="flex flex-col mt-10">
                 <div>
                     <Card {...{id:homeTabId,tabName:"Home",imgName:"house.svg",clickedTab,clickTab,clickedClass,unFreezeStartup}}/>
-                    <Card {...{id:recentTabId,tabName:"Recent",imgName:"clock.svg",clickedTab,clickTab,clickedClass,unFreezeStartup}}/>
+                    <Card {...{id:"Recent",tabName:"Recent",imgName:"clock.svg",clickedTab,clickTab,clickedClass,unFreezeStartup}}/>
                 </div>
                 <div className="border-t mt-4 pt-4 border-[#3a3a3a]">
                     {tabNames.map(tab=>
-                    <div key={tab}>
-                        <Card {...{id:tab,tabName:tab,imgName:tabImgs[tab],clickedTab,clickTab,clickedClass,unFreezeStartup}}/>
-                    </div>
+                        <Card key={tab} {...{id:tab,tabName:tab,imgName:tabImgs[tab],clickedTab,clickTab,clickedClass,unFreezeStartup}}/>
                     )}
                 </div>
             </div>
