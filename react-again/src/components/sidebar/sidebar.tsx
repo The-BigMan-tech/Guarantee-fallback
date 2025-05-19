@@ -1,7 +1,6 @@
-import { selectTabNames,UniqueTab,openDirFromHome,loading_toastConfig, selectSearchTermination} from "../../redux/processingSlice"
+import { selectTabNames,openDirFromHome,loading_toastConfig, selectSearchTermination} from "../../redux/processingSlice"
 import { selector ,useAppDispatch} from "../../redux/hooks"
-import {v4 as uniqueID} from 'uuid'
-import { useState,useEffect} from "react";
+import { useState } from "react";
 import { Card } from "./card";
 import { toast } from "react-toastify";
 
@@ -9,20 +8,12 @@ import { toast } from "react-toastify";
 export default function Sidebar({unFreezeStartup}:{unFreezeStartup:()=>string}) {
     const dispatch = useAppDispatch();
     const tabNames:string[] = selector((store)=>selectTabNames(store));
-    const [uniqueTabs,setUniqueTabs] = useState<UniqueTab[]>([])
     const tabImgs:Record<string,string> = {Desktop:"desktop.svg",Downloads:"download.svg",Documents:"book.svg",Pictures:"image.svg",Music:"headphones.svg",Videos:"video.svg",RecycleBin:"trash.svg"};
     const shouldTerminateSearch:boolean = selector(store=>selectSearchTermination(store))
-
-    const [recentTabId,] = useState(uniqueID());
-    const [homeTabId,] = useState(uniqueID());
+    const [recentTabId,] = useState("Recent");
+    const [homeTabId,] = useState("Home");
     const [clickedTab,setClickedTab] = useState<string>(homeTabId);
 
-    useEffect(()=>{
-        setUniqueTabs(()=>{
-            const newTabs:UniqueTab[] = tabNames.map(tab => ({ id:tab,name:tab}));
-            return newTabs
-        })
-    },[tabNames])
     async function clickTab(tabId:string,tabName:string):Promise<void> {
         if ((unFreezeStartup() !== "opacity-30") && (shouldTerminateSearch)) {
             toast.loading(`Loading the folder ${tabName}`,{...loading_toastConfig,position:"top-right",toastId:"loading-sidebar"});
@@ -48,9 +39,9 @@ export default function Sidebar({unFreezeStartup}:{unFreezeStartup:()=>string}) 
                     <Card {...{id:recentTabId,tabName:"Recent",imgName:"clock.svg",clickedTab,clickTab,clickedClass,unFreezeStartup}}/>
                 </div>
                 <div className="border-t mt-4 pt-4 border-[#3a3a3a]">
-                    {uniqueTabs.map(tab=>
-                    <div key={tab.id}>
-                        <Card {...{id:tab.id,tabName:tab.name,imgName:tabImgs[tab.name],clickedTab,clickTab,clickedClass,unFreezeStartup}}/>
+                    {tabNames.map(tab=>
+                    <div key={tab}>
+                        <Card {...{id:tab,tabName:tab,imgName:tabImgs[tab],clickedTab,clickTab,clickedClass,unFreezeStartup}}/>
                     </div>
                     )}
                 </div>

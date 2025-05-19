@@ -25,6 +25,7 @@ export default function UpperTop() {
             return breadCrumbs.map(crumb=>({ id: uniqueID(),crumb:crumb}))
         })
     },[breadCrumbs])
+    
     useEffect(()=>{
         startTransition(() => {
             setTransitionedBreadCrumbs(uniqueBreadCrumbs);
@@ -86,11 +87,13 @@ export default function UpperTop() {
         setBreadCrumbs(breadCrumbs);
         setSearchQuery("")
     },[currentPath])  
+
     useEffect(()=>{
         if (searchResults == null) {
             setSearchQuery("")
         }
     },[searchResults])
+
     useEffect(()=>{
         console.log("Bread crumbs",breadCrumbs);
     },[breadCrumbs])
