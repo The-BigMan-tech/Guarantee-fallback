@@ -19,7 +19,7 @@ export default function Sidebar({unFreezeStartup}:{unFreezeStartup:()=>string}) 
 
     useEffect(()=>{
         setUniqueTabs(()=>{
-            const newTabs:UniqueTab[] = tabNames.map(tab => ({ id: uniqueID(),name:tab}));
+            const newTabs:UniqueTab[] = tabNames.map(tab => ({ id:tab,name:tab}));
             return newTabs
         })
     },[tabNames])

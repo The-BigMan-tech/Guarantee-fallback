@@ -64,10 +64,6 @@ export interface UniqueTab {
     id:string,
     name:string
 }
-export interface UniqueFsNode {
-    id:string,
-    fsNode:FsNode
-}
 interface CachedFolder {
     path:string,
     data:FsNode[]
