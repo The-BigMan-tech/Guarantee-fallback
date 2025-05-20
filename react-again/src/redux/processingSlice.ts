@@ -37,11 +37,13 @@ export const loading_toastConfig:ToastOptions = {
     toastId:"loading"
 }
 type NodePath = string;
-type JsonCache = {data:Record<NodePath,FsNode[]>};
+type Cache = Record<NodePath,FsNode[]>;
+type CachePayload = {path:NodePath,data:FsNode[]}
 type CachingState = 'pending' | 'success';
 type StrictTabsType = 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos';
 type AllTabTypes = 'Home' | 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos'
 type  invalidationData = {tabName:AllTabTypes}
+
 interface  TabCacheInvalidation {
     Home:boolean,
     Recent:boolean,
@@ -75,7 +77,7 @@ export interface processingSliceState {//by using null unions instead of optiona
     currentPath:string,//as breadcrumbs
     tabNames:string[],//home tabs
     fsNodes:FsNode[] | null,//current files loaded
-    cache:Record<NodePath,FsNode[]>,
+    cache:Cache,
     aheadCachingState:CachingState,
     invalidatedTabCache:TabCacheInvalidation,
     searchResults:FsNode[] | null,
@@ -130,18 +132,18 @@ export const processingSlice = createSlice({
         spreadToFsNodes(state,action:PayloadAction<FsNode[]>) {
             state.fsNodes = [...(state.fsNodes || []),...action.payload]
         },
-        setCache(state,action:PayloadAction<Record<NodePath,FsNode[]>>) {
+        setCache(state,action:PayloadAction<Cache>) {
             state.cache = action.payload
         },
-        recordInCache(state,action:PayloadAction<{path:NodePath,data:FsNode[]}>) {
+        recordInCache(state,action:PayloadAction<CachePayload>) {
             state.cache[action.payload.path] = action.payload.data
         },
         //its the same effect as shifting but it does this starting from index 8 so that the ones that are cached ahead of time will be preserved on the cache threshold
         shiftCache(state) {
-            const eighthKey = Object.keys(state.cache)[8];
-            if (eighthKey !== undefined) {
+            const ninthKey = Object.keys(state.cache)[9];
+            if (ninthKey !== undefined) {
                 state.cache = Object.fromEntries(
-                    Object.entries(state.cache).filter(([key]) => key !== eighthKey)
+                    Object.entries(state.cache).filter(([key]) => key !== ninthKey)
                 );
             }
         },
@@ -263,7 +265,7 @@ export const selectSearchTermination = (store:RootState):boolean =>store.process
 export const selectQuickSearch = (store:RootState):boolean=>store.processing.quickSearch;
 export const selectNodeCount = (store:RootState):NodeCount=>store.processing.nodeCount;
 export const selectOpenedFile = (store:RootState):FsNode | null =>store.processing.openedFile;
-const selectCache = (store:RootState):Record<string,FsNode[]> =>store.processing.cache;
+const selectCache = (store:RootState):Cache =>store.processing.cache;
 const selectSearchScores = (store:RootState):number[]=>store.processing.searchScores;
 const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
 
@@ -291,10 +293,10 @@ export function returnFileContent(filePath:string):AppThunk<Promise<string | nul
  //i have to remove the slicing because the cache needs to be complete if its going to be validated for ui interactions
 // data.data.slice(0,101)//ensures that only a 100 fsnodes are stored in the cache
 //^CACHING RELATED
-function addToCache(arg:{path:string,data:FsNode[]},tabName:string):AppThunk {
+function addToCache(arg:CachePayload,tabName:string):AppThunk {
     return (dispatch,getState)=>{
         console.log("Called add to cache");
-        const appCache: Record<string, FsNode[]> = selectCache(getState());
+        const appCache:Cache = selectCache(getState());
         if (Object.keys(appCache).length >= 20) {
             console.log("Cache length is greater than 3");
             dispatch(shiftCache())
@@ -313,8 +315,9 @@ function addToCache(arg:{path:string,data:FsNode[]},tabName:string):AppThunk {
 function openCachedDirInApp(folderPath:string):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
         console.log("called open dir in app");
-        const cache:Record<NodePath,FsNode[]> = selectCache(getState());
+        const cache:Cache = selectCache(getState());
         const cached_data = cache[folderPath] || [];//  [] array means its loading not that its empty
+        console.log("Cached data in open",cached_data);
         const cache_length = cached_data.length;
         const slice_number = 10
         if (cache_length < slice_number) {
@@ -357,18 +360,17 @@ function cacheIsValid(folderName:string):AppThunk<boolean> {
 }
 export function loadCache():AppThunk {
     return (dispatch) => {
-        const fallback:string = JSON.stringify({data:{}})
+        const fallback:string = JSON.stringify({})
         const cache_as_string:string = localStorage.getItem("appCache") || fallback;
-        const cache:JsonCache = JSON.parse(cache_as_string);
-        console.log("Deserialized cache",cache.data);
-        dispatch(setCache(cache.data))
+        const cache:Cache = JSON.parse(cache_as_string);
+        console.log("Deserialized cache",cache);
+        dispatch(setCache(cache))
     }
 }
 function storeCache():AppThunk {
     return (_,getState)=>{
-        const cache:Record<string, FsNode[]> = selectCache(getState());
-        const json_cache:JsonCache = {data:cache}
-        localStorage.setItem("appCache",JSON.stringify(json_cache))
+        const cache:Cache = selectCache(getState());
+        localStorage.setItem("appCache",JSON.stringify(cache))
         console.log("STORE CACHE WAS CALLED",cache);
     }
 }
@@ -451,6 +453,7 @@ function getParent():AppThunk<string> {
     return (_,getState):string  =>{
         let currentPath:string = selectCurrentPath(getState());
         currentPath = currentPath.slice(0,currentPath.lastIndexOf('\\'));
+        console.log("PARENT PATH: ",currentPath);
         return currentPath
     }
 }

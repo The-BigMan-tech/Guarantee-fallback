@@ -1189,3 +1189,5 @@ intelligent recursive search
 record over an array for 01
 
 array is great for rendering but record is best for lookups
+
+custom types can be an interface or a type alias

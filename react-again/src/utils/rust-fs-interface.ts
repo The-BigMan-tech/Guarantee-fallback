@@ -92,6 +92,9 @@ export async function join_with_home(tabName:string):Promise<string> {
         relPath = ""
     }
     const path_from_home:string = await invoke('join_with_home', {tabName:relPath});
+    if (path_from_home.endsWith("\\")) {
+        return path_from_home.slice(0,-1)
+    }
     return path_from_home
 }
 export async function base_name(path:string,userAsHome:boolean):Promise<string> {
