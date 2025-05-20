@@ -555,31 +555,33 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
         const deferredPaths:Record<string,boolean> = {}
 
         while ((queue.length > 0) || (deferredQueue.length > 0)) {
-            if (queue.length === 0) {
-                console.log("DEFERRED QUEUE",deferredQueue);
-                deferredQueue.sort((a, b) => b.relevance - a.relevance);
-                deferredQueue.forEach(item=>queue.push(item.path))//This moves the deferred folders to main queue for processing
-                deferredQueue.length = 0; // Clear deferred queue
-            }
             const shouldTerminate:boolean = selectSearchTermination(getState());
             console.log("SHOULD TERMINATE",shouldTerminate);
-            if (shouldTerminate) {
+            if (shouldTerminate) {//terminate the search on user command
                 dispatch(clearNodeCount());
                 return
             }
+            
+            if (queue.length === 0) {//add all deferred items to the queue after the queue for the dir level has been processed
+                console.log("DEFERRED QUEUE",deferredQueue);
+                deferredQueue.sort((a, b) => b.relevance - a.relevance);//ensures that the deferred items
+                deferredQueue.forEach(item=>queue.push(item.path))//This moves the deferred folders to main queue for processing
+                deferredQueue.length = 0; // Clear deferred queue
+            }
+
             const currentSearchPath = queue.shift()!;
-            const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(currentSearchPath,'arbitrary');
-            searchBatchCount = 0;
+            const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(currentSearchPath,'arbitrary');//arbritrayry order is preferred here since it uses its own heuristic to prioritize folders over metadata like size.ill still leave the other options in the tauri side in case of future requirements
+            searchBatchCount = 0;//a global value thats used by the algorithm to keep track of the batches it has processed so far for a particular dir level to adjust batch threshold at runtime
             console.log("CURRENT SEARCH PATH",currentSearchPath);
             console.log("DIR RESULT",dirResult.value);
 
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
-                const fsNodes:FsNode[] = []
                 const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
+
+                //*Heuristic analysis
                 const isDeferred:boolean = deferredPaths[currentSearchPath] || false;
-                
                 if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched.i also dont want it to perform relvance calc on something that has already gone through it like deferred paths
-                    const totalNodes = localFsNodes.length;
+                    const totalNodes = localFsNodes.length || 1;//fallback for edge cases where totalNodes may be zero
                     const relevanceThreshold = 50;
                     let relevantNodes:number = 0;
                     let relevancePercent = (relevantNodes / totalNodes) * 100;
@@ -593,15 +595,17 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
                             }
                         };
                     }
+
                     console.log("HEURISTIC ANALYSIS OF ",currentSearchPath,"RELEV SCORE",relevancePercent);
-                    if (relevancePercent < relevanceThreshold) {
+                    if (relevancePercent < relevanceThreshold) {//defer if it isnt relevant enough
                         console.log("DEFERRED SEARCH PATH: ",currentSearchPath);
                         deferredPaths[currentSearchPath] = true
                         deferredQueue.push({path:currentSearchPath,relevance:relevancePercent});//defer for later
                         continue; // Skip processing now
                     }
                 }
-                //where paths actually get processed
+                //*Search Processing
+                const fsNodes:FsNode[] = []//this is the batch used per dir level so that it doesnt directly call fuse on every node but rather in batches
                 const quickSearch:boolean = selectQuickSearch(getState());
                 if (!quickSearch) {//only show progress of crawled folders on full search
                     dispatch(resetNodeCount());
@@ -634,7 +638,7 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
                         }else {
                             await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
                         }
-                        queue.push(fsNode.primary.nodePath);
+                        queue.push(fsNode.primary.nodePath);//push the folder to the queue after processing.it may be deferred by the algorithm based on heuristics
                     }
                 }
                 
