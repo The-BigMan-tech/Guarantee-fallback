@@ -557,6 +557,7 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
         while ((queue.length > 0) || (deferredQueue.length > 0)) {
             if (queue.length === 0) {
                 console.log("DEFERRED QUEUE",deferredQueue);
+                deferredQueue.sort((a, b) => b.relevance - a.relevance);
                 deferredQueue.forEach(item=>queue.push(item.path))//This moves the deferred folders to main queue for processing
                 deferredQueue.length = 0; // Clear deferred queue
             }
@@ -579,11 +580,20 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
                 
                 if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched.i also dont want it to perform relvance calc on something that has already gone through it like deferred paths
                     const totalNodes = localFsNodes.length;
-                    const relevantNodes = localFsNodes.filter(node => aggressiveFilter(node.primary.nodeName, searchQuery));
                     const relevanceThreshold = 50;
-                    const relevancePercent = (relevantNodes.length / totalNodes) * 100;
-                    console.log("HEURISTIC ANALYSIS OF ",currentSearchPath,"RELEV SCORE",relevancePercent,"Is deferred",isDeferred);
-
+                    let relevantNodes:number = 0;
+                    let relevancePercent = (relevantNodes / totalNodes) * 100;
+    
+                    for (const node of localFsNodes) {
+                        if (aggressiveFilter(node.primary.nodeName, searchQuery)) {
+                            relevantNodes += 1
+                            relevancePercent = (relevantNodes / totalNodes) * 100//to ensure that the relevance percent is always updated upon looping
+                            if (relevancePercent >= relevanceThreshold) {
+                                break//early termination once enough relevance has been reached
+                            }
+                        };
+                    }
+                    console.log("HEURISTIC ANALYSIS OF ",currentSearchPath,"RELEV SCORE",relevancePercent);
                     if (relevancePercent < relevanceThreshold) {
                         console.log("DEFERRED SEARCH PATH: ",currentSearchPath);
                         deferredPaths[currentSearchPath] = true
