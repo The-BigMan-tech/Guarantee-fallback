@@ -550,9 +550,15 @@ export function toggleQuickSearch():AppThunk {
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
 function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
-        const queue: string[] = [rootPath];
+        let queue: string[] = [rootPath];
+        const deferredQueue:string[] = [];
         const deferralCounts:Record<string,number> = {}
-        while (queue.length > 0) {
+        while ((queue.length > 0) || (deferredQueue.length > 0)) {
+            if (queue.length === 0) {
+                console.log("DEFERRED QUEUE",deferredQueue);
+                queue = deferredQueue.slice();//This moves the deferred folders to main queue for processing
+                deferredQueue.length = 0; // Clear deferred queue
+            }
              // const order = (quickSearch)?'alphabetical':'date'
             const shouldTerminate:boolean = selectSearchTermination(getState());
             console.log("SHOULD TERMINATE",shouldTerminate);
@@ -570,19 +576,20 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
                 const fsNodes:FsNode[] = []
                 const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
-                if (currentSearchPath !== rootPath) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched
+                const deferCount:number = deferralCounts[currentSearchPath] || 0;
+                
+                if ((currentSearchPath !== rootPath) && (deferCount < 1)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched.i also dont want it to perform relvance calc on something that has already gone through it like deferred paths
                     const totalNodes = localFsNodes.length;
                     const relevantNodes = localFsNodes.filter(node => aggressiveFilter(node.primary.nodeName, searchQuery));
                     const relevanceThreshold = 50;
                     const relevancePercent = (relevantNodes.length / totalNodes) * 100;
-                    const deferCount:number = deferralCounts[currentSearchPath] || 0;
                     console.log("HEURISTIC ANALYSIS OF ",currentSearchPath,"RELEV SCORE",relevancePercent,"DEFER COUNT",deferCount);
-                    
-                    if ((relevancePercent < relevanceThreshold) && (deferCount < 2)) {
+
+                    if (relevancePercent < relevanceThreshold) {
                         console.log("DEFERRED SEARCH PATH: ",currentSearchPath);
                         deferralCounts[currentSearchPath] = deferralCounts[currentSearchPath] || 0
                         deferralCounts[currentSearchPath] += 1;
-                        queue.push(currentSearchPath);//defer for later
+                        deferredQueue.push(currentSearchPath);//defer for later
                         continue; // Skip processing now
                     }
                 }
@@ -620,7 +627,9 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
                         queue.push(fsNode.primary.nodePath);
                     }
                 }
+                
                 dispatch(saveNodeCount())
+                deferralCounts[currentSearchPath] = 0
             }
         }
     }
