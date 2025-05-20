@@ -29,7 +29,7 @@ async thunks and create async thunks
 
 thunks dont return values.just dispatch actions
 
-^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid,throttle-debounce,fuse js,jotai,heap js
+^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid,throttle-debounce,fuse js,jotai,heap js,flexsearch
 wasm
 
 hello pangea dnd,react router,framer motion,gsap,three js,
