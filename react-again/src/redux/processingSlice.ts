@@ -535,8 +535,8 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         }
     }
 }
-function aggressiveFilter(data:string,query:string):boolean {
-    if ((data.trim().toLowerCase().includes(query.trim().toLowerCase()))) {
+function aggressiveFilter(data:string | null,query:string):boolean {
+    if (data && (data.trim().toLowerCase().includes(query.trim().toLowerCase())) ) {
         return true
     }
     return false
@@ -587,7 +587,7 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
                     let relevancePercent = (relevantNodes / totalNodes) * 100;
     
                     for (const node of localFsNodes) {
-                        if (aggressiveFilter(node.primary.nodeName, searchQuery)) {
+                        if (aggressiveFilter(node.primary.nodeName,searchQuery) || aggressiveFilter(node.primary.fileExtension,searchQuery)) {
                             relevantNodes += 1
                             relevancePercent = (relevantNodes / totalNodes) * 100//to ensure that the relevance percent is always updated upon looping
                             if (relevancePercent >= relevanceThreshold) {
@@ -617,7 +617,7 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
                     console.log("Is last fsnode",isLastFsNode);
                     if (fsNode.primary.nodeType == "File") {//passing islast is necessary for quick search even if it matches or not because it needs to terminate the batch if the one that survived is the only match for example and not the last at the same time
                         if (quickSearch) {
-                            if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
+                            if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension,searchQuery)) {
                                 console.log("PASSED YOUR FILE TO UPDATE",fsNode.primary.nodePath);
                                 await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
                             }else {

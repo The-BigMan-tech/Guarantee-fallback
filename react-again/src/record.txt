@@ -29,7 +29,7 @@ async thunks and create async thunks
 
 thunks dont return values.just dispatch actions
 
-^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid,throttle-debounce,fuse js,jotai
+^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid,throttle-debounce,fuse js,jotai,heap js
 wasm
 
 hello pangea dnd,react router,framer motion,gsap,three js,
@@ -1209,3 +1209,7 @@ optional chaining,default value,null coalescing,non null value operator,type ass
 a priority queue is a queue but packed with heuristic analysis.instead of first com first serve,its most important,first served
 
 *i believe that using a priority queue will get the job done but i think it will cause an extra O(n) of runtime to access the element in the queue with the highest relevance score.dynamically adjusting the relevance score seems easier to implement with lesser runtime.i can just push every deferred path to a an array that exists above the while loop called deferredPaths on every deferral so that the loop knows when its processing a deferred path,when it does,it knos it has comleted a cycle of paths,so it can reduce the relevance score to something lower on each cycle to 0.if i dont add this feature,then deferred paths will be processed in the order they were deferred
+
+
+queue,priority queue,Binary heap
+a heap is ideal for retaining values as sorted as they are inserted by doing gradual sorting
