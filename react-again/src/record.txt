@@ -1234,3 +1234,5 @@ early best-first search--40 seconds till result
 *update search results internally batches updates.so the search can use the function to update the search result without knowing how the function does it under the hood
 
 todo: eleven labs to perplexity
+
+*,before,i had a separate foreach over the search results to push to the score inc but that added another O(n) worth of time to the function,so i merged that under the map that returns the result.item

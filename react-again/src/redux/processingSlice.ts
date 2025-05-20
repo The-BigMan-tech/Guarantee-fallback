@@ -462,15 +462,13 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
         if (fsNodes) {
             fuseInstance.setCollection(fsNodes);
             const searchResults = fuseInstance.search(searchQuery);
-            const matchedFsNodes: FsNode[] = searchResults.map(result => result.item);
+            const matchedFsNodes: FsNode[] = searchResults.map(result => {
+                dispatch(pushToSearchScores(result.score || 0))//fallback but theres no way that result.score will be undefined if theres a result
+                return result.item
+            });
             console.log("MATCHED FS NODES",matchedFsNodes);
             if (matchedFsNodes.length) {//to reduce ui flickering,only spread to the search results if something matched
                 dispatch(spreadToSearch(matchedFsNodes));
-                searchResults.map(result=>{//only push the scores if there are any matched results
-                    if (result.score) {//to prevent ts from complaining because if there are matched results,this can never fail.this is here to help ts know my code is valid
-                        dispatch(pushToSearchScores(result.score))
-                    }
-                })
             };
         }
     }
