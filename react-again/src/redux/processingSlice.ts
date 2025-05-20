@@ -564,9 +564,15 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
                 }
                 deferredHeap.clear() // Clear deferred queue
             }
-
+            let dirResult:FsResult<(Promise<FsNode>)[] | Error | null> | FsResult<FsNode[]>;
             const currentSearchPath = queue.shift()!;
-            const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(currentSearchPath,'arbitrary');//arbritrayry order is preferred here since it uses its own heuristic to prioritize folders over metadata like size.ill still leave the other options in the tauri side in case of future requirements
+            if (currentSearchPath === rootPath) {//since the rootpath is the currentpath opened in the app,it will just select the fsnodes directly from the app state if its processing the rootpath
+                console.log("SEARCHING ROOT PATH");
+                dirResult = FsResult.Ok(selectFsNodes(getState()) || [])
+            }else {
+                dirResult = await readDirectory(currentSearchPath,'arbitrary');//arbritrayry order is preferred here since it uses its own heuristic to prioritize folders over metadata like size.ill still leave the other options in the tauri side in case of future requirements
+            }
+
             searchBatchCount = 0;//a global value thats used by the algorithm to keep track of the batches it has processed so far for a particular dir level to adjust batch threshold at runtime
             console.log("CURRENT SEARCH PATH",currentSearchPath);
             console.log("DIR RESULT",dirResult.value);
