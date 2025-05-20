@@ -575,18 +575,19 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
             console.log("DIR RESULT",dirResult.value);
 
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
-                const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
+                // const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
 
                 //*Heuristic analysis
                 const isDeferred:boolean = deferredPaths[currentSearchPath] || false;
                 if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched.i also dont want it to perform relvance calc on something that has already gone through it like deferred paths
-                    const totalNodes = localFsNodes.length || 1;//fallback for edge cases where totalNodes may be zero
+                    const totalNodes = dirResult.value.length || 1;//fallback for edge cases where totalNodes may be zero
                     const relevanceThreshold = 50;
                     let relevantNodes:number = 0;
                     let relevancePercent = (relevantNodes / totalNodes) * 100;
     
-                    for (const node of localFsNodes) {
-                        if (aggressiveFilter(node.primary.nodeName,searchQuery) || aggressiveFilter(node.primary.fileExtension,searchQuery)) {
+                    for (const node of dirResult.value) {
+                        const awaitedNode = await node;
+                        if (aggressiveFilter(awaitedNode.primary.nodeName,searchQuery) || aggressiveFilter(awaitedNode.primary.fileExtension,searchQuery)) {
                             relevantNodes += 1
                             relevancePercent = (relevantNodes / totalNodes) * 100//to ensure that the relevance percent is always updated upon looping
                             if (relevancePercent >= relevanceThreshold) {
@@ -610,34 +611,38 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
                     dispatch(resetNodeCount());
                     dispatch(setNodePath(currentSearchPath));
                 }
-                console.log("Local fs nodes",localFsNodes);
-                for (const [localIndex,fsNode] of localFsNodes.entries()) {
-                    const isLastFsNode = localIndex == (localFsNodes.length-1);
+                // console.log("Local fs nodes",localFsNodes);
+                for (const [localIndex,fsNode] of dirResult.value.entries()) {
+                    if (shouldTerminate) {
+                        return
+                    }
+                    const isLastFsNode = localIndex == (dirResult.value.length-1);
+                    const awaitedFsNode = await fsNode;
                     console.log("Is last fsnode",isLastFsNode);
-                    if (fsNode.primary.nodeType == "File") {//passing islast is necessary for quick search even if it matches or not because it needs to terminate the batch if the one that survived is the only match for example and not the last at the same time
+                    if (awaitedFsNode.primary.nodeType == "File") {//passing islast is necessary for quick search even if it matches or not because it needs to terminate the batch if the one that survived is the only match for example and not the last at the same time
                         if (quickSearch) {
-                            if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension,searchQuery)) {
-                                console.log("PASSED YOUR FILE TO UPDATE",fsNode.primary.nodePath);
-                                await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                            if (isLastFsNode || aggressiveFilter(awaitedFsNode.primary.nodeName,searchQuery) || aggressiveFilter(awaitedFsNode.primary.fileExtension,searchQuery)) {
+                                console.log("PASSED YOUR FILE TO UPDATE",awaitedFsNode.primary.nodePath);
+                                await dispatch(updateSearchResults(awaitedFsNode,fsNodes,searchQuery,isLastFsNode))
                             }else {
-                                console.log("Filtered out the file:",fsNode.primary.nodePath);
+                                console.log("Filtered out the file:",awaitedFsNode.primary.nodePath);
                             }
                         }else {//update regardless
-                            await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                            await dispatch(updateSearchResults(awaitedFsNode,fsNodes,searchQuery,isLastFsNode))
                         }
-                    }else if (fsNode.primary.nodeType == "Folder") {
+                    }else if (awaitedFsNode.primary.nodeType == "Folder") {
                         //i cant do aggressive filter here because the files within the folder will be in custody
                         if (quickSearch) {
-                            if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
-                                console.log("PASSED YOUR FOLDER TO UPDATE",fsNode.primary.nodePath);
-                                await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                            if (isLastFsNode || aggressiveFilter(awaitedFsNode.primary.nodeName,searchQuery)) {
+                                console.log("PASSED YOUR FOLDER TO UPDATE",awaitedFsNode.primary.nodePath);
+                                await dispatch(updateSearchResults(awaitedFsNode,fsNodes,searchQuery,isLastFsNode))
                             }else {
-                                console.log("Filtered out the folder",fsNode.primary.nodePath);
+                                console.log("Filtered out the folder",awaitedFsNode.primary.nodePath);
                             }
                         }else {
-                            await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                            await dispatch(updateSearchResults(awaitedFsNode,fsNodes,searchQuery,isLastFsNode))
                         }
-                        queue.push(fsNode.primary.nodePath);//push the folder to the queue after processing.it may be deferred by the algorithm based on heuristics
+                        queue.push(awaitedFsNode.primary.nodePath);//push the folder to the queue after processing.it may be deferred by the algorithm based on heuristics
                     }
                 }
                 

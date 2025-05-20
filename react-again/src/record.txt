@@ -1222,3 +1222,11 @@ early best-first search--40 seconds till result
 *so its unsafe to directly work on the internals of an abstracted data structure like the heap from heap-js without using their getters or setters
 
 *the perf sky rocketed like never seen.the sort was the bottleneck.it searched in 10 seconds cuz of using the heap instead of sorting than using sorting that caused 40 seconds.but when i used classic bfs,i didnt see result till 60 seconds and when i used pre-order dfs,i didnt see results even after 100 seconds had passed.they all have 0(n) time compleity but the results of this early best-first is incredible.i taught that i had to use an indexer to make it this fast but this already covers that
+
+*i taught that the extra runtime upfront for the heuristic calculation will negate perf but its morel like waiting a little,then instant results instead of longer waits.it wasnt 10 seconds.it was three.the reason for the extra 7 was because terminating the serach didnt disrupt the current dir level from being processed till the next level
+
+*from 100 to 3 seconds without touching the impl.just changing the way the search approached the file system/search strategy
+
+*although the indexer can get results instantly.my algorithm choice is still a top choice to avoid the pain of indexing.its just a few seconds different for the trade of easier maintainability and predictability.its always guaranteed that the search returns up to date data and that it will perform heuristics accurately at runtime
+
+*i optimized it just now by removing the promise.all and awaiting each node as it loops.this ensures that the fsnode is only constructed when needed instead of all at once.it went from 3 seconds to 2 seconds.it felt almost instant:
