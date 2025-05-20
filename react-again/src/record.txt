@@ -1201,3 +1201,5 @@ custom types can be an interface or a type alias
 iteration is separate from recursion
 
 optional chaining,default value,null coalescing,non null value operator,type assertion
+
+*so regardless of the sorting size,the bfs search will still finish at its time but the sorting order significantly impacts the speed at which results will be seen.sorting by size prioritizes responsiveness as the bfs will cover more breadth in less time but sorting by date oldest to newest can make the target result appear earlier but the bfs will cover less breadth in more time

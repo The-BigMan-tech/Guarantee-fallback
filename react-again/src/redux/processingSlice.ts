@@ -568,6 +568,8 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
                 const fsNodes:FsNode[] = []
                 const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
+                const totalNodes = dirResult.value.length;
+                const relevantNodes = dirResult.value.filter(node => aggressiveFilter(node.primary.nodeName, searchQuery));
 
                 if (!quickSearch) {//only show progress of crawled folders on full search
                     dispatch(resetNodeCount());
