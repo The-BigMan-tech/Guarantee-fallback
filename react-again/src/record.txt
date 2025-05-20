@@ -729,6 +729,7 @@ pre sorting based on mode to increase the chance of seeing your result early
 breadth first recursion over depth first
 useTransition optimizations
 progress is at certain points because of rerenders but the styling updates flawlessly
+switched to early best-first traversal
 todo:fix the rendering of the arrow when in the home folder
 
 i need to sort the array by files first before folder
@@ -1213,3 +1214,11 @@ a priority queue is a queue but packed with heuristic analysis.instead of first 
 
 queue,priority queue,Binary heap
 a heap is ideal for retaining values as sorted as they are inserted by doing gradual sorting
+
+pre-order dfs--108 seconds no result
+classic breadth first search--60 seconds till result
+early best-first search--40 seconds till result
+
+*so its unsafe to directly work on the internals of an abstracted data structure like the heap from heap-js without using their getters or setters
+
+*the perf sky rocketed like never seen.the sort was the bottleneck.it searched in 10 seconds cuz of using the heap instead of sorting than using sorting that caused 40 seconds.but when i used classic bfs,i didnt see result till 60 seconds and when i used pre-order dfs,i didnt see results even after 100 seconds had passed.they all have 0(n) time compleity but the results of this early best-first is incredible.i taught that i had to use an indexer to make it this fast but this already covers that

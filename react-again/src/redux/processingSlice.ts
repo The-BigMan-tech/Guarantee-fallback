@@ -8,6 +8,7 @@ import { AppDispatch } from './store';
 import { watchImmediate, BaseDirectory, WatchEvent, WatchEventKind, WatchEventKindCreate, WatchEventKindModify, WatchEventKindRemove } from '@tauri-apps/plugin-fs';
 import Fuse from 'fuse.js';
 import { toast,ToastOptions,Bounce,Flip,Zoom} from 'react-toastify';
+import { Heap } from 'heap-js';
 
 
 const fuseOptions = {
@@ -66,12 +67,6 @@ export interface NodeCount {
     path:string | null,
     save:boolean
 }
-interface FolderIndex {
-    totalFsNodes:number,
-    mediaTypeCounts:Record<string,number>,
-    subFolderCount:number,
-}
-type RootIndex = Record<NodePath,FolderIndex>
 
 export interface processingSliceState {//by using null unions instead of optional types,i ensure that my app doesnt accidenteally worked with an undefined value
     currentPath:string,//as breadcrumbs
@@ -551,10 +546,13 @@ export function toggleQuickSearch():AppThunk {
 function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
         const queue: string[] = [rootPath];
-        const deferredQueue:{path:string,relevance:number}[] = [];
-        const deferredPaths:Record<string,boolean> = {}
+        const deferredPaths:Record<string,boolean> = {};
 
-        while ((queue.length > 0) || (deferredQueue.length > 0)) {
+        type DeferredSearch = {path:string,priority:number}
+        const deferredHeap = new Heap((a:DeferredSearch, b:DeferredSearch) => b.priority - a.priority);
+        deferredHeap.init([]);
+
+        while ((queue.length > 0) || !(deferredHeap.isEmpty())) {
             const shouldTerminate:boolean = selectSearchTermination(getState());
             console.log("SHOULD TERMINATE",shouldTerminate);
             if (shouldTerminate) {//terminate the search on user command
@@ -563,10 +561,11 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
             }
             
             if (queue.length === 0) {//add all deferred items to the queue after the queue for the dir level has been processed
-                console.log("DEFERRED QUEUE",deferredQueue);
-                deferredQueue.sort((a, b) => b.relevance - a.relevance);//ensures that the deferred items
-                deferredQueue.forEach(item=>queue.push(item.path))//This moves the deferred folders to main queue for processing
-                deferredQueue.length = 0; // Clear deferred queue
+                console.log("DEFERRED QUEUE",deferredHeap);
+                for (const item of deferredHeap) {//This moves the deferred folders to main queue for processing
+                    queue.push(item.path)
+                }
+                deferredHeap.clear() // Clear deferred queue
             }
 
             const currentSearchPath = queue.shift()!;
@@ -600,7 +599,7 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
                     if (relevancePercent < relevanceThreshold) {//defer if it isnt relevant enough
                         console.log("DEFERRED SEARCH PATH: ",currentSearchPath);
                         deferredPaths[currentSearchPath] = true
-                        deferredQueue.push({path:currentSearchPath,relevance:relevancePercent});//defer for later
+                        deferredHeap.push({path:currentSearchPath,priority:relevancePercent});//defer for later
                         continue; // Skip processing now
                     }
                 }
