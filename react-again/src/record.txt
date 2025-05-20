@@ -1241,7 +1241,10 @@ todo: eleven labs to perplexity
 
 *By checking if currentSearchPath === rootPath and then selecting fsNodes from your app state (instead of re-reading the directory), you’ve eliminated redundant I/O and parsing for the most common case: searching the currently open directory. This is often the largest or most expensive directory, so the win is substantial.
 
+*i leveraged the cache
+
 from 100 seconds with no results to 60 seconds with results to 40 seconds to 10 seconds to 3 seconds and now to almost instant.
 
-caching the heuristic
-leveraging the cache
+todo:caching the heuristic
+
+todoLso for root folder,i should apply static heuristics where i defer known large folders like node_modules
