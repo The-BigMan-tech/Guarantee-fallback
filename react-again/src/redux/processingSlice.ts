@@ -548,62 +548,62 @@ export function toggleQuickSearch():AppThunk {
     }
 }
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
-function searchRecursively(path:string,searchQuery:string):AppThunk<Promise<void>> {
+function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
-        const shouldTerminate:boolean = selectSearchTermination(getState());
-        console.log("SHOULD TERMINATE",shouldTerminate);
-        if (shouldTerminate) {
-            dispatch(clearNodeCount());
-            return
-        }
-        const quickSearch:boolean = selectQuickSearch(getState());
-        const order = (quickSearch)?'alphabetical':'date'
-        const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(path,order);
-        searchBatchCount = 0;
-        console.log("DIR RESULT",dirResult.value);
-        if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
-            const fsNodes:FsNode[] = []
-            const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
-            
-            if (!quickSearch) {//only show progress of crawled folders on full search
-                dispatch(resetNodeCount());
-                dispatch(setNodePath(path));
+        const queue: string[] = [rootPath];
+        while (queue.length > 0) {
+             // const order = (quickSearch)?'alphabetical':'date'
+            const shouldTerminate:boolean = selectSearchTermination(getState());
+            console.log("SHOULD TERMINATE",shouldTerminate);
+            if (shouldTerminate) {
+                dispatch(clearNodeCount());
+                return
             }
-            console.log("Local fs nodes",localFsNodes);
-            for (const [localIndex,fsNode] of localFsNodes.entries()) {
-                const isLastFsNode = localIndex == (localFsNodes.length-1);
-                console.log("Is last fsnode",isLastFsNode);
-                if (fsNode.primary.nodeType == "File") {//passing islast is necessary for quick search even if it matches or not because it needs to terminate the batch if the one that survived is the only match for example and not the last at the same time
-                    if (quickSearch) {
-                        if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
-                            console.log("PASSED YOUR FILE TO UPDATE",fsNode.primary.nodePath);
+            const quickSearch:boolean = selectQuickSearch(getState());
+            const currentSearchPath = queue.shift()!;
+            console.log("CURRENT SEARCH PATH",currentSearchPath);
+            const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(currentSearchPath,'size');
+            searchBatchCount = 0;
+            console.log("DIR RESULT",dirResult.value);
+            if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
+                const fsNodes:FsNode[] = []
+                const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
+
+                if (!quickSearch) {//only show progress of crawled folders on full search
+                    dispatch(resetNodeCount());
+                    dispatch(setNodePath(currentSearchPath));
+                }
+                console.log("Local fs nodes",localFsNodes);
+                for (const [localIndex,fsNode] of localFsNodes.entries()) {
+                    const isLastFsNode = localIndex == (localFsNodes.length-1);
+                    console.log("Is last fsnode",isLastFsNode);
+                    if (fsNode.primary.nodeType == "File") {//passing islast is necessary for quick search even if it matches or not because it needs to terminate the batch if the one that survived is the only match for example and not the last at the same time
+                        if (quickSearch) {
+                            if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery) || aggressiveFilter(fsNode.primary.fileExtension as string,searchQuery)) {
+                                console.log("PASSED YOUR FILE TO UPDATE",fsNode.primary.nodePath);
+                                await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                            }else {
+                                console.log("Filtered out the file:",fsNode.primary.nodePath);
+                            }
+                        }else {//update regardless
                             await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
-                        }else {
-                            console.log("Filtered out the file:",fsNode.primary.nodePath);
                         }
-                    }else {//update regardless
-                        await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
-                    }
-                }else if (fsNode.primary.nodeType == "Folder") {
-                    //i cant do aggressive filter here because the files within the folder will be in custody
-                    if (quickSearch) {
-                        if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
-                            console.log("PASSED YOUR FOLDER TO UPDATE",fsNode.primary.nodePath);
+                    }else if (fsNode.primary.nodeType == "Folder") {
+                        //i cant do aggressive filter here because the files within the folder will be in custody
+                        if (quickSearch) {
+                            if (isLastFsNode || aggressiveFilter(fsNode.primary.nodeName,searchQuery)) {
+                                console.log("PASSED YOUR FOLDER TO UPDATE",fsNode.primary.nodePath);
+                                await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                            }else {
+                                console.log("Filtered out the folder",fsNode.primary.nodePath);
+                            }
+                        }else {
                             await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
-                        }else {
-                            console.log("Filtered out the folder",fsNode.primary.nodePath);
                         }
-                    }else {
-                        await dispatch(updateSearchResults(fsNode,fsNodes,searchQuery,isLastFsNode))
+                        queue.push(fsNode.primary.nodePath);
                     }
                 }
-            }
-            dispatch(saveNodeCount())
-            //breadth first traversal
-            for (const fsNode of localFsNodes) {
-                if (fsNode.primary.nodeType == "Folder") {
-                    await dispatch(searchRecursively(fsNode.primary.nodePath,searchQuery))//read the files of the folder and push that
-                }
+                dispatch(saveNodeCount())
             }
         }
     }
@@ -625,7 +625,7 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
             return
         }
         const currentPath:string = selectCurrentPath(getState());
-        await dispatch(searchRecursively(currentPath,searchQuery));
+        await dispatch(searchInBreadth(currentPath,searchQuery));
         
         const quickSearch = selectQuickSearch(getState());
         const shouldTerminate:boolean = selectSearchTermination(getState());

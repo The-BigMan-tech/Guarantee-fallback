@@ -38,6 +38,7 @@ pub enum SortOrder {
     Arbitrary,
     Alphabetical,
     Date, // Sort by modified date, oldest to newest
+    Size
 }
 #[command]
 fn read_dir(dir_path: String,order:SortOrder) -> Result<Vec<PathBuf>, String> {
@@ -66,6 +67,14 @@ fn read_dir(dir_path: String,order:SortOrder) -> Result<Vec<PathBuf>, String> {
                 fs::metadata(path)
                     .and_then(|meta| meta.modified())
                     .unwrap_or(SystemTime::UNIX_EPOCH)
+            });
+        }
+        SortOrder::Size => {
+            println!("Size order selected");
+            file_paths.sort_by_key(|path| {
+                fs::metadata(path)
+                    .map(|m| m.len())
+                    .unwrap_or(0) // Treat errors as size 0 or handle differently
             });
         }
     }

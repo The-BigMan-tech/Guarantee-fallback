@@ -1191,3 +1191,13 @@ record over an array for 01
 array is great for rendering but record is best for lookups
 
 custom types can be an interface or a type alias
+
+*Recursive searching has O(n) time complexity
+*Your traversal is breadth-first only at the current directory level, but depth-first for all nested subfolders.
+*bfs takes more heap memory but dfs takes more stack memory and dfs is prone to stack overflow but dfs takes less overall memory because the space complexity is O(d) where d is the depth of the recursion while bfs takes O(w) where w where w is all the nodes in the tree in other word,dfs is deep while bfs is wide.
+
+*so bfs is implemented with a while loop on a queue while dfs is implemented in a recursion under a for loop but my pre-order dfs is implemented as a recursion under a for loop but the for loop is outside of the for loop that searches the files meaning that bfs is implemented as an iteration over a queue and dfs as a recursion that uses the stack memory
+
+iteration is separate from recursion
+
+optional chaining,default value,null coalescing,non null value operator,type assertion
