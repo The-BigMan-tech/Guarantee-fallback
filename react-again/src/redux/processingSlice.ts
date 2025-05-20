@@ -550,25 +550,24 @@ export function toggleQuickSearch():AppThunk {
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
 function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
-        let queue: string[] = [rootPath];
-        const deferredQueue:string[] = [];
-        const deferralCounts:Record<string,number> = {}
+        const queue: string[] = [rootPath];
+        const deferredQueue:{path:string,relevance:number}[] = [];
+        const deferredPaths:Record<string,boolean> = {}
+
         while ((queue.length > 0) || (deferredQueue.length > 0)) {
             if (queue.length === 0) {
                 console.log("DEFERRED QUEUE",deferredQueue);
-                queue = deferredQueue.slice();//This moves the deferred folders to main queue for processing
+                deferredQueue.forEach(item=>queue.push(item.path))//This moves the deferred folders to main queue for processing
                 deferredQueue.length = 0; // Clear deferred queue
             }
-             // const order = (quickSearch)?'alphabetical':'date'
             const shouldTerminate:boolean = selectSearchTermination(getState());
             console.log("SHOULD TERMINATE",shouldTerminate);
             if (shouldTerminate) {
                 dispatch(clearNodeCount());
                 return
             }
-            const quickSearch:boolean = selectQuickSearch(getState());
             const currentSearchPath = queue.shift()!;
-            const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(currentSearchPath,'size');
+            const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(currentSearchPath,'arbitrary');
             searchBatchCount = 0;
             console.log("CURRENT SEARCH PATH",currentSearchPath);
             console.log("DIR RESULT",dirResult.value);
@@ -576,23 +575,24 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
                 const fsNodes:FsNode[] = []
                 const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
-                const deferCount:number = deferralCounts[currentSearchPath] || 0;
+                const isDeferred:boolean = deferredPaths[currentSearchPath] || false;
                 
-                if ((currentSearchPath !== rootPath) && (deferCount < 1)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched.i also dont want it to perform relvance calc on something that has already gone through it like deferred paths
+                if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched.i also dont want it to perform relvance calc on something that has already gone through it like deferred paths
                     const totalNodes = localFsNodes.length;
                     const relevantNodes = localFsNodes.filter(node => aggressiveFilter(node.primary.nodeName, searchQuery));
                     const relevanceThreshold = 50;
                     const relevancePercent = (relevantNodes.length / totalNodes) * 100;
-                    console.log("HEURISTIC ANALYSIS OF ",currentSearchPath,"RELEV SCORE",relevancePercent,"DEFER COUNT",deferCount);
+                    console.log("HEURISTIC ANALYSIS OF ",currentSearchPath,"RELEV SCORE",relevancePercent,"Is deferred",isDeferred);
 
                     if (relevancePercent < relevanceThreshold) {
                         console.log("DEFERRED SEARCH PATH: ",currentSearchPath);
-                        deferralCounts[currentSearchPath] = deferralCounts[currentSearchPath] || 0
-                        deferralCounts[currentSearchPath] += 1;
-                        deferredQueue.push(currentSearchPath);//defer for later
+                        deferredPaths[currentSearchPath] = true
+                        deferredQueue.push({path:currentSearchPath,relevance:relevancePercent});//defer for later
                         continue; // Skip processing now
                     }
                 }
+                //where paths actually get processed
+                const quickSearch:boolean = selectQuickSearch(getState());
                 if (!quickSearch) {//only show progress of crawled folders on full search
                     dispatch(resetNodeCount());
                     dispatch(setNodePath(currentSearchPath));
@@ -629,7 +629,7 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
                 }
                 
                 dispatch(saveNodeCount())
-                deferralCounts[currentSearchPath] = 0
+                deferredPaths[currentSearchPath] = false
             }
         }
     }
