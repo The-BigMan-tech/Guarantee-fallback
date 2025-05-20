@@ -1238,3 +1238,10 @@ todo: eleven labs to perplexity
 *,before,i had a separate foreach over the search results to push to the score inc but that added another O(n) worth of time to the function,so i merged that under the map that returns the result.item
 
 *thats just a code opt.i just changed the way i wrote the code without changing the intention of the algorithm
+
+*By checking if currentSearchPath === rootPath and then selecting fsNodes from your app state (instead of re-reading the directory), you’ve eliminated redundant I/O and parsing for the most common case: searching the currently open directory. This is often the largest or most expensive directory, so the win is substantial.
+
+from 100 seconds with no results to 60 seconds with results to 40 seconds to 10 seconds to 3 seconds and now to almost instant.
+
+caching the heuristic
+leveraging the cache
