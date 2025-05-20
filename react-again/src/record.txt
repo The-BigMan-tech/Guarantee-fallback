@@ -1230,3 +1230,7 @@ early best-first search--40 seconds till result
 *although the indexer can get results instantly.my algorithm choice is still a top choice to avoid the pain of indexing.its just a few seconds different for the trade of easier maintainability and predictability.its always guaranteed that the search returns up to date data and that it will perform heuristics accurately at runtime
 
 *i optimized it just now by removing the promise.all and awaiting each node as it loops.this ensures that the fsnode is only constructed when needed instead of all at once.it went from 3 seconds to 2 seconds.it felt almost instant:
+
+*update search results internally batches updates.so the search can use the function to update the search result without knowing how the function does it under the hood
+
+todo: eleven labs to perplexity

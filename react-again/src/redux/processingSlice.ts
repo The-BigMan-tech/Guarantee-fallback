@@ -559,7 +559,6 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
                 dispatch(clearNodeCount());
                 return
             }
-            
             if (queue.length === 0) {//add all deferred items to the queue after the queue for the dir level has been processed
                 console.log("DEFERRED QUEUE",deferredHeap);
                 for (const item of deferredHeap) {//This moves the deferred folders to main queue for processing
@@ -575,8 +574,6 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
             console.log("DIR RESULT",dirResult.value);
 
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
-                // const localFsNodes:FsNode[] = await Promise.all(dirResult.value);
-
                 //*Heuristic analysis
                 const isDeferred:boolean = deferredPaths[currentSearchPath] || false;
                 if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched.i also dont want it to perform relvance calc on something that has already gone through it like deferred paths
