@@ -538,6 +538,16 @@ function aggressiveFilter(data:string | null,query:string):boolean {
     }
     return false
 }
+function isSubsequence(str:string,query:string):boolean {
+    const normalizedStr = removeAllDots(str).trim().toLowerCase() ;
+    const normalizedQuery = removeAllDots(query).trim().toLowerCase() ;
+    let i = 0, j = 0;
+    while (i < normalizedStr.length && j < normalizedQuery.length) {
+        if (normalizedStr[i] === normalizedQuery[j]) j++;
+        i++;
+    }
+    return j === normalizedQuery.length;
+}
 export function toggleQuickSearch():AppThunk {
     return (dispatch,getState)=>{
         const quickSearch:boolean = selectQuickSearch(getState());
