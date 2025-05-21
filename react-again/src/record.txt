@@ -1261,3 +1261,18 @@ so quick search wont consider heavy fplders in the next search cycle but full se
 traversal order + search-time heuristics
 
 *my search engine will get faster and more efficient over time as you refine and enhance your heuristics
+
+
+quick search filters aggressively
+quick search doesnt sort
+quick search optimizes for long queries
+quick search doesnt show progress
+quick search doesnt run the second search loop
+
+indexing,early best-first search,master file table
+
+*switching from membership testing to endswith  had to come at the cost of an O(n) but since the heavy folders are of a fixed size like just 6,its negligible and we can even say its O(1).not to mention this is more robust.i can mark arbritray paths as heavy not just specfici folder names
+
+*so if a for loop iterates over an array of fixed size,its effectively O(1) especially if the array theoretical limit is small cuz the amount of heavy folders out there are negligible for the robustness
+
+*so my static heuristics is O(1) but my dynamic one is O(n)

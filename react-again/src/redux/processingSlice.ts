@@ -20,7 +20,7 @@ const fuseInstance:Fuse<FsNode> = new Fuse([],fuseOptions);
 let searchBatchCount:number = 0;
 
 type DeferredSearch = {path:string,priority:number}
-const heavyFolders = new Set(['node_modules','AppData','.git'])//this will do for now.i will add more later on monitoring the search
+const heavyFolders = new Set(['node_modules','AppData','.git','src-tauri/target/debug'])//this will do for now.i will add more later on monitoring the search
 
 export const toastConfig:ToastOptions = {
     position: "top-center",
@@ -598,10 +598,20 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                     let relevancePercent = (relevantNodes / totalNodes) * 100;
                     
                     //static heuristics 
-                    if (heavyFolders.has(await base_name(currentSearchPath,false)) && !(processHeavyFolders)) {//this reads that if the folder is heavy and the search loop isnt processing heavy folders,then push it to the heav folder queue for the next search loop
-                        console.log("Deferred heavy folder:",currentSearchPath);
-                        heavyFolderQueue.push(currentSearchPath);
-                        continue
+                    if (!processHeavyFolders) {//this reads that if the folder is heavy and the search loop isnt processing heavy folders,then push it to the heav folder queue for the next search loop
+                        const normalizedPath = currentSearchPath.replace(/\\/g, '/');// convert backslashes to slashes if on Windows
+                        let isHeavy:boolean = false
+                        for (const heavyPath of heavyFolders) {
+                            if (normalizedPath.endsWith(heavyPath)) {
+                                console.log("Deferred heavy folder:",currentSearchPath);
+                                heavyFolderQueue.push(currentSearchPath);
+                                isHeavy = true
+                                break;//it can only match one path at a given time so we dont need to process the rest
+                            }
+                        }
+                        if (isHeavy) {//i had to use a flag cuz continuing in the for loop will continue the for loop itself not the search loop
+                            continue
+                        }
                     }
                     //dynamic heuristics
                     for (const node of dirResult.value) {
@@ -687,10 +697,12 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
 
         const heavyFolderQueue:string[] = [];
         await dispatch(searchInBreadth(currentPath,searchQuery,heavyFolderQueue,false,startTime));
-
         const quickSearch = selectQuickSearch(getState());
-        const shouldTerminate:boolean = selectSearchTermination(getState());
-        if (!(quickSearch) && !(shouldTerminate)) {
+        if (!quickSearch) {//only run the second search loop in full search mode
+            await dispatch(searchInBreadth(currentPath,searchQuery,heavyFolderQueue,true,startTime));
+        }
+        const forceTermination:boolean = selectSearchTermination(getState());
+        if (!(quickSearch) && !(forceTermination)) {
             toast.loading("Sorting search results:",{...loading_toastConfig,position:"bottom-right"});
             const searchResults:FsNode[] = selectSearchResults(getState()) || [];
             const resultScores:number[] = selectSearchScores(getState());
@@ -703,8 +715,7 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
                 console.log("sorted the search results");
             }
         }
-        const isSearchTerminated:boolean = selectSearchTermination(getState());
-        if (!isSearchTerminated) {//only run this if the user didsnt forcefully terminate the search as the search termination check in the search in breadth function already does this when the user terminates the search midway
+        if (!forceTermination) {//only run this if the user didsnt forcefully terminate the search as the search termination check in the search in breadth function already does this when the user terminates the search midway
             console.log("REGULAR SEARCH TERMINATION");
             searchTime(startTime);
             dispatch(setSearchTermination(true));
