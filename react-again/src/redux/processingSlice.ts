@@ -547,7 +547,7 @@ export function toggleQuickSearch():AppThunk {
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
 function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:string[],processHeavyFolders:boolean):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
-        const queue:string[] = [rootPath];//switch to heavy folders as called by the searchDir
+        const queue:string[] = (processHeavyFolders)?heavyFolderQueue:[rootPath];//switch to heavy folders as called by the searchDir
         const deferredPaths:Record<string,boolean> = {};
         const deferredHeap = new Heap((a:DeferredSearch, b:DeferredSearch) => b.priority - a.priority);
         deferredHeap.init([]);
