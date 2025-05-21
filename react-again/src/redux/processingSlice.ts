@@ -6,7 +6,7 @@ import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name } from 
 import {v4 as uniqueID} from 'uuid';
 import { AppDispatch } from './store';
 import { watchImmediate, BaseDirectory, WatchEvent, WatchEventKind, WatchEventKindCreate, WatchEventKindModify, WatchEventKindRemove } from '@tauri-apps/plugin-fs';
-import Fuse from 'fuse.js';
+import Fuse, { FuseResult } from 'fuse.js';
 import { toast,ToastOptions,Bounce,Flip,Zoom} from 'react-toastify';
 import { Heap } from 'heap-js';
 
@@ -19,6 +19,7 @@ const fuseOptions = {
 const fuseInstance:Fuse<FsNode> = new Fuse([],fuseOptions);
 let searchBatchCount:number = 0;
 
+type DeferredSearch = {path:string,priority:number}
 const heavyFolders = new Set(['node_modules'])//this will do for now.i will add more later on monitoring the search
 
 export const toastConfig:ToastOptions = {
@@ -463,7 +464,7 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
         console.log("FSNODES VALUE NOW",fsNodes);
         if (fsNodes) {
             fuseInstance.setCollection(fsNodes);
-            const searchResults = fuseInstance.search(searchQuery);
+            const searchResults: FuseResult<FsNode>[] = fuseInstance.search(searchQuery);
             const matchedFsNodes: FsNode[] = searchResults.map(result => {
                 dispatch(pushToSearchScores(result.score || 0))//fallback but theres no way that result.score will be undefined if theres a result
                 return result.item
@@ -546,17 +547,11 @@ export function toggleQuickSearch():AppThunk {
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
 function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:string[],processHeavyFolders:boolean):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
-        let queue:string[] = [];
-        if (processHeavyFolders) {//switch to heavy folders as called by the searchDir
-            queue = heavyFolderQueue
-        }else {
-            queue = [rootPath]
-        }
+        const queue:string[] = [rootPath];//switch to heavy folders as called by the searchDir
         const deferredPaths:Record<string,boolean> = {};
-
-        type DeferredSearch = {path:string,priority:number}
         const deferredHeap = new Heap((a:DeferredSearch, b:DeferredSearch) => b.priority - a.priority);
         deferredHeap.init([]);
+        console.log("Queue value:",queue);
 
         while ((queue.length > 0) || !(deferredHeap.isEmpty())) {
             const shouldTerminate:boolean = selectSearchTermination(getState());
@@ -572,6 +567,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 }
                 deferredHeap.clear() // Clear deferred queue
             }
+
             let dirResult:FsResult<(Promise<FsNode>)[] | Error | null> | FsResult<FsNode[]>;
             const currentSearchPath = queue.shift()!;
             const cache:Cache = selectCache(getState());
@@ -591,26 +587,20 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
 
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
                 //*Heuristic analysis
-                //Static heuristics--for the rootpath.The set is a global variable to prevent the overhead of recreating it per search.its safe because it doesnt affect the ui and its only for reading.it will never be mutated programmatically
-                if (currentSearchPath == rootPath) {
-                    for (const node of dirResult.value) {
-                        const awaitedNode = await node;
-                        if (awaitedNode.primary.nodeType === 'Folder' && heavyFolders.has(awaitedNode.primary.nodeName)) {
-                            console.log("DEFERRED HEAVY FOLDER: ",awaitedNode.primary.nodeName);
-                            //here,i cant defer the current search path unlike the dynamic heuristics cuz deferring the root path will break the algorithm so it only dfeers the node path that is heavy here
-                            heavyFolderQueue.push(awaitedNode.primary.nodePath)//im pushing to a normal queue since its relevance isnt getting calculated.it will get calculated by the algorithm on the next call to the search if proceess heavy folders is true
-                            continue; // defer heavy folder
-                        }
-                    }
-                }
-                //Dynamic heuristics--for the subfolders of the rootpath
                 const isDeferred:boolean = deferredPaths[currentSearchPath] || false;
                 if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched.i also dont want it to perform relvance calc on something that has already gone through it like deferred paths
                     const totalNodes = dirResult.value.length || 1;//fallback for edge cases where totalNodes may be zero
                     const relevanceThreshold = 50;
                     let relevantNodes:number = 0;
                     let relevancePercent = (relevantNodes / totalNodes) * 100;
-    
+                    
+                    //static heuristics 
+                    if (heavyFolders.has(await base_name(currentSearchPath,false))) {
+                        console.log("Deferred heavy folder:",currentSearchPath);
+                        heavyFolderQueue.push(currentSearchPath);
+                        continue
+                    }
+                    //dynamic heuristics
                     for (const node of dirResult.value) {
                         const awaitedNode = await node;
                         if (aggressiveFilter(awaitedNode.primary.nodeName,searchQuery) || aggressiveFilter(awaitedNode.primary.fileExtension,searchQuery)) {
@@ -621,7 +611,6 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                             }
                         };
                     }
-
                     console.log("HEURISTIC ANALYSIS OF ",currentSearchPath,"RELEV SCORE",relevancePercent);
                     if (relevancePercent < relevanceThreshold) {//defer if it isnt relevant enough
                         console.log("DEFERRED SEARCH PATH: ",currentSearchPath);
@@ -698,7 +687,6 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
 
         const heavyFolderQueue:string[] = [];
         await dispatch(searchInBreadth(currentPath,searchQuery,heavyFolderQueue,false));
-        await dispatch(searchInBreadth(currentPath,searchQuery,heavyFolderQueue,true));
 
         const quickSearch = selectQuickSearch(getState());
         const shouldTerminate:boolean = selectSearchTermination(getState());
