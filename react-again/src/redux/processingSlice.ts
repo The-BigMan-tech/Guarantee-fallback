@@ -626,7 +626,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                     //dynamic heuristics
                     for (const node of dirResult.value) {
                         const awaitedNode = await node;
-                        if (aggressiveFilter(awaitedNode.primary.nodeName,searchQuery) || aggressiveFilter(awaitedNode.primary.fileExtension,searchQuery)) {
+                        if (isSubsequence(awaitedNode.primary.nodeName,searchQuery) || aggressiveFilter(awaitedNode.primary.fileExtension,searchQuery)) {
                             relevantNodes += 1
                             relevancePercent = (relevantNodes / totalNodes) * 100//to ensure that the relevance percent is always updated upon looping
                             if (relevancePercent >= relevanceThreshold) {
