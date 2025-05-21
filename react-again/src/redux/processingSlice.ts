@@ -504,8 +504,12 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
     return async (dispatch,getState) =>{
         const quickSearch:boolean = selectQuickSearch(getState());
         const isQueryLong:boolean = searchQuery.length >= 10;
-        let searchBatchSize:number = 5;
-        if (searchBatchCount > 0) {
+        let searchBatchSize:number = 1;//default batch size
+        if (searchBatchCount == 1) {//if the first batch has been processed
+            searchBatchSize = 5
+        }else if (searchBatchCount == 2) {//if two batches have been processed
+            searchBatchSize = 10
+        }else if (searchBatchCount == 3) {//if three batches have been processed
             searchBatchSize = 15
         }
 
