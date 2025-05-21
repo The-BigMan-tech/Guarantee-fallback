@@ -1253,3 +1253,8 @@ todo:fix the arrow rendering in the home folder
 the static heuristics worked but since it performs two cycles per level,the deferred node modules will be processed before going to the next level in the filesystem unless i push it to a queue outside of the searchinbreadth function and inside the caller which is searchDir.searchDir can then search that heavy folder queue after searching in general.this means unlike dynamic heuristics where deferred folders are processed before going one level deeper,static heuristics processes all deferred heavy folders after all search is complete.
 
 *so perf shouldnt come at the cost of safety.Never sacrifice safety for a minor performance gain
+
+so quick search wont consider heavy fplders in the next search cycle but full search will but they both defer it
+
+*Deferred folders (low-relevance) are only processed after all non-deferred siblings at the same level have been processed.Children of deferred folders will not be processed until their parent is processed (i.e., after the main queue is empty and deferred paths are re-queued).If at least one folder at a level is not deferred, the queue will not empty, and deferred paths will wait.This creates a “lock” effect:Deferred folders and their subtrees are “locked” out of processing until all immediate non-deferred siblings have been processed.
+

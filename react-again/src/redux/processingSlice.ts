@@ -20,7 +20,7 @@ const fuseInstance:Fuse<FsNode> = new Fuse([],fuseOptions);
 let searchBatchCount:number = 0;
 
 type DeferredSearch = {path:string,priority:number}
-const heavyFolders = new Set(['node_modules'])//this will do for now.i will add more later on monitoring the search
+const heavyFolders = new Set(['node_modules','AppData','.git'])//this will do for now.i will add more later on monitoring the search
 
 export const toastConfig:ToastOptions = {
     position: "top-center",
@@ -582,20 +582,21 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
             }
 
             searchBatchCount = 0;//a global value thats used by the algorithm to keep track of the batches it has processed so far for a particular dir level to adjust batch threshold at runtime
-            console.log("CURRENT SEARCH PATH",currentSearchPath);
+
             console.log("DIR RESULT",dirResult.value);
 
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
                 //*Heuristic analysis
                 const isDeferred:boolean = deferredPaths[currentSearchPath] || false;
-                if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched.i also dont want it to perform relvance calc on something that has already gone through it like deferred paths
+                console.log((!isDeferred)?`CURRENT SEARCH PATH ${currentSearchPath}`:`PROCESSING DEFERRED PATH: ${currentSearchPath}`);
+                if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched and i also dont want it to perform relvance calc on something that has already gone through it like deferred paths when the deferred queue has its turn.
                     const totalNodes = dirResult.value.length || 1;//fallback for edge cases where totalNodes may be zero
                     const relevanceThreshold = 50;
                     let relevantNodes:number = 0;
                     let relevancePercent = (relevantNodes / totalNodes) * 100;
                     
                     //static heuristics 
-                    if (heavyFolders.has(await base_name(currentSearchPath,false))) {
+                    if (heavyFolders.has(await base_name(currentSearchPath,false)) && !(processHeavyFolders)) {//this reads that if the folder is heavy and the search loop isnt processing heavy folders,then push it to the heav folder queue for the next search loop
                         console.log("Deferred heavy folder:",currentSearchPath);
                         heavyFolderQueue.push(currentSearchPath);
                         continue
