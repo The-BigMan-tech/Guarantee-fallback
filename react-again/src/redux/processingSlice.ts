@@ -19,6 +19,8 @@ const fuseOptions = {
 const fuseInstance:Fuse<FsNode> = new Fuse([],fuseOptions);
 let searchBatchCount:number = 0;
 
+const heavyFolders = new Set(['node_modules'])//this will do for now.i will add more later on monitoring the search
+
 export const toastConfig:ToastOptions = {
     position: "top-center",
     autoClose: 5000,
@@ -583,6 +585,19 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
 
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
                 //*Heuristic analysis
+                //Static heuristics--for the rootpath.The set is a global variable to prevent the overhead of recreating it per search.its safe because it doesnt affect the ui and its only for reading.it will never be mutated programmatically
+                if (currentSearchPath == rootPath) {
+                    for (const node of dirResult.value) {
+                        const awaitedNode = await node;
+                        if (awaitedNode.primary.nodeType === 'Folder' && heavyFolders.has(awaitedNode.primary.nodeName)) {
+                            console.log("DEFERRED HEAVY FOLDER: ",awaitedNode.primary.nodeName);
+                            deferredPaths[awaitedNode.primary.nodePath] = true;
+                            deferredHeap.push({ path: awaitedNode.primary.nodePath, priority: 0 });//here,i cant defer the current search path unlike the dynamic heuristics cuz deferring the root path will break the algorithm so it only dfeers the node path that is heavy here
+                            continue; // defer heavy folder
+                        }
+                    }
+                }
+                //Dynamic heuristics--for the subfolders of the rootpath
                 const isDeferred:boolean = deferredPaths[currentSearchPath] || false;
                 if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched.i also dont want it to perform relvance calc on something that has already gone through it like deferred paths
                     const totalNodes = dirResult.value.length || 1;//fallback for edge cases where totalNodes may be zero
@@ -605,7 +620,7 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
                     if (relevancePercent < relevanceThreshold) {//defer if it isnt relevant enough
                         console.log("DEFERRED SEARCH PATH: ",currentSearchPath);
                         deferredPaths[currentSearchPath] = true
-                        deferredHeap.push({path:currentSearchPath,priority:relevancePercent});//defer for later
+                        deferredHeap.push({path:currentSearchPath,priority:relevancePercent});//defer for later.it defers the current search path unlike the static heuristics
                         continue; // Skip processing now
                     }
                 }

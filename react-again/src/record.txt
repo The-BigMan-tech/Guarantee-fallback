@@ -1248,3 +1248,4 @@ from 100 seconds with no results to 60 seconds with results to 40 seconds to 10 
 todo:caching the heuristic
 
 todoLso for root folder,i should apply static heuristics where i defer known large folders like node_modules
+todo:fix the arrow rendering in the home folder
