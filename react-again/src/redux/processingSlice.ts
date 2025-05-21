@@ -481,19 +481,20 @@ function removeAllDots(str:string):string {
 function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:string,isQueryLong:boolean):AppThunk<boolean> {
     return (dispatch):boolean=>{
         //This early termination is done at the batch level
-        if (quickSearch) {//only performing this loop if quick search is on.it will be a waste if it runs on full search
+        let anyRoughMatches:boolean = false
+        if (quickSearch && isQueryLong) {//only performing this loop if quick search is on.it will be a waste if it runs on full search
             for (const fsNodeInBatch of fsNodes) {
                 const trimmedNode = removeAllDots(fsNodeInBatch.primary.nodeName.trim().toLowerCase());//making it insensitive to file extensions because the node can be a folder or a file and he search query can target either depending on whether an extension was included or not
                 const trimmedQuery = removeAllDots(searchQuery.trim().toLowerCase());
                 const isRoughMatch = (trimmedNode.startsWith(trimmedQuery))
                 console.log("Quick search",quickSearch,"Query length",searchQuery.length,"Exact match",isRoughMatch,"trimmed node",trimmedNode,"trimmed query",trimmedQuery);
-                if (isQueryLong && isRoughMatch) {
+                if (isRoughMatch) {
                     console.log("Found early result!!");
                     dispatch(pushToSearch(fsNodeInBatch));
-                    return true;
+                    anyRoughMatches = true
                 }
             }
-            return false
+            return anyRoughMatches
         }
         return false
     }
@@ -531,7 +532,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
     }
 }
 function aggressiveFilter(data:string | null,query:string):boolean {
-    if (data && (data.trim().toLowerCase().includes(query.trim().toLowerCase())) ) {
+    if (data && ( removeAllDots(data).trim().toLowerCase() .includes( removeAllDots(query).trim().toLowerCase() ))) {
         return true
     }
     return false
@@ -543,9 +544,14 @@ export function toggleQuickSearch():AppThunk {
     }
 }
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
-function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<void>> {
+function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:string[],processHeavyFolders:boolean):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
-        const queue: string[] = [rootPath];
+        let queue:string[] = [];
+        if (processHeavyFolders) {//switch to heavy folders as called by the searchDir
+            queue = heavyFolderQueue
+        }else {
+            queue = [rootPath]
+        }
         const deferredPaths:Record<string,boolean> = {};
 
         type DeferredSearch = {path:string,priority:number}
@@ -591,8 +597,8 @@ function searchInBreadth(rootPath:string,searchQuery:string):AppThunk<Promise<vo
                         const awaitedNode = await node;
                         if (awaitedNode.primary.nodeType === 'Folder' && heavyFolders.has(awaitedNode.primary.nodeName)) {
                             console.log("DEFERRED HEAVY FOLDER: ",awaitedNode.primary.nodeName);
-                            deferredPaths[awaitedNode.primary.nodePath] = true;
-                            deferredHeap.push({ path: awaitedNode.primary.nodePath, priority: 0 });//here,i cant defer the current search path unlike the dynamic heuristics cuz deferring the root path will break the algorithm so it only dfeers the node path that is heavy here
+                            //here,i cant defer the current search path unlike the dynamic heuristics cuz deferring the root path will break the algorithm so it only dfeers the node path that is heavy here
+                            heavyFolderQueue.push(awaitedNode.primary.nodePath)//im pushing to a normal queue since its relevance isnt getting calculated.it will get calculated by the algorithm on the next call to the search if proceess heavy folders is true
                             continue; // defer heavy folder
                         }
                     }
@@ -689,8 +695,11 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
             return
         }
         const currentPath:string = selectCurrentPath(getState());
-        await dispatch(searchInBreadth(currentPath,searchQuery));
-        
+
+        const heavyFolderQueue:string[] = [];
+        await dispatch(searchInBreadth(currentPath,searchQuery,heavyFolderQueue,false));
+        await dispatch(searchInBreadth(currentPath,searchQuery,heavyFolderQueue,true));
+
         const quickSearch = selectQuickSearch(getState());
         const shouldTerminate:boolean = selectSearchTermination(getState());
         if (!(quickSearch) && !(shouldTerminate)) {

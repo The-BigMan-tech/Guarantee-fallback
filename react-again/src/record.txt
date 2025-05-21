@@ -1249,3 +1249,5 @@ todo:caching the heuristic
 
 todoLso for root folder,i should apply static heuristics where i defer known large folders like node_modules
 todo:fix the arrow rendering in the home folder
+
+the static heuristics worked but since it performs two cycles per level,the deferred node modules will be processed before going to the next level in the filesystem unless i push it to a queue outside of the searchinbreadth function and inside the caller which is searchDir.searchDir can then search that heavy folder queue after searching in general.this means unlike dynamic heuristics where deferred folders are processed before going one level deeper,static heuristics processes all deferred heavy folders after all search is complete.
