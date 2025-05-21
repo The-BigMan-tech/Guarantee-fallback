@@ -545,7 +545,7 @@ export function toggleQuickSearch():AppThunk {
     }
 }
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
-function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:string[],processHeavyFolders:boolean):AppThunk<Promise<void>> {
+function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:string[],processHeavyFolders:boolean,startTime:number):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
         const queue:string[] = (processHeavyFolders)?heavyFolderQueue:[rootPath];//switch to heavy folders as called by the searchDir
         const deferredPaths:Record<string,boolean> = {};
@@ -557,7 +557,9 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
             const shouldTerminate:boolean = selectSearchTermination(getState());
             console.log("SHOULD TERMINATE",shouldTerminate);
             if (shouldTerminate) {//terminate the search on user command
+                console.log("FORCEFUL SEARCH TERMINATION");
                 dispatch(clearNodeCount());
+                searchTime(startTime)
                 return
             }
             if (queue.length === 0) {//add all deferred items to the queue after the queue for the dir level has been processed
@@ -629,9 +631,6 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 }
                 // console.log("Local fs nodes",localFsNodes);
                 for (const [localIndex,fsNode] of dirResult.value.entries()) {
-                    if (shouldTerminate) {
-                        return
-                    }
                     const isLastFsNode = localIndex == (dirResult.value.length-1);
                     const awaitedFsNode = await fsNode;
                     console.log("Is last fsnode",isLastFsNode);
@@ -687,7 +686,7 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         const currentPath:string = selectCurrentPath(getState());
 
         const heavyFolderQueue:string[] = [];
-        await dispatch(searchInBreadth(currentPath,searchQuery,heavyFolderQueue,false));
+        await dispatch(searchInBreadth(currentPath,searchQuery,heavyFolderQueue,false,startTime));
 
         const quickSearch = selectQuickSearch(getState());
         const shouldTerminate:boolean = selectSearchTermination(getState());
@@ -704,14 +703,21 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
                 console.log("sorted the search results");
             }
         }
-        const endTime = performance.now();
-        const timeInMs = endTime - startTime;
-        const timeInSeconds = (timeInMs / 1000).toFixed(3);
-        toast.dismiss();
-        toast.success(`Done searching in ${timeInSeconds} seconds`,{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
-        dispatch(setSearchTermination(true));
-        dispatch(clearNodeCount());
+        const isSearchTerminated:boolean = selectSearchTermination(getState());
+        if (!isSearchTerminated) {//only run this if the user didsnt forcefully terminate the search as the search termination check in the search in breadth function already does this when the user terminates the search midway
+            console.log("REGULAR SEARCH TERMINATION");
+            searchTime(startTime);
+            dispatch(setSearchTermination(true));
+            dispatch(clearNodeCount());
+        }
     }
+}
+function searchTime(startTime:number) {
+    const endTime = performance.now();
+    const timeInMs = endTime - startTime;
+    const timeInSeconds = (timeInMs / 1000).toFixed(3);
+    toast.dismiss();
+    toast.success(`Done searching in ${timeInSeconds} seconds`,{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
 }
 export function terminateSearch():AppThunk {
     return (dispatch)=>{

@@ -1258,3 +1258,6 @@ so quick search wont consider heavy fplders in the next search cycle but full se
 
 *Deferred folders (low-relevance) are only processed after all non-deferred siblings at the same level have been processed.Children of deferred folders will not be processed until their parent is processed (i.e., after the main queue is empty and deferred paths are re-queued).If at least one folder at a level is not deferred, the queue will not empty, and deferred paths will wait.This creates a “lock” effect:Deferred folders and their subtrees are “locked” out of processing until all immediate non-deferred siblings have been processed.
 
+traversal order + search-time heuristics
+
+*my search engine will get faster and more efficient over time as you refine and enhance your heuristics
