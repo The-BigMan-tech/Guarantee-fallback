@@ -29,7 +29,7 @@ async thunks and create async thunks
 
 thunks dont return values.just dispatch actions
 
-^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid,throttle-debounce,fuse js,jotai,heap js,flexsearch
+^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid,throttle-debounce,fuse js,jotai,heap js,lru-cache
 wasm
 
 hello pangea dnd,react router,framer motion,gsap,three js,
@@ -1310,3 +1310,7 @@ when caching,two problems must be solved;invalidation and eviction
 *the queue stores the order in which the search engine should read the directory in order of relevance for the query that pointts to it so that it can skip heuristics entirely on a dir that already has been heuristically calculated in a previous search.a path can have multiple queries searched against it and thus the need for multiple queries and each query has a particular order of relevance in which sub folders should be read.i used records throughout for O(1) lookup instead of an array and since im using non recursive watchers to invalidate these paths,each folder only holds the  search data for its immediate children and not deeper meaning that child paths will be their own record.the structure naturally allows for resumability because im not recording the heuristic for the folder being searched on like the downloads folder but im recirding heuristic for every path that has been searched against a query.if i were to do it the other way around,ill have downloads mapped to multiple queries that maps to paths or something janky like that which will make invalidation and other proocesses hard and difficult to reason about
 
 ede case:if home tab names are used in other folders,it wll break the cache invalidation and home tab checks in the codebase
+
+*the stability doesnt matter since they all have the same relevance
+
+*i feel that i should add a size bonus so that even if their relevance is zero,those that are smaller will have a hugher priority.can i use float in heap.js for priority and if so,i ebelive ill calculate the size bonus as 1-(totalNodes%10 * 0.1).this will make a folder of size 10 to have a bonus of 1 to ts relevance.the reason why im making it decimal is so that the size bonus doesnt make the priority relevant by increasing it to the threshold.so using modulus can lead to unexpected ordering and the formula doesnt reflect the size of the actual data but it was a good rough idea.the ideal implementation is the inverse of the total nodes.

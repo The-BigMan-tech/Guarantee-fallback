@@ -499,6 +499,9 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
         }
     }
 }
+function roundToTwo(num) {
+    return Math.round(num * 100) / 100;
+}
 function removeAllDots(str:string):string {
     return str.replace(/\./g, '');
 }
@@ -640,6 +643,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched and i also dont want it to perform relvance calc on something that has already gone through it like deferred paths when the deferred queue has its turn.
                     const totalNodes = dirResult.value.length || 1;//fallback for edge cases where totalNodes may be zero
                     const relevanceThreshold = 50;
+                    const sizeBonus:number = roundToTwo(1 / (1 + totalNodes));//added size bonus to make ones with smaller sizes more relevant and made it in one decimal place so that it doesnt negligibly affects the relevance score
                     let relevantNodes:number = 0;
                     let relevancePercent:number = 0;
                     
@@ -663,7 +667,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                     for (const node of dirResult.value) {
                         const awaitedNode = await node;
                         if (isSubsequence(awaitedNode.primary.nodeName,searchQuery) || aggressiveFilter(awaitedNode.primary.fileExtension,searchQuery)) {
-                            relevantNodes += 1
+                            relevantNodes += 1;
                             relevancePercent = (relevantNodes / totalNodes) * 100//to ensure that the relevance percent is always updated upon looping
                             if (relevancePercent >= relevanceThreshold) {
                                 break//early termination once enough relevance has been reached
@@ -672,9 +676,9 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                     }
                     console.log("HEURISTIC ANALYSIS OF ",currentSearchPath,"RELEV SCORE",relevancePercent);
                     if (relevancePercent < relevanceThreshold) {//defer if it isnt relevant enough
-                        console.log("DEFERRED SEARCH PATH: ",currentSearchPath);
+                        console.log("DEFERRED SEARCH PATH: ",currentSearchPath,'PRIORITY',relevancePercent);
                         deferredPaths[currentSearchPath] = true
-                        deferredHeap.push({path:currentSearchPath,priority:relevancePercent});//defer for later.it defers the current search path unlike the static heuristics
+                        deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus});//defer for later.it defers the current search path unlike the static heuristics
                         continue; // Skip processing now
                     }
                 }
