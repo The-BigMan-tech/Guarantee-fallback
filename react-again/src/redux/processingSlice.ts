@@ -479,16 +479,23 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
 function removeAllDots(str:string):string {
     return str.replace(/\./g, '');
 }
+function removeAllSpaces(str:string):string {
+    return str.replace(/\s+/g, '');
+}
+
+function normalizeString(str:string):string {
+    return removeAllSpaces(removeAllDots(str).trim().toLowerCase());
+}
 function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:string,isQueryLong:boolean):AppThunk<boolean> {
     return (dispatch):boolean=>{
         //This early termination is done at the batch level
-        let anyRoughMatches:boolean = false
         if (quickSearch && isQueryLong) {//only performing this loop if quick search is on.it will be a waste if it runs on full search
+            let anyRoughMatches:boolean = false
             for (const fsNodeInBatch of fsNodes) {
-                const trimmedNode = removeAllDots(fsNodeInBatch.primary.nodeName.trim().toLowerCase());//making it insensitive to file extensions because the node can be a folder or a file and he search query can target either depending on whether an extension was included or not
-                const trimmedQuery = removeAllDots(searchQuery.trim().toLowerCase());
-                const isRoughMatch = (trimmedNode.startsWith(trimmedQuery))
-                console.log("Quick search",quickSearch,"Query length",searchQuery.length,"Exact match",isRoughMatch,"trimmed node",trimmedNode,"trimmed query",trimmedQuery);
+                const normalizedNode = normalizeString(fsNodeInBatch.primary.nodeName);//making it insensitive to file extensions because the node can be a folder or a file and he search query can target either depending on whether an extension was included or not
+                const normalizedQuery = normalizeString(searchQuery);
+                const isRoughMatch = (normalizedNode.startsWith(normalizedQuery))
+                console.log("Quick search",quickSearch,"Query length",searchQuery.length,"Exact match",isRoughMatch,"trimmed node",normalizedNode,"trimmed query",normalizedQuery);
                 if (isRoughMatch) {
                     console.log("Found early result!!");
                     dispatch(pushToSearch(fsNodeInBatch));
@@ -536,15 +543,17 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         }
     }
 }
-function aggressiveFilter(data:string | null,query:string):boolean {
-    if (data && ( removeAllDots(data).trim().toLowerCase() .includes( removeAllDots(query).trim().toLowerCase() ))) {
-        return true
+function aggressiveFilter(str:string | null,query:string):boolean {
+    if (str) {
+        const normalizedStr = normalizeString(str);
+        const normalizedQuery = normalizeString(query)
+        return normalizedStr.includes(normalizedQuery)
     }
     return false
 }
 function isSubsequence(str:string,query:string):boolean {
-    const normalizedStr = removeAllDots(str).trim().toLowerCase() ;
-    const normalizedQuery = removeAllDots(query).trim().toLowerCase() ;
+    const normalizedStr = normalizeString(str);
+    const normalizedQuery = normalizeString(query);
     let i = 0, j = 0;
     while (i < normalizedStr.length && j < normalizedQuery.length) {
         if (normalizedStr[i] === normalizedQuery[j]) j++;
