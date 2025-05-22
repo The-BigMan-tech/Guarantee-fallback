@@ -638,7 +638,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
                 //*Heuristic analysis
                 const isDeferred:boolean = deferredPaths[currentSearchPath] || false;
-                console.log((!isDeferred)?`CURRENT SEARCH PATH ${currentSearchPath}`:`PROCESSING DEFERRED PATH: ${currentSearchPath}`);
+                console.log((!isDeferred)?`CURRENT SEARCH PATH ${currentSearchPath}`:`CURRENTLY PROCESSING DEFERRED PATH: ${currentSearchPath}`);
                 if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched and i also dont want it to perform relvance calc on something that has already gone through it like deferred paths when the deferred queue has its turn.
                     const totalNodes = dirResult.value.length || 1;//fallback for edge cases where totalNodes may be zero
                     const relevanceThreshold = 50;
