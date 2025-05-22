@@ -596,7 +596,7 @@ function calcDistanceScore(query:string,str:string,minThreshold:number):number {
     return adjustedScore
 }
 function getMatchScore(query:string,str:string,minThreshold:number):number {
-    const normalizedStr:string = normalizeString(str);
+    const normalizedStr:string = normalizeString(str);//normalize the query and string to prevent irrelavant mistakes make a difference
     const normalizedQuery:string = normalizeString(query);
     const strLen = normalizedStr.length;
     const queryLen = normalizedQuery.length;
@@ -613,11 +613,15 @@ function getMatchScore(query:string,str:string,minThreshold:number):number {
         const windowWidth = clampedStart + queryLen
         const window = normalizedStr.slice(clampedStart,windowWidth);
         console.log("Modified string for query",window);
-        return calcDistanceScore(normalizedQuery,window, minThreshold + 20);
+        //long string penalty
+        const lengthDifference = Math.abs(strLen - queryLen);
+        const penalty = Math.min(lengthDifference * 0.5, 10);//limits the penalty to 10 and scales the penalty to 0.5 for every length difference.i used 0.5 to smooth out the penalty curve
+        const sliceScore = calcDistanceScore(normalizedQuery,window, minThreshold + 20);
+        return sliceScore - penalty;//deducts the penalty from the slice score
     });
     const maxSliceScore = Math.max(...sliceScores);
 
-    return Math.max(fullDistanceScore,maxSliceScore,subsequenceScore);
+    return Math.max(fullDistanceScore,Math.max(0,maxSliceScore),subsequenceScore);
 }
 
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
