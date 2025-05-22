@@ -641,7 +641,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                     const totalNodes = dirResult.value.length || 1;//fallback for edge cases where totalNodes may be zero
                     const relevanceThreshold = 50;
                     let relevantNodes:number = 0;
-                    let relevancePercent = (relevantNodes / totalNodes) * 100;
+                    let relevancePercent:number = 0;
                     
                     //static heuristics 
                     if (!processHeavyFolders) {//this reads that if the folder is heavy and the search loop isnt processing heavy folders,then push it to the heav folder queue for the next search loop
@@ -716,9 +716,8 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                         queue.push(awaitedFsNode.primary.nodePath);//push the folder to the queue after processing.it may be deferred by the algorithm based on heuristics
                     }
                 }
-                
                 dispatch(saveNodeCount())
-                deferredPaths[currentSearchPath] = false
+                deferredPaths[currentSearchPath] = false//this is just a cleanup and it wont affect the flow because it has been processed and shifted from the queue so it isnt possible for it to enter the queue and be deferred again
             }
         }
     }
