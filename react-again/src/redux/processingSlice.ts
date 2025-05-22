@@ -668,7 +668,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                         const awaitedNode = await node;
                         if (isSubsequence(awaitedNode.primary.nodeName,searchQuery) || aggressiveFilter(awaitedNode.primary.fileExtension,searchQuery)) {
                             relevantNodes += 1;
-                            relevancePercent = (relevantNodes / totalNodes) * 100//to ensure that the relevance percent is always updated upon looping
+                            relevancePercent = roundToTwo((relevantNodes / totalNodes) * 100)//to ensure that the relevance percent is always updated upon looping
                             if (relevancePercent >= relevanceThreshold) {
                                 break//early termination once enough relevance has been reached
                             }
