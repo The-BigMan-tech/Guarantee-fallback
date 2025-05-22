@@ -1359,3 +1359,20 @@ rounding must be done after all arithmetci opeartions on the float number cuz of
 math.max is for clamping values while math.min is for capping values.in order words,math.max can be used for setting the lowest limit while math.min can be used for setting the highest limit
 
 i matched r0bot0o in an attempt to find roboto
+
+robust normalization
+edit distance scoring
+distance score reduction 
+selective distance score restoration
+subsequence matching
+window slicing
+length penalties
+highest score return
+
+its a fuzzy file system match engine
+
+*Fuzzy matching inherently tolerates errors and partial overlaps, which can sometimes cause unrelated items with coincidental character similarities to get low but nonzero scores.Strict filtering reduces false positives but risks missing true positives (false negatives), hurting user experience.
+
+*It’s a trade-off between precision (few false positives) and recall (few false negatives).
+
+*with this proper scoring algorithm alone,a search that took 5 seconds finished in 2 seconds cuz it helped the engine to know that this is probably the match without calculating the proportional relevance score of the folder to know if its good enough
