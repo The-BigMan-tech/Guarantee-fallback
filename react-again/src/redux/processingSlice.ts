@@ -299,7 +299,18 @@ function addToCache(arg:CachePayload,tabName:string):AppThunk {
             console.log("Cache length is greater than 3");
             dispatch(shiftCache())
         }
-        dispatch(recordInCache({path:arg.path,data:arg.data}))
+        const normalizedPath = arg.path.replace(/\\/g, '/');//to convert \ slash in widnows path to / slash
+        let isHeavy:boolean = false;
+        for (const heavyPath of heavyFolders) {
+            if (normalizedPath.endsWith(heavyPath)) {
+                console.log("Didnt cache heavy folder:",normalizedPath);
+                isHeavy = true
+                break;//it can only match one path at a given time so we dont need to process the rest
+            }
+        }
+        if (!isHeavy) {//only add the folder to the cache if it isnt heavy
+            dispatch(recordInCache({path:arg.path,data:arg.data}))
+        }
         console.log("Cache: ",appCache);
         if (isAHomeTab(tabName)) {//validates the cache because its up to date
             console.log("Validated the cache",tabName);
