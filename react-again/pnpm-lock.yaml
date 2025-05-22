@@ -29,6 +29,9 @@ importers:
       fuse.js:
         specifier: ^7.1.0
         version: 7.1.0
+      fuzzysort:
+        specifier: ^3.1.0
+        version: 3.1.0
       heap-js:
         specifier: ^2.6.0
         version: 2.6.0
@@ -972,6 +975,9 @@ packages:
   fuse.js@7.1.0:
     resolution: {integrity: sha512-trLf4SzuuUxfusZADLINj+dE8clK1frKdmqiJNb1Es75fmI5oY6X2mxLVUciLLjxqw/xr72Dhy+lER6dGd02FQ==}
     engines: {node: '>=10'}
+
+  fuzzysort@3.1.0:
+    resolution: {integrity: sha512-sR9BNCjBg6LNgwvxlBd0sBABvQitkLzoVY9MYYROQVX/FvfJ4Mai9LsGhDgd8qYdds0bY77VzYd5iuB+v5rwQQ==}
 
   glob-parent@5.1.2:
     resolution: {integrity: sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow==}
@@ -2412,6 +2418,8 @@ snapshots:
     optional: true
 
   fuse.js@7.1.0: {}
+
+  fuzzysort@3.1.0: {}
 
   glob-parent@5.1.2:
     dependencies:

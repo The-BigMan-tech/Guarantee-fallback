@@ -9,6 +9,7 @@ import { watchImmediate, BaseDirectory, WatchEvent, WatchEventKind, WatchEventKi
 import Fuse, { FuseResult } from 'fuse.js';
 import { toast,ToastOptions,Bounce,Flip,Zoom} from 'react-toastify';
 import { Heap } from 'heap-js';
+import fuzzysort from 'fuzzysort';
 
 
 const fuseOptions = {
@@ -49,10 +50,11 @@ type  invalidationData = {tabName:AllTabTypes}
 type NodePath = string;
 type Query = string;
 type Queue = NodePath[];
+type IndexQueue = number[];
 
 interface SearchData {
-    queries:Record<Query,Queue>,
-    cache:FsNode[]
+    queries:Record<Query,IndexQueue>,
+    dirCache:FsNode[]
 }
 type HeuristicCache = Record<NodePath,SearchData>;
 
@@ -499,7 +501,7 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
         }
     }
 }
-function roundToTwo(num) {
+function roundToTwo(num:number):number {
     return Math.round(num * 100) / 100;
 }
 function removeAllDots(str:string):string {
@@ -643,7 +645,9 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched and i also dont want it to perform relvance calc on something that has already gone through it like deferred paths when the deferred queue has its turn.
                     const totalNodes = dirResult.value.length || 1;//fallback for edge cases where totalNodes may be zero
                     const relevanceThreshold = 50;
+                    const matchPercentThreshold = 90;
                     const sizeBonus:number = roundToTwo( (1 / (1 + totalNodes)) * 5);//added size bonus to make ones with smaller sizes more relevant and made it range from 0-5 so that it doesnt negligibly affects the relevance score
+                    
                     let relevantNodes:number = 0;
                     let relevancePercent:number = 0;
                     
@@ -664,18 +668,24 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                         }
                     }
                     //dynamic heuristics
+                    let processImmediately = false;
                     for (const node of dirResult.value) {
                         const awaitedNode = await node;
                         if (isSubsequence(awaitedNode.primary.nodeName,searchQuery) || aggressiveFilter(awaitedNode.primary.fileExtension,searchQuery)) {
                             relevantNodes += 1;
                             relevancePercent = roundToTwo( (relevantNodes / totalNodes) * 100 )//to ensure that the relevance percent is always updated upon looping
-                            if (relevancePercent >= relevanceThreshold) {
+                            processImmediately = relevancePercent >= relevanceThreshold
+                            const match = fuzzysort.single(searchQuery,awaitedNode.primary.nodeName);//thers no way there wil not be a result as this is done under a relavance check
+                            if (match) {
+                                processImmediately ||= ( roundToTwo(match.score*100) >= matchPercentThreshold)//i used ||= instead of straight assignment cuz a folder coud have many relevant nodes but their quality doesnt meet the criteria so performing an or ensures that the value here doesnt erase the previous one
+                            }
+                            if (processImmediately) {
                                 break//early termination once enough relevance has been reached
                             }
                         };
                     }
                     console.log("HEURISTIC ANALYSIS OF ",currentSearchPath,"RELEV SCORE",relevancePercent);
-                    if (relevancePercent < relevanceThreshold) {//defer if it isnt relevant enough
+                    if ( ((relevancePercent + sizeBonus) < relevanceThreshold) || (!processImmediately)) {//defer if it isnt relevant enough or if it isnt flagged to process immediately
                         console.log("DEFERRED SEARCH PATH: ",currentSearchPath,'PRIORITY',relevancePercent,"WITH SIZE BONUES",relevancePercent + sizeBonus);
                         deferredPaths[currentSearchPath] = true
                         deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus});//defer for later.it defers the current search path unlike the static heuristics
