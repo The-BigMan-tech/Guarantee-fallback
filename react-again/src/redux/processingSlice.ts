@@ -583,12 +583,9 @@ function removeAllSpaces(str:string):string {
 function normalizeString(str:string):string {
     return removeAllSpaces(removeAllDots(str).trim().toLowerCase());
 }
-function getMatchScore(query:string,str:string,minThreshold:number):number {
-    const normalizedStr:string = normalizeString(str);
-    const normalizedQuery:string = normalizeString(query);
-
-    const stringDistance:number = distance(normalizedQuery,normalizedStr);
-    const maxLen = Math.max(normalizedQuery.length, normalizedStr.length);
+function calcDistanceScore(query:string,str:string,minThreshold:number):number {
+    const stringDistance:number = distance(query,str);
+    const maxLen = Math.max(query.length, str.length);
     if (maxLen === 0) return 100; // both strings empty
     const similarity = 1 - (stringDistance / maxLen);
     const rawScore = roundToTwo(similarity * 100);
@@ -596,9 +593,31 @@ function getMatchScore(query:string,str:string,minThreshold:number):number {
     if (adjustedScore > 0) {//what i did here is that i didnt want to tolerate low matches.without the -35,license.txt will match space but with it space_mono will only match space by 15% when it should be 50% so what i did,was that the prev adjusted value was just used to remove typo big results by taking them to zero,after that the ones that passed will have the min threshold which is 35 added back to them again to get their desreved score
         adjustedScore += minThreshold
     }
+    return adjustedScore
+}
+function getMatchScore(query:string,str:string,minThreshold:number):number {
+    const normalizedStr:string = normalizeString(str);
+    const normalizedQuery:string = normalizeString(query);
+    const strLen = normalizedStr.length;
+    const queryLen = normalizedQuery.length;
+    //Distance match
+    const fullDistanceScore = calcDistanceScore(normalizedQuery,normalizedStr,minThreshold);
+    //Subsequence match
     const subsequenceResult = fuzzysort.single(normalizedQuery,normalizedStr)//used subsequence matching from fuzzysort to get good scores for a query where the distance algorithm would have missed just because of distance
     const subsequenceScore = roundToTwo((subsequenceResult?.score || 0) * 100)
-    return Math.max(adjustedScore,subsequenceScore);
+    //Window slicing
+    const slicePoints = [0,Math.floor((strLen - queryLen) / 2),strLen - queryLen]
+
+    const sliceScores = slicePoints.map(start => {
+        const clampedStart = Math.max(0, Math.min(start, strLen - queryLen));//to ensure the start is at a valid index
+        const windowWidth = clampedStart + queryLen
+        const window = normalizedStr.slice(clampedStart,windowWidth);
+        console.log("Modified string for query",window);
+        return calcDistanceScore(normalizedQuery,window, minThreshold + 20);
+    });
+    const maxSliceScore = Math.max(...sliceScores);
+
+    return Math.max(fullDistanceScore,maxSliceScore,subsequenceScore);
 }
 
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
