@@ -40,13 +40,21 @@ export const loading_toastConfig:ToastOptions = {
     transition:Zoom,
     toastId:"loading"
 }
-type NodePath = string;
 type Cache = Record<NodePath,FsNode[]>;
 type CachePayload = {path:NodePath,data:FsNode[]}
 type CachingState = 'pending' | 'success';
 type StrictTabsType = 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos';
 type AllTabTypes = 'Home' | 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos'
 type  invalidationData = {tabName:AllTabTypes}
+type NodePath = string;
+type Query = string;
+type Queue = NodePath[];
+
+interface SearchData {
+    queries:Record<Query,Queue>,
+    cache:FsNode[]
+}
+type HeuristicCache = Record<NodePath,SearchData>;
 
 interface  TabCacheInvalidation {
     Home:boolean,
@@ -295,7 +303,7 @@ function addToCache(arg:CachePayload,tabName:string):AppThunk {
     return (dispatch,getState)=>{
         console.log("Called add to cache");
         const appCache:Cache = selectCache(getState());
-        if (Object.keys(appCache).length >= 20) {
+        if (Object.keys(appCache).length >= 20) {//evict an item from the cache once it reaches 20
             console.log("Cache length is greater than 3");
             dispatch(shiftCache())
         }
@@ -308,8 +316,12 @@ function addToCache(arg:CachePayload,tabName:string):AppThunk {
                 break;//it can only match one path at a given time so we dont need to process the rest
             }
         }
+        let dirNodes:FsNode[] = arg.data;
+        if (!isAHomeTab(tabName)) {//bound the number of fsnodes per record in the cache if it isnt a home tab as unlike the home tab,they are always invalidated on reopen but they are displayed in the ui frozen in the meantime
+            dirNodes = arg.data.slice(0,100)
+        }
         if (!isHeavy) {//only add the folder to the cache if it isnt heavy
-            dispatch(recordInCache({path:arg.path,data:arg.data}))
+            dispatch(recordInCache({path:arg.path,data:dirNodes}))
         }
         console.log("Cache: ",appCache);
         if (isAHomeTab(tabName)) {//validates the cache because its up to date
@@ -581,7 +593,7 @@ export function toggleQuickSearch():AppThunk {
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
 function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:string[],processHeavyFolders:boolean,startTime:number):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
-        const queue:string[] = (processHeavyFolders)?heavyFolderQueue:[rootPath];//switch to heavy folders as called by the searchDir
+        const queue:Queue = (processHeavyFolders)?heavyFolderQueue:[rootPath];//switch to heavy folders as called by the searchDir
         const deferredPaths:Record<string,boolean> = {};
         const deferredHeap = new Heap((a:DeferredSearch, b:DeferredSearch) => b.priority - a.priority);
         deferredHeap.init([]);
