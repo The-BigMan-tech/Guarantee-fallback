@@ -677,15 +677,18 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                             processImmediately = relevancePercent >= relevanceThreshold
                             const match = fuzzysort.single(searchQuery,awaitedNode.primary.nodeName);//thers no way there wil not be a result as this is done under a relavance check
                             if (match) {
-                                processImmediately ||= ( roundToTwo(match.score*100) >= matchPercentThreshold)//i used ||= instead of straight assignment cuz a folder coud have many relevant nodes but their quality doesnt meet the criteria so performing an or ensures that the value here doesnt erase the previous one
+                                const matchScore = roundToTwo(match.score * 100) ;
+                                console.log("MATCH SCORE FOR A NODE FROM:",currentSearchPath,"NODE:",awaitedNode.primary.nodeName,"SCORE:",matchScore);
+                                processImmediately ||= (matchScore >= matchPercentThreshold) //i used ||= instead of straight assignment cuz a folder coud have many relevant nodes but their quality doesnt meet the criteria so performing an or ensures that the value here doesnt erase the previous one
                             }
                             if (processImmediately) {
+                                console.log("SEARCH PATH:",currentSearchPath,"IS BEING PROCESSED IMMEDIATELY");
                                 break//early termination once enough relevance has been reached
                             }
                         };
                     }
                     console.log("HEURISTIC ANALYSIS OF ",currentSearchPath,"RELEV SCORE",relevancePercent);
-                    if ( ((relevancePercent + sizeBonus) < relevanceThreshold) || (!processImmediately)) {//defer if it isnt relevant enough or if it isnt flagged to process immediately
+                    if ( ((relevancePercent + sizeBonus) < relevanceThreshold) && (!processImmediately)) {//defer if it isnt relevant enough or if it isnt flagged to process immediately
                         console.log("DEFERRED SEARCH PATH: ",currentSearchPath,'PRIORITY',relevancePercent,"WITH SIZE BONUES",relevancePercent + sizeBonus);
                         deferredPaths[currentSearchPath] = true
                         deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus});//defer for later.it defers the current search path unlike the static heuristics
