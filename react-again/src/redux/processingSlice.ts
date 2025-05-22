@@ -9,8 +9,7 @@ import { watchImmediate, BaseDirectory, WatchEvent, WatchEventKind, WatchEventKi
 import Fuse, { FuseResult } from 'fuse.js';
 import { toast,ToastOptions,Bounce,Flip,Zoom} from 'react-toastify';
 import { Heap } from 'heap-js';
-import fuzzysort from 'fuzzysort';
-
+import {distance} from "fastest-levenshtein"
 
 const fuseOptions = {
     keys: ['primary.nodeName','primary.fileExtension',],
@@ -18,6 +17,7 @@ const fuseOptions = {
     threshold: 0.4,   
 };
 const fuseInstance:Fuse<FsNode> = new Fuse([],fuseOptions);
+
 let searchBatchCount:number = 0;
 
 type DeferredSearch = {path:string,priority:number}
@@ -576,7 +576,7 @@ function aggressiveFilter(str:string | null,query:string):boolean {
     }
     return false
 }
-function isSubsequence(str:string,query:string):boolean {
+export function isSubsequence(str:string,query:string):boolean {//im not using it yet since i changed to another function for the same purpose but ill still leave it
     const normalizedStr = normalizeString(str);
     const normalizedQuery = normalizeString(query);
     let i = 0, j = 0;
@@ -591,6 +591,18 @@ export function toggleQuickSearch():AppThunk {
         const quickSearch:boolean = selectQuickSearch(getState());
         dispatch(setQuickSearch(!(quickSearch)))
     }
+}
+function getMatchScore(query:string,str:string,minThreshold:number):number {
+    const stringDistance:number = distance(query,str);
+    const maxLen = Math.max(query.length, str.length);
+    if (maxLen === 0) return 100; // both strings empty
+    const similarity = 1 - (stringDistance / maxLen);
+    const rawScore = roundToTwo(similarity * 100);
+    let adjustedScore = Math.max(0, rawScore - minThreshold);
+    if (adjustedScore > 0) {//what i did here is that i didnt want to tolerate low matches.without the -35,license.txt will match space but with it space_mono will only match space by 15% when it should be 50% so what i did,was that the prev adjusted value was just used to remove typo big results by taking them to zero,after that the ones that passed will have the min threshold which is 35 added back to them again to get their desreved score
+        adjustedScore += minThreshold
+    }
+    return adjustedScore;
 }
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
 function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:string[],processHeavyFolders:boolean,startTime:number):AppThunk<Promise<void>> {
@@ -668,16 +680,16 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                     let processImmediately = false;
                     for (const node of dirResult.value) {
                         const awaitedNode = await node;
-                        if (isSubsequence(awaitedNode.primary.nodeName,searchQuery) || aggressiveFilter(awaitedNode.primary.fileExtension,searchQuery)) {
+                        const normalizedStr = normalizeString(awaitedNode.primary.nodeName + (awaitedNode.primary.fileExtension || ""));//i normalized both the query and the target string to increase fuzziness
+                        const normalizedQuery = normalizeString(searchQuery);
+
+                        const matchScore = getMatchScore(normalizedQuery,normalizedStr,35);
+                        if (matchScore > 0) {//the number of matches increases qualitative relevance
                             relevantNodes += 1;
                             relevancePercent = roundToTwo( (relevantNodes / totalNodes) * 100 )//to ensure that the relevance percent is always updated upon looping
-                            processImmediately = relevancePercent >= relevanceThreshold
-                            const match = fuzzysort.single(searchQuery,awaitedNode.primary.nodeName);//thers no way there wil not be a result as this is done under a relavance check
-                            if (match) {
-                                const matchScore = roundToTwo(match.score * 100) ;
-                                console.log("MATCH SCORE FOR A NODE FROM:",currentSearchPath,"NODE:",awaitedNode.primary.nodeName,"SCORE:",matchScore);
-                                processImmediately ||= (matchScore >= matchPercentThreshold) //i used ||= instead of straight assignment cuz a folder coud have many relevant nodes but their quality doesnt meet the criteria so performing an or ensures that the value here doesnt erase the previous one
-                            }
+                            processImmediately = (relevancePercent >= relevanceThreshold) || (matchScore >= matchPercentThreshold)//the match score is used to check for the quality of the relevance as usual
+                            
+                            console.log("MATCH SCORE FOR A NODE FROM:",currentSearchPath,"NODE:",awaitedNode.primary.nodeName,"SCORE:",matchScore);
                             if (processImmediately) {
                                 console.log("SEARCH PATH:",currentSearchPath,"IS BEING PROCESSED IMMEDIATELY");
                                 break//early termination once enough relevance has been reached

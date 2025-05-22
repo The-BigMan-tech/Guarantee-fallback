@@ -1281,7 +1281,7 @@ indexing,early best-first search,master file table search engines
 
 *so i have two search loops the main loop and the heavy loop and the main loop is divided to deferred and relevant where relevant folders at a particular level are processed before deferred ones.the relevant children of a relevant folder are also processed before the deferred ones.
 
-Levenshtein Distance
+Levenshtein Distance match
 subsequence match
 exact match
 regex match
@@ -1342,3 +1342,10 @@ rounding must be done after all arithmetci opeartions on the float number cuz of
 *search engine’s time to reach a node depends on the BFS level difference between the current folder and the target folder even though it quickly defers folders at various folders.so that distance cant be reduced but it can be neglible since the bfs defers folders quickly at each level based on relevance and BFS by definition processes nodes (folders) in order of their depth from the root.
 
 *so the theoretical time complexity of my algorithm is O(n) because it goes through all the nodes and the time complexity for it to reach any node is the distance between the node bfs level and the root bfs level which is the level where the search is conducted but in practice,the distance can be ignored because of the heuristics
+
+*and normalizing the query and the sting before matching increases the score likelihood.so if i want to tune the strictness,i can mess around with the minThreshold in the calling function.i can now use my score over an abstraction that gives me a score that resembles an ideal one
+
+*i had to write this function myself cuz there wasnt one out there tailored to my use case but i still had to use an external function that has the minimal features i need to build the core of it which in this case was the distance algorithm itself.
+*Use battle-tested core algorithms from libraries or packages.
+*Build custom layers for business logic, heuristics, or domain-specific tweaks.
+*Enables you to balance reliability and customization.
