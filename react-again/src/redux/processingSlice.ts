@@ -642,8 +642,8 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 console.log((!isDeferred)?`CURRENT SEARCH PATH ${currentSearchPath}`:`PROCESSING DEFERRED PATH: ${currentSearchPath}`);
                 if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched and i also dont want it to perform relvance calc on something that has already gone through it like deferred paths when the deferred queue has its turn.
                     const totalNodes = dirResult.value.length || 1;//fallback for edge cases where totalNodes may be zero
-                    const relevanceThreshold = 40;
-                    const sizeBonus:number = (roundToTwo(1 / (1 + totalNodes)) * 50);//added size bonus to make ones with smaller sizes more relevant and made it in one decimal place so that it doesnt negligibly affects the relevance score
+                    const relevanceThreshold = 50;
+                    const sizeBonus:number = roundToTwo( (1 / (1 + totalNodes)) * 5);//added size bonus to make ones with smaller sizes more relevant and made it range from 0-5 so that it doesnt negligibly affects the relevance score
                     let relevantNodes:number = 0;
                     let relevancePercent:number = 0;
                     
@@ -668,7 +668,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                         const awaitedNode = await node;
                         if (isSubsequence(awaitedNode.primary.nodeName,searchQuery) || aggressiveFilter(awaitedNode.primary.fileExtension,searchQuery)) {
                             relevantNodes += 1;
-                            relevancePercent = roundToTwo((relevantNodes / totalNodes) * 100)//to ensure that the relevance percent is always updated upon looping
+                            relevancePercent = roundToTwo( (relevantNodes / totalNodes) * 100 )//to ensure that the relevance percent is always updated upon looping
                             if (relevancePercent >= relevanceThreshold) {
                                 break//early termination once enough relevance has been reached
                             }
