@@ -1360,6 +1360,7 @@ math.max is for clamping values while math.min is for capping values.in order wo
 
 i matched r0bot0o in an attempt to find roboto
 
+*This is what my fuzzy match is composed of that makes it typo tolerant for file names for the search engine to use as part of the heuristic process.my search engine is faster than indexing engines like the windows file manager and its typo friendly unlike everything
 robust normalization
 edit distance scoring
 distance score reduction 
