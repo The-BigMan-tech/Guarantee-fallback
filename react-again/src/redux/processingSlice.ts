@@ -485,6 +485,12 @@ function getParent():AppThunk<string> {
 
 
 //^SEARCH RELARED
+export function toggleQuickSearch():AppThunk {
+    return (dispatch,getState)=>{
+        const quickSearch:boolean = selectQuickSearch(getState());
+        dispatch(setQuickSearch(!(quickSearch)))
+    }
+}
 function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>> {
     return async (dispatch) => {
         console.log("FSNODES VALUE NOW",fsNodes);
@@ -501,19 +507,6 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
             };
         }
     }
-}
-function roundToTwo(num:number):number {
-    return Math.round(num * 100) / 100;
-}
-function removeAllDots(str:string):string {
-    return str.replace(/\./g, '');
-}
-function removeAllSpaces(str:string):string {
-    return str.replace(/\s+/g, '');
-}
-
-function normalizeString(str:string):string {
-    return removeAllSpaces(removeAllDots(str).trim().toLowerCase());
 }
 function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:string,isQueryLong:boolean):AppThunk<boolean> {
     return (dispatch):boolean=>{
@@ -577,15 +570,25 @@ function aggressiveFilter(str:string | null,query:string):boolean {
     }
     return false
 }
-export function toggleQuickSearch():AppThunk {
-    return (dispatch,getState)=>{
-        const quickSearch:boolean = selectQuickSearch(getState());
-        dispatch(setQuickSearch(!(quickSearch)))
-    }
+function roundToTwo(num:number):number {
+    return Math.round(num * 100) / 100;
+}
+function removeAllDots(str:string):string {
+    return str.replace(/\./g, '');
+}
+function removeAllSpaces(str:string):string {
+    return str.replace(/\s+/g, '');
+}
+
+function normalizeString(str:string):string {
+    return removeAllSpaces(removeAllDots(str).trim().toLowerCase());
 }
 function getMatchScore(query:string,str:string,minThreshold:number):number {
-    const stringDistance:number = distance(query,str);
-    const maxLen = Math.max(query.length, str.length);
+    const normalizedStr:string = normalizeString(str);
+    const normalizedQuery:string = normalizeString(query);
+
+    const stringDistance:number = distance(normalizedQuery,normalizedStr);
+    const maxLen = Math.max(normalizedQuery.length, normalizedStr.length);
     if (maxLen === 0) return 100; // both strings empty
     const similarity = 1 - (stringDistance / maxLen);
     const rawScore = roundToTwo(similarity * 100);
@@ -593,9 +596,11 @@ function getMatchScore(query:string,str:string,minThreshold:number):number {
     if (adjustedScore > 0) {//what i did here is that i didnt want to tolerate low matches.without the -35,license.txt will match space but with it space_mono will only match space by 15% when it should be 50% so what i did,was that the prev adjusted value was just used to remove typo big results by taking them to zero,after that the ones that passed will have the min threshold which is 35 added back to them again to get their desreved score
         adjustedScore += minThreshold
     }
-    const subsequenceResult = fuzzysort.single(query,str)
-    return Math.max(adjustedScore,subsequenceResult?.score || 0);
+    const subsequenceResult = fuzzysort.single(normalizedQuery,normalizedStr)//used subsequence matching from fuzzysort to get good scores for a query where the distance algorithm would have missed just because of distance
+    const subsequenceScore = roundToTwo((subsequenceResult?.score || 0) * 100)
+    return Math.max(adjustedScore,subsequenceScore);
 }
+
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
 function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:string[],processHeavyFolders:boolean,startTime:number):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
@@ -672,10 +677,9 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                     let processImmediately = false;
                     for (const node of dirResult.value) {
                         const awaitedNode = await node;
-                        const normalizedStr = normalizeString(awaitedNode.primary.nodeName + (awaitedNode.primary.fileExtension || ""));//i normalized both the query and the target string to increase fuzziness
-                        const normalizedQuery = normalizeString(searchQuery);
+                        const fsNodeName = awaitedNode.primary.nodeName + (awaitedNode.primary.fileExtension || "");//i normalized both the query and the target string to increase fuzziness
+                        const matchScore = getMatchScore(searchQuery,fsNodeName,20);
 
-                        const matchScore = getMatchScore(normalizedQuery,normalizedStr,20);
                         console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
                         if (matchScore > 0) {//the number of matches increases qualitative relevance
                             relevantNodes += 1;
