@@ -1332,3 +1332,9 @@ rounding must be done after all arithmetci opeartions on the float number cuz of
 *so the main loop of my search engine processes relevant files first regardless of size or degree of relevance.it doesnt wait to know the relevance score of it compared to its siblings so that it can process it once it feels its relevant enough and thats why their relevant scores never went above the relevant threshold even if they could be more relevant.but the next cycle whch is the deferred folders are processed in order of relevance and in case relevance isnt enough or zero,it uses a size bonus to process irrelevant small folders first before big ones.it still processes these irrelevant folders cuz their state of relevance is only an approximation by the algorithm not guaranteed.
 
 *so proportional relevance is good but didnt prioritize small folders so i had to add size bonus and now for i have to add absolute counts on top cuz if not,the algorithm will discover it early but wont process it till the next cycle.i think its better to add the absolute count instead of reducing the threshold that could cause runtime
+
+*so the metrics my heursitics uses to decide whether to defer a folder to next bfs level is its proportional relevance,size and quality of match.the relevance and the match detection have a strong influence on its deferral while size has only a little or bonus influence.
+
+*Proportional relevance measures how much of the folder’s content relates to the query
+*match detection measures how close the folder is to the query
+*The size bonus acts like a tie-breaker or a minor heuristic adjustment, giving preference to smaller folders that are easier and faster to process.

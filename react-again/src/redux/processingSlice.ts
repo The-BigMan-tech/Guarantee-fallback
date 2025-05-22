@@ -539,17 +539,14 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
     return async (dispatch,getState) =>{
         const quickSearch:boolean = selectQuickSearch(getState());
         const isQueryLong:boolean = searchQuery.length >= 10;
-        let searchBatchSize:number = 1;//default batch size
+        let searchBatchSize:number = 5;//default batch size
         if (searchBatchCount == 1) {//if the first batch has been processed
-            searchBatchSize = 5
-        }else if (searchBatchCount == 2) {//if two batches have been processed
             searchBatchSize = 10
-        }else if (searchBatchCount == 3) {//if three batches have been processed
+        }else if (searchBatchCount == 2) {//if two batches have been processed
             searchBatchSize = 15
         }
-
-        console.log("SEARCH BATCH SIZE FOR FSNODES",searchBatchSize,"FSNODES",fsNodes);
         fsNodes.push(fsNode)//push the files
+        console.log("SEARCH BATCH SIZE FOR FSNODES",searchBatchSize,"FSNODES",fsNodes,"SEARCH BATCH COUNT: ",searchBatchCount);
         if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
             const anyRoughMatches:boolean = dispatch(longQueryOptimization(quickSearch,fsNodes,searchQuery,isQueryLong))
             if (anyRoughMatches) {//i believe that this means that when it reaches the last node of the batch,it will check if there were any exact matches.if so,terminate and return else,proceed with fuzzy search
@@ -652,7 +649,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                     let relevancePercent:number = 0;
                     
                     //static heuristics 
-                    if (!processHeavyFolders) {//this reads that if the folder is heavy and the search loop isnt processing heavy folders,then push it to the heav folder queue for the next search loop
+                    if (!processHeavyFolders) {//this reads that if the search loop shouldnt process any heavy folders,then push it to the heavy folder queue for the next search loop
                         const normalizedPath = currentSearchPath.replace(/\\/g, '/');// convert backslashes to slashes if on Windows
                         let isHeavy:boolean = false
                         for (const heavyPath of heavyFolders) {
@@ -695,6 +692,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                         continue; // Skip processing now
                     }
                 }
+
                 //*Search Processing
                 const fsNodes:FsNode[] = []//this is the batch used per dir level so that it doesnt directly call fuse on every node but rather in batches
                 const quickSearch:boolean = selectQuickSearch(getState());
