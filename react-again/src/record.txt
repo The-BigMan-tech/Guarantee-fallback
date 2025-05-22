@@ -1314,3 +1314,10 @@ ede case:if home tab names are used in other folders,it wll break the cache inva
 *the stability doesnt matter since they all have the same relevance
 
 *i feel that i should add a size bonus so that even if their relevance is zero,those that are smaller will have a hugher priority.can i use float in heap.js for priority and if so,i ebelive ill calculate the size bonus as 1-(totalNodes%10 * 0.1).this will make a folder of size 10 to have a bonus of 1 to ts relevance.the reason why im making it decimal is so that the size bonus doesnt make the priority relevant by increasing it to the threshold.so using modulus can lead to unexpected ordering and the formula doesnt reflect the size of the actual data but it was a good rough idea.the ideal implementation is the inverse of the total nodes.
+
+*High threshold → high precision, low recall (fewer but more relevant results early).
+*Low threshold → higher recall, lower precision (more results, some less relevant).
+
+*so should i still scale the size bonus by 50.if so,it means that the size bonus will range from 1-5.which wont really affect the relevance and it will make search paths that are 35 in relevance can be lifted to 40 for relevance if their size is small enough
+
+*reducing the threshold from 50 to 40 also reduces runtime by a scale of 10 for relevant folders.but i have to be tuning the threshold and the size bonus to fit perf and accuracy
