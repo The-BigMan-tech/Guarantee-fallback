@@ -64,16 +64,15 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
         const sliceScore = calcDistanceScore(normalizedQuery,window,minThreshold/queryLen);//made the min threshold here inversely proportional to the length of the query and directly to the minThreshold
         const penalty = getPenalty(queryLen,strLen,minThreshold) //long string diff penalty
         sliceScores.push(sliceScore - penalty);//deducts the penalty from the slice score
-        console.log("Window",window);
         if (queryLen > strLen) {//handles the edge case where the query is longer than the window to save computation
             break
         }
     };
-    const maxSliceScore = Math.max(...sliceScores);
+    const maxSliceScore = roundToTwo(Math.max(...sliceScores));
     console.log(fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
     return Math.max(fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
 }
-const score1 = getMatchScore("fil","fileSharepyennnnnnnnn",40);
+const score1 = getMatchScore("fil","fileSharepyennnnnn",80);
 console.log("0%:",score1);
 
 // const score2 = getMatchScore("py","fileSharpye-sever",20);

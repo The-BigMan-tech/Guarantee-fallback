@@ -1402,3 +1402,6 @@ john1234$$#
 
 *Since fuzzy search only measures edit distance or subsequence similarity, it cannot infer user intent or semantic meaning, so thresholds must be tuned accordingly .
 
+*the subsequence bonus is made to balance the length ratio.without the length ratio,subsequence score will always be 80%+ cuz its too generous even if the query is very small in comparison to the target.length ratio balances this by considering the length of the target but it may be too harsh so subseunec bonus was added.even at low thresholds,its just a +8 score bonus.also,the minThreshold has to somehow affect the subsequence score
+
+linear-decay,quadratic-decay
