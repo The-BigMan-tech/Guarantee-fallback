@@ -493,7 +493,7 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
             for (const node of fsNodes) {
                 const fsNodeName = node.primary.nodeName + (node.primary.fileExtension || "")
                 const score = getMatchScore(searchQuery,fsNodeName,20);
-                if (score > 40) {
+                if (score >= 40) {
                     dispatch(pushToSearchScores(score))
                     matchedFsNodes.push(node)
                 }else {

@@ -46,7 +46,7 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
         if (queryLen < (strLen/4)) {//only adds a penalty if the query is less than quarter of the target length
             const penaltyScale = 0.05 * minThreshold;//will give 0.5 if minThreshold = 20.at 100,penalty scale will be 2.5
             const lengthDifference = Math.abs(strLen - queryLen);
-            penalty = Math.min(lengthDifference * penaltyScale, 15);//limits the penalty to 10 and scales the penalty to 0.5 for every length difference.i used 0.5 to smooth out the penalty curve
+            penalty = Math.min(lengthDifference * penaltyScale,10);//limits the penalty to 10 and scales the penalty to 0.5 for every length difference.i used 0.5 to smooth out the penalty curve
         }
         sliceScores.push(sliceScore - penalty);//deducts the penalty from the slice score
     };
@@ -57,5 +57,5 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
 const scores = getMatchScore("pysma","prisma-ref",20);
 console.log("Similarity 1:",scores);
 
-const scores2 = getMatchScore("py","prisma-ref",20);
+const scores2 = getMatchScore("py","fileShare-sever.py",20);
 console.log("Similarity 2:",scores2);
