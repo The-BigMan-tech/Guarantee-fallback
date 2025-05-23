@@ -1395,3 +1395,5 @@ john1234$$#
 *i used length ratio as the penalty for subsequence but length diff penalty for windowing.the length diff penalty for windowing ensures that the fuzzy engine considers the actual length of the target and not just a window into the target.while length ratio penalty in subsequence ensures that it doesnt become to forgiving with extremly long targets so a proportional increase makes sense since subsequence is naturally generous
 
 *what if in the same way i padded the target on full distance to prevent false positives,i pad the window to a ceratin length.so he window will pad to 1/3 of the target length to reduce the score of windows that do have a high score but some of their letters are off that it looks like they should go lower.
+
+*using minThreshold directly in the distance calc of the window made me have a score of 0 for py in postgres-sql-ref.so i changed it to be inversely proportional to the query length and directly proportional to the minThreshold

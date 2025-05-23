@@ -44,7 +44,7 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
         const penalty = Math.min(lengthDifference * penaltyScale, 10);//limits the penalty to 10 and scales the penalty to 0.5 for every length difference.i used 0.5 to smooth out the penalty curve
 
         //calculating the distance and deducting the penalty
-        const sliceScore = calcDistanceScore(normalizedQuery,window,minThreshold);//stricter threshold here cuz i reduced the distance
+        const sliceScore = calcDistanceScore(normalizedQuery,window,minThreshold/queryLen);//stricter threshold here cuz i reduced the distance
         console.log("window; ",window);
         sliceScores.push(sliceScore - penalty);//deducts the penalty from the slice score
     };
@@ -52,5 +52,8 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
     console.log(fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
     return Math.max(fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
 }
-const scores = getMatchScore("py","Pawngames",20);
-console.log("Similarity:",scores);
+const scores = getMatchScore("pysma","prisma-ref",20);
+console.log("Similarity 1:",scores);
+
+const scores2 = getMatchScore("py","prisma-ref",20);
+console.log("Similarity 2:",scores2);
