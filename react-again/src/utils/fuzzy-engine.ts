@@ -10,7 +10,12 @@ const LruOptions:LRUCache.Options<string,number,unknown>  = {
 }
 const fuzzyCache = new LRUCache<string,number>(LruOptions)
 
-
+function tokenize(str: string): string[] {
+    return str.split(' ').filter(Boolean);
+}
+function sortTokens(str: string): string {
+    return tokenize(str).sort().join(' ');
+}
 function calcDistanceScore(query:string,str:string,minThreshold:number):number {
     const stringDistance:number = distance(query,str);
     const maxLen = Math.max(query.length, str.length);
@@ -43,13 +48,13 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
     if (cachedResult) {//utilize the cache
         return cachedResult;
     }
-    const normalizedStr:string = normalizeString(str);//normalize the query and string to prevent irrelavant mistakes make a difference
-    const normalizedQuery:string = normalizeString(query);
+    const normalizedStr:string = normalizeString(sortTokens(str));//normalize the query and string to prevent irrelavant mistakes make a difference
+    const normalizedQuery:string = normalizeString(sortTokens(query));
     const strLen = normalizedStr.length;
     const queryLen = normalizedQuery.length;
 
     //Distance match and target padding to eliminate false positives.
-    const paddingScale = Math.floor(Math.min(0.75 * minThreshold,25))//20 will scale the padding to 15,30 will take it .flooring will remove floats and prevent it from growing by 1 unit for decimals
+    const paddingScale = Math.floor(Math.min(0.25 * minThreshold,10))//20 will scale the padding to 15,30 will take it .flooring will remove floats and prevent it from growing by 1 unit for decimals
     const paddedStr = normalizedStr.padEnd(paddingScale,'0')
     const fullDistanceScore = calcDistanceScore(normalizedQuery,paddedStr,minThreshold);
 
@@ -83,10 +88,10 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
     };
     const maxSliceScore = roundToTwo(Math.max(...sliceScores));
 
-    const weightDistance = 0.6;
+    const weightDistance = 0.2;
     const weightSubsequence = 0.3;
-    const weightWindow = 0.2;
-    const score = roundToTwo((fullDistanceScore * weightDistance) + (Math.max(0,maxSliceScore) * weightSubsequence) + (scaledSubsequenceScore * weightWindow));
+    const weightWindow = 0.5;
+    const score = roundToTwo((fullDistanceScore * weightDistance) + (Math.max(0,maxSliceScore) * weightWindow) + (scaledSubsequenceScore * weightSubsequence));
     
     fuzzyCache.set(cacheKey,score);
     console.log('Scores: ',fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
