@@ -63,5 +63,20 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
     console.log(fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
     return Math.max(fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
 }
-const scores2 = getMatchScore("py","fileSharpye-sever",30);
-console.log("Similarity 2:",scores2);
+const score1 = getMatchScore("py","fileSharpye-sever",0);
+console.log("Similarity 2:",score1);
+
+const score2 = getMatchScore("py","fileSharpye-sever",20);
+console.log("Similarity 2:",score2);
+
+const score3 = getMatchScore("py","fileSharpye-sever",40);
+console.log("Similarity 2:",score3);
+
+const score4 = getMatchScore("py","fileSharpye-sever",60);
+console.log("Similarity 2:",score4);
+
+const score5 = getMatchScore("py","fileSharpye-sever",80);
+console.log("Similarity 2:",score5);
+
+const score6 = getMatchScore("py","fileSharpye-sever",100);
+console.log("Similarity 2:",score6);
