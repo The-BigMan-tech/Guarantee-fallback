@@ -1391,3 +1391,5 @@ john1234$$#
 *my search engine is also free from dependency lock-in.it only uses an edit distance and subsequence fuzzy match package and there are several on npm.they are not the core logic of my engine but just utilities.i can switch from one distance package to another easily
 
 *my search engine only displays results of 40% relevance to the query.in practice there is no way one can make a heavy typo like that.if what they were looking for did mix letters with numbers,the score would have been higher for that typo cuz the fuzzy match engine doesnt care about semantically correct words
+
+*i used length ratio as the penalty for subsequence but length diff penalty for windowing.the length diff penalty for windowing ensures that the fuzzy engine considers the actual length of the target and not just a window into the target.while length ratio penalty in subsequence ensures that it doesnt become to forgiving with extremly long targets so a proportional increase makes sense since subsequence is naturally generous

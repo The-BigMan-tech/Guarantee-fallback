@@ -21,25 +21,34 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
     const queryLen = normalizedQuery.length;
     //Distance match and target padding to eliminate false positives.
     const fullDistanceScore = calcDistanceScore(normalizedQuery,normalizedStr.padEnd(15,'0'),minThreshold);
+
     //Subsequence match
     const subsequenceResult = fuzzysort.single(normalizedQuery,normalizedStr)//used subsequence matching from fuzzysort to get good scores for a query where the distance algorithm would have missed just because of distance
-    const subsequenceScore = roundToTwo((subsequenceResult?.score || 0) * 100)
+    const subsequenceScore = roundToTwo((subsequenceResult?.score || 0) * 100);
+    const lengthRatio = queryLen / strLen; // value between 0 and 1
+    const scaledSubsequenceScore = subsequenceScore * lengthRatio;//this is to prevent the subsequence from being too generous for extremely long targets
+
     //Window slicing
-    const slicePoints = [0,Math.floor((strLen - queryLen) / 2),strLen - queryLen]
+    const slicePoints = [0,Math.floor((strLen - queryLen) / 2),strLen - queryLen]//window into the beginning,middle and end of the target string
     const sliceScores:number[] = [];
 
     for (const start of slicePoints) {
         const clampedStart = Math.max(0, Math.min(start, strLen - queryLen));//to ensure the start is at a valid index
         const windowWidth = clampedStart + queryLen
         const window = normalizedStr.slice(clampedStart,windowWidth);
+
         //long string penalty
-        const lengthDifference = Math.abs(strLen - queryLen);
         const penaltyScale = 0.025 * minThreshold;//will give 0.5 if minThreshold = 20.at 100,penalty scale will be 2.5
+        const lengthDifference = Math.abs(strLen - queryLen);
         const penalty = Math.min(lengthDifference * penaltyScale, 10);//limits the penalty to 10 and scales the penalty to 0.5 for every length difference.i used 0.5 to smooth out the penalty curve
+
+        //calculating the distance and deducting the penalty
         const sliceScore = calcDistanceScore(normalizedQuery,window, minThreshold + 20 );//stricter threshold here cuz i reduced the distance
         sliceScores.push(sliceScore - penalty);//deducts the penalty from the slice score
     };
     const maxSliceScore = Math.max(...sliceScores);
-    console.log(fullDistanceScore,Math.max(0,maxSliceScore),subsequenceScore);
-    return Math.max(fullDistanceScore,Math.max(0,maxSliceScore),subsequenceScore);
+    console.log(fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
+    return Math.max(fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
 }
+const scores = getMatchScore("py","class_physicsrayqueryparameters2",20);
+console.log("Similarity:",scores);
