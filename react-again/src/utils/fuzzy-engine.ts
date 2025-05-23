@@ -61,7 +61,7 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
     //Subsequence match
     const subsequenceResult = fuzzysort.single(normalizedQuery,normalizedStr)//used subsequence matching from fuzzysort to get good scores for a query where the distance algorithm would have missed just because of distance
     const subsequenceScore = roundToTwo((subsequenceResult?.score || 0) * 100);
-    const lengthRatio = roundToTwo(Math.sqrt(queryLen / strLen));
+    const lengthRatio = Math.min(roundToTwo(Math.sqrt(queryLen / strLen)),0.5);
     const subsequenceBonus = (100-minThreshold)/10//20% will have a bonus of 8,100 strictness will give a bonus of 0
     const scaledSubsequenceScore = roundToTwo(Math.min((subsequenceScore * lengthRatio) + subsequenceBonus,100));//this is to prevent the subsequence from being too generous for extremely long targets
     
@@ -97,5 +97,5 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
     console.log('Match Score metrics: ',fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
     return score;
 }
-const sc = getMatchScore('sv4c3',"SpaceMono-Bold.ttf",8)
+const sc = getMatchScore('py',"SpaceMono-Bold.py",8)
 console.log(' fuzzy-engine.ts:101 => sc:', sc);
