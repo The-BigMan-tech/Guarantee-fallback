@@ -1405,3 +1405,7 @@ john1234$$#
 *the subsequence bonus is made to balance the length ratio.without the length ratio,subsequence score will always be 80%+ cuz its too generous even if the query is very small in comparison to the target.length ratio balances this by considering the length of the target but it may be too harsh so subseunec bonus was added.even at low thresholds,its just a +8 score bonus.also,the minThreshold has to somehow affect the subsequence score
 
 linear-decay,quadratic-decay
+
+*cache validation is indefinite for pure functions but it still needs an eviction policy
+
+when caching,in most cases, it's best to specify a max for performance, so all the required memory allocation is done up-front.

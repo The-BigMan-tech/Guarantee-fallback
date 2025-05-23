@@ -1,6 +1,18 @@
 import {distance} from "fastest-levenshtein"
 import fuzzysort from 'fuzzysort'
 import { roundToTwo,normalizeString } from "./quarks.ts";
+import { LRUCache } from 'lru-cache'
+
+
+const LruOptions:LRUCache.Options<string,number,unknown>  = {
+    max:500,
+    allowStale: false,
+    onInsert: (value:number, key:string ) => {
+        console.log(`Inserted the value:${value} into the key: ${key}`);
+    },
+}
+const fuzzyCache = new LRUCache<string,number>(LruOptions)
+
 
 function calcDistanceScore(query:string,str:string,minThreshold:number):number {
     const stringDistance:number = distance(query,str);
@@ -17,7 +29,6 @@ function calcDistanceScore(query:string,str:string,minThreshold:number):number {
 function getNumWindows(minThreshold: number): number {
     const safeDenominator = (minThreshold/100) || (1/8)//defaults to 8 on 0%
     const windowNum = Math.ceil(1/safeDenominator)//20 will give 5 windows
-    console.log('Window num',windowNum);
     return Math.min(windowNum,8);//caps the max window number to 8
 }  
 function getPenalty(queryLen:number,strLen:number,minThreshold:number):number {
@@ -30,6 +41,12 @@ function getPenalty(queryLen:number,strLen:number,minThreshold:number):number {
     return 0
 }
 export function getMatchScore(query:string,str:string,minThreshold:number):number {
+    const cacheKey = `${query}|${str}|${minThreshold}`;
+    const cachedResult = fuzzyCache.get(cacheKey);
+    if (cachedResult) {//utilize the cache
+        console.log(`Returning value from the cache key: ${cacheKey}`);
+        return cachedResult;
+    }
     const normalizedStr:string = normalizeString(str);//normalize the query and string to prevent irrelavant mistakes make a difference
     const normalizedQuery:string = normalizeString(query);
     const strLen = normalizedStr.length;
@@ -69,23 +86,12 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
         }
     };
     const maxSliceScore = roundToTwo(Math.max(...sliceScores));
-    console.log(fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
-    return Math.max(fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
+    const highestScore =  Math.max(fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
+    fuzzyCache.set(cacheKey,highestScore);
+    return highestScore;
 }
 const score1 = getMatchScore("fil","fileSharepyennnnnn",80);
 console.log("0%:",score1);
 
-// const score2 = getMatchScore("py","fileSharpye-sever",20);
-// console.log("20%:",score2);
-
-// const score3 = getMatchScore("py","fileSharpye-sever",40);
-// console.log("40%:",score3);
-
-// const score4 = getMatchScore("py","fileSharpye-sever",60);
-// console.log("60%:",score4);
-
-// const score5 = getMatchScore("py","fileSharpye-sever",80);
-// console.log("80%:",score5);
-
-// const score6 = getMatchScore("py","fileSharpye-sever",100);
-// console.log("100%:",score6);
+const score2 = getMatchScore("fil","fileSharepyennnnnn",80);
+console.log("0%:",score2);
