@@ -88,48 +88,12 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
     };
     const maxSliceScore = roundToTwo(Math.max(...sliceScores));
 
-    const weightDistance = 0.2;
-    const weightSubsequence = 0.3;
-    const weightWindow = 0.5;
+    const weightDistance = 0.4;
+    const weightSubsequence = 0.2;
+    const weightWindow = 0.4;
     const score = roundToTwo((fullDistanceScore * weightDistance) + (Math.max(0,maxSliceScore) * weightWindow) + (scaledSubsequenceScore * weightSubsequence));
     
     fuzzyCache.set(cacheKey,score);
     console.log('Scores: ',fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
     return score;
 }
-const testCasesAt40 = [
-    // Exact and near-exact matches
-    { query: "London", target: "London", minThreshold: 40 },
-    { query: "Londin", target: "London", minThreshold: 40 }, // typo
-  
-    // Common spelling mistakes and missing spaces
-    { query: "123 Avvenue Road", target: "123 Avenue Road", minThreshold: 40 },
-    { query: "123Avenue Road", target: "123 Avenue Road", minThreshold: 40 },
-  
-    // Different types or abbreviations
-    { query: "123 Avenue St", target: "123 Avenue Road", minThreshold: 40 },
-    { query: "St. Louis", target: "Saint Louis", minThreshold: 40 },
-  
-    // Partial substrings and reordered tokens
-    { query: "Joseph Biden", target: "Joseph R Biden", minThreshold: 40 },
-    { query: "Biden Joseph", target: "Joseph R Biden", minThreshold: 40 },
-  
-    // Missing or extra characters
-    { query: "Cincinatti", target: "Cincinnati", minThreshold: 40 },
-    { query: "Raliegh", target: "Raleigh", minThreshold: 40 },
-  
-    // Case differences and punctuation
-    { query: "document.txt", target: "Document.TXT", minThreshold: 40 },
-    { query: "file-share", target: "fileShare", minThreshold: 40 },
-  
-    // No match or very low similarity
-    { query: "xyz", target: "fileSharepyennnnnn", minThreshold: 40 },
-    { query: "abc", target: "document.txt", minThreshold: 40 },
-  ];
-  
-  // Example usage to test and print scores
-  for (const { query, target, minThreshold } of testCasesAt40) {
-    const score = getMatchScore(query, target, minThreshold);
-    console.log(`Query: "${query}" | Target: "${target}" | Threshold: ${minThreshold}% => Score: ${score}`);
-  }
-  
