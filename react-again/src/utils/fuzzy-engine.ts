@@ -37,7 +37,7 @@ function getPenalty(queryLen:number,strLen:number,minThreshold:number):number {
     if (queryLen < (strLen/4)) {//only adds a penalty if the query is less than quarter of the target length
         const penaltyScale = 0.05 * minThreshold;//will give 1 if minThreshold = 20.at 100,penalty scale will be 5
         const lengthDifference = Math.abs(strLen - queryLen);
-        const penaltyCap = Math.min(minThreshold/2,20)//made the penalty directly proportional to the threshold.if its 20,penalty cap will be 10.capped the penalty to 20 meaning 40+ threshold will give the same cap
+        const penaltyCap = Math.min(minThreshold/2,5)//made the penalty directly proportional to the threshold.if its 20,penalty cap will be 10.capped the penalty to 20 meaning 40+ threshold will give the same cap
         return Math.min(lengthDifference * penaltyScale,penaltyCap);//limits the penalty to 10 and scales the penalty to 0.5 for every length difference.i used 0.5 to smooth out the penalty curve
     }
     return 0
@@ -61,7 +61,7 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
     //Subsequence match
     const subsequenceResult = fuzzysort.single(normalizedQuery,normalizedStr)//used subsequence matching from fuzzysort to get good scores for a query where the distance algorithm would have missed just because of distance
     const subsequenceScore = roundToTwo((subsequenceResult?.score || 0) * 100);
-    const lengthRatio = roundToTwo(queryLen / strLen) 
+    const lengthRatio = roundToTwo(Math.sqrt(queryLen / strLen));
     const subsequenceBonus = (100-minThreshold)/10//20% will have a bonus of 8,100 strictness will give a bonus of 0
     const scaledSubsequenceScore = roundToTwo(Math.min((subsequenceScore * lengthRatio) + subsequenceBonus,100));//this is to prevent the subsequence from being too generous for extremely long targets
     
@@ -88,12 +88,14 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
     };
     const maxSliceScore = roundToTwo(Math.max(...sliceScores));
 
-    const weightDistance = 0.4;
+    const weightDistance = 0.2;
     const weightSubsequence = 0.2;
-    const weightWindow = 0.4;
+    const weightWindow = 0.6;
     const score = roundToTwo((fullDistanceScore * weightDistance) + (Math.max(0,maxSliceScore) * weightWindow) + (scaledSubsequenceScore * weightSubsequence));
     
     fuzzyCache.set(cacheKey,score);
-    console.log('Scores: ',fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
+    console.log('Match Score metrics: ',fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
     return score;
 }
+const sc = getMatchScore('sv4c3',"SpaceMono-Bold.ttf",8)
+console.log(' fuzzy-engine.ts:101 => sc:', sc);
