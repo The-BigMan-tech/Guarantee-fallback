@@ -6,18 +6,11 @@ import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name } from 
 import {v4 as uniqueID} from 'uuid';
 import { AppDispatch } from './store';
 import { watchImmediate, BaseDirectory, WatchEvent, WatchEventKind, WatchEventKindCreate, WatchEventKindModify, WatchEventKindRemove } from '@tauri-apps/plugin-fs';
-import Fuse, { FuseResult } from 'fuse.js';
 import { toast,ToastOptions,Bounce,Flip,Zoom} from 'react-toastify';
 import { Heap } from 'heap-js';
 import {distance} from "fastest-levenshtein"
 import fuzzysort from 'fuzzysort'
 
-const fuseOptions = {
-    keys: ['primary.nodeName','primary.fileExtension',],
-    includeScore: true,
-    threshold: 0.4,   
-};
-const fuseInstance:Fuse<FsNode> = new Fuse([],fuseOptions);
 
 let searchBatchCount:number = 0;
 
@@ -495,12 +488,17 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
     return async (dispatch) => {
         console.log("FSNODES VALUE NOW",fsNodes);
         if (fsNodes) {
-            fuseInstance.setCollection(fsNodes);
-            const searchResults: FuseResult<FsNode>[] = fuseInstance.search(searchQuery);
-            const matchedFsNodes: FsNode[] = searchResults.map(result => {
-                dispatch(pushToSearchScores(result.score || 0))//fallback but theres no way that result.score will be undefined if theres a result
-                return result.item
-            });
+            const matchedFsNodes:FsNode[] = [] 
+            for (const node of fsNodes) {
+                const fsNodeName = node.primary.nodeName + (node.primary.fileExtension || "")
+                const score = getMatchScore(searchQuery,fsNodeName,20);
+                if (score > 40) {
+                    dispatch(pushToSearchScores(score))
+                    matchedFsNodes.push(node)
+                }else {
+                    console.log(`THE NODE: ${fsNodeName} GOT LESS THAN 40`);
+                }
+            }
             console.log("MATCHED FS NODES",matchedFsNodes);
             if (matchedFsNodes.length) {//to reduce ui flickering,only spread to the search results if something matched
                 dispatch(spreadToSearch(matchedFsNodes));
@@ -736,34 +734,35 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 for (const [localIndex,fsNode] of dirResult.value.entries()) {
                     const isLastFsNode = localIndex == (dirResult.value.length-1);
                     const awaitedFsNode = await fsNode;
+                    const batchThunk = updateSearchResults(awaitedFsNode,fsNodes,searchQuery,isLastFsNode)
                     console.log("Is last fsnode",isLastFsNode);
                     if (awaitedFsNode.primary.nodeType == "File") {//passing islast is necessary for quick search even if it matches or not because it needs to terminate the batch if the one that survived is the only match for example and not the last at the same time
                         if (quickSearch) {
                             if (isLastFsNode || aggressiveFilter(awaitedFsNode.primary.nodeName,searchQuery) || aggressiveFilter(awaitedFsNode.primary.fileExtension,searchQuery)) {
                                 console.log("PASSED YOUR FILE TO UPDATE",awaitedFsNode.primary.nodePath);
-                                await dispatch(updateSearchResults(awaitedFsNode,fsNodes,searchQuery,isLastFsNode))
+                                await dispatch(batchThunk)
                             }else {
                                 console.log("Filtered out the file:",awaitedFsNode.primary.nodePath);
                             }
                         }else {//update regardless
-                            await dispatch(updateSearchResults(awaitedFsNode,fsNodes,searchQuery,isLastFsNode))
+                            await dispatch(batchThunk)
                         }
                     }else if (awaitedFsNode.primary.nodeType == "Folder") {
                         //i cant do aggressive filter here because the files within the folder will be in custody
                         if (quickSearch) {
                             if (isLastFsNode || aggressiveFilter(awaitedFsNode.primary.nodeName,searchQuery)) {
                                 console.log("PASSED YOUR FOLDER TO UPDATE",awaitedFsNode.primary.nodePath);
-                                await dispatch(updateSearchResults(awaitedFsNode,fsNodes,searchQuery,isLastFsNode))
+                                await dispatch(batchThunk)
                             }else {
                                 console.log("Filtered out the folder",awaitedFsNode.primary.nodePath);
                             }
                         }else {
-                            await dispatch(updateSearchResults(awaitedFsNode,fsNodes,searchQuery,isLastFsNode))
+                            await dispatch(batchThunk)
                         }
                         queue.push(awaitedFsNode.primary.nodePath);//push the folder to the queue after processing.it may be deferred by the algorithm based on heuristics
                     }
                 }
-                dispatch(saveNodeCount())
+                dispatch(saveNodeCount());
                 deferredPaths[currentSearchPath] = false//this is just a cleanup and it wont affect the flow because it has been processed and shifted from the queue so it isnt possible for it to enter the queue and be deferred again
             }
         }
