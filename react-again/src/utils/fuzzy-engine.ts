@@ -26,16 +26,17 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
     const subsequenceResult = fuzzysort.single(normalizedQuery,normalizedStr)//used subsequence matching from fuzzysort to get good scores for a query where the distance algorithm would have missed just because of distance
     const subsequenceScore = roundToTwo((subsequenceResult?.score || 0) * 100);
     const lengthRatio = queryLen / strLen; // value between 0 and 1
-    const scaledSubsequenceScore = subsequenceScore * lengthRatio;//this is to prevent the subsequence from being too generous for extremely long targets
+    const scaledSubsequenceScore = roundToTwo(subsequenceScore * lengthRatio);//this is to prevent the subsequence from being too generous for extremely long targets
 
     //Window slicing
-    const slicePoints = [0,Math.floor((strLen - queryLen) / 2),strLen - queryLen]//window into the beginning,middle and end of the target string
+    const targetSliceLength = Math.max(queryLen, Math.floor(strLen / 3));//the length of the window from the start must be 1/3 of the target string or the query length if the fraction of the length is too small
+    const slicePoints = [0,Math.floor((strLen - targetSliceLength) / 2),strLen - targetSliceLength];//window into the beginning,middle and end of the target string
     const sliceScores:number[] = [];
 
     for (const start of slicePoints) {
-        const clampedStart = Math.max(0, Math.min(start, strLen - queryLen));//to ensure the start is at a valid index
-        const windowWidth = clampedStart + queryLen
-        const window = normalizedStr.slice(clampedStart,windowWidth);
+        const clampedStart = Math.max(0, Math.min(start, strLen - targetSliceLength));//to ensure the start is at a valid index
+        const windowWidth = clampedStart + targetSliceLength
+        const window = normalizedStr.slice(clampedStart,windowWidth).padEnd(targetSliceLength, '0')
 
         //long string penalty
         const penaltyScale = 0.025 * minThreshold;//will give 0.5 if minThreshold = 20.at 100,penalty scale will be 2.5
@@ -43,12 +44,13 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
         const penalty = Math.min(lengthDifference * penaltyScale, 10);//limits the penalty to 10 and scales the penalty to 0.5 for every length difference.i used 0.5 to smooth out the penalty curve
 
         //calculating the distance and deducting the penalty
-        const sliceScore = calcDistanceScore(normalizedQuery,window, minThreshold + 20 );//stricter threshold here cuz i reduced the distance
+        const sliceScore = calcDistanceScore(normalizedQuery,window,minThreshold);//stricter threshold here cuz i reduced the distance
+        console.log("window; ",window);
         sliceScores.push(sliceScore - penalty);//deducts the penalty from the slice score
     };
     const maxSliceScore = Math.max(...sliceScores);
     console.log(fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
     return Math.max(fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
 }
-const scores = getMatchScore("py","class_physicsrayqueryparameters2",20);
+const scores = getMatchScore("py","Pawngames",20);
 console.log("Similarity:",scores);
