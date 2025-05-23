@@ -490,6 +490,8 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
         console.log("FSNODES VALUE NOW",fsNodes);
         if (fsNodes) {
             const matchedFsNodes:FsNode[] = [] 
+            let minThreshold:number = 20;//default min threshold
+            
             for (const node of fsNodes) {
                 const fsNodeName = node.primary.nodeName + (node.primary.fileExtension || "")
                 const score = getMatchScore(searchQuery,fsNodeName,20);
