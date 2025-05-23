@@ -14,6 +14,13 @@ function calcDistanceScore(query:string,str:string,minThreshold:number):number {
     }
     return adjustedScore
 }
+function getNumWindows(minThreshold: number): number {
+    if (minThreshold >= 100) return 1;
+    if (minThreshold >= 50) return 2;
+    if (minThreshold >= 20) return 5;
+    // For thresholds below 20, you can increase windows or set a max
+    return 7;
+}  
 export function getMatchScore(query:string,str:string,minThreshold:number):number {
     const normalizedStr:string = normalizeString(str);//normalize the query and string to prevent irrelavant mistakes make a difference
     const normalizedQuery:string = normalizeString(query);
@@ -46,7 +53,9 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
         if (queryLen < (strLen/4)) {//only adds a penalty if the query is less than quarter of the target length
             const penaltyScale = 0.05 * minThreshold;//will give 0.5 if minThreshold = 20.at 100,penalty scale will be 2.5
             const lengthDifference = Math.abs(strLen - queryLen);
-            penalty = Math.min(lengthDifference * penaltyScale,10);//limits the penalty to 10 and scales the penalty to 0.5 for every length difference.i used 0.5 to smooth out the penalty curve
+            const penaltyCap = minThreshold/2//made the penalty directly proportional to the threshold.if its 20,penalty cap will be 10.100 will give a 50 penalty cap.super strict
+            penalty = Math.min(lengthDifference * penaltyScale,penaltyCap);//limits the penalty to 10 and scales the penalty to 0.5 for every length difference.i used 0.5 to smooth out the penalty curve
+            console.log("got a penalty of",penalty);
         }
         sliceScores.push(sliceScore - penalty);//deducts the penalty from the slice score
     };
@@ -57,5 +66,5 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
 const scores = getMatchScore("pysma","prisma-ref",20);
 console.log("Similarity 1:",scores);
 
-const scores2 = getMatchScore("py","fileShare-sever.py",20);
+const scores2 = getMatchScore("py","fileSharpye-sever",0);
 console.log("Similarity 2:",scores2);
