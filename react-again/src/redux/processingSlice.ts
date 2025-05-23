@@ -600,15 +600,16 @@ function getMatchScore(query:string,str:string,minThreshold:number):number {
     const normalizedQuery:string = normalizeString(query);
     const strLen = normalizedStr.length;
     const queryLen = normalizedQuery.length;
-    //Distance match
-    const fullDistanceScore = calcDistanceScore(normalizedQuery,normalizedStr,minThreshold);
+    //Distance match and target padding to eliminate false positives.
+    const fullDistanceScore = calcDistanceScore(normalizedQuery,normalizedStr.padEnd(15,'0'),minThreshold);
     //Subsequence match
     const subsequenceResult = fuzzysort.single(normalizedQuery,normalizedStr)//used subsequence matching from fuzzysort to get good scores for a query where the distance algorithm would have missed just because of distance
     const subsequenceScore = roundToTwo((subsequenceResult?.score || 0) * 100)
     //Window slicing
     const slicePoints = [0,Math.floor((strLen - queryLen) / 2),strLen - queryLen]
+    const sliceScores:number[] = [];
 
-    const sliceScores = slicePoints.map(start => {
+    for (const start of slicePoints) {
         const clampedStart = Math.max(0, Math.min(start, strLen - queryLen));//to ensure the start is at a valid index
         const windowWidth = clampedStart + queryLen
         const window = normalizedStr.slice(clampedStart,windowWidth);
@@ -616,11 +617,11 @@ function getMatchScore(query:string,str:string,minThreshold:number):number {
         //long string penalty
         const lengthDifference = Math.abs(strLen - queryLen);
         const penalty = Math.min(lengthDifference * 0.5, 10);//limits the penalty to 10 and scales the penalty to 0.5 for every length difference.i used 0.5 to smooth out the penalty curve
-        const sliceScore = calcDistanceScore(normalizedQuery,window, minThreshold + 20);
-        return sliceScore - penalty;//deducts the penalty from the slice score
-    });
+        const sliceScore = calcDistanceScore(normalizedQuery,window, minThreshold + 20);//stricter threshold here cuz i reduced the distance
+        sliceScores.push(sliceScore - penalty);//deducts the penalty from the slice score
+    };
     const maxSliceScore = Math.max(...sliceScores);
-
+    console.log(`Individual match scores for ${str}: `,fullDistanceScore,Math.max(0,maxSliceScore),subsequenceScore);
     return Math.max(fullDistanceScore,Math.max(0,maxSliceScore),subsequenceScore);
 }
 

@@ -1361,8 +1361,10 @@ math.max is for clamping values while math.min is for capping values.in order wo
 i matched r0bot0o in an attempt to find roboto
 
 *This is what my fuzzy match is composed of that makes it typo tolerant for file names for the search engine to use as part of the heuristic process.my search engine is faster than indexing engines like the windows file manager and its typo friendly unlike everything
+
 robust normalization
-edit distance scoring
+edit distance scoring 
+target padding
 distance score reduction 
 selective distance score restoration
 subsequence matching
@@ -1377,3 +1379,9 @@ its a fuzzy file system match engine
 *It’s a trade-off between precision (few false positives) and recall (few false negatives).
 
 *with this proper scoring algorithm alone,a search that took 5 seconds finished in 2 seconds cuz it helped the engine to know that this is probably the match without calculating the proportional relevance score of the folder to know if its good enough
+
+john1234$$#
+
+*i fixed the false negatives when trying to search for all roboto fonts with a mispelt one;Roob0to04.before,outfit got a false positive for matching but i fixed it now:what i did was target padding for the full distance search.outfit got its false score from the full distance search as according to the logs.their individual scores are bove the overall match score.so what i did was that for the full distance check,i increased the distance by adding padding which increases the distance and thus reduces the score without me deducting the score strictly.if the text truly matched,the small extra distance wont have affected its score as shown in other matches like robotomonobold etc where their full distance despite small wasnt zero cuz of extra distance.its the opposite of the windows slicing that aimed to increase the score by reducing the distance .this one aims to reduce the score by increasing the distance filtering out false positives
+
+*so without windows slicing,the true matches would have received lower scores and without target padding,false positives will have a higher score.so by having these two mechanisms,my fuzzy match is more robust.
