@@ -1,6 +1,6 @@
 import {distance} from "fastest-levenshtein"
 import fuzzysort from 'fuzzysort'
-import { roundToTwo,normalizeString } from "./quarks";
+import { roundToTwo,normalizeString } from "./quarks.ts";
 
 function calcDistanceScore(query:string,str:string,minThreshold:number):number {
     const stringDistance:number = distance(query,str);
@@ -34,10 +34,12 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
         const window = normalizedStr.slice(clampedStart,windowWidth);
         //long string penalty
         const lengthDifference = Math.abs(strLen - queryLen);
-        const penalty = Math.min(lengthDifference * 0.5, 10);//limits the penalty to 10 and scales the penalty to 0.5 for every length difference.i used 0.5 to smooth out the penalty curve
-        const sliceScore = calcDistanceScore(normalizedQuery,window, minThreshold + 20);//stricter threshold here cuz i reduced the distance
+        const penaltyScale = 0.025 * minThreshold;//will give 0.5 if minThreshold = 20.at 100,penalty scale will be 2.5
+        const penalty = Math.min(lengthDifference * penaltyScale, 10);//limits the penalty to 10 and scales the penalty to 0.5 for every length difference.i used 0.5 to smooth out the penalty curve
+        const sliceScore = calcDistanceScore(normalizedQuery,window, minThreshold + 20 );//stricter threshold here cuz i reduced the distance
         sliceScores.push(sliceScore - penalty);//deducts the penalty from the slice score
     };
     const maxSliceScore = Math.max(...sliceScores);
+    console.log(fullDistanceScore,Math.max(0,maxSliceScore),subsequenceScore);
     return Math.max(fullDistanceScore,Math.max(0,maxSliceScore),subsequenceScore);
 }

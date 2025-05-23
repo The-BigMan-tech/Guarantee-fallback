@@ -1389,3 +1389,5 @@ john1234$$#
 *i believe my function is more than perf to even be done 5 times.it does little operations on raw strings in comparison to fuse js.so calling it 5 times or 10 will still be more performant than fuse on large data sets.so not only iss my fuzzy matcher lightweight,its reusable with no runtime abstractions so any function that requires the score,can calculate the score without being worried aboout resources.
 
 *my search engine is also free from dependency lock-in.it only uses an edit distance and subsequence fuzzy match package and there are several on npm.they are not the core logic of my engine but just utilities.i can switch from one distance package to another easily
+
+*my search engine only displays results of 40% relevance to the query.in practice there is no way one can make a heavy typo like that.if what they were looking for did mix letters with numbers,the score would have been higher for that typo cuz the fuzzy match engine doesnt care about semantically correct words
