@@ -9,3 +9,16 @@ const SearchLruOptions:LRUCache.Options<string,FsNode[],unknown>  = {
 }
 export const searchCache:LRUCache<string,FsNode[]> = new LRUCache(SearchLruOptions)
 
+type Query = string;
+type ShouldDefer = boolean;
+
+export type Queries = Record<Query,ShouldDefer>
+
+const HeuristicsLruOptions:LRUCache.Options<string,Queries,unknown> = {
+    max:200,
+    allowStale:false,
+    onInsert:(value,key)=>{
+        console.log(`HEURISTICS KEY: ${key} QUERY RECORDS: ${value}`);
+    }
+}
+export const heuristicsCache:LRUCache<string,Queries,unknown> = new LRUCache(HeuristicsLruOptions)

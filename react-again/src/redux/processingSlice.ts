@@ -11,7 +11,7 @@ import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
-import { heavyFolders ,searchCache} from '../utils/globals';
+import { heavyFolders ,searchCache,heuristicsCache, Queries} from '../utils/globals';
 
 
 const activeWatchers = new Map<string,UnwatchFn>();
@@ -591,6 +591,21 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
         let relevancePercent:number = 0;
         let processImmediately = false;
 
+
+        const cachedQueries:Queries | undefined = heuristicsCache.get(currentSearchPath);
+        const cachedQuery:boolean | null = (cachedQueries)?cachedQueries[searchQuery]:null
+        if (cachedQuery !== null) {
+            const shouldDefer:boolean = cachedQuery;
+            if (shouldDefer) {
+                deferredPaths[currentSearchPath] = true
+                deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus})
+                return true//skip the current iteration of the outer while loop of the caller
+            }else {
+                return false//dont skip the current iteration of the outer while loop of the caller
+            }
+        }
+        heuristicsCache.set(currentSearchPath,{...cachedQueries,searchQuery:false});
+
         //it defers the parent folder if its children arent relevant enough not that it defers its children.each child will have their own time
         for (const node of nodeResult) {
             const awaitedNode = await node;
@@ -616,6 +631,7 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
             console.log("DEFERRED SEARCH PATH: ",currentSearchPath,'PRIORITY',relevancePercent,"WITH SIZE BONUES",relevancePercent + sizeBonus);
             deferredPaths[currentSearchPath] = true
             deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus});//defer for later.it defers the current search path unlike the static heuristics
+            heuristicsCache.set(currentSearchPath,{...cachedQueries,searchQuery:true});
             return true; // Skip processing now
         }
         return false
