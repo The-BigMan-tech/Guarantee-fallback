@@ -11,7 +11,8 @@ import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
-import { heavyFolders ,searchCache,QueryLruOptions} from '../utils/globals';
+import { heavyFolders ,searchCache,QueryLruOptions, SearchData, IndexQueue} from '../utils/globals';
+import { LRUCache } from 'lru-cache';
 
 let searchBatchCount:number = 0;
 
@@ -558,8 +559,85 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         }
     }
 }
-function heuristicsAnalysis() {
-    
+async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSearchPath:string,rootPath:string,processHeavyFolders:boolean,heavyFolderQueue:string[],deferredHeap: Heap<DeferredSearch>,searchQuery:string,nodeResult:Promise<FsNode>[] | FsNode[]):Promise<boolean> {
+    //*Heuristic analysis
+    const isDeferred:boolean = deferredPaths[currentSearchPath] || false;
+    console.log((!isDeferred)?`CURRENT SEARCH PATH ${currentSearchPath}`:`CURRENTLY PROCESSING DEFERRED PATH: ${currentSearchPath}`);
+    if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched and i also dont want it to perform relvance calc on something that has already gone through it like deferred paths when the deferred queue has its turn.    
+        //static heuristics 
+        if (!processHeavyFolders) {//this reads that if the search loop shouldnt process any heavy folders,then push it to the heavy folder queue for the next search loop
+            const normalizedPath = currentSearchPath.replace(/\\/g, '/');// convert backslashes to slashes if on Windows
+            let isHeavy:boolean = false
+            for (const heavyPath of heavyFolders) {
+                if (normalizedPath.endsWith(heavyPath)) {
+                    console.log("Deferred heavy folder:",currentSearchPath);
+                    heavyFolderQueue.push(currentSearchPath);
+                    isHeavy = true
+                    break;//it can only match one path at a given time so we dont need to process the rest
+                }
+            }
+            if (isHeavy) {//i had to use a flag cuz continuing in the for loop will continue the for loop itself not the search loop
+                return true
+            }
+        }
+
+        //dynamic heuristics.it uses the fuzzy engine to know which folder to prioritize first
+        const totalNodes = nodeResult.length || 1;//fallback for edge cases where totalNodes may be zero
+        const relevanceThreshold = 50;
+        const matchPercentThreshold = 80;
+        const sizeBonus:number = roundToTwo( (1 / (1 + totalNodes)) * 5);//added size bonus to make ones with smaller sizes more relevant and made it range from 0-5 so that it doesnt negligibly affects the relevance score
+        
+        let relevantNodes:number = 0;
+        let relevancePercent:number = 0;
+        let processImmediately = false;
+
+        //it defers the parent folder if its children arent relevant enough not that it defers its children.each child will have their own time
+        for (const node of nodeResult) {
+            const awaitedNode = await node;
+            const minThreshold = 10
+            const score1 = getMatchScore(searchQuery,awaitedNode.primary.nodeName,minThreshold);
+            const score2 = getMatchScore(searchQuery,(awaitedNode.primary.fileExtension || ""),minThreshold);
+            const matchScore = (score2>score1)?score2:score1;
+
+            console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
+            if (matchScore >= 40) {//the number of matches increases qualitative relevance
+                relevantNodes += 1
+                relevancePercent = roundToTwo( (relevantNodes / totalNodes) * 100 )//to ensure that the relevance percent is always updated upon looping
+                processImmediately = (relevancePercent >= relevanceThreshold) || (matchScore >= matchPercentThreshold)//the match score is used to check for the quality of the relevance as usual
+                
+                if (processImmediately) {
+                    console.log("SEARCH PATH:",currentSearchPath,"IS BEING PROCESSED IMMEDIATELY");
+                    break//early termination once enough relevance has been reached
+                }
+            };
+        }
+        console.log("HEURISTIC ANALYSIS OF ",currentSearchPath,"RELEV SCORE",relevancePercent);
+        if ( ((relevancePercent + sizeBonus) < relevanceThreshold) && (!processImmediately)) {//defer if it isnt relevant enough or if it isnt flagged to process immediately
+            console.log("DEFERRED SEARCH PATH: ",currentSearchPath,'PRIORITY',relevancePercent,"WITH SIZE BONUES",relevancePercent + sizeBonus);
+            deferredPaths[currentSearchPath] = true
+            deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus});//defer for later.it defers the current search path unlike the static heuristics
+            return true; // Skip processing now
+        }
+        return false
+    }else {
+        return false
+    }
+}
+type DirResult = FsResult<(Promise<FsNode>)[] | Error | null> | FsResult<FsNode[]>
+
+function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise<DirResult>> {
+    return async (_,getState)=>{
+        const cache:Cache = selectCache(getState());
+        if (currentSearchPath === rootPath) {//since the rootpath is the currentpath opened in the app,it will just select the fsnodes directly from the app state if its processing the rootpath
+            console.log("SEARCHING ROOT PATH");
+            return FsResult.Ok(selectFsNodes(getState()) || [])
+        }else if (currentSearchPath in cache) {
+            console.log("USING CACHED FSNODES FOR", currentSearchPath);
+            return FsResult.Ok(cache[currentSearchPath]);
+        }else {
+            return await readDirectory(currentSearchPath,'arbitrary');//arbritrayry order is preferred here since it uses its own heuristic to prioritize folders over metadata like size.ill still leave the other options in the tauri side in case of future requirements
+        }
+    }
 }
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
 function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:string[],processHeavyFolders:boolean,startTime:number):AppThunk<Promise<void>> {
@@ -571,8 +649,6 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
         console.log("Queue value:",queue);
 
         while ((queue.length > 0) || !(deferredHeap.isEmpty())) {
-            const shouldTerminate:boolean = selectSearchTermination(getState());
-            console.log("SHOULD TERMINATE",shouldTerminate);
             if (queue.length === 0) {//add all deferred items to the queue after the queue for the dir level has been processed
                 console.log("DEFERRED QUEUE",deferredHeap);
                 for (const item of deferredHeap) {//This moves the deferred folders to main queue for processing
@@ -580,94 +656,26 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 }
                 deferredHeap.clear() // Clear deferred queue
             }
+            const shouldTerminate:boolean = selectSearchTermination(getState());
+            console.log("SHOULD TERMINATE",shouldTerminate);
             if (shouldTerminate) {//terminate the search on user command
                 console.log("FORCEFUL SEARCH TERMINATION");
                 dispatch(clearNodeCount());
                 searchTime(startTime)
                 return
             }
-
-            
-            let dirResult:FsResult<(Promise<FsNode>)[] | Error | null> | FsResult<FsNode[]>;
             const currentSearchPath = queue.shift()!;
-            const cache:Cache = selectCache(getState());
-            if (currentSearchPath === rootPath) {//since the rootpath is the currentpath opened in the app,it will just select the fsnodes directly from the app state if its processing the rootpath
-                console.log("SEARCHING ROOT PATH");
-                dirResult = FsResult.Ok(selectFsNodes(getState()) || [])
-            }else if (currentSearchPath in cache) {
-                console.log("USING CACHED FSNODES FOR", currentSearchPath);
-                dirResult = FsResult.Ok(cache[currentSearchPath]);
-            }else {
-                dirResult = await readDirectory(currentSearchPath,'arbitrary');//arbritrayry order is preferred here since it uses its own heuristic to prioritize folders over metadata like size.ill still leave the other options in the tauri side in case of future requirements
-            }
-
-
+            const dirResult:DirResult = await dispatch(getDirResult(currentSearchPath,rootPath))
             searchBatchCount = 0;//a global value thats used by the algorithm to keep track of the batches it has processed so far for a particular dir level to adjust batch threshold at runtime
             console.log("DIR RESULT",dirResult.value);
 
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
-                //*Heuristic analysis
-                const isDeferred:boolean = deferredPaths[currentSearchPath] || false;
-                console.log((!isDeferred)?`CURRENT SEARCH PATH ${currentSearchPath}`:`CURRENTLY PROCESSING DEFERRED PATH: ${currentSearchPath}`);
-                if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched and i also dont want it to perform relvance calc on something that has already gone through it like deferred paths when the deferred queue has its turn.    
-                    //static heuristics 
-                    if (!processHeavyFolders) {//this reads that if the search loop shouldnt process any heavy folders,then push it to the heavy folder queue for the next search loop
-                        const normalizedPath = currentSearchPath.replace(/\\/g, '/');// convert backslashes to slashes if on Windows
-                        let isHeavy:boolean = false
-                        for (const heavyPath of heavyFolders) {
-                            if (normalizedPath.endsWith(heavyPath)) {
-                                console.log("Deferred heavy folder:",currentSearchPath);
-                                heavyFolderQueue.push(currentSearchPath);
-                                isHeavy = true
-                                break;//it can only match one path at a given time so we dont need to process the rest
-                            }
-                        }
-                        if (isHeavy) {//i had to use a flag cuz continuing in the for loop will continue the for loop itself not the search loop
-                            continue
-                        }
-                    }
-                    //dynamic heuristics.it uses the fuzzy engine to know which folder to prioritize first
-                    const totalNodes = dirResult.value.length || 1;//fallback for edge cases where totalNodes may be zero
-                    const relevanceThreshold = 50;
-                    const matchPercentThreshold = 80;
-                    const sizeBonus:number = roundToTwo( (1 / (1 + totalNodes)) * 5);//added size bonus to make ones with smaller sizes more relevant and made it range from 0-5 so that it doesnt negligibly affects the relevance score
-                    
-                    let relevantNodes:number = 0;
-                    let relevancePercent:number = 0;
-                    let processImmediately = false;
-
-                    for (const node of dirResult.value) {
-                        const awaitedNode = await node;
-                        const minThreshold = 10
-                        const score1 = getMatchScore(searchQuery,awaitedNode.primary.nodeName,minThreshold);
-                        const score2 = getMatchScore(searchQuery,(awaitedNode.primary.fileExtension || ""),minThreshold);
-                        const matchScore = (score2>score1)?score2:score1;
-
-                        console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
-                        if (matchScore >= 40) {//the number of matches increases qualitative relevance
-                            relevantNodes += 1
-                            relevancePercent = roundToTwo( (relevantNodes / totalNodes) * 100 )//to ensure that the relevance percent is always updated upon looping
-                            processImmediately = (relevancePercent >= relevanceThreshold) || (matchScore >= matchPercentThreshold)//the match score is used to check for the quality of the relevance as usual
-                            
-                            if (processImmediately) {
-                                console.log("SEARCH PATH:",currentSearchPath,"IS BEING PROCESSED IMMEDIATELY");
-                                break//early termination once enough relevance has been reached
-                            }
-                        };
-                    }
-                    console.log("HEURISTIC ANALYSIS OF ",currentSearchPath,"RELEV SCORE",relevancePercent);
-                    if ( ((relevancePercent + sizeBonus) < relevanceThreshold) && (!processImmediately)) {//defer if it isnt relevant enough or if it isnt flagged to process immediately
-                        console.log("DEFERRED SEARCH PATH: ",currentSearchPath,'PRIORITY',relevancePercent,"WITH SIZE BONUES",relevancePercent + sizeBonus);
-                        deferredPaths[currentSearchPath] = true
-                        deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus});//defer for later.it defers the current search path unlike the static heuristics
-                        continue; // Skip processing now
-                    }
+                const nextIteration:boolean = await heuristicsAnalysis(deferredPaths,currentSearchPath,rootPath,processHeavyFolders,heavyFolderQueue,deferredHeap,searchQuery,dirResult.value);
+                if (nextIteration) {
+                    console.log("Continued the loop");
+                    continue
                 }
-
                 //*Search Processing
-                const searchData = {
-
-                }
                 const fsNodes:FsNode[] = []//this is the batch used per dir level so that it doesnt directly call fuse on every node but rather in batches
                 const quickSearch:boolean = selectQuickSearch(getState());
                 if (!quickSearch) {//only show progress of crawled folders on full search
@@ -700,9 +708,9 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                             await dispatch(batchThunk)
                         }
                         queue.push(awaitedFsNode.primary.nodePath);//push the folder to the queue after processing.it may be deferred by the algorithm based on heuristics
-                        searchCache.set(currentSearchPath)
                     }
                 }
+                console.log("CURRENT SEARCH PATH:","VALUE OF QUEUE: ",queue);
                 dispatch(saveNodeCount());
                 deferredPaths[currentSearchPath] = false//this is just a cleanup and it wont affect the flow because it has been processed and shifted from the queue so it isnt possible for it to enter the queue and be deferred again
             }
