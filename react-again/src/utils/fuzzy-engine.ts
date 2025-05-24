@@ -43,6 +43,20 @@ function getPenalty(queryLen:number,strLen:number,minThreshold:number):number {
     }
     return 0
 }
+function getWeights(minThreshold: number) {
+    const t = Math.min(Math.max(minThreshold / 100, 0), 1);
+    const weightDistance = 0.3 + (0.5 * t);       // from 0.3 to 0.7
+    const weightSubsequence = 0.3 - (0.1 * t);    // from 0.3 to 0.1
+    const weightWindow = 0.4 - (0.4 * t); 
+
+    const total = (weightDistance + weightSubsequence + weightWindow);
+    // Normalize weights so they sum to 1
+    return {
+        weightDistance: (weightDistance / total),
+        weightSubsequence: (weightSubsequence / total),
+        weightWindow: (weightWindow / total),
+    };
+}
 export function getMatchScore(query:string,str:string,minThreshold:number):number {
     const cacheKey = `${query}|${str}|${minThreshold}`;
     const cachedResult = fuzzyCache.get(cacheKey);
@@ -88,12 +102,12 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
         }
     };
     const maxSliceScore = roundToTwo(Math.max(...sliceScores));
-
-    const weightDistance = 0.2;
-    const weightSubsequence = 0.2;
-    const weightWindow = 0.6;
-    const score = roundToTwo((fullDistanceScore * weightDistance) + (Math.max(0,maxSliceScore) * weightWindow) + (scaledSubsequenceScore * weightSubsequence));
-
+    const weights = getWeights(minThreshold)
+    const score = roundToTwo(
+        (fullDistanceScore * weights.weightDistance) + 
+        (Math.max(0,maxSliceScore) * weights.weightWindow) + 
+        (scaledSubsequenceScore * weights.weightSubsequence)
+    );
     fuzzyCache.set(cacheKey,score);
     console.log('Match Score metrics: ',fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
     return score;

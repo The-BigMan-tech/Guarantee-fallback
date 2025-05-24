@@ -1411,3 +1411,13 @@ linear-decay,quadratic-decay
 when caching,in most cases, it's best to specify a max for performance, so all the required memory allocation is done up-front.
 
 so for a fuzzy match,using the highest score will discard other metrics and produce a high positive,using the average will lower the score cuz of one metric and using the average of the highest is good but treats all of them equally so weighting is the most ideal option.weighting tells the engine how much a metric affects the score
+
+*so distance is a global match,subsequence is a partial match and window slicing is a local match.global match reduces false positives,partial matches boost scores for queries that are contiguous to the target while window slicing boost scores for short queries against long targets.so a balanced tuning is generally the best unless i want to favor a particular feature over another like reducing false positives
+
+*Full distance emphasis at high strictness ensures that only very close matches pass, which is crucial for precision-critical scenarios.
+
+*Window slicing fades out because local similarity alone can produce false positives when strictness demands global similarity.
+
+*Subsequence stays moderately stable because partial matches are often meaningful regardless of strictness, e.g., matching key substrings or tokens.
+
+*so before,without dyn weighting,strictness levels only affected individual scores not the overall score which may or may not be significant even across high strictness levels
