@@ -5,7 +5,7 @@ import { RootState,AppThunk } from './store'
 import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name } from '../utils/rust-fs-interface';
 import {v4 as uniqueID} from 'uuid';
 import { AppDispatch } from './store';
-import { watchImmediate, BaseDirectory, WatchEvent } from '@tauri-apps/plugin-fs';
+import { watchImmediate, BaseDirectory, WatchEvent, UnwatchFn } from '@tauri-apps/plugin-fs';
 import { toast,ToastOptions,Bounce,Flip,Zoom} from 'react-toastify';
 import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
@@ -622,6 +622,22 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
 }
 type DirResult = FsResult<(Promise<FsNode>)[] | Error | null> | FsResult<FsNode[]>
 
+const activeWatchers = new Map<string,UnwatchFn>();
+async function spawnSearchCacheWatcher(path:string) {
+    if (activeWatchers.has(path)) return; // Already watching
+    try {
+        const stop = await watchImmediate(path,(event:WatchEvent)=>{
+            if (isCreate(event.type) || isModify(event.type) || isRemove(event.type)) {
+                console.log('INVALIDATING THE SEARCH KEY IN CACHE: ',path);
+                searchCache.delete(path)
+            }
+        },{recursive:false})
+        activeWatchers.set(path,stop);
+    }catch(err) {
+        console.error(`Failed to watch path for search cache ${path}:`, err);
+    }
+}
+
 function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise<DirResult>> {
     return async (_,getState)=>{
         const cache:Cache = selectCache(getState());
@@ -634,6 +650,11 @@ function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise
         }else if (currentSearchPath in cache) {//fallback to the ui cache if its not currently opened
             console.log("USING CACHED FSNODES FOR", currentSearchPath);
             searchCache.delete(currentSearchPath)//removes it from the search cache since its in the ui cache
+            const stopWatcher = activeWatchers.get(currentSearchPath)//clean up the watchers
+            if (stopWatcher) {
+                stopWatcher();
+                activeWatchers.delete(currentSearchPath);
+            };
             return FsResult.Ok(cache[currentSearchPath]);
 
         }else if (searchedData) {//check if it has been searched before.the search cache is an in memory cache unlike my ui cache thats serialized to local storage so once the app is closed,the data is lost so its a last resort to not reading from the disk
@@ -645,6 +666,7 @@ function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {//cache before return so that it caches as it searches
                 const result = await Promise.all(dirResult.value)
                 searchCache.set(currentSearchPath,result);
+                spawnSearchCacheWatcher(currentSearchPath)
             }
             return dirResult
         }
@@ -793,9 +815,6 @@ export function terminateSearch():AppThunk {
         toast.info("Search terminated",{...toastConfig,autoClose:500,transition:Flip});
     }
 }
-
-
-
 //^SMART RELOADING RELATED
 export function watchHomeTabs():AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
