@@ -19,7 +19,6 @@ console.log = (...args) => {
 };
 
 const activeWatchers = new Map<string,UnwatchFn>();
-let searchBatchCount:number = 0;
 
 export const toastConfig:ToastOptions = {
     position: "top-center",
@@ -535,14 +534,8 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
     return async (dispatch,getState) =>{
         const quickSearch:boolean = selectQuickSearch(getState());
         const isQueryLong:boolean = searchQuery.length >= 10;
-        let searchBatchSize:number = 5;//default batch size
-        if (searchBatchCount == 1) {//if the first batch has been processed
-            searchBatchSize = 10
-        }else if (searchBatchCount == 2) {//if two batches have been processed
-            searchBatchSize = 15
-        }
+        const searchBatchSize:number = 15;//default batch size
         fsNodes.push(fsNode)//push the files
-        console.log("SEARCH BATCH SIZE FOR FSNODES",searchBatchSize,"FSNODES",fsNodes,"SEARCH BATCH COUNT: ",searchBatchCount);
         if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
             const anyRoughMatches:boolean = dispatch(longQueryOptimization(quickSearch,fsNodes,searchQuery,isQueryLong))
             if (anyRoughMatches) {//i believe that this means that when it reaches the last node of the batch,it will check if there were any exact matches.if so,terminate and return else,proceed with fuzzy search
@@ -552,12 +545,10 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
                 return 
             }else if (quickSearch && !(anyRoughMatches) && isQueryLong) {
                 console.log("Discarded this batch");
-                searchBatchCount = 0
                 fsNodes.length = 0//prevents stale data
                 return
             }else {
                 await dispatch(searchUtil(fsNodes,searchQuery));
-                searchBatchCount += 1;
                 fsNodes.length = 0//prevents stale data
                 return;
             }
@@ -629,6 +620,7 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
                 if (processImmediately) {
                     console.log("SEARCH PATH:",currentSearchPath,"IS BEING PROCESSED IMMEDIATELY");
                     heuristicsCache.set(currentSearchPath,{...cachedQueries,[searchQuery]:false});
+                    spawnSearchCacheWatcher(currentSearchPath)
                     break//early termination once enough relevance has been reached
                 }
             };
@@ -639,6 +631,7 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
             deferredPaths[currentSearchPath] = true
             deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus});//defer for later.it defers the current search path unlike the static heuristics
             heuristicsCache.set(currentSearchPath,{...cachedQueries,[searchQuery]:true});
+            spawnSearchCacheWatcher(currentSearchPath)
             return true; // Skip processing now
         }
         return false
@@ -653,6 +646,7 @@ async function spawnSearchCacheWatcher(path:string) {
             if (isCreate(event.type) || isModify(event.type) || isRemove(event.type)) {
                 console.log('INVALIDATING THE SEARCH KEY IN CACHE: ',path);
                 searchCache.delete(path)
+                heuristicsCache.delete(path)
             }
         },{recursive:false})
         activeWatchers.set(path,stop);
@@ -717,7 +711,6 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 deferredHeap.clear() // Clear deferred queue
             }
             const dirResult:DirResult = await dispatch(getDirResult(currentSearchPath,rootPath))
-            searchBatchCount = 0;//a global value thats used by the algorithm to keep track of the batches it has processed so far for a particular dir level to adjust batch threshold at runtime
             console.log("DIR RESULT",dirResult.value);
 
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
@@ -781,7 +774,6 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         dispatch(setSearchTermination(false));
         dispatch(setSearchResults([]));
         dispatch(setSearchScores([]));
-        searchBatchCount = 0;
 
         if (searchQuery.length == 0) {
             toast.dismiss("loading");
