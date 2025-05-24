@@ -13,6 +13,8 @@ import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
 import { heavyFolders ,searchCache} from '../utils/globals';
 
+
+const activeWatchers = new Map<string,UnwatchFn>();
 let searchBatchCount:number = 0;
 
 export const toastConfig:ToastOptions = {
@@ -33,6 +35,7 @@ export const loading_toastConfig:ToastOptions = {
     transition:Zoom,
     toastId:"loading"
 }
+type DirResult = FsResult<(Promise<FsNode>)[] | Error | null> | FsResult<FsNode[]>
 type DeferredSearch = {path:string,priority:number}
 type Cache = Record<NodePath,FsNode[]>;
 type CachePayload = {path:NodePath,data:FsNode[]}
@@ -620,9 +623,6 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
         return false
     }
 }
-type DirResult = FsResult<(Promise<FsNode>)[] | Error | null> | FsResult<FsNode[]>
-
-const activeWatchers = new Map<string,UnwatchFn>();
 async function spawnSearchCacheWatcher(path:string) {
     if (activeWatchers.has(path)) return; // Already watching
     try {
@@ -649,12 +649,7 @@ function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise
 
         }else if (currentSearchPath in cache) {//fallback to the ui cache if its not currently opened
             console.log("USING CACHED FSNODES FOR", currentSearchPath);
-            searchCache.delete(currentSearchPath)//removes it from the search cache since its in the ui cache
-            const stopWatcher = activeWatchers.get(currentSearchPath)//clean up the watchers
-            if (stopWatcher) {
-                stopWatcher();
-                activeWatchers.delete(currentSearchPath);
-            };
+            searchCache.delete(currentSearchPath)//removes it from the search cache since its in the ui cache to preserve memory
             return FsResult.Ok(cache[currentSearchPath]);
 
         }else if (searchedData) {//check if it has been searched before.the search cache is an in memory cache unlike my ui cache thats serialized to local storage so once the app is closed,the data is lost so its a last resort to not reading from the disk

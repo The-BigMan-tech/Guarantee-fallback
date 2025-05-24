@@ -3,8 +3,9 @@ import { FsNode } from "./rust-fs-interface"
 
 export const heavyFolders = new Set(['node_modules','AppData','.git','src-tauri/target/debug'])//this will do for now.i will add more later on monitoring the search
 
-const LruOptions:LRUCache.Options<string,FsNode[],unknown>  = {
-    max:100,
+const SearchLruOptions:LRUCache.Options<string,FsNode[],unknown>  = {
+    max:200,
     allowStale: false,
 }
-export const searchCache:LRUCache<string,FsNode[]> = new LRUCache(LruOptions)
+export const searchCache:LRUCache<string,FsNode[]> = new LRUCache(SearchLruOptions)
+

@@ -1445,3 +1445,5 @@ so an engine is an algorithm that encapsulates the logic and mechanics of a task
 *i believe overwriting the impl of console.log scales more than switching to a logging lib when the codebase is flooded with it that changing it is impractical
 
 ?what the freak are bit arrays
+
+*so my fuzzy engine caches results unlike fuse.it means that once you search on something once,it will be faster subsequently and since my heuristics and the search util both call my fuzzy engine for various purposes but with the same dataset,it becomes increasingly perf,once the heuristics is done,my search util will just display cached data.another caching opt is that i cache disk reads on search.so subsequent searches just feel instant on the same query.i have already set up watchers in place so i dont have to worry about stale results unlike indexing.and they are non recursive cuz my cache only stores the immediate children of a dir as they searched lazily so it has little perf impact.i dont have to worry about invalidating the cache while the app is closed cuz the cache is in memory.it gets reset each time it restarts
