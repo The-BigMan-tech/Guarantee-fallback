@@ -558,6 +558,9 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         }
     }
 }
+function heuristicsAnalysis() {
+    
+}
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
 function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:string[],processHeavyFolders:boolean,startTime:number):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
@@ -570,12 +573,6 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
         while ((queue.length > 0) || !(deferredHeap.isEmpty())) {
             const shouldTerminate:boolean = selectSearchTermination(getState());
             console.log("SHOULD TERMINATE",shouldTerminate);
-            if (shouldTerminate) {//terminate the search on user command
-                console.log("FORCEFUL SEARCH TERMINATION");
-                dispatch(clearNodeCount());
-                searchTime(startTime)
-                return
-            }
             if (queue.length === 0) {//add all deferred items to the queue after the queue for the dir level has been processed
                 console.log("DEFERRED QUEUE",deferredHeap);
                 for (const item of deferredHeap) {//This moves the deferred folders to main queue for processing
@@ -583,7 +580,14 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 }
                 deferredHeap.clear() // Clear deferred queue
             }
+            if (shouldTerminate) {//terminate the search on user command
+                console.log("FORCEFUL SEARCH TERMINATION");
+                dispatch(clearNodeCount());
+                searchTime(startTime)
+                return
+            }
 
+            
             let dirResult:FsResult<(Promise<FsNode>)[] | Error | null> | FsResult<FsNode[]>;
             const currentSearchPath = queue.shift()!;
             const cache:Cache = selectCache(getState());
@@ -597,8 +601,8 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 dirResult = await readDirectory(currentSearchPath,'arbitrary');//arbritrayry order is preferred here since it uses its own heuristic to prioritize folders over metadata like size.ill still leave the other options in the tauri side in case of future requirements
             }
 
-            searchBatchCount = 0;//a global value thats used by the algorithm to keep track of the batches it has processed so far for a particular dir level to adjust batch threshold at runtime
 
+            searchBatchCount = 0;//a global value thats used by the algorithm to keep track of the batches it has processed so far for a particular dir level to adjust batch threshold at runtime
             console.log("DIR RESULT",dirResult.value);
 
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
@@ -661,6 +665,9 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 }
 
                 //*Search Processing
+                const searchData = {
+
+                }
                 const fsNodes:FsNode[] = []//this is the batch used per dir level so that it doesnt directly call fuse on every node but rather in batches
                 const quickSearch:boolean = selectQuickSearch(getState());
                 if (!quickSearch) {//only show progress of crawled folders on full search
@@ -678,9 +685,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                             if (isLastFsNode || aggressiveFilter(awaitedFsNode.primary.nodeName,searchQuery) || aggressiveFilter(awaitedFsNode.primary.fileExtension,searchQuery)) {
                                 console.log("PASSED YOUR FILE TO UPDATE",awaitedFsNode.primary.nodePath);
                                 await dispatch(batchThunk)
-                            }else {
-                                console.log("Filtered out the file:",awaitedFsNode.primary.nodePath);
-                            }
+                            }else { console.log("Filtered out the file:",awaitedFsNode.primary.nodePath);}
                         }else {//update regardless
                             await dispatch(batchThunk)
                         }
@@ -690,13 +695,12 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                             if (isLastFsNode || aggressiveFilter(awaitedFsNode.primary.nodeName,searchQuery)) {
                                 console.log("PASSED YOUR FOLDER TO UPDATE",awaitedFsNode.primary.nodePath);
                                 await dispatch(batchThunk)
-                            }else {
-                                console.log("Filtered out the folder",awaitedFsNode.primary.nodePath);
-                            }
+                            }else {console.log("Filtered out the folder",awaitedFsNode.primary.nodePath);}
                         }else {
                             await dispatch(batchThunk)
                         }
                         queue.push(awaitedFsNode.primary.nodePath);//push the folder to the queue after processing.it may be deferred by the algorithm based on heuristics
+                        searchCache.set(currentSearchPath)
                     }
                 }
                 dispatch(saveNodeCount());

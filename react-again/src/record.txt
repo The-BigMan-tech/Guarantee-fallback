@@ -1436,3 +1436,4 @@ Strictness is a tuner for leniency, not a modifier of the underlying truth of si
 The score at 0% strictness represents the theoretical upper bound of similarity—the most lenient interpretation where the engine allows maximum partial, local, and fuzzy matches.the tuner should not artificially inflate the scores
 
 exported variables in js are only evaluated once and exported they are not observables to be used across scripts.
+so a global object and array are mutated across modules that import them but primitives are copied for each module
