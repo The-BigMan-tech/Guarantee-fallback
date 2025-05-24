@@ -11,12 +11,9 @@ import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
-import { LRUCache } from 'lru-cache';
+import { heavyFolders ,searchCache,QueryLruOptions} from '../utils/globals';
 
 let searchBatchCount:number = 0;
-
-type DeferredSearch = {path:string,priority:number}
-const heavyFolders = new Set(['node_modules','AppData','.git','src-tauri/target/debug'])//this will do for now.i will add more later on monitoring the search
 
 export const toastConfig:ToastOptions = {
     position: "top-center",
@@ -36,32 +33,16 @@ export const loading_toastConfig:ToastOptions = {
     transition:Zoom,
     toastId:"loading"
 }
+type DeferredSearch = {path:string,priority:number}
 type Cache = Record<NodePath,FsNode[]>;
 type CachePayload = {path:NodePath,data:FsNode[]}
 type CachingState = 'pending' | 'success';
 type StrictTabsType = 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos';
 type AllTabTypes = 'Home' | 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos'
 type  invalidationData = {tabName:AllTabTypes}
-
 type NodePath = string;
-type Query = string;
 type Queue = NodePath[];
-type IndexQueue = number[];
 
-interface SearchData {
-    queries:LRUCache<Query,IndexQueue>,
-    dirCache:FsNode[]
-}
-type HeuristicCache = LRUCache<NodePath,SearchData>;
-
-const QueryLruOptions:LRUCache.Options<Query,IndexQueue,unknown>  = {
-    max:30,
-    allowStale: false,
-}
-const HeurisicLruOptions:LRUCache.Options<NodePath,SearchData,unknown> = {
-    max:400,
-    allowStale: false,
-}
 
 
 interface  TabCacheInvalidation {

@@ -1434,3 +1434,5 @@ The strictness parameter tunes how forgiving or harsh the engine is when interpr
 Strictness is a tuner for leniency, not a modifier of the underlying truth of similarity
 
 The score at 0% strictness represents the theoretical upper bound of similarity—the most lenient interpretation where the engine allows maximum partial, local, and fuzzy matches.the tuner should not artificially inflate the scores
+
+exported variables in js are only evaluated once and exported they are not observables to be used across scripts.
