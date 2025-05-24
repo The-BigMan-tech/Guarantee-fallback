@@ -11,7 +11,7 @@ import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
-import { heavyFolders ,searchCache,QueryLruOptions, SearchData, IndexQueue} from '../utils/globals';
+import { heavyFolders ,searchCache} from '../utils/globals';
 
 let searchBatchCount:number = 0;
 
@@ -482,10 +482,9 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
         console.log("FSNODES VALUE NOW",fsNodes);
         if (fsNodes) {
             const matchedFsNodes:FsNode[] = [] 
-            let minThreshold:number = 10;//default min threshold
+            const minThreshold:number = 10;//default min threshold
             let acceptableScore = 30
             if (searchQuery.length <= 5) {
-                minThreshold = 5;
                 acceptableScore = 15
             }
             for (const node of fsNodes) {
@@ -626,18 +625,22 @@ type DirResult = FsResult<(Promise<FsNode>)[] | Error | null> | FsResult<FsNode[
 function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise<DirResult>> {
     return async (_,getState)=>{
         const cache:Cache = selectCache(getState());
+        const searchedData = searchCache.get(currentSearchPath);
         if (currentSearchPath === rootPath) {//since the rootpath is the currentpath opened in the app,it will just select the fsnodes directly from the app state if its processing the rootpath
             console.log("SEARCHING ROOT PATH");
             return FsResult.Ok(selectFsNodes(getState()) || [])
         }else if (currentSearchPath in cache) {
             console.log("USING CACHED FSNODES FOR", currentSearchPath);
+            searchCache.delete(currentSearchPath)//removes it from the search cache if its in the ui cache
             return FsResult.Ok(cache[currentSearchPath]);
+        }else if (searchedData) {
+            console.log("USING SEARCHED FSNODES FOR", currentSearchPath);
+            return FsResult.Ok(searchedData)
         }else {
             const dirResult = await readDirectory(currentSearchPath,'arbitrary');//arbritrayry order is preferred here since it uses its own heuristic to prioritize folders over metadata like size.ill still leave the other options in the tauri side in case of future requirements
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {//cache before return so that it caches as it searches
                 const result = await Promise.all(dirResult.value)
-                const folderName = await base_name(currentSearchPath,false)
-                addToCache({path:currentSearchPath,data:result},folderName)
+                searchCache.set(currentSearchPath,result);
             }
             return dirResult
         }
