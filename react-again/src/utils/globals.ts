@@ -18,7 +18,7 @@ const HeuristicsLruOptions:LRUCache.Options<string,Queries,unknown> = {
     max:200,
     allowStale:false,
     onInsert:(value,key)=>{
-        console.log(`HEURISTICS KEY: ${key} QUERY RECORDS: ${value}`);
+        console.log(`HEURISTICS KEY: ${key} QUERY RECORDS: ${JSON.stringify(value,null,2)}`);
     }
 }
 export const heuristicsCache:LRUCache<string,Queries,unknown> = new LRUCache(HeuristicsLruOptions)

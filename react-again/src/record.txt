@@ -1451,3 +1451,7 @@ so an engine is an algorithm that encapsulates the logic and mechanics of a task
 heuristic caching
 search caching
 score caching
+
+with file logging,i dont need to leave my editor neither wait for the console window to reload as its slow.
+
+i configed tauri to log to a file with a particular name.so if i want to save logs historically  in separate files,i can just change the name of the log file in my fs not in tauri cfg.tauri will just generate a new log file with the same name as cfg

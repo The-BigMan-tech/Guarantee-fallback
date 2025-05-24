@@ -600,6 +600,7 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
         const cachedQuery:boolean | null = (cachedQueries)?cachedQueries[searchQuery]:null
         if (cachedQuery !== null) {
             const shouldDefer:boolean = cachedQuery;
+            console.log("CACHED QUERY: ",cachedQuery);
             if (shouldDefer) {
                 console.log("DEFERRED EARLY: ",currentSearchPath);
                 deferredPaths[currentSearchPath] = true
@@ -610,7 +611,6 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
                 return false//dont skip the current iteration of the outer while loop of the caller
             }
         }
-        heuristicsCache.set(currentSearchPath,{...cachedQueries,searchQuery:false});
 
         //it defers the parent folder if its children arent relevant enough not that it defers its children.each child will have their own time
         for (const node of nodeResult) {
@@ -620,7 +620,7 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
             const score2 = getMatchScore(searchQuery,(awaitedNode.primary.fileExtension || ""),minThreshold);
             const matchScore = (score2>score1)?score2:score1;
 
-            console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
+            // console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
             if (matchScore >= 40) {//the number of matches increases qualitative relevance
                 relevantNodes += 1
                 relevancePercent = roundToTwo( (relevantNodes / totalNodes) * 100 )//to ensure that the relevance percent is always updated upon looping
@@ -628,6 +628,7 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
                 
                 if (processImmediately) {
                     console.log("SEARCH PATH:",currentSearchPath,"IS BEING PROCESSED IMMEDIATELY");
+                    heuristicsCache.set(currentSearchPath,{...cachedQueries,[searchQuery]:false});
                     break//early termination once enough relevance has been reached
                 }
             };
@@ -637,7 +638,7 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
             console.log("DEFERRED SEARCH PATH: ",currentSearchPath,'PRIORITY',relevancePercent,"WITH SIZE BONUES",relevancePercent + sizeBonus);
             deferredPaths[currentSearchPath] = true
             deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus});//defer for later.it defers the current search path unlike the static heuristics
-            heuristicsCache.set(currentSearchPath,{...cachedQueries,searchQuery:true});
+            heuristicsCache.set(currentSearchPath,{...cachedQueries,[searchQuery]:true});
             return true; // Skip processing now
         }
         return false
