@@ -596,7 +596,7 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
             const score2 = getMatchScore(searchQuery,(awaitedNode.primary.fileExtension || ""),minThreshold);
             const matchScore = (score2>score1)?score2:score1;
 
-            console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
+            // console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
             if (matchScore >= 40) {//the number of matches increases qualitative relevance
                 relevantNodes += 1
                 relevancePercent = roundToTwo( (relevantNodes / totalNodes) * 100 )//to ensure that the relevance percent is always updated upon looping
@@ -626,17 +626,21 @@ function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise
     return async (_,getState)=>{
         const cache:Cache = selectCache(getState());
         const searchedData = searchCache.get(currentSearchPath);
+        console.log(' processingSlice.ts:629 => return => searchedData:', searchedData);
         if (currentSearchPath === rootPath) {//since the rootpath is the currentpath opened in the app,it will just select the fsnodes directly from the app state if its processing the rootpath
             console.log("SEARCHING ROOT PATH");
             return FsResult.Ok(selectFsNodes(getState()) || [])
-        }else if (currentSearchPath in cache) {
+
+        }else if (currentSearchPath in cache) {//fallback to the ui cache if its not currently opened
             console.log("USING CACHED FSNODES FOR", currentSearchPath);
-            searchCache.delete(currentSearchPath)//removes it from the search cache if its in the ui cache
+            searchCache.delete(currentSearchPath)//removes it from the search cache since its in the ui cache
             return FsResult.Ok(cache[currentSearchPath]);
-        }else if (searchedData) {
+
+        }else if (searchedData) {//check if it has been searched before.the search cache is an in memory cache unlike my ui cache thats serialized to local storage so once the app is closed,the data is lost so its a last resort to not reading from the disk
             console.log("USING SEARCHED FSNODES FOR", currentSearchPath);
             return FsResult.Ok(searchedData)
-        }else {
+
+        }else {//if none of the cases were fulfilled,read it from the disk
             const dirResult = await readDirectory(currentSearchPath,'arbitrary');//arbritrayry order is preferred here since it uses its own heuristic to prioritize folders over metadata like size.ill still leave the other options in the tauri side in case of future requirements
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {//cache before return so that it caches as it searches
                 const result = await Promise.all(dirResult.value)
@@ -655,6 +659,14 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
         deferredHeap.init([]);
 
         while ((queue.length > 0) || !(deferredHeap.isEmpty())) {
+            const shouldTerminate:boolean = selectSearchTermination(getState());
+            console.log("SHOULD TERMINATE",shouldTerminate);
+            if (shouldTerminate) {//terminate the search on user command
+                console.log("FORCEFUL SEARCH TERMINATION");
+                dispatch(clearNodeCount());
+                searchTime(startTime)
+                return
+            }
             console.log("Queue value:",queue);
             const currentSearchPath = queue.shift()!;
             if (queue.length === 0) {//add all deferred items to the queue after the queue for the dir level has been processed
@@ -663,14 +675,6 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                     queue.push(item.path)
                 }
                 deferredHeap.clear() // Clear deferred queue
-            }
-            const shouldTerminate:boolean = selectSearchTermination(getState());
-            console.log("SHOULD TERMINATE",shouldTerminate);
-            if (shouldTerminate) {//terminate the search on user command
-                console.log("FORCEFUL SEARCH TERMINATION");
-                dispatch(clearNodeCount());
-                searchTime(startTime)
-                return
             }
             const dirResult:DirResult = await dispatch(getDirResult(currentSearchPath,rootPath))
             searchBatchCount = 0;//a global value thats used by the algorithm to keep track of the batches it has processed so far for a particular dir level to adjust batch threshold at runtime
@@ -691,6 +695,12 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 }
                 // console.log("Local fs nodes",localFsNodes);
                 for (const [localIndex,fsNode] of dirResult.value.entries()) {
+                    if (shouldTerminate) {//terminate the search on user command
+                        console.log("FORCEFUL SEARCH TERMINATION");
+                        dispatch(clearNodeCount());
+                        searchTime(startTime)
+                        return
+                    }
                     const isLastFsNode = localIndex == (dirResult.value.length-1);
                     const awaitedFsNode = await fsNode;
                     const batchThunk = updateSearchResults(awaitedFsNode,fsNodes,searchQuery,isLastFsNode)

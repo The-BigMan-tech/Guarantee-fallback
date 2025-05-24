@@ -1429,11 +1429,17 @@ fuzzy with heuristics
 so an engine is an algorithm that encapsulates the logic and mechanics of a task that needs robustness for it to be used seamlessly by other codebases reliably without worrying about or understanding its underlying implementation regardless of its conciseness.lines of code isnt the qualifier of an engine
 
 *Strictness level controls leniency, not the fundamental similarity:
-The strictness parameter tunes how forgiving or harsh the engine is when interpreting the similarity scores, but it does not change the underlying truth of how similar the strings actually are.
+*The strictness parameter tunes how forgiving or harsh the engine is when interpreting the similarity scores, but it does not change the underlying truth of how similar the strings actually are.
 
-Strictness is a tuner for leniency, not a modifier of the underlying truth of similarity
+*Strictness is a tuner for leniency, not a modifier of the underlying truth of similarity
 
-The score at 0% strictness represents the theoretical upper bound of similarity—the most lenient interpretation where the engine allows maximum partial, local, and fuzzy matches.the tuner should not artificially inflate the scores
+*The score at 0% strictness represents the theoretical upper bound of similarity—the most lenient interpretation where the engine allows maximum partial, local, and fuzzy matches.the tuner should not artificially inflate the scores
 
-exported variables in js are only evaluated once and exported they are not observables to be used across scripts.
-so a global object and array are mutated across modules that import them but primitives are copied for each module
+*exported variables in js are only evaluated once and exported they are not observables to be used across scripts.
+*so a global object and array are mutated across modules that import them but primitives are copied for each module
+
+*so console logs hold the log data in memory and because of memory limits,it has to be truncated as their size grows increasingly large but transporting logs to files is for heavy logging as its on the disk.
+
+*log transports--console,file,toastify
+
+*i believe overwriting the impl of console.log scales more than switching to a logging lib when the codebase is flooded with it that changing it is impractical

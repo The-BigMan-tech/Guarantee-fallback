@@ -109,7 +109,7 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
         (scaledSubsequenceScore * weights.weightSubsequence)
     );
     fuzzyCache.set(cacheKey,score);
-    console.log(`Match Score metrics:Distance: ${fullDistanceScore}| Window: ${Math.max(0,maxSliceScore)}| Subsequence: ${scaledSubsequenceScore}`);
+    // console.log(`Match Score metrics:Distance: ${fullDistanceScore}| Window: ${Math.max(0,maxSliceScore)}| Subsequence: ${scaledSubsequenceScore}`);
     return score;
 }
 //0-8 very high leniency
