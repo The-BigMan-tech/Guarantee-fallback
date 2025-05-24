@@ -637,8 +637,9 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                     let processImmediately = false;
                     for (const node of dirResult.value) {
                         const awaitedNode = await node;
-                        const score1 = getMatchScore(searchQuery,awaitedNode.primary.nodeName,8);
-                        const score2 = getMatchScore(searchQuery,(awaitedNode.primary.fileExtension || ""),8);
+                        const minThreshold = 10
+                        const score1 = getMatchScore(searchQuery,awaitedNode.primary.nodeName,minThreshold);
+                        const score2 = getMatchScore(searchQuery,(awaitedNode.primary.fileExtension || ""),minThreshold);
                         const matchScore = (score2>score1)?score2:score1;
 
                         console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
