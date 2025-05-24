@@ -109,36 +109,10 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
         (scaledSubsequenceScore * weights.weightSubsequence)
     );
     fuzzyCache.set(cacheKey,score);
-    console.log('Match Score metrics: ',fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
+    // console.log('Match Score metrics: ',fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
     return score;
 }
-//0 is very lenient and loose
-//10 is lenient but not loose
-//50 is strict with some leniency
-//80 is very strict but can forgive typos
+//0-8 very high leniency
+//10-30 moderately lenient
+//40 point of strictness
 //100 is absolutely strict
-
-const testCasesPy = [
-    // Exact or near-exact matches
-    { query: ".py", target: "script.py", minThreshold: 8 },
-    { query: ".py", target: ".py", minThreshold: 8 },
-    { query: ".py", target: "module.py", minThreshold: 8 },
-    
-    // Partial matches with .py in name
-    { query: ".py", target: "test.pyc", minThreshold: 8 },
-    { query: ".py", target: "backup.py.old", minThreshold: 8 },
-    { query: ".py", target: "pyproject.toml", minThreshold: 8 },
-    
-    // No .py in name
-    { query: ".py", target: "script.js", minThreshold: 8 },
-    { query: ".py", target: "README.md", minThreshold: 8 },
-    { query: ".py", target: "Dockerfile", minThreshold: 8 },
-    
-    // Edge cases
-    { query: ".py", target: "py", minThreshold: 8 }, // Short target
-    { query: ".py", target: "a_very_long_python_script_without_extension", minThreshold: 8 },
-  ];
-for (const args of testCasesPy) {
-    const score = getMatchScore(args.query,args.target,args.minThreshold)
-    console.log(`QUERY: ${args.query}  |TARGET: ${args.target}  |SCORE: ${score} \n`);
-}  

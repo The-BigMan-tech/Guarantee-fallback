@@ -1421,3 +1421,5 @@ so for a fuzzy match,using the highest score will discard other metrics and prod
 *Subsequence stays moderately stable because partial matches are often meaningful regardless of strictness, e.g., matching key substrings or tokens.
 
 *so before,without dyn weighting,strictness levels only affected individual scores not the overall score which may or may not be significant even across high strictness levels
+
+*so before,without dyn weighting,strictness levels only affected individual scores not the overall score which may or may not be significant even across high strictness levels.each query-target pair and strictness level gives a truly dynamic result

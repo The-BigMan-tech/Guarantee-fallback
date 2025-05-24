@@ -495,7 +495,7 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
                 const score1 = getMatchScore(searchQuery,node.primary.nodeName,minThreshold);
                 const score2 = getMatchScore(searchQuery,(node.primary.fileExtension || ""),minThreshold);
                 const score = (score2>score1)?score2:score1;
-                if (score >= 20) {
+                if (score >= 30) {
                     dispatch(pushToSearchScores(score))
                     matchedFsNodes.push(node)
                 }
@@ -611,7 +611,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched and i also dont want it to perform relvance calc on something that has already gone through it like deferred paths when the deferred queue has its turn.
                     const totalNodes = dirResult.value.length || 1;//fallback for edge cases where totalNodes may be zero
                     const relevanceThreshold = 50;
-                    const matchPercentThreshold = 79;
+                    const matchPercentThreshold = 70;
                     const sizeBonus:number = roundToTwo( (1 / (1 + totalNodes)) * 5);//added size bonus to make ones with smaller sizes more relevant and made it range from 0-5 so that it doesnt negligibly affects the relevance score
                     
                     let relevantNodes:number = 0;
