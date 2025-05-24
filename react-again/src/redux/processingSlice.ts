@@ -12,7 +12,6 @@ import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
 import { heavyFolders ,searchCache,QueryLruOptions, SearchData, IndexQueue} from '../utils/globals';
-import { LRUCache } from 'lru-cache';
 
 let searchBatchCount:number = 0;
 
@@ -289,11 +288,11 @@ export function returnFileContent(filePath:string):AppThunk<Promise<string | nul
  //i have to remove the slicing because the cache needs to be complete if its going to be validated for ui interactions
 // data.data.slice(0,101)//ensures that only a 100 fsnodes are stored in the cache
 //^CACHING RELATED
-function addToCache(arg:CachePayload,tabName:string):AppThunk {
+function addToCache(arg:CachePayload,folderName:string):AppThunk {
     return (dispatch,getState)=>{
         console.log("Called add to cache");
         const appCache:Cache = selectCache(getState());
-        if (Object.keys(appCache).length >= 20) {//evict an item from the cache once it reaches 20
+        if (Object.keys(appCache).length >= 50) {//evict an item from the cache once it reaches 20
             console.log("Cache length is greater than 3");
             dispatch(shiftCache())
         }
@@ -307,18 +306,18 @@ function addToCache(arg:CachePayload,tabName:string):AppThunk {
             }
         }
         let dirNodes:FsNode[] = arg.data;
-        if (!isAHomeTab(tabName)) {//bound the number of fsnodes per record in the cache if it isnt a home tab as unlike the home tab,they are always invalidated on reopen but they are displayed in the ui frozen in the meantime
+        if (!isAHomeTab(folderName)) {//bound the number of fsnodes per record in the cache if it isnt a home tab as unlike the home tab,they are always invalidated on reopen but they are displayed in the ui frozen in the meantime
             dirNodes = arg.data.slice(0,100)
         }
         if (!isHeavy) {//only add the folder to the cache if it isnt heavy
             dispatch(recordInCache({path:arg.path,data:dirNodes}))
         }
         console.log("Cache: ",appCache);
-        if (isAHomeTab(tabName)) {//validates the cache because its up to date
-            console.log("Validated the cache",tabName);
-            dispatch(validateTabCache({tabName}))//since the cache was just updated,it makes sense to validate it.Its the only point where its validated
+        if (isAHomeTab(folderName)) {//validates the cache because its up to date
+            console.log("Validated the cache",folderName);
+            dispatch(validateTabCache({tabName:folderName}))//since the cache was just updated,it makes sense to validate it.Its the only point where its validated
         }else {
-            console.log("Didnt validate the cache",tabName);
+            console.log("Didnt validate the cache",folderName);
         }
         throttledStoreCache(dispatch);
     }
@@ -580,7 +579,6 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
                 return true
             }
         }
-
         //dynamic heuristics.it uses the fuzzy engine to know which folder to prioritize first
         const totalNodes = nodeResult.length || 1;//fallback for edge cases where totalNodes may be zero
         const relevanceThreshold = 50;
@@ -635,7 +633,13 @@ function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise
             console.log("USING CACHED FSNODES FOR", currentSearchPath);
             return FsResult.Ok(cache[currentSearchPath]);
         }else {
-            return await readDirectory(currentSearchPath,'arbitrary');//arbritrayry order is preferred here since it uses its own heuristic to prioritize folders over metadata like size.ill still leave the other options in the tauri side in case of future requirements
+            const dirResult = await readDirectory(currentSearchPath,'arbitrary');//arbritrayry order is preferred here since it uses its own heuristic to prioritize folders over metadata like size.ill still leave the other options in the tauri side in case of future requirements
+            if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {//cache before return so that it caches as it searches
+                const result = await Promise.all(dirResult.value)
+                const folderName = await base_name(currentSearchPath,false)
+                addToCache({path:currentSearchPath,data:result},folderName)
+            }
+            return dirResult
         }
     }
 }
@@ -646,9 +650,10 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
         const deferredPaths:Record<string,boolean> = {};
         const deferredHeap = new Heap((a:DeferredSearch, b:DeferredSearch) => b.priority - a.priority);
         deferredHeap.init([]);
-        console.log("Queue value:",queue);
 
         while ((queue.length > 0) || !(deferredHeap.isEmpty())) {
+            console.log("Queue value:",queue);
+            const currentSearchPath = queue.shift()!;
             if (queue.length === 0) {//add all deferred items to the queue after the queue for the dir level has been processed
                 console.log("DEFERRED QUEUE",deferredHeap);
                 for (const item of deferredHeap) {//This moves the deferred folders to main queue for processing
@@ -664,7 +669,6 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 searchTime(startTime)
                 return
             }
-            const currentSearchPath = queue.shift()!;
             const dirResult:DirResult = await dispatch(getDirResult(currentSearchPath,rootPath))
             searchBatchCount = 0;//a global value thats used by the algorithm to keep track of the batches it has processed so far for a particular dir level to adjust batch threshold at runtime
             console.log("DIR RESULT",dirResult.value);
@@ -710,7 +714,6 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                         queue.push(awaitedFsNode.primary.nodePath);//push the folder to the queue after processing.it may be deferred by the algorithm based on heuristics
                     }
                 }
-                console.log("CURRENT SEARCH PATH:","VALUE OF QUEUE: ",queue);
                 dispatch(saveNodeCount());
                 deferredPaths[currentSearchPath] = false//this is just a cleanup and it wont affect the flow because it has been processed and shifted from the queue so it isnt possible for it to enter the queue and be deferred again
             }
