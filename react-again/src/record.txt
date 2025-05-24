@@ -910,11 +910,8 @@ showing progress
 
 
 ^Backup search optimizations
-a rust search library
 selective web workers for recursive search.cam be applied to the heaviest part of the search
 score sorting implemented in rust
-indexing
-caching terminated searches only so that if searched again,it can continue where it left off
 
 
 ^UI OPTIMIZATIONS
@@ -1459,3 +1456,17 @@ i configed tauri to log to a file with a particular name.so if i want to save lo
 caching search results has a rigid structure and it isnt resumable
 
 *so my search engine was already fast with runtime heuristics and now it literally gets faster the more you search.instead of search caching which is rigid and inresumable,i use a heuristic cache,directory cache and my fuzzy scoring cache.my algorithm actually recomputes a search whenever queried but the individual operations between the query and the search are cached.by caching what the engine already prioritized as high or low,i can skip the heuristic process on subsequent searches and the search engine can benefit on intelligent analytics to know where to search first,by caching dir reads while searching,it can literally skip a whole disk io operation and the fuzzy engine already caches results naturally so searches arent recomputed at all.the heuristic and dirResult cache are structured in a way that each path is treated differently and doesnt parent another.dirresult only keeps track of the immediate children of a path and heuristics only checks the analytics on a single path not its children.so they can be watched by non recursive file watchers for invalidation and i already know ahead of time,how many watchers im creating as i set both the caches to 200.their structure is also highly resumable unlike a search result cache.my fuzzy engine doesnt need revalidation cuz its a pure function.the data is never stale for a given set of inputs and i made my fuzzy engine very lightweight unlike fuse.if you compare the speed of a repeated search with that of windows,its instant almost like everything.
+
+todo:prevent recent from entering the cache,dont watch system or heavy folders
+todo:windowing
+
+fifo
+lifo
+mru
+lru
+lfu
+random
+
+i changed the search and heuristic cache to lifo order so that it preserves the top of the tree.this will help the search to traverse down to a node faster because the structure itself is resumable.the scores still use a lifo.
+
+*i tried out the lifo and it was exactly what my search needed.since my heuristic and search cache is all about resumability not caching search results.it makes sense that it must be lifo because once the search recomputes,the cache will take it faster down the tree up to the point where or near it terminated.it allows results for prev searches to come instantly regardless of how deep the search engine is in the tree.i use lifo for the fuzzy engine cuz it makes sense to preserve the most recently used scores.i used fifo for the ui cache where the first to be inserted is evicted on capacity.this ensures that in a file browsing scenario,the users can see cached results for folders they just visited in terms of traversing the file tree
