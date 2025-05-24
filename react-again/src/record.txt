@@ -1423,3 +1423,14 @@ so for a fuzzy match,using the highest score will discard other metrics and prod
 *so before,without dyn weighting,strictness levels only affected individual scores not the overall score which may or may not be significant even across high strictness levels
 
 *so before,without dyn weighting,strictness levels only affected individual scores not the overall score which may or may not be significant even across high strictness levels.each query-target pair and strictness level gives a truly dynamic result
+
+fuzzy with heuristics
+
+so an engine is an algorithm that encapsulates the logic and mechanics of a task that needs robustness for it to be used seamlessly by other codebases reliably without worrying about or understanding its underlying implementation regardless of its conciseness.lines of code isnt the qualifier of an engine
+
+*Strictness level controls leniency, not the fundamental similarity:
+The strictness parameter tunes how forgiving or harsh the engine is when interpreting the similarity scores, but it does not change the underlying truth of how similar the strings actually are.
+
+Strictness is a tuner for leniency, not a modifier of the underlying truth of similarity
+
+The score at 0% strictness represents the theoretical upper bound of similarity—the most lenient interpretation where the engine allows maximum partial, local, and fuzzy matches.the tuner should not artificially inflate the scores

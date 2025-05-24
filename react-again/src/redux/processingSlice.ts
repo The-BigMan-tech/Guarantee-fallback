@@ -11,7 +11,7 @@ import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
-
+import { LRUCache } from 'lru-cache';
 
 let searchBatchCount:number = 0;
 
@@ -42,16 +42,27 @@ type CachingState = 'pending' | 'success';
 type StrictTabsType = 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos';
 type AllTabTypes = 'Home' | 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos'
 type  invalidationData = {tabName:AllTabTypes}
+
 type NodePath = string;
 type Query = string;
 type Queue = NodePath[];
 type IndexQueue = number[];
 
 interface SearchData {
-    queries:Record<Query,IndexQueue>,
+    queries:LRUCache<Query,IndexQueue>,
     dirCache:FsNode[]
 }
-type HeuristicCache = Record<NodePath,SearchData>;
+type HeuristicCache = LRUCache<NodePath,SearchData>;
+
+const QueryLruOptions:LRUCache.Options<Query,IndexQueue,unknown>  = {
+    max:30,
+    allowStale: false,
+}
+const HeurisicLruOptions:LRUCache.Options<NodePath,SearchData,unknown> = {
+    max:400,
+    allowStale: false,
+}
+
 
 interface  TabCacheInvalidation {
     Home:boolean,
@@ -486,16 +497,21 @@ export function toggleQuickSearch():AppThunk {
     }
 }
 function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>> {
-    return async (dispatch) => {
+    return async (dispatch) => {//it uses the fuzzy engine to know which results to display
         console.log("FSNODES VALUE NOW",fsNodes);
         if (fsNodes) {
             const matchedFsNodes:FsNode[] = [] 
-            const minThreshold:number = 8;//default min threshold
+            let minThreshold:number = 10;//default min threshold
+            let acceptableScore = 30
+            if (searchQuery.length <= 5) {
+                minThreshold = 5;
+                acceptableScore = 15
+            }
             for (const node of fsNodes) {
                 const score1 = getMatchScore(searchQuery,node.primary.nodeName,minThreshold);
                 const score2 = getMatchScore(searchQuery,(node.primary.fileExtension || ""),minThreshold);
                 const score = (score2>score1)?score2:score1;
-                if (score >= 30) {
+                if (score >= acceptableScore) {
                     dispatch(pushToSearchScores(score))
                     matchedFsNodes.push(node)
                 }
@@ -608,15 +624,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 //*Heuristic analysis
                 const isDeferred:boolean = deferredPaths[currentSearchPath] || false;
                 console.log((!isDeferred)?`CURRENT SEARCH PATH ${currentSearchPath}`:`CURRENTLY PROCESSING DEFERRED PATH: ${currentSearchPath}`);
-                if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched and i also dont want it to perform relvance calc on something that has already gone through it like deferred paths when the deferred queue has its turn.
-                    const totalNodes = dirResult.value.length || 1;//fallback for edge cases where totalNodes may be zero
-                    const relevanceThreshold = 50;
-                    const matchPercentThreshold = 70;
-                    const sizeBonus:number = roundToTwo( (1 / (1 + totalNodes)) * 5);//added size bonus to make ones with smaller sizes more relevant and made it range from 0-5 so that it doesnt negligibly affects the relevance score
-                    
-                    let relevantNodes:number = 0;
-                    let relevancePercent:number = 0;
-                    
+                if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched and i also dont want it to perform relvance calc on something that has already gone through it like deferred paths when the deferred queue has its turn.    
                     //static heuristics 
                     if (!processHeavyFolders) {//this reads that if the search loop shouldnt process any heavy folders,then push it to the heavy folder queue for the next search loop
                         const normalizedPath = currentSearchPath.replace(/\\/g, '/');// convert backslashes to slashes if on Windows
@@ -633,8 +641,16 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                             continue
                         }
                     }
-                    //dynamic heuristics
+                    //dynamic heuristics.it uses the fuzzy engine to know which folder to prioritize first
+                    const totalNodes = dirResult.value.length || 1;//fallback for edge cases where totalNodes may be zero
+                    const relevanceThreshold = 50;
+                    const matchPercentThreshold = 80;
+                    const sizeBonus:number = roundToTwo( (1 / (1 + totalNodes)) * 5);//added size bonus to make ones with smaller sizes more relevant and made it range from 0-5 so that it doesnt negligibly affects the relevance score
+                    
+                    let relevantNodes:number = 0;
+                    let relevancePercent:number = 0;
                     let processImmediately = false;
+
                     for (const node of dirResult.value) {
                         const awaitedNode = await node;
                         const minThreshold = 10

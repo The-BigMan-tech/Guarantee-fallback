@@ -109,10 +109,35 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
         (scaledSubsequenceScore * weights.weightSubsequence)
     );
     fuzzyCache.set(cacheKey,score);
-    // console.log('Match Score metrics: ',fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
+    console.log(`Match Score metrics:Distance: ${fullDistanceScore}| Window: ${Math.max(0,maxSliceScore)}| Subsequence: ${scaledSubsequenceScore}`);
     return score;
 }
 //0-8 very high leniency
 //10-30 moderately lenient
 //40 point of strictness
 //100 is absolutely strict
+
+const testCases = [
+    // Short to Medium pairs with typos
+    { query: "pythn scrpt", target: "python_script.py", minThreshold: 0 },
+    { query: "imge procesing", target: "image_processing_module", minThreshold: 0 },
+    { query: "confg backup", target: "config_backup_2023", minThreshold: 0 },
+    { query: "documntation v2", target: "documentation_v2_final", minThreshold: 0 },
+    { query: "api gatewy", target: "api_gateway_service", minThreshold: 0 },
+    // Medium to Long pairs with typos
+    { query: "data matchng technques", target: "Efficient big data matching techniques and algorithms for large datasets", minThreshold: 0 },
+    { query: "user authntication flow", target: "Comprehensive user authentication flow with multi-factor support and session management", minThreshold: 0 },
+    { query: "error handlng best practics", target: "Best practices for error handling and logging in distributed systems", minThreshold: 0 },
+    { query: "machine learnng pipline", target: "End-to-end machine learning pipeline for real-time prediction and model monitoring", minThreshold: 0 },
+    { query: "databse schema migraton", target: "Database schema migration strategies with rollback and version control", minThreshold: 0 },
+    // Long to Medium pairs with typos
+    { query: "Comprehensive user authntication flow with multi-factor support and session management", target: "user authentication flow", minThreshold: 0 },
+    { query: "Efficient big data matchng techniques and algorithms for large datasets", target: "data matching techniques", minThreshold: 0 },
+    { query: "End-to-end machine learnng pipeline for real-time prediction and model monitoring", target: "machine learning pipeline", minThreshold: 0 },
+    { query: "Best practics for error handling and logging in distributed systems", target: "error handling best practices", minThreshold: 0 },
+    { query: "Database schema migraton strategies with rollback and version control", target: "database schema migration", minThreshold: 0 },
+];
+for (const args of testCases) {
+    const score = getMatchScore(args.query,args.target,args.minThreshold)
+    console.log(`QUERY: ${args.query} |TARGET: ${args.target} |SCORE: ${score} \n`);
+}  
