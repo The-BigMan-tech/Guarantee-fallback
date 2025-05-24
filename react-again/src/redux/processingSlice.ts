@@ -14,9 +14,9 @@ import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
 import { heavyFolders ,searchCache,heuristicsCache, Queries} from '../utils/globals';
 import { info } from '@tauri-apps/plugin-log';
 
-console.log = (...args) => {
-    info(args.join(' '));
-};
+// console.log = (...args) => {
+//     info(args.join(' '));
+// };
 
 const activeWatchers = new Map<string,UnwatchFn>();
 
@@ -44,7 +44,7 @@ type Cache = Record<NodePath,FsNode[]>;
 type CachePayload = {path:NodePath,data:FsNode[]}
 type CachingState = 'pending' | 'success';
 type StrictTabsType = 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos';
-type AllTabTypes = 'Home' | 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos'
+type AllTabTypes = 'Home' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos'
 type  invalidationData = {tabName:AllTabTypes}
 type NodePath = string;
 type Queue = NodePath[];
@@ -53,7 +53,6 @@ type Queue = NodePath[];
 
 interface  TabCacheInvalidation {
     Home:boolean,
-    Recent:boolean,
     Desktop:boolean,
     Downloads:boolean,
     Documents:boolean,
@@ -103,7 +102,7 @@ const initialState:processingSliceState = {
     fsNodes:null,
     cache:{},
     aheadCachingState:'pending',
-    invalidatedTabCache:{Home:true,Recent:true,Desktop:true,Downloads:true,Documents:true,Pictures:true,Music:true,Videos:true},
+    invalidatedTabCache:{Home:true,Desktop:true,Downloads:true,Documents:true,Pictures:true,Music:true,Videos:true},
     selectedFsNodes:null,
     error:{id:"",message:null},//the ids is to ensure that the same error can pop up twice
     notice:{id:"",message:null},
@@ -395,7 +394,7 @@ const throttledStoreCache:throttle<()=>AppThunk> = throttle(5000,
     {noLeading:true, noTrailing: false,}
 );
 function isAHomeTab(folderName:string):folderName is AllTabTypes  {
-    return (folderName=="Home") || (folderName=="Recent") || (folderName=="Desktop")  || (folderName=="Downloads") || (folderName=="Documents") || (folderName=="Pictures") || (folderName=="Music") || (folderName=="Videos")
+    return (folderName=="Home") || (folderName=="Desktop")  || (folderName=="Downloads") || (folderName=="Documents") || (folderName=="Pictures") || (folderName=="Music") || (folderName=="Videos")
 }
 
 
@@ -534,7 +533,7 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
     return async (dispatch,getState) =>{
         const quickSearch:boolean = selectQuickSearch(getState());
         const isQueryLong:boolean = searchQuery.length >= 10;
-        const searchBatchSize:number = 15;//default batch size
+        const searchBatchSize:number = 10;//default batch size
         fsNodes.push(fsNode)//push the files
         if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
             const anyRoughMatches:boolean = dispatch(longQueryOptimization(quickSearch,fsNodes,searchQuery,isQueryLong))
@@ -834,7 +833,6 @@ export function watchHomeTabs():AppThunk<Promise<void>> {
         await watchImmediate(
             [
                 await join_with_home("Home"),//for home
-                await join_with_home("AppData\\Roaming\\Microsoft\\Windows\\Recent"),
                 await join_with_home("Desktop"),
                 await join_with_home("Downloads"),
                 await join_with_home("Documents"),

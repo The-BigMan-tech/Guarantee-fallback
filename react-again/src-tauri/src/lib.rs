@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use std::time::SystemTime;
 use tauri::command;
 use tauri_plugin_log::{Builder as LogBuilder,Target,TargetKind};
-
+use log::LevelFilter;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {    
@@ -28,6 +28,7 @@ pub fn run() {
                 .targets([
                     Target::new(TargetKind::Folder { path:log_dir, file_name:Some(String::from("app_log.log"))})
                 ])
+                .level(LevelFilter::Info)
                 .format(
                     |out, message, record| {
                         out.finish(format_args!("|{}|: {}", record.level(), message))
