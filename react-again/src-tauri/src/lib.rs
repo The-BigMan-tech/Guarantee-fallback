@@ -5,11 +5,17 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::time::SystemTime;
 use tauri::command;
+use tauri_plugin_log::{Builder as LogBuilder,Target,TargetKind};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
-pub fn run() {
+pub fn run() {    
+    let log_dir = PathBuf::from("logs");
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
+        .plugin(LogBuilder::new().targets([
+            Target::new(TargetKind::Folder { path:log_dir, file_name:Some(String::from("app_log.log"))})
+        ])
+        .build())
         .invoke_handler(tauri::generate_handler![
             read_dir,
             join_with_home,

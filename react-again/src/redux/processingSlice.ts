@@ -12,7 +12,11 @@ import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
 import { heavyFolders ,searchCache,heuristicsCache, Queries} from '../utils/globals';
+import { info } from '@tauri-apps/plugin-log';
 
+console.log = (...args) => {
+    info(args.join(' '));
+};
 
 const activeWatchers = new Map<string,UnwatchFn>();
 let searchBatchCount:number = 0;
@@ -597,10 +601,12 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
         if (cachedQuery !== null) {
             const shouldDefer:boolean = cachedQuery;
             if (shouldDefer) {
+                console.log("DEFERRED EARLY: ",currentSearchPath);
                 deferredPaths[currentSearchPath] = true
                 deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus})
                 return true//skip the current iteration of the outer while loop of the caller
             }else {
+                console.log("PROCESSED EARLY: ",currentSearchPath);
                 return false//dont skip the current iteration of the outer while loop of the caller
             }
         }
@@ -614,7 +620,7 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
             const score2 = getMatchScore(searchQuery,(awaitedNode.primary.fileExtension || ""),minThreshold);
             const matchScore = (score2>score1)?score2:score1;
 
-            // console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
+            console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
             if (matchScore >= 40) {//the number of matches increases qualitative relevance
                 relevantNodes += 1
                 relevancePercent = roundToTwo( (relevantNodes / totalNodes) * 100 )//to ensure that the relevance percent is always updated upon looping
