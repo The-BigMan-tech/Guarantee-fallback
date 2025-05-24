@@ -5,7 +5,7 @@ import { LRUCache } from 'lru-cache'
 
 
 const LruOptions:LRUCache.Options<string,number,unknown>  = {
-    max:500,
+    max:150,
     allowStale: false,
 }
 const fuzzyCache = new LRUCache<string,number>(LruOptions)
@@ -91,11 +91,12 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
     const weightDistance = 0.2;
     const weightSubsequence = 0.2;
     const weightWindow = 0.6;
-    const score = roundToTwo((fullDistanceScore * weightDistance) + (Math.max(0,maxSliceScore) * weightWindow) + (scaledSubsequenceScore * weightSubsequence));
-    
+    let score = roundToTwo((fullDistanceScore * weightDistance) + (Math.max(0,maxSliceScore) * weightWindow) + (scaledSubsequenceScore * weightSubsequence));
+    score = Math.max(0,score - (minThreshold*2.5));
+    if (score > 0) {
+        score += minThreshold
+    }
     fuzzyCache.set(cacheKey,score);
     console.log('Match Score metrics: ',fullDistanceScore,Math.max(0,maxSliceScore),scaledSubsequenceScore);
     return score;
 }
-const sc = getMatchScore('py',"SpaceMono-Bold.py",8)
-console.log(' fuzzy-engine.ts:101 => sc:', sc);

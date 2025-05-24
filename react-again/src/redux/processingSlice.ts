@@ -490,18 +490,14 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
         console.log("FSNODES VALUE NOW",fsNodes);
         if (fsNodes) {
             const matchedFsNodes:FsNode[] = [] 
-            let minThreshold:number = 20;//default min threshold
-            if (searchQuery.length <= 5) {
-                minThreshold = 8
-            }
+            const minThreshold:number = 8;//default min threshold
             for (const node of fsNodes) {
-                const fsNodeName = node.primary.nodeName + (node.primary.fileExtension || "")
-                const score = getMatchScore(searchQuery,fsNodeName,minThreshold);
+                const score1 = getMatchScore(searchQuery,node.primary.nodeName,minThreshold);
+                const score2 = getMatchScore(searchQuery,(node.primary.fileExtension || ""),minThreshold);
+                const score = (score2>score1)?score2:score1;
                 if (score >= 20) {
                     dispatch(pushToSearchScores(score))
                     matchedFsNodes.push(node)
-                }else {
-                    console.log(`THE NODE: ${fsNodeName} GOT LESS THAN 40`);
                 }
             }
             console.log("MATCHED FS NODES",matchedFsNodes);
@@ -615,7 +611,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 if ((currentSearchPath !== rootPath) && !(isDeferred)) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched and i also dont want it to perform relvance calc on something that has already gone through it like deferred paths when the deferred queue has its turn.
                     const totalNodes = dirResult.value.length || 1;//fallback for edge cases where totalNodes may be zero
                     const relevanceThreshold = 50;
-                    const matchPercentThreshold = 90;
+                    const matchPercentThreshold = 79;
                     const sizeBonus:number = roundToTwo( (1 / (1 + totalNodes)) * 5);//added size bonus to make ones with smaller sizes more relevant and made it range from 0-5 so that it doesnt negligibly affects the relevance score
                     
                     let relevantNodes:number = 0;
@@ -641,12 +637,13 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                     let processImmediately = false;
                     for (const node of dirResult.value) {
                         const awaitedNode = await node;
-                        const fsNodeName = awaitedNode.primary.nodeName + (awaitedNode.primary.fileExtension || "");//i normalized both the query and the target string to increase fuzziness
-                        const matchScore = getMatchScore(searchQuery,fsNodeName,20);
+                        const score1 = getMatchScore(searchQuery,awaitedNode.primary.nodeName,8);
+                        const score2 = getMatchScore(searchQuery,(awaitedNode.primary.fileExtension || ""),8);
+                        const matchScore = (score2>score1)?score2:score1;
 
                         console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
-                        if (matchScore > 0) {//the number of matches increases qualitative relevance
-                            relevantNodes += 1;
+                        if (matchScore >= 40) {//the number of matches increases qualitative relevance
+                            relevantNodes += 1
                             relevancePercent = roundToTwo( (relevantNodes / totalNodes) * 100 )//to ensure that the relevance percent is always updated upon looping
                             processImmediately = (relevancePercent >= relevanceThreshold) || (matchScore >= matchPercentThreshold)//the match score is used to check for the quality of the relevance as usual
                             
