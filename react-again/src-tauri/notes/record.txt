@@ -1470,3 +1470,14 @@ random
 i changed the search and heuristic cache to lifo order so that it preserves the top of the tree.this will help the search to traverse down to a node faster because the structure itself is resumable.the scores still use a lifo.
 
 *i tried out the lifo and it was exactly what my search needed.since my heuristic and search cache is all about resumability not caching search results.it makes sense that it must be lifo because once the search recomputes,the cache will take it faster down the tree up to the point where or near it terminated.it allows results for prev searches to come instantly regardless of how deep the search engine is in the tree.i use lifo for the fuzzy engine cuz it makes sense to preserve the most recently used scores.i used fifo for the ui cache where the first to be inserted is evicted on capacity.this ensures that in a file browsing scenario,the users can see cached results for folders they just visited in terms of traversing the file tree
+
+*i tried out the lifo and it was exactly what my search needed.since my heuristic and search cache is all about resumability not caching search results.it makes sense that it must be lifo because once the search recomputes,the cache will take it faster down the tree up to the point where or near it terminated.it allows results for prev searches to come instantly regardless of how deep the search engine is in the tree.i use lifo for the fuzzy engine cuz it makes sense to preserve the most recently used scores.i used fifo for the ui cache where the first to be inserted is evicted on capacity.this ensures that in a file browsing scenario,the users can see cached results for folders they just visited in terms of traversing the file tree
+
+*so deeper levels of the tree wont be cached and thus thats where the resumability hits its end
+
+search-time heuristics
+resumability
+
+*but search result cache doesnt depend on the deepness of the folder tree but it struggles severly with continuing from termination and flexibility across many queries against many paths
+
+so my resumability search pattern is unique and good for filesystems.Unlike traditional indexers or search result caches that store full query results, your approach caches lightweight heuristics and directory metadata per path. Because you cache heuristics rather than results, you can efficiently handle many different queries and path combinations without heavy storage or complex invalidation.

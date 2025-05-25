@@ -20,13 +20,14 @@ pub fn run() {
             path_extname,
             path_basename,
             fs_stat,
-            read_file
+            read_file,
+            write_file
         ])
         .setup(|app| {   
             app.handle().plugin(
                 LogBuilder::new()
                 .targets([
-                    Target::new(TargetKind::Folder { path:log_dir, file_name:Some(String::from("app_log.log"))})
+                    Target::new(TargetKind::Folder { path:log_dir, file_name:Some(String::from("app-log"))})
                 ])
                 .level(LevelFilter::Info)
                 .format(
@@ -148,4 +149,10 @@ fn fs_stat(path: &str) -> Result<FileStat, String> {
         accessed_date,
         is_read_only,
     })
+}
+#[tauri::command]
+fn write_file(path: String, contents: String) -> Result<(), String> {
+    std::fs::write(&path, &contents)
+        .map_err(|e| format!("Failed to write file: {}", e))?;
+    Ok(())
 }

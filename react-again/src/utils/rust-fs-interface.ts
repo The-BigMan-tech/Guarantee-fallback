@@ -119,3 +119,11 @@ export async function readFile(filePath: string): Promise<FsResult<string | null
         return FsResult.Err(error);
     }
 }
+export async function writeFile(filePath: string,content:string): Promise<FsResult<null | Error>> {
+    try {
+        await invoke('write_file', {path:filePath,contents:content});
+        return FsResult.Ok(null);
+    } catch (error: unknown) {
+        return FsResult.Err(error);
+    }
+}

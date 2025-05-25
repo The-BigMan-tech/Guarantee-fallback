@@ -385,7 +385,8 @@ export function loadCache():AppThunk {
 function storeCache():AppThunk {
     return (_,getState)=>{
         const cache:Cache = selectCache(getState());
-        localStorage.setItem("appCache",JSON.stringify(cache))
+        const stringifiedCache = JSON.stringify(cache)
+        localStorage.setItem("appCache",stringifiedCache)
         console.log("STORE CACHE WAS CALLED",cache);
     }
 }
