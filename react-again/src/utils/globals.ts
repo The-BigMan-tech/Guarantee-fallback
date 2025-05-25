@@ -25,15 +25,18 @@ searchCache.onEvict = (key) => {
 }
 export async function spawnSearchCacheWatcher(path:string) {
     if (activeWatchers.has(path)) return; // Already watching
-    if (activeWatchers.size >= MAX_WATCHERS) return; // Limit reached
+    if (activeWatchers.size >= MAX_WATCHERS) {
+        console.log("WATCHER LIMIT REACHED");
+        return
+    }; // Limit reached
     try {
         const stop = await watchImmediate(path,(event:WatchEvent)=>{
             if (isCreate(event.type) || isModify(event.type) || isRemove(event.type)) {
-                console.log('INVALIDATING THE SEARCH KEY IN CACHE: ',path);
                 searchCache.delete(path);
                 heuristicsCache.delete(path);
                 const stopFn = activeWatchers.get(path);
                 if (stopFn) {
+                    console.log('INVALIDATING THE SEARCH KEY IN CACHE: ',path);
                     stopFn();              // Stop watching
                     activeWatchers.delete(path); // Remove from active watchers
                 }

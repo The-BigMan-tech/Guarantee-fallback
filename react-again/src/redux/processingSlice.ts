@@ -12,11 +12,11 @@ import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
 import { heavyFolders ,searchCache,heuristicsCache, Queries,spawnSearchCacheWatcher} from '../utils/globals';
-// import { info } from '@tauri-apps/plugin-log';
+import { info } from '@tauri-apps/plugin-log';
 
-// console.log = (...args) => {
-//     info(args.join(' '));
-// };
+console.log = (...args) => {
+    info(args.join(' '));
+};
 
 
 
@@ -586,8 +586,9 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
         let relevancePercent:number = 0;
         let processImmediately = false;
 
-
+        //utilizing the resumability cache
         const cachedQueries:Queries | undefined = heuristicsCache.get(currentSearchPath);
+        console.log('SEARCH PATH: |',currentSearchPath,'|CACHED QUERIES: |',JSON.stringify(cachedQueries,null,2));
         const cachedQuery:boolean | null = (cachedQueries)?cachedQueries[searchQuery]:null
         if (cachedQuery !== null) {
             const shouldDefer:boolean = cachedQuery;

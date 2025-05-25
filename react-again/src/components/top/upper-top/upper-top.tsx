@@ -46,7 +46,6 @@ export default function UpperTop() {
     }
     function getCrumbArrow(crumb:string):string {
         const lastCrumb = breadCrumbs.at(-1);
-        console.log("LAST CRUMB");
         if ((crumb !== lastCrumb)) {//the last crumb is an empty space
             return crumb += " >"
         }else {

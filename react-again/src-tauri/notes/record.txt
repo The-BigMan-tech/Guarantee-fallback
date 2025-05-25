@@ -1489,3 +1489,5 @@ resumability
 *Memoization is a specific form of caching that stores the results of a pure function based solely on its input arguments. Because the function is pure—always producing the same output for the same inputs—memoization does not require invalidation or synchronization logic
 
 *In contrast, general caching involves storing arbitrary data (like API responses, filesystem state, or database queries) that can become stale over time or due to external changes, so it typically requires explicit invalidation, expiration, or synchronization strategies.
+
+passive caching with metadata for validation
