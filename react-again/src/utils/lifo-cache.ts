@@ -21,8 +21,7 @@ export class LifoCache<K, V> {
         if (this.onSet) {
             const shouldCache = this.onSet(key, value);
             if (shouldCache === false) {
-                // Skip caching this entry
-                return this;
+                return this;// Skip caching this entry
             }
         }
         if (this.map.has(key)) {

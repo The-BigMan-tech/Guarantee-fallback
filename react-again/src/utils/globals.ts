@@ -14,37 +14,44 @@ export function isFolderHeavy(path:string):boolean {
     }
     return false
 }
-type Query = string;
-type ShouldDefer = boolean;
-export type Queries = Record<Query,ShouldDefer>
-
-const maxCacheSize = 200;
-
-export const searchCache:LifoCache<string,FsNode[]> = new LifoCache({ max:maxCacheSize })
-export const heuristicsCache:LifoCache<string,Queries> = new LifoCache({ max:maxCacheSize})
-export const MAX_WATCHERS = maxCacheSize;
-export const activeWatchers = new Map<string,UnwatchFn>();
-
-
-searchCache.onSet = (key) => {
-    if (isFolderHeavy(key)) {
-        console.log(`Skipping search caching for heavy folder: ${key}`);
-        return false
-    }
-}
-heuristicsCache.onSet = (key) => {
-    if (isFolderHeavy(key)) {
-        console.log(`Skipping heuristics caching for heavy folder: ${key}`);
-        return false
-    }
-}
-searchCache.onEvict = (key) => {
+function terminateWatcher(key:string) {
     const stopFn = activeWatchers.get(key);// Stop and remove watcher for evicted key
     if (stopFn) {
         console.log("EVICTING THE WATCHER IN CACHE: ",key);
         stopFn();
         activeWatchers.delete(key);
     }
+}
+function shouldCacheEntry(key:string):boolean {
+    if (isFolderHeavy(key)) {
+        console.log(`Skipping resumable caching for heavy folder: ${key}`);
+        return false
+    }
+    return true
+}
+
+type Query = string;
+type ShouldDefer = boolean;
+export type Queries = Record<Query,ShouldDefer>
+
+const maxCacheSize = 3;
+
+export const searchCache:LifoCache<string,FsNode[]> = new LifoCache({ max:maxCacheSize })
+export const heuristicsCache:LifoCache<string,Queries> = new LifoCache({ max:maxCacheSize})
+export const MAX_WATCHERS = maxCacheSize;
+export const activeWatchers = new Map<string,UnwatchFn>();
+
+searchCache.onSet = (key) => {
+    return shouldCacheEntry(key)
+}
+heuristicsCache.onSet = (key) => {
+    return shouldCacheEntry(key)
+}
+searchCache.onEvict = (key) => {
+    terminateWatcher(key)
+}
+heuristicsCache.onEvict = (key) => {
+    terminateWatcher(key)
 }
 export async function spawnSearchCacheWatcher(path:string) {
     if (activeWatchers.has(path)) return; // Already watching
@@ -55,12 +62,7 @@ export async function spawnSearchCacheWatcher(path:string) {
             if (isCreate(event.type) || isModify(event.type) || isRemove(event.type)) {
                 searchCache.delete(path);
                 heuristicsCache.delete(path);
-                const stopFn = activeWatchers.get(path);
-                if (stopFn) {
-                    console.log('INVALIDATING THE SEARCH KEY IN CACHE: ',path);
-                    stopFn();              // Stop watching
-                    activeWatchers.delete(path); // Remove from active watchers
-                }
+                terminateWatcher(path)
             }
         },{recursive:false})
         activeWatchers.set(path,stop);
