@@ -2,6 +2,8 @@ export class LifoCache<K, V> {
     private max: number;
     private map: Map<K, V>;
     private stack: K[];
+
+    public onSet?: (key: K, value: V) => boolean | void;
     public onEvict?: (key: K, value: V) => void;
 
     constructor(options: { max: number }) {
@@ -16,6 +18,13 @@ export class LifoCache<K, V> {
         return this.map.has(key);
     }
     set(key: K, value: V): this {
+        if (this.onSet) {
+            const shouldCache = this.onSet(key, value);
+            if (shouldCache === false) {
+                // Skip caching this entry
+                return this;
+            }
+        }
         if (this.map.has(key)) {
             // Update existing value, no eviction or stack change
             this.map.set(key, value);

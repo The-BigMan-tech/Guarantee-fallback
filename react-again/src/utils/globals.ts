@@ -5,6 +5,15 @@ import { isCreate,isModify,isRemove } from "./watcher-utils";
 
 export const heavyFolders = new Set(['node_modules','AppData','.git','src-tauri/target/debug'])//this will do for now.i will add more later on monitoring the search
 
+export function isFolderHeavy(path:string):boolean {
+    const normalizedPath = path.replace(/\\/g, '/');
+    for (const heavy of heavyFolders) {
+        if (normalizedPath.endsWith(heavy)) {
+            return true;
+        }
+    }
+    return false
+}
 type Query = string;
 type ShouldDefer = boolean;
 export type Queries = Record<Query,ShouldDefer>
@@ -16,9 +25,23 @@ export const heuristicsCache:LifoCache<string,Queries> = new LifoCache({ max:max
 export const MAX_WATCHERS = maxCacheSize;
 export const activeWatchers = new Map<string,UnwatchFn>();
 
+
+searchCache.onSet = (key) => {
+    if (isFolderHeavy(key)) {
+        console.log(`Skipping search caching for heavy folder: ${key}`);
+        return false
+    }
+}
+heuristicsCache.onSet = (key) => {
+    if (isFolderHeavy(key)) {
+        console.log(`Skipping heuristics caching for heavy folder: ${key}`);
+        return false
+    }
+}
 searchCache.onEvict = (key) => {
     const stopFn = activeWatchers.get(key);// Stop and remove watcher for evicted key
     if (stopFn) {
+        console.log("EVICTING THE WATCHER IN CACHE: ",key);
         stopFn();
         activeWatchers.delete(key);
     }
