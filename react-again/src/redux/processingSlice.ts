@@ -11,12 +11,12 @@ import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
-import { searchCache,heuristicsCache, Queries,spawnSearchCacheWatcher,isFolderHeavy} from '../utils/globals';
-import { info } from '@tauri-apps/plugin-log';
+import { searchCache,heuristicsCache, Queries,isFolderHeavy} from '../utils/globals';
+// import { info } from '@tauri-apps/plugin-log';
 
-console.log = (...args) => {
-    info(args.join(' '));
-};
+// console.log = (...args) => {
+//     info(args.join(' '));
+// };
 
 
 

@@ -1497,3 +1497,9 @@ passive caching with metadata for validation
 intercept to prevent from watching heavy folders
 
 * embedding synchronization logic (like watcher management) directly inside the cache class tightly couples concerns, making the cache less reusable and harder to maintain or extend
+
+*so the three layers of utilizing a broad cache is the caller that just sets an entry without knowledge of the underlying mechanism,the interceptors that proxies the cache calls and the cache structure itself that only keeps the structure of the cache and opens proxies for interceptors to connect to.the interceptors are the ones that handle higher level of concerns concerning the use of the cache for the application.
+
+*so hooks are openings that structures expose so that code can be injected into it without modifying its underlying implementation.the callbacks assigned to these functions proxy calls between the structure and the caller and they are called interceptors or proxies
+
+*so hooks are more like a lifecycle call mechanism.they are only run once in the lifecycle of the underlying structure not continuously as in the observer pattern
