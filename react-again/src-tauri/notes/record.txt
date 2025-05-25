@@ -1491,3 +1491,5 @@ resumability
 *In contrast, general caching involves storing arbitrary data (like API responses, filesystem state, or database queries) that can become stale over time or due to external changes, so it typically requires explicit invalidation, expiration, or synchronization strategies.
 
 passive caching with metadata for validation
+
+*why does in work for record but not for sets and sets requires has method
