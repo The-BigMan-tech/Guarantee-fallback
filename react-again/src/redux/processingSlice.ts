@@ -600,7 +600,6 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
             if (processImmediately) {
                 console.log("SEARCH PATH:",currentSearchPath,"IS BEING PROCESSED IMMEDIATELY");
                 heuristicsCache.set(currentSearchPath,{...cachedQueries,[searchQuery]:false});
-                spawnSearchCacheWatcher(currentSearchPath)
                 return false//early termination once enough relevance has been reached
             }
         };
@@ -611,7 +610,6 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
         deferredPaths[currentSearchPath] = true
         deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus});//defer for later.it defers the current search path unlike the static heuristics
         heuristicsCache.set(currentSearchPath,{...cachedQueries,[searchQuery]:true});
-        spawnSearchCacheWatcher(currentSearchPath)
         return true; // Skip processing now
     }else {
         return false
@@ -640,7 +638,6 @@ function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {//cache before return so that it caches as it searches
                 const result = await Promise.all(dirResult.value)
                 searchCache.set(currentSearchPath,result);
-                spawnSearchCacheWatcher(currentSearchPath)
             }
             return dirResult
         }

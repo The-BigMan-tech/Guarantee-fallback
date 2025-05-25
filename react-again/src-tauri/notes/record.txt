@@ -1495,3 +1495,5 @@ passive caching with metadata for validation
 *why does in work for record but not for sets and sets requires has method
 
 intercept to prevent from watching heavy folders
+
+* embedding synchronization logic (like watcher management) directly inside the cache class tightly couples concerns, making the cache less reusable and harder to maintain or extend

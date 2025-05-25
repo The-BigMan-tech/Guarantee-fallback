@@ -27,6 +27,7 @@ function shouldCacheEntry(key:string):boolean {
         console.log(`Skipping resumable caching for heavy folder: ${key}`);
         return false
     }
+    spawnSearchCacheWatcher(key)
     return true
 }
 
@@ -34,7 +35,7 @@ type Query = string;
 type ShouldDefer = boolean;
 export type Queries = Record<Query,ShouldDefer>
 
-const maxCacheSize = 3;
+const maxCacheSize = 200;
 
 export const searchCache:LifoCache<string,FsNode[]> = new LifoCache({ max:maxCacheSize })
 export const heuristicsCache:LifoCache<string,Queries> = new LifoCache({ max:maxCacheSize})
