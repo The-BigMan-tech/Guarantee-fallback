@@ -5,20 +5,20 @@ import { RootState,AppThunk } from './store'
 import { FsResult,readDirectory,readFile,FsNode,join_with_home,base_name } from '../utils/rust-fs-interface';
 import {v4 as uniqueID} from 'uuid';
 import { AppDispatch } from './store';
-import { watchImmediate, BaseDirectory, WatchEvent, UnwatchFn } from '@tauri-apps/plugin-fs';
+import { watchImmediate, BaseDirectory, WatchEvent } from '@tauri-apps/plugin-fs';
 import { toast,ToastOptions,Bounce,Flip,Zoom} from 'react-toastify';
 import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
-import { heavyFolders ,searchCache,heuristicsCache, Queries} from '../utils/globals';
+import { heavyFolders ,searchCache,heuristicsCache, Queries,MAX_WATCHERS,activeWatchers} from '../utils/globals';
 // import { info } from '@tauri-apps/plugin-log';
 
 // console.log = (...args) => {
 //     info(args.join(' '));
 // };
 
-const activeWatchers = new Map<string,UnwatchFn>();
+
 
 export const toastConfig:ToastOptions = {
     position: "top-center",
@@ -641,12 +641,18 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
 }
 async function spawnSearchCacheWatcher(path:string) {
     if (activeWatchers.has(path)) return; // Already watching
+    if (activeWatchers.size >= MAX_WATCHERS) return; // Limit reached
     try {
         const stop = await watchImmediate(path,(event:WatchEvent)=>{
             if (isCreate(event.type) || isModify(event.type) || isRemove(event.type)) {
                 console.log('INVALIDATING THE SEARCH KEY IN CACHE: ',path);
-                searchCache.delete(path)
-                heuristicsCache.delete(path)
+                searchCache.delete(path);
+                heuristicsCache.delete(path);
+                const stopFn = activeWatchers.get(path);
+                if (stopFn) {
+                    stopFn();              // Stop watching
+                    activeWatchers.delete(path); // Remove from active watchers
+                }
             }
         },{recursive:false})
         activeWatchers.set(path,stop);

@@ -2,6 +2,8 @@ export class LifoCache<K, V> {
     private max: number;
     private map: Map<K, V>;
     private stack: K[];
+    public onEvict?: (key: K, value: V) => void;
+
     constructor(options: { max: number }) {
         this.max = options.max;
         this.map = new Map();
@@ -23,6 +25,10 @@ export class LifoCache<K, V> {
             // Evict the most recently added item (top of the stack)
             const lastKey = this.stack.pop();
             if (lastKey !== undefined) {
+                const evictedValue = this.map.get(lastKey)!;
+                if (this.onEvict) {
+                    this.onEvict(lastKey, evictedValue);
+                }
                 this.map.delete(lastKey);
             }
         }
