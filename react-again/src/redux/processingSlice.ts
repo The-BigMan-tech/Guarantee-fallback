@@ -11,7 +11,7 @@ import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
-import { heavyFolders ,searchCache,heuristicsCache, Queries,MAX_WATCHERS,activeWatchers} from '../utils/globals';
+import { heavyFolders ,searchCache,heuristicsCache, Queries,spawnSearchCacheWatcher} from '../utils/globals';
 // import { info } from '@tauri-apps/plugin-log';
 
 // console.log = (...args) => {
@@ -639,28 +639,6 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
         return false
     }
 }
-async function spawnSearchCacheWatcher(path:string) {
-    if (activeWatchers.has(path)) return; // Already watching
-    if (activeWatchers.size >= MAX_WATCHERS) return; // Limit reached
-    try {
-        const stop = await watchImmediate(path,(event:WatchEvent)=>{
-            if (isCreate(event.type) || isModify(event.type) || isRemove(event.type)) {
-                console.log('INVALIDATING THE SEARCH KEY IN CACHE: ',path);
-                searchCache.delete(path);
-                heuristicsCache.delete(path);
-                const stopFn = activeWatchers.get(path);
-                if (stopFn) {
-                    stopFn();              // Stop watching
-                    activeWatchers.delete(path); // Remove from active watchers
-                }
-            }
-        },{recursive:false})
-        activeWatchers.set(path,stop);
-    }catch(err) {
-        console.error(`Failed to watch path for search cache ${path}:`, err);
-    }
-}
-
 function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise<DirResult>> {
     return async (_,getState)=>{
         const cache:Cache = selectCache(getState());

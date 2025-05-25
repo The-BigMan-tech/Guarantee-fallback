@@ -1480,4 +1480,12 @@ resumability
 
 *but search result cache doesnt depend on the deepness of the folder tree but it struggles severly with continuing from termination and flexibility across many queries against many paths
 
-so my resumability search pattern is unique and good for filesystems.Unlike traditional indexers or search result caches that store full query results, your approach caches lightweight heuristics and directory metadata per path. Because you cache heuristics rather than results, you can efficiently handle many different queries and path combinations without heavy storage or complex invalidation.
+*so my resumability search pattern is unique and good for filesystems.Unlike traditional indexers or search result caches that store full query results, your approach caches lightweight heuristics and directory metadata per path. Because you cache heuristics rather than results, you can efficiently handle many different queries and path combinations without heavy storage or complex invalidation.
+
+*using different caches requires synchronization between the caches and the watchers used to invalidate them
+
+*so for resumability data and the majority of cache data out there,its best to keep different sections of the progress data in their own separate caches as it promotes readability and focus on specialized tasks as well as separation of concerns.it allows each piece of the resumable data to be treated independently even though its tied to other resumable caches.but it requires cache synchronization concerning eviction policy,max size,invalidation logic and key management which is watchers in my case but a single cache removes sync complexity but its harder to maintain,more complex in structure and can pr.oduce noise in what part of the data the caller is actually managing.so it means that my idea of extending the heuristic cache to 400 for unwatched entries will break sync as the search cache will be 200 entries less and not all the entries in the heuristic cache are using the same validation logic.my fuzzy engine cache doesnt need to be sync with these two because its a pure function that doesnt rely on side effects but only the inputs you give it so it doesnt have any invalidation logic
+
+*Memoization is a specific form of caching that stores the results of a pure function based solely on its input arguments. Because the function is pure—always producing the same output for the same inputs—memoization does not require invalidation or synchronization logic
+
+*In contrast, general caching involves storing arbitrary data (like API responses, filesystem state, or database queries) that can become stale over time or due to external changes, so it typically requires explicit invalidation, expiration, or synchronization strategies.

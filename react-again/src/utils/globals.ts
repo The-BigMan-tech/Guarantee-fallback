@@ -1,6 +1,7 @@
 import { FsNode } from "./rust-fs-interface"
 import { LifoCache } from "./lifo-cache";
-import { UnwatchFn } from "@tauri-apps/plugin-fs";
+import { watchImmediate,WatchEvent,UnwatchFn } from "@tauri-apps/plugin-fs";
+import { isCreate,isModify,isRemove } from "./watcher-utils";
 
 export const heavyFolders = new Set(['node_modules','AppData','.git','src-tauri/target/debug'])//this will do for now.i will add more later on monitoring the search
 
@@ -22,6 +23,24 @@ searchCache.onEvict = (key) => {
         activeWatchers.delete(key);
     }
 }
-// onInsert:(value,key)=>{
-//     console.log(`HEURISTICS KEY: ${key} QUERY RECORDS: ${JSON.stringify(value,null,2)}`);
-// }
+export async function spawnSearchCacheWatcher(path:string) {
+    if (activeWatchers.has(path)) return; // Already watching
+    if (activeWatchers.size >= MAX_WATCHERS) return; // Limit reached
+    try {
+        const stop = await watchImmediate(path,(event:WatchEvent)=>{
+            if (isCreate(event.type) || isModify(event.type) || isRemove(event.type)) {
+                console.log('INVALIDATING THE SEARCH KEY IN CACHE: ',path);
+                searchCache.delete(path);
+                heuristicsCache.delete(path);
+                const stopFn = activeWatchers.get(path);
+                if (stopFn) {
+                    stopFn();              // Stop watching
+                    activeWatchers.delete(path); // Remove from active watchers
+                }
+            }
+        },{recursive:false})
+        activeWatchers.set(path,stop);
+    }catch(err) {
+        console.error(`Failed to watch path for search cache ${path}:`, err);
+    }
+}
