@@ -11,7 +11,7 @@ import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
-import { heavyFolders ,searchCache,heuristicsCache, Queries,spawnSearchCacheWatcher} from '../utils/globals';
+import { searchCache,heuristicsCache, Queries,spawnSearchCacheWatcher,isFolderHeavy} from '../utils/globals';
 import { info } from '@tauri-apps/plugin-log';
 
 console.log = (...args) => {
@@ -297,33 +297,23 @@ export function returnFileContent(filePath:string):AppThunk<Promise<string | nul
 function addToCache(arg:CachePayload,folderName:string):AppThunk {
     return (dispatch,getState)=>{
         console.log("Called add to cache");
+        if (isFolderHeavy(arg.path)) {
+            console.log("Refused to cache heavy folder: ",arg.path);
+            return
+        }
         const appCache:Cache = selectCache(getState());
         if (Object.keys(appCache).length >= 50) {//evict an item from the cache once it reaches 20
-            console.log("Cache length is greater than 3");
+            console.log("Cache length is greater than 50");
             dispatch(shiftCache())
-        }
-        const normalizedPath = arg.path.replace(/\\/g, '/');//to convert \ slash in widnows path to / slash
-        let isHeavy:boolean = false;
-        for (const heavyPath of heavyFolders) {
-            if (normalizedPath.endsWith(heavyPath)) {
-                console.log("Didnt cache heavy folder:",normalizedPath);
-                isHeavy = true
-                break;//it can only match one path at a given time so we dont need to process the rest
-            }
         }
         let dirNodes:FsNode[] = arg.data;
         if (!isAHomeTab(folderName)) {//bound the number of fsnodes per record in the cache if it isnt a home tab as unlike the home tab,they are always invalidated on reopen but they are displayed in the ui frozen in the meantime
-            dirNodes = arg.data.slice(0,100)
+            dirNodes = arg.data.slice(0,Math.min(100,dirNodes.length))
         }
-        if (!isHeavy) {//only add the folder to the cache if it isnt heavy
-            dispatch(recordInCache({path:arg.path,data:dirNodes}))
-        }
-        console.log("Cache: ",appCache);
+        dispatch(recordInCache({path:arg.path,data:dirNodes}))
         if (isAHomeTab(folderName)) {//validates the cache because its up to date
             console.log("Validated the cache",folderName);
             dispatch(validateTabCache({tabName:folderName}))//since the cache was just updated,it makes sense to validate it.Its the only point where its validated
-        }else {
-            console.log("Didnt validate the cache",folderName);
         }
         throttledStoreCache(dispatch);
     }
@@ -565,13 +555,10 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
     }
     //static heuristics 
     if (!processHeavyFolders) {//this reads that if the search loop shouldnt process any heavy folders,then push it to the heavy folder queue for the next search loop
-        const normalizedPath = currentSearchPath.replace(/\\/g, '/');// convert backslashes to slashes if on Windows
-        for (const heavyPath of heavyFolders) {
-            if (normalizedPath.endsWith(heavyPath)) {
-                console.log("Deferred heavy folder:",currentSearchPath);
-                heavyFolderQueue.push(currentSearchPath);
-                return true//it can only match one path at a given time so we dont need to process the rest
-            }
+        if (isFolderHeavy(currentSearchPath)) {
+            console.log("Deferred heavy folder:",currentSearchPath);
+            heavyFolderQueue.push(currentSearchPath);
+            return true//it can only match one path at a given time so we dont need to process the rest
         }
     }
     //dynamic heuristics.it uses the fuzzy engine to know which folder to prioritize first

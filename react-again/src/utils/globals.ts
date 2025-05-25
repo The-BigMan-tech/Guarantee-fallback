@@ -48,10 +48,8 @@ searchCache.onEvict = (key) => {
 }
 export async function spawnSearchCacheWatcher(path:string) {
     if (activeWatchers.has(path)) return; // Already watching
-    if (activeWatchers.size >= MAX_WATCHERS) {
-        console.log("WATCHER LIMIT REACHED");
-        return
-    }; // Limit reached
+    if (activeWatchers.size >= MAX_WATCHERS) return//reached its max size and requires deletion of an evicted cache watcher
+    if (isFolderHeavy(path)) return;//folder is too heavy to watch.keeps it in sync with the cache behaviour
     try {
         const stop = await watchImmediate(path,(event:WatchEvent)=>{
             if (isCreate(event.type) || isModify(event.type) || isRemove(event.type)) {

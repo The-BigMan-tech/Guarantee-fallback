@@ -1493,3 +1493,5 @@ resumability
 passive caching with metadata for validation
 
 *why does in work for record but not for sets and sets requires has method
+
+intercept to prevent from watching heavy folders
