@@ -5,7 +5,7 @@ import {v4 as uniqueID} from "uuid"
 import { toast } from "react-toastify";
 import { KeyboardEvent,useTransition } from "react";
 import { FsNode } from "../../../utils/rust-fs-interface";
-import Counter from "./counter";
+// import Counter from "./counter";
 
 
 export default function UpperTop() {
@@ -127,7 +127,7 @@ export default function UpperTop() {
                     </label>
                 </div>
             </div>
-            <Counter/>
+            {/* <Counter/> */}
         </div>
     )
 }
