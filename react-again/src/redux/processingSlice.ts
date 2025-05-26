@@ -500,9 +500,16 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
         }
     }
 }
-function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:string,isQueryLong:boolean):AppThunk<boolean> {
+interface longQueryArgs {
+    quickSearch:boolean,
+    fsNodes:FsNode[],
+    searchQuery:string,
+    isQueryLong:boolean
+}
+function longQueryOptimization(args:longQueryArgs):AppThunk<boolean> {
     return (dispatch):boolean=>{
         //This early termination is done at the batch level
+        const {quickSearch,fsNodes,searchQuery,isQueryLong} = args;
         if (quickSearch && isQueryLong) {//only performing this loop if quick search is on.it will be a waste if it runs on full search
             let anyRoughMatches:boolean = false
             for (const fsNodeInBatch of fsNodes) {
@@ -521,14 +528,21 @@ function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:
         return false
     }
 }
-function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean):AppThunk<Promise<void>> {
+interface UpdateSearchArgs {
+    fsNode:FsNode,
+    fsNodes:FsNode[],
+    searchQuery:string,
+    isLastFsNode:boolean
+}
+function updateSearchResults(args:UpdateSearchArgs):AppThunk<Promise<void>> {
     return async (dispatch,getState) =>{
+        const {fsNode,fsNodes,searchQuery,isLastFsNode} = args;
         const quickSearch:boolean = selectQuickSearch(getState());
         const isQueryLong:boolean = isLongQuery(searchQuery)
         const searchBatchSize:number = 10;//default batch size
         fsNodes.push(fsNode)//push the files
         if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
-            const anyRoughMatches:boolean = dispatch(longQueryOptimization(quickSearch,fsNodes,searchQuery,isQueryLong))
+            const anyRoughMatches:boolean = dispatch(longQueryOptimization({quickSearch,fsNodes,searchQuery,isQueryLong}))
             if (anyRoughMatches) {//i believe that this means that when it reaches the last node of the batch,it will check if there were any exact matches.if so,terminate and return else,proceed with fuzzy search
                 console.log("Terminated early!!");
                 dispatch(setSearchTermination(true));
@@ -546,7 +560,16 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         }
     }
 }
-function reuseQuery(key:string,currentSearchPath:string,sizeBonus:number,deferredPaths:Record<string,boolean>,deferredHeap: Heap<DeferredSearch>,cachedQueries:Queries):shouldSkip {
+interface ReuseQueryArgs {
+    key:string,
+    currentSearchPath:string,
+    sizeBonus:number,
+    deferredPaths:Record<string,boolean>,
+    deferredHeap:Heap<DeferredSearch>,
+    cachedQueries:Queries
+}
+function reuseQuery(args:ReuseQueryArgs):shouldSkip {
+    const {key,currentSearchPath,sizeBonus,deferredPaths,deferredHeap,cachedQueries} = args
     const relevanceData = cachedQueries[key]
     const shouldDefer:boolean = relevanceData.shouldDefer;
     const relevancePercent = relevanceData.relevancePercent
@@ -560,8 +583,28 @@ function reuseQuery(key:string,currentSearchPath:string,sizeBonus:number,deferre
         return false//dont skip the current iteration of the outer while loop of the caller
     }
 }
-async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSearchPath:string,rootPath:string,processHeavyFolders:boolean,heavyFolderQueue:string[],deferredHeap: Heap<DeferredSearch>,searchQuery:string,nodeResult:Promise<FsNode>[] | FsNode[]):Promise<shouldSkip> {
-    //*Heuristic analysis
+interface HeuristicsArgs {
+    deferredPaths:Record<string,boolean>,
+    currentSearchPath:string,
+    rootPath:string,
+    processHeavyFolders:boolean,
+    heavyFolderQueue:string[],
+    deferredHeap: Heap<DeferredSearch>,
+    searchQuery:string,
+    nodeResult:Promise<FsNode>[] | FsNode[]
+}
+async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
+    const {
+        deferredPaths,
+        currentSearchPath,
+        rootPath,
+        processHeavyFolders,
+        heavyFolderQueue,
+        deferredHeap,
+        searchQuery,
+        nodeResult
+    } = args;
+
     const isDeferred:boolean = deferredPaths[currentSearchPath] || false;
     console.log((!isDeferred)?`CURRENT SEARCH PATH ${currentSearchPath}`:`CURRENTLY PROCESSING DEFERRED PATH: ${currentSearchPath}`);
     if ((currentSearchPath === rootPath) || isDeferred) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched and i also dont want it to perform relvance calc on something that has already gone through it like deferred paths when the deferred queue has its turn.    
@@ -582,15 +625,16 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
     //utilizing the resumability cache
     const cachedQueries:Queries = heuristicsCache.get(currentSearchPath) || {};
     console.log('SEARCH PATH: |',currentSearchPath,'|CACHED QUERIES: |',JSON.stringify(cachedQueries,null,2));
+    const reuseQueryArgs:ReuseQueryArgs = {key:"",currentSearchPath,sizeBonus,deferredPaths,deferredHeap,cachedQueries}
     if (searchQuery in cachedQueries) {
-        return reuseQuery(searchQuery,currentSearchPath,sizeBonus,deferredPaths,deferredHeap,cachedQueries)
+        return reuseQuery({...reuseQueryArgs,key:searchQuery})
     }else {
         for (const queryKey of Object.keys(cachedQueries)) {
             const similarityThreshold = 40
             const querySimilarity = getMatchScore(searchQuery,queryKey,10)
             console.log(' processingSlice.ts:570 => heuristicsAnalysis => querySimilarity:', querySimilarity);
             if (querySimilarity > similarityThreshold) {//reusing the heuristics of previous similar queries
-                return reuseQuery(queryKey,currentSearchPath,sizeBonus,deferredPaths,deferredHeap,cachedQueries)
+                return reuseQuery({...reuseQueryArgs,key:queryKey})
             }
         }
     }
@@ -658,9 +702,17 @@ function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise
         }
     }
 }
+interface searchInBreadthArgs {
+    rootPath:string,
+    searchQuery:string,
+    heavyFolderQueue:string[],
+    processHeavyFolders:boolean,
+    startTime:number
+}
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
-function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:string[],processHeavyFolders:boolean,startTime:number):AppThunk<Promise<void>> {
+function searchInBreadth(args:searchInBreadthArgs):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
+        const {rootPath,searchQuery,heavyFolderQueue,processHeavyFolders,startTime} = args;
         const queue:Queue = (processHeavyFolders)?heavyFolderQueue:[rootPath];//switch to heavy folders as called by the searchDir
         const deferredPaths:Record<string,boolean> = {};
         const deferredHeap = new Heap((a:DeferredSearch, b:DeferredSearch) => b.priority - a.priority);
@@ -684,11 +736,12 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                 }
                 deferredHeap.clear() // Clear deferred queue
             }
+
             const dirResult:DirResult = await dispatch(getDirResult(currentSearchPath,rootPath))
             console.log("DIR RESULT",dirResult.value);
 
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
-                const nextIteration:shouldSkip = await heuristicsAnalysis(deferredPaths,currentSearchPath,rootPath,processHeavyFolders,heavyFolderQueue,deferredHeap,searchQuery,dirResult.value);
+                const nextIteration:shouldSkip = await heuristicsAnalysis({deferredPaths,currentSearchPath,rootPath,processHeavyFolders,heavyFolderQueue,deferredHeap,searchQuery,nodeResult:dirResult.value});
                 if (nextIteration) {
                     console.log("Continued the loop");
                     continue
@@ -710,7 +763,7 @@ function searchInBreadth(rootPath:string,searchQuery:string,heavyFolderQueue:str
                     }
                     const isLastFsNode = localIndex == (dirResult.value.length-1);
                     const awaitedFsNode = await fsNode;
-                    const batchThunk = updateSearchResults(awaitedFsNode,fsNodes,searchQuery,isLastFsNode)
+                    const batchThunk = updateSearchResults({fsNode:awaitedFsNode,fsNodes,searchQuery,isLastFsNode})
                     console.log("Is last fsnode",isLastFsNode);
                     if (awaitedFsNode.primary.nodeType == "File") {//passing islast is necessary for quick search even if it matches or not because it needs to terminate the batch if the one that survived is the only match for example and not the last at the same time
                         if (quickSearch) {
@@ -758,10 +811,10 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         const currentPath:string = selectCurrentPath(getState());
 
         const heavyFolderQueue:string[] = [];
-        await dispatch(searchInBreadth(currentPath,searchQuery,heavyFolderQueue,false,startTime));
+        await dispatch(searchInBreadth({rootPath:currentPath,searchQuery,heavyFolderQueue,processHeavyFolders:false,startTime}));
         const quickSearch = selectQuickSearch(getState());
         if (!quickSearch) {//only run the second search loop in full search mode
-            await dispatch(searchInBreadth(currentPath,searchQuery,heavyFolderQueue,true,startTime));
+            await dispatch(searchInBreadth({rootPath:currentPath,searchQuery,heavyFolderQueue,processHeavyFolders:true,startTime}));
         }
         const forceTermination:boolean = selectSearchTermination(getState());
         if (!(quickSearch) && !(forceTermination)) {
