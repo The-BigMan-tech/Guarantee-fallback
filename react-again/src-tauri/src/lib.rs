@@ -29,7 +29,7 @@ pub fn run() {
                 .targets([
                     Target::new(TargetKind::Folder { path:log_dir, file_name:Some(String::from("app-log"))})
                 ])
-                .level(LevelFilter::Info)
+                .level(LevelFilter::Debug)
                 .format(
                     |out, message, record| {
                         out.finish(format_args!("|{}|: {}", record.level(), message))

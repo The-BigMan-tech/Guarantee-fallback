@@ -11,14 +11,24 @@ import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
-import { searchCache,heuristicsCache, Queries,isFolderHeavy} from '../utils/globals';
-// import { info } from '@tauri-apps/plugin-log';
+import { searchCache,heuristicsCache, Queries,isFolderHeavy,modifyLogs} from '../utils/globals';
 
-// console.log = (...args) => {
-//     info(args.join(' '));
-// };
+modifyLogs();
 
 
+type shouldSkip = boolean;
+type DirResult = FsResult<(Promise<FsNode>)[] | Error | null> | FsResult<FsNode[]>
+type DeferredSearch = {path:string,priority:number}
+type Cache = Record<NodePath,FsNode[]>;
+type CachePayload = {path:NodePath,data:FsNode[]}
+type CachingState = 'pending' | 'success';
+type StrictTabsType = 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos';
+type AllTabTypes = 'Home' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos'
+type  invalidationData = {tabName:AllTabTypes}
+type NodePath = string;
+type Queue = NodePath[];
+export type SortingOrder = 'name' | 'date' | 'type' | 'size';
+export type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
 
 export const toastConfig:ToastOptions = {
     position: "top-center",
@@ -38,19 +48,6 @@ export const loading_toastConfig:ToastOptions = {
     transition:Zoom,
     toastId:"loading"
 }
-type shouldSkip = boolean;
-type DirResult = FsResult<(Promise<FsNode>)[] | Error | null> | FsResult<FsNode[]>
-type DeferredSearch = {path:string,priority:number}
-type Cache = Record<NodePath,FsNode[]>;
-type CachePayload = {path:NodePath,data:FsNode[]}
-type CachingState = 'pending' | 'success';
-type StrictTabsType = 'Recent' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos';
-type AllTabTypes = 'Home' | 'Desktop'|'Downloads' | 'Documents' | 'Pictures' | 'Music' |'Videos'
-type  invalidationData = {tabName:AllTabTypes}
-type NodePath = string;
-type Queue = NodePath[];
-
-
 
 interface  TabCacheInvalidation {
     Home:boolean,
@@ -61,10 +58,6 @@ interface  TabCacheInvalidation {
     Music:boolean,
     Videos:boolean
 }
-export type SortingOrder = 'name' | 'date' | 'type' | 'size';
-export type View = 'xl' | 'l' | 'md' | 'sm' | 'list' | 'details' | 'tiles' | 'content';
-
-
 export interface Message {
     id:string,
     message:string | null
@@ -73,7 +66,6 @@ export interface NodeCount {
     path:string | null,
     save:boolean
 }
-
 export interface processingSliceState {//by using null unions instead of optional types,i ensure that my app doesnt accidenteally worked with an undefined value
     currentPath:string,//as breadcrumbs
     tabNames:string[],//home tabs
@@ -95,8 +87,6 @@ export interface processingSliceState {//by using null unions instead of optiona
     showDetailsPane:boolean//to show extra details like charts or disk usage,
     openedFile:FsNode | null
 }
-
-
 const initialState:processingSliceState = {
     currentPath:"",
     tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos'],//Home and recent are only local to sidebar cuz there is no dir named home and recent on the fs
@@ -591,7 +581,7 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
         const score1 = getMatchScore(searchQuery,awaitedNode.primary.nodeName,minThreshold);
         const score2 = getMatchScore(searchQuery,(awaitedNode.primary.fileExtension || ""),minThreshold);
         const matchScore = (score2>score1)?score2:score1;
-        // console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
+        console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
         if (matchScore >= 40) {//the number of matches increases qualitative relevance
             relevantNodes += 1
             relevancePercent = roundToTwo( (relevantNodes / totalNodes) * 100 )//to ensure that the relevance percent is always updated upon looping

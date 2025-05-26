@@ -2,7 +2,25 @@ import { FsNode } from "./rust-fs-interface"
 import { LifoCache } from "./lifo-cache";
 import { watchImmediate,WatchEvent,UnwatchFn } from "@tauri-apps/plugin-fs";
 import { isCreate,isModify,isRemove } from "./watcher-utils";
+import { info,debug,error,warn} from '@tauri-apps/plugin-log';
 
+const shouldLogToFile:boolean = true;
+export function modifyLogs() {
+    if (shouldLogToFile) {
+        console.log = (...args) => {
+            debug(args.join(' '));
+        };
+        console.info = (...args) => {
+            info(args.join(' '));
+        };
+        console.warn = (...args) => {
+            warn(args.join(' '));
+        };
+        console.error = (...args) => {
+            error(args.join(' '));
+        };
+    }
+}
 export const heavyFolders = new Set(['node_modules','AppData','.git','src-tauri/target/debug'])//this will do for now.i will add more later on monitoring the search
 
 export function isFolderHeavy(path:string):boolean {
