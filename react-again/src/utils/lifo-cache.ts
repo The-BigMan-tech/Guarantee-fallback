@@ -5,7 +5,7 @@ export class LifoCache<K, V> {
 
     public onSet?: (key: K, value: V) => boolean;
     public onEvict?: (key: K, value: V) => void;
-    public onGet?:(value:V | undefined)=>V | undefined;//if i passed the key and return the value of the key in the hook using this object,it may be in an infinite loop cuz this.onegt will always be defined
+    public onGet?:(key:K,value:V | undefined)=>V | undefined;//if i passed the key and return the value of the key in the hook using this object,it may be in an infinite loop cuz this.onegt will always be defined
 
     constructor(options: { max: number }) {
         this.max = options.max;
@@ -15,7 +15,7 @@ export class LifoCache<K, V> {
     get(key: K): V | undefined {
         const value = this.map.get(key)
         if (this.onGet) {
-            return this.onGet(value)
+            return this.onGet(key,value)//the key is not meant to be used by the interceptor to return the value to prevent recursion
         }
         return value;
     }

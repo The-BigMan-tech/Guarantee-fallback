@@ -72,7 +72,7 @@ export interface RelevanceData {
 }
 export type Queries = Record<Query,RelevanceData>
 
-const maxCacheSize = 200;
+const maxCacheSize = 0;
 
 export const searchCache:LifoCache<string,FsNode[]> = new LifoCache({ max:maxCacheSize })
 export const heuristicsCache:LifoCache<string,Queries> = new LifoCache({ max:maxCacheSize})
@@ -97,6 +97,20 @@ searchCache.onEvict = (key,value) => {
 heuristicsCache.onEvict = (key,value) => {
     passiveHeuristicsCache.set(key,value)
     terminateWatcher(key)
+}
+searchCache.onGet = (key,value) => {
+    if (value) {
+        return value
+    };
+    memConsoleLog("Returning from passive search cache: ",key);
+    return passiveSearchCache.get(key)
+}
+heuristicsCache.onGet = (key,value) => {
+    if (value) {
+        return value
+    };
+    memConsoleLog("Returning from passive heuristic cache: ",key);
+    return passiveHeuristicsCache.get(key)
 }
 export async function spawnSearchCacheWatcher(path:string) {
     if (activeWatchers.has(path)) return; // Already watching
