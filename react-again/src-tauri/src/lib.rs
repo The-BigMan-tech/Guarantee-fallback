@@ -3,7 +3,7 @@ use std::env;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
-use std::time::SystemTime;
+use std::time::{SystemTime,UNIX_EPOCH};
 use tauri::command;
 use tauri_plugin_log::{Builder as LogBuilder,Target,TargetKind};
 use log::LevelFilter;
@@ -157,8 +157,9 @@ fn write_file(path: String, contents: String) -> Result<(), String> {
     Ok(())
 } 
 #[command]
-fn get_mtime(path:&str)->Result<SystemTime,String> {
+fn get_mtime(path: &str) -> Result<u128, String> {
     let metadata: fs::Metadata = fs::metadata(path).map_err(|e| e.to_string())?;
     let mtime:SystemTime = metadata.modified().map_err(|e| e.to_string())?;
-    return Ok(mtime);
+    let duration = mtime.duration_since(UNIX_EPOCH).map_err(|e| e.to_string())?;
+    Ok(duration.as_millis())
 }

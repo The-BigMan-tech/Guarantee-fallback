@@ -129,7 +129,7 @@ export async function writeFile(filePath: string,content:string): Promise<FsResu
 }
 export async function getMtime(filePath: string): Promise<FsResult<Date | Error>> {
     try {
-        const mtime:Date = await invoke('get_mtime', {path:filePath});
+        const mtime:Date = new Date(await invoke('get_mtime', {path:filePath}));
         return FsResult.Ok(mtime);
     } catch (error: unknown) {
         return FsResult.Err(error);
