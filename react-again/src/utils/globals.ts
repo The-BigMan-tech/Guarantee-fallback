@@ -4,20 +4,30 @@ import { watchImmediate,WatchEvent,UnwatchFn } from "@tauri-apps/plugin-fs";
 import { isCreate,isModify,isRemove } from "./watcher-utils";
 import { info,debug,error,warn} from '@tauri-apps/plugin-log';
 
-const shouldLogToFile:boolean = true;
+
+const shouldLogToFile:boolean = false;
+
+export const memConsoleLog = console.log
+export const memConsoleInfo = console.info
+export const memConsoleWarn = console.warn
+export const memConsoleError = console.error
+
 export function modifyLogs() {
+    function formatArgs(args:unknown[]) {
+        return args.map(arg => typeof arg === 'string' ? arg : JSON.stringify(arg,null,2)).join(' ');
+    }
     if (shouldLogToFile) {
         console.log = (...args) => {
-            debug(args.join(' '));
+            debug(formatArgs(args));
         };
         console.info = (...args) => {
-            info(args.join(' '));
+            info(formatArgs(args));
         };
         console.warn = (...args) => {
-            warn(args.join(' '));
+            warn(formatArgs(args));
         };
         console.error = (...args) => {
-            error(args.join(' '));
+            error(formatArgs(args));
         };
     }
 }

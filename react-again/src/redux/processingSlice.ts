@@ -11,9 +11,8 @@ import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
-import { searchCache,heuristicsCache, Queries,isFolderHeavy,modifyLogs, RelevanceData} from '../utils/globals';
+import { searchCache,heuristicsCache, Queries,isFolderHeavy,RelevanceData} from '../utils/globals';
 
-modifyLogs();
 function isLongQuery(searchQuery:string):boolean {
     return searchQuery.length >= 15;
 }

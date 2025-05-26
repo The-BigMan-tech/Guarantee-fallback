@@ -149,6 +149,7 @@ higher order thunks
 cache utility--normal caching and ahead of time caching
 app.tsx for setting up the app on startup using useEffects.like opening a tab on startup,caching specific folders ahead of time and deciding how the ui responds to aot caching
 throttlers
+logging configuration
 
 jotai atoms--for unserializable data
 *------------------------------------------------------------------------------------------
