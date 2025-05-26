@@ -697,8 +697,8 @@ function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {//cache before return so that it caches as it searches
                 const result = await Promise.all(dirResult.value)
                 searchCache.set(currentSearchPath,result);
-            }
-            return dirResult
+            };
+            return dirResult;
         }
     }
 }

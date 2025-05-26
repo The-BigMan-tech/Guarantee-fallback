@@ -3,8 +3,9 @@ export class LifoCache<K, V> {
     private map: Map<K, V>;
     private stack: K[];
 
-    public onSet?: (key: K, value: V) => boolean | void;
+    public onSet?: (key: K, value: V) => boolean;
     public onEvict?: (key: K, value: V) => void;
+    public onGet?:(value:V | undefined)=>V | undefined;//if i passed the key and return the value of the key in the hook using this object,it may be in an infinite loop cuz this.onegt will always be defined
 
     constructor(options: { max: number }) {
         this.max = options.max;
@@ -12,7 +13,11 @@ export class LifoCache<K, V> {
         this.stack = [];
     }
     get(key: K): V | undefined {
-        return this.map.get(key);
+        const value = this.map.get(key)
+        if (this.onGet) {
+            return this.onGet(value)
+        }
+        return value;
     }
     has(key: K): boolean {
         return this.map.has(key);

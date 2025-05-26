@@ -20,7 +20,8 @@ pub fn run() {
             path_basename,
             fs_stat,
             read_file,
-            write_file
+            write_file,
+            get_mtime
         ])
         .setup(|app| {   
             app.handle().plugin(
@@ -154,4 +155,10 @@ fn write_file(path: String, contents: String) -> Result<(), String> {
     std::fs::write(&path, &contents)
         .map_err(|e| format!("Failed to write file: {}", e))?;
     Ok(())
+} 
+#[command]
+fn get_mtime(path:&str)->Result<SystemTime,String> {
+    let metadata: fs::Metadata = fs::metadata(path).map_err(|e| e.to_string())?;
+    let mtime:SystemTime = metadata.modified().map_err(|e| e.to_string())?;
+    return Ok(mtime);
 }

@@ -76,6 +76,11 @@ const maxCacheSize = 200;
 
 export const searchCache:LifoCache<string,FsNode[]> = new LifoCache({ max:maxCacheSize })
 export const heuristicsCache:LifoCache<string,Queries> = new LifoCache({ max:maxCacheSize})
+
+const maxPassiveCacheSize = 50
+const passiveSearchCache:LifoCache<string,FsNode[]> = new LifoCache({ max:maxPassiveCacheSize })
+const passiveHeuristicsCache:LifoCache<string,Queries> = new LifoCache({ max:maxPassiveCacheSize})
+
 export const MAX_WATCHERS = maxCacheSize;
 export const activeWatchers = new Map<string,UnwatchFn>();
 
@@ -85,10 +90,12 @@ searchCache.onSet = (key) => {
 heuristicsCache.onSet = (key) => {
     return shouldCacheEntry(key)
 }
-searchCache.onEvict = (key) => {
+searchCache.onEvict = (key,value) => {
+    passiveSearchCache.set(key,value)
     terminateWatcher(key)
 }
-heuristicsCache.onEvict = (key) => {
+heuristicsCache.onEvict = (key,value) => {
+    passiveHeuristicsCache.set(key,value)
     terminateWatcher(key)
 }
 export async function spawnSearchCacheWatcher(path:string) {
