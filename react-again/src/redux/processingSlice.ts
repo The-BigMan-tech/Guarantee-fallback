@@ -327,7 +327,7 @@ function openCachedDirInApp(folderPath:string):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
         console.log("called open dir in app");
         const cache:Cache = selectCache(getState());
-        const cached_data = cache[folderPath] || searchCache.get(folderPath) || [];//  [] array means its loading not that its empty
+        const cached_data = cache[folderPath] || await searchCache.get(folderPath) || [];//  [] array means its loading not that its empty
         console.log("Cached data in open",cached_data);
         const cache_length = cached_data.length;
         const slice_number = 10
@@ -623,7 +623,7 @@ async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
     const sizeBonus:number = roundToTwo( (1 / (1 + totalNodes)) * 5);//added size bonus to make ones with smaller sizes more relevant and made it range from 0-5 so that it doesnt negligibly affects the relevance score
 
     //utilizing the resumability cache
-    const cachedQueries:Queries = heuristicsCache.get(currentSearchPath) || {};
+    const cachedQueries:Queries = await heuristicsCache.get(currentSearchPath) || {};
     console.log('SEARCH PATH: |',currentSearchPath,'|CACHED QUERIES: |',JSON.stringify(cachedQueries,null,2));
     const reuseQueryArgs:ReuseQueryArgs = {key:"",currentSearchPath,sizeBonus,deferredPaths,deferredHeap,cachedQueries}
     if (searchQuery in cachedQueries) {
@@ -657,7 +657,7 @@ async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
             if ((relevancePercent >= relevanceThreshold) || (matchScore >= matchPercentThreshold)) { //the match score is used to check for the quality of the relevance
                 console.log("SEARCH PATH:",currentSearchPath,"IS BEING PROCESSED IMMEDIATELY");
                 const relevanceData:RelevanceData = {shouldDefer:false,relevancePercent}
-                heuristicsCache.set(currentSearchPath,{...cachedQueries,[searchQuery]:relevanceData});
+                await heuristicsCache.set(currentSearchPath,{...cachedQueries,[searchQuery]:relevanceData});
                 return false//early termination once enough relevance has been reached
             }
         };
@@ -668,7 +668,7 @@ async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
         deferredPaths[currentSearchPath] = true
         deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus});//defer for later.it defers the current search path unlike the static heuristics
         const relevanceData:RelevanceData = {shouldDefer:true,relevancePercent}
-        heuristicsCache.set(currentSearchPath,{...cachedQueries,[searchQuery]:relevanceData});
+        await heuristicsCache.set(currentSearchPath,{...cachedQueries,[searchQuery]:relevanceData});
         return true; // Skip processing now
     }else {
         return false
@@ -677,7 +677,7 @@ async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
 function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise<DirResult>> {
     return async (_,getState)=>{
         const cache:Cache = selectCache(getState());
-        const searchedData = searchCache.get(currentSearchPath);
+        const searchedData = await searchCache.get(currentSearchPath);
         console.log(' processingSlice.ts:629 => return => searchedData:', searchedData);
         if (currentSearchPath === rootPath) {//since the rootpath is the currentpath opened in the app,it will just select the fsnodes directly from the app state if its processing the rootpath
             console.log("SEARCHING ROOT PATH");
@@ -696,7 +696,7 @@ function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise
             const dirResult = await readDirectory(currentSearchPath,'arbitrary');//arbritrayry order is preferred here since it uses its own heuristic to prioritize folders over metadata like size.ill still leave the other options in the tauri side in case of future requirements
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {//cache before return so that it caches as it searches
                 const result = await Promise.all(dirResult.value)
-                searchCache.set(currentSearchPath,result);
+                await searchCache.set(currentSearchPath,result);
             };
             return dirResult;
         }

@@ -1,4 +1,4 @@
-import { FsNode } from "./rust-fs-interface"
+import { FsNode, FsResult, getMtime } from "./rust-fs-interface"
 import { LifoCache } from "./lifo-cache";
 import { watchImmediate,WatchEvent,UnwatchFn } from "@tauri-apps/plugin-fs";
 import { isCreate,isModify,isRemove } from "./watcher-utils";
@@ -77,9 +77,13 @@ const maxCacheSize = 0;
 export const searchCache:LifoCache<string,FsNode[]> = new LifoCache({ max:maxCacheSize })
 export const heuristicsCache:LifoCache<string,Queries> = new LifoCache({ max:maxCacheSize})
 
+interface PassiveCache<V> {
+    data:V,
+    mtime:Date
+}
 const maxPassiveCacheSize = 50
-const passiveSearchCache:LifoCache<string,FsNode[]> = new LifoCache({ max:maxPassiveCacheSize })
-const passiveHeuristicsCache:LifoCache<string,Queries> = new LifoCache({ max:maxPassiveCacheSize})
+const passiveSearchCache:LifoCache<string,PassiveCache<FsNode[]>> = new LifoCache({ max:maxPassiveCacheSize })
+const passiveHeuristicsCache:LifoCache<string,PassiveCache<Queries>> = new LifoCache({ max:maxPassiveCacheSize})
 
 export const MAX_WATCHERS = maxCacheSize;
 export const activeWatchers = new Map<string,UnwatchFn>();
@@ -90,27 +94,45 @@ searchCache.onSet = (key) => {
 heuristicsCache.onSet = (key) => {
     return shouldCacheEntry(key)
 }
-searchCache.onEvict = (key,value) => {
-    passiveSearchCache.set(key,value)
+searchCache.onEvict = async (key,value) => {
+    const mtimeResult:FsResult<Date | Error> = await getMtime(key);   
+    if (!(mtimeResult.value instanceof Error)) {
+        passiveSearchCache.set(key,{data:value,mtime:mtimeResult.value})
+    }
     terminateWatcher(key)
 }
-heuristicsCache.onEvict = (key,value) => {
-    passiveHeuristicsCache.set(key,value)
+heuristicsCache.onEvict = async (key,value) => {
+    const mtimeResult:FsResult<Date | Error> = await getMtime(key);   
+    if (!(mtimeResult.value instanceof Error)) {
+        passiveHeuristicsCache.set(key,{data:value,mtime:mtimeResult.value})
+    }
     terminateWatcher(key)
 }
-searchCache.onGet = (key,value) => {
+searchCache.onGet = async (key,value) => {
     if (value) {
         return value
     };
-    memConsoleLog("Returning from passive search cache: ",key);
-    return passiveSearchCache.get(key)
+    const mtimeResult:FsResult<Date | Error> = await getMtime(key);
+    if (!(mtimeResult.value instanceof Error)) {
+        memConsoleLog("Checking passive search cache: ",key);
+        const currentMtime = mtimeResult.value
+        const passiveEntry = await passiveSearchCache.get(key);
+        memConsoleLog("Is Valid?: ",(currentMtime==passiveEntry?.mtime))
+        return (currentMtime.getTime()==passiveEntry?.mtime.getTime())?passiveEntry?.data:undefined;
+    }
 }
-heuristicsCache.onGet = (key,value) => {
+heuristicsCache.onGet = async (key,value) => {
     if (value) {
         return value
     };
-    memConsoleLog("Returning from passive heuristic cache: ",key);
-    return passiveHeuristicsCache.get(key)
+    const mtimeResult:FsResult<Date | Error> = await getMtime(key);
+    if (!(mtimeResult.value instanceof Error)) {
+        memConsoleLog("Checking passive heuristic cache: ",key);
+        const currentMtime = mtimeResult.value
+        const passiveEntry = await passiveHeuristicsCache.get(key)
+        memConsoleLog("Is Valid?: ",(currentMtime==passiveEntry?.mtime))
+        return (currentMtime.getTime()==passiveEntry?.mtime.getTime())?passiveEntry?.data:undefined;
+    }
 }
 export async function spawnSearchCacheWatcher(path:string) {
     if (activeWatchers.has(path)) return; // Already watching
