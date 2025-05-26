@@ -10,7 +10,6 @@ use log::LevelFilter;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {    
-    let log_dir = PathBuf::from("logs");
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
@@ -27,7 +26,7 @@ pub fn run() {
             app.handle().plugin(
                 LogBuilder::new()
                 .targets([
-                    Target::new(TargetKind::Folder { path:log_dir, file_name:Some(String::from("app-log"))})
+                    Target::new(TargetKind::LogDir {file_name:Some(String::from("app-log"))})
                 ])
                 .level(LevelFilter::Debug)
                 .format(

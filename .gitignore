@@ -4,8 +4,9 @@
 **/dist/
 **/target/debug
 **/target/release
+**/logs/
 
-#Im ignoring this one because i can always regenerate it again with the rustlings package.
+#*Im ignoring this one because i can always regenerate it again with the rustlings package.
 **/rustlings
 
 #*Ignore the .env file in all directories
@@ -19,14 +20,12 @@
 **/test-bin-example.json
 **/*.o
 **/*.timestamp
-**/*.lock
 **/*.rmeta
 **/*.d
 **/*.TAG
 **/*.exe
 **/*.pdb
 **/.rustc_info.json
-**/.cargo-lock
 
 #*Dont ignore these from rust
 !**/Cargo.lock
