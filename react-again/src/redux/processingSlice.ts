@@ -546,6 +546,20 @@ function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,i
         }
     }
 }
+function reuseQuery(key:string,currentSearchPath:string,sizeBonus:number,deferredPaths:Record<string,boolean>,deferredHeap: Heap<DeferredSearch>,cachedQueries:Queries):shouldSkip {
+    const relevanceData = cachedQueries[key]
+    const shouldDefer:boolean = relevanceData.shouldDefer;
+    const relevancePercent = relevanceData.relevancePercent
+    if (shouldDefer) {
+        console.log("DEFERRED EARLY: ",currentSearchPath);
+        deferredPaths[currentSearchPath] = true
+        deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus})
+        return true//skip the current iteration of the outer while loop of the caller
+    }else {
+        console.log("PROCESSED EARLY: ",currentSearchPath);
+        return false//dont skip the current iteration of the outer while loop of the caller
+    }
+}
 async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSearchPath:string,rootPath:string,processHeavyFolders:boolean,heavyFolderQueue:string[],deferredHeap: Heap<DeferredSearch>,searchQuery:string,nodeResult:Promise<FsNode>[] | FsNode[]):Promise<shouldSkip> {
     //*Heuristic analysis
     const isDeferred:boolean = deferredPaths[currentSearchPath] || false;
@@ -568,22 +582,15 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
     //utilizing the resumability cache
     const cachedQueries:Queries = heuristicsCache.get(currentSearchPath) || {};
     console.log('SEARCH PATH: |',currentSearchPath,'|CACHED QUERIES: |',JSON.stringify(cachedQueries,null,2));
-    for (const queryKey of Object.keys(cachedQueries)) {
-        const similarityThreshold = 40
-        const querySimilarity = getMatchScore(searchQuery,queryKey,10)
-        console.log(' processingSlice.ts:570 => heuristicsAnalysis => querySimilarity:', querySimilarity);
-        if (querySimilarity > similarityThreshold) {//reusing the heuristics of previous similar queries
-            const relevanceData = cachedQueries[queryKey]
-            const shouldDefer:boolean = relevanceData.shouldDefer;
-            const relevancePercent = relevanceData.relevancePercent
-            if (shouldDefer) {
-                console.log("DEFERRED EARLY: ",currentSearchPath);
-                deferredPaths[currentSearchPath] = true
-                deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus})
-                return true//skip the current iteration of the outer while loop of the caller
-            }else {
-                console.log("PROCESSED EARLY: ",currentSearchPath);
-                return false//dont skip the current iteration of the outer while loop of the caller
+    if (searchQuery in cachedQueries) {
+        return reuseQuery(searchQuery,currentSearchPath,sizeBonus,deferredPaths,deferredHeap,cachedQueries)
+    }else {
+        for (const queryKey of Object.keys(cachedQueries)) {
+            const similarityThreshold = 40
+            const querySimilarity = getMatchScore(searchQuery,queryKey,10)
+            console.log(' processingSlice.ts:570 => heuristicsAnalysis => querySimilarity:', querySimilarity);
+            if (querySimilarity > similarityThreshold) {//reusing the heuristics of previous similar queries
+                return reuseQuery(queryKey,currentSearchPath,sizeBonus,deferredPaths,deferredHeap,cachedQueries)
             }
         }
     }
