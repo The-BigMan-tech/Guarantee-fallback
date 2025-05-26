@@ -18,7 +18,7 @@ function isLongQuery(searchQuery:string):boolean {
     return searchQuery.length >= 15;
 }
 function searchMatchScore(searchQuery:string,node:FsNode):number {
-    const minThreshold = 10
+    const minThreshold = 15
     const score1 = getMatchScore(searchQuery,node.primary.nodeName,minThreshold);
     const score2 = getMatchScore(searchQuery,(node.primary.fileExtension || ""),minThreshold);
     return (score2>score1)?score2:score1;

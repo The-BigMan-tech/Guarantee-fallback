@@ -512,6 +512,7 @@ file search,debouncing
 framer motion
 lazy recursive file search
 todo:previews--video,img,audio,text area tags,react pdf,highlight js,react player,mammoth js,three js,react window
+todo:testing
 todo:file editing on the preview editor
 todo:file actions on a pane --in-state modification and io operation for significant performance
 todo:file actions on right click
@@ -538,6 +539,7 @@ Synchronization theory
 immutability theory
 indempotency theory
 test theory
+log theory
 Concurrency data theory-stale reads and race conditions
 debugging theory--step through/detail hunting debugging,dismantling debugging
 reactivity and state theory
