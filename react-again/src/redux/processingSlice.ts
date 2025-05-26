@@ -16,14 +16,16 @@ import { searchCache,heuristicsCache, Queries,isFolderHeavy,RelevanceData} from 
 function isLongQuery(searchQuery:string):boolean {
     return searchQuery.length >= 15;
 }
-function searchMatchScore(searchQuery:string,node:FsNode):number {
-    const minThreshold = 15
+function searchMatchScore(searchQuery:string,node:FsNode,minThreshold=15):number {
     const score1 = getMatchScore(searchQuery,node.primary.nodeName,minThreshold);
-    const score2 = getMatchScore(searchQuery,(node.primary.fileExtension || ""),minThreshold);
+    let score2 = 0
+    if (searchQuery.includes(".")) {
+        score2 = getMatchScore(searchQuery,(node.primary.fileExtension || ""),minThreshold);
+    }
     return (score2>score1)?score2:score1;
 }
 function getAcceptableScore(searchQuery:string):number {
-    if (searchQuery.length <= 10) {
+    if (searchQuery.length <= 6) {
         return 20
     }
     return 40
@@ -484,10 +486,11 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
             const matchedFsNodes:FsNode[] = [] 
             const acceptableScore = getAcceptableScore(searchQuery)
             for (const node of fsNodes) {
-                const score = searchMatchScore(searchQuery,node)
+                const score = searchMatchScore(searchQuery,node);
+                console.log("MATCH SCORE","NODE:",node.primary.nodeName,"|SCORE:",score);
                 if (score >= acceptableScore) {
                     dispatch(pushToSearchScores(score))
-                    matchedFsNodes.push(node)
+                    matchedFsNodes.push(node);
                 }
             }
             console.log("MATCHED FS NODES",matchedFsNodes);
@@ -565,18 +568,23 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
     //utilizing the resumability cache
     const cachedQueries:Queries = heuristicsCache.get(currentSearchPath) || {};
     console.log('SEARCH PATH: |',currentSearchPath,'|CACHED QUERIES: |',JSON.stringify(cachedQueries,null,2));
-    if (searchQuery in cachedQueries) {
-        const relevanceData = cachedQueries[searchQuery]
-        const shouldDefer:boolean = relevanceData.shouldDefer;
-        const relevancePercent = relevanceData.relevancePercent
-        if (shouldDefer) {
-            console.log("DEFERRED EARLY: ",currentSearchPath);
-            deferredPaths[currentSearchPath] = true
-            deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus})
-            return true//skip the current iteration of the outer while loop of the caller
-        }else {
-            console.log("PROCESSED EARLY: ",currentSearchPath);
-            return false//dont skip the current iteration of the outer while loop of the caller
+    for (const queryKey of Object.keys(cachedQueries)) {
+        const similarityThreshold = 40
+        const querySimilarity = getMatchScore(searchQuery,queryKey,10)
+        console.log(' processingSlice.ts:570 => heuristicsAnalysis => querySimilarity:', querySimilarity);
+        if (querySimilarity > similarityThreshold) {//reusing the heuristics of previous similar queries
+            const relevanceData = cachedQueries[queryKey]
+            const shouldDefer:boolean = relevanceData.shouldDefer;
+            const relevancePercent = relevanceData.relevancePercent
+            if (shouldDefer) {
+                console.log("DEFERRED EARLY: ",currentSearchPath);
+                deferredPaths[currentSearchPath] = true
+                deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus})
+                return true//skip the current iteration of the outer while loop of the caller
+            }else {
+                console.log("PROCESSED EARLY: ",currentSearchPath);
+                return false//dont skip the current iteration of the outer while loop of the caller
+            }
         }
     }
     const relevanceThreshold = 50;
@@ -589,7 +597,7 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
         const awaitedNode = await node;
         const matchScore = searchMatchScore(searchQuery,awaitedNode);
         const acceptableScore = getAcceptableScore(searchQuery)
-        console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
+        // console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
         
         if (matchScore >= acceptableScore) {//the number of matches increases qualitative relevance
             relevantNodes += 1
@@ -754,10 +762,17 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
             const searchResults:FsNode[] = selectSearchResults(getState()) || [];
             const resultScores:number[] = selectSearchScores(getState());
             if (searchResults.length > 0 && (searchResults.length === resultScores.length)) {//i believe this will only fail when theres no search result
+                let displayThreshold = 0
                 const pairedResults = searchResults.map((node, i) => ({node,score: resultScores[i]}));
-                pairedResults.sort((a, b) => a.score - b.score);
-                const sortedResults = pairedResults.map(pair => pair.node);//safer,clearer and optimized enough to return each node as a copy into the array rather than directly mutating paired results in an attemp to save memory
-                dispatch(setSearchResults(sortedResults));
+                pairedResults.sort((a, b) => b.score - a.score);
+                const filteredResults = pairedResults.filter(result=>{
+                    if (result.score >= 50) {
+                        displayThreshold = 50
+                    }
+                    if (result.score >= displayThreshold) return result
+                })
+                const finalResults = filteredResults.map(pair => pair.node);//safer,clearer and optimized enough to return each node as a copy into the array rather than directly mutating paired results in an attemp to save memory
+                dispatch(setSearchResults(finalResults));
                 dispatch(setSearchScores([]));
                 console.log("sorted the search results");
             }
