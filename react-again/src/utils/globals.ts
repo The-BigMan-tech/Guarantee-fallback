@@ -5,7 +5,7 @@ import { isCreate,isModify,isRemove } from "./watcher-utils";
 import { info,debug,error,warn} from '@tauri-apps/plugin-log';
 
 
-const shouldLogToFile:boolean = true;
+const shouldLogToFile:boolean = false;
 const formatObjects:boolean = false;
 
 export const memConsoleLog = console.log
@@ -117,8 +117,9 @@ searchCache.onGet = async (key,value) => {
         memConsoleLog("Checking passive search cache: ",key);
         const currentMtime = mtimeResult.value
         const passiveEntry = await passiveSearchCache.get(key);
-        memConsoleLog("Is Valid?: ",(currentMtime==passiveEntry?.mtime))
-        return (currentMtime.getTime()==passiveEntry?.mtime.getTime())?passiveEntry?.data:undefined;
+        const isEntryValid = currentMtime.getTime()==passiveEntry?.mtime.getTime()
+        memConsoleLog("Is Valid?: ",isEntryValid)
+        return (isEntryValid)?passiveEntry?.data:undefined;
     }
 }
 heuristicsCache.onGet = async (key,value) => {
@@ -130,8 +131,9 @@ heuristicsCache.onGet = async (key,value) => {
         memConsoleLog("Checking passive heuristic cache: ",key);
         const currentMtime = mtimeResult.value
         const passiveEntry = await passiveHeuristicsCache.get(key)
-        memConsoleLog("Is Valid?: ",(currentMtime==passiveEntry?.mtime))
-        return (currentMtime.getTime()==passiveEntry?.mtime.getTime())?passiveEntry?.data:undefined;
+        const isEntryValid = currentMtime.getTime()==passiveEntry?.mtime.getTime()
+        memConsoleLog("Is Valid?: ",isEntryValid)
+        return (isEntryValid)?passiveEntry?.data:undefined;
     }
 }
 export async function spawnSearchCacheWatcher(path:string) {
