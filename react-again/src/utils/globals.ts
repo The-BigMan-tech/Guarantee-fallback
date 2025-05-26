@@ -50,8 +50,11 @@ function shouldCacheEntry(key:string):boolean {
 }
 
 type Query = string;
-type ShouldDefer = boolean;
-export type Queries = Record<Query,ShouldDefer>
+export interface RelevanceData {
+    relevancePercent:number,
+    shouldDefer:boolean
+}
+export type Queries = Record<Query,RelevanceData>
 
 const maxCacheSize = 200;
 

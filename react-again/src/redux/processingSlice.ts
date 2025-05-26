@@ -11,10 +11,24 @@ import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
-import { searchCache,heuristicsCache, Queries,isFolderHeavy,modifyLogs} from '../utils/globals';
+import { searchCache,heuristicsCache, Queries,isFolderHeavy,modifyLogs, RelevanceData} from '../utils/globals';
 
 modifyLogs();
-
+function isLongQuery(searchQuery:string):boolean {
+    return searchQuery.length >= 15;
+}
+function searchMatchScore(searchQuery:string,node:FsNode):number {
+    const minThreshold = 10
+    const score1 = getMatchScore(searchQuery,node.primary.nodeName,minThreshold);
+    const score2 = getMatchScore(searchQuery,(node.primary.fileExtension || ""),minThreshold);
+    return (score2>score1)?score2:score1;
+}
+function getAcceptableScore(searchQuery:string):number {
+    if (searchQuery.length <= 10) {
+        return 20
+    }
+    return 40
+}
 
 type shouldSkip = boolean;
 type DirResult = FsResult<(Promise<FsNode>)[] | Error | null> | FsResult<FsNode[]>
@@ -469,15 +483,9 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
         console.log("FSNODES VALUE NOW",fsNodes);
         if (fsNodes) {
             const matchedFsNodes:FsNode[] = [] 
-            const minThreshold:number = 10;//default min threshold
-            let acceptableScore = 30
-            if (searchQuery.length <= 5) {
-                acceptableScore = 15
-            }
+            const acceptableScore = getAcceptableScore(searchQuery)
             for (const node of fsNodes) {
-                const score1 = getMatchScore(searchQuery,node.primary.nodeName,minThreshold);
-                const score2 = getMatchScore(searchQuery,(node.primary.fileExtension || ""),minThreshold);
-                const score = (score2>score1)?score2:score1;
+                const score = searchMatchScore(searchQuery,node)
                 if (score >= acceptableScore) {
                     dispatch(pushToSearchScores(score))
                     matchedFsNodes.push(node)
@@ -514,7 +522,7 @@ function longQueryOptimization(quickSearch:boolean,fsNodes:FsNode[],searchQuery:
 function updateSearchResults(fsNode:FsNode,fsNodes:FsNode[],searchQuery:string,isLastFsNode:boolean):AppThunk<Promise<void>> {
     return async (dispatch,getState) =>{
         const quickSearch:boolean = selectQuickSearch(getState());
-        const isQueryLong:boolean = searchQuery.length >= 10;
+        const isQueryLong:boolean = isLongQuery(searchQuery)
         const searchBatchSize:number = 10;//default batch size
         fsNodes.push(fsNode)//push the files
         if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
@@ -553,17 +561,15 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
     }
     //dynamic heuristics.it uses the fuzzy engine to know which folder to prioritize first
     const totalNodes = nodeResult.length || 1;//fallback for edge cases where totalNodes may be zero
-    const relevanceThreshold = 50;
-    const matchPercentThreshold = 80;
     const sizeBonus:number = roundToTwo( (1 / (1 + totalNodes)) * 5);//added size bonus to make ones with smaller sizes more relevant and made it range from 0-5 so that it doesnt negligibly affects the relevance score
-    
-    let relevantNodes:number = 0;
-    let relevancePercent:number = 0;
+
     //utilizing the resumability cache
     const cachedQueries:Queries = heuristicsCache.get(currentSearchPath) || {};
     console.log('SEARCH PATH: |',currentSearchPath,'|CACHED QUERIES: |',JSON.stringify(cachedQueries,null,2));
     if (searchQuery in cachedQueries) {
-        const shouldDefer:boolean = cachedQueries[searchQuery];
+        const relevanceData = cachedQueries[searchQuery]
+        const shouldDefer:boolean = relevanceData.shouldDefer;
+        const relevancePercent = relevanceData.relevancePercent
         if (shouldDefer) {
             console.log("DEFERRED EARLY: ",currentSearchPath);
             deferredPaths[currentSearchPath] = true
@@ -574,22 +580,26 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
             return false//dont skip the current iteration of the outer while loop of the caller
         }
     }
+    const relevanceThreshold = 50;
+    const matchPercentThreshold = 80;
+
+    let relevantNodes:number = 0;
+    let relevancePercent:number = 0;
     //it defers the parent folder if its children arent relevant enough not that it defers its children.each child will have their own time
     for (const node of nodeResult) {
         const awaitedNode = await node;
-        const minThreshold = 10
-        const score1 = getMatchScore(searchQuery,awaitedNode.primary.nodeName,minThreshold);
-        const score2 = getMatchScore(searchQuery,(awaitedNode.primary.fileExtension || ""),minThreshold);
-        const matchScore = (score2>score1)?score2:score1;
+        const matchScore = searchMatchScore(searchQuery,awaitedNode);
+        const acceptableScore = getAcceptableScore(searchQuery)
         console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
-        if (matchScore >= 40) {//the number of matches increases qualitative relevance
+        
+        if (matchScore >= acceptableScore) {//the number of matches increases qualitative relevance
             relevantNodes += 1
             relevancePercent = roundToTwo( (relevantNodes / totalNodes) * 100 )//to ensure that the relevance percent is always updated upon looping
-            const processImmediately = (relevancePercent >= relevanceThreshold) || (matchScore >= matchPercentThreshold)//the match score is used to check for the quality of the relevance as usual
             
-            if (processImmediately) {
+            if ((relevancePercent >= relevanceThreshold) || (matchScore >= matchPercentThreshold)) { //the match score is used to check for the quality of the relevance
                 console.log("SEARCH PATH:",currentSearchPath,"IS BEING PROCESSED IMMEDIATELY");
-                heuristicsCache.set(currentSearchPath,{...cachedQueries,[searchQuery]:false});
+                const relevanceData:RelevanceData = {shouldDefer:false,relevancePercent}
+                heuristicsCache.set(currentSearchPath,{...cachedQueries,[searchQuery]:relevanceData});
                 return false//early termination once enough relevance has been reached
             }
         };
@@ -599,7 +609,8 @@ async function heuristicsAnalysis(deferredPaths:Record<string,boolean>,currentSe
         console.log("DEFERRED SEARCH PATH: ",currentSearchPath,'PRIORITY',relevancePercent,"WITH SIZE BONUES",relevancePercent + sizeBonus);
         deferredPaths[currentSearchPath] = true
         deferredHeap.push({path:currentSearchPath,priority:relevancePercent + sizeBonus});//defer for later.it defers the current search path unlike the static heuristics
-        heuristicsCache.set(currentSearchPath,{...cachedQueries,[searchQuery]:true});
+        const relevanceData:RelevanceData = {shouldDefer:true,relevancePercent}
+        heuristicsCache.set(currentSearchPath,{...cachedQueries,[searchQuery]:relevanceData});
         return true; // Skip processing now
     }else {
         return false
