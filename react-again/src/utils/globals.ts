@@ -5,7 +5,7 @@ import { isCreate,isModify,isRemove } from "./watcher-utils";
 import { info,debug,error,warn} from '@tauri-apps/plugin-log';
 
 
-const shouldLogToFile:boolean = true;
+const shouldLogToFile:boolean = false;
 const formatObjects:boolean = false;
 
 export const memConsoleLog = console.log

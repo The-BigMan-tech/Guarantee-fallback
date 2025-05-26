@@ -512,8 +512,15 @@ file icons--ongoing
 file search,debouncing
 framer motion
 lazy recursive file search
+*turbo console log,log config
+*hooks,events,rxjs
+*routes
 todo:previews--video,img,audio,text area tags,react pdf,highlight js,react player,mammoth js,three js,react window
+todo:windowing
+todo:log purging
+todo:resumability cache purging--when watchers reach os limits
 todo:testing
+todo:showing thumbnail,full name and metadata on hovering
 todo:file editing on the preview editor
 todo:file actions on a pane --in-state modification and io operation for significant performance
 todo:file actions on right click
