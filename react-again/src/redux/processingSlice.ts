@@ -327,7 +327,7 @@ function openCachedDirInApp(folderPath:string):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
         console.log("called open dir in app");
         const cache:Cache = selectCache(getState());
-        const cached_data = cache[folderPath] || [];//  [] array means its loading not that its empty
+        const cached_data = cache[folderPath] || searchCache.get(folderPath) || [];//  [] array means its loading not that its empty
         console.log("Cached data in open",cached_data);
         const cache_length = cached_data.length;
         const slice_number = 10
