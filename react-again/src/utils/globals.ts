@@ -37,7 +37,7 @@ export function modifyLogs() {
         };
     }
 }
-export const heavyFolders = new Set(['node_modules','AppData','.git','src-tauri/target/debug'])//this will do for now.i will add more later on monitoring the search
+export const heavyFolders:Readonly<Set<string>> = new Set(['node_modules','AppData','.git','src-tauri/target/debug'])//this will do for now.i will add more later on monitoring the search
 
 export function isFolderHeavy(path:string):boolean {
     const normalizedPath = path.replace(/\\/g, '/');
