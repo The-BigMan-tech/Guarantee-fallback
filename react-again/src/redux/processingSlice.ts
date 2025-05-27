@@ -11,7 +11,7 @@ import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
-import { searchCache,heuristicsCache, Queries,isFolderHeavy,RelevanceData,enDictionary} from '../utils/globals';
+import { searchCache,heuristicsCache, Queries,isFolderHeavy,RelevanceData} from '../utils/globals';
 
 
 function isLongQuery(searchQuery:string):boolean {
@@ -809,10 +809,10 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
             dispatch(setSearchTermination(true));
             return
         }
-        if (!enDictionary.check(searchQuery)) {//embedding typo checking and cleaning before taking it to the search engine
-            const suggestions = enDictionary.suggest(searchQuery);
-            console.log(`Suggestions for "${searchQuery}":`, suggestions);
-        }
+        // if (!enDictionary.check(searchQuery)) {//embedding typo checking and cleaning before taking it to the search engine
+        //     const suggestions = enDictionary.suggest(searchQuery);
+        //     memConsoleLog(`Suggestions for "${searchQuery}":`, suggestions);
+        // }
         const currentPath:string = selectCurrentPath(getState());
         const heavyFolderQueue:string[] = [];
 

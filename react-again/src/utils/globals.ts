@@ -3,15 +3,10 @@ import { LifoCache } from "./lifo-cache";
 import { watchImmediate,WatchEvent,UnwatchFn } from "@tauri-apps/plugin-fs";
 import { isCreate,isModify,isRemove } from "./watcher-utils";
 import { info,debug,error,warn} from '@tauri-apps/plugin-log';
-import en from "dictionary-en-gb"
-import Typo from "typo-js";
-
-const affStr = en.aff.toString();
-const dicStr = en.dic.toString();
-export const enDictionary = new Typo('en_GB',affStr,dicStr);
+import nspell from "nspell"
 
 
-const shouldLogToFile:boolean = false;
+const shouldLogToFile:boolean = true;
 const formatObjects:boolean = false;
 
 export const memConsoleLog = console.log
