@@ -1,10 +1,10 @@
 import { AppThunk } from "../store";
 import { FsNode,base_name,readDirectory,FsResult,join_with_home} from "../../utils/rust-fs-interface";
 import { setFsNodes,spreadToFsNodes,setCurrentPath,setLoadingMessage,setOpenedFile,setSearchResults,setAheadCachingState,setError,setNotice,invalidateTabCache} from "../slice";
-import { selectCurrentPath } from "../selectors";
+import { selectCurrentPath,selectCache} from "../selectors";
 import { WatchEvent,watchImmediate,BaseDirectory} from "@tauri-apps/plugin-fs";
 import { isCreate,isModify,isRemove } from "../../utils/watcher-utils";
-import { AllTabTypes,StrictTabsType} from "../types";
+import { AllTabTypes,StrictTabsType,Cache} from "../types";
 //*Thunk dependency
 import { openCachedDirInApp,cacheIsValid,addToCache} from "./ui-cache-related";
 
@@ -114,7 +114,7 @@ export function watchHomeTabs():AppThunk<Promise<void>> {
                                 await dispatch(openDirFromHome(tabName))
                             }else {//auto reload the tab in the background ahead of time.reloading it in the background is very fast because if no ui updates
                                 dispatch(setLoadingMessage("Changes detected.Refreshing the app in the background."))
-                                await dispatch(cacheHomeTab(tabName));
+                                await dispatch(cacheHomeTab(tabName,false));
                                 dispatch(setLoadingMessage("Done refreshing the app"))
                             }
                         }
@@ -128,10 +128,12 @@ export function watchHomeTabs():AppThunk<Promise<void>> {
         )
     }
 }
-export function cacheHomeTab(tabName:StrictTabsType):AppThunk<Promise<void>>{
-    return async (dispatch)=>{
+export function cacheHomeTab(tabName:StrictTabsType,reuseEntry:boolean):AppThunk<Promise<void>>{
+    return async (dispatch,getState)=>{
         dispatch(setAheadCachingState('pending'))
         const folderPath = await join_with_home(tabName);
+        const cache:Cache = selectCache(getState());
+        if (cache[folderPath] && reuseEntry) return;
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath,'arbitrary');
         if (!(dirResult.value instanceof Error) && (dirResult.value !== null)) {//i only care about the success case here because the operation was initiated by the app and not the user and its not required to succeed for the user to progress with the app
             const fsNodes:FsNode[] = await Promise.all(dirResult.value);

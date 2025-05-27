@@ -20,13 +20,13 @@ export default function App() {
     useEffect(()=>{//everything here except for opening the home on startup is an optimization.
         dispatch(loadCache());
         dispatch(watchHomeTabs());
-        dispatch(cacheHomeTab("Recent"))
-        dispatch(cacheHomeTab("Downloads"));
-        dispatch(cacheHomeTab("Desktop"))
-        dispatch(cacheHomeTab("Pictures"))
-        dispatch(cacheHomeTab("Videos"))
-        dispatch(cacheHomeTab("Documents"))
-        dispatch(cacheHomeTab("Music"))
+        dispatch(cacheHomeTab("Recent",true))
+        dispatch(cacheHomeTab("Downloads",true));
+        dispatch(cacheHomeTab("Desktop",true))
+        dispatch(cacheHomeTab("Pictures",true))
+        dispatch(cacheHomeTab("Videos",true))
+        dispatch(cacheHomeTab("Documents",true))
+        dispatch(cacheHomeTab("Music",true))
         dispatch(openDirFromHome("Home"))//it will cache the home tab ahead of time after loading
     },[dispatch])
 

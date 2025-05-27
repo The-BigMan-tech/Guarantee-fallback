@@ -2,7 +2,7 @@
 import {throttle} from 'throttle-debounce';
 import { CachePayload,Cache,AllTabTypes,TabCacheInvalidation} from "../types";
 import { AppThunk,AppDispatch} from "../store";
-import { isFolderHeavy } from "../../utils/search-resumability";
+import { isFolderHeavy } from '../../utils/folder-utils';
 import { selectCache ,selectIvalidatedTabs} from "../selectors";
 import { shiftCache,recordInCache,validateTabCache,setFsNodes,spreadToFsNodes,setCache,setLoadingMessage} from "../slice";
 import { FsNode} from "../../utils/rust-fs-interface";
