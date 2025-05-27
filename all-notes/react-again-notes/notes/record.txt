@@ -1522,3 +1522,5 @@ intercept to prevent from watching heavy folders
 
 fuzzy engine
 hunspell spelling engine
+
+*the spell engine cant catch heavy typos.so the search engine will fallback to the original query if it isnt grammatically correct and use the fuzzy engine to roughly know its similarity to file names

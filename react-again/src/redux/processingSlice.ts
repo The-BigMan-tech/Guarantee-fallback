@@ -811,6 +811,7 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         }
         if (!spellEngine.correct(searchQuery)) {//embedding typo checking and cleaning before taking it to the search engine
             const suggestions = spellEngine.suggest(searchQuery);
+            searchQuery = (suggestions.length)?suggestions[0]:searchQuery
             memConsoleLog(`Suggestions for "${searchQuery}":`, suggestions);
         }
         const currentPath:string = selectCurrentPath(getState());
@@ -827,16 +828,9 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
             const searchResults:FsNode[] = selectSearchResults(getState()) || [];
             const resultScores:number[] = selectSearchScores(getState());
             if (searchResults.length > 0 && (searchResults.length === resultScores.length)) {//i believe this will only fail when theres no search result
-                let displayThreshold = 0
                 const pairedResults = searchResults.map((node, i) => ({node,score: resultScores[i]}));
                 pairedResults.sort((a, b) => b.score - a.score);
-                const filteredResults = pairedResults.filter(result=>{
-                    if (result.score >= 50) {
-                        displayThreshold = 50
-                    }
-                    if (result.score >= displayThreshold) return result
-                })
-                const finalResults = filteredResults.map(pair => pair.node);//safer,clearer and optimized enough to return each node as a copy into the array rather than directly mutating paired results in an attemp to save memory
+                const finalResults = pairedResults.map(pair => pair.node);//safer,clearer and optimized enough to return each node as a copy into the array rather than directly mutating paired results in an attemp to save memory
                 dispatch(setSearchResults(finalResults));
                 dispatch(setSearchScores([]));
                 console.log("sorted the search results");
