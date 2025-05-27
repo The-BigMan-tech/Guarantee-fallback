@@ -26,7 +26,7 @@ function searchMatchScore(searchQuery:string,node:FsNode,minThreshold=15):number
     return (score2>score1)?score2:score1;
 }
 function getAcceptableScore(searchQuery:string):number {
-    if (searchQuery.length <= 6) {
+    if (searchQuery.length <= 4) {
         return 20
     }
     return 40
