@@ -26,7 +26,7 @@ function searchMatchScore(searchQuery:string,node:FsNode,minThreshold=15):number
     return (score2>score1)?score2:score1;
 }
 function getAcceptableScore(searchQuery:string):number {
-    if (searchQuery.length <= 4) {
+    if (searchQuery.length <= 6) {
         return 20
     }
     return 40
@@ -64,7 +64,44 @@ export const loading_toastConfig:ToastOptions = {
     transition:Zoom,
     toastId:"loading"
 }
-
+interface HeuristicsArgs {
+    deferredPaths:Record<string,boolean>,
+    currentSearchPath:string,
+    rootPath:string,
+    processHeavyFolders:boolean,
+    heavyFolderQueue:string[],
+    deferredHeap: Heap<DeferredSearch>,
+    searchQuery:string,
+    nodeResult:Promise<FsNode>[] | FsNode[]
+}
+interface ReuseQueryArgs {
+    key:string,
+    currentSearchPath:string,
+    sizeBonus:number,
+    deferredPaths:Record<string,boolean>,
+    deferredHeap:Heap<DeferredSearch>,
+    cachedQueries:Queries
+}
+interface longQueryArgs {
+    quickSearch:boolean,
+    fsNodes:FsNode[],
+    searchQuery:string,
+    isQueryLong:boolean
+}
+interface UpdateSearchArgs {
+    fsNode:FsNode,
+    fsNodes:FsNode[],
+    searchQuery:string,
+    isLastFsNode:boolean,
+    processedBatches:number[]
+}
+interface searchInBreadthArgs {
+    rootPath:string,
+    searchQuery:string,
+    heavyFolderQueue:string[],
+    processHeavyFolders:boolean,
+    startTime:number
+}
 interface  TabCacheInvalidation {
     Home:boolean,
     Desktop:boolean,
@@ -501,12 +538,6 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
         }
     }
 }
-interface longQueryArgs {
-    quickSearch:boolean,
-    fsNodes:FsNode[],
-    searchQuery:string,
-    isQueryLong:boolean
-}
 function longQueryOptimization(args:longQueryArgs):AppThunk<boolean> {
     return (dispatch):boolean=>{
         //This early termination is done at the batch level
@@ -529,18 +560,22 @@ function longQueryOptimization(args:longQueryArgs):AppThunk<boolean> {
         return false
     }
 }
-interface UpdateSearchArgs {
-    fsNode:FsNode,
-    fsNodes:FsNode[],
-    searchQuery:string,
-    isLastFsNode:boolean
-}
 function updateSearchResults(args:UpdateSearchArgs):AppThunk<Promise<void>> {
-    return async (dispatch,getState) =>{
-        const {fsNode,fsNodes,searchQuery,isLastFsNode} = args;
+    return async (dispatch,getState) => {
+        const {fsNode,fsNodes,searchQuery,isLastFsNode,processedBatches} = args;
         const quickSearch:boolean = selectQuickSearch(getState());
-        const isQueryLong:boolean = isLongQuery(searchQuery)
-        const searchBatchSize:number = 10;//default batch size
+        const isQueryLong:boolean = isLongQuery(searchQuery);
+        const processedBatchCount = processedBatches[0];
+        let searchBatchSize:number = 1;//default batch size when no items have been processed
+
+        if (processedBatchCount == 1) {//when one item has been processed
+            searchBatchSize = 5
+        }else if (processedBatchCount == 2) {//when two items have been processed
+            searchBatchSize = 10
+        }else if (processedBatchCount == 3) {//when three items have been processed
+            searchBatchSize = 15
+        }
+        memConsoleLog('Search batch size: ',searchBatchSize,'fsnodes',processedBatchCount);
         fsNodes.push(fsNode)//push the files
         if ((fsNodes.length >= searchBatchSize) || (isLastFsNode)) {
             const anyRoughMatches:boolean = dispatch(longQueryOptimization({quickSearch,fsNodes,searchQuery,isQueryLong}))
@@ -548,26 +583,20 @@ function updateSearchResults(args:UpdateSearchArgs):AppThunk<Promise<void>> {
                 console.log("Terminated early!!");
                 dispatch(setSearchTermination(true));
                 fsNodes.length = 0;
-                return 
+                return;//since it terminates the search,there is no need to keep track of batch counts.
             }else if (quickSearch && !(anyRoughMatches) && isQueryLong) {
                 console.log("Discarded this batch");
                 fsNodes.length = 0//prevents stale data
-                return
+                processedBatches[0] += 1//increase the batch count that was processed
+                return;
             }else {
                 await dispatch(searchUtil(fsNodes,searchQuery));
                 fsNodes.length = 0//prevents stale data
+                processedBatches[0] += 1//increase the batch count that was processed
                 return;
             }
         }
     }
-}
-interface ReuseQueryArgs {
-    key:string,
-    currentSearchPath:string,
-    sizeBonus:number,
-    deferredPaths:Record<string,boolean>,
-    deferredHeap:Heap<DeferredSearch>,
-    cachedQueries:Queries
 }
 function reuseQuery(args:ReuseQueryArgs):shouldSkip {
     const {key,currentSearchPath,sizeBonus,deferredPaths,deferredHeap,cachedQueries} = args
@@ -583,16 +612,6 @@ function reuseQuery(args:ReuseQueryArgs):shouldSkip {
         console.log("PROCESSED EARLY: ",currentSearchPath);
         return false//dont skip the current iteration of the outer while loop of the caller
     }
-}
-interface HeuristicsArgs {
-    deferredPaths:Record<string,boolean>,
-    currentSearchPath:string,
-    rootPath:string,
-    processHeavyFolders:boolean,
-    heavyFolderQueue:string[],
-    deferredHeap: Heap<DeferredSearch>,
-    searchQuery:string,
-    nodeResult:Promise<FsNode>[] | FsNode[]
 }
 async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
     const {
@@ -623,6 +642,8 @@ async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
     const totalNodes = nodeResult.length || 1;//fallback for edge cases where totalNodes may be zero
     const sizeBonus:number = roundToTwo( (1 / (1 + totalNodes)) * 5);//added size bonus to make ones with smaller sizes more relevant and made it range from 0-5 so that it doesnt negligibly affects the relevance score
 
+
+
     //utilizing the resumability cache
     const cachedQueries:Queries = await heuristicsCache.get(currentSearchPath) || {};
     console.log('SEARCH PATH: |',currentSearchPath,'|CACHED QUERIES: |',JSON.stringify(cachedQueries,null,2));
@@ -639,6 +660,8 @@ async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
             }
         }
     }
+
+
     const relevanceThreshold = 50;
     const matchPercentThreshold = 80;
 
@@ -703,13 +726,6 @@ function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise
         }
     }
 }
-interface searchInBreadthArgs {
-    rootPath:string,
-    searchQuery:string,
-    heavyFolderQueue:string[],
-    processHeavyFolders:boolean,
-    startTime:number
-}
 //*This is the new async thunk pattern ill be using from hence forth,ill refactor the old ones once ive finsihed the project
 function searchInBreadth(args:searchInBreadthArgs):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
@@ -755,6 +771,7 @@ function searchInBreadth(args:searchInBreadthArgs):AppThunk<Promise<void>> {
                     dispatch(setNodePath(currentSearchPath));
                 }
                 // console.log("Local fs nodes",localFsNodes);
+                const processedBatches:number[] = [0];//im using this to track the number of batches per path to dynamically increase it for the best ux and perf.i had to make it an array to make all calls to the batch thunk under the path to mutate it.its safe here cuz its local per path
                 for (const [localIndex,fsNode] of dirResult.value.entries()) {
                     if (shouldTerminate) {//terminate the search on user command
                         console.log("FORCEFUL SEARCH TERMINATION");
@@ -764,7 +781,8 @@ function searchInBreadth(args:searchInBreadthArgs):AppThunk<Promise<void>> {
                     }
                     const isLastFsNode = localIndex == (dirResult.value.length-1);
                     const awaitedFsNode = await fsNode;
-                    const batchThunk = updateSearchResults({fsNode:awaitedFsNode,fsNodes,searchQuery,isLastFsNode})
+                    const batchThunk = updateSearchResults({fsNode:awaitedFsNode,fsNodes,searchQuery,isLastFsNode,processedBatches});
+
                     console.log("Is last fsnode",isLastFsNode);
                     if (awaitedFsNode.primary.nodeType == "File") {//passing islast is necessary for quick search even if it matches or not because it needs to terminate the batch if the one that survived is the only match for example and not the last at the same time
                         if (quickSearch) {
@@ -776,7 +794,7 @@ function searchInBreadth(args:searchInBreadthArgs):AppThunk<Promise<void>> {
                             await dispatch(batchThunk)
                         }
                     }else if (awaitedFsNode.primary.nodeType == "Folder") {
-                        //i cant do aggressive filter here because the files within the folder will be in custody
+                        //i cant use a cheap name filter to decide if the folder goes to the queue or not because the files within the folder will be in custody
                         if (quickSearch) {
                             if (isLastFsNode || aggressiveFilter(awaitedFsNode.primary.nodeName,searchQuery)) {
                                 console.log("PASSED YOUR FOLDER TO UPDATE",awaitedFsNode.primary.nodePath);
@@ -812,10 +830,11 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         const quickSearch = selectQuickSearch(getState());
         //im only adding query preprocessing and spell correction only on full search mode because full search mode doesnt apply a cheap filter thats typo intolerant
         if (!spellEngine.correct(searchQuery) && !(quickSearch)) {//embedding typo checking and cleaning before taking it to the search engine
-            searchQuery = preprocessQuery(searchQuery)
-            const suggestions = spellEngine.suggest(searchQuery);
+            memConsoleLog('Previous searchQuery:', searchQuery);
+            const suggestions = spellEngine.suggest(preprocessQuery(searchQuery));//only make a suggestion on the preprocessed query separately so that the original query wont me mutated if no suggestion was found
+            memConsoleLog(' Suggestions:', suggestions);
             searchQuery = (suggestions.length)?suggestions[0]:searchQuery
-            memConsoleLog(`Search query "${searchQuery}":`, suggestions);
+            memConsoleLog(`New Search query "${searchQuery}":`);
         }
         const currentPath:string = selectCurrentPath(getState());
         const heavyFolderQueue:string[] = [];
