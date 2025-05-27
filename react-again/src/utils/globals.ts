@@ -4,6 +4,7 @@ import { watchImmediate,WatchEvent,UnwatchFn } from "@tauri-apps/plugin-fs";
 import { isCreate,isModify,isRemove } from "./watcher-utils";
 import { info,debug,error,warn} from '@tauri-apps/plugin-log';
 import nspell from "nspell"
+import natural from "natural"
 
 const affResponse = await fetch('/dictionaries/en_GB.aff');
 const aff = await affResponse.text();

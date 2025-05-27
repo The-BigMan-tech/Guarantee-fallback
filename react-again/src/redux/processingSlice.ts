@@ -633,7 +633,7 @@ async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
         for (const queryKey of Object.keys(cachedQueries)) {
             const similarityThreshold = 40
             const querySimilarity = getMatchScore(searchQuery,queryKey,10)
-            console.log(' processingSlice.ts:570 => heuristicsAnalysis => querySimilarity:', querySimilarity);
+            console.log(' processingSlice.ts:636 => heuristicsAnalysis => querySimilarity:', querySimilarity);
             if (querySimilarity > similarityThreshold) {//reusing the heuristics of previous similar queries
                 return reuseQuery({...reuseQueryArgs,key:queryKey})
             }
@@ -679,7 +679,7 @@ function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise
     return async (_,getState)=>{
         const cache:Cache = selectCache(getState());
         const searchedData = await searchCache.get(currentSearchPath);
-        console.log(' processingSlice.ts:629 => return => searchedData:', searchedData);
+        console.log(' processingSlice.ts:682 => return => searchedData:', searchedData);
         if (currentSearchPath === rootPath) {//since the rootpath is the currentpath opened in the app,it will just select the fsnodes directly from the app state if its processing the rootpath
             console.log("SEARCHING ROOT PATH");
             return FsResult.Ok(selectFsNodes(getState()) || [])
