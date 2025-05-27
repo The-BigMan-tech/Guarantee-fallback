@@ -26,7 +26,7 @@ export const LeetMap:Record<string,string> = {
     '0': 'o'    
 };
 export function preprocessQuery(query:string) {
-    return query.split('')
+    return query.toLowerCase().split('')
         .map(char => {
             if (char >= 'a' && char <= 'z') {
               return char; // keep letters as is
