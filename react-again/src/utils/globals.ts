@@ -5,6 +5,14 @@ import { isCreate,isModify,isRemove } from "./watcher-utils";
 import { info,debug,error,warn} from '@tauri-apps/plugin-log';
 import nspell from "nspell"
 
+const affResponse = await fetch('/dictionaries/en-GB.aff');
+const aff = await affResponse.text();
+
+const dicResponse = await fetch('/dictionaries/en-GB.dic');
+const dic = await dicResponse.text();
+
+const spell = nspell({ aff, dic });
+
 
 const shouldLogToFile:boolean = true;
 const formatObjects:boolean = false;
