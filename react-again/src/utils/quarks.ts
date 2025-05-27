@@ -18,3 +18,4 @@ export function aggressiveFilter(str:string | null,query:string):boolean {
     }
     return false
 }
+

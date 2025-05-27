@@ -1524,3 +1524,17 @@ fuzzy engine
 hunspell spelling engine
 
 *the spell engine cant catch heavy typos.so the search engine will fallback to the original query if it isnt grammatically correct and use the fuzzy engine to roughly know its similarity to file names
+
+
+*in my resumability cache,i left the queries unbounded because its lightweight so even if its a 1000 it will only affect little kbs of mem and its unsual and rare for users to search up to 100 unique queries left alone a thousand but on top of that,since my search engine resues similar queries,by the time the queries reaches 50 unique one,my search engine will have more than enough queries to reuse so it wont grow unbounded.so typos of space will still use the same heuristic data of space.so the resumability can only go for a limited number of paths 200 with watcher validation and 100 for mtime validation but the number of queries on those paths is unbounded.
+
+*Indexers typically do cache search results or intermediate data to improve performance, but the caching behavior and limits differ from your resumability cache, which stores progress metadata rather than query results.
+
+*so my resumability unlike indexers can reuse several queries theoretically infinite cause queries are naturally bounded by similarity on top of being lightweight.it doesnt store results but heurtics computations,disk reads and scores for each path independently regardless of heirarchy making it resumable from any point of the search.but unlike indexers,its bounded by paths.so it will only resume as far as 300 paths.if its narrow,thats 300 levels deep in O(1) access.
+
+leetspeak map
+spell checker
+fuzzy matcher
+
+*In JavaScript, when you do a comparison like char >= 'a' && char <= 'z', char is a string of length 1 (a single character string). JavaScript compares strings lexicographically based on their UTF-16 character codes.JavaScript compares strings character-by-character using the Unicode code point values.
+For single characters, this effectively compares their character codes.

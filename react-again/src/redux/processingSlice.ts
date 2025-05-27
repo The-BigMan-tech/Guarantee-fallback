@@ -11,7 +11,7 @@ import { Heap } from 'heap-js';
 import { normalizeString,roundToTwo,aggressiveFilter} from '../utils/quarks';
 import { getMatchScore } from '../utils/fuzzy-engine';
 import { isCreate,isRemove,isModify } from '../utils/watcher-utils';
-import { searchCache,heuristicsCache, Queries,isFolderHeavy,RelevanceData,spellEngine, memConsoleLog} from '../utils/globals';
+import { searchCache,heuristicsCache, Queries,isFolderHeavy,RelevanceData,spellEngine, memConsoleLog, preprocessQuery} from '../utils/globals';
 
 
 function isLongQuery(searchQuery:string):boolean {
@@ -809,16 +809,18 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
             dispatch(setSearchTermination(true));
             return
         }
-        if (!spellEngine.correct(searchQuery)) {//embedding typo checking and cleaning before taking it to the search engine
+        const quickSearch = selectQuickSearch(getState());
+        //im only adding query preprocessing and spell correction only on full search mode because full search mode doesnt apply a cheap filter thats typo intolerant
+        if (!spellEngine.correct(searchQuery) && !(quickSearch)) {//embedding typo checking and cleaning before taking it to the search engine
+            searchQuery = preprocessQuery(searchQuery)
             const suggestions = spellEngine.suggest(searchQuery);
             searchQuery = (suggestions.length)?suggestions[0]:searchQuery
-            memConsoleLog(`Suggestions for "${searchQuery}":`, suggestions);
+            memConsoleLog(`Search query "${searchQuery}":`, suggestions);
         }
         const currentPath:string = selectCurrentPath(getState());
         const heavyFolderQueue:string[] = [];
 
         await dispatch(searchInBreadth({rootPath:currentPath,searchQuery,heavyFolderQueue,processHeavyFolders:false,startTime}));
-        const quickSearch = selectQuickSearch(getState());
         if (!quickSearch) {//only run the second search loop in full search mode
             await dispatch(searchInBreadth({rootPath:currentPath,searchQuery,heavyFolderQueue,processHeavyFolders:true,startTime}));
         }
