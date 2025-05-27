@@ -4,7 +4,10 @@ import Toasts from "./components/toast/toast"
 import Body from "./components/body/body"
 import { selector, useAppDispatch } from "./redux/hooks"
 import { useEffect } from "react"
-import { openDirFromHome, selectAheadCachingState ,cacheAheadOfTime,loadCache,watchHomeTabs} from "./redux/processingSlice"
+import { openDirFromHome ,watchHomeTabs} from "./redux/thunks/open-dir-related"
+import { loadCache } from "./redux/thunks/ui-cache-related"
+import { cacheHomeTab } from "./redux/thunks/open-dir-related"
+import { selectAheadCachingState } from "./redux/selectors"
 
 export default function App() {
     const dispatch = useAppDispatch();
@@ -17,13 +20,13 @@ export default function App() {
     useEffect(()=>{//everything here except for opening the home on startup is an optimization.
         dispatch(loadCache());
         dispatch(watchHomeTabs());
-        dispatch(cacheAheadOfTime("Recent",false,true))
-        dispatch(cacheAheadOfTime("Downloads",false,true));
-        dispatch(cacheAheadOfTime("Desktop",false,true))
-        dispatch(cacheAheadOfTime("Pictures",false,true))
-        dispatch(cacheAheadOfTime("Videos",false,true))
-        dispatch(cacheAheadOfTime("Documents",false,true))
-        dispatch(cacheAheadOfTime("Music",true,true))
+        dispatch(cacheHomeTab("Recent"))
+        dispatch(cacheHomeTab("Downloads"));
+        dispatch(cacheHomeTab("Desktop"))
+        dispatch(cacheHomeTab("Pictures"))
+        dispatch(cacheHomeTab("Videos"))
+        dispatch(cacheHomeTab("Documents"))
+        dispatch(cacheHomeTab("Music"))
         dispatch(openDirFromHome("Home"))//it will cache the home tab ahead of time after loading
     },[dispatch])
 

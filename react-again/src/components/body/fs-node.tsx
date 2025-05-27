@@ -1,6 +1,8 @@
 import { FsNode } from "../../utils/rust-fs-interface"
 import { useAppDispatch,selector} from "../../redux/hooks"
-import { openDirectoryInApp,openFile,selectLoadingMessage } from "../../redux/processingSlice";
+import { openFile } from "../../redux/thunks/file-op";
+import { openDirectoryInApp } from "../../redux/thunks/open-dir-related";
+import { selectLoadingMessage } from "../../redux/selectors";
 import { useEffect, useState} from "react";
 import {motion} from "motion/react"
 import { memo } from "react";

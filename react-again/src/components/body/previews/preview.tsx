@@ -1,4 +1,5 @@
-import { cancelFile, selectOpenedFile } from "../../../redux/processingSlice"
+import { cancelFile } from "../../../redux/thunks/file-op";
+import { selectOpenedFile } from "../../../redux/selectors";
 import { selector, useAppDispatch } from "../../../redux/hooks"
 import ReactPlayer from "react-player"
 

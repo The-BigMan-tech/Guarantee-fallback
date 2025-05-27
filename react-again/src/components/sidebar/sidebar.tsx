@@ -1,4 +1,6 @@
-import { selectTabNames,openDirFromHome,loading_toastConfig, selectSearchTermination} from "../../redux/processingSlice"
+import { selectTabNames,selectSearchTermination} from "../../redux/selectors";
+import { loading_toastConfig } from "../../utils/toast-configs";
+import { openDirFromHome } from "../../redux/thunks/open-dir-related";
 import { selector ,useAppDispatch} from "../../redux/hooks"
 import { useState } from "react";
 import { Card } from "./card";

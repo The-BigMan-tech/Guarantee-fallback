@@ -1,11 +1,12 @@
-import { selectNodeCount,NodeCount } from "../../../redux/processingSlice";
+import { selectNodeProgress} from "../../../redux/selectors";
+import { NodeProgress } from "../../../redux/types";
 import { selector } from "../../../redux/hooks";
 import { useEffect, useState } from "react";
 import {v4 as uniqueID} from 'uuid'
 
 export default function Counter() {
-    const nodeCount:NodeCount = selector(store=>selectNodeCount(store));
-    const [progress,setProgress] = useState<{id:string,data:NodeCount}[]>([]);
+    const nodeCount:NodeProgress = selector(store=>selectNodeProgress(store));
+    const [progress,setProgress] = useState<{id:string,data:NodeProgress}[]>([]);
 
     function truncateStart(str:string, maxLength:number) {
         if (str.length <= maxLength) {

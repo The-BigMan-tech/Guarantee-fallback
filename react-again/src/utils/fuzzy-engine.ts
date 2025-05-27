@@ -1,6 +1,6 @@
 import {distance} from "fastest-levenshtein"
 import fuzzysort from 'fuzzysort'
-import { roundToTwo,normalizeString } from "./quarks.ts";
+import { roundToTwo,normalizeString } from "./other-utils.ts";
 import { LRUCache } from 'lru-cache'
 
 

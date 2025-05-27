@@ -1,6 +1,9 @@
 import { useEffect, useState,ChangeEvent} from "react";
 import { useAppDispatch,selector} from "../../../redux/hooks"
-import { openParentInApp,selectCurrentPath,selectTabNames,searchDir,loading_toastConfig,toastConfig,toggleQuickSearch, selectQuickSearch, selectSearchResults} from "../../../redux/processingSlice"
+import { openParentInApp } from "../../../redux/thunks/open-dir-related";
+import { selectCurrentPath,selectTabNames,selectQuickSearch,selectSearchResults} from "../../../redux/selectors";
+import { searchDir,toggleQuickSearch } from "../../../redux/thunks/search-related";
+import { toastConfig,loading_toastConfig } from "../../../utils/toast-configs";
 import {v4 as uniqueID} from "uuid"
 import { toast } from "react-toastify";
 import { KeyboardEvent,useTransition } from "react";

@@ -1,5 +1,6 @@
 import { ToastContainer, toast,Bounce,ToastOptions,Flip, Zoom} from 'react-toastify';
-import { selectError,selectNotice,selectLoadingMessage,Message} from '../../redux/processingSlice';
+import { selectError,selectNotice,selectLoadingMessage} from '../../redux/selectors';
+import { Message } from '../../redux/types';
 import { selector } from '../../redux/hooks';
 import { useEffect, useState} from 'react';
 
