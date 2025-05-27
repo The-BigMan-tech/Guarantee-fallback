@@ -1519,3 +1519,6 @@ intercept to prevent from watching heavy folders
 *so it behaves as expected but background processes can invalidate it.it is acceptable cuz the passive cache is meant to extend the reachability of the resumable cache.the main entries receive hot invalidation that gurantee invalidation only on modification.the remaining is just an extra.
 
 *so its O(n) at worst case but because it uses heuristics to know where to search first is smaller;O(logn) but now i added resumability which not only caches lightweight heuristic data and disk reads but also reuses heuristics from similar queries,my search engine at best which is when it has been queried enough on the fileystem is O(1).
+
+fuzzy engine
+hunspell spelling engine

@@ -15,7 +15,9 @@
     "@tauri-apps/plugin-fs": "^2.2.1",
     "@tauri-apps/plugin-log": "^2.4.0",
     "@types/react-window": "^1.8.8",
+    "@types/typo-js": "^1.2.2",
     "daisyui": "^5.0.35",
+    "dictionary-en-gb": "^3.0.0",
     "fastest-levenshtein": "^1.0.16",
     "fuzzysort": "^3.1.0",
     "heap-js": "^2.6.0",
@@ -29,6 +31,7 @@
     "react-window": "^1.8.11",
     "tailwindcss": "^4.1.5",
     "throttle-debounce": "^5.0.2",
+    "typo-js": "^1.2.5",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

@@ -3,6 +3,12 @@ import { LifoCache } from "./lifo-cache";
 import { watchImmediate,WatchEvent,UnwatchFn } from "@tauri-apps/plugin-fs";
 import { isCreate,isModify,isRemove } from "./watcher-utils";
 import { info,debug,error,warn} from '@tauri-apps/plugin-log';
+import en from "dictionary-en-gb"
+import Typo from "typo-js";
+
+const affStr = en.aff.toString();
+const dicStr = en.dic.toString();
+export const enDictionary = new Typo('en_GB',affStr,dicStr);
 
 
 const shouldLogToFile:boolean = false;
@@ -51,7 +57,7 @@ export function isFolderHeavy(path:string):boolean {
 function terminateWatcher(key:string) {
     const stopFn = activeWatchers.get(key);// Stop and remove watcher for evicted key
     if (stopFn) {
-        console.log("EVICTING THE WATCHER IN CACHE: ",key);
+        console.log("TERMINATING THE WATCHER IN CACHE: ",key);
         stopFn();
         activeWatchers.delete(key);
     }
@@ -65,28 +71,28 @@ function shouldCacheEntry(key:string):boolean {
     return true
 }
 
-type Query = string;
 export interface RelevanceData {
     relevancePercent:number,
     shouldDefer:boolean
 }
-export type Queries = Record<Query,RelevanceData>
-
-const maxCacheSize = 0;
-
-export const searchCache:LifoCache<string,FsNode[]> = new LifoCache({ max:maxCacheSize })
-export const heuristicsCache:LifoCache<string,Queries> = new LifoCache({ max:maxCacheSize})
-
 interface PassiveCache<V> {
     data:V,
     mtime:Date
 }
-const maxPassiveCacheSize = 50
+type Query = string;
+export type Queries = Record<Query,RelevanceData>
+
+const maxCacheSize = 200;
+const maxPassiveCacheSize = 100
+export const MAX_WATCHERS = maxCacheSize;
+export const activeWatchers = new Map<string,UnwatchFn>();
+
+export const searchCache:LifoCache<string,FsNode[]> = new LifoCache({ max:maxCacheSize })
+export const heuristicsCache:LifoCache<string,Queries> = new LifoCache({ max:maxCacheSize})
+
 const passiveSearchCache:LifoCache<string,PassiveCache<FsNode[]>> = new LifoCache({ max:maxPassiveCacheSize })
 const passiveHeuristicsCache:LifoCache<string,PassiveCache<Queries>> = new LifoCache({ max:maxPassiveCacheSize})
 
-export const MAX_WATCHERS = maxCacheSize;
-export const activeWatchers = new Map<string,UnwatchFn>();
 
 searchCache.onSet = (key) => {
     return shouldCacheEntry(key)
@@ -114,12 +120,17 @@ searchCache.onGet = async (key,value) => {
     };
     const mtimeResult:FsResult<Date | Error> = await getMtime(key);
     if (!(mtimeResult.value instanceof Error)) {
-        memConsoleLog("Checking passive search cache: ",key);
+        console.log("Checking passive search cache: ",key);
         const currentMtime = mtimeResult.value
         const passiveEntry = await passiveSearchCache.get(key);
         const isEntryValid = currentMtime.getTime()==passiveEntry?.mtime.getTime()
-        memConsoleLog("Is Valid?: ",isEntryValid)
-        return (isEntryValid)?passiveEntry?.data:undefined;
+        console.log("Is Valid?: ",isEntryValid)
+        if (isEntryValid) {
+            return passiveEntry.data
+        }else {
+            passiveSearchCache.delete(key)//freeing up the passive entry cache
+            return undefined
+        }
     }
 }
 heuristicsCache.onGet = async (key,value) => {
@@ -128,12 +139,17 @@ heuristicsCache.onGet = async (key,value) => {
     };
     const mtimeResult:FsResult<Date | Error> = await getMtime(key);
     if (!(mtimeResult.value instanceof Error)) {
-        memConsoleLog("Checking passive heuristic cache: ",key);
+        console.log("Checking passive heuristic cache: ",key);
         const currentMtime = mtimeResult.value
         const passiveEntry = await passiveHeuristicsCache.get(key)
         const isEntryValid = currentMtime.getTime()==passiveEntry?.mtime.getTime()
-        memConsoleLog("Is Valid?: ",isEntryValid)
-        return (isEntryValid)?passiveEntry?.data:undefined;
+        console.log("Is Valid?: ",isEntryValid)
+        if (isEntryValid) {
+            return passiveEntry.data
+        }else {
+            passiveSearchCache.delete(key)
+            return undefined
+        }
     }
 }
 export async function spawnSearchCacheWatcher(path:string) {
