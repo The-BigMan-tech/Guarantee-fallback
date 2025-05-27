@@ -1,6 +1,6 @@
 import { selector } from "../../redux/hooks"
 import { selectFsNodes,selectSearchResults,selectSearchTermination,selectOpenedFile} from "../../redux/selectors"
-import { terminateSearch,searchDir } from "../../redux/thunks/search-related"
+import { terminateSearch,searchDir } from "../../redux/thunks/search-engine"
 import { FsNode} from "../../utils/rust-fs-interface"
 import FsDisplay from "./fs-display"
 import { useAppDispatch } from "../../redux/hooks"

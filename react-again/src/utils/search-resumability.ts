@@ -2,98 +2,8 @@ import { FsNode, FsResult, getMtime } from "./rust-fs-interface"
 import { LifoCache } from "./lifo-cache";
 import { watchImmediate,WatchEvent,UnwatchFn } from "@tauri-apps/plugin-fs";
 import { isCreate,isModify,isRemove } from "./watcher-utils";
-import { info,debug,error,warn} from '@tauri-apps/plugin-log';
-import nspell from "nspell"
+import { isFolderHeavy } from "./folder-utils";
 
-
-const affResponse = await fetch('/dictionaries/en_GB.aff');
-const aff = await affResponse.text();
-
-const dicResponse = await fetch('/dictionaries/en_GB.dic');
-const dic = await dicResponse.text();
-
-export const spellEngine = nspell({ aff, dic });
-
-export const LeetMap:Record<string,string> = {
-    '1': 'i',   
-    '2': 'z',    
-    '3': 'e',   
-    '4': 'a',   
-    '5': 's',   
-    '6': 'g',   
-    '7': 't',    
-    '8': 'b',    
-    '9': 'g',   
-    '0': 'o'    
-};
-export function preprocessQuery(query:string) {
-    return query.toLowerCase().split('')
-        .map(char => {
-            if (char >= 'a' && char <= 'z') {
-              return char; // keep letters as is
-            }
-            return LeetMap[char]?LeetMap[char]: ''; // map or remove
-        }).join('');
-}
-const shouldLogToFile:boolean = true;
-const formatObjects:boolean = false;
-
-export const memConsoleLog = console.log
-export const memConsoleInfo = console.info
-export const memConsoleWarn = console.warn
-export const memConsoleError = console.error
-
-export function modifyLogs() {
-    function formatArgs(args:unknown[]) {
-        return args.map(arg => {
-            if ((typeof arg === 'string') || !(formatObjects)) {
-                return arg
-            }
-            return JSON.stringify(arg,null,2)
-        }).join(' ');
-    }
-    if (shouldLogToFile) {
-        console.log = (...args) => {
-            debug(formatArgs(args));
-        };
-        console.info = (...args) => {
-            info(formatArgs(args));
-        };
-        console.warn = (...args) => {
-            warn(formatArgs(args));
-        };
-        console.error = (...args) => {
-            error(formatArgs(args));
-        };
-    }
-}
-export const heavyFolders:Readonly<Set<string>> = new Set(['node_modules','AppData','.git','src-tauri/target/debug'])//this will do for now.i will add more later on monitoring the search
-
-export function isFolderHeavy(path:string):boolean {
-    const normalizedPath = path.replace(/\\/g, '/');
-    for (const heavy of heavyFolders) {
-        if (normalizedPath.endsWith(heavy)) {
-            return true;
-        }
-    }
-    return false
-}
-function terminateWatcher(key:string) {
-    const stopFn = activeWatchers.get(key);// Stop and remove watcher for evicted key
-    if (stopFn) {
-        console.log("TERMINATING THE WATCHER IN CACHE: ",key);
-        stopFn();
-        activeWatchers.delete(key);
-    }
-}
-function shouldCacheEntry(key:string):boolean {
-    if (isFolderHeavy(key)) {
-        console.log(`Skipping resumable caching for heavy folder: ${key}`);
-        return false
-    }
-    spawnSearchCacheWatcher(key)
-    return true
-}
 
 export interface RelevanceData {
     relevancePercent:number,
@@ -192,4 +102,20 @@ export async function spawnSearchCacheWatcher(path:string) {
     }catch(err) {
         console.error(`Failed to watch path for search cache ${path}:`, err);
     }
+}
+function terminateWatcher(key:string) {
+    const stopFn = activeWatchers.get(key);// Stop and remove watcher for evicted key
+    if (stopFn) {
+        console.log("TERMINATING THE WATCHER IN CACHE: ",key);
+        stopFn();
+        activeWatchers.delete(key);
+    }
+}
+function shouldCacheEntry(key:string):boolean {
+    if (isFolderHeavy(key)) {
+        console.log(`Skipping resumable caching for heavy folder: ${key}`);
+        return false
+    }
+    spawnSearchCacheWatcher(key)//im not suppose to await the watcher cuz it will lag indefinitely
+    return true
 }

@@ -1,6 +1,3 @@
-export function roundToTwo(num:number):number {
-    return Math.round(num * 100) / 100;
-}
 function removeAllDots(str:string):string {
     return str.replace(/\./g, '');
 }

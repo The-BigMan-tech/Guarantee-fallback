@@ -4,7 +4,7 @@ import { Provider } from 'react-redux'
 import store from './redux/store.ts'
 import './index.css'
 import App from './App.tsx'
-import { modifyLogs } from './utils/globals.ts'
+import { modifyLogs } from './utils/log-config.ts'
 
 modifyLogs();
 

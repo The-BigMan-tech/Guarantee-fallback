@@ -2,7 +2,7 @@ import { useEffect, useState,ChangeEvent} from "react";
 import { useAppDispatch,selector} from "../../../redux/hooks"
 import { openParentInApp } from "../../../redux/thunks/open-dir-related";
 import { selectCurrentPath,selectTabNames,selectQuickSearch,selectSearchResults} from "../../../redux/selectors";
-import { searchDir,toggleQuickSearch } from "../../../redux/thunks/search-related";
+import { searchDir,toggleQuickSearch } from "../../../redux/thunks/search-engine";
 import { toastConfig,loading_toastConfig } from "../../../utils/toast-configs";
 import {v4 as uniqueID} from "uuid"
 import { toast } from "react-toastify";

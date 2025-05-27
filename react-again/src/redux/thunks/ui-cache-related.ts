@@ -2,11 +2,11 @@
 import {throttle} from 'throttle-debounce';
 import { CachePayload,Cache,AllTabTypes,TabCacheInvalidation} from "../types";
 import { AppThunk,AppDispatch} from "../store";
-import { isFolderHeavy } from "../../utils/globals";
+import { isFolderHeavy } from "../../utils/search-resumability";
 import { selectCache ,selectIvalidatedTabs} from "../selectors";
 import { shiftCache,recordInCache,validateTabCache,setFsNodes,spreadToFsNodes,setCache,setLoadingMessage} from "../slice";
 import { FsNode} from "../../utils/rust-fs-interface";
-import { searchCache } from '../../utils/globals';
+import { searchCache } from '../../utils/search-resumability';
 
 
 export function addToCache(arg:CachePayload,folderName:string):AppThunk {

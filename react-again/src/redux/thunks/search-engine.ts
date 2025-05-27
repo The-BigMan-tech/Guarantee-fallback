@@ -4,12 +4,15 @@ import { selectQuickSearch } from "../selectors";
 import { FsNode,readDirectory,FsResult} from "../../utils/rust-fs-interface";
 import { getMatchScore } from "../../utils/fuzzy-engine";
 import { setQuickSearch,pushToSearchScores,spreadToSearch ,pushToSearch,setSearchTermination,clearNodeProgress,resetNodeProgress,setNodePath,saveNodeProgress,setSearchResults,setSearchScores} from "../slice";
-import { normalizeString } from "../../utils/other-utils";
+import { normalizeString } from "../../utils/string-utils";
 import { longQueryArgs,UpdateSearchArgs,shouldSkip,ReuseQueryArgs,HeuristicsArgs,DirResult,Cache,searchInBreadthArgs,Queue,DeferredSearch, searchInModeArgs} from "../types";
-import { memConsoleLog,isFolderHeavy,Queries,heuristicsCache,RelevanceData,searchCache,preprocessQuery,spellEngine} from "../../utils/globals";
-import { roundToTwo } from "../../utils/other-utils";
+import { Queries,heuristicsCache,RelevanceData,searchCache} from "../../utils/search-resumability";
+import { isFolderHeavy } from "../../utils/folder-utils";
+import { preprocessQuery,spellEngine } from "../../utils/spell-engine";
+import { memConsoleLog } from "../../utils/log-config";
+import { roundToTwo } from "../../utils/math-utils";
 import { selectCache,selectFsNodes,selectSearchTermination,selectSearchResults,selectCurrentPath,selectSearchScores} from "../selectors";
-import { aggressiveFilter } from "../../utils/other-utils";
+import { aggressiveFilter } from "../../utils/string-utils";
 import {toast,Flip} from 'react-toastify';
 import { toastConfig,loading_toastConfig } from "../../utils/toast-configs";
 
@@ -127,17 +130,7 @@ function reuseQuery(args:ReuseQueryArgs):shouldSkip {
     }
 }
 async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
-    const {
-        deferredPaths,
-        currentSearchPath,
-        rootPath,
-        processHeavyFolders,
-        heavyFolderQueue,
-        deferredHeap,
-        searchQuery,
-        nodeResult
-    } = args;
-
+    const {deferredPaths,currentSearchPath,rootPath,processHeavyFolders,heavyFolderQueue,deferredHeap,searchQuery,nodeResult} = args;
     const isDeferred:boolean = deferredPaths[currentSearchPath] || false;
     console.log((!isDeferred)?`CURRENT SEARCH PATH ${currentSearchPath}`:`CURRENTLY PROCESSING DEFERRED PATH: ${currentSearchPath}`);
     if ((currentSearchPath === rootPath) || isDeferred) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched and i also dont want it to perform relvance calc on something that has already gone through it like deferred paths when the deferred queue has its turn.    
@@ -154,7 +147,6 @@ async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
     //dynamic heuristics.it uses the fuzzy engine to know which folder to prioritize first
     const totalNodes = nodeResult.length || 1;//fallback for edge cases where totalNodes may be zero
     const sizeBonus:number = roundToTwo( (1 / (1 + totalNodes)) * 5);//added size bonus to make ones with smaller sizes more relevant and made it range from 0-5 so that it doesnt negligibly affects the relevance score
-
 
 
     //utilizing the resumability cache
@@ -265,7 +257,7 @@ function searchInBreadth(args:searchInBreadthArgs):AppThunk<Promise<void>> {
                 dispatch(displayPath(quickSearch,currentSearchPath));
                 const processedBatches:number[] = [0];//im using this to track the number of batches per path to dynamically increase it for the best ux and perf.i had to make it an array to make all calls to the batch thunk under the path to mutate it.its safe here cuz its local per path
                 for (const [localIndex,fsNode] of dirResult.value.entries()) {
-                    dispatch(quitOnTermination(startTime))
+                    dispatch(quitOnTermination(startTime));
                     const isLastFsNode = localIndex == (dirResult.value.length-1);
                     const awaitedFsNode = await fsNode;
                     const batchThunk = updateSearchResults({fsNode:awaitedFsNode,fsNodes,searchQuery,isLastFsNode,processedBatches});
@@ -325,19 +317,6 @@ function searchTime(startTime:number) {
     const timeInSeconds = (timeInMs / 1000).toFixed(3);
     toast.dismiss();
     toast.success(`Done searching in ${timeInSeconds} seconds`,{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
-}
-export function terminateSearch():AppThunk {
-    return (dispatch)=>{
-        dispatch(setSearchTermination(true))
-        toast.dismiss();
-        toast.info("Search terminated",{...toastConfig,autoClose:500,transition:Flip});
-    }
-}
-export function toggleQuickSearch():AppThunk {
-    return (dispatch,getState)=>{
-        const quickSearch:boolean = selectQuickSearch(getState());
-        dispatch(setQuickSearch(!(quickSearch)))
-    }
 }
 function quitOnTermination(startTime:number):AppThunk {
     return (dispatch,getState)=>{
@@ -406,5 +385,18 @@ function sortSearchResults(quickSearch:boolean,forceTermination:boolean):AppThun
                 console.log("sorted the search results");
             }
         }
+    }
+}
+export function terminateSearch():AppThunk {
+    return (dispatch)=>{
+        dispatch(setSearchTermination(true))
+        toast.dismiss();
+        toast.info("Search terminated",{...toastConfig,autoClose:500,transition:Flip});
+    }
+}
+export function toggleQuickSearch():AppThunk {
+    return (dispatch,getState)=>{
+        const quickSearch:boolean = selectQuickSearch(getState());
+        dispatch(setQuickSearch(!(quickSearch)))
     }
 }

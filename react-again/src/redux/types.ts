@@ -1,6 +1,6 @@
 import { FsResult,FsNode } from "../utils/rust-fs-interface";
 import Heap from "heap-js";
-import { Queries } from "../utils/globals";
+import { Queries } from "../utils/search-resumability";
 import { AppThunk } from "./store";
 
 export type shouldSkip = boolean;
