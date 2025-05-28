@@ -3,6 +3,7 @@ import { LifoCache } from "./lifo-cache";
 import { watchImmediate,WatchEvent,UnwatchFn } from "@tauri-apps/plugin-fs";
 import { isCreate,isModify,isRemove } from "./watcher-utils";
 import { isFolderHeavy } from "./folder-utils";
+import { memConsoleLog } from "./log-config";
 
 
 export interface RelevanceData {
@@ -16,7 +17,7 @@ interface PassiveCache<V> {
 type Query = string;
 export type Queries = Record<Query,RelevanceData>
 
-const maxCacheSize = 200;
+const maxCacheSize = 0;
 const maxPassiveCacheSize = 100
 export const MAX_WATCHERS = maxCacheSize;
 export const activeWatchers = new Map<string,UnwatchFn>();
@@ -27,7 +28,28 @@ export const heuristicsCache:LifoCache<string,Queries> = new LifoCache({ max:max
 const passiveSearchCache:LifoCache<string,PassiveCache<FsNode[]>> = new LifoCache({ max:maxPassiveCacheSize })
 const passiveHeuristicsCache:LifoCache<string,PassiveCache<Queries>> = new LifoCache({ max:maxPassiveCacheSize})
 
-
+async function setPassiveEntry<T>(key:string,value:T,passiveCache:LifoCache<string,PassiveCache<T>>) {
+    const mtimeResult:FsResult<Date | Error> = await getMtime(key);   
+    if (!(mtimeResult.value instanceof Error)) {
+        passiveCache.set(key,{data:value,mtime:mtimeResult.value})
+    }
+}
+async function getPassiveEntry<T>(key:string,passiveCache:LifoCache<string,PassiveCache<T>>):Promise<T | undefined> {
+    const mtimeResult:FsResult<Date | Error> = await getMtime(key);
+    if (!(mtimeResult.value instanceof Error)) {
+        memConsoleLog("Checking passive search cache: ",key);
+        const currentMtime = mtimeResult.value
+        const passiveEntry = await passiveCache.get(key);
+        const isEntryValid = currentMtime.getTime()==passiveEntry?.mtime.getTime()
+        memConsoleLog("Is Valid?: ",isEntryValid)
+        if (isEntryValid) {
+            return passiveEntry.data
+        }else {
+            passiveCache.delete(key)//freeing up the passive entry cache
+            return undefined
+        }
+    }
+}
 searchCache.onSet = (key) => {
     return shouldCacheEntry(key)
 }
@@ -35,56 +57,20 @@ heuristicsCache.onSet = (key) => {
     return shouldCacheEntry(key)
 }
 searchCache.onEvict = async (key,value) => {
-    const mtimeResult:FsResult<Date | Error> = await getMtime(key);   
-    if (!(mtimeResult.value instanceof Error)) {
-        passiveSearchCache.set(key,{data:value,mtime:mtimeResult.value})
-    }
+    await setPassiveEntry<FsNode[]>(key,value,passiveSearchCache)
     terminateWatcher(key)
 }
 heuristicsCache.onEvict = async (key,value) => {
-    const mtimeResult:FsResult<Date | Error> = await getMtime(key);   
-    if (!(mtimeResult.value instanceof Error)) {
-        passiveHeuristicsCache.set(key,{data:value,mtime:mtimeResult.value})
-    }
+    await setPassiveEntry<Queries>(key,value,passiveHeuristicsCache)
     terminateWatcher(key)
 }
 searchCache.onGet = async (key,value) => {
-    if (value) {
-        return value
-    };
-    const mtimeResult:FsResult<Date | Error> = await getMtime(key);
-    if (!(mtimeResult.value instanceof Error)) {
-        console.log("Checking passive search cache: ",key);
-        const currentMtime = mtimeResult.value
-        const passiveEntry = await passiveSearchCache.get(key);
-        const isEntryValid = currentMtime.getTime()==passiveEntry?.mtime.getTime()
-        console.log("Is Valid?: ",isEntryValid)
-        if (isEntryValid) {
-            return passiveEntry.data
-        }else {
-            passiveSearchCache.delete(key)//freeing up the passive entry cache
-            return undefined
-        }
-    }
+    if (value) return value;
+    return await getPassiveEntry<FsNode[]>(key,passiveSearchCache)
 }
 heuristicsCache.onGet = async (key,value) => {
-    if (value) {
-        return value
-    };
-    const mtimeResult:FsResult<Date | Error> = await getMtime(key);
-    if (!(mtimeResult.value instanceof Error)) {
-        console.log("Checking passive heuristic cache: ",key);
-        const currentMtime = mtimeResult.value
-        const passiveEntry = await passiveHeuristicsCache.get(key)
-        const isEntryValid = currentMtime.getTime()==passiveEntry?.mtime.getTime()
-        console.log("Is Valid?: ",isEntryValid)
-        if (isEntryValid) {
-            return passiveEntry.data
-        }else {
-            passiveSearchCache.delete(key)
-            return undefined
-        }
-    }
+    if (value) return value;
+    return await getPassiveEntry<Queries>(key,passiveHeuristicsCache)
 }
 export async function spawnSearchCacheWatcher(path:string) {
     if (activeWatchers.has(path)) return; // Already watching
@@ -100,7 +86,7 @@ export async function spawnSearchCacheWatcher(path:string) {
         },{recursive:false})
         activeWatchers.set(path,stop);
     }catch(err) {
-        console.error(`Failed to watch path for search cache ${path}:`, err);
+        throw new Error(`Failed to watch path for search cache ${path}: ${err}`);
     }
 }
 function terminateWatcher(key:string) {
