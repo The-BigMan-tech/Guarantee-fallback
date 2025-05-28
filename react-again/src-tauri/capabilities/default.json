@@ -20,6 +20,17 @@
       ]
     },
     {
+      "identifier": "fs:allow-unwatch",
+      "allow": [
+        {
+          "path": "$HOME"
+        },
+        {
+          "path": "$HOME/**"
+        }
+      ]
+    },
+    {
       "identifier": "fs:allow-read-dir",
       "allow": [
         {
