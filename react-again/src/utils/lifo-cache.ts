@@ -6,7 +6,6 @@ export class LifoCache<K, V> {
     public onSet?: (key: K, value: V) => boolean;
     public onEvict?: (key: K, value: V) => Promise<void>;
     public onGet?:(key:K,value:V | undefined)=>Promise<V | undefined>;//if i passed the key and return the value of the key in the hook using this object,it may be in an infinite loop cuz this.onegt will always be defined
-    public onFull?:(cache:LifoCache<K,V>)=>Promise<void>;
 
     constructor(options: { max: number }) {
         this.max = options.max;
@@ -35,9 +34,6 @@ export class LifoCache<K, V> {
             return this;
         }
         if (this.map.size >= this.max) {
-            if (this.onFull) {
-                await this.onFull(this);
-            }
             const lastKey = this.stack.pop();//Evict the most recently added item (top of the stack)
             if (lastKey !== undefined) {
                 const evictedValue = this.map.get(lastKey)!;
