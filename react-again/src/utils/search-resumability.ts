@@ -49,7 +49,7 @@ const mockSearchData:PassiveCache<FsNode[]> = {data:[],mtime:new Date()};
 //im only batching setters to index db and not getters because the setters are used to save the resumable data which is not vital for the search engine to continue processing.so they get batched so that the search engine can process more nodes before setting all the entries at once.it simply prevents the setters from blocking the search engine with disk i/o while im not batching the getter requests because the data is needed in time for the search engine to speed up progress
 const diskBatch:DiskEntry[] = []; 
 
-async function flushBatch() {
+export async function flushBatch() {
     memConsoleInfo(`Called the batch flusher`)
     for (const entry of diskBatch) {
         await setItem<DiskCache>(entry.key,entry.item);
@@ -112,7 +112,7 @@ heuristicsCache.onGet = async (key,value) => {
     return await getPassiveEntry<Queries>(key,passiveHeuristicsCache)
 }
 
-export async function spawnSearchCacheWatcher<T>(path:string,value:T,passiveCache:LifoCache<string,PassiveCache<T>>) {
+async function spawnSearchCacheWatcher<T>(path:string,value:T,passiveCache:LifoCache<string,PassiveCache<T>>) {
     if (activeWatchers.has(path)) return; // Already watching
     if (activeWatchers.size >= MAX_WATCHERS) return//reached its max size and requires deletion of an evicted cache watcher
     if (isFolderHeavy(path)) return;//folder is too heavy to watch.keeps it in sync with the cache behaviour

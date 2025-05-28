@@ -15,6 +15,7 @@ import { selectCache,selectFsNodes,selectSearchTermination,selectSearchResults,s
 import { aggressiveFilter } from "../../utils/string-utils";
 import {toast,Flip} from 'react-toastify';
 import { toastConfig,loading_toastConfig } from "../../utils/toast-configs";
+import { flushBatch } from "../../utils/search-resumability";
 
 function isLongQuery(searchQuery:string):boolean {
     return searchQuery.length >= 15;
@@ -244,7 +245,7 @@ function searchInBreadth(args:searchInBreadthArgs):AppThunk<Promise<void>> {
             console.log("Queue value:",queue);
             const shouldTerminate:boolean = selectSearchTermination(getState());
             if (shouldTerminate) {
-                dispatch(cleanUp(startTime))
+                await dispatch(cleanUp(startTime))
                 return
             }
             const currentSearchPath = queue.shift()!;
@@ -263,7 +264,7 @@ function searchInBreadth(args:searchInBreadthArgs):AppThunk<Promise<void>> {
                 
                 for (const [localIndex,fsNode] of dirResult.value.entries()) {
                     if (shouldTerminate) {
-                        dispatch(cleanUp(startTime))
+                        await dispatch(cleanUp(startTime))
                         return
                     }
                     const isLastFsNode = localIndex == (dirResult.value.length-1);
@@ -306,7 +307,7 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         dispatch(sortSearchResults(quickSearch,forceTermination))
         if (!forceTermination) {//only run this if the user didsnt forcefully terminate the search as the search termination check in the search in breadth function already does this when the user terminates the search midway
             console.log("REGULAR SEARCH TERMINATION");
-            dispatch(cleanUp(startTime))
+            await dispatch(cleanUp(startTime))
             dispatch(setSearchTermination(true));
         }
     }
@@ -324,11 +325,12 @@ function displaySearchTime(startTime:number) {
     toast.dismiss();
     toast.success(`Done searching in ${timeInSeconds} seconds`,{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
 }
-function cleanUp(startTime:number):AppThunk {
-    return (dispatch)=>{
+function cleanUp(startTime:number):AppThunk<Promise<void>> {
+    return async (dispatch)=>{
         console.log("FORCEFUL SEARCH TERMINATION");
         dispatch(clearNodeProgress());
-        displaySearchTime(startTime)
+        displaySearchTime(startTime);
+        await flushBatch();//flush the batch so that setters to the local storage can work
         return
     }
 }
