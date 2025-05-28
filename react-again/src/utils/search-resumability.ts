@@ -17,8 +17,9 @@ interface PassiveCache<V> {
 type Query = string;
 export type Queries = Record<Query,RelevanceData>
 
-const maxCacheSize = 1;
-const maxPassiveCacheSize = 100
+const maxCacheSize = 200;
+const maxPassiveCacheSize = 100;
+
 export const MAX_WATCHERS = maxCacheSize;
 export const activeWatchers = new Map<string,UnwatchFn>();
 

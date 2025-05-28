@@ -3,7 +3,7 @@ import { FsNode,base_name,readDirectory,FsResult,join_with_home} from "../../uti
 import { setFsNodes,spreadToFsNodes,setCurrentPath,setLoadingMessage,setOpenedFile,setSearchResults,setAheadCachingState,setError,setNotice,invalidateTabCache} from "../slice";
 import { selectCurrentPath,selectCache} from "../selectors";
 import { WatchEvent,watchImmediate,BaseDirectory} from "@tauri-apps/plugin-fs";
-import { isCreate,isModify,isRemove } from "../../utils/watcher-utils";
+import { isFileEvent} from "../../utils/watcher-utils";
 import { HomeTabsToValidate,HomeTab,Cache} from "../types";
 //*Thunk dependency
 import { openCachedDirInApp,cacheIsValid,addToCache} from "./ui-cache-related";
@@ -98,7 +98,7 @@ export function watchHomeTabs():AppThunk<Promise<void>> {
             ],
             async (event:WatchEvent) => {
                 console.log('Logged directory event');
-                if (isCreate(event.type) || isModify(event.type) || isRemove(event.type)) {
+                if (isFileEvent(event.type)) {
                     console.log("Logged modification",event);
                     const currentPath = selectCurrentPath(getState());
                     const triggeredPaths = event.paths;
@@ -114,7 +114,6 @@ export function watchHomeTabs():AppThunk<Promise<void>> {
                             await dispatch(cacheHomeTab(tabName,false));
                             dispatch(setLoadingMessage("Done refreshing the app"))
                         }
-                        
                     }
                 }
             },
