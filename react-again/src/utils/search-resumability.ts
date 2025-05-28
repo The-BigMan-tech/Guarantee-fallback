@@ -3,7 +3,7 @@ import { LifoCache } from "./lifo-cache";
 import { watchImmediate,WatchEvent,UnwatchFn } from "@tauri-apps/plugin-fs";
 import { isFileEvent } from "./watcher-utils";
 import { isFolderHeavy } from "./folder-utils";
-import { memConsoleLog } from "./log-config";
+import { memConsoleInfo, memConsoleLog } from "./log-config";
 import { deleteDB, deleteItem, getItem, setItem, setupDatabase} from "./index-db";
 
 await deleteDB();//im deleting the database to retain the integrity of all resumability data since many are in-memory,and only overflows go to the disk,all resumability data on the disk is cleared upon entry.it also prevents unbounded growth over time
@@ -24,6 +24,11 @@ interface DiskCache {
     heuristicsCache:PassiveCache<Queries>,
     searchCache:PassiveCache<FsNode[]>
 }
+interface DiskEntry {//for batching
+    key:string,
+    item:DiskCache
+}
+
 const maxCacheSize = 0;
 const maxPassiveCacheSize = 0;
 
@@ -40,16 +45,35 @@ const mockHeuristics:PassiveCache<Queries> = {data:{},mtime:new Date()};
 const mockSearchData:PassiveCache<FsNode[]> = {data:[],mtime:new Date()};
 
 //todo:set a cap on the disk usage to prevent unbounded growth
+//the access to the resumable data is in a pipeline.when the main caches are full cuz of watcher limits.they overflow to the passive caches where they are validated statically,when that overflows,they go to the disk storage which means that the resumable data has no limit besides disk storage.The access is also in a pipeline where the next overflow container is a fallback.
+//im only batching setters to index db and not getters because the setters are used to save the resumable data which is not vital for the search engine to continue processing.so they get batched so that the search engine can process more nodes before setting all the entries at once.it simply prevents the setters from blocking the search engine with disk i/o while im not batching the getter requests because the data is needed in time for the search engine to speed up progress
+const diskBatch:DiskEntry[] = []; 
 
+async function flushBatch() {
+    memConsoleInfo(`Called the batch flusher`)
+    for (const entry of diskBatch) {
+        await setItem<DiskCache>(entry.key,entry.item);
+    }
+    diskBatch.length = 0//clear the batch
+}
+async function batchSetEntry(key:string,item:DiskCache) {
+    diskBatch.push({key,item});
+    const len = diskBatch.length
+    memConsoleLog("Disk batch length: ",len)
+    if (diskBatch.length >= 10) {
+        memConsoleInfo(`Disk Batch is full.flushing now..`)
+        await flushBatch()
+    }
+}
 passiveSearchCache.onEvict = async (key,value) => {
     const item = {heuristicsCache:mockHeuristics,searchCache:value}//the mock heuristics is used here because the search cache is used for a particular path in my search engine before using the heuritic cache on the same path.the mock data is just there to fill in the data.it will be merged with later
-    await setItem<DiskCache>(key,item)
+    await batchSetEntry(key,item)
 }
 passiveHeuristicsCache.onEvict = async (key,value) => {
     const existingItem = await getItem<DiskCache>(key)//the heuristics cache is used in my search engine after the search cache so this is valid and no need for mock data but it should instead merge with the existing one
     const searchCache = existingItem?.searchCache || mockSearchData//the mock data fallback is used to let ts know that what im doing is valid
     const item = {searchCache,heuristicsCache:value}
-    await setItem<DiskCache>(key,item)
+    await batchSetEntry(key,item)
 }
 
 passiveSearchCache.onGet = async (key,value)=> {

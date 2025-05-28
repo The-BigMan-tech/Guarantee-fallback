@@ -29,7 +29,7 @@ async thunks and create async thunks
 
 thunks dont return values.just dispatch actions
 
-^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid,throttle-debounce,fuse js,jotai,heap js,lru-cache
+^react,tauri,pouch db,tailwind,daisy ui,redux,chart js,react-toastify,uuid,throttle-debounce,fuse js,jotai,heap js,lru-cache,indexed db
 wasm
 
 hello pangea dnd,react router,framer motion,gsap,three js,
@@ -1539,6 +1539,9 @@ fuzzy matcher
 *In JavaScript, when you do a comparison like char >= 'a' && char <= 'z', char is a string of length 1 (a single character string). JavaScript compares strings lexicographically based on their UTF-16 character codes.JavaScript compares strings character-by-character using the Unicode code point values.
 For single characters, this effectively compares their character codes.
 
-memory-disk cache
+disk overflow
 
 maps and records dont store keys in any partcular order so a stack is required to keep trak of the keys in order of access or addition
+
+Resumability overflow
+resumability pipeline
