@@ -4,7 +4,7 @@ import { setFsNodes,spreadToFsNodes,setCurrentPath,setLoadingMessage,setOpenedFi
 import { selectCurrentPath,selectCache} from "../selectors";
 import { WatchEvent,watchImmediate,BaseDirectory} from "@tauri-apps/plugin-fs";
 import { isCreate,isModify,isRemove } from "../../utils/watcher-utils";
-import { AllTabTypes,StrictTabsType,Cache} from "../types";
+import { HomeTabsToValidate,HomeTab,Cache} from "../types";
 //*Thunk dependency
 import { openCachedDirInApp,cacheIsValid,addToCache} from "./ui-cache-related";
 
@@ -104,20 +104,17 @@ export function watchHomeTabs():AppThunk<Promise<void>> {
                     const triggeredPaths = event.paths;
                     for (const path of triggeredPaths) {
                         const parent = path.slice(0,path.lastIndexOf('\\'));
-                        const tabName:AllTabTypes = await base_name(parent,true) as AllTabTypes;
-                        dispatch(invalidateTabCache({tabName}));
-                        if (tabName == "Home") {//auto reload the home page if its opened because my function wasnt built to load the home page ahead of time in mind because its the first page that loads when you open the app
-                            await dispatch(openDirFromHome("Home"))
-                        }else {
-                            const currentPathBase:StrictTabsType = await base_name(currentPath,false) as StrictTabsType
-                            if (currentPathBase == tabName) {//auto reload if the tab is currently opened
-                                await dispatch(openDirFromHome(tabName))
-                            }else {//auto reload the tab in the background ahead of time.reloading it in the background is very fast because if no ui updates
-                                dispatch(setLoadingMessage("Changes detected.Refreshing the app in the background."))
-                                await dispatch(cacheHomeTab(tabName,false));
-                                dispatch(setLoadingMessage("Done refreshing the app"))
-                            }
+                        const tabName:HomeTabsToValidate = await base_name(parent,true) as HomeTabsToValidate;
+                        dispatch(invalidateTabCache({tabName}));    
+                        const currentPathBase = await base_name(currentPath,false)
+                        if (currentPathBase == tabName) {//auto reload if the tab is currently opened
+                            await dispatch(openDirFromHome(tabName))
+                        }else {//auto reload the tab in the background ahead of time.reloading it in the background is very fast because if no ui updates
+                            dispatch(setLoadingMessage("Changes detected.Refreshing the app in the background."))
+                            await dispatch(cacheHomeTab(tabName,false));
+                            dispatch(setLoadingMessage("Done refreshing the app"))
                         }
+                        
                     }
                 }
             },
@@ -128,7 +125,7 @@ export function watchHomeTabs():AppThunk<Promise<void>> {
         )
     }
 }
-export function cacheHomeTab(tabName:StrictTabsType,reuseEntry:boolean):AppThunk<Promise<void>>{
+export function cacheHomeTab(tabName:HomeTab,reuseEntry:boolean):AppThunk<Promise<void>>{
     return async (dispatch,getState)=>{
         dispatch(setAheadCachingState('pending'))
         const folderPath = await join_with_home(tabName);

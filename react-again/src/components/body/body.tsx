@@ -1,6 +1,6 @@
 import { selector } from "../../redux/hooks"
 import { selectFsNodes,selectSearchResults,selectSearchTermination,selectOpenedFile} from "../../redux/selectors"
-import { terminateSearch,searchDir } from "../../redux/thunks/search-engine"
+import { terminateSearch,clearSearchResults} from "../../redux/thunks/search-engine"
 import { FsNode} from "../../utils/rust-fs-interface"
 import FsDisplay from "./fs-display"
 import { useAppDispatch } from "../../redux/hooks"
@@ -14,8 +14,8 @@ export default function Body() {
     const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store));
     const openedFile = selector(store=>selectOpenedFile(store));
 
-    async function exitSearch() {
-        await dispatch(searchDir("",0));
+    function exitSearch() {
+        dispatch(clearSearchResults())
     }
     function quitSearch() {
         dispatch(terminateSearch());

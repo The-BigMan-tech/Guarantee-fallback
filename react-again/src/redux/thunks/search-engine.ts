@@ -242,10 +242,14 @@ function searchInBreadth(args:searchInBreadthArgs):AppThunk<Promise<void>> {
 
         while ((queue.length > 0) || !(deferredHeap.isEmpty())) {
             console.log("Queue value:",queue);
-            dispatch(quitOnTermination(startTime))
+            const shouldTerminate:boolean = selectSearchTermination(getState());
+            if (shouldTerminate) {
+                dispatch(cleanUp(startTime))
+                return
+            }
             const currentSearchPath = queue.shift()!;
-            pushDeferredPaths(queue,deferredHeap);
             const dirResult:DirResult = await dispatch(getDirResult(currentSearchPath,rootPath))
+            pushDeferredPaths(queue,deferredHeap);
             console.log("DIR RESULT",dirResult.value);
 
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {
@@ -253,11 +257,15 @@ function searchInBreadth(args:searchInBreadthArgs):AppThunk<Promise<void>> {
                 if (nextIteration) {console.log("Continued the loop");continue}
 
                 const fsNodes:FsNode[] = []//this is the batch used per dir level so that it doesnt directly call fuse on every node but rather in batches
+                const processedBatches:number[] = [0];//im using this to track the number of batches per path to dynamically increase it for the best ux and perf.i had to make it an array to make all calls to the batch thunk under the path to mutate it.its safe here cuz its local per path
                 const quickSearch:boolean = selectQuickSearch(getState());
                 dispatch(displayPath(quickSearch,currentSearchPath));
-                const processedBatches:number[] = [0];//im using this to track the number of batches per path to dynamically increase it for the best ux and perf.i had to make it an array to make all calls to the batch thunk under the path to mutate it.its safe here cuz its local per path
+                
                 for (const [localIndex,fsNode] of dirResult.value.entries()) {
-                    dispatch(quitOnTermination(startTime));
+                    if (shouldTerminate) {
+                        dispatch(cleanUp(startTime))
+                        return
+                    }
                     const isLastFsNode = localIndex == (dirResult.value.length-1);
                     const awaitedFsNode = await fsNode;
                     const batchThunk = updateSearchResults({fsNode:awaitedFsNode,fsNodes,searchQuery,isLastFsNode,processedBatches});
@@ -285,17 +293,10 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         dispatch(setSearchResults([]));
         dispatch(setSearchScores([]));
 
-        if (searchQuery.length == 0) {
-            toast.dismiss("loading");
-            dispatch(setSearchResults(null));
-            dispatch(setSearchTermination(true));
-            return
-        }
         const quickSearch = selectQuickSearch(getState());
         const currentPath:string = selectCurrentPath(getState());
         const heavyFolderQueue:string[] = [];
-        runSpellChecker(searchQuery,quickSearch)
-
+        searchQuery = runSpellChecker(searchQuery,quickSearch)
 
         await dispatch(searchInBreadth({rootPath:currentPath,searchQuery,heavyFolderQueue,processHeavyFolders:false,startTime}));
         if (!quickSearch) {//only run the second search loop in full search mode
@@ -305,29 +306,30 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         dispatch(sortSearchResults(quickSearch,forceTermination))
         if (!forceTermination) {//only run this if the user didsnt forcefully terminate the search as the search termination check in the search in breadth function already does this when the user terminates the search midway
             console.log("REGULAR SEARCH TERMINATION");
-            searchTime(startTime);
+            dispatch(cleanUp(startTime))
             dispatch(setSearchTermination(true));
-            dispatch(clearNodeProgress());
         }
     }
 }
-function searchTime(startTime:number) {
+export function clearSearchResults():AppThunk {
+    return (dispatch)=>{
+        dispatch(setSearchResults(null));
+        dispatch(setSearchTermination(true));
+    }
+}
+function displaySearchTime(startTime:number) {
     const endTime = performance.now();
     const timeInMs = endTime - startTime;
     const timeInSeconds = (timeInMs / 1000).toFixed(3);
     toast.dismiss();
     toast.success(`Done searching in ${timeInSeconds} seconds`,{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
 }
-function quitOnTermination(startTime:number):AppThunk {
-    return (dispatch,getState)=>{
-        const shouldTerminate:boolean = selectSearchTermination(getState());
-        console.log("SHOULD TERMINATE",shouldTerminate);
-        if (shouldTerminate) {//terminate the search on user command
-            console.log("FORCEFUL SEARCH TERMINATION");
-            dispatch(clearNodeProgress());
-            searchTime(startTime)
-            return
-        }
+function cleanUp(startTime:number):AppThunk {
+    return (dispatch)=>{
+        console.log("FORCEFUL SEARCH TERMINATION");
+        dispatch(clearNodeProgress());
+        displaySearchTime(startTime)
+        return
     }
 }
 function displayPath(quickSearch:boolean,currentSearchPath:string):AppThunk {
@@ -360,15 +362,16 @@ function pushDeferredPaths(queue:Queue,deferredHeap: Heap<DeferredSearch>) {
         deferredHeap.clear() // Clear deferred queue
     }
 }
-function runSpellChecker(searchQuery:string,quickSearch:boolean) {
+function runSpellChecker(searchQuery:string,quickSearch:boolean):string {
      //im only adding query preprocessing and spell correction only on full search mode because full search mode doesnt apply a cheap filter thats typo intolerant
     if (!spellEngine.correct(searchQuery) && !(quickSearch)) {//embedding typo checking and cleaning before taking it to the search engine
         memConsoleLog('Previous searchQuery:', searchQuery);
         const suggestions = spellEngine.suggest(preprocessQuery(searchQuery));//only make a suggestion on the preprocessed query separately so that the original query wont me mutated if no suggestion was found
-        memConsoleLog(' Suggestions:', suggestions);
         searchQuery = (suggestions.length)?suggestions[0]:searchQuery
+        memConsoleLog(' Suggestions:', suggestions);
         memConsoleLog(`New Search query "${searchQuery}":`);
     }
+    return searchQuery
 }
 function sortSearchResults(quickSearch:boolean,forceTermination:boolean):AppThunk {
     return (dispatch,getState)=>{

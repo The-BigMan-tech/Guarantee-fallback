@@ -1,6 +1,6 @@
 //@ts-expect-error :I intetionally didnt install the type files because they were misleading the compiler about how to call the throttle function which was falsely flagging my code
 import {throttle} from 'throttle-debounce';
-import { CachePayload,Cache,AllTabTypes,TabCacheInvalidation} from "../types";
+import { CachePayload,Cache,HomeTabsToValidate,HomeTab,TabCacheInvalidation} from "../types";
 import { AppThunk,AppDispatch} from "../store";
 import { isFolderHeavy } from '../../utils/folder-utils';
 import { selectCache ,selectIvalidatedTabs} from "../selectors";
@@ -22,11 +22,11 @@ export function addToCache(arg:CachePayload,folderName:string):AppThunk {
             dispatch(shiftCache())
         }
         let dirNodes:FsNode[] = arg.data;
-        if (!isAHomeTab(folderName)) {//bound the number of fsnodes per record in the cache if it isnt a home tab as unlike the home tab,they are always invalidated on reopen but they are displayed in the ui frozen in the meantime
+        if (!isHomeTab(folderName)) {//bound the number of fsnodes per record in the cache if it isnt a home tab as unlike the home tab,they are always invalidated on reopen but they are displayed in the ui frozen in the meantime
             dirNodes = arg.data.slice(0,Math.min(100,dirNodes.length))
         }
         dispatch(recordInCache({path:arg.path,data:dirNodes}))
-        if (isAHomeTab(folderName)) {//validates the cache because its up to date
+        if (isHomeTabToValidate(folderName)) {//validates the cache because its up to date
             console.log("Validated the cache",folderName);
             dispatch(validateTabCache({tabName:folderName}))//since the cache was just updated,it makes sense to validate it.Its the only point where its validated
         }
@@ -56,7 +56,7 @@ export function cacheIsValid(folderName:string):AppThunk<boolean> {
     return (dispatch,getState):boolean=>{
         const invalidatedTabs:TabCacheInvalidation = selectIvalidatedTabs(getState());
         console.log("Invalidated tabs",invalidatedTabs);
-        if ((isAHomeTab(folderName)) && (invalidatedTabs[folderName] == false)) {//if it isnt invalidated,load the ui immediately
+        if ((isHomeTabToValidate(folderName)) && (invalidatedTabs[folderName] == false)) {//if it isnt invalidated,load the ui immediately
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             return true
         }
@@ -84,6 +84,9 @@ const throttledStoreCache:throttle<()=>AppThunk> = throttle(5000,
     (dispatch:AppDispatch)=>(dispatch(storeCache())),
     {noLeading:true, noTrailing: false,}
 );
-function isAHomeTab(folderName:string):folderName is AllTabTypes  {
+function isHomeTabToValidate(folderName:string):folderName is HomeTabsToValidate  {
     return (folderName=="Home") || (folderName=="Desktop")  || (folderName=="Downloads") || (folderName=="Documents") || (folderName=="Pictures") || (folderName=="Music") || (folderName=="Videos")
+}
+function isHomeTab(folderName:string):folderName is HomeTab  {
+    return isHomeTabToValidate(folderName) || (folderName=='Recent')
 }
