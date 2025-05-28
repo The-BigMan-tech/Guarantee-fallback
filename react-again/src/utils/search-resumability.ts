@@ -29,8 +29,8 @@ interface DiskEntry {//for batching
     item:DiskCache
 }
 
-const maxCacheSize = 0;
-const maxPassiveCacheSize = 0;
+const maxCacheSize = 200;
+const maxPassiveCacheSize = 100;
 
 export const MAX_WATCHERS = maxCacheSize;
 export const activeWatchers = new Map<string,UnwatchFn>();
@@ -50,7 +50,7 @@ const mockSearchData:PassiveCache<FsNode[]> = {data:[],mtime:new Date()};
 const diskBatch:DiskEntry[] = []; 
 
 export async function flushBatch() {
-    memConsoleInfo(`Called the batch flusher`)
+    memConsoleInfo(`disk batch is full.flushing now....`)
     for (const entry of diskBatch) {
         await setItem<DiskCache>(entry.key,entry.item);
     }
@@ -61,7 +61,6 @@ async function batchSetEntry(key:string,item:DiskCache) {
     const len = diskBatch.length
     memConsoleLog("Disk batch length: ",len)
     if (diskBatch.length >= 10) {
-        memConsoleInfo(`Disk Batch is full.flushing now..`)
         await flushBatch()
     }
 }
