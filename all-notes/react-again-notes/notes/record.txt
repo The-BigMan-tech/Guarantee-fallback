@@ -1538,3 +1538,7 @@ fuzzy matcher
 
 *In JavaScript, when you do a comparison like char >= 'a' && char <= 'z', char is a string of length 1 (a single character string). JavaScript compares strings lexicographically based on their UTF-16 character codes.JavaScript compares strings character-by-character using the Unicode code point values.
 For single characters, this effectively compares their character codes.
+
+memory-disk cache
+
+maps and records dont store keys in any partcular order so a stack is required to keep trak of the keys in order of access or addition

@@ -1,6 +1,6 @@
 import { info,debug,error,warn} from '@tauri-apps/plugin-log';
 
-const shouldLogToFile:boolean = false;
+const shouldLogToFile:boolean = true;
 const formatObjects:boolean = false;
 
 export const memConsoleLog = console.log
