@@ -1,7 +1,7 @@
 import { FsNode, FsResult, getMtime } from "./rust-fs-interface"
 import { LifoCache } from "./lifo-cache";
 import { watchImmediate,WatchEvent,UnwatchFn } from "@tauri-apps/plugin-fs";
-import { isCreate,isModify,isRemove } from "./watcher-utils";
+import { isFileEvent } from "./watcher-utils";
 import { isFolderHeavy } from "./folder-utils";
 import { memConsoleLog } from "./log-config";
 
@@ -17,7 +17,7 @@ interface PassiveCache<V> {
 type Query = string;
 export type Queries = Record<Query,RelevanceData>
 
-const maxCacheSize = 0;
+const maxCacheSize = 1;
 const maxPassiveCacheSize = 100
 export const MAX_WATCHERS = maxCacheSize;
 export const activeWatchers = new Map<string,UnwatchFn>();
@@ -72,21 +72,24 @@ heuristicsCache.onGet = async (key,value) => {
     if (value) return value;
     return await getPassiveEntry<Queries>(key,passiveHeuristicsCache)
 }
-export async function spawnSearchCacheWatcher(path:string) {
+export async function spawnSearchCacheWatcher<T>(path:string,value:T,passiveCache:LifoCache<string,PassiveCache<T>>) {
     if (activeWatchers.has(path)) return; // Already watching
     if (activeWatchers.size >= MAX_WATCHERS) return//reached its max size and requires deletion of an evicted cache watcher
     if (isFolderHeavy(path)) return;//folder is too heavy to watch.keeps it in sync with the cache behaviour
     try {
-        const stop = await watchImmediate(path,(event:WatchEvent)=>{
-            if (isCreate(event.type) || isModify(event.type) || isRemove(event.type)) {
-                searchCache.delete(path);
-                heuristicsCache.delete(path);
-                terminateWatcher(path)
+        const stop = await watchImmediate(path,
+            (event:WatchEvent)=>{
+                if (isFileEvent(event.type)) {
+                    deleteEntry(path)
+                    terminateWatcher(path)
+                }
             }
-        },{recursive:false})
+        ,{recursive:false});
         activeWatchers.set(path,stop);
-    }catch(err) {
-        throw new Error(`Failed to watch path for search path ${path}: ${err}`);
+    }catch {
+        memConsoleLog(`Watcher failed for path:${path}.falling back to passive cache`);
+        deleteEntry(path)
+        await setPassiveEntry<T>(path,value,passiveCache);
     }
 }
 function terminateWatcher(key:string) {
@@ -102,11 +105,10 @@ async function shouldCacheEntry<T>(key:string,value:T,passiveCache:LifoCache<str
         console.log(`Skipping resumable caching for heavy folder: ${key}`);
         return false
     }
-    try {
-        spawnSearchCacheWatcher(key)//im not suppose to await the watcher cuz it will lag indefinitely
-        return true
-    }catch {//in case the watcher fails,fallback to the passive cache
-        await setPassiveEntry<T>(key,value,passiveCache)
-        return false
-    }
+    spawnSearchCacheWatcher(key,value,passiveCache)//im not suppose to await the watcher cuz it will lag indefinitely
+    return true
+}
+function deleteEntry(path:string) {
+    searchCache.delete(path);
+    heuristicsCache.delete(path);
 }
