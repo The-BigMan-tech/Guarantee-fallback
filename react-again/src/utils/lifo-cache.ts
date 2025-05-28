@@ -3,7 +3,7 @@ export class LifoCache<K, V> {
     private map: Map<K, V>;
     private stack: K[];
 
-    public onSet?: (key: K, value: V) => boolean;
+    public onSet?: (key: K, value: V) => Promise<boolean>;
     public onEvict?: (key: K, value: V) => Promise<void>;
     public onGet?:(key:K,value:V | undefined)=>Promise<V | undefined>;//if i passed the key and return the value of the key in the hook using this object,it may be in an infinite loop cuz this.onegt will always be defined
 
@@ -24,7 +24,7 @@ export class LifoCache<K, V> {
     }
     async set(key: K, value: V):Promise<this> {
         if (this.onSet) {
-            const shouldCache = this.onSet(key, value);
+            const shouldCache = await this.onSet(key, value);
             if (shouldCache === false) {
                 return this;// Skip caching this entry
             }

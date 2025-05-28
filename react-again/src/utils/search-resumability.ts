@@ -50,11 +50,11 @@ async function getPassiveEntry<T>(key:string,passiveCache:LifoCache<string,Passi
         }
     }
 }
-searchCache.onSet = (key) => {
-    return shouldCacheEntry(key)
+searchCache.onSet = async (key,value) => {
+    return await shouldCacheEntry<FsNode[]>(key,value,passiveSearchCache)
 }
-heuristicsCache.onSet = (key) => {
-    return shouldCacheEntry(key)
+heuristicsCache.onSet = async (key,value) => {
+    return await shouldCacheEntry<Queries>(key,value,passiveHeuristicsCache)
 }
 searchCache.onEvict = async (key,value) => {
     await setPassiveEntry<FsNode[]>(key,value,passiveSearchCache)
@@ -86,7 +86,7 @@ export async function spawnSearchCacheWatcher(path:string) {
         },{recursive:false})
         activeWatchers.set(path,stop);
     }catch(err) {
-        throw new Error(`Failed to watch path for search cache ${path}: ${err}`);
+        throw new Error(`Failed to watch path for search path ${path}: ${err}`);
     }
 }
 function terminateWatcher(key:string) {
@@ -97,11 +97,16 @@ function terminateWatcher(key:string) {
         activeWatchers.delete(key);
     }
 }
-function shouldCacheEntry(key:string):boolean {
+async function shouldCacheEntry<T>(key:string,value:T,passiveCache:LifoCache<string,PassiveCache<T>>):Promise<boolean> {
     if (isFolderHeavy(key)) {
         console.log(`Skipping resumable caching for heavy folder: ${key}`);
         return false
     }
-    spawnSearchCacheWatcher(key)//im not suppose to await the watcher cuz it will lag indefinitely
-    return true
+    try {
+        spawnSearchCacheWatcher(key)//im not suppose to await the watcher cuz it will lag indefinitely
+        return true
+    }catch {//in case the watcher fails,fallback to the passive cache
+        await setPassiveEntry<T>(key,value,passiveCache)
+        return false
+    }
 }
