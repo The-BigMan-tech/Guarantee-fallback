@@ -1555,3 +1555,7 @@ disk cache--limited by disk space
 *its my counterpart to indexing.if indexing were to ever cache search results,it will be bounded by queries because each query-result pair will consume a lot of resoucres.but mine only caches lightweight data on computations that leads to the query.so its unbounded by the number of queries and there can be several queries per path and each path is cached independently of the others regardless of heirarchy.this structure allows it to resum from any where it stopped unlike cached search results.its also done incrementally during search time not pre-search time so as you search,the search engine has more O(1) access to any node it has reached so far.the reachability was the only limit to resumability capped at 300 folder paths.but with disk overflow,it can grow to 1000s.i dont see any advantage indexing has over this anymore
 
 *so my search engine at an average case is O(logn) or something like that cuz it uses heuritics to guide its search reducing search time to find relevant results.its O(n) at worst case when heuristics isnt effective enough as it cant fit all scenarios but its O(1) when it has been used long enough on the filesystem that its resumability has reached many nodes in the tree.
+
+Tauri,React,Redux,IndexedDB,Tailwind
+
+motion canvas,lottie animation,framer motion,gsap

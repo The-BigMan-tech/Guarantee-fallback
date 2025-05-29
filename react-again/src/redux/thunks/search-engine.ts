@@ -137,20 +137,10 @@ async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
     if ((currentSearchPath === rootPath) || isDeferred) {//only perform heuristics on sub folders of the root path cuz if not,the root path will be forever deferred if it doesnt match the heuristics not to mention its a waste of runtime to do it on the root since the root must always be searched and i also dont want it to perform relvance calc on something that has already gone through it like deferred paths when the deferred queue has its turn.    
         return false
     }
-    //static heuristics 
-    if (!processHeavyFolders) {//this reads that if the search loop shouldnt process any heavy folders,then push it to the heavy folder queue for the next search loop
-        if (isFolderHeavy(currentSearchPath)) {
-            console.log("Deferred heavy folder:",currentSearchPath);
-            heavyFolderQueue.push(currentSearchPath);
-            return true//it can only match one path at a given time so we dont need to process the rest
-        }
-    }
-    //dynamic heuristics.it uses the fuzzy engine to know which folder to prioritize first
     const totalNodes = nodeResult.length || 1;//fallback for edge cases where totalNodes may be zero
     const sizeBonus:number = roundToTwo( (1 / (1 + totalNodes)) * 5);//added size bonus to make ones with smaller sizes more relevant and made it range from 0-5 so that it doesnt negligibly affects the relevance score
 
-
-    //utilizing the resumability cache
+    //utilizing the resumability cache before falling back to computing heuristics
     const cachedQueries:Queries = await heuristicsCache.get(currentSearchPath) || {};
     console.log('SEARCH PATH: |',currentSearchPath,'|CACHED QUERIES: |',JSON.stringify(cachedQueries,null,2));
     const reuseQueryArgs:ReuseQueryArgs = {key:"",currentSearchPath,sizeBonus,deferredPaths,deferredHeap,cachedQueries}
@@ -168,6 +158,16 @@ async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
     }
 
 
+    //static heuristics 
+    if (!processHeavyFolders) {//this reads that if the search loop shouldnt process any heavy folders,then push it to the heavy folder queue for the next search loop
+        if (isFolderHeavy(currentSearchPath)) {
+            console.log("Deferred heavy folder:",currentSearchPath);
+            heavyFolderQueue.push(currentSearchPath);
+            return true//it can only match one path at a given time so we dont need to process the rest
+        }
+    }
+
+    //dynamic heuristics.it uses the fuzzy engine to know which folder to prioritize first
     const relevanceThreshold = 50;
     const matchPercentThreshold = 80;
 
