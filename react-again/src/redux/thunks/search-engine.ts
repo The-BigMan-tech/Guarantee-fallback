@@ -385,7 +385,9 @@ function sortSearchResults(quickSearch:boolean,forceTermination:boolean):AppThun
     return (dispatch)=>{
         if (!(quickSearch) && !(forceTermination)) {
             const sortedResults:SearchResult[] = [];
-            for (const result of searchHeap) {//This moves the deferred folders to main queue for processing
+            const heapCopy = new Heap(searchHeap.compare);//to prevent directly consuming the heap and losing previous search results
+            heapCopy.init([...searchHeap.toArray()]); // clone current elements
+            for (const result of heapCopy) {//This moves the deferred folders to main queue for processing
                 sortedResults.push(result)
             }
             dispatch(setSearchResults(sortedResults));
