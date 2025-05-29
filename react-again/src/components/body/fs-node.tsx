@@ -2,7 +2,7 @@ import { FsNode } from "../../utils/rust-fs-interface"
 import { useAppDispatch,selector} from "../../redux/hooks"
 import { openFile } from "../../redux/thunks/file-op";
 import { openDirectoryInApp } from "../../redux/thunks/open-dir-related";
-import { selectLoadingMessage } from "../../redux/selectors";
+import { selectLoadingMessage, selectSearchTermination} from "../../redux/selectors";
 import { useEffect, useState} from "react";
 import {motion} from "motion/react"
 import { memo } from "react";
@@ -17,6 +17,7 @@ export const FsNodeComponent = memo((props:Props)=> {
     const dispatch = useAppDispatch();
     const loadingMessage:string  = selector(store=>selectLoadingMessage(store)) || "";
     const [shouldUnFreeze,setShouldUnFreeze] = useState<boolean>(false);
+    const isSearchTerminated = selector(store=>selectSearchTermination(store))
 
     function truncateName(name:string):string {
         return (name.length < 16)?name:`${name.slice(0,16)}...`
@@ -48,16 +49,31 @@ export const FsNodeComponent = memo((props:Props)=> {
             !(loadingMessage.trim().toLowerCase().startsWith("loading"))
         );
     },[loadingMessage])
+    const content = (
+        <>
+            <img className={`${fixIconSize(props.fsNode.primary.iconPath)}`} src={`./assets/file-icons/${props.fsNode.primary.iconPath}`} alt="" />
+            <h1 className="text-sm font-sans mb-5">{truncateName(props.fsNode.primary.nodeName)}</h1>
+        </>
+    )
+    const baseClass = `flex flex-col items-center justify-center gap-2 opacity-30 cursor-default ${unFreezeClass()}`
+    //the below condition tells it to switch to an unanimated component whenever it shold freeze so that animation doesnt control its properties
     return (
-        <motion.button
-            whileHover={{ scale: 1.1 }}
-            initial={{ y:100,opacity:0}}  // Start 100px left and invisible
-            animate={{ y: 0,opacity:1}}     // Animate to natural position and fully visible
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-            onDoubleClick={()=>openFolder(props.fsNode)} 
-            className={`flex flex-col items-center justify-center gap-2 opacity-30 cursor-default ${unFreezeClass()}`}>
-                <img className={`${fixIconSize(props.fsNode.primary.iconPath)}`} src={`./assets/file-icons/${props.fsNode.primary.iconPath}`} alt="" />
-                <h1 className="text-sm font-sans mb-5">{truncateName(props.fsNode.primary.nodeName)}</h1>
-        </motion.button>
+        <>
+        {(shouldUnFreeze || !(isSearchTerminated))
+            ?<motion.button
+                whileHover={{ scale: 1.1 }}
+                initial={{ y:60,opacity:0}}  
+                animate={{ y: 0,opacity:1}}  
+                transition={{ duration: 0.4, ease: 'easeOut' }}
+                onDoubleClick={()=>openFolder(props.fsNode)} 
+                className={`${baseClass}`}> 
+                    {content}
+            </motion.button>
+            :<button className={`${baseClass}`} onDoubleClick={()=>openFolder(props.fsNode)} >
+                {content}
+            </button>
+        }
+        </>
     )
 },areEqual)
+

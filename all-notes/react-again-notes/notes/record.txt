@@ -1566,3 +1566,11 @@ solving ui lag at the logic level
 solving ui lag at the ui level
 
 *im only sorting the results as one of the features of full search mode.so users can opt for it but at the cost of more ram during search time
+
+*so a jsx component is a function that returns a jsx element while a jsx element is just a variable assigned to jsx.jsx components can be written in markup style while jsx variables or fragments must be interpolated inside the markup.jsx components can accept props and hold state while jsx variables are just a static value.A JSX variable is simply a snapshot of JSX at the time it’s created
+
+*so dyn jsx variable is one that is defined inside a component and relies on its states or props to display content making it to reinitialize whenever the parent rerenders making it seem that it rerenders when it doesnt do that inherently on its own.while static jsx variables are defined oustide of a component and use fixed static content thats not tied to state or props
+
+conditional jsx rendering
+conditional content rendering
+conditional attribute
