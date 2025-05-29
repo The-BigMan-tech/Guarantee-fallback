@@ -10,7 +10,7 @@ export default function FsDisplay({fsNodes}:Props) {
             {fsNodes?.length//if there is content,render the fs components
                 ?<div className='grid sm:grid-cols-4 md:grid-cols-5 h-auto pb-10 pt-5 max-h-[96%] gap-x-[1.2%] gap-y-[5%] mt-[2%] w-[100%] overflow-y-scroll overflow-x-hidden items-center justify-center'>
                     {fsNodes.map((fsNode)=>
-                        <FsNodeComponent key={fsNode.primary.nodePath}  {...{fsNode}}/>
+                        <FsNodeComponent key={fsNode.primary.nodePath} {...{fsNode}}/>
                     )}
                 </div>
                 :<div className="self-center justify-self-center relative top-[40vh] text-2xl font-[Consolas]">

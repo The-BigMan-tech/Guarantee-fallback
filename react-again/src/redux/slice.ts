@@ -1,5 +1,5 @@
 import { createSlice,PayloadAction} from '@reduxjs/toolkit'
-import { processingSliceState,Cache,CachePayload,invalidationData,CachingState,SortingOrder,View} from './types'
+import { processingSliceState,Cache,CachePayload,invalidationData,CachingState,SortingOrder,View, SearchResult} from './types'
 import {v4 as uniqueID} from 'uuid';
 import { FsNode } from '../utils/rust-fs-interface';
 
@@ -15,7 +15,6 @@ const initialState:processingSliceState = {
     notice:{id:"",message:null},
     loadingMessage:"loading",//no id here because only one thing can be loaded at a time
     searchResults:null,
-    searchScores:[],
     nodeProgress:{path:'',save:false},
     terminateSearch:true,
     quickSearch:true,
@@ -62,27 +61,21 @@ export const processingSlice = createSlice({
         validateTabCache(state,action:PayloadAction<invalidationData>) {
             state.invalidatedTabCache[action.payload.tabName] = false
         },
-        setSearchResults(state,action:PayloadAction<FsNode[] | null>) {
-            state.searchResults = action.payload
-        },
         setSearchTermination(state,action:PayloadAction<boolean>) {
             state.terminateSearch = action.payload
         },
         setQuickSearch(state,action:PayloadAction<boolean>) {
             state.quickSearch = action.payload
         },
-        spreadToSearch(state,action:PayloadAction<FsNode[]>) {
+        setSearchResults(state,action:PayloadAction<SearchResult[] | null>) {
+            state.searchResults = action.payload
+        },
+        spreadToSearch(state,action:PayloadAction<SearchResult[]>) {
             state.searchResults = [...(state.searchResults || []),...action.payload]
         },
-        pushToSearch(state,action:PayloadAction<FsNode>) {
+        pushToSearch(state,action:PayloadAction<SearchResult>) {
             state.searchResults = state.searchResults || []
             state.searchResults.push(action.payload)
-        },
-        pushToSearchScores(state,action:PayloadAction<number>) {
-            state.searchScores.push(action.payload)
-        },
-        setSearchScores(state,action:PayloadAction<number[]>) {
-            state.searchScores = action.payload
         },
         resetNodeProgress(state) {
             state.nodeProgress = {path:'',save:false}
@@ -140,8 +133,6 @@ export const {
     setQuickSearch,
     spreadToSearch,
     pushToSearch,
-    pushToSearchScores,
-    setSearchScores,
     resetNodeProgress,
     clearNodeProgress,
     saveNodeProgress,

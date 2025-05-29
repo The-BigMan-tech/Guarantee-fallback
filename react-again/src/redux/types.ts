@@ -79,6 +79,10 @@ export interface NodeProgress {
     path:string | null,
     save:boolean
 }
+export interface SearchResult {
+    node:FsNode,
+    score:number
+}
 export interface processingSliceState {//by using null unions instead of optional types,i ensure that my app doesnt accidenteally worked with an undefined value
     currentPath:string,//as breadcrumbs
     tabNames:string[],//home tabs
@@ -86,10 +90,9 @@ export interface processingSliceState {//by using null unions instead of optiona
     cache:Cache,
     aheadCachingState:CachingState,
     invalidatedTabCache:TabCacheInvalidation,
-    searchResults:FsNode[] | null,
+    searchResults:SearchResult[] | null,
     terminateSearch:boolean,
     quickSearch:boolean,
-    searchScores:number[],
     nodeProgress:NodeProgress,//This is for number of nodes that have been searched during a search recursion
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error

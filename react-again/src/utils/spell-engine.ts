@@ -20,7 +20,7 @@ export const LeetMap:Record<string,string> = {
     '9': 'g',   
     '0': 'o'    
 };
-export function preprocessQuery(query:string) {
+export function preprocessQuery(query:string):string {
     return query.toLowerCase().split('')
         .map(char => {
             if (char >= 'a' && char <= 'z') {

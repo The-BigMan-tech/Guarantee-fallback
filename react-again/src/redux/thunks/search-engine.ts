@@ -3,19 +3,22 @@ import { AppThunk } from "../store";
 import { selectQuickSearch } from "../selectors";
 import { FsNode,readDirectory,FsResult} from "../../utils/rust-fs-interface";
 import { getMatchScore } from "../../utils/fuzzy-engine";
-import { setQuickSearch,pushToSearchScores,spreadToSearch ,pushToSearch,setSearchTermination,clearNodeProgress,resetNodeProgress,setNodePath,saveNodeProgress,setSearchResults,setSearchScores} from "../slice";
+import { setQuickSearch,setSearchTermination,clearNodeProgress,resetNodeProgress,setNodePath,saveNodeProgress,setSearchResults,spreadToSearch ,pushToSearch} from "../slice";
 import { normalizeString } from "../../utils/string-utils";
-import { longQueryArgs,UpdateSearchArgs,shouldSkip,ReuseQueryArgs,HeuristicsArgs,DirResult,Cache,searchInBreadthArgs,Queue,DeferredSearch, searchInModeArgs} from "../types";
+import { longQueryArgs,UpdateSearchArgs,shouldSkip,ReuseQueryArgs,HeuristicsArgs,DirResult,Cache,searchInBreadthArgs,Queue,DeferredSearch, searchInModeArgs, SearchResult} from "../types";
 import { Queries,heuristicsCache,RelevanceData,searchCache} from "../../utils/search-resumability";
 import { isFolderHeavy } from "../../utils/folder-utils";
 import { preprocessQuery,spellEngine } from "../../utils/spell-engine";
 import { memConsoleLog } from "../../utils/log-config";
 import { roundToTwo } from "../../utils/math-utils";
-import { selectCache,selectFsNodes,selectSearchTermination,selectSearchResults,selectCurrentPath,selectSearchScores} from "../selectors";
+import { selectCache,selectFsNodes,selectSearchTermination,selectCurrentPath} from "../selectors";
 import { aggressiveFilter } from "../../utils/string-utils";
 import {toast,Flip} from 'react-toastify';
-import { toastConfig,loading_toastConfig } from "../../utils/toast-configs";
+import { toastConfig} from "../../utils/toast-configs";
 import { flushBatch } from "../../utils/search-resumability";
+
+const searchHeap:Heap<SearchResult> = new Heap((a:SearchResult,b:SearchResult)=>b.score-a.score);
+searchHeap.init([]);
 
 function isLongQuery(searchQuery:string):boolean {
     return searchQuery.length >= 15;
@@ -35,22 +38,24 @@ function getAcceptableScore(searchQuery:string):number {
     return 40
 }
 function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>> {
-    return async (dispatch) => {//it uses the fuzzy engine to know which results to display
+    return async (dispatch,getState) => {//it uses the fuzzy engine to know which results to display
         console.log("FSNODES VALUE NOW",fsNodes);
         if (fsNodes) {
-            const matchedFsNodes:FsNode[] = [] 
+            const quickSearch:boolean = selectQuickSearch(getState());
+            const matchedNodes:SearchResult[] = [] 
             const acceptableScore = getAcceptableScore(searchQuery)
             for (const node of fsNodes) {
                 const score = searchMatchScore(searchQuery,node);
                 console.log("MATCH SCORE","NODE:",node.primary.nodeName,"|SCORE:",score);
                 if (score >= acceptableScore) {
-                    dispatch(pushToSearchScores(score))
-                    matchedFsNodes.push(node);
+                    const result = ({node,score})
+                    matchedNodes.push(result);
+                    if (!quickSearch) searchHeap.push(result);//only push to the heap for sorting when not in quick search mode
                 }
             }
-            console.log("MATCHED FS NODES",matchedFsNodes);
-            if (matchedFsNodes.length) {//to reduce ui flickering,only spread to the search results if something matched
-                dispatch(spreadToSearch(matchedFsNodes));
+            console.log("MATCHED FS NODES",matchedNodes);
+            if (matchedNodes.length) {//to reduce ui flickering,only spread to the search results if something matched
+                dispatch(spreadToSearch(matchedNodes));
             };
         }
     }
@@ -68,7 +73,7 @@ function longQueryOptimization(args:longQueryArgs):AppThunk<boolean> {
                 console.log("Quick search",quickSearch,"Query length",searchQuery.length,"Exact match",isRoughMatch,"trimmed node",normalizedNode,"trimmed query",normalizedQuery);
                 if (isRoughMatch) {
                     console.log("Found early result!!");
-                    dispatch(pushToSearch(fsNodeInBatch));
+                    dispatch(pushToSearch({node:fsNodeInBatch,score:0}));//the score here doesnt matter cuz this is used in quick search mode which doesnt use scores for sorting
                     anyRoughMatches = true
                 }
             }
@@ -279,6 +284,7 @@ function searchInBreadth(args:searchInBreadthArgs):AppThunk<Promise<void>> {
                         queue.push(awaitedFsNode.primary.nodePath);//push the folder to the queue after processing.it may be deferred by the algorithm based on heuristics
                     }
                 }
+                dispatch(sortSearchResults(quickSearch,shouldTerminate))
                 dispatch(saveNodeProgress());
                 deferredPaths[currentSearchPath] = false//this is just a cleanup and it wont affect the flow because it has been processed and shifted from the queue so it isnt possible for it to enter the queue and be deferred again
             }
@@ -292,7 +298,7 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         dispatch(setSearchTermination(true));
         dispatch(setSearchTermination(false));
         dispatch(setSearchResults([]));
-        dispatch(setSearchScores([]));
+        searchHeap.clear();
 
         const quickSearch = selectQuickSearch(getState());
         const currentPath:string = selectCurrentPath(getState());
@@ -304,7 +310,6 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
             await dispatch(searchInBreadth({rootPath:currentPath,searchQuery,heavyFolderQueue,processHeavyFolders:true,startTime}));
         }
         const forceTermination:boolean = selectSearchTermination(getState());
-        dispatch(sortSearchResults(quickSearch,forceTermination))
         if (!forceTermination) {//only run this if the user didsnt forcefully terminate the search as the search termination check in the search in breadth function already does this when the user terminates the search midway
             console.log("REGULAR SEARCH TERMINATION");
             await dispatch(cleanUp(startTime))
@@ -368,27 +373,22 @@ function runSpellChecker(searchQuery:string,quickSearch:boolean):string {
      //im only adding query preprocessing and spell correction only on full search mode because full search mode doesnt apply a cheap filter thats typo intolerant
     if (!spellEngine.correct(searchQuery) && !(quickSearch)) {//embedding typo checking and cleaning before taking it to the search engine
         memConsoleLog('Previous searchQuery:', searchQuery);
-        const suggestions = spellEngine.suggest(preprocessQuery(searchQuery));//only make a suggestion on the preprocessed query separately so that the original query wont me mutated if no suggestion was found
-        searchQuery = (suggestions.length)?suggestions[0]:searchQuery
+        const preprocessedQuery = preprocessQuery(searchQuery)
+        const suggestions = spellEngine.suggest(preprocessedQuery);//only make a suggestion on the preprocessed query separately so that the original query wont me mutated if no suggestion was found
+        searchQuery = (suggestions.length)?suggestions[0]:preprocessedQuery
         memConsoleLog(' Suggestions:', suggestions);
         memConsoleLog(`New Search query "${searchQuery}":`);
     }
     return searchQuery
 }
 function sortSearchResults(quickSearch:boolean,forceTermination:boolean):AppThunk {
-    return (dispatch,getState)=>{
+    return (dispatch)=>{
         if (!(quickSearch) && !(forceTermination)) {
-            toast.loading("Sorting search results:",{...loading_toastConfig,position:"bottom-right"});
-            const searchResults:FsNode[] = selectSearchResults(getState()) || [];
-            const resultScores:number[] = selectSearchScores(getState());
-            if (searchResults.length > 0 && (searchResults.length === resultScores.length)) {//i believe this will only fail when theres no search result
-                const pairedResults = searchResults.map((node, i) => ({node,score: resultScores[i]}));
-                pairedResults.sort((a, b) => b.score - a.score);
-                const finalResults = pairedResults.map(pair => pair.node);//safer,clearer and optimized enough to return each node as a copy into the array rather than directly mutating paired results in an attemp to save memory
-                dispatch(setSearchResults(finalResults));
-                dispatch(setSearchScores([]));
-                console.log("sorted the search results");
+            const sortedResults:SearchResult[] = [];
+            for (const result of searchHeap) {//This moves the deferred folders to main queue for processing
+                sortedResults.push(result)
             }
+            dispatch(setSearchResults(sortedResults));
         }
     }
 }

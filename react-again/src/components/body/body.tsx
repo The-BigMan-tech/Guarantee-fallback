@@ -5,12 +5,13 @@ import { FsNode} from "../../utils/rust-fs-interface"
 import FsDisplay from "./fs-display"
 import { useAppDispatch } from "../../redux/hooks"
 import Preview from "./previews/preview"
+import { SearchResult } from "../../redux/types"
 
 
 export default function Body() {
     const dispatch = useAppDispatch();
     const fsNodes:FsNode[] | null = selector(store=>selectFsNodes(store));
-    const searchResults:FsNode[] | null = selector(store=>selectSearchResults(store))
+    const searchResults:SearchResult[] | null = selector(store=>selectSearchResults(store))
     const isSearchTerminated:boolean = selector(store=>selectSearchTermination(store));
     const openedFile = selector(store=>selectOpenedFile(store));
 
@@ -38,7 +39,7 @@ export default function Body() {
                                             ?<button className="cursor-pointer absolute top-16 text-white font-bold" onClick={exitSearch}>Clear search results</button>
                                             :null
                                         }
-                                        <FsDisplay {...{fsNodes:searchResults}}/>
+                                        <FsDisplay {...{fsNodes:searchResults.map(result=>result.node)}}/>
                                     </div>
                                     :<>
                                         {(isSearchTerminated)
