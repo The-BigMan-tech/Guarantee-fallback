@@ -298,7 +298,6 @@ export function searchDir(searchQuery:string,startTime:number):AppThunk<Promise<
         dispatch(setSearchTermination(true));
         dispatch(setSearchTermination(false));
         dispatch(setSearchResults([]));
-        searchHeap.clear();
 
         const quickSearch = selectQuickSearch(getState());
         const currentPath:string = selectCurrentPath(getState());
@@ -333,9 +332,10 @@ function displaySearchTime(startTime:number) {
 function cleanUp(startTime:number):AppThunk<Promise<void>> {
     return async (dispatch)=>{
         console.log("FORCEFUL SEARCH TERMINATION");
+        searchHeap.clear();//clear the search result heap
         dispatch(clearNodeProgress());
-        displaySearchTime(startTime);
         await flushBatch();//flush the batch so that setters to the local storage can work
+        displaySearchTime(startTime);
         return
     }
 }
@@ -366,7 +366,6 @@ function pushDeferredPaths(queue:Queue,deferredHeap: Heap<DeferredSearch>) {
         for (const item of deferredHeap) {//This moves the deferred folders to main queue for processing
             queue.push(item.path)
         }
-        deferredHeap.clear() // Clear deferred queue
     }
 }
 function runSpellChecker(searchQuery:string,quickSearch:boolean):string {

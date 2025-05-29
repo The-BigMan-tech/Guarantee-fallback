@@ -1564,3 +1564,5 @@ motion canvas,lottie animation,framer motion,gsap
 
 solving ui lag at the logic level
 solving ui lag at the ui level
+
+*im only sorting the results as one of the features of full search mode.so users can opt for it but at the cost of more ram during search time
