@@ -16,6 +16,7 @@ const initialState:processingSliceState = {
     loadingMessage:"loading",//no id here because only one thing can be loaded at a time
     searchResults:null,
     nodeProgress:{path:'',save:false},
+    isDisplayingCaching:false,//used as ui control to prevent the fsnodes from slicing when caching is taking place
     terminateSearch:true,
     quickSearch:true,
     sortBy:'name',
@@ -111,6 +112,9 @@ export const processingSlice = createSlice({
         },
         setOpenedFile(state,action:PayloadAction<FsNode | null>) {
             state.openedFile = action.payload
+        },
+        setIsDisplayingCache(state,action:PayloadAction<boolean>) {
+            state.isDisplayingCaching = action.payload
         }
     },
 })
@@ -140,7 +144,8 @@ export const {
     setSortBy,
     setView,
     setShowDetails,
-    setOpenedFile
+    setOpenedFile,
+    setIsDisplayingCache
 } = processingSlice.actions;
 
 

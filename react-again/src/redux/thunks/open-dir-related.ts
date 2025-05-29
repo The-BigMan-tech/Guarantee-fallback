@@ -1,6 +1,6 @@
 import { AppThunk } from "../store";
 import { FsNode,base_name,readDirectory,FsResult,join_with_home} from "../../utils/rust-fs-interface";
-import { setFsNodes,setCurrentPath,setLoadingMessage,setOpenedFile,setSearchResults,setAheadCachingState,setError,setNotice,invalidateTabCache} from "../slice";
+import { setFsNodes,setCurrentPath,setLoadingMessage,setOpenedFile,setSearchResults,setAheadCachingState,setError,setNotice,invalidateTabCache, setIsDisplayingCache} from "../slice";
 import { selectCurrentPath,selectCache} from "../selectors";
 import { WatchEvent,watchImmediate,BaseDirectory} from "@tauri-apps/plugin-fs";
 import { isFileEvent} from "../../utils/watcher-utils";
@@ -11,7 +11,8 @@ import { openCachedDirInApp,cacheIsValid,addToCache} from "./ui-cache-related";
 function updateUI(value:(Promise<FsNode>)[]):AppThunk<Promise<FsNode[]>> {
     return async (dispatch):Promise<FsNode[]> => {
         const localFsNodes = await Promise.all(value);
-        dispatch(setFsNodes(localFsNodes))
+        dispatch(setFsNodes(localFsNodes));
+        dispatch(setIsDisplayingCache(false))
         return localFsNodes;
     }   
 }
@@ -29,6 +30,7 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
         dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));//the loading message freezes the ui
 
         if (dispatch(cacheIsValid(folderName))) {
+            dispatch(setIsDisplayingCache(false))
             console.log("CACHE IS VALID");
             dispatch(setAheadCachingState('success'))
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
@@ -127,6 +129,7 @@ export function cacheHomeTab(tabName:HomeTab,reuseEntry:boolean):AppThunk<Promis
         if (!(dirResult.value instanceof Error) && (dirResult.value !== null)) {//i only care about the success case here because the operation was initiated by the app and not the user and its not required to succeed for the user to progress with the app
             const fsNodes:FsNode[] = await Promise.all(dirResult.value);
             dispatch(addToCache({path:folderPath,data:fsNodes},tabName));
+            dispatch(setAheadCachingState('success'))
         }
     }
 }

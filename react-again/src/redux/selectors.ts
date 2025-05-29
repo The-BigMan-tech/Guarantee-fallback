@@ -10,6 +10,7 @@ export const selectError = (store:RootState):Message => store.processing.error;
 export const selectNotice = (store:RootState):Message => store.processing.notice;
 export const selectLoadingMessage = (store:RootState):string | null => store.processing.loadingMessage;
 export const selectSearchResults = (store:RootState):SearchResult[] | null => store.processing.searchResults;
+export const selectSearchResultLen =  (store:RootState):number | undefined => store.processing.searchResults?.length;
 export const selectSortBy = (store:RootState):SortingOrder => store.processing.sortBy;
 export const selectViewBy = (store:RootState):View => store.processing.viewBy;
 export const selectShowDetails = (store:RootState):boolean => store.processing.showDetailsPane;
@@ -20,3 +21,4 @@ export const selectNodeProgress = (store:RootState):NodeProgress=>store.processi
 export const selectOpenedFile = (store:RootState):FsNode | null =>store.processing.openedFile;
 export const selectCache = (store:RootState):Cache =>store.processing.cache;
 export const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
+export const selectIsDisplayingCache = (store:RootState)=>store.processing.isDisplayingCaching;

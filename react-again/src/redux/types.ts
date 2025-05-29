@@ -92,6 +92,7 @@ export interface processingSliceState {//by using null unions instead of optiona
     invalidatedTabCache:TabCacheInvalidation,
     searchResults:SearchResult[] | null,
     terminateSearch:boolean,
+    isDisplayingCaching:boolean,
     quickSearch:boolean,
     nodeProgress:NodeProgress,//This is for number of nodes that have been searched during a search recursion
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting

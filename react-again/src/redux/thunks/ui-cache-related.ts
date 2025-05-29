@@ -4,7 +4,7 @@ import { CachePayload,Cache,HomeTabsToValidate,HomeTab,TabCacheInvalidation} fro
 import { AppThunk,AppDispatch} from "../store";
 import { isFolderHeavy } from '../../utils/folder-utils';
 import { selectCache ,selectIvalidatedTabs} from "../selectors";
-import { shiftCache,recordInCache,validateTabCache,setFsNodes,setCache,setLoadingMessage} from "../slice";
+import { shiftCache,recordInCache,validateTabCache,setFsNodes,setCache,setLoadingMessage, setIsDisplayingCache} from "../slice";
 import { FsNode} from "../../utils/rust-fs-interface";
 import { searchCache } from '../../utils/search-resumability';
 
@@ -39,7 +39,8 @@ export function openCachedDirInApp(folderPath:string):AppThunk<Promise<void>> {
         const cache:Cache = selectCache(getState());
         const cached_data = cache[folderPath] || await searchCache.get(folderPath) || [];//  [] array means its loading not that its empty
         console.log("Cached data in open",cached_data);
-        dispatch(setFsNodes(cached_data))
+        dispatch(setFsNodes(cached_data));
+        dispatch(setIsDisplayingCache(true));
     }
 }
 export function cacheIsValid(folderName:string):AppThunk<boolean> {
