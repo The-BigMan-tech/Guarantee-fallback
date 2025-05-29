@@ -1559,3 +1559,8 @@ disk cache--limited by disk space
 Tauri,React,Redux,IndexedDB,Tailwind
 
 motion canvas,lottie animation,framer motion,gsap
+
+*it worked now.so instead of animation presence or anything like that.i fixed the ui problem at the logic level.by moving sorting after every folder instead of the entire search results,updates are less sharp and faster since the sort is only operating on a smaller size compared to the entire results and by using a binary heap instead of an array,the sorting is fast and flawless.when i see the ui sorting,rather than it being sharp,the elements that change reanimate to their new positions smoothly and this is because i memoized the component.so it looks like each element is going to where they were supposed to go instead of every node just switching to the sorted version.although using the binary heap required that i had to change the structure of my search results and how all parts of my app interface with it,it was worth it for the perf gains and my sort function is now very short compared to the previous one.it looks easier to read and maitain
+
+solving ui lag at the logic level
+solving ui lag at the ui level
