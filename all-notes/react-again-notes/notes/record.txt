@@ -1574,3 +1574,5 @@ solving ui lag at the ui level
 conditional jsx rendering
 conditional content rendering
 conditional attribute
+
+*if you launched your app using the VS Code integrated terminal, your app’s process runs as a child process of the VS Code process.

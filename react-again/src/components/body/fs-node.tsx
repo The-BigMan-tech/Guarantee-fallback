@@ -56,9 +56,10 @@ export const FsNodeComponent = memo((props:Props)=> {
         </>
     )
     const baseClass = `flex flex-col items-center justify-center gap-2 opacity-30 cursor-default ${unFreezeClass()}`
-    //the below condition tells it to switch to an unanimated component whenever it shold freeze so that animation doesnt control its properties
+    //the below condition tells it to switch to an inanimate component whenever it shold freeze so that animation doesnt control its properties
     return (
         <>
+        {/*This reads that if the component is unforzen or if its during the search process,animate.the reason why im allowing it during the search process is because of ui flickering when search results appear */}
         {(shouldUnFreeze || !(isSearchTerminated))
             ?<motion.button
                 whileHover={{ scale: 1.1 }}
