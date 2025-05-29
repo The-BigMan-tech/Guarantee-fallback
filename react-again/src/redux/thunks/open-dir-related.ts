@@ -19,19 +19,22 @@ function updateUI(value:(Promise<FsNode>)[]):AppThunk<Promise<FsNode[]>> {
 //the file nodes in the directory dont have their contents loaded for speed and easy debugging.if you want to read the content,you have to use returnFileWithContent to return a copy of the file node with its content read
 export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {//Each file in the directory is currently unread
     return async (dispatch):Promise<void> =>{
-        console.log("Folder path for cached",folderPath);
-        // dispatch(setFsNodes([]))
-        await dispatch(openCachedDirInApp(folderPath));
-        dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
-
+        console.log("Folder path for cached",folderPath);  
         const folderName:string = await base_name(folderPath,true);
+
+        // dispatch(setFsNodes([]))
+        if (!dispatch(cacheIsValid(folderName))) {//i used this condition so that i can control the ui using display cache when showing an invalidated cache
+            await dispatch(openCachedDirInApp(folderPath));
+            dispatch(setIsDisplayingCache(true));
+        }
+        dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
         dispatch(setOpenedFile(null))
         dispatch(setSearchResults(null))//to clear search results
         dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));//the loading message freezes the ui
 
-        if (dispatch(cacheIsValid(folderName))) {
-            dispatch(setIsDisplayingCache(false))
+        if (dispatch(cacheIsValid(folderName))) {//a validated cache should not say its displaying the cache cuz it will cause the ui to flicker between slicing and a full fsnodes
             console.log("CACHE IS VALID");
+            await dispatch(openCachedDirInApp(folderPath));
             dispatch(setAheadCachingState('success'))
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             return
