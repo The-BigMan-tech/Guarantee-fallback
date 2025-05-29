@@ -1,6 +1,6 @@
 import { AppThunk } from "../store";
 import { FsNode,base_name,readDirectory,FsResult,join_with_home} from "../../utils/rust-fs-interface";
-import { setFsNodes,spreadToFsNodes,setCurrentPath,setLoadingMessage,setOpenedFile,setSearchResults,setAheadCachingState,setError,setNotice,invalidateTabCache} from "../slice";
+import { setFsNodes,setCurrentPath,setLoadingMessage,setOpenedFile,setSearchResults,setAheadCachingState,setError,setNotice,invalidateTabCache} from "../slice";
 import { selectCurrentPath,selectCache} from "../selectors";
 import { WatchEvent,watchImmediate,BaseDirectory} from "@tauri-apps/plugin-fs";
 import { isFileEvent} from "../../utils/watcher-utils";
@@ -11,15 +11,7 @@ import { openCachedDirInApp,cacheIsValid,addToCache} from "./ui-cache-related";
 function updateUI(value:(Promise<FsNode>)[]):AppThunk<Promise<FsNode[]>> {
     return async (dispatch):Promise<FsNode[]> => {
         const localFsNodes = await Promise.all(value);
-        const nodes_length = localFsNodes.length;
-        const slice_number = 10
-        if (nodes_length < slice_number) {
-            dispatch(setFsNodes(localFsNodes))
-        }else {
-            dispatch(setFsNodes(localFsNodes.slice(0,slice_number)));
-            await new Promise((resolve) => queueMicrotask(() => resolve(undefined)))
-            dispatch(spreadToFsNodes(localFsNodes.slice(slice_number,nodes_length)));
-        }
+        dispatch(setFsNodes(localFsNodes))
         return localFsNodes;
     }   
 }
@@ -32,12 +24,13 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
         dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
 
         const folderName:string = await base_name(folderPath,true);
-        dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));//the loading message freezes the ui
         dispatch(setOpenedFile(null))
         dispatch(setSearchResults(null))//to clear search results
-        
+        dispatch(setLoadingMessage(`Loading the folder: ${folderName}`));//the loading message freezes the ui
+
         if (dispatch(cacheIsValid(folderName))) {
             console.log("CACHE IS VALID");
+            dispatch(setAheadCachingState('success'))
             dispatch(setLoadingMessage(`Done loading: ${folderName}`));
             return
         }
