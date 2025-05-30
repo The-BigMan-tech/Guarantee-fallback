@@ -58,6 +58,7 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
             console.log("MATCHED FS NODES",matchedNodes);
             if (matchedNodes.length) {//to reduce ui flickering,only spread to the search results if something matched
                 dispatch(spreadToSearch(matchedNodes));
+                dispatch(sortSearchResults(quickSearch))
             };
         }
     }
@@ -286,7 +287,6 @@ function searchInBreadth(args:searchInBreadthArgs):AppThunk<Promise<void>> {
                         queue.push(awaitedFsNode.primary.nodePath);//push the folder to the queue after processing.it may be deferred by the algorithm based on heuristics
                     }
                 }
-                dispatch(sortSearchResults(quickSearch,shouldTerminate))
                 dispatch(saveNodeProgress());
                 deferredPaths[currentSearchPath] = false//this is just a cleanup and it wont affect the flow because it has been processed and shifted from the queue so it isnt possible for it to enter the queue and be deferred again
             }
@@ -385,9 +385,9 @@ function runSpellChecker(searchQuery:string,quickSearch:boolean):string {
     }
     return searchQuery
 }
-function sortSearchResults(quickSearch:boolean,forceTermination:boolean):AppThunk {
+function sortSearchResults(quickSearch:boolean):AppThunk {
     return (dispatch)=>{
-        if (!(quickSearch) && !(forceTermination)) {
+        if (!quickSearch) {
             const sortedResults:SearchResult[] = [];
             const heapCopy = new Heap(searchHeap.compare);//to prevent directly consuming the heap and losing previous search results
             heapCopy.init([...searchHeap.toArray()]); // clone current elements
