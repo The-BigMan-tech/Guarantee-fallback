@@ -515,7 +515,7 @@ lazy recursive file search
 *turbo console log,log config
 *hooks,events,rxjs
 *routes
-list virtualization
+incremental slicing
 todo:previews--video,img,audio,text area tags,react pdf,highlight js,react player,mammoth js,three js,react window
 todo:windowing
 todo:log purging
@@ -1585,4 +1585,6 @@ incremental slicing spreads rendering over time
 
 dynamic incremental slicing-where the rate of adding items slows down as the visible slice grows.but static inc loading is still wide enough.so this is a backup
 
-*so fsdisplay is a pure component.i didnt memoize it cuz it will always be rerenders when the user goes from one folder to another but the fsnode itself is memoized so that react doesnt rerender the nodes that are already rendered during inc slicing and search results
+*so fsdisplay is a pure component.i didnt memoize it cuz it will always be rerenders when the user goes from one folder to another but the fsnode itself is memoized so that react doesnt rerender the nodes that are already rendered during inc slicing and search results.
+
+*so my search engine is O(n) when the heuristics is good enough but O(logn) if effective and the effectiveness is beyond the reach of many analysis.i put like 5 different analysis under there to capture as much context as possible but it can still fall short for broad queries.so its limited by the query-target pair.the more specfic the query and more disimilar the target to the query,the more effective it is but its less effective vice versa 

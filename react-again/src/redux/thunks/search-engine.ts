@@ -33,10 +33,10 @@ function searchMatchScore(searchQuery:string,node:FsNode,minThreshold=15):number
     return (score2>score1)?score2:score1;
 }
 function getAcceptableScore(searchQuery:string):number {
-    if (searchQuery.length <= 6) {
+    if (searchQuery.length <= 5) {
         return 20
     }
-    return 40
+    return 35
 }
 function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>> {
     return async (dispatch,getState) => {//it uses the fuzzy engine to know which results to display
@@ -47,7 +47,7 @@ function searchUtil(fsNodes:FsNode[],searchQuery:string):AppThunk<Promise<void>>
             const acceptableScore = getAcceptableScore(searchQuery)
             for (const node of fsNodes) {
                 const score = searchMatchScore(searchQuery,node);
-                console.log("MATCH SCORE","NODE:",node.primary.nodeName,"|SCORE:",score);
+                // console.log("MATCH SCORE","NODE:",node.primary.nodeName,"|SCORE:",score);
                 if (score >= acceptableScore) {
                     const result = ({node,score})
                     matchedNodes.push(result);
@@ -184,7 +184,7 @@ async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
         const awaitedNode = await node;
         const matchScore = searchMatchScore(searchQuery,awaitedNode);
         const acceptableScore = getAcceptableScore(searchQuery)
-        // console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
+        console.log("MATCH SCORE","NODE:",awaitedNode.primary.nodeName,"|SCORE:",matchScore);
         
         if (matchScore >= acceptableScore) {//the number of matches increases qualitative relevance
             relevantNodes += 1
@@ -248,7 +248,7 @@ function searchInBreadth(args:searchInBreadthArgs):AppThunk<Promise<void>> {
         deferredHeap.init([]);
 
         while ((queue.length > 0) || !(deferredHeap.isEmpty())) {
-            console.log("Queue value:",queue);
+            // console.log("Queue value:",queue);
             const shouldTerminate:boolean = selectSearchTermination(getState());
             if (shouldTerminate) {
                 await dispatch(cleanUp(startTime))
