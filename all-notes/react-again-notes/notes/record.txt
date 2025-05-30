@@ -1568,3 +1568,21 @@ conditional content rendering
 conditional attribute
 
 *if you launched your app using the VS Code integrated terminal, your app’s process runs as a child process of the VS Code process.
+
+*inc loading comes at the cost of memory in favor of faster perf when opening directories in the app because of the slice
+
+incremental slicing vs virtualization
+
+*so incremental loading always loads the full directory data on demand but it only renders a part of it at a time till completion to improve performance.the creation of slices on each render causes overhead but its smaller in comparison to rendering the whole list at once.inc slicing doesnt consume extra memory more than the underlying data itself because slices are pointers to a part of the array not deep copies of the arrays but the slice object still carries memory overhead i believe.so switching from slicing to the original array when the slice is done can remove that memory.This optimization does not reduce the memory used by the data objects themselves, but it does reduce the overhead of array wrappers and can help with garbage collection pressure.
+
+*so inc slicing doesnt consume any practical memory more than rendering it all at once.so there is no disadvantage of using this over all at once and it comes with ui performance.The extra memory from slice objects is minimal and generally outweighed by the UI performance gains from not rendering everything at once.Once incremental loading completes, switching to using the original full array reference (instead of slicing) can slightly reduce memory overhead from those slice wrappers and stabilize React rendering.
+
+*so rendering it all at once can go for small lists like 50-100 files in a dir without showing lag.but it lags a little when i read a dir with 100+ files.with inc slicing,it can render up to 400 files with no lag at all.i believe its when it enters 600+ that it will show some lag and virtualization will be a stronger optimization
+
+incremental slicing spreads rendering over time
+
+*so inc loading covers 90% of practical use cases while retaining the original component structure with no extra complexity and ui rendering speed.even rare cases may not have up to 400
+
+dynamic incremental slicing-where the rate of adding items slows down as the visible slice grows.but static inc loading is still wide enough.so this is a backup
+
+*so fsdisplay is a pure component.i didnt memoize it cuz it will always be rerenders when the user goes from one folder to another but the fsnode itself is memoized so that react doesnt rerender the nodes that are already rendered during inc slicing and search results

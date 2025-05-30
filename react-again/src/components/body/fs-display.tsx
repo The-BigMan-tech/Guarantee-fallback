@@ -5,7 +5,7 @@ import { selectIsDisplayingCache, selectSearchResultLen } from "../../redux/sele
 import { selector } from "../../redux/hooks";
 
 interface Props {
-    fsNodes:FsNode[] | null,
+    fsNodes:Readonly<FsNode[] | null>,//prevents accidental modification of fsnodes
 }
 export default function FsDisplay({fsNodes}:Props) {
     const onSearch = selector(store=>selectSearchResultLen(store));
@@ -14,10 +14,18 @@ export default function FsDisplay({fsNodes}:Props) {
     const DELAY_MS = 300;        // delay between increments (ms)
     const containerRef = useRef<HTMLDivElement>(null);
     const [visibleCount, setVisibleCount] = useState(10); // initial items to show.
-    const visibleNodes = useMemo(()=>(!onSearch && !displayingCache)?fsNodes?.slice(0,visibleCount) || []:fsNodes,[fsNodes,visibleCount,onSearch,displayingCache])
+    const visibleNodes = useMemo(()=>{
+        if (onSearch || displayingCache || (visibleCount == fsNodes?.length)) {
+            return fsNodes
+        }
+        else {
+            return fsNodes?.slice(0,visibleCount) || []
+        }
+
+    },[fsNodes,visibleCount,onSearch,displayingCache])
 
     useEffect(() => {
-        if (onSearch || displayingCache) return
+        if (onSearch || displayingCache) return//guard because the app logic inc updates app state during search results unlike dir reads and inc loading lags the ui when temporarily displaying cached dir read to the ui
         if (fsNodes && (visibleCount <= fsNodes.length)) {
             const timer = setTimeout(() => {
                 setVisibleCount((prev) => Math.min(prev + INCREMENT, fsNodes.length));
@@ -29,10 +37,9 @@ export default function FsDisplay({fsNodes}:Props) {
     useEffect(()=>{
         if (!containerRef.current) return
         containerRef.current.scrollTop = 0
-        if (onSearch || displayingCache) return;
+        if (onSearch || displayingCache) return;//guard
         setVisibleCount(10)
     },[fsNodes,onSearch,displayingCache])
-
     return (
         <>  
             {visibleNodes?.length//if there is content,render the fs components
