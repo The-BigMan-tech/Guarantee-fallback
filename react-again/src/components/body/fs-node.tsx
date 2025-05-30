@@ -34,7 +34,7 @@ export const FsNodeComponent = memo((props:Props)=> {
             if (fsNode.primary.nodeType == "Folder") {
                 await dispatch(openDirectoryInApp(fsNode.primary.nodePath))
             }else if ((fsNode.primary.nodeType == "File")) {
-                await dispatch(openFile(fsNode.primary.nodePath))
+                await dispatch(openFile(fsNode))
             }
             return
         }

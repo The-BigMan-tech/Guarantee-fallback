@@ -22,7 +22,8 @@ const initialState:processingSliceState = {
     sortBy:'name',
     viewBy:'details',
     showDetailsPane:true,
-    openedFile:null
+    openedFile:null,
+    openedNode:null
 }
 export const processingSlice = createSlice({
     name: 'processing',
@@ -107,6 +108,9 @@ export const processingSlice = createSlice({
         setOpenedFile(state,action:PayloadAction<string | null>) {
             state.openedFile = action.payload
         },
+        setOpenedNode(state,action:PayloadAction<FsNode | null>) {
+            state.openedNode = action.payload
+        },
         setIsDisplayingCache(state,action:PayloadAction<boolean>) {
             state.isDisplayingCaching = action.payload
         },
@@ -143,6 +147,7 @@ export const {
     setView,
     setShowDetails,
     setOpenedFile,
+    setOpenedNode,
     setIsDisplayingCache,
     setFreezeNodes,
     setFreezeBars

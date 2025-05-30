@@ -1,6 +1,6 @@
 import { AppThunk } from "../store";
-import { base_name ,readFile,FsResult,previewFile} from "../../utils/rust-fs-interface";
-import { setError,setNotice,setCurrentPath,setOpenedFile, setFreezeNodes} from "../slice";
+import { base_name ,readFile,FsResult,previewFile, FsNode} from "../../utils/rust-fs-interface";
+import { setError,setNotice,setCurrentPath,setOpenedFile, setFreezeNodes, setOpenedNode} from "../slice";
 import {toast} from "react-toastify"
 //*Thunk dependency
 import { openParentInApp } from "./open-dir-related";
@@ -28,10 +28,12 @@ export function returnFileContent(filePath:string):AppThunk<Promise<string | nul
         }
     }
 }
-export function openFile(path:string):AppThunk {
+export function openFile(node:FsNode):AppThunk<Promise<void>> {
     return async (dispatch)=>{
+        const path = node.primary.nodePath;
         dispatch(setCurrentPath(path))
         dispatch(setOpenedFile(await previewFile(path)))
+        dispatch(setOpenedNode(node))
     }
 }
 export function cancelFile():AppThunk {

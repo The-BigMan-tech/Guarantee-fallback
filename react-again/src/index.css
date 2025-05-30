@@ -21,4 +21,9 @@
         font-family: 'RobotoLight';
         src: url('./fonts/roboto-mono/RobotoMono-Light.ttf') format('truetype');
     }
+    .img-display {
+        max-width:50%;  /* scale down to fit container width */
+        height: auto;     /* height adjusts to keep aspect ratio */
+        display: block;   /* removes bottom whitespace */
+    }
 }

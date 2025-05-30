@@ -17,6 +17,7 @@ export const selectSearchTermination = (store:RootState):boolean =>store.process
 export const selectQuickSearch = (store:RootState):boolean=>store.processing.quickSearch;
 export const selectNodeProgress = (store:RootState):NodeProgress=>store.processing.nodeProgress;
 export const selectOpenedFile = (store:RootState):string | null =>store.processing.openedFile;
+export const selectOpenedNode = (store:RootState):FsNode | null =>store.processing.openedNode;
 export const selectCache = (store:RootState):Cache =>store.processing.cache;
 export const selectIvalidatedTabs = (store:RootState):TabCacheInvalidation=>store.processing.invalidatedTabCache
 export const selectIsDisplayingCache = (store:RootState)=>store.processing.isDisplayingCaching;

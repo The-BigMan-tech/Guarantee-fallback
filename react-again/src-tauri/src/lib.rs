@@ -108,6 +108,9 @@ fn read_file_as_base64(path: String) -> Result<String, String> {
 }
 #[tauri::command]
 fn get_mime_type(path: String) -> String {
+    if path.to_lowercase().ends_with(".svg") {
+        return "image/svg+xml".to_string();
+    }
     let v = Infer::new();
     let mime = v.get_from_path(path).unwrap().map(|k| k.mime_type());
     mime.unwrap_or("application/octet-stream").to_string()
