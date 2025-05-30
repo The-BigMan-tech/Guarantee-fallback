@@ -334,10 +334,10 @@ function displaySearchTime(startTime:number) {
 function cleanUp(startTime:number):AppThunk<Promise<void>> {
     return async (dispatch)=>{
         console.log("FORCEFUL SEARCH TERMINATION");
-        searchHeap.clear();//clear the search result heap
-        dispatch(clearNodeProgress());
-        await flushBatch();//flush the batch so that setters to the local storage can work
         displaySearchTime(startTime);
+        searchHeap.clear();//clear the search result heap
+        await flushBatch();//flush the batch so that setters to the index storage can work
+        dispatch(clearNodeProgress());
         return
     }
 }

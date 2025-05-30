@@ -517,9 +517,7 @@ lazy recursive file search
 *routes
 incremental slicing
 todo:previews--video,img,audio,text area tags,react pdf,highlight js,react player,mammoth js,three js,react window
-todo:windowing
 todo:log purging
-todo:resumability cache purging--when watchers reach os limits
 todo:testing
 todo:showing thumbnail,full name and metadata on hovering
 todo:file editing on the preview editor

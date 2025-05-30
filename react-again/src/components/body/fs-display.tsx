@@ -35,9 +35,9 @@ export default function FsDisplay({fsNodes}:Props) {
     }, [visibleCount,fsNodes,onSearch,displayingCache]);
 
     useEffect(()=>{
+        if (onSearch || displayingCache) return;//guard
         if (!containerRef.current) return
         containerRef.current.scrollTop = 0
-        if (onSearch || displayingCache) return;//guard
         setVisibleCount(10)
     },[fsNodes,onSearch,displayingCache])
     return (
