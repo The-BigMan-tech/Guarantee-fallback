@@ -17,6 +17,7 @@ import {toast,Flip} from 'react-toastify';
 import { success_toastConfig, toastConfig} from "../../utils/toast-configs";
 import { flushBatch } from "../../utils/search-resumability";
 import { distance } from "fastest-levenshtein";
+import Denque from "denque"
 
 const searchHeap:Heap<SearchResult> = new Heap((a:SearchResult,b:SearchResult)=>b.score-a.score);
 searchHeap.init([]);
@@ -242,7 +243,7 @@ function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise
 function searchInBreadth(args:searchInBreadthArgs):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
         const {rootPath,searchQuery,heavyFolderQueue,processHeavyFolders,startTime} = args;
-        const queue:Queue = (processHeavyFolders)?heavyFolderQueue:[rootPath];//switch to heavy folders as called by the searchDir
+        const queue:Denque<string> = new Denque((processHeavyFolders)?heavyFolderQueue:[rootPath]);//switch to heavy folders as called by the searchDir
         const deferredPaths:Record<string,boolean> = {};
         const deferredHeap = new Heap((a:DeferredSearch, b:DeferredSearch) => b.priority - a.priority);
         deferredHeap.init([]);
@@ -361,7 +362,7 @@ function searchInMode(args:searchInModeArgs):AppThunk<Promise<void>> {
         }
     }
 }
-function pushDeferredPaths(queue:Queue,deferredHeap: Heap<DeferredSearch>) {
+function pushDeferredPaths(queue:Denque<string>,deferredHeap: Heap<DeferredSearch>) {
     if (queue.length === 0) {//add all deferred items to the queue after the queue for the dir level has been processed
         console.log("DEFERRED QUEUE",deferredHeap);
         for (const item of deferredHeap) {//This moves the deferred folders to main queue for processing
