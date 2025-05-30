@@ -14,7 +14,7 @@ import { roundToTwo } from "../../utils/math-utils";
 import { selectCache,selectFsNodes,selectSearchTermination,selectCurrentPath} from "../selectors";
 import { aggressiveFilter } from "../../utils/string-utils";
 import {toast,Flip} from 'react-toastify';
-import { toastConfig} from "../../utils/toast-configs";
+import { success_toastConfig, toastConfig} from "../../utils/toast-configs";
 import { flushBatch } from "../../utils/search-resumability";
 
 const searchHeap:Heap<SearchResult> = new Heap((a:SearchResult,b:SearchResult)=>b.score-a.score);
@@ -327,7 +327,7 @@ function displaySearchTime(startTime:number) {
     const timeInMs = endTime - startTime;
     const timeInSeconds = (timeInMs / 1000).toFixed(3);
     toast.dismiss();
-    toast.success(`Done searching in ${timeInSeconds} seconds`,{...toastConfig,autoClose:500,transition:Flip,position:"bottom-right"});
+    toast.success(`Done searching in ${timeInSeconds} seconds`,success_toastConfig);
 }
 function cleanUp(startTime:number):AppThunk<Promise<void>> {
     return async (dispatch)=>{

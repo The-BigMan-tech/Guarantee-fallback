@@ -2,8 +2,7 @@ import { FsNode } from "../../utils/rust-fs-interface"
 import { useAppDispatch,selector} from "../../redux/hooks"
 import { openFile } from "../../redux/thunks/file-op";
 import { openDirectoryInApp } from "../../redux/thunks/open-dir-related";
-import { selectLoadingMessage, selectSearchTermination} from "../../redux/selectors";
-import { useEffect, useState} from "react";
+import { selectFreezeNodes, selectSearchTermination} from "../../redux/selectors";
 import {motion} from "motion/react"
 import { memo } from "react";
 
@@ -15,8 +14,7 @@ interface Props {
 }
 export const FsNodeComponent = memo((props:Props)=> {
     const dispatch = useAppDispatch();
-    const loadingMessage:string  = selector(store=>selectLoadingMessage(store)) || "";
-    const [shouldUnFreeze,setShouldUnFreeze] = useState<boolean>(false);
+    const shouldUnFreeze = selector(store=>!(selectFreezeNodes(store)));
     const isSearchTerminated = selector(store=>selectSearchTermination(store))
 
     function truncateName(name:string):string {
@@ -44,11 +42,6 @@ export const FsNodeComponent = memo((props:Props)=> {
     function unFreezeClass():string {
         return (shouldUnFreeze)?"opacity-100 cursor-pointer":""
     }
-    useEffect(()=>{
-        setShouldUnFreeze(
-            !(loadingMessage.trim().toLowerCase().startsWith("loading"))
-        );
-    },[loadingMessage])
     const content = (
         <>
             <img className={`${fixIconSize(props.fsNode.primary.iconPath)}`} src={`./assets/file-icons/${props.fsNode.primary.iconPath}`} alt="" />

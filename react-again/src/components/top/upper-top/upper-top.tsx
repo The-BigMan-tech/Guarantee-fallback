@@ -7,7 +7,7 @@ import { toastConfig,loading_toastConfig } from "../../../utils/toast-configs";
 import {v4 as uniqueID} from "uuid"
 import { toast } from "react-toastify";
 import { KeyboardEvent,useTransition } from "react";
-import { FsNode } from "../../../utils/rust-fs-interface";
+import { SearchResult } from "../../../redux/types";
 // import Counter from "./counter";
 
 
@@ -19,7 +19,7 @@ export default function UpperTop() {
     const tabNames:Set<string> = new Set(selector(store=>selectTabNames(store)))
     const [searchQuery,setSearchQuery] = useState<string>("");
     const quickSearch:boolean = selector(store=>selectQuickSearch(store));
-    const searchResults:FsNode[] | null = selector(store=>selectSearchResults(store));
+    const searchResults:SearchResult[] | null = selector(store=>selectSearchResults(store));
     const [transitionedBreadCrumbs, setTransitionedBreadCrumbs] = useState<{id:string,crumb:string}[]>([]);
     const [isPending, startTransition] = useTransition();
 

@@ -88,17 +88,17 @@ export interface processingSliceState {//by using null unions instead of optiona
     tabNames:string[],//home tabs
     fsNodes:FsNode[] | null,//current files loaded
     cache:Cache,
-    aheadCachingState:CachingState,
     invalidatedTabCache:TabCacheInvalidation,
     searchResults:SearchResult[] | null,
     terminateSearch:boolean,
     isDisplayingCaching:boolean,
+    freezeNodes:boolean,
+    freezeBars:boolean,
     quickSearch:boolean,
     nodeProgress:NodeProgress,//This is for number of nodes that have been searched during a search recursion
     selectedFsNodes:FsNode[] | null,//for selecting for deleting,copying or pasting
     error:Message//for writing app error
     notice:Message,//for writing app info
-    loadingMessage:string | null//for loading messages
     sortBy:SortingOrder,//sorting order of the files
     viewBy:View,//changes the layout of the folder content
     showDetailsPane:boolean//to show extra details like charts or disk usage,

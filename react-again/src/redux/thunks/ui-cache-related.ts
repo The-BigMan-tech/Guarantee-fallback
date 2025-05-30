@@ -4,9 +4,10 @@ import { CachePayload,Cache,HomeTabsToValidate,HomeTab,TabCacheInvalidation} fro
 import { AppThunk,AppDispatch} from "../store";
 import { isFolderHeavy } from '../../utils/folder-utils';
 import { selectCache ,selectIvalidatedTabs} from "../selectors";
-import { shiftCache,recordInCache,validateTabCache,setFsNodes,setCache,setLoadingMessage } from "../slice";
+import { shiftCache,recordInCache,validateTabCache,setFsNodes,setCache, setFreezeNodes} from "../slice";
 import { FsNode} from "../../utils/rust-fs-interface";
 import { searchCache } from '../../utils/search-resumability';
+import {toast} from 'react-toastify'
 
 
 export function addToCache(arg:CachePayload,folderName:string):AppThunk {
@@ -47,7 +48,9 @@ export function cacheIsValid(folderName:string):AppThunk<boolean> {
         const invalidatedTabs:TabCacheInvalidation = selectIvalidatedTabs(getState());
         console.log("Invalidated tabs",invalidatedTabs);
         if ((isHomeTabToValidate(folderName)) && (invalidatedTabs[folderName] == false)) {//if it isnt invalidated,load the ui immediately
-            dispatch(setLoadingMessage(`Done loading: ${folderName}`));
+            toast.dismiss();
+            toast.success(`Done loading the folder: ${folderName}`);
+            dispatch(setFreezeNodes(false));
             return true
         }
         return false

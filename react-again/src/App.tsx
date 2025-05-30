@@ -7,14 +7,14 @@ import { useEffect } from "react"
 import { openDirFromHome ,watchHomeTabs} from "./redux/thunks/open-dir-related"
 import { loadCache } from "./redux/thunks/ui-cache-related"
 import { cacheHomeTab } from "./redux/thunks/open-dir-related"
-import { selectAheadCachingState } from "./redux/selectors"
+import { selectFreezeBars } from "./redux/selectors"
 
 export default function App() {
     const dispatch = useAppDispatch();
-    const aotCacheState = selector(store=>selectAheadCachingState(store));
+    const freezeBars = selector(store=>selectFreezeBars(store))
 
     function unFreezeStartup():string {//the empty quote means its unfrozen because it doesnt affect opacity 
-        return (aotCacheState == "success")?"":"opacity-30"
+        return (freezeBars)?"opacity-30":""
     }
     //only open the home dir after the last one has finished so that it can check if the ahead of time caching succeeded or not
     useEffect(()=>{//everything here except for opening the home on startup is an optimization.

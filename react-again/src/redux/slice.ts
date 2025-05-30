@@ -1,5 +1,5 @@
 import { createSlice,PayloadAction} from '@reduxjs/toolkit'
-import { processingSliceState,Cache,CachePayload,invalidationData,CachingState,SortingOrder,View, SearchResult} from './types'
+import { processingSliceState,Cache,CachePayload,invalidationData,SortingOrder,View, SearchResult} from './types'
 import {v4 as uniqueID} from 'uuid';
 import { FsNode } from '../utils/rust-fs-interface';
 
@@ -8,17 +8,17 @@ const initialState:processingSliceState = {
     tabNames:['Desktop','Downloads','Documents','Pictures','Music','Videos'],//Home and recent are only local to sidebar cuz there is no dir named home and recent on the fs
     fsNodes:null,
     cache:{},
-    aheadCachingState:'pending',
     invalidatedTabCache:{Home:true,Desktop:true,Downloads:true,Documents:true,Pictures:true,Music:true,Videos:true},
     selectedFsNodes:null,
     error:{id:"",message:null},//the ids is to ensure that the same error can pop up twice
     notice:{id:"",message:null},
-    loadingMessage:"loading",//no id here because only one thing can be loaded at a time
     searchResults:null,
     nodeProgress:{path:'',save:false},
     isDisplayingCaching:false,//used as ui control to prevent the fsnodes from slicing when caching is taking place
     terminateSearch:true,
     quickSearch:true,
+    freezeNodes:false,
+    freezeBars:false,
     sortBy:'name',
     viewBy:'details',
     showDetailsPane:true,
@@ -51,9 +51,6 @@ export const processingSlice = createSlice({
                     Object.entries(state.cache).filter(([key]) => key !== ninthKey)
                 );
             }
-        },
-        setAheadCachingState(state,action:PayloadAction<CachingState>) {
-            state.aheadCachingState = action.payload
         },
         invalidateTabCache(state,action:PayloadAction<invalidationData>) {
             state.invalidatedTabCache[action.payload.tabName] = true
@@ -98,9 +95,6 @@ export const processingSlice = createSlice({
             state.notice.id = uniqueID();
             state.notice.message = action.payload
         },
-        setLoadingMessage(state,action:PayloadAction<string | null>) {
-            state.loadingMessage = action.payload
-        },
         setSortBy(state,action:PayloadAction<SortingOrder>) {
             state.sortBy = action.payload
         },
@@ -115,6 +109,12 @@ export const processingSlice = createSlice({
         },
         setIsDisplayingCache(state,action:PayloadAction<boolean>) {
             state.isDisplayingCaching = action.payload
+        },
+        setFreezeNodes(state,action:PayloadAction<boolean>) {
+            state.freezeNodes = action.payload
+        },
+        setFreezeBars(state,action:PayloadAction<boolean>) {
+            state.freezeBars = action.payload
         }
     },
 })
@@ -126,12 +126,10 @@ export const {
     setCache,
     recordInCache,
     shiftCache,
-    setAheadCachingState,
     invalidateTabCache,
     validateTabCache,
     setError,
     setNotice,
-    setLoadingMessage,
     setSearchResults,
     setSearchTermination,
     setQuickSearch,
@@ -145,7 +143,9 @@ export const {
     setView,
     setShowDetails,
     setOpenedFile,
-    setIsDisplayingCache
+    setIsDisplayingCache,
+    setFreezeNodes,
+    setFreezeBars
 } = processingSlice.actions;
 
 

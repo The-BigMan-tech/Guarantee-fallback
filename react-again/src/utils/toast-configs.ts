@@ -1,4 +1,4 @@
-import { ToastOptions,Bounce,Zoom } from "react-toastify"
+import { ToastOptions,Bounce,Zoom ,Flip} from "react-toastify"
 
 export const toastConfig:ToastOptions = {
     position: "top-center",
@@ -18,4 +18,9 @@ export const loading_toastConfig:ToastOptions = {
     transition:Zoom,
     toastId:"loading"
 }
-
+export const success_toastConfig:ToastOptions = {
+    ...toastConfig,
+    autoClose:500,
+    transition:Flip,
+    position:"bottom-right"
+}

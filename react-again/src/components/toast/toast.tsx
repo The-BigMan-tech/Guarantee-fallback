@@ -1,5 +1,5 @@
-import { ToastContainer, toast,Bounce,ToastOptions,Flip, Zoom} from 'react-toastify';
-import { selectError,selectNotice,selectLoadingMessage} from '../../redux/selectors';
+import { ToastContainer, toast,Bounce,ToastOptions} from 'react-toastify';
+import { selectError,selectNotice} from '../../redux/selectors';
 import { Message } from '../../redux/types';
 import { selector } from '../../redux/hooks';
 import { useEffect, useState} from 'react';
@@ -9,7 +9,6 @@ export default function Toasts() {
     //there are multiple errors and notcie because of spamming and only one of loading to prevent ambiguity
     const error:Message = selector(store=>selectError(store));
     const notice:Message = selector(store=>selectNotice(store));
-    const loadingMessage:string = selector(store=>selectLoadingMessage(store)) || "";
     const [toastConfig] = useState<ToastOptions>({
         position: "top-right",
         autoClose: 5000,
@@ -20,13 +19,6 @@ export default function Toasts() {
         progress: undefined,
         theme: "dark",
         transition: Bounce,
-    })
-    const [loading_toastConfig] = useState<ToastOptions>({
-        ...toastConfig,
-        pauseOnHover:false,
-        autoClose:false,
-        transition:Zoom,
-        toastId:"loading"
     })
     useEffect(()=>{
         if (error.message) {
@@ -39,19 +31,5 @@ export default function Toasts() {
             toast.info(notice.message,toastConfig)
         }
     },[notice,toastConfig])
-    useEffect(()=>{
-        if ((loadingMessage) && (loadingMessage !== "loading")) {
-            console.log("Loading message value toast II",loadingMessage);
-            toast.dismiss();//to ensure that only one component shows a loading progress at a time.
-            const trimmed_message = loadingMessage.trim().toLowerCase()
-            if (trimmed_message.startsWith("loading") || trimmed_message.startsWith("changes")) {
-                console.log("Loading message is loading",loadingMessage);
-                toast.loading(loadingMessage,loading_toastConfig)
-            }else {
-                toast.done("loading")
-                toast.success(loadingMessage,{...toastConfig,autoClose:500,transition:Flip})
-            }
-        }
-    },[loadingMessage,toastConfig,loading_toastConfig])
     return <ToastContainer newestOnTop={true}/>
 }
