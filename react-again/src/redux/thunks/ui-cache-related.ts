@@ -10,14 +10,19 @@ import { searchCache } from '../../utils/search-resumability';
 import { memConsoleLog } from '../../utils/log-config';
 
 
-export function addToCache(arg:CachePayload,folderName:string):AppThunk<Promise<void>> {
+export function addToCache(args:CachePayload):AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
         console.log("Called add to cache");
-        if (await searchCache.get(arg.path)) {//if its in the search cache,use it from there instead of wasting memory to create a new one and disk space to persist it but it also means that this visited dir,wont persist across sessions
+        //this wont run though since the opendir function skips this if the cache is validated and the cacheisvalid already accounts for the search cache.but its a safe guard to have
+        if (await searchCache.get(args.path)) {//if its in the search cache,use it from there instead of wasting memory to create a new one and disk space to persist it but it also means that this visited dir,wont persist across sessions
+            console.log("Utilized search cache for:");
             return 
         }
-        if (isFolderHeavy(arg.path)) {
-            console.log("Refused to cache heavy folder: ",arg.path);
+        const homePath = await join_with_home('');
+        const nameSlice = args.path.slice(homePath.length+1) || 'Home'
+
+        if (isFolderHeavy(args.path)) {
+            console.log("Refused to cache heavy folder: ",args.path);
             return
         }
         const appCache:Cache = selectCache(getState());
@@ -25,15 +30,14 @@ export function addToCache(arg:CachePayload,folderName:string):AppThunk<Promise<
             console.log("Cache length is greater than 50");
             dispatch(shiftCache())
         }
-        let dirNodes:FsNode[] = arg.data;
-        //todo:this check is fragile as other paths can have their basenames end with home tab names.fix later
-        if (!isHomeTab(folderName)) {//bound the number of fsnodes per record in the cache if it isnt a home tab as unlike the home tab,they are always invalidated on reopen but they are displayed in the ui frozen in the meantime
-            dirNodes = arg.data.slice(0,Math.min(100,dirNodes.length))
+        let dirNodes:FsNode[] = args.data;
+        if (!isHomeTab(nameSlice)) {//bound the number of fsnodes per record in the cache if it isnt a home tab as unlike the home tab,they are always invalidated on reopen but they are displayed in the ui frozen in the meantime
+            dirNodes = args.data.slice(0,Math.min(100,dirNodes.length))
         }
-        dispatch(recordInCache({path:arg.path,data:dirNodes}))
-        if (isHomeTabToValidate(folderName)) {//validates the cache because its up to date
-            console.log("Validated the cache",folderName);
-            dispatch(validateTabCache({tabName:folderName}))//since the cache was just updated,it makes sense to validate it.Its the only point where its validated
+        dispatch(recordInCache({path:args.path,data:dirNodes}))
+        if (isHomeTabToValidate(nameSlice)) {//validates the cache because its up to date
+            console.log("Validated the cache",nameSlice);
+            dispatch(validateTabCache({tabName:nameSlice}))//since the cache was just updated,it makes sense to validate it.Its the only point where its validated
         }
         throttledStoreCache(dispatch);
     }
