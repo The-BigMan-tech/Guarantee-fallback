@@ -10,11 +10,7 @@ interface Props {
     clickedClass:(tabId:string)=>string
 }
 const areEqual = (prevProps: Props, nextProps: Props) => {
-    return prevProps.id === nextProps.id &&
-        prevProps.tabName === nextProps.tabName &&
-        prevProps.imgName === nextProps.imgName &&
-        prevProps.clickedTab === nextProps.clickedTab &&
-        prevProps.unFreezeStartup === nextProps.unFreezeStartup
+    return prevProps.clickedTab == nextProps.clickedTab
 };
 export const  Card:FC<Props> = memo(({id,tabName,imgName,clickTab,clickedClass,unFreezeStartup})=> {
     function shouldShowPointer() {

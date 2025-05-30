@@ -7,7 +7,7 @@ import {motion} from "motion/react"
 import { memo } from "react";
 
 function areEqual(prevProps: Props, nextProps: Props) {
-    return prevProps.fsNode == nextProps.fsNode
+    return prevProps.fsNode.primary.nodePath == nextProps.fsNode.primary.nodePath
 }
 interface Props {
     fsNode:FsNode
