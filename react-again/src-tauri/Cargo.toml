@@ -26,3 +26,5 @@ tauri-plugin-log = "2"
 home = "0.5.11"
 notify = "8.0.0"
 tauri-plugin-fs = { version = "2", features = ["watch"] }
+base64 = "0.22.1"
+infer = "0.19.0"

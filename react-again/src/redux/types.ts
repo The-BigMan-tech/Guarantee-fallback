@@ -102,5 +102,5 @@ export interface processingSliceState {//by using null unions instead of optiona
     sortBy:SortingOrder,//sorting order of the files
     viewBy:View,//changes the layout of the folder content
     showDetailsPane:boolean//to show extra details like charts or disk usage,
-    openedFile:FsNode | null
+    openedFile:string | null
 }

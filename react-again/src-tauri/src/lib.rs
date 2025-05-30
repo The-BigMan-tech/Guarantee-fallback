@@ -1,3 +1,4 @@
+use base64::Engine;
 use home::home_dir;
 use std::env;
 use std::fs;
@@ -7,6 +8,8 @@ use std::time::{SystemTime,UNIX_EPOCH};
 use tauri::command;
 use tauri_plugin_log::{Builder as LogBuilder,Target,TargetKind};
 use log::LevelFilter;
+use base64::engine::general_purpose::STANDARD;
+use infer::Infer;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {    
@@ -20,6 +23,8 @@ pub fn run() {
             path_basename,
             fs_stat,
             read_file,
+            read_file_as_base64,
+            get_mime_type,
             write_file,
             get_mtime
         ])
@@ -93,6 +98,19 @@ fn read_dir(dir_path: String,order:SortOrder) -> Result<Vec<PathBuf>, String> {
 #[command]
 fn read_file(path: String) -> Result<String, String> {
     fs::read_to_string(&path).map_err(|e| e.to_string())
+}
+#[tauri::command]
+fn read_file_as_base64(path: String) -> Result<String, String> {
+    match fs::read(&path) {
+        Ok(bytes) => Ok(STANDARD.encode(&bytes)),
+        Err(e) => Err(e.to_string()),
+    }
+}
+#[tauri::command]
+fn get_mime_type(path: String) -> String {
+    let v = Infer::new();
+    let mime = v.get_from_path(path).unwrap().map(|k| k.mime_type());
+    mime.unwrap_or("application/octet-stream").to_string()
 }
 #[command]
 fn join_with_home(tab_name: &str) -> Result<String, String> {

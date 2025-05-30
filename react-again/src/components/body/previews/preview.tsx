@@ -1,7 +1,9 @@
 import { cancelFile } from "../../../redux/thunks/file-op";
 import { selectOpenedFile } from "../../../redux/selectors";
 import { selector, useAppDispatch } from "../../../redux/hooks"
-import ReactPlayer from "react-player"
+import { useEffect } from "react";
+import { memConsoleLog } from "../../../utils/log-config";
+import Iframe from 'react-iframe';
 
 export default function Preview() {
     const dispatch = useAppDispatch();
@@ -10,20 +12,24 @@ export default function Preview() {
     function closeFile() {
         dispatch(cancelFile())
     }
-    function toFileUrl(filePath: string): string {
-        const path = filePath.replace(/\\/g, '/');
-        return `tauri:///${path}`;
-    }
+    useEffect(()=>{
+        memConsoleLog("Opened file: ",openedFile)
+    },[openedFile])
 
     return (
-        <div className="relative top-[10%]">
+        <div className="relative top-[10%] h-full ">
             <button className="cursor-pointer" onClick={closeFile}>Cancel</button>
-            <div>
-                {openedFile?.primary.fileExtension == "mp4"
-                    ?<ReactPlayer url={toFileUrl(openedFile.primary.nodePath)}/>
-                    :null
-                }
-            </div>
+            {openedFile
+                ?<Iframe url={openedFile}
+                    width="640px"
+                    height="320px"
+                    id=""
+                    className=""
+                    display="block"
+                    position="relative"
+                />
+                :null
+            }
         </div>
     )
 }

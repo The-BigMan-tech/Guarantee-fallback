@@ -104,7 +104,7 @@ export const processingSlice = createSlice({
         setShowDetails(state,action:PayloadAction<boolean>) {
             state.showDetailsPane = action.payload
         },
-        setOpenedFile(state,action:PayloadAction<FsNode | null>) {
+        setOpenedFile(state,action:PayloadAction<string | null>) {
             state.openedFile = action.payload
         },
         setIsDisplayingCache(state,action:PayloadAction<boolean>) {
