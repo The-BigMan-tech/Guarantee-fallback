@@ -5,7 +5,7 @@ import { FsNode,readDirectory,FsResult} from "../../utils/rust-fs-interface";
 import { getMatchScore } from "../../utils/fuzzy-engine";
 import { setQuickSearch,setSearchTermination,clearNodeProgress,resetNodeProgress,setNodePath,saveNodeProgress,setSearchResults,spreadToSearch ,pushToSearch} from "../slice";
 import { normalizeString } from "../../utils/string-utils";
-import { longQueryArgs,UpdateSearchArgs,shouldSkip,ReuseQueryArgs,HeuristicsArgs,DirResult,Cache,searchInBreadthArgs,Queue,DeferredSearch, searchInModeArgs, SearchResult} from "../types";
+import { longQueryArgs,UpdateSearchArgs,shouldSkip,ReuseQueryArgs,HeuristicsArgs,DirResult,Cache,searchInBreadthArgs,DeferredSearch, searchInModeArgs, SearchResult} from "../types";
 import { Queries,heuristicsCache,RelevanceData,searchCache} from "../../utils/search-resumability";
 import { isFolderHeavy } from "../../utils/folder-utils";
 import { preprocessQuery,spellEngine } from "../../utils/spell-engine";
