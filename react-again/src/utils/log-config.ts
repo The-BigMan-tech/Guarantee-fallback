@@ -1,6 +1,6 @@
 import { info,debug,error,warn} from '@tauri-apps/plugin-log';
 
-const shouldLogToFile:boolean = true;
+const shouldLogToFile:boolean = false;//be toggling this whenever you want to monitor the app vs when you want to use the app at its best perf to test its functionality
 const formatObjects:boolean = false;
 
 export const memConsoleLog = console.log
