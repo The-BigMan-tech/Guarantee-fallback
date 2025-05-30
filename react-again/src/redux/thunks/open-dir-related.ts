@@ -8,7 +8,7 @@ import { HomeTabsToValidate,HomeTab,Cache} from "../types";
 import {toast} from "react-toastify"
 //*Thunk dependency
 import { openCachedDirInApp,cacheIsValid,addToCache} from "./ui-cache-related";
-import { loading_toastConfig } from "../../utils/toast-configs";
+import { loading_toastConfig, success_toastConfig } from "../../utils/toast-configs";
 
 function updateUI(value:(Promise<FsNode>)[]):AppThunk<Promise<FsNode[]>> {
     return async (dispatch):Promise<FsNode[]> => {
@@ -41,9 +41,9 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
             await dispatch(openCachedDirInApp(folderPath));
 
             toast.dismiss()
-            toast.loading(`Done loading: ${folderName}`,loading_toastConfig)
+            toast.success(`Done loading: ${folderName}`,success_toastConfig)
             dispatch(setFreezeNodes(false))
-            
+
             return
         }
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath,'arbitrary');//its fast because it doesnt load the file content
@@ -51,7 +51,8 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
             dispatch(setFsNodes(null))//to ensure that they dont interact with an unstable folder in the ui
             dispatch(setError(`The error:"${dirResult.value.message}" occured while loading the dir: "${folderPath}"`));
         }else if (dirResult.value == null) {
-            toast.loading(`Done loading: ${folderName}`,loading_toastConfig)
+            toast.dismiss()
+            toast.success(`Done loading: ${folderName}`,success_toastConfig)
             dispatch(setFreezeNodes(false))
 
             dispatch(setNotice(`The following directory is empty: "${folderPath}"`));
@@ -61,7 +62,7 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
             fsNodes = await dispatch(updateUI(dirResult.value));
 
             toast.dismiss()
-            toast.loading(`Done loading: ${folderName}`,loading_toastConfig)
+            toast.success(`Done loading: ${folderName}`,success_toastConfig)
             dispatch(setFreezeNodes(false))
 
             dispatch(addToCache({path:folderPath,data:fsNodes},folderName));//performs caching while the user can interact with the dir in the app./since the ui remains frozen as its caching ahead of time,there is no need to add a debouncing mechanism to prevent the user from switching to another tab while its caching
@@ -95,7 +96,6 @@ export function watchHomeTabs():AppThunk<Promise<void>> {
     return async (dispatch,getState)=>{
         console.log("CALLED FILE WATCHER");
         dispatch(setFsNodes([]))
-        // dispatch(setFreezeNodes(true))
         await watchImmediate(
             [
                 await join_with_home("Home"),//for home
@@ -121,8 +121,13 @@ export function watchHomeTabs():AppThunk<Promise<void>> {
                             await dispatch(openDirFromHome(tabName))
                         }else {//auto reload the tab in the background ahead of time.reloading it in the background is very fast because if no ui updates
                             toast.loading("Refreshing the app in the background.",loading_toastConfig)
-                            dispatch(setFreezeNodes(true))
+                            dispatch(setFreezeBars(true))
+                            
                             await dispatch(cacheHomeTab(tabName,false));
+
+                            toast.dismiss();
+                            toast.success('Done refreshing the app',success_toastConfig);
+                            dispatch(setFreezeBars(false))
                         }
                     }
                 }

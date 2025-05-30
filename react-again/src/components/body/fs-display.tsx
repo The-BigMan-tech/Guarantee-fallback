@@ -3,7 +3,6 @@ import { FsNode } from "../../utils/rust-fs-interface"
 import { useState,useEffect, useRef, useMemo } from "react"
 import { selectIsDisplayingCache, selectSearchResultLen } from "../../redux/selectors";
 import { selector } from "../../redux/hooks";
-import { memConsoleLog } from "../../utils/log-config";
 
 interface Props {
     fsNodes:FsNode[] | null,
@@ -18,7 +17,6 @@ export default function FsDisplay({fsNodes}:Props) {
     const visibleNodes = useMemo(()=>(!onSearch && !displayingCache)?fsNodes?.slice(0,visibleCount) || []:fsNodes,[fsNodes,visibleCount,onSearch,displayingCache])
 
     useEffect(() => {
-        memConsoleLog("CAffgff");
         if (onSearch || displayingCache) return
         if (fsNodes && (visibleCount <= fsNodes.length)) {
             const timer = setTimeout(() => {

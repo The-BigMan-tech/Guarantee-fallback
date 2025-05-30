@@ -4,7 +4,7 @@ import { setError,setNotice,setCurrentPath,setOpenedFile, setFreezeNodes} from "
 import {toast} from "react-toastify"
 //*Thunk dependency
 import { openParentInApp } from "./open-dir-related";
-import { loading_toastConfig } from "../../utils/toast-configs";
+import { loading_toastConfig, success_toastConfig } from "../../utils/toast-configs";
 
 
 export function returnFileContent(filePath:string):AppThunk<Promise<string | null>> {//returns the file with its content read
@@ -21,7 +21,8 @@ export function returnFileContent(filePath:string):AppThunk<Promise<string | nul
             dispatch(setNotice(`The following file is empty: ${filePath}`))
             return null;
         }else {
-            toast.loading(`Done loading: ${fileName}`,loading_toastConfig)
+            toast.dismiss()
+            toast.success(`Done loading: ${fileName}`,success_toastConfig)
             dispatch(setFreezeNodes(false))
             return contentResult.value
         }

@@ -1,11 +1,11 @@
 import { ToastOptions,Bounce,Zoom ,Flip} from "react-toastify"
 
 export const toastConfig:ToastOptions = {
-    position: "top-center",
+    position: "bottom-right",
     autoClose: 5000,
     hideProgressBar: false,
     closeOnClick: false,
-    pauseOnHover: true,
+    pauseOnHover:true,
     draggable: true,
     progress: undefined,
     theme: "dark",
@@ -20,7 +20,7 @@ export const loading_toastConfig:ToastOptions = {
 }
 export const success_toastConfig:ToastOptions = {
     ...toastConfig,
+    pauseOnHover:false,
     autoClose:500,
     transition:Flip,
-    position:"bottom-right"
 }
