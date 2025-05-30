@@ -5,8 +5,9 @@ import { AppThunk,AppDispatch} from "../store";
 import { isFolderHeavy } from '../../utils/folder-utils';
 import { selectCache ,selectIvalidatedTabs} from "../selectors";
 import { shiftCache,recordInCache,validateTabCache,setFsNodes,setCache} from "../slice";
-import { FsNode} from "../../utils/rust-fs-interface";
+import { FsNode, join_with_home} from "../../utils/rust-fs-interface";
 import { searchCache } from '../../utils/search-resumability';
+import { memConsoleLog } from '../../utils/log-config';
 
 
 export function addToCache(arg:CachePayload,folderName:string):AppThunk {
@@ -22,6 +23,7 @@ export function addToCache(arg:CachePayload,folderName:string):AppThunk {
             dispatch(shiftCache())
         }
         let dirNodes:FsNode[] = arg.data;
+        //todo:this check is fragile as other paths can have their basenames end with home tab names.fix later
         if (!isHomeTab(folderName)) {//bound the number of fsnodes per record in the cache if it isnt a home tab as unlike the home tab,they are always invalidated on reopen but they are displayed in the ui frozen in the meantime
             dirNodes = arg.data.slice(0,Math.min(100,dirNodes.length))
         }
@@ -42,11 +44,17 @@ export function openCachedDirInApp(folderPath:string):AppThunk<Promise<void>> {
         dispatch(setFsNodes(cached_data));
     }
 }
-export function cacheIsValid(folderName:string):AppThunk<boolean> {
-    return (_,getState):boolean=>{
+export function cacheIsValid(folderPath:string):AppThunk<Promise<boolean>> {
+    return async (_,getState) =>{
+        if (await searchCache.get(folderPath)) {//the search cache is monitored by my the resumability component of my search engine for staleness so if its present,it isnt stale.
+            return true
+        }
+        const homePath = await join_with_home('');
+        const nameSlice = folderPath.slice(homePath.length+1) || 'Home'//the slice will be empty if its in the home folder because its only the home folder path that will slice out the entire string so this is correct
+        memConsoleLog("Name slice: ",nameSlice)
         const invalidatedTabs:TabCacheInvalidation = selectIvalidatedTabs(getState());
         console.log("Invalidated tabs",invalidatedTabs);
-        if ((isHomeTabToValidate(folderName)) && (invalidatedTabs[folderName] == false)) {//if it isnt invalidated,load the ui immediately
+        if ((isHomeTabToValidate(nameSlice)) && (invalidatedTabs[nameSlice] == false)) {//if it isnt invalidated,load the ui immediately
             return true
         }
         return false

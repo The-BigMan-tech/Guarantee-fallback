@@ -20,7 +20,7 @@ export default function App() {
     useEffect(()=>{//everything here except for opening the home on startup is an optimization.
         dispatch(loadCache());
         dispatch(watchHomeTabs());
-        dispatch(cacheHomeTab("Recent",true))//i set this one to true because its not being watched for validation so reusing the entry saves time since its going to be invalidated anyway
+        dispatch(cacheHomeTab("Recent",true))//i set this one to true because its not being watched for validation so reusing the entry saves time and can display something since its going to be invalidated anyway
         dispatch(cacheHomeTab("Downloads",false));//i set the rest to false so that they update with the latest data and remain valid to prevemt reloads since they are being watched for validation
         dispatch(cacheHomeTab("Desktop",false))
         dispatch(cacheHomeTab("Pictures",false))

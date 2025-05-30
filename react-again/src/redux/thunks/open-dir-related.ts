@@ -23,9 +23,9 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);  
         const folderName:string = await base_name(folderPath,true);
-
+        const isCacheValid = await dispatch(cacheIsValid(folderPath))
         // dispatch(setFsNodes([]))
-        if (!dispatch(cacheIsValid(folderName))) {//i used this condition so that i can control the ui using display cache when showing an invalidated cache
+        if (!isCacheValid) {//i used this condition so that i can control the ui using display cache when showing an invalidated cache
             await dispatch(openCachedDirInApp(folderPath));
             dispatch(setIsDisplayingCache(true));
         }
@@ -36,7 +36,7 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
         toast.loading(`Loading the folder: ${folderName}`,loading_toastConfig)
         dispatch(setFreezeNodes(true))
 
-        if (dispatch(cacheIsValid(folderName))) {//a validated cache should not say its displaying the cache cuz it will cause the ui to flicker between slicing and a full fsnodes
+        if (isCacheValid) {//a validated cache should not say its displaying the cache cuz it will cause the ui to flicker between slicing and a full fsnodes
             console.log("CACHE IS VALID");
             await dispatch(openCachedDirInApp(folderPath));
 

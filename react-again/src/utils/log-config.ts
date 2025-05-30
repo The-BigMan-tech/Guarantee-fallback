@@ -27,8 +27,8 @@ export function modifyLogs() {
         console.warn = (...args) => {
             warn(formatArgs(args));
         };
-        // console.error = (...args) => {
-        //     error(formatArgs(args));
-        // };
+        console.error = (...args) => {
+            error(formatArgs(args));
+        };
     }
 }
