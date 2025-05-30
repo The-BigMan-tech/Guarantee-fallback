@@ -16,6 +16,7 @@ import { aggressiveFilter } from "../../utils/string-utils";
 import {toast,Flip} from 'react-toastify';
 import { success_toastConfig, toastConfig} from "../../utils/toast-configs";
 import { flushBatch } from "../../utils/search-resumability";
+import { distance } from "fastest-levenshtein";
 
 const searchHeap:Heap<SearchResult> = new Heap((a:SearchResult,b:SearchResult)=>b.score-a.score);
 searchHeap.init([]);
@@ -374,9 +375,12 @@ function runSpellChecker(searchQuery:string,quickSearch:boolean):string {
         memConsoleLog('Previous searchQuery:', searchQuery);
         const preprocessedQuery = preprocessQuery(searchQuery)
         const suggestions = spellEngine.suggest(preprocessedQuery);//only make a suggestion on the preprocessed query separately so that the original query wont me mutated if no suggestion was found
-        searchQuery = (suggestions.length)?suggestions[0]:preprocessedQuery
-        memConsoleLog(' Suggestions:', suggestions);
-        memConsoleLog(`New Search query "${searchQuery}":`);
+        const suggestedSearchQuery = (suggestions.length)?suggestions[0]:preprocessedQuery
+        memConsoleLog(`Suggested Search query "${suggestedSearchQuery}":`);
+        if (distance(searchQuery,suggestedSearchQuery) == 1) {
+            searchQuery = suggestedSearchQuery
+        }
+        memConsoleLog('Final search query: ',searchQuery)
     }
     return searchQuery
 }
