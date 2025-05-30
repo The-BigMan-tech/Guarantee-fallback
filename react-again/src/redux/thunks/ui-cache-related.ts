@@ -21,7 +21,7 @@ export function addToCache(args:CachePayload):AppThunk<Promise<void>> {
         const homePath = await join_with_home('');
         const nameSlice = args.path.slice(homePath.length+1) || 'Home'
 
-        if (isFolderHeavy(args.path)) {
+        if (isFolderHeavy(args.path) && !args.path.endsWith('Recent')) {//this allows the recent folder to be in the ui cache but it wont be included in other caches or particular computations
             console.log("Refused to cache heavy folder: ",args.path);
             return
         }
@@ -58,9 +58,9 @@ export function cacheIsValid(folderPath:string):AppThunk<Promise<boolean>> {
         }
         const homePath = await join_with_home('');
         const nameSlice = folderPath.slice(homePath.length+1) || 'Home'//the slice will be empty if its in the home folder because its only the home folder path that will slice out the entire string so this is correct
-        memConsoleLog("Name slice: ",nameSlice)
         const invalidatedTabs:TabCacheInvalidation = selectIvalidatedTabs(getState());
         console.log("Invalidated tabs",invalidatedTabs);
+        memConsoleLog("Name slice: ",nameSlice)
         if ((isHomeTabToValidate(nameSlice)) && (invalidatedTabs[nameSlice] == false)) {//if it isnt invalidated,load the ui immediately
             return true
         }

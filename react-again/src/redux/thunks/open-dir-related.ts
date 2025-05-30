@@ -23,19 +23,14 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
     return async (dispatch):Promise<void> =>{
         console.log("Folder path for cached",folderPath);  
         const folderName:string = await base_name(folderPath,true);
+        toast.loading(`Loading the folder: ${folderName}`,loading_toastConfig)
+        dispatch(setFreezeNodes(true))
+
         const isCacheValid = await dispatch(cacheIsValid(folderPath))
-        // dispatch(setFsNodes([]))
         if (!isCacheValid) {//i used this condition so that i can control the ui using display cache when showing an invalidated cache
             await dispatch(openCachedDirInApp(folderPath));
             dispatch(setIsDisplayingCache(true));
         }
-        dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
-        dispatch(setOpenedFile(null))
-        dispatch(setSearchResults(null))//to clear search 
-        
-        toast.loading(`Loading the folder: ${folderName}`,loading_toastConfig)
-        dispatch(setFreezeNodes(true))
-
         if (isCacheValid) {//a validated cache should not say its displaying the cache cuz it will cause the ui to flicker between slicing and a full fsnodes
             console.log("CACHE IS VALID");
             await dispatch(openCachedDirInApp(folderPath));
@@ -46,6 +41,10 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
 
             return
         }
+        dispatch(setCurrentPath(folderPath));//since the cached part is opened,then we can do this.
+        dispatch(setOpenedFile(null))
+        dispatch(setSearchResults(null))//to clear search 
+
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath,'arbitrary');//its fast because it doesnt load the file content
         if (dirResult.value instanceof Error) {
             dispatch(setFsNodes(null))//to ensure that they dont interact with an unstable folder in the ui
@@ -65,11 +64,9 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
             toast.success(`Done loading: ${folderName}`,success_toastConfig)
             dispatch(setFreezeNodes(false))
 
-            dispatch(addToCache({path:folderPath,data:fsNodes}));//performs caching while the user can interact with the dir in the app./since the ui remains frozen as its caching ahead of time,there is no need to add a debouncing mechanism to prevent the user from switching to another tab while its caching
+            await dispatch(addToCache({path:folderPath,data:fsNodes}));//performs caching while the user can interact with the dir in the app./since the ui remains frozen as its caching ahead of time,there is no need to add a debouncing mechanism to prevent the user from switching to another tab while its caching
             console.log("Files:",fsNodes);
         }
-        //just ignore this.ive chosen to accept it
-        // dispatch(setLoadingMessage(null))//to clear the loading message so that the unfreeze state resets back to false after an operation has finished loaded
     }
 }
 export function openParentInApp():AppThunk<Promise<void>> {
@@ -148,7 +145,7 @@ export function cacheHomeTab(tabName:HomeTab,reuseEntry:boolean):AppThunk<Promis
         const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath,'arbitrary');
         if (!(dirResult.value instanceof Error) && (dirResult.value !== null)) {//i only care about the success case here because the operation was initiated by the app and not the user and its not required to succeed for the user to progress with the app
             const fsNodes:FsNode[] = await Promise.all(dirResult.value);
-            dispatch(addToCache({path:folderPath,data:fsNodes}));
+            await dispatch(addToCache({path:folderPath,data:fsNodes}));
             dispatch(setFreezeBars(false))
         }
     }
