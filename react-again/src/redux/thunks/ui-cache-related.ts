@@ -10,9 +10,12 @@ import { searchCache } from '../../utils/search-resumability';
 import { memConsoleLog } from '../../utils/log-config';
 
 
-export function addToCache(arg:CachePayload,folderName:string):AppThunk {
-    return (dispatch,getState)=>{
+export function addToCache(arg:CachePayload,folderName:string):AppThunk<Promise<void>> {
+    return async (dispatch,getState)=>{
         console.log("Called add to cache");
+        if (await searchCache.get(arg.path)) {//if its in the search cache,use it from there instead of wasting memory to create a new one and disk space to persist it but it also means that this visited dir,wont persist across sessions
+            return 
+        }
         if (isFolderHeavy(arg.path)) {
             console.log("Refused to cache heavy folder: ",arg.path);
             return
