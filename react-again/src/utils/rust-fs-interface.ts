@@ -67,11 +67,14 @@ function getFsIcon(fileExtension:string | null):string {
     }
 }
 async function getFsNode(nodePath:string): Promise<FsNode> {
-    const metadata:FsMetadata =  await invoke('fs_stat', {path:nodePath});
     const nodeName:string = await invoke('path_basename', {path:nodePath});
     const fileExtension:string | null = await invoke('path_extname', {path:nodeName})
     const isHidden:boolean = nodeName.startsWith(".");
     const iconPath:string = getFsIcon(fileExtension);
+    const metadata:FsMetadata =  await invoke('fs_stat', {path:nodePath});
+    metadata.accessedDate = new Date(metadata.accessedDate)//the date here is actually in ms,so i have to convert it to a js date object first
+    metadata.createdDate = new Date(metadata.createdDate)
+    metadata.modifiedDate = new Date(metadata.modifiedDate)
     return {
         primary:{
             nodeType:(fileExtension)?'File':'Folder',
@@ -111,14 +114,6 @@ export async function readDirectory(dirPath:string,order:string):Promise<FsResul
         return FsResult.Err(error)
     }
 }
-export async function readFile(filePath: string): Promise<FsResult<string | null | Error>> {
-    try {
-        const content:string = await invoke('read_file', {path:filePath});
-        return (content)?FsResult.Ok(content):FsResult.Ok(null);
-    } catch (error: unknown) {
-        return FsResult.Err(error);
-    }
-}
 export async function writeFile(filePath: string,content:string): Promise<FsResult<null | Error>> {
     try {
         await invoke('write_file', {path:filePath,contents:content});
@@ -135,16 +130,20 @@ export async function getMtime(filePath: string): Promise<FsResult<Date | Error>
         return FsResult.Err(error);
     }
 }
-export async function previewFile(path: string): Promise<Blob> {
-    const base64:string = await invoke('read_file_as_base64', { path });
-    const mimeType:string = await invoke('get_mime_type', { path });
+export async function previewFile(path: string): Promise<FsResult<Blob | Error>> {
+    try {
+        const base64:string = await invoke('read_file_as_base64', { path });
+        const mimeType:string = await invoke('get_mime_type', { path });
 
-    const byteCharacters = atob(base64);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
+        const byteCharacters = atob(base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: mimeType });
+        return FsResult.Ok(blob);
+    }catch(err:unknown) {
+        return FsResult.Err(err)
     }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: mimeType });
-    return blob;
 }

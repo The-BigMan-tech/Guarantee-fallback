@@ -22,7 +22,6 @@ pub fn run() {
             path_extname,
             path_basename,
             fs_stat,
-            read_file,
             read_file_as_base64,
             get_mime_type,
             write_file,
@@ -95,10 +94,6 @@ fn read_dir(dir_path: String,order:SortOrder) -> Result<Vec<PathBuf>, String> {
     }
     Ok(file_paths) // Return the collected file paths
 }
-#[command]
-fn read_file(path: String) -> Result<String, String> {
-    fs::read_to_string(&path).map_err(|e| e.to_string())
-}
 #[tauri::command]
 fn read_file_as_base64(path: String) -> Result<String, String> {
     match fs::read(&path) {
@@ -148,9 +143,9 @@ fn path_basename(path: &str) -> Option<String> {
 #[derive(serde::Serialize)] // Ensure this trait is implemented for IPC serialization
 struct FileStat {
     size_in_bytes: u64,
-    modified_date: SystemTime,
-    created_date: SystemTime,
-    accessed_date: SystemTime,
+    modified_date:u128,
+    created_date:u128,
+    accessed_date:u128,
     is_read_only: bool,
 }
 #[command]
@@ -163,11 +158,14 @@ fn fs_stat(path: &str) -> Result<FileStat, String> {
     let accessed_date: SystemTime = metadata.accessed().map_err(|e| e.to_string())?;
     let is_read_only: bool = metadata.permissions().readonly();
 
+    let mdate = modified_date.duration_since(UNIX_EPOCH).map_err(|e| e.to_string())?;
+    let cdate = created_date.duration_since(UNIX_EPOCH).map_err(|e| e.to_string())?;
+    let adate = accessed_date.duration_since(UNIX_EPOCH).map_err(|e| e.to_string())?;
     Ok(FileStat {
         size_in_bytes,
-        modified_date,
-        created_date,
-        accessed_date,
+        modified_date:mdate.as_millis(),
+        created_date:cdate.as_millis(),
+        accessed_date:adate.as_millis(),
         is_read_only,
     })
 }
