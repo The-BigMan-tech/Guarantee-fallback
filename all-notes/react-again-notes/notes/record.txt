@@ -1636,3 +1636,17 @@ styled components
 *wrapping your Rust command calls in a dedicated frontend module that exposes well-typed interfaces (like your FsResult<T>) does add a meaningful layer of operational safety and security beyond what Tauri’s core IPC and permission system provide.it is best to use FsResult (or similar result wrappers) on all exported (public) functions that are invoked from the frontend.This ensures that every IPC call has consistent, well-defined success and error handling, which improves robustness and security.
 
 *At minimum, exported commands should never return raw or untyped errors directly to the frontend. Wrapping results in a typed structure like FsResult prevents leaking sensitive details and enforces uniform error handling.IPC is a critical security boundary in Tauri apps. Data coming from the frontend is untrusted and must be validated before processing.Sanitization and strict typing reduce the attack surface and ensure your backend logic only processes safe and expected data
+
+todo:
+preview gradient
+responsive design
+thumbnail
+fallback external preview editor
+diff editor
+
+log rotation
+security logs--monitoring and anomally detection
+rust validation
+
+dont log sensitive data
+protect logs from unauthorized access

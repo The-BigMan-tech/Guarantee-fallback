@@ -102,21 +102,13 @@ export async function base_name(path:string,userAsHome:boolean):Promise<string> 
     return await invoke('path_basename', {path:transformed_path});
 }
 //im still leaving it to return fsnode promises instead of the fsnodes directly in case i want to add inc loading later
-export async function readDirectory(dirPath:string,order:string):Promise<FsResult<(Promise<FsNode>)[] | null | Error>> {
+export async function readDirectory(dirPath:string):Promise<FsResult<Promise<FsNode>[] | null | Error>> {
     try {
-        const fsNodePaths:string[] = await invoke('read_dir', { dirPath ,order});
-        const fsNodesPromise:(Promise<FsNode>)[] = fsNodePaths.map(async (fsNodePath) =>await getFsNode(fsNodePath))
+        const fsNodePaths:string[] = await invoke('read_dir', { dirPath });
+        const fsNodesPromise:Promise<FsNode>[] = fsNodePaths.map((fsNodePath) =>getFsNode(fsNodePath))
         return (fsNodesPromise.length)?FsResult.Ok(fsNodesPromise):FsResult.Ok(null);
     }catch(error:unknown) {
         return FsResult.Err(error)
-    }
-}
-export async function writeFile(filePath: string,content:string): Promise<FsResult<null | Error>> {
-    try {
-        await invoke('write_file', {path:filePath,contents:content});
-        return FsResult.Ok(null);
-    } catch (error: unknown) {
-        return FsResult.Err(error);
     }
 }
 export async function getMtime(filePath: string): Promise<FsResult<Date | Error>> {

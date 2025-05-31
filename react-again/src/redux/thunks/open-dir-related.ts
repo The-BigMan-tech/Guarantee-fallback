@@ -47,7 +47,7 @@ export function openDirectoryInApp(folderPath:string):AppThunk<Promise<void>> {/
             return
         }
 
-        const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath,'arbitrary');//its fast because it doesnt load the file content
+        const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath);//its fast because it doesnt load the file content
         if (dirResult.value instanceof Error) {
             dispatch(setFsNodes(null))//to ensure that they dont interact with an unstable folder in the ui
             dispatch(setError(`The error:"${dirResult.value.message}" occured while loading the dir: "${folderPath}"`));
@@ -144,7 +144,7 @@ export function cacheHomeTab(tabName:HomeTab,reuseEntry:boolean):AppThunk<Promis
         const folderPath = await join_with_home(tabName);
         const cache:Cache = selectCache(getState());
         if (cache[folderPath] && reuseEntry) return;
-        const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath,'arbitrary');
+        const dirResult:FsResult<(Promise<FsNode>)[] | Error | null> = await readDirectory(folderPath);
         if (!(dirResult.value instanceof Error) && (dirResult.value !== null)) {//i only care about the success case here because the operation was initiated by the app and not the user and its not required to succeed for the user to progress with the app
             const fsNodes:FsNode[] = await Promise.all(dirResult.value);
             await dispatch(addToCache({path:folderPath,data:fsNodes}));
