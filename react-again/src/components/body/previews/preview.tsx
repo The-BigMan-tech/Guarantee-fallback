@@ -22,7 +22,7 @@ export default function Preview() {
         }else if (ext == "mp4") {
             return (
                 <div className="preview-container">
-                    <video src={openedFile}/>
+                    <video src={openedFile} controls autoPlay muted/>
                 </div>
             )
         }else {
