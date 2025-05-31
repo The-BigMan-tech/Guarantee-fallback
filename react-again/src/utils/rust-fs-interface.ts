@@ -9,9 +9,9 @@ export interface FsPrimaryData {
 }
 export interface FsMetadata {
     sizeInBytes:number,
-    modifiedDate:Date,
-    createdDate:Date,
-    accessedDate:Date,
+    modifiedDate:number,//i cannot serialize a date safely in redux so you have to create the date object on the fly using the number
+    createdDate:number,
+    accessedDate:number,
     isReadOnly:boolean,
 }
 export interface FsNode {
@@ -72,9 +72,6 @@ async function getFsNode(nodePath:string): Promise<FsNode> {
     const isHidden:boolean = nodeName.startsWith(".");
     const iconPath:string = getFsIcon(fileExtension);
     const metadata:FsMetadata =  await invoke('fs_stat', {path:nodePath});
-    metadata.accessedDate = new Date(metadata.accessedDate)//the date here is actually in ms,so i have to convert it to a js date object first
-    metadata.createdDate = new Date(metadata.createdDate)
-    metadata.modifiedDate = new Date(metadata.modifiedDate)
     return {
         primary:{
             nodeType:(fileExtension)?'File':'Folder',

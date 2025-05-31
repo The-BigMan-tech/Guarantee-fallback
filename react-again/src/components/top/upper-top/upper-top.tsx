@@ -1,7 +1,7 @@
 import { useEffect, useState,ChangeEvent} from "react";
 import { useAppDispatch,selector} from "../../../redux/hooks"
 import { openParentInApp } from "../../../redux/thunks/open-dir-related";
-import { selectCurrentPath,selectTabNames,selectQuickSearch,selectSearchResults} from "../../../redux/selectors";
+import { selectCurrentPath,selectTabNames,selectQuickSearch,selectSearchResults, selectOpenedFile} from "../../../redux/selectors";
 import { searchDir,toggleQuickSearch } from "../../../redux/thunks/search-engine";
 import { toastConfig,loading_toastConfig } from "../../../utils/toast-configs";
 import {v4 as uniqueID} from "uuid"
@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { KeyboardEvent,useTransition } from "react";
 import { SearchResult } from "../../../redux/types";
 import { cancelFile } from "../../../redux/thunks/file-op";
+import { setSearchResults } from "../../../redux/slice";
 // import Counter from "./counter";
 
 
@@ -23,6 +24,7 @@ export default function UpperTop() {
     const searchResults:SearchResult[] | null = selector(store=>selectSearchResults(store));
     const [transitionedBreadCrumbs, setTransitionedBreadCrumbs] = useState<{id:string,crumb:string}[]>([]);
     const [isPending, startTransition] = useTransition();
+    const openedFile = selector(store=>selectOpenedFile(store))
 
 
     useEffect(()=>{
@@ -38,7 +40,10 @@ export default function UpperTop() {
     },[uniqueBreadCrumbs])
 
     async function goToParent() {
-        dispatch(cancelFile())
+        if (openedFile) {
+            dispatch(cancelFile())
+            return
+        }
         await dispatch(openParentInApp())
     }
     function shouldRenderArrow():boolean {
