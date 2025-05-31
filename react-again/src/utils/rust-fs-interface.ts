@@ -84,7 +84,7 @@ async function getFsNode(nodePath:string): Promise<FsNode> {
         isHidden
     }
 }
-export async function join_with_home(tabName:string):Promise<string> {
+export async function join_with_home(tabName:string):Promise<string> {//todo:use a validated type as return
     let relPath:string = tabName;
     if (tabName == "Recent") {
         relPath = "AppData\\Roaming\\Microsoft\\Windows\\Recent"

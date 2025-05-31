@@ -1620,9 +1620,19 @@ components--preview and uppertop
 *so my file preview feature is not straightforward cuz im reading it directly from the fs in a webview env in tauri.so the bottom layer are rust functions for encoding the file into a base64 array and a mime type inferrer which tells the browser how to interprete the file.then a script that interfaces with these rust function to return a blob instead of mime url that causes severe lags.then i had to make my app state slice have a section for holding this url for my components to globall use and thunks to dispatch to.so a thunk calls the script that creates the blob and sets it in the app state for use.another thunk clears it.a reducer on that state revokes prev blob urls to preserve memory and finally,the preview component can now use this url and decide what to render based on file extension.so i have the framework all i need to do to support more file types,is just to touch the mime function and the preview component.everything inbetween is valid for all usecases
 
 
-permissions--what i access
+permissions--what i access,enforced at ipc
 preview component--what i read
+safe calls--error handling,prevents arbritary access
+input validation with zod
+
+update antivirus
 
 *so ill purge the string reader but keep the blob url for edge cases i may not know now.Good fallback for edge cases where you might need to preview data not backed by a file system path or when streaming isn’t available.Keeping Blob URL support for edge cases aligns with best practices for handling boundary conditions and rare scenarios
 
 styled components
+
+*so my rust commands if used as a tauri cmd in the frontend will be intercepted by tauri at the ipc level to enforce these permissions even if they directly use system libraries.so this means that they are safe as long as i dont call them internally but only through the frontend
+
+*wrapping your Rust command calls in a dedicated frontend module that exposes well-typed interfaces (like your FsResult<T>) does add a meaningful layer of operational safety and security beyond what Tauri’s core IPC and permission system provide.it is best to use FsResult (or similar result wrappers) on all exported (public) functions that are invoked from the frontend.This ensures that every IPC call has consistent, well-defined success and error handling, which improves robustness and security.
+
+*At minimum, exported commands should never return raw or untyped errors directly to the frontend. Wrapping results in a typed structure like FsResult prevents leaking sensitive details and enforces uniform error handling.IPC is a critical security boundary in Tauri apps. Data coming from the frontend is untrusted and must be validated before processing.Sanitization and strict typing reduce the attack surface and ensure your backend logic only processes safe and expected data

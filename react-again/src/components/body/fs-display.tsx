@@ -10,7 +10,7 @@ interface Props {
 export default function FsDisplay({fsNodes}:Props) {
     const onSearch = selector(store=>selectSearchResultLen(store));
     const displayingCache = selector(store=>selectIsDisplayingCache(store));
-    const INCREMENT = 10;          // number of items to add each step
+    const INCREMENT = 5;          // number of items to add each step
     const DELAY_MS = 300;        // delay between increments (ms)
     const containerRef = useRef<HTMLDivElement>(null);
     const [visibleCount, setVisibleCount] = useState(10); // initial items to show.

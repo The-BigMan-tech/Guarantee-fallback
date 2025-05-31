@@ -8,44 +8,58 @@
   "permissions": [
     "core:default",
     "fs:default",
+    "log:default",
     {
       "identifier": "fs:allow-watch",
       "allow": [
-        {
-          "path": "$HOME"
-        },
-        {
-          "path": "$HOME/**"
-        }
+        {"path": "$HOME/"},
+        {"path": "$HOME/Desktop/**"},
+        {"path": "$HOME/Downloads/**"},
+        {"path": "$HOME/Documents/**"},
+        {"path": "$HOME/Pictures/**"},
+        {"path": "$HOME/Music/**"},
+        {"path": "$HOME/Videos/**"},
+        {"path": "$HOME/AppData/Roaming/Microsoft/Windows/Recent"}
       ]
     },
     {
       "identifier": "fs:allow-unwatch",
       "allow": [
-        {
-          "path": "$HOME"
-        },
-        {
-          "path": "$HOME/**"
-        }
+        {"path": "$HOME/"},
+        {"path": "$HOME/Desktop/**"},
+        {"path": "$HOME/Downloads/**"},
+        {"path": "$HOME/Documents/**"},
+        {"path": "$HOME/Pictures/**"},
+        {"path": "$HOME/Music/**"},
+        {"path": "$HOME/Videos/**"},
+        {"path": "$HOME/AppData/Roaming/Microsoft/Windows/Recent"}
       ]
     },
     {
       "identifier": "fs:allow-read-dir",
       "allow": [
-        {
-          "path": "$HOME/**"
-        }
+        {"path": "$HOME/"},
+        {"path": "$HOME/Desktop/**"},
+        {"path": "$HOME/Downloads/**"},
+        {"path": "$HOME/Documents/**"},
+        {"path": "$HOME/Pictures/**"},
+        {"path": "$HOME/Music/**"},
+        {"path": "$HOME/Videos/**"},
+        {"path": "$HOME/AppData/Roaming/Microsoft/Windows/Recent"}
       ]
     },
     {
       "identifier": "fs:allow-read-file",
       "allow": [
-        {
-          "path": "$HOME/**"
-        }
+        {"path": "$HOME/"},
+        {"path": "$HOME/Desktop/**"},
+        {"path": "$HOME/Downloads/**"},
+        {"path": "$HOME/Documents/**"},
+        {"path": "$HOME/Pictures/**"},
+        {"path": "$HOME/Music/**"},
+        {"path": "$HOME/Videos/**"},
+        {"path": "$HOME/AppData/Roaming/Microsoft/Windows/Recent"}
       ]
-    },
-    "log:default"
+    }
   ]
 }

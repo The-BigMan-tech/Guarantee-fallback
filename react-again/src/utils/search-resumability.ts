@@ -29,8 +29,8 @@ interface DiskEntry {//for batching
     item:DiskCache
 }
 
-const maxCacheSize = 200;
-const maxPassiveCacheSize = 100;
+const maxCacheSize = 100;
+const maxPassiveCacheSize = 200;
 
 export const MAX_WATCHERS = maxCacheSize;
 export const activeWatchers = new Map<string,UnwatchFn>();
