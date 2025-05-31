@@ -1616,3 +1616,5 @@ fs-interface
 reducer
 thunks
 components--preview and uppertop
+
+*so my file preview feature is not straightforward cuz im reading it directly from the fs in a webview env in tauri.so the bottom layer are rust functions for encoding the file into a base64 array and a mime type inferrer which tells the browser how to interprete the file.then a script that interfaces with these rust function to return a blob instead of mime url that causes severe lags.then i had to make my app state slice have a section for holding this url for my components to globall use and thunks to dispatch to.so a thunk calls the script that creates the blob and sets it in the app state for use.another thunk clears it.a reducer on that state revokes prev blob urls to preserve memory and finally,the preview component can now use this url and decide what to render based on file extension.so i have the framework all i need to do to support more file types,is just to touch the mime function and the preview component.everything inbetween is valid for all usecases
