@@ -9,7 +9,6 @@ import { toast } from "react-toastify";
 import { KeyboardEvent,useTransition } from "react";
 import { SearchResult } from "../../../redux/types";
 import { cancelFile } from "../../../redux/thunks/file-op";
-import { setSearchResults } from "../../../redux/slice";
 // import Counter from "./counter";
 
 
