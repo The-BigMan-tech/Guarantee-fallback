@@ -1,7 +1,8 @@
 import { AppThunk } from "../store";
-import { base_name ,readFile,FsResult,previewFile, FsNode} from "../../utils/rust-fs-interface";
+import { base_name ,readFile,FsResult,FsNode} from "../../utils/rust-fs-interface";
 import { setError,setNotice,setCurrentPath,setOpenedFile, setFreezeNodes, setOpenedNode} from "../slice";
 import {toast} from "react-toastify"
+import { convertFileSrc } from "@tauri-apps/api/core";
 //*Thunk dependency
 import { loading_toastConfig, success_toastConfig } from "../../utils/toast-configs";
 
@@ -31,8 +32,8 @@ export function openFile(node:FsNode):AppThunk<Promise<void>> {
     return async (dispatch)=>{
         const path = node.primary.nodePath;
         dispatch(setCurrentPath(path));
-        const blob = await previewFile(path);
-        const url = URL.createObjectURL(blob);
+        const normalizedPath = path.replace(/\\/g, "/");
+        const url = convertFileSrc(normalizedPath);
         dispatch(setOpenedFile(url))
         dispatch(setOpenedNode(node))
     }

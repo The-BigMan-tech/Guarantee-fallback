@@ -24,7 +24,9 @@
     .img-display {
         max-width:50%;  /* scale down to fit container width */
         height: auto;     /* height adjusts to keep aspect ratio */
+        max-height: 10%;
         display: block;   /* removes bottom whitespace */
+        object-fit: contain;
     }
     .preview-container {
         @apply relative h-full flex flex-col items-center justify-center

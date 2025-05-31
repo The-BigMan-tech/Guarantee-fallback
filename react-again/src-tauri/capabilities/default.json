@@ -38,6 +38,14 @@
         }
       ]
     },
+    {
+      "identifier": "fs:allow-read-file",
+      "allow": [
+        {
+          "path": "$HOME/**"
+        }
+      ]
+    },
     "log:default"
   ]
 }
