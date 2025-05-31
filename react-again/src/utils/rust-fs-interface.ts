@@ -135,9 +135,16 @@ export async function getMtime(filePath: string): Promise<FsResult<Date | Error>
         return FsResult.Err(error);
     }
 }
-export async function previewFile(path:string) {
-    const base64 = await invoke('read_file_as_base64', { path });
-    const mimeType = await invoke('get_mime_type', { path });
-    const dataUrl = `data:${mimeType};base64,${base64}`;
-    return dataUrl
+export async function previewFile(path: string): Promise<Blob> {
+    const base64:string = await invoke('read_file_as_base64', { path });
+    const mimeType:string = await invoke('get_mime_type', { path });
+
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: mimeType });
+    return blob;
 }

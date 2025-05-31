@@ -1590,9 +1590,29 @@ dynamic incremental slicing-where the rate of adding items slows down as the vis
 binary heap
 double ended queue
 
-reactjs file preview
 react player
 mammoth js
 react doc viewer
 react pdf
 nutrient blob sdk
+video
+text area
+
+
+*so you are saying that if i want to add a file preview support,i must apply changes in the mime type layer before applying changes to the ui layer to return a specific tag that embeds that content
+
+*it’s crucial to handle the MIME type correctly at the backend or data source layer before you decide how to render the file in the UI. The MIME type acts as the definitive indicator of the file content type, which guides your frontend on which HTML element or component to use for rendering.MIME type tells the browser how to interpret the data
+
+the reducer is the single src of truth for url revocation
+
+*React’s useEffect cleanup runs not only on unmount but also before the next effect runs.That means if your dependencies change and the effect re-runs, React first calls the cleanup from the previous effect.In React 18 Strict Mode (development only), React intentionally mounts, unmounts, and remounts components to help detect unsafe lifecycles and side effects. This causes the cleanup to run immediately after the first render and again on subsequent renders.React’s Strict Mode double rendering only happens in development to help catch bugs.
+
+*rust 
+base64 encoder
+mime type inferrer
+
+*js
+fs-interface
+reducer
+thunks
+components--preview and uppertop

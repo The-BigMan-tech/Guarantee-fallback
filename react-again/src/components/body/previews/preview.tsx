@@ -1,7 +1,7 @@
 import { selectOpenedFile, selectOpenedNode } from "../../../redux/selectors";
 import { selector } from "../../../redux/hooks"
 import { useEffect, useMemo } from "react";
-import { memConsoleLog } from "../../../utils/log-config";
+import { memConsoleLog } from "../../../utils/log-config";;
 
 export default function Preview() {
     const openedFile = selector(store=>selectOpenedFile(store))
@@ -11,23 +11,23 @@ export default function Preview() {
     useEffect(()=>{
         memConsoleLog("Opened file: ",openedFile)
     },[openedFile])
-
+    
     if (openedFile) {
-        if ((ext == 'png') || (ext == 'jpg')) {
+        if ((ext == 'png') || (ext == 'jpg') || (ext == 'svg')) {
             return (
-                <div className="relative top-[4.5%] h-full flex flex-col items-center justify-center">
+                <div className="preview-container">
                     <img src={openedFile} className="img-display"/>
                 </div>
             )
-        }else if (ext == "svg") {
+        }else if (ext == "mp4") {
             return (
-                <div className="relative top-[4.5%] h-full flex flex-col items-center justify-center">
-                    <img src={openedFile} className="img-display"/>
+                <div className="preview-container">
+                    <video src={openedFile}/>
                 </div>
             )
         }else {
             return (
-                <div className="relative h-full flex flex-col items-center justify-center">
+                <div className="preview-container">
                     <h1 className="text-lg">Format not supported</h1>
                 </div>
             )

@@ -105,7 +105,11 @@ export const processingSlice = createSlice({
         setShowDetails(state,action:PayloadAction<boolean>) {
             state.showDetailsPane = action.payload
         },
-        setOpenedFile(state,action:PayloadAction<string | null>) {
+        setOpenedFile(state,action:PayloadAction<string | null>) {//central place for revoking blob urls
+            const currentUrl = state.openedFile;
+            if (currentUrl && currentUrl.startsWith('blob:')) {
+                URL.revokeObjectURL(currentUrl);
+            }
             state.openedFile = action.payload
         },
         setOpenedNode(state,action:PayloadAction<FsNode | null>) {

@@ -3,7 +3,6 @@ import { base_name ,readFile,FsResult,previewFile, FsNode} from "../../utils/rus
 import { setError,setNotice,setCurrentPath,setOpenedFile, setFreezeNodes, setOpenedNode} from "../slice";
 import {toast} from "react-toastify"
 //*Thunk dependency
-import { openParentInApp } from "./open-dir-related";
 import { loading_toastConfig, success_toastConfig } from "../../utils/toast-configs";
 
 
@@ -31,14 +30,15 @@ export function returnFileContent(filePath:string):AppThunk<Promise<string | nul
 export function openFile(node:FsNode):AppThunk<Promise<void>> {
     return async (dispatch)=>{
         const path = node.primary.nodePath;
-        dispatch(setCurrentPath(path))
-        dispatch(setOpenedFile(await previewFile(path)))
+        dispatch(setCurrentPath(path));
+        const blob = await previewFile(path);
+        const url = URL.createObjectURL(blob);
+        dispatch(setOpenedFile(url))
         dispatch(setOpenedNode(node))
     }
 }
 export function cancelFile():AppThunk {
     return (dispatch)=>{
-        dispatch(setOpenedFile(null));
-        dispatch(openParentInApp())
+        dispatch(setOpenedFile(null));// my reducer does the revoking of the old url.all this needs to do is to set the new one to null
     }
 }

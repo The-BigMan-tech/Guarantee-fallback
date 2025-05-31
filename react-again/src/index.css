@@ -26,4 +26,7 @@
         height: auto;     /* height adjusts to keep aspect ratio */
         display: block;   /* removes bottom whitespace */
     }
+    .preview-container {
+        @apply relative h-full flex flex-col items-center justify-center
+    }
 }

@@ -8,6 +8,7 @@ import {v4 as uniqueID} from "uuid"
 import { toast } from "react-toastify";
 import { KeyboardEvent,useTransition } from "react";
 import { SearchResult } from "../../../redux/types";
+import { cancelFile } from "../../../redux/thunks/file-op";
 // import Counter from "./counter";
 
 
@@ -37,6 +38,7 @@ export default function UpperTop() {
     },[uniqueBreadCrumbs])
 
     async function goToParent() {
+        dispatch(cancelFile())
         await dispatch(openParentInApp())
     }
     function shouldRenderArrow():boolean {
