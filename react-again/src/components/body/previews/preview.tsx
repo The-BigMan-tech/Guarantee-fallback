@@ -16,13 +16,13 @@ export default function Preview() {
         if ((ext == 'png') || (ext == 'jpg') || (ext == 'svg')) {
             return (
                 <div className="preview-container">
-                    <img src={openedFile} className="img-display"/>
+                    <img src={openedFile} className="item-display"/>
                 </div>
             )
         }else if (ext == "mp4") {
             return (
                 <div className="preview-container">
-                    <video src={openedFile} controls autoPlay muted/>
+                    <video src={openedFile} controls autoPlay className="item-display"/>
                 </div>
             )
         }else {

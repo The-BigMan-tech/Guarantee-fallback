@@ -1624,3 +1624,5 @@ permissions--what i access
 preview component--what i read
 
 *so ill purge the string reader but keep the blob url for edge cases i may not know now.Good fallback for edge cases where you might need to preview data not backed by a file system path or when streaming isn’t available.Keeping Blob URL support for edge cases aligns with best practices for handling boundary conditions and rare scenarios
+
+styled components
