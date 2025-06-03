@@ -1,3 +1,9 @@
+//^WARNING!!!!
+//!This project is no longer maintained for security reasons.
+//!The frontend code is safe and can still be reused
+//!but all fs access code in rust has been removed and should never be reverted
+//!DONT ATTEMPT TO RUN THIS APP.ONLY REUSE THE COMPONENTS THAT YOU NEED.
+
 import Sidebar from "./components/sidebar/sidebar"
 import Top from "./components/top/top"
 import Toasts from "./components/toast/toast"
