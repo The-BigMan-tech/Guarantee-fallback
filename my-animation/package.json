@@ -5,13 +5,14 @@
   "scripts": {
     "start": "vite",
     "serve": "vite",
-    "build": "tsc && vite build"
+    "build": "tsc && vite build",
+    "build-video": "cd output/project && ffmpeg -framerate 30 -i %06d.png -c:v libx264 -pix_fmt yuv420p output.mp4"
   },
   "dependencies": {
     "@motion-canvas/2d": "^3.17.2",
     "@motion-canvas/core": "^3.17.2",
     "@motion-canvas/ffmpeg": "^1.1.1",
-    "vite": "^6.3.5"
+    "vite": "4.5.14"
   },
   "devDependencies": {
     "@motion-canvas/ui": "^3.17.2",

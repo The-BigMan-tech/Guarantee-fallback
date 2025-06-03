@@ -1680,12 +1680,34 @@ css animation
 js-driven animations
 svg animation
 lottie animation
-code-driven vector animation
+canvas animation--motion canvas
 
 *Visual asset rendering
 svg
 canvas
-3d rendering
+3d rendering--three js,babylon
 
 
 ffmpeg
+
+*DEBUG:so for adding paths to the env variables,i have to add the parent folder not the exe file path to the variable
+*The checkerboard pattern you see on the web (in image editors or browsers) is a visual indicator of transparency, not an actual background
+
+elements
+animations--properties as empty functions--a getter
+properties as functions with par--setter
+the second arg is the transition to that setter
+
+yield all merges animations
+yield plays animations in sequence
+
+canvas-jsx.no html elements.no stylesheets only properties supported by the canvas
+react--hydrates a div
+motion canvas--draws on a canvas element
+
+canvas-based animations
+dom-based animations
+
+svg is for complex component
+
+chain to execute tasks sequentially
