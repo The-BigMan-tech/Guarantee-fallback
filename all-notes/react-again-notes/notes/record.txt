@@ -1650,3 +1650,42 @@ rust validation
 
 dont log sensitive data
 protect logs from unauthorized access
+
+*so gsap is for timeline based animations while motion is for ui animations
+javascrpt is the best programming language for visually rich applications
+
+ui,styling,animation
+
+tauri--can use react to power apps
+astro--can use react to power websites
+
+*Ui framework
+html-driven framework--alpine js
+spa framework--react,vue,svelte
+ssr framework--next js,nuxt,sveltekit
+content-driven framework--astro js
+
+*Styling
+plain css
+css modules
+css preprocessor--sass
+utility-first css framework--tailwind css
+css class library---ui verse
+css component library--material ui
+css-in-js library--styled components
+css plugins--post css
+
+*Animation
+css animation
+js-driven animations
+svg animation
+lottie animation
+code-driven vector animation
+
+*Visual asset rendering
+svg
+canvas
+3d rendering
+
+
+ffmpeg
