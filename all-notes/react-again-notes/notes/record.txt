@@ -1712,7 +1712,7 @@ svg is for complex component
 
 chain to execute tasks sequentially
 
-
+*---------
 Tailwind
 Daisy ui
 Material ui
@@ -1747,3 +1747,6 @@ Vitest
 React testing library
 Storybook js
 Cypress
+
+react,redux,tauri
+react,jotai,astro
