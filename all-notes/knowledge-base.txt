@@ -133,6 +133,7 @@ out: Tans stack query,router,ranger
 *Browser storage
 ^---------------
 local storage
+indexed db
 todo: Cache storage api
 
 

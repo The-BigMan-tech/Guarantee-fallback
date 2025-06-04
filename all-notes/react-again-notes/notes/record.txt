@@ -1711,3 +1711,39 @@ dom-based animations
 svg is for complex component
 
 chain to execute tasks sequentially
+
+
+Tailwind
+Daisy ui
+Material ui
+Uiverse.io
+Shadcn ui
+
+
+hello pangea dnd
+react toastify
+chart js,d3 js,apex charts
+
+
+react spring
+react scroll parallax
+react lottie player
+Gsap
+Framer motion
+motion canvas
+three js
+
+astro js
+
+*Server
+WebRTC
+Socket io
+graphql
+trpc
+rtk query
+
+*Testing
+Vitest
+React testing library
+Storybook js
+Cypress
