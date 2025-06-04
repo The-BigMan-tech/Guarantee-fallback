@@ -1748,5 +1748,14 @@ React testing library
 Storybook js
 Cypress
 
-react,redux,tauri
+react,redux,tauri,vitest + rtl,indexed db
 react,jotai,astro
+
+
+*Testing library plugins
+dom
+jest-dom
+react
+user event
+
+React Testing Library encourages testing what the user sees, not implementation details like specific elements or internal component structure.
