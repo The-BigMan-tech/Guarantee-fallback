@@ -1763,3 +1763,6 @@ user event
 
 React Testing Library encourages testing what the user sees, not implementation details like specific elements or internal component structure.
 
+wasm plugins
+
+so a webview and a browser are both wrappers around the chromium engine but the webview is absolutely minimal leaving less things to exploit than a full fledged browser but its security is still dependent on updates from the os vendors
