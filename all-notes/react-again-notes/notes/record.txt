@@ -1766,3 +1766,7 @@ React Testing Library encourages testing what the user sees, not implementation 
 wasm plugins
 
 so a webview and a browser are both wrappers around the chromium engine but the webview is absolutely minimal leaving less things to exploit than a full fledged browser but its security is still dependent on updates from the os vendors
+
+*i finally did it.so to change existing icons in vscode,i can use custom css and js but it cant add icons so if i want to add my own icons and change existing ones more scalably,i have to modify my icon ext folder directly by modifying the json file of the ext in the dist folder.in here,i can add my own icon definition by adding a key and the path to the icon which i placed directly in the ext icon folder.i then had to map an extension directly to this definition.after this,i had to go to the icon settings in the vscode settings.json to associate the file extension with this icon definition so that it overrides any default icon association like .jsx for *.solid.jsx
+
+*using a naming convention like *.solid.tsx for SolidJS components is often better than adopting a separate file extension like .solid because it avoids the need for additional tooling support such as IntelliSense, syntax highlighting, and language configuration that a new extension would require.
