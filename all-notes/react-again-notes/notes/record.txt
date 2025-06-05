@@ -1739,11 +1739,21 @@ three js
 astro js
 
 *Server
-WebRTC
-Socket io
-graphql
-trpc
+tRPC,socket io using nestjs as a platform
+prisma
+postgresql
+docker
+webRTC
 rtk query
+tauri update server service
+
+*Use cases--comes with user accounts and authentication
+remote data storage
+session management
+real-time features
+plugin repo
+security log reporting
+update servers--already handled by tauri
 
 *Testing
 Vitest
@@ -1751,8 +1761,8 @@ React testing library
 Storybook js
 Cypress
 
-react,redux,tauri,vitest + rtl,indexed db
-react,jotai,astro
+react,tailwind,redux,frontend test,indexed db,tauri
+react,tailwind,jotai,astro
 
 
 *Testing library plugins
@@ -1770,3 +1780,30 @@ so a webview and a browser are both wrappers around the chromium engine but the 
 *i finally did it.so to change existing icons in vscode,i can use custom css and js but it cant add icons so if i want to add my own icons and change existing ones more scalably,i have to modify my icon ext folder directly by modifying the json file of the ext in the dist folder.in here,i can add my own icon definition by adding a key and the path to the icon which i placed directly in the ext icon folder.i then had to map an extension directly to this definition.after this,i had to go to the icon settings in the vscode settings.json to associate the file extension with this icon definition so that it overrides any default icon association like .jsx for *.solid.jsx
 
 *using a naming convention like *.solid.tsx for SolidJS components is often better than adopting a separate file extension like .solid because it avoids the need for additional tooling support such as IntelliSense, syntax highlighting, and language configuration that a new extension would require.
+
+.astro,.mdx
+
+i can use astro router for my websites instead of react router
+
+rest server,trpc server,grapghql server,socket server
+http and websocket is th transport layer underneath all these protocols
+
+nest-js is dope.
+
+*security logs must be anonymized,excluded from personal information,must be cryp-signed for tamper detection and must be e2e ncrypted between the client and the server and i must ensure that access control prevents the frontend from accessing the log dir in case of malware that controls the frontend and it must be kept in an app protected dir so that users dont easily and mistakenly modfiy the log files making modification and intentional malicious operation.This means that users arent meant to use these logs themselves.as soon as many suspicious warnings are logged which may or may not lead to a breach,the security log must be reported by the app immediately and when a breach occurs,the app will forcefully 
+
+*given a secured architecture where frontend code can only access well-secured Rust backend APIs, a security breach is most likely to stem from an undetected bug/vulnerability and malware in the frontend code itself that violates app security not plugins
+
+*so should i go with the token architecture for plugins where each plugin uses a token to only call permitted apis and tokens to access app-only permitted apis should be generated and expire on each verified call and only for a particular api function.which will allow me to separate plugin security logic from the rest of my rust apis or use the same api but treate all callers as untrusted which means that i also have to add plugin security logic there.
+
+*so going with the second one will mean that it will be more difficult to control what the app and plugins can access separately,it will complicate the codebase and introduce bugs as a result of mixed logic.so i should go with the token architecture but also ensuring that my main api prepare for token theft by rigorously checking against tokens but they wont include the usual plugin security logic
+
+*so i should have plugin token and app-verified token.i believe the plugin token can be generated once and used throughout the app cycle when loaded as the app starts since it has a limited api set but app-verified tokens which allows accessing the main apis must be generated when needed and expire immediately afer the call and must be scoped to a specific api call
+
+*so with this token architecture on top of a secured rust api,plugins even shady ones should hardly comeout as the reason of a security breach.it can only be a bug that has the app-verified token or a malware that stole it.i believe the malware will have a hard time stealing it if done well meaning that only a bug in the frontend is expected to have the app-verifed token easily and even at that,the apis are well secured for user protection.so this already identifes three threat levels but how will my rust code know which is malware or frontend to give the token to
+
+*so plugins will be checked and loaded when the app starts so they cant request for the app-verified token.the rust code will only respond to give the token when the plugins have been loaded.so plugins at this point are well secured.they have become diminished to what they can do as a threat meaning that plugins will be mostly safe to install regardless of shadiness but still,users should download from reputable sources.but malware can request for this at runtime.so one thing i can do is to only respond to that request if the hash bundle hasnt been compromised although this isnt a foolproof layer,it slows down attacks
+
+*so if the hash bundle has been compromised,it will be reported immediately as a breach and the app wil close and the hash bundle check should happen on every call to the app-verified token.
+
+*in principle the architecture is well secured, but ultimately its security depends heavily on how it is implemented.
