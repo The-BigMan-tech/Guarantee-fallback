@@ -3,5 +3,6 @@
         "editor.inlayHints.maximumLength": 0
     },
     "dbmlERDPreviewer.preferredTheme": "dark",
-    "workbench.colorTheme": "Monokai Pro (Filter Octagon)"
+    "workbench.colorTheme": "Monokai Pro (Filter Octagon)",
+    "docwriter.style": "Doxygen"
 }

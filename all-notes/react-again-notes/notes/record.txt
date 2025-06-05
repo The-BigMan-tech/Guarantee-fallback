@@ -1637,6 +1637,9 @@ styled components
 
 *At minimum, exported commands should never return raw or untyped errors directly to the frontend. Wrapping results in a typed structure like FsResult prevents leaking sensitive details and enforces uniform error handling.IPC is a critical security boundary in Tauri apps. Data coming from the frontend is untrusted and must be validated before processing.Sanitization and strict typing reduce the attack surface and ensure your backend logic only processes safe and expected data
 
+*is it also because of the underlying frameworks used.electron allows system access with js through a node js instance but tauri apps only allow js to run in the frontend isolated webview.anything that must have system access must be a rust function at the backend and expliitly allowed for use in the webview,so if i make a tauri app with plugin support,no plugin will have system access because their js runs in the webview and they cant inject rust code because any allowed rust code must be allowed when the app was built not at runtime to prevent rerouting.meaning that making plugin support around this will be more secure than vscode
+
+
 todo:
 preview gradient
 responsive design
@@ -1759,3 +1762,4 @@ react
 user event
 
 React Testing Library encourages testing what the user sees, not implementation details like specific elements or internal component structure.
+
