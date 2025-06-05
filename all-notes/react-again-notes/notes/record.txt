@@ -1683,15 +1683,13 @@ css animation
 js-driven animations
 svg animation
 lottie animation
-canvas animation--motion canvas
+canvas animation--motion canvas & ffmpeg
 
 *Visual asset rendering
 svg
 canvas
 3d rendering--three js,babylon
 
-
-ffmpeg
 
 *DEBUG:so for adding paths to the env variables,i have to add the parent folder not the exe file path to the variable
 *The checkerboard pattern you see on the web (in image editors or browsers) is a visual indicator of transparency, not an actual background
@@ -1715,6 +1713,7 @@ svg is for complex component
 
 chain to execute tasks sequentially
 
+*Styles
 *---------
 Tailwind
 Daisy ui
@@ -1722,18 +1721,20 @@ Material ui
 Uiverse.io
 Shadcn ui
 
-
+*Aesthetics
+*-----------
 hello pangea dnd
 react toastify
 chart js,d3 js,apex charts
 
-
+*Animation & 3D
+*--------------
 react spring
 react scroll parallax
 react lottie player
 Gsap
 Framer motion
-motion canvas
+motion canvas + ffmpeg
 three js
 
 astro js
@@ -1744,12 +1745,13 @@ prisma
 postgresql
 docker
 webRTC
+tauri updater service
 rtk query
-tauri update server service
+
 
 *Use cases--comes with user accounts and authentication
 remote data storage
-session management
+device session management
 real-time features
 plugin repo
 security log reporting
@@ -1761,21 +1763,20 @@ React testing library
 Storybook js
 Cypress
 
-react,tailwind,redux,frontend test,indexed db,tauri
-react,tailwind,jotai,astro
-
-
 *Testing library plugins
 dom
 jest-dom
 react
 user event
 
-React Testing Library encourages testing what the user sees, not implementation details like specific elements or internal component structure.
-
+react,tailwind,redux,frontend test,indexed db,tauri
+react,tailwind,jotai,astro,headless cms platform
 wasm plugins
 
-so a webview and a browser are both wrappers around the chromium engine but the webview is absolutely minimal leaving less things to exploit than a full fledged browser but its security is still dependent on updates from the os vendors
+
+*React Testing Library encourages testing what the user sees, not implementation details like specific elements or internal component structure.
+
+*so a webview and a browser are both wrappers around the chromium engine but the webview is absolutely minimal leaving less things to exploit than a full fledged browser but its security is still dependent on updates from the os vendors
 
 *i finally did it.so to change existing icons in vscode,i can use custom css and js but it cant add icons so if i want to add my own icons and change existing ones more scalably,i have to modify my icon ext folder directly by modifying the json file of the ext in the dist folder.in here,i can add my own icon definition by adding a key and the path to the icon which i placed directly in the ext icon folder.i then had to map an extension directly to this definition.after this,i had to go to the icon settings in the vscode settings.json to associate the file extension with this icon definition so that it overrides any default icon association like .jsx for *.solid.jsx
 
@@ -1783,12 +1784,10 @@ so a webview and a browser are both wrappers around the chromium engine but the 
 
 .astro,.mdx
 
-i can use astro router for my websites instead of react router
+*i can use astro router for my websites instead of react router
 
-rest server,trpc server,grapghql server,socket server
-http and websocket is th transport layer underneath all these protocols
-
-nest-js is dope.
+*rest server,trpc server,grapghql server,socket server protocol
+*http and websocket is th transport layer underneath all these protocols
 
 *security logs must be anonymized,excluded from personal information,must be cryp-signed for tamper detection and must be e2e ncrypted between the client and the server and i must ensure that access control prevents the frontend from accessing the log dir in case of malware that controls the frontend and it must be kept in an app protected dir so that users dont easily and mistakenly modfiy the log files making modification and intentional malicious operation.This means that users arent meant to use these logs themselves.as soon as many suspicious warnings are logged which may or may not lead to a breach,the security log must be reported by the app immediately and when a breach occurs,the app will forcefully 
 
@@ -1807,3 +1806,15 @@ nest-js is dope.
 *so if the hash bundle has been compromised,it will be reported immediately as a breach and the app wil close and the hash bundle check should happen on every call to the app-verified token.
 
 *in principle the architecture is well secured, but ultimately its security depends heavily on how it is implemented.
+
+*This flexibility means specialization in desktop or web apps doesn’t prevent you from building websites regularly; it just means you might choose lighter tools or frameworks suited to the website’s needs.
+
+*so the specializations is either react with react native for mobile app,sreact with tauri for desktop apps or react with next js for web apps.websites can be made frequently regardless of field of expertise cuz there is no architecture just the ui framework you know,a lightweight state solution like jotai and an ssg render of your choice like next js ssg mode or astro.
+
+a ref is a dom pointer
+
+*so if the animated diagram is standalone for illustarctions,i should use motion canvas with its reactivity but if i want to use it as part of my app like a brilliant clone,i will use react to listen to input and update the animated diagram accordingly
+
+js is the most powerful language for visually-rich apps
+
+whats more powerful than a programming language is its ecosystem
