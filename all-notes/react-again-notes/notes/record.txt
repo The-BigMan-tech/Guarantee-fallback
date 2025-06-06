@@ -1688,7 +1688,7 @@ canvas animation--motion canvas & ffmpeg
 *Visual asset rendering
 svg
 canvas
-3d rendering--three js,babylon
+3d rendering--three js,babylon,react 3 fiber
 
 
 *DEBUG:so for adding paths to the env variables,i have to add the parent folder not the exe file path to the variable
@@ -1727,7 +1727,7 @@ hello pangea dnd
 react toastify
 chart js,d3 js,apex charts
 
-*Animation & 3D
+*Animation
 *--------------
 react spring
 react scroll parallax
@@ -1735,7 +1735,12 @@ react lottie player
 Gsap
 Framer motion
 motion canvas + ffmpeg
+
+*3D
+------
 three js
+babylon js
+react 3 fiber
 
 astro js
 
@@ -1762,6 +1767,7 @@ Vitest
 React testing library
 Storybook js
 Cypress
+Playwright js
 
 *Testing library plugins
 dom
@@ -1818,3 +1824,25 @@ a ref is a dom pointer
 js is the most powerful language for visually-rich apps
 
 whats more powerful than a programming language is its ecosystem
+
+A mesh is an object that takes a geometry, and applies a material to it, which we then can insert to ourscene, and move freely around.
+
+*Markup reader,style,script runtime,web Gl
+
+openGL,DirectX and Vulkan are the 3d rendering apis and webGL is a subset of openGL for the browser.three js,babylon js and playcanvas wrap around it with high level features
+
+canvas is used for chart,animated diagrams,3d rendering
+
+
+imperative ui
+declarative ui
+
+embedding a minimal code editor--monaco
+
+*so the plan is to learn babylon and use it code-driven with the playground for quick feedback.ill use it to make projects and later once knowledgeable of the engine itself,making the editor is just building a ui over the engine and ill use the play canvas editor as the base or any game engine editor that looks fine and onec i build it to scale enough over time,i can use it for the rest of my babylon projects.
+
+so its like a jsx compiler to dom.it converts react components to three js calls under the hood
+
+3d component wrappers
+
+so i can use react for the game ui and react router to route between game menus.i just have to sync it with the canvas
