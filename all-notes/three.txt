@@ -2,8 +2,40 @@
 
 *the near and far point of a camera define the range of the camera's visibility to control whats rendered for improving performance
 
-inspecting the code of the built in components
+*inspecting the code of the built in components
 
-You should keep the camera definition (the actual THREE.PerspectiveCamera instance) as an internal object, and then create a class or wrapper that references this original camera object. This wrapper class will provide methods to directly modify as many modifiable properties of the camera as possible.
+*You should keep the camera definition (the actual THREE.PerspectiveCamera instance) as an internal object, and then create a class or wrapper that references this original camera object. This wrapper class will provide methods to directly modify as many modifiable properties of the camera as possible.
 
-The custom logic controlling the camera typically uses a limited set of core camera mutations—such as updating position, rotation, FOV, or near/far planes—but complex behaviors emerge by composing these mutations under broader logic tied to different parts of your app state or input.To create complex behaviors like spinning, following a target, zooming, or orbiting, you write higher-level logic that manipulates these properties over time or in response to user input.
+*The custom logic controlling the camera typically uses a limited set of core camera mutations—such as updating position, rotation, FOV, or near/far planes—but complex behaviors emerge by composing these mutations under broader logic tied to different parts of your app state or input.To create complex behaviors like spinning, following a target, zooming, or orbiting, you write higher-level logic that manipulates these properties over time or in response to user input.
+
+*You call renderer.render(scene, camera) on every animation frame inside the animation loop because rendering produces a single still image of the current scene from the camera’s viewpoint.
+
+*so 3d is explicit here.so under setanimation loop i can apply any transformations here but they wont be reflected in the canvas,so calling the render function each time means im telling three js to redraw the canvas based on the camera's view of the current state of the scene.i believe i must call this once after all transformations for perf
+
+*so like disk io,rendering is the heavy operation of 3D and its best practice to batch transformations before rendering like it is for disk io and 3D objects store their properties in transformation matrixes but changes to them dont reflect to other parts of the app till i rerender it.
+
+*a three js mesh is made up of a material applied to a geometry
+
+*overlaying React components on your Three.js canvas as in your example gives you a powerful way to build rich, interactive in-game UIs—like inventories, menus, HUDs—using React’s full ecosystem of tools, libraries, and animation capabilities. This approach offers advantages over traditional game engines like Unity or Godot, whose built-in UI editors are often more limited or less flexible for complex, dynamic interfaces.
+
+*You position standard HTML elements (like <div>, <span>) absolutely over the canvas using CSS and z-index.
+
+*These points define the path of the line; lines are drawn between each consecutive pair of points but do not close the shape by connecting the last point to the first.
+
+*A THREE.Vector3 represents a point or direction in 3D space with three coordinates: x, y, and z.When defining geometry in Three.js, you specify the positions of vertices (the corners or points of shapes) as arrays of Vector3 objects. Each Vector3 precisely locates a point in 3D space.
+
+*so the points is an array of 3d vectors that stores the location of a point in 3d space or x,y,z cords and these points are turned to a buffered array or typed array optimized for holding large geometric data at good perf.so all three js geometry use this to convert the points into a geometry
+
+model is a material applied to a geometry and optionally animations which is a function that defines transformations over time
+
+*in Three.js, the scene acts as the 3D environment or world container for all objects you want to render. Any model or object that you want to appear in the rendered output must be added to the scene (directly or indirectly).
+
+in the browser,js can only access files exposed to it from the web server which is in the public folder of the project unless in a tauri env where it can use a secured rust backend instead
+
+*Create a new RoomEnvironment scene, which is a simple, neutral room-like environment with walls and ceiling that emits light and reflections.
+
+*Pmrem preprocesses environment maps to efficiently simulate realistic reflections and lighting for different roughness levels.it precomputes filtered versions of the environment map at multiple roughness levels.This allows materials to quickly sample the correct reflection blur based on their roughness without expensive runtime filtering which improves performance and visual quality of reflections and ambient lighting in PBR.
+
+*It is a texture (often a cube map) that encodes the surrounding environment’s light and color information from all directions.On models: The environment map is sampled by the material’s shader to produce reflections and ambient lighting effects on the model’s surface.This means shiny or metallic materials reflect the environment realistically, and even rough surfaces receive ambient light from the environment, making them look more natural.
+
+*so is it that normal light is just required to see the model.they create highlights, shadows, and shading that define the shape and depth of objects but env map is required to produce accurate reflections on those models by simulating light at different directions for a particular model depending on its roughness

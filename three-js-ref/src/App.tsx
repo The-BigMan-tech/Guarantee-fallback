@@ -22,9 +22,10 @@ function App() {
     },[])
 
     return (
-        <>
-            <div ref={containerRef} className='w-full h-full'></div>
-        </>
+        <div className='h-full w-full flex'>
+            <div ref={containerRef} className='w-full h-full z-0'></div>
+            <h1 className='z-10 text-white absolute left-[50%]'>Hello</h1>
+        </div>
     )
 }
 export default App
