@@ -1,0 +1,9 @@
+*the fov is the vertical angle in degrees that states how much of the scene the camera views
+
+*the near and far point of a camera define the range of the camera's visibility to control whats rendered for improving performance
+
+inspecting the code of the built in components
+
+You should keep the camera definition (the actual THREE.PerspectiveCamera instance) as an internal object, and then create a class or wrapper that references this original camera object. This wrapper class will provide methods to directly modify as many modifiable properties of the camera as possible.
+
+The custom logic controlling the camera typically uses a limited set of core camera mutations—such as updating position, rotation, FOV, or near/far planes—but complex behaviors emerge by composing these mutations under broader logic tied to different parts of your app state or input.To create complex behaviors like spinning, following a target, zooming, or orbiting, you write higher-level logic that manipulates these properties over time or in response to user input.
