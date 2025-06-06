@@ -39,3 +39,5 @@ in the browser,js can only access files exposed to it from the web server which 
 *It is a texture (often a cube map) that encodes the surrounding environment’s light and color information from all directions.On models: The environment map is sampled by the material’s shader to produce reflections and ambient lighting effects on the model’s surface.This means shiny or metallic materials reflect the environment realistically, and even rough surfaces receive ambient light from the environment, making them look more natural.
 
 *so is it that normal light is just required to see the model.they create highlights, shadows, and shading that define the shape and depth of objects but env map is required to produce accurate reflections on those models by simulating light at different directions for a particular model depending on its roughness
+
+*The camera’s fov property defines the vertical field of view (in degrees).The aspect ratio is usually set to the canvas width divided by its height (window.innerWidth / window.innerHeight).This aspect ratio determines how wide the camera’s horizontal field of view is, based on the fixed vertical FOV.

@@ -18,7 +18,11 @@ function App() {
             camera.updateProjectionMatrix();
             renderer.setSize(width, height);
         }
-        resizeRendererToContainer(container)
+        resizeRendererToContainer(container);
+        
+        window.addEventListener('resize',() => {
+            resizeRendererToContainer(container);
+        });
     },[])
 
     return (
