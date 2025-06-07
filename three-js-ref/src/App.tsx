@@ -1,7 +1,7 @@
 import { canvas,renderer } from './three-components/renderer';
-import { camera } from './three-components/camera';
+import { camera,moveCameraLeft,moveCameraRight} from './three-components/camera';
 import './App.css'
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type KeyboardEvent } from 'react';
 
 function App() {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -25,9 +25,17 @@ function App() {
         });
     },[])
 
+    function moveCamera(event:KeyboardEvent<HTMLDivElement>) {
+        if (event.key === 'ArrowLeft') {
+            moveCameraLeft();
+        } else if (event.key === 'ArrowRight') {
+            moveCameraRight();
+        }
+    }
+
     return (
         <div className='h-full w-full flex'>
-            <div ref={containerRef} className='w-full h-full z-0'></div>
+            <div ref={containerRef} onKeyDown={moveCamera} tabIndex={0} className='w-full h-full z-0'></div>
             <h1 className='z-10 text-white absolute left-[50%]'>Hello</h1>
         </div>
     )

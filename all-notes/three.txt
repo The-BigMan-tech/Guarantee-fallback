@@ -41,3 +41,121 @@ in the browser,js can only access files exposed to it from the web server which 
 *so is it that normal light is just required to see the model.they create highlights, shadows, and shading that define the shape and depth of objects but env map is required to produce accurate reflections on those models by simulating light at different directions for a particular model depending on its roughness
 
 *The camera’s fov property defines the vertical field of view (in degrees).The aspect ratio is usually set to the canvas width divided by its height (window.innerWidth / window.innerHeight).This aspect ratio determines how wide the camera’s horizontal field of view is, based on the fixed vertical FOV.
+
+*both browser 3D rendering and Godot’s 3D rendering ultimately display images on 2D planes (the screen), creating the illusion of 3D by projecting 3D models onto 2D surfaces. However, Godot provides a full 3D scene graph and retains all the underlying 3D data—such as meshes, planes, nodes, and materials—allowing you to inspect and manipulate each model's components directly within its editor or runtime environment.
+*In contrast, browsers render 3D scenes via WebGL or WebGPU onto a 2D canvas element, which only holds the final rasterized pixels and does not expose the original 3D models or their geometry for inspection. The canvas is essentially a flat drawing surface without the scene graph or mesh data that Godot maintains internally. This is why you can inspect individual 3D models and their planes in Godot but only see the 2D canvas output in a browser
+
+scene graph
+canvas drawing
+
+Graphic apis
+
+*a graphic api sends geometry data as rendering instructions to the gpu.the gpu uses this information to render the 3d model on a 2d surface like the screen or canvas.They take geometric data types like triangles and convert them into low level gpu instructions like an assembler
+
+glsl
+parallel computing
+rendering
+
+RAM
+Virtual RAM
+Video RAM
+
+GPU instructions
+3D api--geometric datatypes
+3D binding--just an interface over a 3d api
+3D library--includes a scene graph
+3D framework--code driven
+Game engine
+Modelling software
+
+webGL,openGL,DirectX,Vulkan
+three js,babylon,blend4web,lwjgl
+
+*3D libraries like Three.js, Babylon.js, and game engines serve as abstractions over low-level geometric data types and rendering APIs to simplify 3D production.
+
+scene graph
+rendering
+
+A scene graph is a hierarchical, structured representation of a 3D scene that organizes objects (nodes), their spatial transformations, and relationships in a tree or graph form
+
+a 3d api is just above making raw gpu commands while a scene graph allows one to interact with graphics in an object-oriented manner
+
+chunk based rendering and culling
+The game logic and rendering are decoupled; entities and blocks have their own update and render methods, but there is no global hierarchical scene graph managing all objects.
+
+*a scene graph is a centralized abstraction like the dom but minecraft uses decentralized abstractions.It provides a single source of truth for the scene’s spatial and semantic organization, enabling efficient traversal, rendering, culling, and interaction management.
+
+a scene graph allows for relationships.without it,models will just be rendered on the screen
+spatial partition and culling--grids,chunks
+
+localized entity system--ecs
+pose stack,transformation stack
+
+rendering
+relationships
+model inspection
+
+final image
+localized entity system
+scene graph
+
+data structure or relationship system
+renderer
+
+geometric datatypes
+final image
+
+*so its from geometric datatypes-->final image but a scene graph or relationship system like the localized entity saves the geometric data of each component to model relationships.
+
+*A scene graph or localized entity system stores not just the geometric data but also the hierarchical and spatial relationships between components or models.It saves which parts belong to which parent objects, how they are transformed relative to each other, and how they interact, effectively organizing geometric data into meaningful structures.
+
+*Geometric data represents the shape and appearance of 3D objects. This includes vertices, edges, faces, curves, surfaces, and points that define the object’s form
+*Transformation matrices hold data used to transform those objects properties
+
+geometric components
+
+*A scene graph or similar system (like a localized entity system) stores and organizes the geometric data of each model component individually, along with their spatial and semantic relationships.This organization allows the code to draw particular geometric components in isolation, enabling you to select, inspect, and manipulate individual parts of a model rather than just rendering the whole scene as a flat image.The final rendered image you see on screen is the result of composing many such individual components, transformed and drawn many times per second to create a smooth 3D view.
+
+running frames continuously simulates motion
+
+*moving around in a 3d world requires a transformation of the camera over time.The rendering process redraws the entire scene relative to the camera’s current transform every frame (tick), producing the final 2D image on the screen.
+
+*When you move or transform the camera, the scene graph is traversed each frame during rendering (renderer.render(scene, camera)), applying all object and camera transformations to compute their positions relative to the new camera viewpoint.This traversal and hierarchical transformation propagation is what allows the renderer to "bubble" the effects of camera movement through the scene, updating the final rendered image accordingly.Without the scene graph, you would need to manually track and apply all transformations and redraw calls, which is complex and error-prone.
+
+*Without a Virtual DOM, using vanilla JavaScript means you must manually update the real DOM whenever something changes. This can be tedious and error-prone because you have to know exactly which elements to update, and other parts of the DOM won’t automatically react or update relative to those changes.
+
+*so its the same for 3d.without a scene graph,if i move the camera for example,i also have to manually update all the other elements relative to it so that they too can be rerendered so the better way is to use a data structure over this layer and a runtime that lookups and manages this structure.so the app or game doesnt make direct graphic instructions but one on the this structure which makes it easy for some runtime to apply transformations across all elements relative to another when that element transforms
+
+*a scene graph in 3D acts like a reactive hierarchical data structure that makes modeling relationships between objects natural and efficient, because transformations and updates propagate automatically through the graph.
+
+camera is a view into the image
+
+models,nodes
+
+transformations
+
+render loop
+
+attatching event listeners to the target
+
+*tabIndex controls focus levels
+*z-index controls overlay levels
+
+transformation variable mutation
+continuously rendered function--uses a formula
+
+the animation loop should be the only place where transformations are actually applied centralizing state and smoothing out transformations ensuring that they are applied predictably if multiple event listeners transform the model abruptly
+
+It’s essentially an “update pattern” or “state interpolation pattern”, where you maintain a target state as a separate variable and have a dedicated update function that applies smooth transitions (interpolations) from the current state to the target state each frame.
+
+direct transformation--uses formula on every loop
+target transformation pattern
+
+*the fundamental transformations
+scaling
+translation
+rotation
+
+*Weighting is not a transformation itself but rather a scalar value that controls the influence or strength of a transformation or effect.
+
+*so the pattern most games use for transforming objects is to modify a target transformation and in a single function,they use the difference between the two states to transform the object and applying additional things like weights such as speed.Physical quantities like speed, force, acceleration, or damping act as these weight variables that modulate the transformation updates, making motion feel natural and physically plausible.
