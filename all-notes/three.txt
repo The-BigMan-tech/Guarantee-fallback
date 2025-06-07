@@ -178,6 +178,7 @@ clamp the rotation
 rotate independent 3d object 
 nesting the camera 
 YXZ rotation
+applying quaternion vector
 
 rotating while moving
 
@@ -203,3 +204,18 @@ rotating while moving
 *when i rotate the camera using the yaw and pitch objects,i rotate it orientation in the world space but when i move it,i move it along the world axis not from the camera's local axis which comes from its own different point of view as a result of rotation
 
 *so its better to use the vector datatype to store x,y,z cords data for points or transformations than separate individual numerical data types.
+
+*so add on a vector performs a vector addition while for 3d objects,it nests them under its hierarchy.using a vector allows me to leverage this over arithmetic
+
+*so lerp is a vector operation that updates the current data to the target using a weight.its the cleaner form of calculating the delta and weighting it myself using arithmetic on multiple numerical types representing the cords
+
+*so apply quaternion is a vector operation that updates the cords data of a vector to align with that of another which in this case is used to align the rotation of the object with that of the camera so that ist translation isnt on the fixed world axis
+
+*A quaternion represents a rotation in 3D space, encoding an axis and an angle of rotation.
+
+*so the cords of a vector rep as (x,y,z) only hold point or direction data.the rotation data is rep separately and internally as quaternion but i can interface with the rotation as arithmetic values(Euler angles).Quaternions can be applied to vectors to rotate them, transforming their coordinates accordingly.
+
+*so for both position,translation and rotation data,i can manually manage numeric values and use them to update the corresponding properties of the objects but using a vector data structure for the postition and translation while an euler object for rotation is better
+
+
+*so i have to initialize the vectrs even afer defining them to align them with the camera’s current actual position and rotation in the scene.This ensures that the target values start synchronized with the camera’s real state, preventing sudden jumps or erratic behavior when you begin moving or rotating the camera.Without this initialization, targetPosition and targetRotation would start at default values (often zero vectors or zero Euler angles), which likely differ from the camera’s current transform.

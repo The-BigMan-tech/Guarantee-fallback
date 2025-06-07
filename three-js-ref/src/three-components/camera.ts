@@ -5,32 +5,29 @@ const nearPoint = 0.1;
 const farPoint = 1000;
 export const camera = new THREE.PerspectiveCamera(FOV,undefined,nearPoint,farPoint);
 camera.position.z = 5;
-camera.rotation.order = 'YXZ';
 
 const targetPosition = new THREE.Vector3();
+const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const speed = 0.1;
-
-let targetYaw = 0;   //x-axis
-let targetPitch = 0; //y-axis
 
 export const yawObject = new THREE.Object3D();
 const pitchObject = new THREE.Object3D();
 yawObject.add(pitchObject);
 pitchObject.add(camera);
 
+targetPosition.copy(yawObject.position);
+targetRotation.copy(new THREE.Euler(pitchObject.rotation.x, yawObject.rotation.y, 0, 'YXZ'));
 
 export function animateCamera() {
-    const maxPitch = Math.PI / 2 * 0.95;
-
     yawObject.position.lerp(targetPosition, speed);
-
-    yawObject.rotation.y += (targetYaw - yawObject.rotation.y) * speed;
-    pitchObject.rotation.x += (targetPitch - pitchObject.rotation.x) * speed;
+    const maxPitch = Math.PI / 2 * 0.95;
+    yawObject.rotation.y += (targetRotation.y - yawObject.rotation.y) * speed;
+    pitchObject.rotation.x += (targetRotation.x - pitchObject.rotation.x) * speed;
     pitchObject.rotation.x = Math.max(-maxPitch, Math.min(maxPitch, pitchObject.rotation.x));// Clamp pitch to avoid flipping
 }
 export function moveCameraForward() {
     const forward = new THREE.Vector3(0, 0, -1); // local forward
-    forward.applyQuaternion(yawObject.quaternion); // rotate to world space
+    forward.applyQuaternion(yawObject.quaternion); //make forward respect the cameras rotation as controlled by the yaw object
     targetPosition.add(forward)
 }
 export function moveCameraBackward() {
@@ -59,8 +56,8 @@ export function moveCameraDown() {
     targetPosition.add(down);
 }
 export function rotateCameraX(delta: number) {
-    targetYaw -= delta
+    targetRotation.y -= delta; // yaw (rotation around Y axis)
 }
 export function rotateCameraY(delta:number) {
-    targetPitch -= delta
+    targetRotation.x -= delta;// pitch (rotation around X axis)
 }
