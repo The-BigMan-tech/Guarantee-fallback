@@ -7,9 +7,7 @@ export const camera = new THREE.PerspectiveCamera(FOV,undefined,nearPoint,farPoi
 camera.position.z = 5;
 camera.rotation.order = 'YXZ';
 
-let targetX = camera.position.x;  
-let targetY = camera.position.y; 
-let targetZ = camera.position.z;
+const targetPosition = new THREE.Vector3();
 const speed = 0.1;
 
 let targetYaw = 0;   //x-axis
@@ -22,39 +20,47 @@ pitchObject.add(camera);
 
 
 export function animateCamera() {
-    const currentPosition = camera.position;
     const maxPitch = Math.PI / 2 * 0.95;
 
-    currentPosition.x += (targetX - currentPosition.x) * speed;
-    currentPosition.y += (targetY - currentPosition.y) * speed;
-    currentPosition.z += (targetZ - currentPosition.z) * speed;
-    camera.position.set(currentPosition.x,currentPosition.y,currentPosition.z)
+    yawObject.position.lerp(targetPosition, speed);
 
     yawObject.rotation.y += (targetYaw - yawObject.rotation.y) * speed;
     pitchObject.rotation.x += (targetPitch - pitchObject.rotation.x) * speed;
     pitchObject.rotation.x = Math.max(-maxPitch, Math.min(maxPitch, pitchObject.rotation.x));// Clamp pitch to avoid flipping
 }
-export function moveCameraLeft() {
-    targetX -= 1;  // Move target position left by 1 unit
-}
-export function moveCameraRight() {
-    targetX += 1;  // Move target position right by 1 unit
-}
-export function moveCameraUp() {
-    targetY += 1;  // Move target position left by 1 unit
-}
-export function moveCameraDown() {
-    targetY -= 1;  // Move target position right by 1 unit
-}
 export function moveCameraForward() {
-    targetZ -= 1;  // Move target position left by 1 unit
+    const forward = new THREE.Vector3(0, 0, -1); // local forward
+    forward.applyQuaternion(yawObject.quaternion); // rotate to world space
+    targetPosition.add(forward)
 }
 export function moveCameraBackward() {
-    targetZ += 1;  // Move target position right by 1 unit
+    const backward = new THREE.Vector3(0, 0, 1);
+    backward.applyQuaternion(yawObject.quaternion);
+    targetPosition.add(backward);
 }
-export function rotateCameraLeft(delta: number) {
+export function moveCameraLeft() {
+    const left = new THREE.Vector3(-1, 0, 0);
+    left.applyQuaternion(yawObject.quaternion);
+    targetPosition.add(left);
+}
+export function moveCameraRight() {
+    const right = new THREE.Vector3(1, 0, 0);
+    right.applyQuaternion(yawObject.quaternion);
+    targetPosition.add(right);
+}
+export function moveCameraUp() {
+    const up = new THREE.Vector3(0, 1, 0);
+    up.applyQuaternion(yawObject.quaternion);
+    targetPosition.add(up);
+}
+export function moveCameraDown() {
+    const down = new THREE.Vector3(0, -1, 0);
+    down.applyQuaternion(yawObject.quaternion);
+    targetPosition.add(down);
+}
+export function rotateCameraX(delta: number) {
     targetYaw -= delta
 }
-export function rotateCameraUp(delta:number) {
+export function rotateCameraY(delta:number) {
     targetPitch -= delta
 }

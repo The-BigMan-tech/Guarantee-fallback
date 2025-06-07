@@ -172,12 +172,34 @@ Orbit controls
 clumsy rotation
 natural rotation
 
-euler based rotation--glimbal lock,clumsy rotation
+euler based rotation
 quaternion-based rotation
-rotate 3d object
-use object hierarchy
+clamp the rotation
+rotate independent 3d object 
+nesting the camera 
+YXZ rotation
+
+rotating while moving
 
 *Yaw is the horizontal rotation (looking left and right), which is a rotation around the Y axis in Three.js’s coordinate system.
 *Pitch is the vertical rotation (looking up and down), which is a rotation around the X axis.
 
 *so yaw is a horizontal rotation but rotates around its cross axis,y/vertical axis
+
+*so the add method in three js is to nest a three js object in another
+
+*Rotating the camera directly (modifying camera.rotation or camera.quaternion) changes the camera’s orientation in world space every frame. This can sometimes cause complex recalculations in the rendering pipeline, especially if done abruptly or with conflicting inputs, potentially leading to jitter or performance hiccups
+
+*The camera is a child of pitchObject, which is itself a child of yawObject.When you rotate yawObject (around the Y axis), it rotates the entire subtree, including pitchObject and the camera.Because the camera inherits transformations from its parents, rotating yawObject effectively rotates the camera horizontally (yaw).
+
+*so to rotate an object horizontally to look left or right,i actually rotate horizontally but the rotation orbits the y-axis which makes the object remain in its posture while rotating it to look up and down will orbit the rotation about the x-axis thats why yaw is aplied at the y-axis but controls horizontal rotation and vice versa for pitch
+
+*so directly translating the camera is possible because it just needs to redraw the scene relative to how close or far they are from the camera but rotating the camera causes complex recalculations as the renderer has to redraw the scene according to the new orientation which can cause clumsy rotations if done abruptly but by nesting the camera in a normal 3d object which has more controlled rotations,i can effectively rotate the 3d object only and the camera being part of that object rotates along with it without it having to rotate by itself.so the renderer still redraws the scene but it doesnt have to handle calculating camera rotations before doing so.and by separating the 3d object responsible for rotations into separate 3d objects,i can prevent unexpected rotations/gimbal lock which happens when the pitch and yaw rotations of the same object interfere but to treat it as a single unit again,i nest one of them inside the other mmaking one rotation always relative to the other.but the pitch object is preferrable as it ensures up/down movement stays aligned with the camera’s horizontal facing.so we clamp the pitch not to prevent conflict but to prevent the camera from rotating unbounded in the y-axis which can cause an unnatural upside down rotation.This ensures the camera behaves like a real-world head or eye that can look up and down but not spin completely over itself.
+
+*so yaw rotation that controls facing left and right which orbits the y-axis should come first because naturally,we turn to look left or right before looking up or down.so doing yaw first is better and more natural so that looking up or down is relative to us looking left or right
+
+*Three js handles rotations as quaternions internally on all 3d objects but exposing a simple euler rotation interface.so separating them even though quaternions already prevents gimbal locks helps me to focus on rotating one object focusing on one axis at a time which allows for isolated and simplified logic for each of the axis
+
+*when i rotate the camera using the yaw and pitch objects,i rotate it orientation in the world space but when i move it,i move it along the world axis not from the camera's local axis which comes from its own different point of view as a result of rotation
+
+*so its better to use the vector datatype to store x,y,z cords data for points or transformations than separate individual numerical data types.

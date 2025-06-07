@@ -1,5 +1,5 @@
 import { canvas,renderer } from './three-components/renderer';
-import { camera,moveCameraBackward,moveCameraDown,moveCameraForward,moveCameraLeft,moveCameraRight, moveCameraUp,rotateCameraLeft,rotateCameraUp} from './three-components/camera';
+import { camera,moveCameraBackward,moveCameraDown,moveCameraForward,moveCameraLeft,moveCameraRight, moveCameraUp,rotateCameraX,rotateCameraY} from './three-components/camera';
 import './App.css'
 import { useEffect, useRef, type KeyboardEvent } from 'react';
 
@@ -35,8 +35,8 @@ function App() {
         const deltaX = event.clientX - previousMousePosition.current.x;
         const deltaY = event.clientY - previousMousePosition.current.y;
         const rotationSpeed = 0.005; // Adjust sensitivity as needed
-        rotateCameraLeft(deltaX * rotationSpeed); // Update your camera target rotations
-        rotateCameraUp(deltaY * rotationSpeed);
+        rotateCameraX(deltaX * rotationSpeed); // Update your camera target rotations
+        rotateCameraY(deltaY * rotationSpeed);
         previousMousePosition.current = { x: event.clientX, y: event.clientY };
     }
     function onMouseUp() {
@@ -60,11 +60,11 @@ function App() {
                 console.log("Called backward");
                 moveCameraBackward();
                 break;
-            case 'Space':
+            case 'KeyE':
                 console.log("Called Up");
                 moveCameraUp();
                 break;
-            case 'ShiftLeft':
+            case 'KeyQ':
                 console.log("Called Down");
                 moveCameraDown();
                 break;
