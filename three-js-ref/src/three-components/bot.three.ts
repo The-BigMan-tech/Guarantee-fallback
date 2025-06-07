@@ -11,7 +11,6 @@ export function loadBotModel(scene:THREE.Scene,onLoaded?: () => void) {
         gltf=>{
             bot = gltf.scene;
             bot.position.y -= 1
-            bot.position.x +=5 
             scene.add(bot)
             if (onLoaded) onLoaded();
         }, 

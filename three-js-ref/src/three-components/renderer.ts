@@ -10,6 +10,7 @@ export const renderer = new THREE.WebGLRenderer();
 export const canvas = renderer.domElement;
 
 loadEnv(scene,renderer)
+
 renderer.setAnimationLoop(()=>{
     animateCube();
     animateBot();

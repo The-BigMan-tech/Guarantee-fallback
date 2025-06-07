@@ -159,3 +159,25 @@ rotation
 *Weighting is not a transformation itself but rather a scalar value that controls the influence or strength of a transformation or effect.
 
 *so the pattern most games use for transforming objects is to modify a target transformation and in a single function,they use the difference between the two states to transform the object and applying additional things like weights such as speed.Physical quantities like speed, force, acceleration, or damping act as these weight variables that modulate the transformation updates, making motion feel natural and physically plausible.
+
+a model is an object composed of a material/tecture applied to a geometry construct
+
+*an AmbientLight in Three.js produces light that illuminates all objects equally from every direction without casting shadows or having a specific direction. while a directional light casts rays of light at a particular direction
+
+keybinds to transformations
+Orbit controls
+
+*so what im experiencing is a conflicting transformation which happens when two different parts of an app update the transformations of a single object themselves which will almost always happen out of sync.my keybinds dont conflict with themselves because i used the target transformation pattern but orbit controls is doing its own transformations on my camera
+
+clumsy rotation
+natural rotation
+
+euler based rotation--glimbal lock,clumsy rotation
+quaternion-based rotation
+rotate 3d object
+use object hierarchy
+
+*Yaw is the horizontal rotation (looking left and right), which is a rotation around the Y axis in Three.js’s coordinate system.
+*Pitch is the vertical rotation (looking up and down), which is a rotation around the X axis.
+
+*so yaw is a horizontal rotation but rotates around its cross axis,y/vertical axis
