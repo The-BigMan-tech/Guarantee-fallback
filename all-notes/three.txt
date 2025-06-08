@@ -219,3 +219,12 @@ rotating while moving
 
 
 *so i have to initialize the vectrs even afer defining them to align them with the camera’s current actual position and rotation in the scene.This ensures that the target values start synchronized with the camera’s real state, preventing sudden jumps or erratic behavior when you begin moving or rotating the camera.Without this initialization, targetPosition and targetRotation would start at default values (often zero vectors or zero Euler angles), which likely differ from the camera’s current transform.
+
+*pointer lock behavior depends on browser and OS implementations, and certain input combinations—like simultaneous key presses and trackpad gestures—can cause pointer lock to be lost or mousemove events to be suppressed
+
+*Pointer Lock API delivers raw device input (movementX, movementY), which reflects the actual physical mouse or trackpad movement.
+*Programmatic rotation (e.g., setting Euler angles or quaternions) can simulate rotation visually but does not generate real pointer lock mousemove events.
+*Browsers do not allow synthetic mousemove events to emulate pointer lock input for security and usability reasons.
+*Without real pointer lock input, you lose the continuous, unrestricted relative movement that pointer lock provides (e.g., unlimited yaw rotation without cursor hitting screen edges).
+
+^ill load plugins as ts src files directly cuz of security reasons and compile it to wasm before the app starts if possible to do securely to get the best performance.the wasm files can be temprorary and deleted immediately once the app closes.

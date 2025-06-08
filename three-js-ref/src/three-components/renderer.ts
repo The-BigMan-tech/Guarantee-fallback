@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { camera } from './camera';
+import { camera, renderKeyEvents } from './camera';
 import { scene } from './scene';
 import animateCube from './cube.three';
 import { animateBot } from './bot.three';
@@ -15,5 +15,6 @@ renderer.setAnimationLoop(()=>{
     animateCube();
     animateBot();
     animateCamera();
+    renderKeyEvents()
     renderer.render( scene, camera );
 });
