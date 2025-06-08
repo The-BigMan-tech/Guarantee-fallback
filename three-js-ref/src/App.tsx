@@ -1,7 +1,8 @@
 import { canvas,renderer } from './three-components/renderer';
 import { camera} from './three-components/camera';
 import './App.css'
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type KeyboardEvent } from 'react';
+import { toggleCameraMode } from './three-components/camera-mode';
 
 function App() {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -20,14 +21,16 @@ function App() {
         }
         resizeRendererToContainer(container);
     },[])     
-
+    function onKeyDown(event:KeyboardEvent) {
+        if (event.code == "KeyT") toggleCameraMode();
+    }
     return (
         <div className='h-full w-full flex'>
             <div ref={containerRef} 
                 tabIndex={0} 
+                onKeyDown={onKeyDown}
                 className='w-full h-full z-0'>
             </div>
-            <h1 className='z-10 text-white absolute left-[50%]'>Hello</h1>
         </div>
     )
 }

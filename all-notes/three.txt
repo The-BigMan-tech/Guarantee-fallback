@@ -64,7 +64,7 @@ GPU instructions
 3D api--geometric datatypes
 3D binding--just an interface over a 3d api
 3D library--includes a scene graph
-3D framework--code driven
+3D engine--code driven
 Game engine
 Modelling software
 
@@ -228,3 +228,5 @@ rotating while moving
 *Without real pointer lock input, you lose the continuous, unrestricted relative movement that pointer lock provides (e.g., unlimited yaw rotation without cursor hitting screen edges).
 
 ^ill load plugins as ts src files directly cuz of security reasons and compile it to wasm before the app starts if possible to do securely to get the best performance.the wasm files can be temprorary and deleted immediately once the app closes.
+
+*so in first person,the camera controls the movement and the player moves relative to the player but in thirs person,the model controls the movement and the camera orbits the player moving relative to it
