@@ -3,7 +3,11 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { pitchObject } from "./camera";
 import { cameraMode, keysPressed,rotationDelta ,rotationSpeed} from "./globals";
 import { AnimationMixer } from 'three';
-let mixer:THREE.AnimationMixer;
+
+let mixer: THREE.AnimationMixer;
+let currentAction: THREE.AnimationAction | null = null;
+let idleAction: THREE.AnimationAction | null = null;
+let walkAction: THREE.AnimationAction | null = null;
 
 export const player = new THREE.Group();
 const loader = new GLTFLoader();
@@ -22,17 +26,37 @@ loader.load(modelPath,
         player.add(playerModel);
         pitchObject.position.y = 3.5
         player.add(pitchObject)
-
         mixer = new AnimationMixer(playerModel);
-        if (gltf.animations.length > 0) {
-            const action = mixer.clipAction(gltf.animations[0]);
-            action.play();
+
+        const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
+        const walkClip = THREE.AnimationClip.findByName(gltf.animations, 'walk'); 
+        
+        if (idleClip) {
+            idleAction = mixer.clipAction(idleClip);
+            idleAction.play();
+            currentAction = idleAction;
+        }
+        if (walkClip) {
+            walkAction = mixer.clipAction(walkClip);
         }
     },undefined, 
     error =>console.error( error ),
 );
 targetPosition.copy(player.position);
 
+function fadeToAction(newAction: THREE.AnimationAction) {
+    if (newAction !== currentAction) {
+        newAction.reset();
+        newAction.play();
+        if (currentAction) {
+            currentAction.crossFadeTo(newAction, 0.3, false); // smooth 0.3s crossfade
+        }
+        currentAction = newAction;
+    }
+}
+function isMoving() {
+    return keysPressed['KeyW'] || keysPressed['KeyA'] || keysPressed['KeyS'] || keysPressed['KeyD'];
+}
 export function movePlayerForward(displacement:number) {
     const forward = new THREE.Vector3(0, 0,-displacement); // local forward
     forward.applyQuaternion(player.quaternion); //make forward respect the cameras rotation as controlled by the yaw object
@@ -68,7 +92,7 @@ export function rotatePlayerX(delta: number) {
     targetQuaternion.setFromEuler(targetRotation);
 }
 let canToggle = true;
-function renderPlayerKeys() {
+function toggleThirdPerson() {
     if (keysPressed['KeyT']) {
         if (canToggle) {
             cameraMode.isThirdPerson = !cameraMode.isThirdPerson;
@@ -77,6 +101,10 @@ function renderPlayerKeys() {
     } else {
       canToggle = true;  // reset when key released
     }
+}
+
+function renderPlayerKeys() {
+    toggleThirdPerson();
     if (keysPressed['ArrowLeft']) rotatePlayerX(-rotationDelta);  
     if (keysPressed['ArrowRight']) rotatePlayerX(+rotationDelta);
     if (keysPressed['KeyW']) movePlayerForward(displacement);
@@ -85,6 +113,13 @@ function renderPlayerKeys() {
     if (keysPressed['KeyD']) movePlayerRight(displacement);
     if (keysPressed['KeyE']) movePlayerUp(displacement);
     if (keysPressed['KeyQ']) movePlayerDown(displacement);
+    if (mixer && idleAction && walkAction) {
+        if (isMoving()) {
+            fadeToAction(walkAction);
+        } else {
+            fadeToAction(idleAction);
+        }
+    }
 }
 const clock = new THREE.Clock();
 export function animatePlayer() {
