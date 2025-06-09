@@ -10,11 +10,11 @@ const targetPosition = new THREE.Vector3();
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const displacement = 0.5
 const speed = 0.5;
+const rotationSpeed = 0.05;
 
 export const yawObject = new THREE.Object3D();
 const pitchObject = new THREE.Object3D();
 
-camera.position.z = 5;
 yawObject.add(pitchObject);
 pitchObject.add(camera);
 
@@ -58,6 +58,10 @@ export function rotateCameraY(delta:number) {
     targetRotation.x -= delta;// pitch (rotation around X axis)
 }
 export function renderKeyEvents() {
+    if (keysPressed['ArrowLeft']) rotateCameraX(-rotationSpeed);  
+    if (keysPressed['ArrowRight']) rotateCameraX(+rotationSpeed);
+    if (keysPressed['ArrowUp']) rotateCameraY(-rotationSpeed);  
+    if (keysPressed['ArrowDown']) rotateCameraY(+rotationSpeed);
     if (keysPressed['KeyW']) moveCameraForward(displacement);
     if (keysPressed['KeyS']) moveCameraBackward(displacement);
     if (keysPressed['KeyA']) moveCameraLeft(displacement);

@@ -230,3 +230,10 @@ rotating while moving
 ^ill load plugins as ts src files directly cuz of security reasons and compile it to wasm before the app starts if possible to do securely to get the best performance.the wasm files can be temprorary and deleted immediately once the app closes.
 
 *so in first person,the camera controls the movement and the player moves relative to the player but in thirs person,the model controls the movement and the camera orbits the player moving relative to it
+
+*so what i was battling not just in my app but my whole desktop with the other applications including minecraft when i couldnt move my cursor when holding down a key was because of a recommended and safe feature called palm check which to prevent accidental cursor movements while using the keyboard.its a safety against the malfunctioning touchpads but it doesnt enforce this on an external mouse
+
+*i fixed it.so the underlying problem is that since ive nested the camera in an object and applied rotation on that object to affect the camera,in order to get a rotation that applies a spinning effect which is where the camera rotates about its origin but if the camera is at an offset from tjis pivot,it orbits around it giving the visual effect that the world is rotating aound it.i displaced the camera by 5 so this caused the offset.after removing it,it went back to the spinning effect.this means that the displacement should be at the yaw object not the camera
+
+*The order in which you apply transformations, and the pivot points of those transformations, drastically affect the final visual result.
+
