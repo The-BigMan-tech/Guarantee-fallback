@@ -2,6 +2,8 @@ import * as THREE from "three"
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { pitchObject } from "./camera";
 import { cameraMode, keysPressed,rotationDelta ,rotationSpeed} from "./globals";
+import { AnimationMixer } from 'three';
+let mixer:THREE.AnimationMixer;
 
 export const player = new THREE.Group();
 const loader = new GLTFLoader();
@@ -20,6 +22,12 @@ loader.load(modelPath,
         player.add(playerModel);
         pitchObject.position.y = 3.5
         player.add(pitchObject)
+
+        mixer = new AnimationMixer(playerModel);
+        if (gltf.animations.length > 0) {
+            const action = mixer.clipAction(gltf.animations[0]);
+            action.play();
+        }
     },undefined, 
     error =>console.error( error ),
 );
@@ -78,8 +86,11 @@ function renderPlayerKeys() {
     if (keysPressed['KeyE']) movePlayerUp(displacement);
     if (keysPressed['KeyQ']) movePlayerDown(displacement);
 }
+const clock = new THREE.Clock();
 export function animatePlayer() {
     renderPlayerKeys(); 
+    const delta = clock.getDelta();
+    if (mixer) mixer.update(delta);
     const targetZ = cameraMode.isThirdPerson ? 5 : 0;
     pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
     player.position.lerp(targetPosition, speed);

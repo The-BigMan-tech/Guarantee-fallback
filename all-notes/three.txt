@@ -296,3 +296,5 @@ Tuple
 four-component number system
 
 *so eulers are a set of x,y,x cords.They are more of tuples.they are complete and specify exact rotations so they require a linear progression on each component to the target values which can cause dragginess on smooth rotations like 360 rotations because angles wrap around at ±180°, causing sudden jumps in interpolation.Quaternions are a four-component number system: one real part (w) and three imaginary parts (x, y, z). using multiplication instead of addition meaning that it can smoothly interpolate across 360 rotations.They represent rotations as a single rotation around an axis by an angle, encoded compactly and without ambiguity.
+
+todo:clamp camera movement more on first person

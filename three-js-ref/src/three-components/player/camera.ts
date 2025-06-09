@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { keysPressed,rotationDelta,rotationSpeed } from './globals';
+import { cameraMode, keysPressed,rotationDelta,rotationSpeed } from './globals';
 
 const FOV = 75;
 const nearPoint = 0.1;
@@ -19,9 +19,15 @@ export function rotateCameraY(delta:number) {
     clampPitch()
 }
 function clampPitch() {
-    const maxPitch = Math.PI / 2 * 0.95;
-    const euler = new THREE.Euler().setFromQuaternion(targetQuaternion, 'YXZ');
-    euler.x = Math.max(-maxPitch, Math.min(maxPitch, euler.x));
+    const maxPitchFirstPerson = THREE.MathUtils.degToRad(85);
+    const maxPitchThirdPerson = THREE.MathUtils.degToRad(15);
+    const maxPitch = cameraMode.isThirdPerson ? maxPitchThirdPerson : maxPitchFirstPerson;
+
+    const euler = new THREE.Euler().setFromQuaternion(targetQuaternion, 'YXZ');   // Convert targetQuaternion to Euler angles to access pitch (x rotation)
+    const clampedX = THREE.MathUtils.clamp(euler.x, -maxPitch, maxPitch);// Clamp pitch angle within the chosen range
+
+    const smoothFactor = 0.2; // Adjust for smoothness; smaller is smoother
+    euler.x += (clampedX - euler.x) * smoothFactor;
     targetQuaternion.setFromEuler(euler);
 }
 function renderCameraKeys() {
