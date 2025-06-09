@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { keysPressed } from './keys-pressed';
 
 const FOV = 75;
 const nearPoint = 0.1;
@@ -13,18 +14,12 @@ const speed = 0.5;
 export const yawObject = new THREE.Object3D();
 const pitchObject = new THREE.Object3D();
 
-const keysPressed:Record<string,boolean> = {};
-const rotationSpeed = 0.05;
-
 camera.position.z = 5;
 yawObject.add(pitchObject);
 pitchObject.add(camera);
 
 targetPosition.copy(yawObject.position);
 targetRotation.copy(new THREE.Euler(pitchObject.rotation.x, yawObject.rotation.y, 0, 'YXZ'));
-
-window.addEventListener('keydown', (e) => keysPressed[e.code] = true);
-window.addEventListener('keyup', (e) => {keysPressed[e.code] = false; });
 
 export function moveCameraForward(displacement:number) {
     const forward = new THREE.Vector3(0, 0,-displacement); // local forward
@@ -62,12 +57,7 @@ export function rotateCameraX(delta: number) {
 export function rotateCameraY(delta:number) {
     targetRotation.x -= delta;// pitch (rotation around X axis)
 }
-
 export function renderKeyEvents() {
-    if (keysPressed['ArrowLeft']) rotateCameraX(-rotationSpeed);  
-    if (keysPressed['ArrowRight']) rotateCameraX(+rotationSpeed);
-    if (keysPressed['ArrowUp']) rotateCameraY(-rotationSpeed);  
-    if (keysPressed['ArrowDown']) rotateCameraY(+rotationSpeed);
     if (keysPressed['KeyW']) moveCameraForward(displacement);
     if (keysPressed['KeyS']) moveCameraBackward(displacement);
     if (keysPressed['KeyA']) moveCameraLeft(displacement);
