@@ -2,12 +2,13 @@ import * as THREE from 'three';
 import { directionalLight } from './lights';
 import { sky } from './sun';
 import { player } from './player/player.three';
+import { loadBotModel } from './bot.three';
 
 export const scene = new THREE.Scene();
 scene.add(directionalLight);
 scene.add(sky);
 scene.add(player)
-
+loadBotModel(scene)
 
 const terrainGeometry = new THREE.PlaneGeometry(1000, 1000);
 const terrainMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 });

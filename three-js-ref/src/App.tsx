@@ -1,8 +1,9 @@
 import { canvas,renderer } from './three-components/renderer';
-import { camera, rotateCameraX, rotateCameraY} from './three-components/player/camera';
+import { camera,rotateCameraY} from './three-components/player/camera';
+import { rotatePlayerX } from './three-components/player/player.three';
 import './App.css'
 import { useEffect, useRef } from 'react';
-import { keysPressed } from './three-components/player/keys-pressed';
+import { keysPressed } from './three-components/player/globals';
 
 function App() {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -30,7 +31,7 @@ function App() {
         }
         function onPointerLockMove(event: MouseEvent) {
             const rotationSpeed = 0.002;
-            rotateCameraX(event.movementX * rotationSpeed);
+            rotatePlayerX(event.movementX * rotationSpeed);
             rotateCameraY(event.movementY * rotationSpeed);
         }
         function onClick() {
