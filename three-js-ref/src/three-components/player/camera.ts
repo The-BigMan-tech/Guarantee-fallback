@@ -6,14 +6,23 @@ const nearPoint = 0.1;
 const farPoint = 1000;
 export const camera = new THREE.PerspectiveCamera(FOV,undefined,nearPoint,farPoint);
 
-const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
+const targetQuaternion = new THREE.Quaternion();
 export const pitchObject = new THREE.Object3D();
 
 pitchObject.add(camera);
-targetRotation.copy(new THREE.Euler(pitchObject.rotation.x,pitchObject.rotation.y, 0, 'YXZ'));
+targetQuaternion.copy(pitchObject.quaternion);
 
 export function rotateCameraY(delta:number) {
-    targetRotation.x -= delta;
+    const pitchChange = new THREE.Quaternion();
+    pitchChange.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -delta);
+    targetQuaternion.multiplyQuaternions(pitchChange, targetQuaternion);
+    clampPitch()
+}
+function clampPitch() {
+    const maxPitch = Math.PI / 2 * 0.95;
+    const euler = new THREE.Euler().setFromQuaternion(targetQuaternion, 'YXZ');
+    euler.x = Math.max(-maxPitch, Math.min(maxPitch, euler.x));
+    targetQuaternion.setFromEuler(euler);
 }
 function renderCameraKeys() {
     if (keysPressed['ArrowUp']) rotateCameraY(-rotationDelta);  
@@ -21,8 +30,6 @@ function renderCameraKeys() {
 }
 export function animateCamera() {
     renderCameraKeys()
-    const maxPitch = Math.PI / 2 * 0.95;
-    pitchObject.rotation.x += (targetRotation.x - pitchObject.rotation.x) * rotationSpeed;
-    pitchObject.rotation.x = Math.max(-maxPitch, Math.min(maxPitch, pitchObject.rotation.x));// Clamp pitch to avoid flipping
+    pitchObject.quaternion.slerp(targetQuaternion, rotationSpeed);
 }
 

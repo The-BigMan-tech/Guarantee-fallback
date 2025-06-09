@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { pitchObject } from "./camera";
-import { keysPressed,rotationDelta ,rotationSpeed} from "./globals";
+import { cameraMode, keysPressed,rotationDelta ,rotationSpeed} from "./globals";
 
 export const player = new THREE.Group();
 const loader = new GLTFLoader();
@@ -9,15 +9,16 @@ const modelPath:string = './godotbot-2.glb';
 
 const targetPosition = new THREE.Vector3();
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
+const targetQuaternion = new THREE.Quaternion();
 const displacement = 0.5;
 const speed = 0.5;
 
 loader.load(modelPath,
     gltf=>{
         const playerModel = gltf.scene;
+        playerModel.position.z = 0.2
         player.add(playerModel);
-        pitchObject.position.y += 4
-        pitchObject.position.z += 5;
+        pitchObject.position.y = 3.5
         player.add(pitchObject)
     },undefined, 
     error =>console.error( error ),
@@ -56,8 +57,18 @@ export function movePlayerDown(displacement:number) {
 }
 export function rotatePlayerX(delta: number) {
     targetRotation.y -= delta; 
+    targetQuaternion.setFromEuler(targetRotation);
 }
+let canToggle = true;
 function renderPlayerKeys() {
+    if (keysPressed['KeyT']) {
+        if (canToggle) {
+            cameraMode.isThirdPerson = !cameraMode.isThirdPerson;
+            canToggle = false;  // prevent further toggles until key released
+        }
+    } else {
+      canToggle = true;  // reset when key released
+    }
     if (keysPressed['ArrowLeft']) rotatePlayerX(-rotationDelta);  
     if (keysPressed['ArrowRight']) rotatePlayerX(+rotationDelta);
     if (keysPressed['KeyW']) movePlayerForward(displacement);
@@ -68,7 +79,9 @@ function renderPlayerKeys() {
     if (keysPressed['KeyQ']) movePlayerDown(displacement);
 }
 export function animatePlayer() {
-    renderPlayerKeys();
+    renderPlayerKeys(); 
+    const targetZ = cameraMode.isThirdPerson ? 5 : 0;
+    pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
     player.position.lerp(targetPosition, speed);
-    player.rotation.y += (targetRotation.y - player.rotation.y) * rotationSpeed;
+    player.quaternion.slerp(targetQuaternion, rotationSpeed);
 }

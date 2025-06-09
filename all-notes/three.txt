@@ -264,3 +264,35 @@ copy position
 *The distinction between THREE.Group and THREE.Object3D is subtle because Group is actually a subclass of Object3D, designed specifically to make grouping multiple objects clearer and more semantically explicit.
 
 *Both Group and Object3D can nest objects and serve as containers.The difference is mostly semantic and organizational.Group is explicitly meant for grouping and makes your code clearer and easier to understand.Object3D is more generic and can represent any 3D entity (including ones with geometry or special behavior).
+
+*You should not directly transform an object in the render loop but rather interpolate through the change between the previous position and the target
+
+*so the reason why i directly use the quaternion in the camera cuz the camera is only doing one type of rotation which is looking up or down but the player despite only controlling horizontal rotation for now,may require more complex rotations later so its best to use euler angles and only convert to quaternions when interpolating
+
+axis-angle
+euler 
+quaternion
+
+*Axis–angle representation describes a rotation by specifying:An axis (a unit vector indicating the direction around which to rotate).An angle (how much to rotate around that axis, in radians or degrees).Its mostly a bride representation before being converted to euler or quaternion.axis–angle representation is fundamentally an intuitive way to express a rotation by specifying how much to rotate (the angle) and around which axis (a unit vector). It is not strictly required for rotation to function, but it is a very convenient and geometric way to describe rotations.
+
+*Vectors for translation
+*Rotation angles for rotation
+
+*Euler angles are not vectors in the usual sense, but rather a set of three angles representing sequential rotations about coordinate axes (commonly X, Y, Z).They describe orientation by specifying how much to rotate around each axis, in a fixed order (e.g., rotate around Y, then X, then Z).Because they are three scalar values, sometimes people loosely think of them as a 3D vector of angles, but mathematically they represent a composition of rotations, not a direction vector.
+
+*Multiplying quaternions applies rotations:targetQuaternion = pitchChange * targetQuaternion means apply the new incremental rotation pitchChange before the existing rotation.Quaternion multiplication composes rotations smoothly and avoids issues like gimbal lock.
+
+why im using quaternions
+
+*rotation matrices are a fundamental underlying data structure used by graphics APIs (including Three.js and WebGL) to represent and apply rotations in 3D space. They are usually not directly exposed as simple rotation angles to your application but are used internally to perform transformations efficiently.
+
+high-level graphic data structures--vectors
+internal data structures--matrixes
+geometric data types
+
+number
+vector
+Tuple
+four-component number system
+
+*so eulers are a set of x,y,x cords.They are more of tuples.they are complete and specify exact rotations so they require a linear progression on each component to the target values which can cause dragginess on smooth rotations like 360 rotations because angles wrap around at ±180°, causing sudden jumps in interpolation.Quaternions are a four-component number system: one real part (w) and three imaginary parts (x, y, z). using multiplication instead of addition meaning that it can smoothly interpolate across 360 rotations.They represent rotations as a single rotation around an axis by an angle, encoded compactly and without ambiguity.
