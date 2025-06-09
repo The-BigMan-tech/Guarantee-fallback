@@ -1,6 +1,4 @@
 !We use environment variables in the .env file to store sensitive information that will be used in our code.The .env file must be ignored by git and not pushed to the public to prevent password leaks and since configuration variables changes per environment--locally or deployed,we use env variables to store them.
-
-!Pray for Adelani
 !Be secure with your current password.Make a new set of secure passwords for the tools i use.
 !epic fight minecraft mod and addons
 
@@ -1159,3 +1157,4 @@ provide a coloring
 so abstracted from reality that you can only interact with them via a proxy
 behave test for js
 
+anime power:someone that can move with high floating point precision.he cant calculate off head with precision on the fly so he uses tape rules that can extend and retract into swords that does the measurements and calculations and displays a result of high precision.his power is just to move exactly at that precision.this will allow him to dodge bullets at least a decent amount of them and punch where it hits the most.he can increase and reduce the precision of physics in his env making attacks to miss him.the tape rul sword uses light based sensors to caprure the shape of objects and other sensors to get precise measurements and calculates them with a processor.i think this real time mechanism should be in a mask so that he can read the results on a screen

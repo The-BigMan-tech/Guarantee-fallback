@@ -52,9 +52,9 @@ Graphic apis
 
 *a graphic api sends geometry data as rendering instructions to the gpu.the gpu uses this information to render the 3d model on a 2d surface like the screen or canvas.They take geometric data types like triangles and convert them into low level gpu instructions like an assembler
 
-glsl
-parallel computing
-rendering
+Shaders programming
+parallel programming
+3D programming
 
 RAM
 Virtual RAM
@@ -237,3 +237,30 @@ rotating while moving
 
 *The order in which you apply transformations, and the pivot points of those transformations, drastically affect the final visual result.
 
+copy position
+
+*does the environment of scene setups break on procedural generation.is that why we have the render loop so that it can call the env functions with parameters to update the env based on conditions
+
+*3d updates happens in two places;inside and outside the animation loop
+
+*so the sun is a shading effect not a texture.so there are two ways to create sun,clouds etc.by either using textures or shader effects.so shader effects are difficult to customize unlike textures because:Shader code is written in GLSL, a specialized GPU programming language, which requires understanding of graphics pipeline, math, and GPU programming concepts.
+
+*so a texture is an image that can be applied to geometric constructs or sprites.geomertic constructs define the shape of 3d models while sprites are 2d planes where a texture can be applied to define a 2d object.i believe the shape of that object is defined by the shape of the plane used.they always face the camera
+
+*A material is a set of properties and shaders that determine how light interacts with the surface of a 3D object. Materials use textures as inputs (e.g., color maps) but also define shading models, reflectivity, transparency, and other visual effects
+
+*In TypeScript, the Partial<T> utility type is used to create a type that represents all properties of type T as optional
+
+*This,this behemoth of unsafety is called assertion chaining:{ qualityPreset: 'low', coverage: 0.4 } as unknown as THREE.Camera
+
+^Create a good gui control for tuning variables for my web app
+
+*so by default,plane geometries lie on the xy plane which when very thin,wont be visible to the camera which is because the plane stands vertically when viewed from a typical camera positioned looking along the negative Z axis.but by rotating it to the xz plane instead,it can become visible to the camera.To make the plane act as a flat ground or terrain, you need to rotate it so it lies horizontally on the XZ plane. This is done by rotating it around the X axis by pi/2 rads.The negative sign means rotation is clockwise when looking along the positive X axis (right-hand rule).
+
+*so three js and 3d libraries in general use radians as their unit for measuring angles instead of degrees so i always have to express my desired angle from degrees to radian terms which involves pi.they use radians because they are the standard unit in mathematics and computer graphics for angular measurements.
+
+*a player is composed of a model and a camera
+
+*The distinction between THREE.Group and THREE.Object3D is subtle because Group is actually a subclass of Object3D, designed specifically to make grouping multiple objects clearer and more semantically explicit.
+
+*Both Group and Object3D can nest objects and serve as containers.The difference is mostly semantic and organizational.Group is explicitly meant for grouping and makes your code clearer and easier to understand.Object3D is more generic and can represent any 3D entity (including ones with geometry or special behavior).

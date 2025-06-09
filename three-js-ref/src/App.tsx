@@ -1,8 +1,8 @@
 import { canvas,renderer } from './three-components/renderer';
-import { camera, rotateCameraX, rotateCameraY} from './three-components/camera';
+import { camera, rotateCameraX, rotateCameraY} from './three-components/player/camera';
 import './App.css'
 import { useEffect, useRef } from 'react';
-import { keysPressed } from './three-components/keys-pressed';
+import { keysPressed } from './three-components/player/keys-pressed';
 
 function App() {
     const containerRef = useRef<HTMLDivElement>(null);
