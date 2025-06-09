@@ -297,4 +297,16 @@ four-component number system
 
 *so eulers are a set of x,y,x cords.They are more of tuples.they are complete and specify exact rotations so they require a linear progression on each component to the target values which can cause dragginess on smooth rotations like 360 rotations because angles wrap around at ±180°, causing sudden jumps in interpolation.Quaternions are a four-component number system: one real part (w) and three imaginary parts (x, y, z). using multiplication instead of addition meaning that it can smoothly interpolate across 360 rotations.They represent rotations as a single rotation around an axis by an angle, encoded compactly and without ambiguity.
 
+
+
 *there is a top level animation guard clause before playing any new animation to ensure that all necessary animation components are properly initialized before attempting to change or play animations. This prevents runtime errors or unexpected behavior if, for example, the mixer or animation actions are not yet ready or failed to load.
+
+*The AnimationMixer is the central controller for playing animations on a specific 3D object (usually a model or a group).It manages one or more AnimationActions and updates their playback over time.You must call mixer.update(deltaTime) every frame to advance the animation playback in sync with your render loop.
+
+*An AnimationClip represents a reusable animation sequence (e.g., "idle", "walk", "run").Clips are the raw animation data but are not played directly.
+
+*An AnimationAction is a playable instance of an AnimationClip controlled by the AnimationMixer.Actions can be played, paused, stopped, reset, and crossfaded.You call action.play() to start an animation and action.crossFadeTo(otherAction, duration) to smoothly transition between animations.
+
+*a Pointer to the current playing action (currentAction) to manage transitions properly.It acts as a guard to prevent repeatedly replaying the same animation when it is already active. This avoids unnecessary resets or restarts of animations like walking, which might be triggered continuously while the movement key is held down.
+
+*Pointers to all the animation actions.so its the pointers i saved to those animation actions when the module loaded that i use to play the animation i want not the current action pointer
