@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@dimforge/rapier3d':
+        specifier: ^0.17.3
+        version: 0.17.3
       '@react-three/fiber':
         specifier: ^9.1.2
         version: 9.1.2(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(three@0.177.0)
@@ -203,6 +206,9 @@ packages:
 
   '@dimforge/rapier3d-compat@0.12.0':
     resolution: {integrity: sha512-uekIGetywIgopfD97oDL5PfeezkFpNhwlzlaEYNOA0N6ghdsOvh/HYjSMek5Q2O1PYvRSDFcqFVJl4r4ZBwOow==}
+
+  '@dimforge/rapier3d@0.17.3':
+    resolution: {integrity: sha512-//CVavUmqsIv66M/0zFVZBYsx5vWuOXVAsxEhcjBXlDiNqsX0d0I4/9G2ArHGKXTvGxcYorJ7PbLumlNY0weJQ==}
 
   '@esbuild/aix-ppc64@0.25.5':
     resolution: {integrity: sha512-9o3TMmpmftaCMepOdA5k/yDw8SfInyzWWTjYTFCX3kPSDJMROQTb8jg+h9Cnwnmm1vOzvxN7gIfB5V2ewpjtGA==}
@@ -2490,6 +2496,8 @@ snapshots:
       - '@chromatic-com/playwright'
 
   '@dimforge/rapier3d-compat@0.12.0': {}
+
+  '@dimforge/rapier3d@0.17.3': {}
 
   '@esbuild/aix-ppc64@0.25.5':
     optional: true

@@ -309,4 +309,12 @@ four-component number system
 
 *a Pointer to the current playing action (currentAction) to manage transitions properly.It acts as a guard to prevent repeatedly replaying the same animation when it is already active. This avoids unnecessary resets or restarts of animations like walking, which might be triggered continuously while the movement key is held down.
 
-*Pointers to all the animation actions.so its the pointers i saved to those animation actions when the module loaded that i use to play the animation i want not the current action pointer
+*Pointers to all the animation actions.so its the pointers i saved to those animation actions when the module loaded that i use to play the animation i want not the current action pointer.
+
+feedback loop leads to best practices/scarcity of pre-built solutions
+pre-built solutions
+no abstraction noise
+
+*so cannon-es is just on maintenance development while rapier-3d is writte inr rust,more ecosystem support,more accurate and efficient.rapier-3d is the better choice
+
+*so i can write or use any battery/engine in rust and transpile it to wasm to use it in js.the only thing is to create js wrappers around those wasm calls if they arent provided by the developer
