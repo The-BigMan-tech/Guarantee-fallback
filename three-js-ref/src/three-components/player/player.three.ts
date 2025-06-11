@@ -11,7 +11,7 @@ let walkAction: THREE.AnimationAction | null = null;
 
 export const player = new THREE.Group();
 const loader = new GLTFLoader();
-const modelPath:string = './godotbot-2.glb';
+const modelPath:string = './godotbot-2-material.glb';
 
 const targetPosition = new THREE.Vector3();
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');

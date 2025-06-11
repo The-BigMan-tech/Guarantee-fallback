@@ -318,3 +318,91 @@ no abstraction noise
 *so cannon-es is just on maintenance development while rapier-3d is writte inr rust,more ecosystem support,more accurate and efficient.rapier-3d is the better choice
 
 *so i can write or use any battery/engine in rust and transpile it to wasm to use it in js.the only thing is to create js wrappers around those wasm calls if they arent provided by the developer
+
+
+
+character animations
+physics
+terrain and procedural generation
+ 
+render-loop/game-loop
+
+rigid body--static,dynamic,kinematic
+
+rigid bodies state the dynamics of a solid 
+a collider is used to state a solid;s collision shape
+
+?Note that rigid-bodies are only responsible for the dynamics and kinematics of the solid
+?Typically, the inertia and center of mass are automatically set to the inertia and center of mass resulting from the shapes of the colliders attached to the rigid-body
+
+?cel-shading
+?how can i load my model here in three js while rendering the material if blockbench embeds the material in the model export
+
+?how to make the canvas drawing sharper and less jaged on the edges.fogging out the env
+?orthographic camera
+
+*describe a rigid body
+*add it to the world
+
+*a fixed rigid body is one that cannot move.its like it has an infinite mass and cannot be affected by any force
+*a dynamic rigit body is one that is affected by external forces and contacts
+*a position based kinematic body is one that its position shouldnt be affected by the physics engine
+*a velocity based kinematic body is one that its velocity shouldnt be affected by the physics engine
+
+
+*Most games involve bodies behaving in ways that defy the laws of physics: floating platforms, elevators, playable characters, etc. This is why kinematic bodies exist: they offer a total control over the body’s trajectory since they are completely immune to forces or impulses (like gravity, contacts, joints).
+
+kinemtic bodies are physic bodies that are totally controlled by the program not the physics engine
+
+event listeners
+i can make models in three js to interact using global variables as state or maybe i must build a state mechanism with reducers on a global state object
+
+the godot editor is a scene editor
+^essentially vs just
+
+*platformaer-2d
+*parkour--3d
+
+scene
+physics world
+
+*in 3d,outdoor scenes have one light source which is a directional light from the sun or moon while rooms have many ambient lights
+
+
+*The main reason why axis by axis rotation from euler angles isnt practical is that there isn't a unique way to construct an orientation from the angles. There isn't a standard mathematical function that takes all the angles together and produces an actual 3D rotation. The only way an orientation can be produced from angles is to rotate the object angle by angle, in an arbitrary order.
+
+*This could be done by first rotating in X, then Y and then in Z. Alternatively, you could first rotate in Y, then in Z and finally in X. Anything works, but depending on the order, the final orientation of the object will not necessarily be the same. Indeed, this means that there are several ways to construct an orientation from 3 different angles, depending on the order of the rotations
+
+*euler is best as yxz cus you naturally look up or down before rotating left or right
+
+*the effect on orientation from euler angle rotation is heavily dependent on axis rotation order
+
+euler describes how a rotation can go to another by rotating the indivisual components to get there but it isnt the shortest path of rotation even though the destination angles are equivalent. i.e 270 to 360 is not visually the same as 270 to 0 but quaternions use a mathemetical function to describe the shortest path for a rotation change not per component.rotation is done by multiplying.in quaternions,you dont think in angles.the quaternion function has the three axis components/its virtual components point in the direction they were rotated to from the real component which is the origin to get a unique rotation.over time,quaternions loose precision as they are rotated because of floating point errors so they cant be exactly 90 degrees from each other.a way to fix this is to normalize it
+
+the direction of rotation is perpendicular to the axis where its rotating about
+
+todo:the godot doc has a lot about 3d programming.use it to learn about 3d programming but use its three js counterpart
+
+todo:Rapier physics engine documentation
+
+*rotation can be done relative to the world space which is fixed or the object's space
+
+shading language--glsl
+RGBA,HSV,MERH
+model/geometry,material,texture,animations,effects--particle,sound
+
+gridmap is the 3d version of a tile map
+
+a geometry is an array of 3d position vectors(points or vertices) that define the shape of a model in 3d space
+
+vector math is under linear algebra
+
+a vector is a data structure that states the relative direction(cords) and magnitude(angle) from an origin.it can be represented programmatically as an object,array or tuple.They are always relative.You can use either method (x and y coordinates or angle and magnitude) to refer to a vector, but for convenience, programmers typically use the coordinate notation.because programmatically,vectors typically represent cords,they are only used for translations and scale but for rotations,euler angles and quaternion objects are used
+
+vectors and matrices
+
+reactive programming
+3d programming
+
+material
+shaders

@@ -20,7 +20,7 @@ export function rotateCameraY(delta:number) {
 }
 function clampPitch() {
     const maxPitchFirstPerson = THREE.MathUtils.degToRad(85);
-    const maxPitchThirdPerson = THREE.MathUtils.degToRad(15);
+    const maxPitchThirdPerson = THREE.MathUtils.degToRad(10);
     const maxPitch = cameraMode.isThirdPerson ? maxPitchThirdPerson : maxPitchFirstPerson;
 
     const euler = new THREE.Euler().setFromQuaternion(targetQuaternion, 'YXZ');   // Convert targetQuaternion to Euler angles to access pitch (x rotation)
