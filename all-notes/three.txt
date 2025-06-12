@@ -419,3 +419,5 @@ multiplayer uses webRTC or web socket server but webRTC is better for real-time 
 
 pbr,flat rendering
 shader
+
+in blockbench and 3d in general,pieces will be affected if they get moved into a parent with transformations.
