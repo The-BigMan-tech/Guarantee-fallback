@@ -399,10 +399,23 @@ vector math is under linear algebra
 
 a vector is a data structure that states the relative direction(cords) and magnitude(angle) from an origin.it can be represented programmatically as an object,array or tuple.They are always relative.You can use either method (x and y coordinates or angle and magnitude) to refer to a vector, but for convenience, programmers typically use the coordinate notation.because programmatically,vectors typically represent cords,they are only used for translations and scale but for rotations,euler angles and quaternion objects are used
 
-vectors and matrices
+co-ordinates
+vectors
+matrices
 
 reactive programming
 3d programming
 
 material
 shaders
+
+many programming fields require maths--numerical computing,3d programming,data science programming,machine learning
+
+many others dont require math but domain specific software knowldege like algorithms,data strutcures and paradigms--desktop,mobile,web app,websites,systems programming,network programming,backend dev,etc
+
+multiplayer uses webRTC or web socket server but webRTC is better for real-time game scenarios
+
+3d gizmos
+
+pbr,flat rendering
+shader
