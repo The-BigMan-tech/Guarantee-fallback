@@ -421,3 +421,5 @@ pbr,flat rendering
 shader
 
 in blockbench and 3d in general,pieces will be affected if they get moved into a parent with transformations.
+
+todo:read the godot doc on maths and read physics with rapier
