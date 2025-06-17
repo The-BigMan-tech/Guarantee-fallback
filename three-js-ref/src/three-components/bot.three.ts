@@ -8,7 +8,7 @@ export function loadBotModel(group:THREE.Scene | THREE.Object3D) {
     loader.load('./godotbot-2.glb',
         gltf=>{
             bot = gltf.scene;
-            bot.position.y = 1
+            bot.position.y = 5
             group.add(bot)
         }, 
         undefined, 

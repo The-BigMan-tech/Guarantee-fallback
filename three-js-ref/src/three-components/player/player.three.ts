@@ -31,8 +31,8 @@ playerRigidBody.setTranslation(playerPosition,true)
 const loader:GLTFLoader = new GLTFLoader();
 const modelPath:string = './silvermoon.glb';
 
-const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
-const impulseDelta = 0.3;
+const velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
+const velocityDelta = 10;
 
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
@@ -79,52 +79,53 @@ function fadeToAnimation(newAction: THREE.AnimationAction) {
         currentAction = newAction;
     }
 }
-function movePlayerForward(impulseDelta:number) {
-    const forward = new THREE.Vector3(0,0,-impulseDelta);//direction vector
+function movePlayerForward(velocityDelta:number) {
+    const forward = new THREE.Vector3(0,0,-velocityDelta);//direction vector
     forward.applyQuaternion(playerRigidBody.rotation());//setting the direction to the rigid body's world space
-    impulse.set(forward.x,forward.y,forward.z)
+    velocity.set(forward.x,forward.y,forward.z)
 }
-function movePlayerBackward(impulseDelta:number) {
-    const backward = new THREE.Vector3(0,0,impulseDelta);
+function movePlayerBackward(velocityDelta:number) {
+    const backward = new THREE.Vector3(0,0,velocityDelta);
     backward.applyQuaternion(playerRigidBody.rotation());
-    impulse.set(backward.x,backward.y,backward.z)
+    velocity.set(backward.x,backward.y,backward.z)
 }
-function movePlayerLeft(impulseDelta:number) {
-    const left = new THREE.Vector3(-impulseDelta,0,0);
+function movePlayerLeft(velocityDelta:number) {
+    const left = new THREE.Vector3(-velocityDelta,0,0);
     left.applyQuaternion(playerRigidBody.rotation());
-    impulse.set(left.x,left.y,left.z)
+    velocity.set(left.x,left.y,left.z)
 }
-function movePlayerRight(impulseDelta:number) {
-    const right = new THREE.Vector3(impulseDelta,0,0);
+function movePlayerRight(velocityDelta:number) {
+    const right = new THREE.Vector3(velocityDelta,0,0);
     right.applyQuaternion(playerRigidBody.rotation());
-    impulse.set(right.x,right.y,right.z)
+    velocity.set(right.x,right.y,right.z)
 }
-function movePlayerUp(impulseDelta:number) {
-    const up = new THREE.Vector3(0,impulseDelta,0);
+function movePlayerUp(velocityDelta:number) {
+    const up = new THREE.Vector3(0,velocityDelta,0);
     up.applyQuaternion(playerRigidBody.rotation());
-    impulse.set(up.x,up.y,up.z)
+    velocity.set(up.x,up.y,up.z)
 }
-function movePlayerDown(impulseDelta:number) {
-    const down = new THREE.Vector3(0,-impulseDelta,0);
+function movePlayerDown(velocityDelta:number) {
+    const down = new THREE.Vector3(0,-velocityDelta,0);
     down.applyQuaternion(playerRigidBody.rotation());
-    impulse.set(down.x,down.y,down.z)
+    velocity.set(down.x,down.y,down.z)
 }
 export function rotatePlayerX(rotationDelta: number) {
     targetRotation.y -= rotationDelta; 
     targetQuaternion.setFromEuler(targetRotation);
 }
 function renderPlayerKeys() {
-    impulse.set(0,0,0);
+    velocity.set(0,0,0);
 
     toggleThirdPerson();
-    if (keysPressed['KeyW']) movePlayerForward(impulseDelta);
-    if (keysPressed['KeyS']) movePlayerBackward(impulseDelta);
-    if (keysPressed['KeyA']) movePlayerLeft(impulseDelta);
-    if (keysPressed['KeyD']) movePlayerRight(impulseDelta);
-    if (keysPressed['KeyE']) movePlayerUp(impulseDelta);
-    if (keysPressed['KeyQ']) movePlayerDown(impulseDelta);
-    if (keysPressed['ArrowLeft']) rotatePlayerX(-rotationDelta);  
+    if (keysPressed['ArrowLeft'])  rotatePlayerX(-rotationDelta);  
     if (keysPressed['ArrowRight']) rotatePlayerX(+rotationDelta);
+
+    if (keysPressed['KeyW']) movePlayerForward(velocityDelta);
+    if (keysPressed['KeyS']) movePlayerBackward(velocityDelta)
+    if (keysPressed['KeyA']) movePlayerLeft(velocityDelta)
+    if (keysPressed['KeyD']) movePlayerRight(velocityDelta)
+    if (keysPressed['KeyE']) movePlayerUp(velocityDelta)
+    if (keysPressed['KeyQ']) movePlayerDown(velocityDelta)
 
     if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction) {
         if (keysPressed['KeyW']) {
@@ -141,7 +142,7 @@ function renderPlayerKeys() {
             fadeToAnimation(idleAction);
         }
     }
-    playerRigidBody.applyImpulse(impulse,true);
+    playerRigidBody.setLinvel(velocity,true);
     playerPosition = playerRigidBody.translation();
 }
 export function animatePlayer() {
