@@ -32,7 +32,10 @@ const loader:GLTFLoader = new GLTFLoader();
 const modelPath:string = './silvermoon.glb';
 
 const velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
-const velocityDelta = 10;
+const velocityDelta = 0.3;
+
+const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
+const impulseDelta = 0.3;
 
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
@@ -99,15 +102,15 @@ function movePlayerRight(velocityDelta:number) {
     right.applyQuaternion(playerRigidBody.rotation());
     velocity.set(right.x,right.y,right.z)
 }
-function movePlayerUp(velocityDelta:number) {
-    const up = new THREE.Vector3(0,velocityDelta,0);
+function movePlayerUp(impulseDelta:number) {
+    const up = new THREE.Vector3(0,impulseDelta,0);
     up.applyQuaternion(playerRigidBody.rotation());
-    velocity.set(up.x,up.y,up.z)
+    impulse.set(up.x,up.y,up.z)
 }
-function movePlayerDown(velocityDelta:number) {
-    const down = new THREE.Vector3(0,-velocityDelta,0);
+function movePlayerDown(impulseDelta:number) {
+    const down = new THREE.Vector3(0,-impulseDelta,0);
     down.applyQuaternion(playerRigidBody.rotation());
-    velocity.set(down.x,down.y,down.z)
+    impulse.set(down.x,down.y,down.z)
 }
 export function rotatePlayerX(rotationDelta: number) {
     targetRotation.y -= rotationDelta; 
@@ -115,6 +118,7 @@ export function rotatePlayerX(rotationDelta: number) {
 }
 function renderPlayerKeys() {
     velocity.set(0,0,0);
+    impulse.set(0,0,0);
 
     toggleThirdPerson();
     if (keysPressed['ArrowLeft'])  rotatePlayerX(-rotationDelta);  
@@ -124,8 +128,8 @@ function renderPlayerKeys() {
     if (keysPressed['KeyS']) movePlayerBackward(velocityDelta)
     if (keysPressed['KeyA']) movePlayerLeft(velocityDelta)
     if (keysPressed['KeyD']) movePlayerRight(velocityDelta)
-    if (keysPressed['KeyE']) movePlayerUp(velocityDelta)
-    if (keysPressed['KeyQ']) movePlayerDown(velocityDelta)
+    if (keysPressed['KeyE']) movePlayerUp(impulseDelta)
+    if (keysPressed['KeyQ']) movePlayerDown(impulseDelta)
 
     if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction) {
         if (keysPressed['KeyW']) {
@@ -143,6 +147,7 @@ function renderPlayerKeys() {
         }
     }
     playerRigidBody.setLinvel(velocity,true);
+    playerRigidBody.applyImpulse(impulse,true);
     playerPosition = playerRigidBody.translation();
 }
 export function animatePlayer() {

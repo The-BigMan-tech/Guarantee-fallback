@@ -12,3 +12,7 @@ scene.add(player)
 scene.add(terrain);
 scene.fog = new THREE.Fog(0xa5a5a5,50,200)
 loadBotModel(scene);
+
+const gridSize = 10
+const gridHelper = new THREE.GridHelper(gridSize,gridSize*10);
+scene.add(gridHelper)
