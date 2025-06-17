@@ -24,18 +24,17 @@ let playerPosition:RAPIER.Vector3 = new RAPIER.Vector3(0,1,0);
 
 const playerCollider = RAPIER.ColliderDesc.cuboid(0.5,0.5,0.5)
 const playerBody = RAPIER.RigidBodyDesc.dynamic();
-playerBody.mass = 20
+playerBody.mass = 15
 const playerRigidBody = physicsWorld.createRigidBody(playerBody)
 physicsWorld.createCollider(playerCollider,playerRigidBody);
 
 playerRigidBody.setTranslation(playerPosition,true)
-playerRigidBody.setGravityScale(2,true)
 
 const loader:GLTFLoader = new GLTFLoader();
 const modelPath:string = './silvermoon.glb';
 
 const velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
-const velocityDelta = 8;
+const velocityDelta = 10;
 
 const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
 const impulseDelta = 10;
@@ -122,6 +121,7 @@ export function rotatePlayerX(rotationDelta: number) {
     targetQuaternion.setFromEuler(targetRotation);
 }
 let canJump = true;
+
 function renderPlayerKeys() {
     velocity.set(0,0,0);
     impulse.set(0,0,0);
@@ -137,14 +137,21 @@ function renderPlayerKeys() {
     if (keysPressed['KeyE']) movePlayerUp(impulseDelta)
     if (keysPressed['KeyQ']) movePlayerDown(impulseDelta);
     if (keysPressed['Space'] && canJump) {
-        canJump = true
-        movePlayerUp(60)
+        canJump = false
+        movePlayerUp(700)//the linvel made it sluggish so i had to increase the number
+        playerRigidBody.setGravityScale(30,true)
     }else {
         canJump = true
     }
 
     if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction && jumpAction) {
-        if (keysPressed['KeyW']) {
+        if (playerPosition.y<=3) {
+            playerRigidBody.setGravityScale(1,true)
+        }
+        if (playerPosition.y>3) {
+            console.log('PLAYER POS: ',playerPosition.y);
+            fadeToAnimation(jumpAction);
+        }else if (keysPressed['KeyW']) {
             fadeToAnimation(walkAction);
         }else if (keysPressed['KeyA']) {
             fadeToAnimation(lookLeftAction);
@@ -154,14 +161,11 @@ function renderPlayerKeys() {
             fadeToAnimation(lookDownAction);
         }else if (keysPressed['KeyE']) {
             fadeToAnimation(lookUpAction);
-        }else if (playerPosition.y>3) {
-            console.log('PLAYER POS: ',playerPosition.y);
-            fadeToAnimation(jumpAction);
         }else {
             fadeToAnimation(idleAction);
         }
     }
-    playerRigidBody.applyImpulse(velocity,true);//play between this and linear velocity.
+    playerRigidBody.setLinvel(velocity,true);//play between this and linear velocity.
     playerRigidBody.applyImpulse(impulse,true);
     playerPosition = playerRigidBody.translation();
 }
