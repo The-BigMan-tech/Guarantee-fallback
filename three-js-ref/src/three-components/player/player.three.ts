@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import { pitchObject } from "./camera";
 import { cameraMode, keysPressed,rotationDelta ,rotationSpeed} from "./globals";
 import { AnimationMixer } from 'three';
@@ -10,8 +10,8 @@ let idleAction: THREE.AnimationAction | null = null;
 let walkAction: THREE.AnimationAction | null = null;
 
 export const player = new THREE.Group();
-const loader = new GLTFLoader();
-const modelPath:string = './godotbot-2-material.glb';
+const loader:FBXLoader = new FBXLoader();
+const modelPath:string = './knight/model-2-material.fbx';
 
 const targetPosition = new THREE.Vector3();
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
@@ -20,16 +20,15 @@ const displacement = 0.5;
 const speed = 0.5;
 
 loader.load(modelPath,
-    gltf=>{
-        const playerModel = gltf.scene;
-        playerModel.position.z = 0.2
+    playerModel=>{
+        playerModel.position.z = 0.3
         player.add(playerModel);
-        pitchObject.position.y = 3.5
+        pitchObject.position.y = 3
         player.add(pitchObject)
         mixer = new AnimationMixer(playerModel);
 
-        const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
-        const walkClip = THREE.AnimationClip.findByName(gltf.animations, 'walk'); 
+        const idleClip = THREE.AnimationClip.findByName(playerModel.animations, 'idle');
+        const walkClip = THREE.AnimationClip.findByName(playerModel.animations, 'sprinting'); 
         
         if (idleClip) {
             idleAction = mixer.clipAction(idleClip);
@@ -126,7 +125,7 @@ export function animatePlayer() {
     renderPlayerKeys(); 
     const delta = clock.getDelta();
     if (mixer) mixer.update(delta);
-    const targetZ = cameraMode.isThirdPerson ? 5 : 0;
+    const targetZ = cameraMode.isThirdPerson ? 8 : 0;
     pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
     player.position.lerp(targetPosition, speed);
     player.quaternion.slerp(targetQuaternion, rotationSpeed);
