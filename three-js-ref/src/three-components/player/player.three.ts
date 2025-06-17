@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { pitchObject } from "./camera";
-import { cameraMode, keysPressed,rotationDelta } from "./globals";
+import { cameraMode, keysPressed } from "./globals";
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld } from "../physics-world";
@@ -18,15 +18,13 @@ let lookRightAction:THREE.AnimationAction | null = null;
 
 export const player = new THREE.Group();
 let playerPosition:RAPIER.Vector3 = new RAPIER.Vector3(0,1,0);
-let playerRotation:RAPIER.Rotation;
 
 const playerCollider = RAPIER.ColliderDesc.cuboid(0.5,0.5,0.5)
 const playerBody = RAPIER.RigidBodyDesc.dynamic();
 const playerRigidBody = physicsWorld.createRigidBody(playerBody)
-physicsWorld.createCollider(playerCollider,playerRigidBody)
-playerRigidBody.setTranslation(playerPosition,true);
-playerRotation = playerRigidBody.rotation()
+physicsWorld.createCollider(playerCollider,playerRigidBody);
 
+playerRigidBody.setTranslation(playerPosition,true)
 
 const loader:GLTFLoader = new GLTFLoader();
 const modelPath:string = './silvermoon.glb';
@@ -34,6 +32,10 @@ const modelPath:string = './silvermoon.glb';
 const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
 const impulseDelta = 0.3;
 
+const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
+const targetQuaternion = new THREE.Quaternion();
+const rotationDelta = 0.05;
+const rotationSpeed = 0.5
 
 loader.load(modelPath,
     gltf=>{
@@ -76,7 +78,9 @@ function fadeToAnimation(newAction: THREE.AnimationAction) {
     }
 }
 function movePlayerForward(impulseDelta:number) {
-    impulse.z -= impulseDelta
+    const forward = new THREE.Vector3(0,0,-impulseDelta);
+    forward.applyQuaternion(playerRigidBody.rotation());
+    impulse.add(forward)
 }
 function movePlayerBackward(impulseDelta:number) {
     impulse.z += impulseDelta
@@ -93,8 +97,8 @@ function movePlayerUp(impulseDelta:number) {
 function movePlayerDown(impulseDelta:number) {
     impulse.y -= impulseDelta
 }
-export function rotatePlayerX(delta: number) {
-    targetRotation.y -= delta; 
+export function rotatePlayerX(rotationDelta: number) {
+    targetRotation.y -= rotationDelta; 
     targetQuaternion.setFromEuler(targetRotation);
 }
 let canToggle = true;
@@ -139,7 +143,6 @@ function renderPlayerKeys() {
     }
     playerRigidBody.applyImpulse(impulse,true);
     playerPosition = playerRigidBody.translation();
-    playerRotation = playerRigidBody.rotation();
 }
 const clock = new THREE.Clock();
 export function animatePlayer() {
@@ -151,5 +154,6 @@ export function animatePlayer() {
     pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
 
     player.position.set(playerPosition.x,playerPosition.y,playerPosition.z);
-    player.rotation.set(playerRotation.x,playerRotation.y,playerRotation.z)
+    player.quaternion.slerp(targetQuaternion, rotationSpeed);
+    playerRigidBody.setRotation(targetQuaternion,true)
 }

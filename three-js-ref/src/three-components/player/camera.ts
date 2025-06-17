@@ -1,11 +1,13 @@
 import * as THREE from 'three';
-import { cameraMode, keysPressed,rotationDelta,rotationSpeed } from './globals';
+import { cameraMode, keysPressed } from './globals';
 
 const FOV = 75;
 const nearPoint = 0.1;
 const farPoint = 1000;
 export const camera = new THREE.PerspectiveCamera(FOV,undefined,nearPoint,farPoint);
 
+const cameraRotationDelta = 0.05;
+const cameraRotationSpeed = 0.5;
 const targetQuaternion = new THREE.Quaternion();
 export const pitchObject = new THREE.Object3D();
 
@@ -31,11 +33,11 @@ function clampPitch() {
     targetQuaternion.setFromEuler(euler);
 }
 function renderCameraKeys() {
-    if (keysPressed['ArrowUp']) rotateCameraY(-rotationDelta);  
-    if (keysPressed['ArrowDown']) rotateCameraY(+rotationDelta);
+    if (keysPressed['ArrowUp']) rotateCameraY(-cameraRotationDelta);  
+    if (keysPressed['ArrowDown']) rotateCameraY(+cameraRotationDelta);
 }
 export function animateCamera() {
     renderCameraKeys()
-    pitchObject.quaternion.slerp(targetQuaternion, rotationSpeed);
+    pitchObject.quaternion.slerp(targetQuaternion,cameraRotationSpeed);
 }
 
