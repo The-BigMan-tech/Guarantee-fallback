@@ -1,8 +1,10 @@
 import * as THREE from "three"
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { pitchObject } from "./camera";
 import { cameraMode, keysPressed,rotationDelta ,rotationSpeed} from "./globals";
 import { AnimationMixer } from 'three';
+import * as RAPIER from '@dimforge/rapier3d'
+import { physicsWorld } from "../physics-world";
 
 let mixer: THREE.AnimationMixer;
 let currentAction: THREE.AnimationAction | null = null;
@@ -15,14 +17,22 @@ let lookRightAction:THREE.AnimationAction | null = null;
 
 
 export const player = new THREE.Group();
+let playerPosition:RAPIER.Vector = new RAPIER.Vector3(0,1,0)
+
+const playerCollider = RAPIER.ColliderDesc.cuboid(0.5,0.5,0.5)
+const playerBody = RAPIER.RigidBodyDesc.dynamic();
+export const playerRigidBody = physicsWorld.createRigidBody(playerBody)
+physicsWorld.createCollider(playerCollider,playerRigidBody)
+playerRigidBody.setTranslation(playerPosition,true)
+
+
 const loader:GLTFLoader = new GLTFLoader();
 const modelPath:string = './silvermoon.glb';
 
-const targetPosition = new THREE.Vector3();
+const impulse = new RAPIER.Vector3(0,0,0);
+const impulseDelta = 0.1;
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
-const displacement = 0.5;
-const speed = 0.5;
 
 loader.load(modelPath,
     gltf=>{
@@ -32,68 +42,55 @@ loader.load(modelPath,
         pitchObject.position.y = 4
         player.add(pitchObject)
         mixer = new AnimationMixer(playerModel);
-
-        const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
-        const walkClip = THREE.AnimationClip.findByName(gltf.animations, 'sprinting'); 
-        const lookUpClip = THREE.AnimationClip.findByName(gltf.animations, 'look-up'); 
-        const lookDownClip = THREE.AnimationClip.findByName(gltf.animations, 'look-down'); 
-        const lookLeftClip = THREE.AnimationClip.findByName(gltf.animations, 'look-left'); 
-        const lookRightClip = THREE.AnimationClip.findByName(gltf.animations, 'look-right'); 
-
-        if (idleClip) {
-            idleAction = mixer.clipAction(idleClip);
-            idleAction.play();
-            currentAction = idleAction;
-        }
-        if (walkClip) walkAction = mixer.clipAction(walkClip);
-        if (lookUpClip) lookUpAction = mixer.clipAction(lookUpClip);
-        if (lookDownClip) lookDownAction = mixer.clipAction(lookDownClip);
-        if (lookLeftClip) lookLeftAction = mixer.clipAction(lookLeftClip);
-        if (lookRightClip) lookRightAction = mixer.clipAction(lookRightClip);
+        loadPlayerAnimations(gltf)
     },undefined, 
     error =>console.error( error ),
 );
-targetPosition.copy(player.position);
+function loadPlayerAnimations(gltf:GLTF) {
+    const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
+    const walkClip = THREE.AnimationClip.findByName(gltf.animations, 'sprinting'); 
+    const lookUpClip = THREE.AnimationClip.findByName(gltf.animations, 'look-up'); 
+    const lookDownClip = THREE.AnimationClip.findByName(gltf.animations, 'look-down'); 
+    const lookLeftClip = THREE.AnimationClip.findByName(gltf.animations, 'look-left'); 
+    const lookRightClip = THREE.AnimationClip.findByName(gltf.animations, 'look-right'); 
 
-function fadeToAction(newAction: THREE.AnimationAction) {
+    if (walkClip) walkAction = mixer.clipAction(walkClip);
+    if (lookUpClip) lookUpAction = mixer.clipAction(lookUpClip);
+    if (lookDownClip) lookDownAction = mixer.clipAction(lookDownClip);
+    if (lookLeftClip) lookLeftAction = mixer.clipAction(lookLeftClip);
+    if (lookRightClip) lookRightAction = mixer.clipAction(lookRightClip);
+    
+    if (idleClip) {
+        idleAction = mixer.clipAction(idleClip);
+        idleAction.play();
+        currentAction = idleAction;
+    }
+}
+function fadeToAnimation(newAction: THREE.AnimationAction) {
     if (newAction !== currentAction) {
         newAction.reset();
         newAction.play();
-        if (currentAction) {
-            currentAction.crossFadeTo(newAction, 0.3, false); // smooth 0.3s crossfade
-        }
+        if (currentAction) currentAction.crossFadeTo(newAction, 0.3, false);
         currentAction = newAction;
     }
 }
 export function movePlayerForward(displacement:number) {
-    const forward = new THREE.Vector3(0, 0,-displacement); // local forward
-    forward.applyQuaternion(player.quaternion); //make forward respect the cameras rotation as controlled by the yaw object
-    targetPosition.add(forward)
+    force.z -= displacement
 }
 export function movePlayerBackward(displacement:number) {
-    const backward = new THREE.Vector3(0, 0,displacement);
-    backward.applyQuaternion(player.quaternion);
-    targetPosition.add(backward);
+    force.z += displacement
 }
 export function movePlayerLeft(displacement:number) {
-    const left = new THREE.Vector3(-displacement, 0, 0);
-    left.applyQuaternion(player.quaternion);
-    targetPosition.add(left);
+    force.x -= displacement
 }
 export function movePlayerRight(displacement:number) {
-    const right = new THREE.Vector3(displacement, 0, 0);
-    right.applyQuaternion(player.quaternion);
-    targetPosition.add(right);
+    force.x += displacement
 }
 export function movePlayerUp(displacement:number) {
-    const up = new THREE.Vector3(0, displacement, 0);
-    up.applyQuaternion(player.quaternion);
-    targetPosition.add(up);
+    force.y += displacement
 }
 export function movePlayerDown(displacement:number) {
-    const down = new THREE.Vector3(0, -displacement, 0);
-    down.applyQuaternion(player.quaternion);
-    targetPosition.add(down);
+    force.y -= displacement
 }
 export function rotatePlayerX(delta: number) {
     targetRotation.y -= delta; 
@@ -113,9 +110,10 @@ function toggleThirdPerson() {
 
 function renderPlayerKeys() {
     toggleThirdPerson();
+    force = {x:0,y:0,z:0};
     if (keysPressed['ArrowLeft']) rotatePlayerX(-rotationDelta);  
     if (keysPressed['ArrowRight']) rotatePlayerX(+rotationDelta);
-    if (keysPressed['KeyW']) movePlayerForward(displacement);
+    if (keysPressed['KeyW']) movePlayerBackward(displacement);
     if (keysPressed['KeyS']) movePlayerBackward(displacement);
     if (keysPressed['KeyA']) movePlayerLeft(displacement);
     if (keysPressed['KeyD']) movePlayerRight(displacement);
@@ -136,14 +134,19 @@ function renderPlayerKeys() {
             fadeToAction(idleAction);
         }
     }
+    playerRigidBody.applyImpulse(force,true)
 }
 const clock = new THREE.Clock();
 export function animatePlayer() {
     renderPlayerKeys(); 
+
     const delta = clock.getDelta();
     if (mixer) mixer.update(delta);
     const targetZ = cameraMode.isThirdPerson ? 6 : 0;
     pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
-    player.position.lerp(targetPosition, speed);
+
     player.quaternion.slerp(targetQuaternion, rotationSpeed);
+
+    playerPosition = playerRigidBody.translation();
+    player.position.set(playerPosition.x,playerPosition.y,playerPosition.z);
 }

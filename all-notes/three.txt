@@ -423,3 +423,10 @@ shader
 in blockbench and 3d in general,pieces will be affected if they get moved into a parent with transformations.
 
 todo:read the godot doc on maths and read physics with rapier
+
+the visual object and physics object are separate entities so you dont connect them but synchronize them
+
+synchronize position of the rigid body with the model
+move the rigid body
+
+for player movement,use impuses as forces can accumulate over time and can cause unwnated acceleration

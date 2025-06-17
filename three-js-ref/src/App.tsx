@@ -42,7 +42,7 @@ function App() {
             }
         }
         function onKeyDown(event:KeyboardEvent) {
-            keysPressed[event.code] = true
+            keysPressed[event.code] = true;
         }
         function onKeyUp(event:KeyboardEvent) {
             keysPressed[event.code] = false
