@@ -1,10 +1,11 @@
 import * as THREE from "three"
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { pitchObject } from "./camera";
-import { cameraMode, keysPressed } from "./globals";
+import { cameraMode, keysPressed, toggleThirdPerson } from "./globals";
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld } from "../physics-world";
+
 
 let mixer: THREE.AnimationMixer;
 let currentAction: THREE.AnimationAction | null = null;
@@ -14,6 +15,7 @@ let lookUpAction:THREE.AnimationAction | null = null;
 let lookDownAction:THREE.AnimationAction | null = null;
 let lookLeftAction:THREE.AnimationAction | null = null;
 let lookRightAction:THREE.AnimationAction | null = null;
+const clock = new THREE.Clock();
 
 
 export const player = new THREE.Group();
@@ -78,41 +80,39 @@ function fadeToAnimation(newAction: THREE.AnimationAction) {
     }
 }
 function movePlayerForward(impulseDelta:number) {
-    const forward = new THREE.Vector3(0,0,-impulseDelta);
-    forward.applyQuaternion(playerRigidBody.rotation());
-    impulse.add(forward)
+    const forward = new THREE.Vector3(0,0,-impulseDelta);//direction vector
+    forward.applyQuaternion(playerRigidBody.rotation());//setting the direction to the rigid body's world space
+    impulse.set(forward.x,forward.y,forward.z)
 }
 function movePlayerBackward(impulseDelta:number) {
-    impulse.z += impulseDelta
+    const backward = new THREE.Vector3(0,0,impulseDelta);
+    backward.applyQuaternion(playerRigidBody.rotation());
+    impulse.set(backward.x,backward.y,backward.z)
 }
 function movePlayerLeft(impulseDelta:number) {
-    impulse.x -= impulseDelta
+    const left = new THREE.Vector3(-impulseDelta,0,0);
+    left.applyQuaternion(playerRigidBody.rotation());
+    impulse.set(left.x,left.y,left.z)
 }
 function movePlayerRight(impulseDelta:number) {
-    impulse.x += impulseDelta
+    const right = new THREE.Vector3(impulseDelta,0,0);
+    right.applyQuaternion(playerRigidBody.rotation());
+    impulse.set(right.x,right.y,right.z)
 }
 function movePlayerUp(impulseDelta:number) {
-    impulse.y += impulseDelta
+    const up = new THREE.Vector3(0,impulseDelta,0);
+    up.applyQuaternion(playerRigidBody.rotation());
+    impulse.set(up.x,up.y,up.z)
 }
 function movePlayerDown(impulseDelta:number) {
-    impulse.y -= impulseDelta
+    const down = new THREE.Vector3(0,-impulseDelta,0);
+    down.applyQuaternion(playerRigidBody.rotation());
+    impulse.set(down.x,down.y,down.z)
 }
 export function rotatePlayerX(rotationDelta: number) {
     targetRotation.y -= rotationDelta; 
     targetQuaternion.setFromEuler(targetRotation);
 }
-let canToggle = true;
-function toggleThirdPerson() {
-    if (keysPressed['KeyT']) {
-        if (canToggle) {
-            cameraMode.isThirdPerson = !cameraMode.isThirdPerson;
-            canToggle = false;  // prevent further toggles until key released
-        }
-    } else {
-      canToggle = true;  // reset when key released
-    }
-}
-
 function renderPlayerKeys() {
     impulse.set(0,0,0);
 
@@ -144,7 +144,6 @@ function renderPlayerKeys() {
     playerRigidBody.applyImpulse(impulse,true);
     playerPosition = playerRigidBody.translation();
 }
-const clock = new THREE.Clock();
 export function animatePlayer() {
     renderPlayerKeys(); 
 
@@ -155,5 +154,5 @@ export function animatePlayer() {
 
     player.position.set(playerPosition.x,playerPosition.y,playerPosition.z);
     player.quaternion.slerp(targetQuaternion, rotationSpeed);
-    playerRigidBody.setRotation(targetQuaternion,true)
+    playerRigidBody.setRotation(targetQuaternion,true);
 }

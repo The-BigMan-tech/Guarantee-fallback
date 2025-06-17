@@ -7,7 +7,7 @@ import { updateSun } from './sun';
 import { animatePlayer } from './player/player.three';
 import { physicsWorld } from './physics-world';
 
-export const renderer = new THREE.WebGLRenderer({antialias:true});
+export const renderer = new THREE.WebGLRenderer({antialias:false});
 export const canvas = renderer.domElement;
 
 loadEnv(scene,renderer)

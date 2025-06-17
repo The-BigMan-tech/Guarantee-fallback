@@ -7,5 +7,16 @@ export const cameraMode:CamMode = {
 export function toggleCameraMode() {
     cameraMode.isThirdPerson = !cameraMode.isThirdPerson;
 }
-export const keysPressed:Record<string,boolean> = {};
 
+let canToggle = true;
+export function toggleThirdPerson() {
+    if (keysPressed['KeyT']) {
+        if (canToggle) {
+            cameraMode.isThirdPerson = !cameraMode.isThirdPerson;
+            canToggle = false;  // prevent further toggles until key released
+        }
+    } else {
+      canToggle = true;  // reset when key released
+    }
+}
+export const keysPressed:Record<string,boolean> = {};
