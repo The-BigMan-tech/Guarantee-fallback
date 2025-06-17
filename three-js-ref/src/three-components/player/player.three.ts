@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { pitchObject } from "./camera";
 import { cameraMode, keysPressed,rotationDelta ,rotationSpeed} from "./globals";
 import { AnimationMixer } from 'three';
@@ -8,36 +8,48 @@ let mixer: THREE.AnimationMixer;
 let currentAction: THREE.AnimationAction | null = null;
 let idleAction: THREE.AnimationAction | null = null;
 let walkAction: THREE.AnimationAction | null = null;
+let lookUpAction:THREE.AnimationAction | null = null;
+let lookDownAction:THREE.AnimationAction | null = null;
+let lookLeftAction:THREE.AnimationAction | null = null;
+let lookRightAction:THREE.AnimationAction | null = null;
+
 
 export const player = new THREE.Group();
-const loader:FBXLoader = new FBXLoader();
-const modelPath:string = './knight/model-2-material.fbx';
+const loader:GLTFLoader = new GLTFLoader();
+const modelPath:string = './silvermoon.glb';
 
 const targetPosition = new THREE.Vector3();
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
-const displacement = 0.5;
+const displacement = 0.1;
 const speed = 0.5;
 
 loader.load(modelPath,
-    playerModel=>{
+    gltf=>{
+        const playerModel = gltf.scene
         playerModel.position.z = 0.3
         player.add(playerModel);
         pitchObject.position.y = 3
         player.add(pitchObject)
         mixer = new AnimationMixer(playerModel);
 
-        const idleClip = THREE.AnimationClip.findByName(playerModel.animations, 'idle');
-        const walkClip = THREE.AnimationClip.findByName(playerModel.animations, 'sprinting'); 
-        
+        const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
+        const walkClip = THREE.AnimationClip.findByName(gltf.animations, 'sprinting'); 
+        const lookUpClip = THREE.AnimationClip.findByName(gltf.animations, 'look-up'); 
+        const lookDownClip = THREE.AnimationClip.findByName(gltf.animations, 'look-down'); 
+        const lookLeftClip = THREE.AnimationClip.findByName(gltf.animations, 'look-left'); 
+        const lookRightClip = THREE.AnimationClip.findByName(gltf.animations, 'look-right'); 
+
         if (idleClip) {
             idleAction = mixer.clipAction(idleClip);
             idleAction.play();
             currentAction = idleAction;
         }
-        if (walkClip) {
-            walkAction = mixer.clipAction(walkClip);
-        }
+        if (walkClip) walkAction = mixer.clipAction(walkClip);
+        if (lookUpClip) lookUpAction = mixer.clipAction(lookUpClip);
+        if (lookDownClip) lookDownAction = mixer.clipAction(lookDownClip);
+        if (lookLeftClip) lookLeftAction = mixer.clipAction(lookLeftClip);
+        if (lookRightClip) lookRightAction = mixer.clipAction(lookRightClip);
     },undefined, 
     error =>console.error( error ),
 );
@@ -52,9 +64,6 @@ function fadeToAction(newAction: THREE.AnimationAction) {
         }
         currentAction = newAction;
     }
-}
-function isMoving() {
-    return keysPressed['KeyW'] || keysPressed['KeyA'] || keysPressed['KeyS'] || keysPressed['KeyD'];
 }
 export function movePlayerForward(displacement:number) {
     const forward = new THREE.Vector3(0, 0,-displacement); // local forward
@@ -112,10 +121,18 @@ function renderPlayerKeys() {
     if (keysPressed['KeyD']) movePlayerRight(displacement);
     if (keysPressed['KeyE']) movePlayerUp(displacement);
     if (keysPressed['KeyQ']) movePlayerDown(displacement);
-    if (mixer && idleAction && walkAction) {
-        if (isMoving()) {
+    if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction) {
+        if (keysPressed['KeyW']) {
             fadeToAction(walkAction);
-        } else {
+        }else if (keysPressed['KeyA']) {
+            fadeToAction(lookLeftAction);
+        }else if (keysPressed['KeyD']) {
+            fadeToAction(lookRightAction);
+        }else if (keysPressed['KeyQ']) {
+            fadeToAction(lookDownAction);
+        }else if (keysPressed['KeyE']) {
+            fadeToAction(lookUpAction);
+        }else {
             fadeToAction(idleAction);
         }
     }
@@ -125,7 +142,7 @@ export function animatePlayer() {
     renderPlayerKeys(); 
     const delta = clock.getDelta();
     if (mixer) mixer.update(delta);
-    const targetZ = cameraMode.isThirdPerson ? 8 : 0;
+    const targetZ = cameraMode.isThirdPerson ? 6 : 0;
     pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
     player.position.lerp(targetPosition, speed);
     player.quaternion.slerp(targetQuaternion, rotationSpeed);

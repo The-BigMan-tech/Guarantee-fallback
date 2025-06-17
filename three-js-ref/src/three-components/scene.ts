@@ -10,4 +10,5 @@ scene.add(directionalLight);
 scene.add(sky);
 scene.add(player)
 scene.add(terrain);
-loadBotModel(scene)
+scene.fog = new THREE.Fog(0xa5a5a5,40,100)
+loadBotModel(scene);

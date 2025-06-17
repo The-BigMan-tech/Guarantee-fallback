@@ -19,7 +19,7 @@ export function rotateCameraY(delta:number) {
     clampPitch()
 }
 function clampPitch() {
-    const maxPitchFirstPerson = THREE.MathUtils.degToRad(85);
+    const maxPitchFirstPerson = THREE.MathUtils.degToRad(70);
     const maxPitchThirdPerson = THREE.MathUtils.degToRad(10);
     const maxPitch = cameraMode.isThirdPerson ? maxPitchThirdPerson : maxPitchFirstPerson;
 
