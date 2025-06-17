@@ -21,7 +21,7 @@ const modelPath:string = './silvermoon.glb';
 const targetPosition = new THREE.Vector3();
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
-const displacement = 0.1;
+const displacement = 0.5;
 const speed = 0.5;
 
 loader.load(modelPath,
@@ -29,7 +29,7 @@ loader.load(modelPath,
         const playerModel = gltf.scene
         playerModel.position.z = 0.3
         player.add(playerModel);
-        pitchObject.position.y = 3
+        pitchObject.position.y = 4
         player.add(pitchObject)
         mixer = new AnimationMixer(playerModel);
 
