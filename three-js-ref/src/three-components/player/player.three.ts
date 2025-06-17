@@ -15,6 +15,7 @@ let lookUpAction:THREE.AnimationAction | null = null;
 let lookDownAction:THREE.AnimationAction | null = null;
 let lookLeftAction:THREE.AnimationAction | null = null;
 let lookRightAction:THREE.AnimationAction | null = null;
+let jumpAction:THREE.AnimationAction | null = null;
 const clock = new THREE.Clock();
 
 
@@ -23,19 +24,21 @@ let playerPosition:RAPIER.Vector3 = new RAPIER.Vector3(0,1,0);
 
 const playerCollider = RAPIER.ColliderDesc.cuboid(0.5,0.5,0.5)
 const playerBody = RAPIER.RigidBodyDesc.dynamic();
+playerBody.mass = 20
 const playerRigidBody = physicsWorld.createRigidBody(playerBody)
 physicsWorld.createCollider(playerCollider,playerRigidBody);
 
 playerRigidBody.setTranslation(playerPosition,true)
+playerRigidBody.setGravityScale(2,true)
 
 const loader:GLTFLoader = new GLTFLoader();
 const modelPath:string = './silvermoon.glb';
 
 const velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
-const velocityDelta = 0.3;
+const velocityDelta = 8;
 
 const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
-const impulseDelta = 0.3;
+const impulseDelta = 10;
 
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
@@ -57,6 +60,7 @@ loader.load(modelPath,
 function loadPlayerAnimations(gltf:GLTF) {
     const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
     const walkClip = THREE.AnimationClip.findByName(gltf.animations, 'sprinting'); 
+    const jumpClip = THREE.AnimationClip.findByName(gltf.animations, 'jumping'); 
     const lookUpClip = THREE.AnimationClip.findByName(gltf.animations, 'look-up'); 
     const lookDownClip = THREE.AnimationClip.findByName(gltf.animations, 'look-down'); 
     const lookLeftClip = THREE.AnimationClip.findByName(gltf.animations, 'look-left'); 
@@ -64,6 +68,7 @@ function loadPlayerAnimations(gltf:GLTF) {
 
     if (walkClip) walkAction = mixer.clipAction(walkClip);
     if (lookUpClip) lookUpAction = mixer.clipAction(lookUpClip);
+    if (jumpClip) jumpAction = mixer.clipAction(jumpClip);
     if (lookDownClip) lookDownAction = mixer.clipAction(lookDownClip);
     if (lookLeftClip) lookLeftAction = mixer.clipAction(lookLeftClip);
     if (lookRightClip) lookRightAction = mixer.clipAction(lookRightClip);
@@ -116,6 +121,7 @@ export function rotatePlayerX(rotationDelta: number) {
     targetRotation.y -= rotationDelta; 
     targetQuaternion.setFromEuler(targetRotation);
 }
+let canJump = true;
 function renderPlayerKeys() {
     velocity.set(0,0,0);
     impulse.set(0,0,0);
@@ -129,9 +135,15 @@ function renderPlayerKeys() {
     if (keysPressed['KeyA']) movePlayerLeft(velocityDelta)
     if (keysPressed['KeyD']) movePlayerRight(velocityDelta)
     if (keysPressed['KeyE']) movePlayerUp(impulseDelta)
-    if (keysPressed['KeyQ']) movePlayerDown(impulseDelta)
+    if (keysPressed['KeyQ']) movePlayerDown(impulseDelta);
+    if (keysPressed['Space'] && canJump) {
+        canJump = true
+        movePlayerUp(60)
+    }else {
+        canJump = true
+    }
 
-    if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction) {
+    if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction && jumpAction) {
         if (keysPressed['KeyW']) {
             fadeToAnimation(walkAction);
         }else if (keysPressed['KeyA']) {
@@ -142,11 +154,14 @@ function renderPlayerKeys() {
             fadeToAnimation(lookDownAction);
         }else if (keysPressed['KeyE']) {
             fadeToAnimation(lookUpAction);
+        }else if (playerPosition.y>3) {
+            console.log('PLAYER POS: ',playerPosition.y);
+            fadeToAnimation(jumpAction);
         }else {
             fadeToAnimation(idleAction);
         }
     }
-    playerRigidBody.setLinvel(velocity,true);
+    playerRigidBody.applyImpulse(velocity,true);//play between this and linear velocity.
     playerRigidBody.applyImpulse(impulse,true);
     playerPosition = playerRigidBody.translation();
 }
