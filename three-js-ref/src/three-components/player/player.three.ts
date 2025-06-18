@@ -45,7 +45,7 @@ const rotationDelta = 0.05;
 const rotationSpeed = 0.5;
 
 let shouldPlayJumpAnimation = false;
-const groundLevel:number = 1.6;//initial ground level of the terrain
+let groundLevel:number = 1.5;//initial ground level of the terrain
 
 
 loader.load(modelPath,
@@ -193,7 +193,6 @@ function mapKeysToPlayer() {
     mapKeysToAnimation();
     if (isGrounded()) playerRigidBody.setLinvel(velocity,true);
     playerRigidBody.applyImpulse(impulse,true);//play between this and linear velocity.
-    console.log("Player position: ",playerPosition.y);
     playerPosition = playerRigidBody.translation();
 }
 function updateCameraRotation() {
@@ -208,11 +207,34 @@ function updatePlayerTransformations() {
     playerRigidBody.setRotation(targetQuaternion,true);
 }
 function isGrounded() {
-    const onGround = playerPosition.y<=groundLevel
+    const playerY = Number(playerPosition.y.toFixed(1))
+    const groundY = Number((groundLevel).toFixed(1))
+    const heightDifference = Number((Math.abs(playerY - groundY)).toFixed(1))
+    const onGround = heightDifference  <= 0.5//account for small precision differences
+
+    console.log('playerY:', playerY);
+    console.log('groundLevel:', groundLevel);
+    console.log('groundY:', groundY);
+    console.log("Height diff: ",heightDifference);
     return onGround
 }
+const STABLE_FRAME_COUNT = 10;
+const POSITION_THRESHOLD = 0.002;  // Adjust based on your precision needs
+const lastYPositions: number[] = [];
+
 function updateGroundLevel() {
-    
+    const currentY = playerRigidBody.translation().y;
+    lastYPositions.push(currentY);
+    if (lastYPositions.length > STABLE_FRAME_COUNT) {
+        lastYPositions.shift();
+    }
+    if (lastYPositions.length === STABLE_FRAME_COUNT) {
+        const minY = Math.min(...lastYPositions);
+        const maxY = Math.max(...lastYPositions);
+        if ((maxY - minY) < POSITION_THRESHOLD) {
+            groundLevel = currentY
+        }
+    }
 }
 export function updatePlayer() {
     updateGroundLevel();
