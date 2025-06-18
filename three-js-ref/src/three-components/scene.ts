@@ -15,5 +15,5 @@ loadBotModel(scene);
 
 const gridSize = 1000
 const gridHelper = new THREE.GridHelper(gridSize,200,0x787878,0x787878);
-gridHelper.position.y = 3
+gridHelper.position.y = 2
 scene.add(gridHelper)

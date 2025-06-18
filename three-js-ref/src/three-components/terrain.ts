@@ -8,6 +8,7 @@ export const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
 terrain.receiveShadow = true;
 
 const groundCollider = RAPIER.ColliderDesc.cuboid(500,2.5,500);
+groundCollider.setRestitution(0)
 const groundBody = RAPIER.RigidBodyDesc.fixed();
 const groundRigidBody = physicsWorld.createRigidBody(groundBody);
 physicsWorld.createCollider(groundCollider,groundRigidBody);

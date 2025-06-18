@@ -23,8 +23,9 @@ export const player = new THREE.Group();
 let playerPosition:RAPIER.Vector3 = new RAPIER.Vector3(0,1,0);
 
 const playerCollider = RAPIER.ColliderDesc.cuboid(0.5,0.5,0.5)
+playerCollider.setRestitution(0)
 const playerBody = RAPIER.RigidBodyDesc.dynamic();
-playerBody.mass = 15
+playerBody.mass = 20
 const playerRigidBody = physicsWorld.createRigidBody(playerBody)
 physicsWorld.createCollider(playerCollider,playerRigidBody);
 
@@ -129,7 +130,7 @@ function renderPlayerKeys() {
     if (keysPressed['ArrowLeft'])  rotatePlayerX(-rotationDelta);  
     if (keysPressed['ArrowRight']) rotatePlayerX(+rotationDelta);
 
-    if (keysPressed['KeyW']) movePlayerForward(velocityDelta);
+    if (keysPressed['KeyW']) movePlayerForward(velocityDelta)
     if (keysPressed['KeyS']) movePlayerBackward(velocityDelta)
     if (keysPressed['KeyA']) movePlayerLeft(velocityDelta)
     if (keysPressed['KeyD']) movePlayerRight(velocityDelta)
@@ -142,12 +143,12 @@ function renderPlayerKeys() {
         shouldPlayJumpAnimation = false
     }
     if (keysPressed['Space'] && playerPosition.y<=3) {
-        movePlayerUp(50)//the linvel made it sluggish so i had to increase the number
+        movePlayerUp(100)//the linvel made it sluggish so i had to increase the number
         shouldPlayJumpAnimation = true
     }
 
     if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction && jumpAction) {
-        if (playerPosition.y>3 && shouldPlayJumpAnimation) {
+        if (playerPosition.y>3.5 && shouldPlayJumpAnimation) {
             console.log('PLAYER POS: ',playerPosition.y);
             fadeToAnimation(jumpAction);
         }else if (keysPressed['KeyW']) {
@@ -161,11 +162,12 @@ function renderPlayerKeys() {
         }else if (keysPressed['KeyE']) {
             fadeToAnimation(lookUpAction);
         }else {
+            if (playerPosition.y<=3) playerRigidBody.setLinvel({x:0,y:0,z:0},true);
             fadeToAnimation(idleAction);
         }
     }
     velocity.add(impulse);
-    playerRigidBody.setLinvel(velocity,true);//play between this and linear velocity.
+    playerRigidBody.applyImpulse(velocity,true);//play between this and linear velocity.
     playerPosition = playerRigidBody.translation();
 }
 export function animatePlayer() {
