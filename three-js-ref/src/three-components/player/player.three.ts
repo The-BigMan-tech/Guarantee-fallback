@@ -120,8 +120,7 @@ export function rotatePlayerX(rotationDelta: number) {
     targetRotation.y -= rotationDelta; 
     targetQuaternion.setFromEuler(targetRotation);
 }
-let canJump = true;
-
+let shouldPlayJumpAnimation = false
 function renderPlayerKeys() {
     velocity.set(0,0,0);
     impulse.set(0,0,0);
@@ -134,24 +133,21 @@ function renderPlayerKeys() {
     if (keysPressed['KeyS']) movePlayerBackward(velocityDelta)
     if (keysPressed['KeyA']) movePlayerLeft(velocityDelta)
     if (keysPressed['KeyD']) movePlayerRight(velocityDelta)
-    if (keysPressed['KeyE']) movePlayerUp(impulseDelta)
-    if (keysPressed['KeyQ']) movePlayerDown(impulseDelta);
-    if (keysPressed['Space'] && canJump) {
-        canJump = false
-        movePlayerUp(650)//the linvel made it sluggish so i had to increase the number
-        playerRigidBody.applyImpulse(impulse,true);
-        playerPosition = playerRigidBody.translation();
-        
-        playerRigidBody.setGravityScale(30,true);
-    }else {
-        canJump = true
+    if (keysPressed['KeyE']) {
+        movePlayerUp(impulseDelta)
+        shouldPlayJumpAnimation = false
+    }
+    if (keysPressed['KeyQ']) {
+        movePlayerDown(impulseDelta);
+        shouldPlayJumpAnimation = false
+    }
+    if (keysPressed['Space'] && playerPosition.y<=3) {
+        movePlayerUp(50)//the linvel made it sluggish so i had to increase the number
+        shouldPlayJumpAnimation = true
     }
 
     if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction && jumpAction) {
-        if (playerPosition.y<=3) {
-            playerRigidBody.setGravityScale(1,true)
-        }
-        if (playerPosition.y>3) {
+        if (playerPosition.y>3 && shouldPlayJumpAnimation) {
             console.log('PLAYER POS: ',playerPosition.y);
             fadeToAnimation(jumpAction);
         }else if (keysPressed['KeyW']) {
@@ -168,9 +164,8 @@ function renderPlayerKeys() {
             fadeToAnimation(idleAction);
         }
     }
-
+    velocity.add(impulse);
     playerRigidBody.setLinvel(velocity,true);//play between this and linear velocity.
-    playerRigidBody.applyImpulse(impulse,true);
     playerPosition = playerRigidBody.translation();
 }
 export function animatePlayer() {
