@@ -167,9 +167,8 @@ function renderPlayerKeys() {
             fadeToAnimation(idleAction);
         }
     }
-    if (playerPosition.y<=groundLevel) playerRigidBody.setLinvel({x:velocity.x,y:0,z:velocity.z},true);
-    velocity.add(impulse);
-    playerRigidBody.applyImpulse(velocity,true);//play between this and linear velocity.
+    if (playerPosition.y<=groundLevel) playerRigidBody.setLinvel(velocity,true);
+    playerRigidBody.applyImpulse(impulse,true);//play between this and linear velocity.
     playerPosition = playerRigidBody.translation();
 }
 export function animatePlayer() {
