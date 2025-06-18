@@ -23,22 +23,21 @@ export const player = new THREE.Group();
 let playerPosition:RAPIER.Vector3 = new RAPIER.Vector3(0,1,0);
 
 const playerCollider = RAPIER.ColliderDesc.cuboid(0.5,0.5,0.5)
-playerCollider.setRestitution(0)
 const playerBody = RAPIER.RigidBodyDesc.dynamic();
 playerBody.mass = 20
 const playerRigidBody = physicsWorld.createRigidBody(playerBody)
 physicsWorld.createCollider(playerCollider,playerRigidBody);
-
 playerRigidBody.setTranslation(playerPosition,true)
 
 const loader:GLTFLoader = new GLTFLoader();
 const modelPath:string = './silvermoon.glb';
 
 const velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
-const velocityDelta = 10;
+const velocityDelta = 15;
 
 const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
 const impulseDelta = 10;
+const jumpImpulse = 150;
 
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
@@ -145,7 +144,7 @@ function renderPlayerKeys() {
         shouldPlayJumpAnimation = false
     }
     if (keysPressed['Space'] && playerPosition.y<=groundLevel) {
-        movePlayerUp(150)//the linvel made it sluggish so i had to increase the number
+        movePlayerUp(jumpImpulse)//the linvel made it sluggish so i had to increase the number
         shouldPlayJumpAnimation = true
     }
 
@@ -167,7 +166,9 @@ function renderPlayerKeys() {
             fadeToAnimation(idleAction);
         }
     }
-    if (playerPosition.y<=groundLevel) playerRigidBody.setLinvel(velocity,true);
+    if (playerPosition.y<=groundLevel) {
+        playerRigidBody.setLinvel(velocity,true)
+    };
     playerRigidBody.applyImpulse(impulse,true);//play between this and linear velocity.
     playerPosition = playerRigidBody.translation();
 }
