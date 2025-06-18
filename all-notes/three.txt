@@ -430,3 +430,5 @@ synchronize position of the rigid body with the model
 move the rigid body
 
 for player movement,use impuses as forces can accumulate over time and can cause unwnated acceleration
+
+epsilon is used to treat precision issues

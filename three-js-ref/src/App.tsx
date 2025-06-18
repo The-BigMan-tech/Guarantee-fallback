@@ -43,6 +43,10 @@ function App() {
         }
         function onKeyDown(event:KeyboardEvent) {
             keysPressed[event.code] = true;
+            if (event.code == 'KeyP') {
+                console.log("Terminated logs");
+                console.log = ()=>{};
+            }
         }
         function onKeyUp(event:KeyboardEvent) {
             keysPressed[event.code] = false

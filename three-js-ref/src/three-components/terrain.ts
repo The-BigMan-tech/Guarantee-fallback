@@ -12,11 +12,12 @@ const groundBody = RAPIER.RigidBodyDesc.fixed();
 const groundRigidBody = physicsWorld.createRigidBody(groundBody);
 physicsWorld.createCollider(groundCollider,groundRigidBody);
 
-const cubeGeometry = new THREE.BoxGeometry(2,2,2);
+const cubeGeometry = new THREE.BoxGeometry(8,2,8);
 const cubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x3f3f3f });
 export const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 
-const cubeCollider = RAPIER.ColliderDesc.cuboid(1,1,1);
+export const cubeCollider = RAPIER.ColliderDesc.cuboid(4,1,4);
+cubeCollider.setRestitution(0)
 const cubeBody = RAPIER.RigidBodyDesc.fixed();
 const cubeRigidBody = physicsWorld.createRigidBody(cubeBody);
 physicsWorld.createCollider(cubeCollider,cubeRigidBody);

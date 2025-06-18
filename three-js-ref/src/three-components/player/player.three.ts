@@ -22,24 +22,22 @@ const clock = new THREE.Clock();
 
 
 export const player = new THREE.Group();//dont directly control the player position.do it through the rigid body
-let playerPosition:RAPIER.Vector3 = new RAPIER.Vector3(0,1,0);
+let playerPosition:RAPIER.Vector3 = new RAPIER.Vector3(0,5,0);
 
-
-const playerCollider = RAPIER.ColliderDesc.cuboid(0.5,0.5,0.5)
+const playerCollider = RAPIER.ColliderDesc.cuboid(0.5,1,0.5)
 const playerBody = RAPIER.RigidBodyDesc.dynamic();
-playerBody.mass = 20
+playerBody.mass = 40
 
 const playerRigidBody = physicsWorld.createRigidBody(playerBody)
 physicsWorld.createCollider(playerCollider,playerRigidBody);
 playerRigidBody.setTranslation(playerPosition,true);
 
-
 const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);
-const velocityDelta = 15;
+const velocityDelta = 20;
 
 const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
-const impulseDelta = 10;
-const jumpImpulse = 200;
+const impulseDelta = 30;
+const jumpImpulse = 1000;
 
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
@@ -47,7 +45,8 @@ const rotationDelta = 0.05;
 const rotationSpeed = 0.5;
 
 let shouldPlayJumpAnimation = false;
-const groundLevel:number = 1;//initial ground level of the terrain
+const groundLevel:number = 1.6;//initial ground level of the terrain
+
 
 loader.load(modelPath,
     gltf=>{
@@ -59,15 +58,13 @@ loader.load(modelPath,
         mixer = new AnimationMixer(playerModel);
         loadPlayerAnimations(gltf);
 
-        playerModel.traverse((obj) => {
+        playerModel.traverse((obj) => {//apply a metallic material
             if (!(obj instanceof THREE.Mesh)) return
-        
-              // If the mesh already uses MeshStandardMaterial, just update properties
             if (obj.material && obj.material.isMeshStandardMaterial) {
                 obj.material.metalness = 0.8;   // Fully metallic
                 obj.material.roughness = 0.6;   // Low roughness for shiny metal
                 obj.material.needsUpdate = true;
-            } else {
+            }else {
                 obj.material = new THREE.MeshStandardMaterial({
                     color: obj.material.color || 0xffffff,
                     metalness: 0.8,
@@ -110,7 +107,7 @@ function fadeToAnimation(newAction: THREE.AnimationAction) {
 }
 function mapKeysToAnimation() {
     if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction && jumpAction) {
-        if (playerPosition.y > groundLevel && shouldPlayJumpAnimation) {
+        if (!isGrounded() && shouldPlayJumpAnimation) {
             fadeToAnimation(jumpAction);
         }else if (keysPressed['KeyW']) {
             fadeToAnimation(walkAction);
@@ -118,8 +115,6 @@ function mapKeysToAnimation() {
             fadeToAnimation(lookLeftAction);
         }else if (keysPressed['KeyD']) {
             fadeToAnimation(lookRightAction);
-        }else if (keysPressed['KeyQ']) {
-            fadeToAnimation(lookDownAction);
         }else if (keysPressed['KeyE']) {
             fadeToAnimation(lookUpAction);
         }else {
@@ -184,21 +179,21 @@ function mapKeysToPlayer() {
     if (keysPressed['KeyD']) {
         movePlayerRight(velocityDelta)
     }
+    if (keysPressed['KeyQ']) {
+        movePlayerDown(impulseDelta);
+    }
     if (keysPressed['KeyE']) {
         movePlayerUp(impulseDelta)
         shouldPlayJumpAnimation = false
     }
-    if (keysPressed['KeyQ']) {
-        movePlayerDown(impulseDelta);
-        shouldPlayJumpAnimation = false
-    }
-    if (keysPressed['Space'] && playerPosition.y<=groundLevel) {
+    if (keysPressed['Space'] && isGrounded()) {
         movePlayerUp(jumpImpulse)//the linvel made it sluggish so i had to increase the number
         shouldPlayJumpAnimation = true
     }
-    mapKeysToAnimation()
-    if (playerPosition.y<=groundLevel) playerRigidBody.setLinvel(velocity,true);
+    mapKeysToAnimation();
+    if (isGrounded()) playerRigidBody.setLinvel(velocity,true);
     playerRigidBody.applyImpulse(impulse,true);//play between this and linear velocity.
+    console.log("Player position: ",playerPosition.y);
     playerPosition = playerRigidBody.translation();
 }
 function updateCameraRotation() {
@@ -212,13 +207,12 @@ function updatePlayerTransformations() {
     player.quaternion.slerp(targetQuaternion, rotationSpeed);
     playerRigidBody.setRotation(targetQuaternion,true);
 }
+function isGrounded() {
+    const onGround = playerPosition.y<=groundLevel
+    return onGround
+}
 function updateGroundLevel() {
-    // const verticalPlayerVel = Math.round(Math.abs(playerRigidBody.linvel().y));//i took the abs value cuz of negligible vertical velocity like -0.xx
-    // const newGroundLevel = Math.round(playerRigidBody.translation().y);
-    // if (verticalPlayerVel == 0) {//By checking the vertical velocity,i can differentiate when the player is in the air or not
-    //     groundLevel = newGroundLevel
-    //     console.log(' player.three.ts:206 => updatePlayer => newGroundLevel:',newGroundLevel);
-    // }
+    
 }
 export function updatePlayer() {
     updateGroundLevel();
