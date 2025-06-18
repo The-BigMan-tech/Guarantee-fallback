@@ -7,10 +7,11 @@ import { updateSun } from './sun';
 import { updatePlayer } from './player/player.three';
 import { physicsWorld } from './physics-world';
 
-export const renderer = new THREE.WebGLRenderer({antialias:false});//play with this
+export const renderer = new THREE.WebGLRenderer({antialias:true});//play with this
 export const canvas = renderer.domElement;
 
 loadEnv(scene,renderer)
+renderer.shadowMap.enabled = true
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setAnimationLoop(()=>{   
     physicsWorld.step()   

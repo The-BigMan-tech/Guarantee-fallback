@@ -6,7 +6,6 @@ import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld } from "../physics-world";
 
-
 const loader:GLTFLoader = new GLTFLoader();
 const modelPath:string = './silvermoon.glb';
 
@@ -40,7 +39,7 @@ const velocityDelta = 15;
 
 const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
 const impulseDelta = 10;
-const jumpImpulse = 150;
+const jumpImpulse = 200;
 
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
@@ -58,7 +57,24 @@ loader.load(modelPath,
         pitchObject.position.y = 4
         player.add(pitchObject)
         mixer = new AnimationMixer(playerModel);
-        loadPlayerAnimations(gltf)
+        loadPlayerAnimations(gltf);
+
+        playerModel.traverse((obj) => {
+            if (!(obj instanceof THREE.Mesh)) return
+        
+              // If the mesh already uses MeshStandardMaterial, just update properties
+            if (obj.material && obj.material.isMeshStandardMaterial) {
+                obj.material.metalness = 0.8;   // Fully metallic
+                obj.material.roughness = 0.6;   // Low roughness for shiny metal
+                obj.material.needsUpdate = true;
+            } else {
+                obj.material = new THREE.MeshStandardMaterial({
+                    color: obj.material.color || 0xffffff,
+                    metalness: 0.8,
+                    roughness: 0.6
+                });
+            }
+        });
     },undefined, 
     error =>console.error( error ),
 );

@@ -1,3 +1,3 @@
 import * as THREE from 'three';
 
-export const directionalLight = new THREE.DirectionalLight(0xFFCE00, 0.4);
+export const directionalLight = new THREE.DirectionalLight(0xFFCE00, 0.8);
