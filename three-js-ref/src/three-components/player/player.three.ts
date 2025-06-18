@@ -82,7 +82,7 @@ function fadeToAnimation(newAction: THREE.AnimationAction) {
     if (newAction !== currentAction) {
         newAction.reset();
         newAction.play();
-        if (currentAction) currentAction.crossFadeTo(newAction, 0.3, false);
+        if (currentAction) currentAction.crossFadeTo(newAction, 0.4, false);
         currentAction = newAction;
     }
 }
@@ -109,7 +109,7 @@ function movePlayerRight(velocityDelta:number) {
 function movePlayerUp(impulseDelta:number) {
     const up = new THREE.Vector3(0,impulseDelta,0);
     up.applyQuaternion(playerRigidBody.rotation());
-    impulse.set(up.x,up.y,up.z)
+    impulse.set(up.x,up.y,up.z);
 }
 function movePlayerDown(impulseDelta:number) {
     const down = new THREE.Vector3(0,-impulseDelta,0);
@@ -138,8 +138,11 @@ function renderPlayerKeys() {
     if (keysPressed['KeyQ']) movePlayerDown(impulseDelta);
     if (keysPressed['Space'] && canJump) {
         canJump = false
-        movePlayerUp(700)//the linvel made it sluggish so i had to increase the number
-        playerRigidBody.setGravityScale(30,true)
+        movePlayerUp(650)//the linvel made it sluggish so i had to increase the number
+        playerRigidBody.applyImpulse(impulse,true);
+        playerPosition = playerRigidBody.translation();
+        
+        playerRigidBody.setGravityScale(30,true);
     }else {
         canJump = true
     }
@@ -165,6 +168,7 @@ function renderPlayerKeys() {
             fadeToAnimation(idleAction);
         }
     }
+
     playerRigidBody.setLinvel(velocity,true);//play between this and linear velocity.
     playerRigidBody.applyImpulse(impulse,true);
     playerPosition = playerRigidBody.translation();

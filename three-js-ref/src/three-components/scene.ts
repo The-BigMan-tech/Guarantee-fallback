@@ -10,9 +10,10 @@ scene.add(directionalLight);
 scene.add(sky);
 scene.add(player)
 scene.add(terrain);
-scene.fog = new THREE.Fog(0xa5a5a5,50,200)
+scene.fog = new THREE.Fog(0xa5a5a5,30,200)
 loadBotModel(scene);
 
-const gridSize = 10
-const gridHelper = new THREE.GridHelper(gridSize,gridSize*10,0xffffff,0xffffff);
+const gridSize = 1000
+const gridHelper = new THREE.GridHelper(gridSize,200,0xffffff,0xffffff);
+gridHelper.position.y = 3
 scene.add(gridHelper)
