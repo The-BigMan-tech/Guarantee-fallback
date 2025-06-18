@@ -121,7 +121,9 @@ export function rotatePlayerX(rotationDelta: number) {
     targetRotation.y -= rotationDelta; 
     targetQuaternion.setFromEuler(targetRotation);
 }
-let shouldPlayJumpAnimation = false
+let shouldPlayJumpAnimation = false;
+const groundLevel = 3;
+
 function renderPlayerKeys() {
     velocity.set(0,0,0);
     impulse.set(0,0,0);
@@ -142,13 +144,13 @@ function renderPlayerKeys() {
         movePlayerDown(impulseDelta);
         shouldPlayJumpAnimation = false
     }
-    if (keysPressed['Space'] && playerPosition.y<=3) {
-        movePlayerUp(100)//the linvel made it sluggish so i had to increase the number
+    if (keysPressed['Space'] && playerPosition.y<=groundLevel) {
+        movePlayerUp(150)//the linvel made it sluggish so i had to increase the number
         shouldPlayJumpAnimation = true
     }
 
     if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction && jumpAction) {
-        if (playerPosition.y>3.5 && shouldPlayJumpAnimation) {
+        if (playerPosition.y > groundLevel && shouldPlayJumpAnimation) {
             console.log('PLAYER POS: ',playerPosition.y);
             fadeToAnimation(jumpAction);
         }else if (keysPressed['KeyW']) {
@@ -162,10 +164,10 @@ function renderPlayerKeys() {
         }else if (keysPressed['KeyE']) {
             fadeToAnimation(lookUpAction);
         }else {
-            if (playerPosition.y<=3) playerRigidBody.setLinvel({x:0,y:0,z:0},true);
             fadeToAnimation(idleAction);
         }
     }
+    if (playerPosition.y<=groundLevel) playerRigidBody.setLinvel({x:velocity.x,y:0,z:velocity.z},true);
     velocity.add(impulse);
     playerRigidBody.applyImpulse(velocity,true);//play between this and linear velocity.
     playerPosition = playerRigidBody.translation();
