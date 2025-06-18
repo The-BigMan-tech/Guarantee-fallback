@@ -4,7 +4,7 @@ import { scene } from './scene';
 import { loadEnv } from './env';
 import { animateCamera} from './player/camera';
 import { updateSun } from './sun';
-import { animatePlayer } from './player/player.three';
+import { updatePlayer } from './player/player.three';
 import { physicsWorld } from './physics-world';
 
 export const renderer = new THREE.WebGLRenderer({antialias:false});//play with this
@@ -15,7 +15,7 @@ renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setAnimationLoop(()=>{   
     physicsWorld.step()   
     animateCamera();
-    animatePlayer();
+    updatePlayer();
     updateSun();
     renderer.render( scene, camera );
 });

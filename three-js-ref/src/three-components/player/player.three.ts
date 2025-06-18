@@ -7,6 +7,9 @@ import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld } from "../physics-world";
 
 
+const loader:GLTFLoader = new GLTFLoader();
+const modelPath:string = './silvermoon.glb';
+
 let mixer: THREE.AnimationMixer;
 let currentAction: THREE.AnimationAction | null = null;
 let idleAction: THREE.AnimationAction | null = null;
@@ -19,18 +22,18 @@ let jumpAction:THREE.AnimationAction | null = null;
 const clock = new THREE.Clock();
 
 
-export const player = new THREE.Group();
+export const player = new THREE.Group();//dont directly control the player position.do it through the rigid body
 let playerPosition:RAPIER.Vector3 = new RAPIER.Vector3(0,1,0);
+
 
 const playerCollider = RAPIER.ColliderDesc.cuboid(0.5,0.5,0.5)
 const playerBody = RAPIER.RigidBodyDesc.dynamic();
 playerBody.mass = 20
+
 const playerRigidBody = physicsWorld.createRigidBody(playerBody)
 physicsWorld.createCollider(playerCollider,playerRigidBody);
-playerRigidBody.setTranslation(playerPosition,true)
+playerRigidBody.setTranslation(playerPosition,true);
 
-const loader:GLTFLoader = new GLTFLoader();
-const modelPath:string = './silvermoon.glb';
 
 const velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
 const velocityDelta = 15;
@@ -42,7 +45,10 @@ const jumpImpulse = 150;
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
 const rotationDelta = 0.05;
-const rotationSpeed = 0.5
+const rotationSpeed = 0.5;
+
+let shouldPlayJumpAnimation = false;
+const groundLevel = 3;
 
 loader.load(modelPath,
     gltf=>{
@@ -86,6 +92,25 @@ function fadeToAnimation(newAction: THREE.AnimationAction) {
         currentAction = newAction;
     }
 }
+function animateOnKeys() {
+    if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction && jumpAction) {
+        if (playerPosition.y > groundLevel && shouldPlayJumpAnimation) {
+            fadeToAnimation(jumpAction);
+        }else if (keysPressed['KeyW']) {
+            fadeToAnimation(walkAction);
+        }else if (keysPressed['KeyA']) {
+            fadeToAnimation(lookLeftAction);
+        }else if (keysPressed['KeyD']) {
+            fadeToAnimation(lookRightAction);
+        }else if (keysPressed['KeyQ']) {
+            fadeToAnimation(lookDownAction);
+        }else if (keysPressed['KeyE']) {
+            fadeToAnimation(lookUpAction);
+        }else {
+            fadeToAnimation(idleAction);
+        }
+    }
+}
 function movePlayerForward(velocityDelta:number) {
     const forward = new THREE.Vector3(0,0,-velocityDelta);//direction vector
     forward.applyQuaternion(playerRigidBody.rotation());//setting the direction to the rigid body's world space
@@ -120,21 +145,29 @@ export function rotatePlayerX(rotationDelta: number) {
     targetRotation.y -= rotationDelta; 
     targetQuaternion.setFromEuler(targetRotation);
 }
-let shouldPlayJumpAnimation = false;
-const groundLevel = 3;
-
 function renderPlayerKeys() {
     velocity.set(0,0,0);
     impulse.set(0,0,0);
 
     toggleThirdPerson();
-    if (keysPressed['ArrowLeft'])  rotatePlayerX(-rotationDelta);  
-    if (keysPressed['ArrowRight']) rotatePlayerX(+rotationDelta);
-
-    if (keysPressed['KeyW']) movePlayerForward(velocityDelta)
-    if (keysPressed['KeyS']) movePlayerBackward(velocityDelta)
-    if (keysPressed['KeyA']) movePlayerLeft(velocityDelta)
-    if (keysPressed['KeyD']) movePlayerRight(velocityDelta)
+    if (keysPressed['ArrowLeft'])  {
+        rotatePlayerX(-rotationDelta)
+    };  
+    if (keysPressed['ArrowRight']) {
+        rotatePlayerX(+rotationDelta)
+    };
+    if (keysPressed['KeyW']) {
+        movePlayerForward(velocityDelta)
+    }
+    if (keysPressed['KeyS']) {
+        movePlayerBackward(velocityDelta)
+    }
+    if (keysPressed['KeyA']) {
+        movePlayerLeft(velocityDelta)
+    }
+    if (keysPressed['KeyD']) {
+        movePlayerRight(velocityDelta)
+    }
     if (keysPressed['KeyE']) {
         movePlayerUp(impulseDelta)
         shouldPlayJumpAnimation = false
@@ -147,40 +180,24 @@ function renderPlayerKeys() {
         movePlayerUp(jumpImpulse)//the linvel made it sluggish so i had to increase the number
         shouldPlayJumpAnimation = true
     }
-
-    if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction && jumpAction) {
-        if (playerPosition.y > groundLevel && shouldPlayJumpAnimation) {
-            console.log('PLAYER POS: ',playerPosition.y);
-            fadeToAnimation(jumpAction);
-        }else if (keysPressed['KeyW']) {
-            fadeToAnimation(walkAction);
-        }else if (keysPressed['KeyA']) {
-            fadeToAnimation(lookLeftAction);
-        }else if (keysPressed['KeyD']) {
-            fadeToAnimation(lookRightAction);
-        }else if (keysPressed['KeyQ']) {
-            fadeToAnimation(lookDownAction);
-        }else if (keysPressed['KeyE']) {
-            fadeToAnimation(lookUpAction);
-        }else {
-            fadeToAnimation(idleAction);
-        }
-    }
-    if (playerPosition.y<=groundLevel) {
-        playerRigidBody.setLinvel(velocity,true)
-    };
+    animateOnKeys()
+    if (playerPosition.y<=groundLevel) playerRigidBody.setLinvel(velocity,true);
     playerRigidBody.applyImpulse(impulse,true);//play between this and linear velocity.
     playerPosition = playerRigidBody.translation();
 }
-export function animatePlayer() {
-    renderPlayerKeys(); 
-
+function updateCameraRotation() {
     const delta = clock.getDelta();
     if (mixer) mixer.update(delta);
     const targetZ = cameraMode.isThirdPerson ? 6 : 0;
     pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
-
+}
+function updatePlayerTransformations() {
     player.position.set(playerPosition.x,playerPosition.y,playerPosition.z);
     player.quaternion.slerp(targetQuaternion, rotationSpeed);
     playerRigidBody.setRotation(targetQuaternion,true);
+}
+export function updatePlayer() {
+    renderPlayerKeys(); 
+    updateCameraRotation();
+    updatePlayerTransformations()
 }
