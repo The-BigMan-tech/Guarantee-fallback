@@ -35,7 +35,7 @@ physicsWorld.createCollider(playerCollider,playerRigidBody);
 playerRigidBody.setTranslation(playerPosition,true);
 
 
-const velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
+const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);
 const velocityDelta = 15;
 
 const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
@@ -48,7 +48,7 @@ const rotationDelta = 0.05;
 const rotationSpeed = 0.5;
 
 let shouldPlayJumpAnimation = false;
-const groundLevel = 3;
+const groundLevel:number = 1;//initial ground level of the terrain
 
 loader.load(modelPath,
     gltf=>{
@@ -92,7 +92,7 @@ function fadeToAnimation(newAction: THREE.AnimationAction) {
         currentAction = newAction;
     }
 }
-function animateOnKeys() {
+function mapKeysToAnimation() {
     if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction && jumpAction) {
         if (playerPosition.y > groundLevel && shouldPlayJumpAnimation) {
             fadeToAnimation(jumpAction);
@@ -145,7 +145,7 @@ export function rotatePlayerX(rotationDelta: number) {
     targetRotation.y -= rotationDelta; 
     targetQuaternion.setFromEuler(targetRotation);
 }
-function renderPlayerKeys() {
+function mapKeysToPlayer() {
     velocity.set(0,0,0);
     impulse.set(0,0,0);
 
@@ -180,7 +180,7 @@ function renderPlayerKeys() {
         movePlayerUp(jumpImpulse)//the linvel made it sluggish so i had to increase the number
         shouldPlayJumpAnimation = true
     }
-    animateOnKeys()
+    mapKeysToAnimation()
     if (playerPosition.y<=groundLevel) playerRigidBody.setLinvel(velocity,true);
     playerRigidBody.applyImpulse(impulse,true);//play between this and linear velocity.
     playerPosition = playerRigidBody.translation();
@@ -196,8 +196,17 @@ function updatePlayerTransformations() {
     player.quaternion.slerp(targetQuaternion, rotationSpeed);
     playerRigidBody.setRotation(targetQuaternion,true);
 }
+function updateGroundLevel() {
+    // const verticalPlayerVel = Math.round(Math.abs(playerRigidBody.linvel().y));//i took the abs value cuz of negligible vertical velocity like -0.xx
+    // const newGroundLevel = Math.round(playerRigidBody.translation().y);
+    // if (verticalPlayerVel == 0) {//By checking the vertical velocity,i can differentiate when the player is in the air or not
+    //     groundLevel = newGroundLevel
+    //     console.log(' player.three.ts:206 => updatePlayer => newGroundLevel:',newGroundLevel);
+    // }
+}
 export function updatePlayer() {
-    renderPlayerKeys(); 
+    updateGroundLevel();
+    mapKeysToPlayer(); 
     updateCameraRotation();
-    updatePlayerTransformations()
+    updatePlayerTransformations();
 }
