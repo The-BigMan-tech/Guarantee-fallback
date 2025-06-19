@@ -51,6 +51,7 @@ const lastYPositions: number[] = [];
 let shouldPlayJumpAnimation = false;
 let groundLevel:number = 1.5;//initial ground level of the terrain
 
+let shouldStepUp = false;
 
 loader.load(modelPath,
     gltf=>{
@@ -172,7 +173,10 @@ function mapKeysToPlayer() {
         rotatePlayerX(+rotationDelta)
     };
     if (keysPressed['KeyW']) {
-        movePlayerForward(velocityDelta)
+        movePlayerForward(velocityDelta);
+        if (shouldStepUp) {
+            playerRigidBody.applyImpulse({x:0,y:10,z:0},true)
+        }
     }
     if (keysPressed['KeyS']) {
         movePlayerBackward(velocityDelta)
@@ -194,6 +198,7 @@ function mapKeysToPlayer() {
         movePlayerUp(jumpImpulse)//the linvel made it sluggish so i had to increase the number
         shouldPlayJumpAnimation = true
     }
+    shouldStepUp = false
     mapKeysToAnimation();
     if (isGrounded()) playerRigidBody.setLinvel(velocity,true);
     playerRigidBody.applyImpulse(impulse,true);//play between this and linear velocity.
@@ -252,9 +257,7 @@ function tryToStepUp() {
             console.log('Obstacle height:', height);
             if (height <= maxHeight) {
                 console.log("STEPPING UP");
-                const newY = playerPosition.y + height;
-                playerRigidBody.setTranslation({...playerPosition,y: newY}, true);
-                playerPosition = playerRigidBody.translation();
+                shouldStepUp = true
             }
         }
         return true;//*tune here
@@ -266,5 +269,4 @@ export function updatePlayer() {
     updateCameraRotation();
     updatePlayerTransformations();
     tryToStepUp();
-    updatePlayerTransformations();
 }
