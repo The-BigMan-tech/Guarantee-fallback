@@ -447,3 +447,5 @@ raycast detection
 *The physics engine's internal calculations and constraints mean that how and when you apply forces—like linear velocity and impulses—greatly affects the behavior.
 
 *Dozens of sensitive tunable variables (e.g., friction, restitution, velocity magnitudes, step detection distances) that must be adjusted cautiously because small changes can drastically affect behavior.
+
+*Yes, your diagnosis is correct: the jitter was caused by small precision differences between the terrain mesh’s position and its physics rigid body’s translation, even though they seem to start at the same coordinates by default. Such tiny discrepancies are common in physics-rendering integrations and can cause visible jitter or vibration.

@@ -23,7 +23,7 @@ const clock = new THREE.Clock();
 
 
 export const player = new THREE.Group();//dont directly control the player position.do it through the rigid body
-let playerPosition:RAPIER.Vector3 = new RAPIER.Vector3(0,5,0);
+let playerPosition:RAPIER.Vector3 = new RAPIER.Vector3(0,1,0);
 
 const playerCollider = RAPIER.ColliderDesc.capsule(0.5, 1);
 const playerBody = RAPIER.RigidBodyDesc.dynamic();
@@ -50,7 +50,7 @@ const positionThreshold = 0.02;  // Adjust based on your precision needs
 const lastYPositions: number[] = [];
 const maxHeightDiffFromGround = 0.4
 let shouldPlayJumpAnimation = false;
-let groundLevel:number = 1.6;//initial ground level of the terrain
+let groundLevel:number = 1;//initial ground level of the terrain
 
 const maxHeight = 2//*tune here
 let shouldStepUp = false;
@@ -177,11 +177,13 @@ function mapKeysToPlayer() {
         rotatePlayerX(+rotationDelta)
     };
     if (keysPressed['KeyW']) {
-        movePlayerForward(velocityDelta);
         if (shouldStepUp) {
             console.log('Attemptig to step up');
             shouldPlayJumpAnimation = false
-            playerRigidBody.setTranslation({...playerPosition,y:playerPosition.y+maxHeight},true)
+            movePlayerForward(15);
+            playerRigidBody.setTranslation({...playerPosition,y:4},true)
+        }else {
+            movePlayerForward(velocityDelta);
         }
     }
     if (keysPressed['KeyS']) {
@@ -211,7 +213,7 @@ function mapKeysToPlayer() {
     shouldStepUp = false
 }
 function isGrounded() {
-    const playerY = Number(playerPosition.y.toFixed(1))
+    const playerY = Number(playerPosition.y.toFixed(1)) 
     const groundY = Number((groundLevel).toFixed(1))
     const heightDifference = Number((Math.abs(playerY - groundY)).toFixed(1))
     const onGround = heightDifference  <= maxHeightDiffFromGround//account for small precision differences
@@ -232,7 +234,7 @@ function updateGroundLevel() {
         const minY = Math.min(...lastYPositions);
         const maxY = Math.max(...lastYPositions);
         if ((maxY - minY) < positionThreshold) {
-            groundLevel = currentY
+            groundLevel = currentY 
         }
     }
 }
@@ -242,7 +244,7 @@ function tryToStepUp() {
     const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
     forward.applyQuaternion(quat).normalize();
 
-    const stepCheckDistance = 2 //im using a positive offset because the forward vector already points forward.
+    const stepCheckDistance = 2.5 //im using a positive offset because the forward vector already points forward.
     const point = new THREE.Vector3(
         playerPosition.x + forward.x * stepCheckDistance,
         playerPosition.y,
