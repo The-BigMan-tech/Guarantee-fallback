@@ -1,6 +1,7 @@
 import * as THREE from "three"
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { pitchObject } from "./camera";
+import { walkSound } from "./sounds";
 import { cameraMode, keysPressed, toggleThirdPerson } from "./globals";
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
@@ -34,16 +35,16 @@ physicsWorld.createCollider(playerCollider,playerRigidBody);
 playerRigidBody.setTranslation(playerPosition,true);
 
 const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);
-let velocityDelta = 25;
+const velocityDelta = 25;
 
 const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
-const impulseDelta = 30;
+const impulseDelta = 100;
 const jumpImpulse = 1100;
 
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
 const rotationDelta = 0.05;
-const rotationSpeed = 0.5;
+const rotationSpeed = 0.4;
 
 const stableFrameCount = 10;
 const positionThreshold = 0.02;  // Adjust based on your precision needs
@@ -117,16 +118,21 @@ function fadeToAnimation(newAction: THREE.AnimationAction) {
 function mapKeysToAnimation() {
     if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction && jumpAction) {
         if (!isGrounded() && shouldPlayJumpAnimation && !shouldStepUp) {
+            walkSound.stop();
             fadeToAnimation(jumpAction);
         }else if (keysPressed['KeyW']) {
+            if (!walkSound.isPlaying) walkSound.play();
             fadeToAnimation(walkAction);
         }else if (keysPressed['KeyA']) {
+            if (!walkSound.isPlaying) walkSound.play();
             fadeToAnimation(lookLeftAction);
         }else if (keysPressed['KeyD']) {
+            if (!walkSound.isPlaying) walkSound.play();
             fadeToAnimation(lookRightAction);
         }else if (keysPressed['KeyE']) {
             fadeToAnimation(lookUpAction);
         }else {
+            walkSound.stop();
             fadeToAnimation(idleAction);
         }
     }
@@ -177,7 +183,6 @@ function mapKeysToPlayer() {
         rotatePlayerX(+rotationDelta)
     };
     if (keysPressed['KeyW']) {
-        velocityDelta += (keysPressed['ControlLeft'])?15:0
         if (shouldStepUp) {
             console.log('Attemptig to step up');
             shouldPlayJumpAnimation = false

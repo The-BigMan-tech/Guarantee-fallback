@@ -44,3 +44,4 @@ physicsWorld.createCollider(cubeCollider,cubeRigidBody);
 cubeRigidBody.setTranslation({x:0,y:1,z:0},true)
 cube.position.set(cubeRigidBody.translation().x,cubeRigidBody.translation().y,cubeRigidBody.translation().z)
 
+
