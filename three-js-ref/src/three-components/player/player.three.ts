@@ -62,24 +62,26 @@ loader.load(modelPath,
         player.add(pitchObject)
         mixer = new AnimationMixer(playerModel);
         loadPlayerAnimations(gltf);
-
-        playerModel.traverse((obj) => {//apply a metallic material
-            if (!(obj instanceof THREE.Mesh)) return
-            if (obj.material && obj.material.isMeshStandardMaterial) {
-                obj.material.metalness = 0.8;   // Fully metallic
-                obj.material.roughness = 0.6;   // Low roughness for shiny metal
-                obj.material.needsUpdate = true;
-            }else {
-                obj.material = new THREE.MeshStandardMaterial({
-                    color: obj.material.color || 0xffffff,
-                    metalness: 0.8,
-                    roughness: 0.6
-                });
-            }
-        });
+        applyMaterialToModel(playerModel);
     },undefined, 
     error =>console.error( error ),
 );
+function applyMaterialToModel(playerModel:THREE.Group<THREE.Object3DEventMap>) {
+    playerModel.traverse((obj) => {//apply a metallic material
+        if (!(obj instanceof THREE.Mesh)) return
+        if (obj.material && obj.material.isMeshStandardMaterial) {
+            obj.material.metalness = 0.8;   // Fully metallic
+            obj.material.roughness = 0.6;   // Low roughness for shiny metal
+            obj.material.needsUpdate = true;
+        }else {
+            obj.material = new THREE.MeshStandardMaterial({
+                color: obj.material.color || 0xffffff,
+                metalness: 0.8,
+                roughness: 0.6
+            });
+        }
+    });
+}
 function loadPlayerAnimations(gltf:GLTF) {
     const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
     const walkClip = THREE.AnimationClip.findByName(gltf.animations, 'sprinting'); 
@@ -112,7 +114,7 @@ function fadeToAnimation(newAction: THREE.AnimationAction) {
 }
 function mapKeysToAnimation() {
     if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction && jumpAction) {
-        if (!isGrounded() && shouldPlayJumpAnimation && shouldStepUp) {
+        if (!isGrounded() && shouldPlayJumpAnimation && !shouldStepUp) {
             fadeToAnimation(jumpAction);
         }else if (keysPressed['KeyW']) {
             fadeToAnimation(walkAction);
@@ -207,17 +209,6 @@ function mapKeysToPlayer() {
     playerPosition = playerRigidBody.translation();
     shouldStepUp = false
 }
-function updateCameraRotation() {
-    const delta = clock.getDelta();
-    if (mixer) mixer.update(delta);
-    const targetZ = cameraMode.isThirdPerson ? 6 : 0;
-    pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
-}
-function updatePlayerTransformations() {
-    player.position.set(playerPosition.x,playerPosition.y,playerPosition.z);
-    player.quaternion.slerp(targetQuaternion, rotationSpeed);
-    playerRigidBody.setRotation(targetQuaternion,true);
-}
 function isGrounded() {
     const playerY = Number(playerPosition.y.toFixed(1))
     const groundY = Number((groundLevel).toFixed(1))
@@ -274,6 +265,17 @@ function tryToStepUp() {
         }
         return true;//*tune here
     });    
+}
+function updateCameraRotation() {
+    const delta = clock.getDelta();
+    if (mixer) mixer.update(delta);
+    const targetZ = cameraMode.isThirdPerson ? 6 : 0;
+    pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
+}
+function updatePlayerTransformations() {
+    player.position.set(playerPosition.x,playerPosition.y,playerPosition.z);
+    player.quaternion.slerp(targetQuaternion, rotationSpeed);
+    playerRigidBody.setRotation(targetQuaternion,true);
 }
 export function updatePlayer() {
     updateGroundLevel();

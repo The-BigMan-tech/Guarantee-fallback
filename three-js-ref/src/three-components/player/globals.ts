@@ -7,7 +7,6 @@ export const cameraMode:CamMode = {
 export function toggleCameraMode() {
     cameraMode.isThirdPerson = !cameraMode.isThirdPerson;
 }
-
 let canToggle = true;
 export function toggleThirdPerson() {
     if (keysPressed['KeyT']) {
