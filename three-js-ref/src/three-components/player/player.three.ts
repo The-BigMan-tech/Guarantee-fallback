@@ -173,9 +173,12 @@ function mapKeysToPlayer() {
         rotatePlayerX(+rotationDelta)
     };
     if (keysPressed['KeyW']) {
-        movePlayerForward(velocityDelta);
         if (shouldStepUp) {
-            playerRigidBody.applyImpulse({x:0,y:10,z:0},true)
+            console.log('Attemptig to step up');
+            movePlayerForward(5);
+            velocity.y += 10
+        }else {
+            movePlayerForward(velocityDelta);
         }
     }
     if (keysPressed['KeyS']) {
@@ -198,11 +201,11 @@ function mapKeysToPlayer() {
         movePlayerUp(jumpImpulse)//the linvel made it sluggish so i had to increase the number
         shouldPlayJumpAnimation = true
     }
-    shouldStepUp = false
     mapKeysToAnimation();
     if (isGrounded()) playerRigidBody.setLinvel(velocity,true);
     playerRigidBody.applyImpulse(impulse,true);//play between this and linear velocity.
     playerPosition = playerRigidBody.translation();
+    shouldStepUp = false
 }
 function updateCameraRotation() {
     const delta = clock.getDelta();
