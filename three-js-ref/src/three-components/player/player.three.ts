@@ -34,7 +34,7 @@ physicsWorld.createCollider(playerCollider,playerRigidBody);
 playerRigidBody.setTranslation(playerPosition,true);
 
 const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);
-const velocityDelta = 25;
+let velocityDelta = 25;
 
 const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
 const impulseDelta = 30;
@@ -177,11 +177,13 @@ function mapKeysToPlayer() {
         rotatePlayerX(+rotationDelta)
     };
     if (keysPressed['KeyW']) {
+        velocityDelta += (keysPressed['ControlLeft'])?15:0
         if (shouldStepUp) {
             console.log('Attemptig to step up');
             shouldPlayJumpAnimation = false
-            movePlayerForward(15);
-            playerRigidBody.setTranslation({...playerPosition,y:4},true)
+            movePlayerForward(5);
+            velocity.y +=20
+            // playerRigidBody.setTranslation({...playerPosition,y:4},true)
         }else {
             movePlayerForward(velocityDelta);
         }
@@ -279,10 +281,18 @@ function updatePlayerTransformations() {
     player.quaternion.slerp(targetQuaternion, rotationSpeed);
     playerRigidBody.setRotation(targetQuaternion,true);
 }
+function respawnIfOutOfBounds() {
+    if (playerPosition.y <= -60) {
+        playerRigidBody.setTranslation({x:0,y:20,z:0},true);
+        playerPosition = playerRigidBody.translation();
+        player.position.set(playerPosition.x,playerPosition.y,playerPosition.z);
+    }
+}
 export function updatePlayer() {
     updateGroundLevel();
     mapKeysToPlayer(); 
     updateCameraRotation();
     updatePlayerTransformations();
+    respawnIfOutOfBounds()
     tryToStepUp();
 }

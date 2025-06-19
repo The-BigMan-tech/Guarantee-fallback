@@ -1,7 +1,9 @@
 import * as THREE from "three"
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld } from "./physics-world";
+import { EdgesGeometry, LineSegments, LineBasicMaterial } from 'three';
 
+//Flat-terrain with grid
 const gridSize = 1000
 const gridHelper = new THREE.GridHelper(gridSize,50,0x000000,0x000000);
 
@@ -21,9 +23,16 @@ terrain.position.set(groundRigidBody.translation().x,groundRigidBody.translation
 gridHelper.position.y += 0.5
 
 
+//A cuboid
 const cubeGeometry = new THREE.BoxGeometry(20,2,20);
 const cubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x3f3f3f });
 export const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+
+const edges = new EdgesGeometry(cubeGeometry);
+const line = new LineSegments(edges, new LineBasicMaterial({ color: 0x000000 }));
+line.position.copy(cube.position);
+line.quaternion.copy(cube.quaternion);
+cube.add(line)
 
 export const cubeCollider = RAPIER.ColliderDesc.cuboid(10,1,10);
 cubeCollider.setRestitution(0)
@@ -32,5 +41,6 @@ const cubeBody = RAPIER.RigidBodyDesc.fixed();
 const cubeRigidBody = physicsWorld.createRigidBody(cubeBody);
 physicsWorld.createCollider(cubeCollider,cubeRigidBody);
 
-cubeRigidBody.setTranslation({x:0,y:1,z:-10},true)
+cubeRigidBody.setTranslation({x:0,y:1,z:0},true)
 cube.position.set(cubeRigidBody.translation().x,cubeRigidBody.translation().y,cubeRigidBody.translation().z)
+
