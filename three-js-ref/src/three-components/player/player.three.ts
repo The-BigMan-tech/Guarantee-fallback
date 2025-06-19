@@ -6,6 +6,7 @@ import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld } from "../physics-world";
 
+
 const loader:GLTFLoader = new GLTFLoader();
 const modelPath:string = './silvermoon.glb';
 
@@ -37,7 +38,7 @@ const velocityDelta = 20;
 
 const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
 const impulseDelta = 30;
-const jumpImpulse = 1000;
+const jumpImpulse = 1100;
 
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
@@ -46,7 +47,6 @@ const rotationSpeed = 0.5;
 
 let shouldPlayJumpAnimation = false;
 let groundLevel:number = 1.5;//initial ground level of the terrain
-
 
 loader.load(modelPath,
     gltf=>{
@@ -219,7 +219,7 @@ function isGrounded() {
     return onGround
 }
 const STABLE_FRAME_COUNT = 10;
-const POSITION_THRESHOLD = 0.002;  // Adjust based on your precision needs
+const POSITION_THRESHOLD = 0.02;  // Adjust based on your precision needs
 const lastYPositions: number[] = [];
 
 function updateGroundLevel() {
@@ -236,9 +236,33 @@ function updateGroundLevel() {
         }
     }
 }
+function tryToStepUp() {
+    const point = new THREE.Vector3(playerPosition.x,playerPosition.y,playerPosition.z-1)//*tune here
+    physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
+        const collider = physicsWorld.getCollider(colliderObject.handle);
+        const shape = collider.shape
+        console.log('Collider shape:', shape);
+        
+        if (shape instanceof RAPIER.Cuboid) {
+            const halfExtents = shape.halfExtents;
+            const height = halfExtents.y * 2;
+            const maxHeight = 2//*tune here
+            console.log('Obstacle height:', height);
+            if (height <= maxHeight) {
+                console.log("STEPPING UP");
+                const newY = playerPosition.y + height;
+                playerRigidBody.setTranslation({ x: playerPosition.x, y: newY, z: playerPosition.z }, true);
+                playerPosition = playerRigidBody.translation();
+            }
+        }
+        return true;//*tune here
+    });    
+}
 export function updatePlayer() {
     updateGroundLevel();
     mapKeysToPlayer(); 
     updateCameraRotation();
+    updatePlayerTransformations();
+    tryToStepUp();
     updatePlayerTransformations();
 }
