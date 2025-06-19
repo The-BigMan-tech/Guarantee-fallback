@@ -38,23 +38,25 @@ const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);
 const velocityDelta = 25;
 
 const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
-const impulseDelta = 100;
-const jumpImpulse = 1100;
+const impulseDelta = 80;
+const jumpImpulse = 30;
 
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
 const rotationDelta = 0.05;
 const rotationSpeed = 0.4;
 
-const stableFrameCount = 10;
-const positionThreshold = 0.02;  // Adjust based on your precision needs
-const lastYPositions: number[] = [];
 const maxHeightDiffFromGround = 0.4
 let shouldPlayJumpAnimation = false;
 let groundLevel:number = 1;//initial ground level of the terrain
 
-const maxHeight = 2//*tune here
+const maxHeight = 4//*tune here
 let shouldStepUp = false;
+
+const stableFrameCount = 15;
+const positionThreshold = 0.02;  // Adjust based on your precision needs
+const lastYPositions: number[] = [];
+
 
 loader.load(modelPath,
     gltf=>{
@@ -73,7 +75,7 @@ function applyMaterialToModel(playerModel:THREE.Group<THREE.Object3DEventMap>) {
     playerModel.traverse((obj) => {//apply a metallic material
         if (!(obj instanceof THREE.Mesh)) return
         if (obj.material && obj.material.isMeshStandardMaterial) {
-            obj.material.metalness = 0.8;   // Fully metallic
+            obj.material.metalness = 0.5;   // Fully metallic
             obj.material.roughness = 0.6;   // Low roughness for shiny metal
             obj.material.needsUpdate = true;
         }else {
@@ -139,32 +141,32 @@ function mapKeysToAnimation() {
 }
 function movePlayerForward(velocityDelta:number) {
     const forward = new THREE.Vector3(0,0,-velocityDelta);//direction vector
-    forward.applyQuaternion(playerRigidBody.rotation());//setting the direction to the rigid body's world space
+    forward.applyQuaternion(player.quaternion);//setting the direction to the rigid body's world space
     velocity.set(forward.x,forward.y,forward.z)
 }
 function movePlayerBackward(velocityDelta:number) {
     const backward = new THREE.Vector3(0,0,velocityDelta);
-    backward.applyQuaternion(playerRigidBody.rotation());
+    backward.applyQuaternion(player.quaternion);
     velocity.set(backward.x,backward.y,backward.z)
 }
 function movePlayerLeft(velocityDelta:number) {
     const left = new THREE.Vector3(-velocityDelta,0,0);
-    left.applyQuaternion(playerRigidBody.rotation());
+    left.applyQuaternion(player.quaternion);
     velocity.set(left.x,left.y,left.z)
 }
 function movePlayerRight(velocityDelta:number) {
     const right = new THREE.Vector3(velocityDelta,0,0);
-    right.applyQuaternion(playerRigidBody.rotation());
+    right.applyQuaternion(player.quaternion);
     velocity.set(right.x,right.y,right.z)
 }
 function movePlayerUp(impulseDelta:number) {
     const up = new THREE.Vector3(0,impulseDelta,0);
-    up.applyQuaternion(playerRigidBody.rotation());
+    up.applyQuaternion(player.quaternion);
     impulse.set(up.x,up.y,up.z);
 }
 function movePlayerDown(impulseDelta:number) {
     const down = new THREE.Vector3(0,-impulseDelta,0);
-    down.applyQuaternion(playerRigidBody.rotation());
+    down.applyQuaternion(player.quaternion);
     impulse.set(down.x,down.y,down.z)
 }
 export function rotatePlayerX(rotationDelta: number) {
@@ -172,9 +174,9 @@ export function rotatePlayerX(rotationDelta: number) {
     targetQuaternion.setFromEuler(targetRotation);
 }
 function mapKeysToPlayer() {
-    velocity.set(0,0,0);
+    velocity.set(0,-10,0);//*tune.im using it for the gravity replacement that setting linear vel removes
     impulse.set(0,0,0);
-
+    let flying = false
     toggleThirdPerson();
     if (keysPressed['ArrowLeft'])  {
         rotatePlayerX(-rotationDelta)
@@ -182,42 +184,47 @@ function mapKeysToPlayer() {
     if (keysPressed['ArrowRight']) {
         rotatePlayerX(+rotationDelta)
     };
+    if (keysPressed['KeyQ']) {
+        movePlayerDown(impulseDelta);
+        flying = true;
+        playerRigidBody.applyImpulse(impulse,true)
+    }
+    if (keysPressed['KeyE']) {
+        movePlayerUp(impulseDelta)
+        shouldPlayJumpAnimation = false;
+        flying = true
+        playerRigidBody.applyImpulse(impulse,true)
+    }
     if (keysPressed['KeyW']) {
         if (shouldStepUp) {
             console.log('Attemptig to step up');
             shouldPlayJumpAnimation = false
             movePlayerForward(5);
             velocity.y +=20
-            // playerRigidBody.setTranslation({...playerPosition,y:4},true)
         }else {
             movePlayerForward(velocityDelta);
+            if (flying) playerRigidBody.applyImpulse(velocity,true);
         }
     }
     if (keysPressed['KeyS']) {
-        movePlayerBackward(velocityDelta)
+        movePlayerBackward(velocityDelta);
     }
     if (keysPressed['KeyA']) {
-        movePlayerLeft(velocityDelta)
+        movePlayerLeft(velocityDelta);
     }
     if (keysPressed['KeyD']) {
-        movePlayerRight(velocityDelta)
-    }
-    if (keysPressed['KeyQ']) {
-        movePlayerDown(impulseDelta);
-    }
-    if (keysPressed['KeyE']) {
-        movePlayerUp(impulseDelta)
-        shouldPlayJumpAnimation = false
+        movePlayerRight(velocityDelta);
     }
     if (keysPressed['Space'] && isGrounded()) {
         movePlayerUp(jumpImpulse)//the linvel made it sluggish so i had to increase the number
-        shouldPlayJumpAnimation = true
+        shouldPlayJumpAnimation = true;
+        velocity.y = 0
+        velocity.add(impulse);
     }
     mapKeysToAnimation();
-    if (isGrounded()) playerRigidBody.setLinvel(velocity,true);
-    playerRigidBody.applyImpulse(impulse,true);//play between this and linear velocity.
+    if (isGrounded() && !flying) playerRigidBody.setLinvel(velocity,true);
     playerPosition = playerRigidBody.translation();
-    shouldStepUp = false
+    shouldStepUp = false;
 }
 function isGrounded() {
     const playerY = Number(playerPosition.y.toFixed(1)) 
