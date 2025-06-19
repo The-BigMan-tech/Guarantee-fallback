@@ -175,7 +175,7 @@ function mapKeysToPlayer() {
     if (keysPressed['KeyW']) {
         if (shouldStepUp) {
             console.log('Attemptig to step up');
-            movePlayerForward(8);
+            movePlayerForward(10);
             velocity.y += 15
         }else {
             movePlayerForward(velocityDelta);
