@@ -112,7 +112,7 @@ function fadeToAnimation(newAction: THREE.AnimationAction) {
 }
 function mapKeysToAnimation() {
     if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction && jumpAction) {
-        if (!isGrounded() && shouldPlayJumpAnimation) {
+        if (!isGrounded() && shouldPlayJumpAnimation && shouldStepUp) {
             fadeToAnimation(jumpAction);
         }else if (keysPressed['KeyW']) {
             fadeToAnimation(walkAction);
@@ -175,8 +175,8 @@ function mapKeysToPlayer() {
     if (keysPressed['KeyW']) {
         if (shouldStepUp) {
             console.log('Attemptig to step up');
-            movePlayerForward(5);
-            velocity.y += 10
+            movePlayerForward(8);
+            velocity.y += 15
         }else {
             movePlayerForward(velocityDelta);
         }
@@ -245,9 +245,18 @@ function updateGroundLevel() {
     }
 }
 function tryToStepUp() {
-    const stepCheckDistance = -1 //i used a negative offset because forward is from the negative z-axis
+    const forward = new THREE.Vector3(0, 0, -1); // Local forward
+    const rotation = playerRigidBody.rotation();
+    const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+    forward.applyQuaternion(quat).normalize();
+
+    const stepCheckDistance = 1 //im using a positive offset because the forward vector already points forward.
     const maxHeight = 2//*tune here
-    const point = {...playerPosition,z:playerPosition.z+stepCheckDistance}//*tune here
+    const point = new THREE.Vector3(
+        playerPosition.x + forward.x * stepCheckDistance,
+        playerPosition.y,
+        playerPosition.z + forward.z * stepCheckDistance
+    );
 
     physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
         const collider = physicsWorld.getCollider(colliderObject.handle);
