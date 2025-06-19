@@ -45,8 +45,12 @@ const targetQuaternion = new THREE.Quaternion();
 const rotationDelta = 0.05;
 const rotationSpeed = 0.5;
 
+const stableFrameCount = 10;
+const positionThreshold = 0.02;  // Adjust based on your precision needs
+const lastYPositions: number[] = [];
 let shouldPlayJumpAnimation = false;
 let groundLevel:number = 1.5;//initial ground level of the terrain
+
 
 loader.load(modelPath,
     gltf=>{
@@ -218,26 +222,25 @@ function isGrounded() {
     console.log("Height diff: ",heightDifference);
     return onGround
 }
-const STABLE_FRAME_COUNT = 10;
-const POSITION_THRESHOLD = 0.02;  // Adjust based on your precision needs
-const lastYPositions: number[] = [];
-
 function updateGroundLevel() {
     const currentY = playerRigidBody.translation().y;
     lastYPositions.push(currentY);
-    if (lastYPositions.length > STABLE_FRAME_COUNT) {
+    if (lastYPositions.length > stableFrameCount) {
         lastYPositions.shift();
     }
-    if (lastYPositions.length === STABLE_FRAME_COUNT) {
+    if (lastYPositions.length === stableFrameCount) {
         const minY = Math.min(...lastYPositions);
         const maxY = Math.max(...lastYPositions);
-        if ((maxY - minY) < POSITION_THRESHOLD) {
+        if ((maxY - minY) < positionThreshold) {
             groundLevel = currentY
         }
     }
 }
 function tryToStepUp() {
-    const point = new THREE.Vector3(playerPosition.x,playerPosition.y,playerPosition.z-1)//*tune here
+    const stepCheckDistance = -1 //i used a negative offset because forward is from the negative z-axis
+    const maxHeight = 2//*tune here
+    const point = {...playerPosition,z:playerPosition.z+stepCheckDistance}//*tune here
+
     physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
         const collider = physicsWorld.getCollider(colliderObject.handle);
         const shape = collider.shape
@@ -246,12 +249,11 @@ function tryToStepUp() {
         if (shape instanceof RAPIER.Cuboid) {
             const halfExtents = shape.halfExtents;
             const height = halfExtents.y * 2;
-            const maxHeight = 2//*tune here
             console.log('Obstacle height:', height);
             if (height <= maxHeight) {
                 console.log("STEPPING UP");
                 const newY = playerPosition.y + height;
-                playerRigidBody.setTranslation({ x: playerPosition.x, y: newY, z: playerPosition.z }, true);
+                playerRigidBody.setTranslation({...playerPosition,y: newY}, true);
                 playerPosition = playerRigidBody.translation();
             }
         }
