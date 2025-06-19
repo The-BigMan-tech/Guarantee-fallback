@@ -175,8 +175,8 @@ function mapKeysToPlayer() {
     if (keysPressed['KeyW']) {
         if (shouldStepUp) {
             console.log('Attemptig to step up');
-            movePlayerForward(10);
-            velocity.y += 15
+            movePlayerForward(15);
+            velocity.y += 15;
         }else {
             movePlayerForward(velocityDelta);
         }
@@ -250,7 +250,7 @@ function tryToStepUp() {
     const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
     forward.applyQuaternion(quat).normalize();
 
-    const stepCheckDistance = 1 //im using a positive offset because the forward vector already points forward.
+    const stepCheckDistance = 2.5 //im using a positive offset because the forward vector already points forward.
     const maxHeight = 2//*tune here
     const point = new THREE.Vector3(
         playerPosition.x + forward.x * stepCheckDistance,

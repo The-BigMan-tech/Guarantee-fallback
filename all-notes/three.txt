@@ -441,3 +441,7 @@ raycast detection
 *so the pattern i used which is through the flag ensures that i dont step upin the same movement where i collide with the object.i move,collide,update position,check if i should step and the next movement i make is a step up not that i move and step up simultaneously
 
 *so i have to compute the forward vectpr whenever needed not directly when updating the player psoition cuz the player's position should always be the world space but only forces should be direction based
+
+*so the physics engine may not always work the way i expect it which isnt necessarily because of my logic but internal physics calculations.so things like this requires tuning not changing core logic.this means that the physis engine is very tedious to work with
+
+*The physics engine's internal calculations and constraints mean that how and when you apply forces—like linear velocity and impulses—greatly affects the behavior.

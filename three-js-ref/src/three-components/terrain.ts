@@ -18,6 +18,7 @@ export const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 
 export const cubeCollider = RAPIER.ColliderDesc.cuboid(4,1,4);
 cubeCollider.setRestitution(0)
+cubeCollider.setFriction(0.4)
 const cubeBody = RAPIER.RigidBodyDesc.fixed();
 const cubeRigidBody = physicsWorld.createRigidBody(cubeBody);
 physicsWorld.createCollider(cubeCollider,cubeRigidBody);
