@@ -12,16 +12,19 @@ const groundBody = RAPIER.RigidBodyDesc.fixed();
 const groundRigidBody = physicsWorld.createRigidBody(groundBody);
 physicsWorld.createCollider(groundCollider,groundRigidBody);
 
-const cubeGeometry = new THREE.BoxGeometry(8,2,8);
+groundRigidBody.setTranslation({x:0,y:0,z:0},true);
+terrain.position.set(groundRigidBody.translation().x,groundRigidBody.translation().y,groundRigidBody.translation().z)
+
+const cubeGeometry = new THREE.BoxGeometry(20,2,20);
 const cubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x3f3f3f });
 export const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 
-export const cubeCollider = RAPIER.ColliderDesc.cuboid(4,1,4);
+export const cubeCollider = RAPIER.ColliderDesc.cuboid(10,1,10);
 cubeCollider.setRestitution(0)
 cubeCollider.setFriction(0.4)
 const cubeBody = RAPIER.RigidBodyDesc.fixed();
 const cubeRigidBody = physicsWorld.createRigidBody(cubeBody);
 physicsWorld.createCollider(cubeCollider,cubeRigidBody);
 
-cubeRigidBody.setTranslation({x:0,y:1,z:-10},true)
+cubeRigidBody.setTranslation({x:0,y:1.6,z:-10},true)
 cube.position.set(cubeRigidBody.translation().x,cubeRigidBody.translation().y,cubeRigidBody.translation().z)

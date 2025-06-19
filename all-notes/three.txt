@@ -445,3 +445,5 @@ raycast detection
 *so the physics engine may not always work the way i expect it which isnt necessarily because of my logic but internal physics calculations.so things like this requires tuning not changing core logic.this means that the physis engine is very tedious to work with
 
 *The physics engine's internal calculations and constraints mean that how and when you apply forces—like linear velocity and impulses—greatly affects the behavior.
+
+*Dozens of sensitive tunable variables (e.g., friction, restitution, velocity magnitudes, step detection distances) that must be adjusted cautiously because small changes can drastically affect behavior.
