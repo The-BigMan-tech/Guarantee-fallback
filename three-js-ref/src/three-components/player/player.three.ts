@@ -181,7 +181,6 @@ export function rotatePlayerX(rotationDelta: number) {
 function mapKeysToPlayer() {
     velocity.set(0,0,0);//*tune.im using it for the gravity replacement that setting linear vel removes
     impulse.set(0,0,0);
-    let flying = false
     toggleThirdPerson();
     if (keysPressed['ArrowLeft'])  {
         rotatePlayerX(-rotationDelta)
@@ -191,14 +190,10 @@ function mapKeysToPlayer() {
     };
     if (keysPressed['KeyQ']) {
         movePlayerDown(impulseDelta);
-        flying = true;
-        playerRigidBody.applyImpulse(impulse,true)
     }
     if (keysPressed['KeyE']) {
         movePlayerUp(impulseDelta)
         shouldPlayJumpAnimation = false;
-        flying = true
-        playerRigidBody.applyImpulse(impulse,true)
     }
     if (keysPressed['KeyW']) {
         if (shouldStepUp) {
@@ -212,7 +207,7 @@ function mapKeysToPlayer() {
             velocity.y += upwardVelocity 
         }else {
             movePlayerForward(velocityDelta);
-            if (flying) playerRigidBody.applyImpulse(velocity,true);
+            if (!isGrounded()) velocity.y -= 40;
         }
         console.log("Final upward velocity: ",velocity.y);
     }
@@ -232,7 +227,7 @@ function mapKeysToPlayer() {
         velocity.add(impulse);
     }
     mapKeysToAnimation();
-    if (isGrounded() && !flying) playerRigidBody.setLinvel(velocity,true);
+    if (isGrounded()) playerRigidBody.setLinvel(velocity,true);
     playerPosition = playerRigidBody.translation();
     shouldStepUp = false;
     obstacleHeight = 0
@@ -242,7 +237,7 @@ function mapKeysToPlayer() {
 
 function isGrounded() {
     let onGround = false
-    const point = {...player.position,y:Math.round(player.position.y) - 1}
+    const point = {...player.position,y:Math.floor(player.position.y) - 1}
 
     console.log('Point Query Player: ', player.position.y);
     console.log(' Point Query Point:', point.y);

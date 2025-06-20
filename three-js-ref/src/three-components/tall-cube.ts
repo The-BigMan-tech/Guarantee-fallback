@@ -36,6 +36,7 @@ for (let i = 0; i < points.length; i++) {
     tallCube.add(tallCubeLine)
 
     const tallCubeCollider = RAPIER.ColliderDesc.cuboid(10,height/2,10);
+    tallCubeCollider.setFriction(0.5)
     const tallCubeBody = RAPIER.RigidBodyDesc.fixed();
     const tallCubeRigidBody = physicsWorld.createRigidBody(tallCubeBody);
     physicsWorld.createCollider(tallCubeCollider,tallCubeRigidBody);
