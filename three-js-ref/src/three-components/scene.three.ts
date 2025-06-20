@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import { directionalLight } from './lights.three';
 import { sky } from './sun.three';
-import { player } from './player/player.three';
+import { player } from './player/controller.three';
 import { terrain } from './terrain.three';
 import { cube } from './terrain.three';
-import {cubesGroup } from './tall-cube.three';
+import {cubesGroup } from './tall-cubes.three';
 
 export const scene = new THREE.Scene();
 scene.add(directionalLight);

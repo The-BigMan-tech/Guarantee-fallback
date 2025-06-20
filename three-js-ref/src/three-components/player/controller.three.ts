@@ -8,25 +8,12 @@ import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld } from "../physics-world.three";
 import { cube } from "../terrain.three";
 
-
-const loader:GLTFLoader = new GLTFLoader();
-const modelPath:string = './silvermoon.glb';
-
-let mixer: THREE.AnimationMixer;
-let currentAction: THREE.AnimationAction | null = null;
-let idleAction: THREE.AnimationAction | null = null;
-let walkAction: THREE.AnimationAction | null = null;
-let lookUpAction:THREE.AnimationAction | null = null;
-let lookDownAction:THREE.AnimationAction | null = null;
-let lookLeftAction:THREE.AnimationAction | null = null;
-let lookRightAction:THREE.AnimationAction | null = null;
-let jumpAction:THREE.AnimationAction | null = null;
-const clock = new THREE.Clock();
-
-
+//Player group and positioning
 export const player = new THREE.Group();//dont directly control the player position.do it through the rigid body
 let playerPosition:RAPIER.Vector3 = new RAPIER.Vector3(0,10,0);//so that the player spawns high enough to fall on top of a block not inbetween
 
+
+//Physics body creation
 const playerCollider = RAPIER.ColliderDesc.capsule(0.5, 1);
 const playerBody = RAPIER.RigidBodyDesc.dynamic();
 playerBody.mass = 40
@@ -35,76 +22,67 @@ const playerRigidBody = physicsWorld.createRigidBody(playerBody)
 physicsWorld.createCollider(playerCollider,playerRigidBody);
 playerRigidBody.setTranslation(playerPosition,true);
 
-const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);
-const velocityDelta = 30;
-const jumpImpulse = 30;
 
+//Animation references
+const clock = new THREE.Clock();
+let mixer: THREE.AnimationMixer;
+let currentAction: THREE.AnimationAction | null = null;
+let idleAction: THREE.AnimationAction | null = null;
+let walkAction: THREE.AnimationAction | null = null;
+let jumpAction:THREE.AnimationAction | null = null;
+
+
+//Tunable variables
+const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);
+const horizontalVelocity = 30;
+const jumpVelocity = 30;
 
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
 const rotationDelta = 0.04;
 const rotationSpeed = 0.4;
 
-
 const maxStepUpHeight = 3//*tune here
 const stepCheckDistance = 3; //im using a positive offset because the forward vector already points forward.
+
+
+//Global variables
 let shouldPlayJumpAnimation = false;
 let obstacleHeight = 0;
 let shouldStepUp = false;
 
 
-loader.load(modelPath,
-    gltf=>{
-        const playerModel = gltf.scene
-        playerModel.position.z = 0.3
-        player.add(playerModel);
-        pitchObject.position.y = 4
-        player.add(pitchObject)
-        mixer = new AnimationMixer(playerModel);
-        loadPlayerAnimations(gltf);
-        applyMaterialToModel(playerModel);
-    },undefined, 
-    error =>console.error( error ),
-);
-function applyMaterialToModel(playerModel:THREE.Group<THREE.Object3DEventMap>) {
-    playerModel.traverse((obj) => {//apply a metallic material
-        if (!(obj instanceof THREE.Mesh)) return
-        if (obj.material && obj.material.isMeshStandardMaterial) {
-            obj.material.metalness = 0.5;   // Fully metallic
-            obj.material.roughness = 0.6;   // Low roughness for shiny metal
-            obj.material.needsUpdate = true;
-        }else {
-            obj.material = new THREE.MeshStandardMaterial({
-                color: obj.material.color || 0xffffff,
-                metalness: 0.8,
-                roughness: 0.6
-            });
-        }
-    });
+//Functions
+loadPlayerModel();
+function loadPlayerModel() {
+    const loader:GLTFLoader = new GLTFLoader();
+    const modelPath:string = './silvermoon.glb';
+    loader.load(modelPath,
+        gltf=>{
+            const playerModel = gltf.scene
+            playerModel.position.z = 0.3
+            player.add(playerModel);
+            pitchObject.position.y = 4
+            player.add(pitchObject)
+            mixer = new AnimationMixer(playerModel);
+            loadPlayerAnimations(gltf);
+        },undefined, 
+        error =>console.error( error ),
+    );
 }
 function loadPlayerAnimations(gltf:GLTF) {
     const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
     const walkClip = THREE.AnimationClip.findByName(gltf.animations, 'sprinting'); 
     const jumpClip = THREE.AnimationClip.findByName(gltf.animations, 'jumping'); 
-    const lookUpClip = THREE.AnimationClip.findByName(gltf.animations, 'look-up'); 
-    const lookDownClip = THREE.AnimationClip.findByName(gltf.animations, 'look-down'); 
-    const lookLeftClip = THREE.AnimationClip.findByName(gltf.animations, 'look-left'); 
-    const lookRightClip = THREE.AnimationClip.findByName(gltf.animations, 'look-right'); 
 
     if (walkClip) walkAction = mixer.clipAction(walkClip);
-    if (lookUpClip) lookUpAction = mixer.clipAction(lookUpClip);
     if (jumpClip) jumpAction = mixer.clipAction(jumpClip);
-    if (lookDownClip) lookDownAction = mixer.clipAction(lookDownClip);
-    if (lookLeftClip) lookLeftAction = mixer.clipAction(lookLeftClip);
-    if (lookRightClip) lookRightAction = mixer.clipAction(lookRightClip);
-
     if (idleClip) {
         idleAction = mixer.clipAction(idleClip);
         idleAction.play();
         currentAction = idleAction;
     }
 }
-
 
 
 function fadeToAnimation(newAction: THREE.AnimationAction) {
@@ -116,28 +94,25 @@ function fadeToAnimation(newAction: THREE.AnimationAction) {
     }
 }
 function mapKeysToAnimation() {
-    if (mixer && idleAction && walkAction && lookUpAction && lookDownAction && lookLeftAction && lookRightAction && jumpAction) {
+    if (mixer && idleAction && walkAction && jumpAction) {//only play animations if all animations have been loaded siuccesfully
         if (!isGrounded() && shouldPlayJumpAnimation && !shouldStepUp) {
             walkSound.stop();
             fadeToAnimation(jumpAction);
-        }else if (keysPressed['KeyW']) {
+        }else if (keysPressed['KeyW']) {//each key will have its own animation
             if (!walkSound.isPlaying) walkSound.play();
             fadeToAnimation(walkAction);
         }else if (keysPressed['KeyA']) {
             if (!walkSound.isPlaying) walkSound.play();
-            fadeToAnimation(lookLeftAction);
+        }else if (keysPressed['KeyS']) {
+            if (!walkSound.isPlaying) walkSound.play();
         }else if (keysPressed['KeyD']) {
             if (!walkSound.isPlaying) walkSound.play();
-            fadeToAnimation(lookRightAction);
-        }else if (keysPressed['KeyE']) {
-            fadeToAnimation(lookUpAction);
         }else {
             walkSound.stop();
             fadeToAnimation(idleAction);
         }
     }
 }
-
 
 
 function movePlayerForward(velocityDelta:number) {
@@ -204,48 +179,51 @@ function moveOverObstacle() {
     movePlayerForward(forwardVelocity);
     movePlayerUp(upwardVelocity);
 }
+
+
 function mapKeysToPlayer() {
     velocity.set(0,0,0);//im resetting the velocity and impulse every frame to prevent accumulation over time
 
+    if (keysPressed['KeyW']) {
+        if (shouldStepUp) {
+            moveOverObstacle();
+        }else {
+            movePlayerForward(horizontalVelocity);
+            forcePlayerDown()
+        }
+    }
+    if (keysPressed['KeyS']) {
+        movePlayerBackward(horizontalVelocity);
+        forcePlayerDown()
+    }
+    if (keysPressed['KeyA']) {
+        movePlayerLeft(horizontalVelocity);
+        forcePlayerDown()
+    }
+    if (keysPressed['KeyD']) {
+        movePlayerRight(horizontalVelocity);
+        forcePlayerDown()
+    }
     if (keysPressed['ArrowLeft'])  {
         rotatePlayerX(-rotationDelta)
     };  
     if (keysPressed['ArrowRight']) {
         rotatePlayerX(+rotationDelta)
     };
-    if (keysPressed['KeyW']) {
-        if (shouldStepUp) {
-            moveOverObstacle();
-        }else {
-            movePlayerForward(velocityDelta);
-            forcePlayerDown()
-        }
-    }
-    if (keysPressed['KeyS']) {
-        movePlayerBackward(velocityDelta);
-        forcePlayerDown()
-    }
-    if (keysPressed['KeyA']) {
-        movePlayerLeft(velocityDelta);
-        forcePlayerDown()
-    }
-    if (keysPressed['KeyD']) {
-        movePlayerRight(velocityDelta);
-        forcePlayerDown()
-    }
     if (keysPressed['Space']) {
-        movePlayerUp(jumpImpulse)//the linvel made it sluggish so i had to increase the number
+        movePlayerUp(jumpVelocity)//the linvel made it sluggish so i had to increase the number
         shouldPlayJumpAnimation = true;
     }
     toggleThirdPerson();
     mapKeysToAnimation();
-    if (isGrounded() || shouldStepUp) {//i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
-        playerRigidBody.setLinvel(velocity,true)
-    };
+
+    //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
+    if (isGrounded() || shouldStepUp) playerRigidBody.setLinvel(velocity,true);
     playerPosition = playerRigidBody.translation();
     shouldStepUp = false;
     obstacleHeight = 0
 }
+
 
 let playLandSound = true
 function isGrounded() {
@@ -278,20 +256,18 @@ function isGrounded() {
 }
 
 
-
 function detectLowStep() {
     const forward = new THREE.Vector3(0, 0, -1); // Local forward
     const rotation = playerRigidBody.rotation();
     const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
     forward.applyQuaternion(quat).normalize();
 
-
     const point = new THREE.Vector3(
         playerPosition.x + forward.x * stepCheckDistance,
         playerPosition.y,
         playerPosition.z + forward.z * stepCheckDistance
     );
-
+    
     physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
         console.log('PointY Obstacle: ', point.y);
         const collider = physicsWorld.getCollider(colliderObject.handle);
@@ -311,7 +287,6 @@ function detectLowStep() {
         return true;//*tune here
     });    
 }
-
 
 
 function updatePlayerAnimations() {
@@ -334,6 +309,8 @@ function respawnIfOutOfBounds() {
         player.position.set(playerPosition.x,playerPosition.y,playerPosition.z);
     }
 }
+
+
 export function updatePlayer() {
     mapKeysToPlayer(); 
     updatePlayerAnimations();

@@ -4,7 +4,7 @@ import { scene } from './scene.three';
 import { loadEnv } from './env.three';
 import { updateCamera} from './player/camera.three';
 import { updateSun } from './sun.three';
-import { updatePlayer } from './player/player.three';
+import { updatePlayer } from './player/controller.three';
 import { physicsWorld } from './physics-world.three';
 
 export const renderer = new THREE.WebGLRenderer({antialias:true});//play with this
