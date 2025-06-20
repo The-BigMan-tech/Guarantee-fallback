@@ -19,3 +19,4 @@ export function toggleThirdPerson() {
     }
 }
 export const keysPressed:Record<string,boolean> = {};
+export const gravityY = 40

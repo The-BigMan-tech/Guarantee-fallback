@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { pitchObject } from "./camera";
 import { walkSound } from "./sounds";
-import { cameraMode, keysPressed, toggleThirdPerson } from "./globals";
+import { cameraMode, gravityY, keysPressed, toggleThirdPerson } from "./globals";
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld } from "../physics-world";
@@ -35,7 +35,7 @@ physicsWorld.createCollider(playerCollider,playerRigidBody);
 playerRigidBody.setTranslation(playerPosition,true);
 
 const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);
-const velocityDelta = 25;
+const velocityDelta = 15;
 
 const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
 const impulseDelta = 80;
@@ -51,6 +51,7 @@ let shouldPlayJumpAnimation = false;
 let groundLevel:number = 1;//initial ground level of the terrain
 
 const maxHeight = 4//*tune here
+let obstacleHeight = 0;
 let shouldStepUp = false;
 
 const stableFrameCount = 15;
@@ -109,6 +110,9 @@ function loadPlayerAnimations(gltf:GLTF) {
         currentAction = idleAction;
     }
 }
+
+
+
 function fadeToAnimation(newAction: THREE.AnimationAction) {
     if (newAction !== currentAction) {
         newAction.reset();
@@ -139,6 +143,9 @@ function mapKeysToAnimation() {
         }
     }
 }
+
+
+
 function movePlayerForward(velocityDelta:number) {
     const forward = new THREE.Vector3(0,0,-velocityDelta);//direction vector
     forward.applyQuaternion(player.quaternion);//setting the direction to the rigid body's world space
@@ -173,8 +180,11 @@ export function rotatePlayerX(rotationDelta: number) {
     targetRotation.y -= rotationDelta; 
     targetQuaternion.setFromEuler(targetRotation);
 }
+
+
+
 function mapKeysToPlayer() {
-    velocity.set(0,-10,0);//*tune.im using it for the gravity replacement that setting linear vel removes
+    velocity.set(0,-40,0);//*tune.im using it for the gravity replacement that setting linear vel removes
     impulse.set(0,0,0);
     let flying = false
     toggleThirdPerson();
@@ -198,9 +208,13 @@ function mapKeysToPlayer() {
     if (keysPressed['KeyW']) {
         if (shouldStepUp) {
             console.log('Attemptig to step up');
-            shouldPlayJumpAnimation = false
-            movePlayerForward(5);
-            velocity.y +=20
+            shouldPlayJumpAnimation = false;
+            const forwardVelocity = 6
+            const destinationHeight = obstacleHeight 
+            const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
+            const upwardVelocity = (destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight);
+            movePlayerForward(forwardVelocity);
+            velocity.y += upwardVelocity
         }else {
             movePlayerForward(velocityDelta);
             if (flying) playerRigidBody.applyImpulse(velocity,true);
@@ -226,6 +240,9 @@ function mapKeysToPlayer() {
     playerPosition = playerRigidBody.translation();
     shouldStepUp = false;
 }
+
+
+
 function isGrounded() {
     const playerY = Number(playerPosition.y.toFixed(1)) 
     const groundY = Number((groundLevel).toFixed(1))
@@ -252,13 +269,16 @@ function updateGroundLevel() {
         }
     }
 }
+
+
+
 function tryToStepUp() {
     const forward = new THREE.Vector3(0, 0, -1); // Local forward
     const rotation = playerRigidBody.rotation();
     const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
     forward.applyQuaternion(quat).normalize();
 
-    const stepCheckDistance = 2.5 //im using a positive offset because the forward vector already points forward.
+    const stepCheckDistance = 4; //im using a positive offset because the forward vector already points forward.
     const point = new THREE.Vector3(
         playerPosition.x + forward.x * stepCheckDistance,
         playerPosition.y,
@@ -273,6 +293,7 @@ function tryToStepUp() {
         if (shape instanceof RAPIER.Cuboid) {
             const halfExtents = shape.halfExtents;
             const height = halfExtents.y * 2;
+            obstacleHeight = height;
             console.log('Obstacle height:', height);
             if (height <= maxHeight) {
                 console.log("STEPPING UP");
@@ -282,6 +303,9 @@ function tryToStepUp() {
         return true;//*tune here
     });    
 }
+
+
+
 function updateCameraRotation() {
     const delta = clock.getDelta();
     if (mixer) mixer.update(delta);
