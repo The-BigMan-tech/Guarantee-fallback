@@ -43,6 +43,7 @@ function App() {
         }
         function onKeyDown(event:KeyboardEvent) {
             keysPressed[event.code] = true;
+            console.log("KEY BIND: ",event.code)
             if (event.code == 'KeyP') {
                 console.log("Terminated logs");
                 console.log = ()=>{};

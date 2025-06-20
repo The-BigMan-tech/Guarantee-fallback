@@ -193,6 +193,9 @@ function mapKeysToPlayer() {
         modifiedHorizontalVelocity -= 15//this is to prevent the player from going way passed the intended place to jump to because of velocity
     }
     if (keysPressed['KeyW']) {
+        if (keysPressed['ShiftLeft']) {//for sprinting
+            modifiedHorizontalVelocity += 10
+        }
         if (shouldStepUp) {
             moveOverObstacle();
         }else {
