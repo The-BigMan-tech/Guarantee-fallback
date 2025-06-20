@@ -32,7 +32,7 @@ const cubeHeight = 2;
 const cubePosY = cubeHeight/2 + startingLevelY;
 
 const cubeGeometry = new THREE.BoxGeometry(20,cubeHeight,20);
-const cubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x3f3f3f });
+const cubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x756a5a });
 export const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
 
 const edges = new EdgesGeometry(cubeGeometry);

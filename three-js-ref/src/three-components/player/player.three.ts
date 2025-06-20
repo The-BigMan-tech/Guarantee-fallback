@@ -36,7 +36,7 @@ physicsWorld.createCollider(playerCollider,playerRigidBody);
 playerRigidBody.setTranslation(playerPosition,true);
 
 const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);
-const velocityDelta = 25;
+const velocityDelta = 30;
 
 const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
 const impulseDelta = 80;
@@ -48,7 +48,7 @@ const rotationDelta = 0.05;
 const rotationSpeed = 0.4;
 
 
-const maxHeight = 4//*tune here
+const maxHeight = 3//*tune here
 let shouldPlayJumpAnimation = false;
 let obstacleHeight = 0;
 let shouldStepUp = false;
@@ -204,7 +204,7 @@ function mapKeysToPlayer() {
         if (shouldStepUp) {
             console.log('Attemptig to step up');
             shouldPlayJumpAnimation = false;
-            const forwardVelocity = 8
+            const forwardVelocity = 10
             const upwardVelocity = calculateUpwardVelocity()
             movePlayerForward(forwardVelocity);
             velocity.y += upwardVelocity 

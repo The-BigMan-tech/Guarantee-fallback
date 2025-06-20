@@ -22,14 +22,14 @@ const minHeight = 2;
 const maxHeight = 30;
 
 for (let i = 0; i < points.length; i++) {
+    const [x, z] = points[i];
+
     const height = minHeight + (Math.random() * (maxHeight - minHeight));
     const posY = height / 2 + startingLevelY;//lifted it to prevent sinking
-
-    const tallCubeGeometry = new THREE.BoxGeometry(20,height,20);
-    const [x, z] = points[i];
     const posX = x - groundArea/2; // center around zero.divide by two to align it around the ground's origin to prevent leakage from the ground
     const posZ = z - groundArea/2;
 
+    const tallCubeGeometry = new THREE.BoxGeometry(20,height,20);
     const tallCube = new THREE.Mesh(tallCubeGeometry, tallCubeMaterial);
     const tallCubeEdges = new EdgesGeometry(tallCubeGeometry);
     const tallCubeLine = new LineSegments(tallCubeEdges, new LineBasicMaterial({ color: 0x000000 }));
