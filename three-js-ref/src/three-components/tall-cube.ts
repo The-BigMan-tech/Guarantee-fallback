@@ -3,6 +3,7 @@ import { EdgesGeometry, LineSegments, LineBasicMaterial } from 'three';
 import { physicsWorld } from './physics-world';
 import * as RAPIER from '@dimforge/rapier3d'
 import PoissonDiskSampling from 'poisson-disk-sampling';
+import { startingLevelY } from './player/globals';
 
 const groundArea = 500; // max range for distribution on XZ plane
 const minDistance = 40; // minimum distance between points (adjust to cube size)
@@ -17,13 +18,12 @@ const points = pds.fill(); // array of [x, z] points
 export const cubesGroup = new THREE.Object3D();
 
 const tallCubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f});
-const fixedY = -0.5; // fixed height on flat ground
-const minHeight = 1;
-const maxHeight = 1;
+const minHeight = 2;
+const maxHeight = 2;
 
 for (let i = 0; i < points.length; i++) {
     const height = minHeight + (Math.random() * (maxHeight - minHeight));
-    const posY = height / 2 + fixedY;//lifted it to prevent sinking
+    const posY = height / 2 + startingLevelY;//lifted it to prevent sinking
 
     const tallCubeGeometry = new THREE.BoxGeometry(20,height,20);
     const [x, z] = points[i];

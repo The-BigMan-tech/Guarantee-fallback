@@ -499,3 +499,5 @@ so the calculation just gets the range between the min and max height.its a diff
 rule based character controller
 kinematic based character controller
 dynamic based character controller
+
+jumping is a bit unresponsive cuz of ground calculation

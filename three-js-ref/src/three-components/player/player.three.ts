@@ -25,7 +25,7 @@ const clock = new THREE.Clock();
 
 
 export const player = new THREE.Group();//dont directly control the player position.do it through the rigid body
-let playerPosition:RAPIER.Vector3 = new RAPIER.Vector3(0,1,0);
+let playerPosition:RAPIER.Vector3 = new RAPIER.Vector3(0,10,0);//so that the player spawns high enough to fall on top of a block not inbetween
 
 const playerCollider = RAPIER.ColliderDesc.capsule(0.5, 1);
 const playerBody = RAPIER.RigidBodyDesc.dynamic();
@@ -232,7 +232,7 @@ function mapKeysToPlayer() {
         velocity.add(impulse);
     }
     mapKeysToAnimation();
-    if (isGrounded()) playerRigidBody.setLinvel(velocity,true);
+    if (isGrounded() || shouldStepUp) playerRigidBody.setLinvel(velocity,true);
     playerPosition = playerRigidBody.translation();
     shouldStepUp = false;
     obstacleHeight = 0
@@ -242,11 +242,13 @@ function mapKeysToPlayer() {
 
 function isGrounded() {
     let onGround = false
-    const point = {...player.position,y:Math.floor(player.position.y) - 1}//i used floor instead of round for stability cuz of edge cases caused by precision
+    const posY = Math.floor(player.position.y)//i used floor instead of round for stability cuz of edge cases caused by precision
+    const groundPosY = posY - 1;//the ground should be just one cord lower than the player since te player stands over the ground
+    const point = {...player.position,y:groundPosY}
 
     console.log('Point Query Player: ', player.position.y);
     console.log(' Point Query Point:', point.y);
-    console.log("Point Query Spawn: ",cube.position.y);
+    console.log("Point Query Spawn: ",cube.position.y + cube.scale.y);
 
     physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
         const collider = physicsWorld.getCollider(colliderObject.handle);
