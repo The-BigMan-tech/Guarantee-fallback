@@ -35,7 +35,7 @@ physicsWorld.createCollider(playerCollider,playerRigidBody);
 playerRigidBody.setTranslation(playerPosition,true);
 
 const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);
-const velocityDelta = 15;
+const velocityDelta = 25;
 
 const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
 const impulseDelta = 80;
@@ -184,7 +184,7 @@ export function rotatePlayerX(rotationDelta: number) {
 
 
 function mapKeysToPlayer() {
-    velocity.set(0,-40,0);//*tune.im using it for the gravity replacement that setting linear vel removes
+    velocity.set(0,0,0);//*tune.im using it for the gravity replacement that setting linear vel removes
     impulse.set(0,0,0);
     let flying = false
     toggleThirdPerson();
@@ -214,11 +214,12 @@ function mapKeysToPlayer() {
             const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
             const upwardVelocity = (destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight);
             movePlayerForward(forwardVelocity);
-            velocity.y += upwardVelocity
+            velocity.y += upwardVelocity 
         }else {
             movePlayerForward(velocityDelta);
             if (flying) playerRigidBody.applyImpulse(velocity,true);
         }
+        console.log("Final upward velocity: ",velocity.y);
     }
     if (keysPressed['KeyS']) {
         movePlayerBackward(velocityDelta);
@@ -239,14 +240,15 @@ function mapKeysToPlayer() {
     if (isGrounded() && !flying) playerRigidBody.setLinvel(velocity,true);
     playerPosition = playerRigidBody.translation();
     shouldStepUp = false;
+    obstacleHeight = 0
 }
 
 
 
 function isGrounded() {
-    const playerY = Number(playerPosition.y.toFixed(1)) 
-    const groundY = Number((groundLevel).toFixed(1))
-    const heightDifference = Number((Math.abs(playerY - groundY)).toFixed(1))
+    const playerY = playerPosition.y 
+    const groundY = groundLevel
+    const heightDifference = Number(Math.abs(playerY - groundY))
     const onGround = heightDifference  <= maxHeightDiffFromGround//account for small precision differences
 
     console.log('playerY:', playerY);

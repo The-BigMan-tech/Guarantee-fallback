@@ -18,8 +18,8 @@ export const cubesGroup = new THREE.Object3D();
 
 const tallCubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f});
 const fixedY = -0.5; // fixed height on flat ground
-const minHeight = 0.5;
-const maxHeight = 30
+const minHeight = 1;
+const maxHeight = 1;
 
 for (let i = 0; i < points.length; i++) {
     const height = minHeight + (Math.random() * (maxHeight - minHeight));
