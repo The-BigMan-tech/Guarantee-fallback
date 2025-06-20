@@ -144,32 +144,32 @@ function mapKeysToAnimation() {
 function movePlayerForward(velocityDelta:number) {
     const forward = new THREE.Vector3(0,0,-velocityDelta);//direction vector
     forward.applyQuaternion(player.quaternion);//setting the direction to the rigid body's world space
-    velocity.set(forward.x,forward.y,forward.z)
+    velocity.add(forward)
 }
 function movePlayerBackward(velocityDelta:number) {
     const backward = new THREE.Vector3(0,0,velocityDelta);
     backward.applyQuaternion(player.quaternion);
-    velocity.set(backward.x,backward.y,backward.z)
+    velocity.add(backward)
 }
 function movePlayerLeft(velocityDelta:number) {
     const left = new THREE.Vector3(-velocityDelta,0,0);
     left.applyQuaternion(player.quaternion);
-    velocity.set(left.x,left.y,left.z)
+    velocity.add(left)
 }
 function movePlayerRight(velocityDelta:number) {
     const right = new THREE.Vector3(velocityDelta,0,0);
     right.applyQuaternion(player.quaternion);
-    velocity.set(right.x,right.y,right.z)
+    velocity.add(right)
 }
 function movePlayerUp(impulseDelta:number) {
     const up = new THREE.Vector3(0,impulseDelta,0);
     up.applyQuaternion(player.quaternion);
-    impulse.set(up.x,up.y,up.z);
+    impulse.add(up);
 }
 function movePlayerDown(impulseDelta:number) {
     const down = new THREE.Vector3(0,-impulseDelta,0);
     down.applyQuaternion(player.quaternion);
-    impulse.set(down.x,down.y,down.z)
+    impulse.add(down)
 }
 export function rotatePlayerX(rotationDelta: number) {
     targetRotation.y -= rotationDelta; 
@@ -177,9 +177,14 @@ export function rotatePlayerX(rotationDelta: number) {
 }
 
 
-
+function calculateUpwardVelocity() {
+    const destinationHeight = obstacleHeight 
+    const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
+    const upwardVelocity = (destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight);
+    return upwardVelocity
+}
 function mapKeysToPlayer() {
-    velocity.set(0,0,0);//*tune.im using it for the gravity replacement that setting linear vel removes
+    velocity.set(0,0,0);//im resetting the velocity and impulse every frame to prevent accumulation
     impulse.set(0,0,0);
     toggleThirdPerson();
     if (keysPressed['ArrowLeft'])  {
@@ -200,30 +205,30 @@ function mapKeysToPlayer() {
             console.log('Attemptig to step up');
             shouldPlayJumpAnimation = false;
             const forwardVelocity = 6
-            const destinationHeight = obstacleHeight 
-            const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
-            const upwardVelocity = (destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight);
+            const upwardVelocity = calculateUpwardVelocity()
             movePlayerForward(forwardVelocity);
             velocity.y += upwardVelocity 
         }else {
             movePlayerForward(velocityDelta);
-            if (!isGrounded()) velocity.y -= 40;
+            if (!isGrounded()) velocity.y -= gravityY;//to force the player down if he isnt stepping up and he is in the air.the effect of this is seen when the player is stepping down
         }
         console.log("Final upward velocity: ",velocity.y);
     }
     if (keysPressed['KeyS']) {
         movePlayerBackward(velocityDelta);
+        if (!shouldStepUp && !isGrounded()) velocity.y -= gravityY
     }
     if (keysPressed['KeyA']) {
         movePlayerLeft(velocityDelta);
+        if (!shouldStepUp && !isGrounded()) velocity.y -= gravityY
     }
     if (keysPressed['KeyD']) {
         movePlayerRight(velocityDelta);
+        if (!shouldStepUp && !isGrounded()) velocity.y -= gravityY
     }
     if (keysPressed['Space'] && isGrounded()) {
         movePlayerUp(jumpImpulse)//the linvel made it sluggish so i had to increase the number
         shouldPlayJumpAnimation = true;
-        velocity.y = 0
         velocity.add(impulse);
     }
     mapKeysToAnimation();
@@ -237,7 +242,7 @@ function mapKeysToPlayer() {
 
 function isGrounded() {
     let onGround = false
-    const point = {...player.position,y:Math.floor(player.position.y) - 1}
+    const point = {...player.position,y:Math.floor(player.position.y) - 1}//i used floor instead of round for stability cuz of edge cases caused by precision
 
     console.log('Point Query Player: ', player.position.y);
     console.log(' Point Query Point:', point.y);
@@ -259,7 +264,7 @@ function isGrounded() {
 
 
 
-function tryToStepUp() {
+function detectLowStep() {
     const forward = new THREE.Vector3(0, 0, -1); // Local forward
     const rotation = playerRigidBody.rotation();
     const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
@@ -316,5 +321,5 @@ export function updatePlayer() {
     updateCameraRotation();
     updatePlayerTransformations();
     respawnIfOutOfBounds()
-    tryToStepUp();
+    detectLowStep();
 }
