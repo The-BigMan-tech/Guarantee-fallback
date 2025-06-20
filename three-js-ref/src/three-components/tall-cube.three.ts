@@ -1,9 +1,9 @@
 import * as THREE from 'three'
 import { EdgesGeometry, LineSegments, LineBasicMaterial } from 'three';
-import { physicsWorld } from './physics-world';
+import { physicsWorld } from './physics-world.three';
 import * as RAPIER from '@dimforge/rapier3d'
 import PoissonDiskSampling from 'poisson-disk-sampling';
-import { startingLevelY } from './player/globals';
+import { startingLevelY } from './player/globals.three';
 
 const groundArea = 800; // max range for distribution on XZ plane
 const minDistance = 40; // minimum distance between points (adjust to cube size)

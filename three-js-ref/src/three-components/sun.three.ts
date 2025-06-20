@@ -1,6 +1,6 @@
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import * as THREE from 'three'
-import { directionalLight } from './lights';
+import { directionalLight } from './lights.three';
 
 export const sky = new Sky();
 sky.scale.setScalar(450000);

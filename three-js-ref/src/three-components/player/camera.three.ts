@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { cameraMode, keysPressed } from './globals';
-import { listener } from './sounds';
+import { cameraMode, keysPressed } from './globals.three';
+import { listener } from './sounds.three';
 
 const FOV = 75;
 const nearPoint = 0.1;

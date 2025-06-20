@@ -1,11 +1,11 @@
 import * as THREE from 'three'
-import { camera } from './player/camera';
-import { scene } from './scene';
-import { loadEnv } from './env';
-import { updateCamera} from './player/camera';
-import { updateSun } from './sun';
+import { camera } from './player/camera.three';
+import { scene } from './scene.three';
+import { loadEnv } from './env.three';
+import { updateCamera} from './player/camera.three';
+import { updateSun } from './sun.three';
 import { updatePlayer } from './player/player.three';
-import { physicsWorld } from './physics-world';
+import { physicsWorld } from './physics-world.three';
 
 export const renderer = new THREE.WebGLRenderer({antialias:true});//play with this
 export const canvas = renderer.domElement;

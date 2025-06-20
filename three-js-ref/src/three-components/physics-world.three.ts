@@ -1,5 +1,5 @@
 import * as RAPIER from '@dimforge/rapier3d'
-import { gravityY } from './player/globals';
+import { gravityY } from './player/globals.three';
 
 export const physicsWorld = new RAPIER.World({x:0,y:-gravityY,z:0})
 physicsWorld.numSolverIterations = 10;  // default is 4, increase as needed

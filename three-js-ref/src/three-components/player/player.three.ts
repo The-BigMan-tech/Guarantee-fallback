@@ -1,12 +1,12 @@
 import * as THREE from "three"
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
-import { pitchObject } from "./camera";
-import { walkSound } from "./sounds";
-import { cameraMode, gravityY, keysPressed, toggleThirdPerson } from "./globals";
+import { pitchObject } from "./camera.three";
+import { walkSound } from "./sounds.three";
+import { cameraMode, gravityY, keysPressed, toggleThirdPerson } from "./globals.three";
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
-import { physicsWorld } from "../physics-world";
-import { cube } from "../terrain";
+import { physicsWorld } from "../physics-world.three";
+import { cube } from "../terrain.three";
 
 
 const loader:GLTFLoader = new GLTFLoader();
