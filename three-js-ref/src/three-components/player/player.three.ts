@@ -47,9 +47,9 @@ const targetQuaternion = new THREE.Quaternion();
 const rotationDelta = 0.05;
 const rotationSpeed = 0.4;
 
-let shouldPlayJumpAnimation = false;
 
 const maxHeight = 4//*tune here
+let shouldPlayJumpAnimation = false;
 let obstacleHeight = 0;
 let shouldStepUp = false;
 
@@ -204,7 +204,7 @@ function mapKeysToPlayer() {
         if (shouldStepUp) {
             console.log('Attemptig to step up');
             shouldPlayJumpAnimation = false;
-            const forwardVelocity = 6
+            const forwardVelocity = 8
             const upwardVelocity = calculateUpwardVelocity()
             movePlayerForward(forwardVelocity);
             velocity.y += upwardVelocity 
@@ -272,7 +272,7 @@ function detectLowStep() {
     const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
     forward.applyQuaternion(quat).normalize();
 
-    const stepCheckDistance = 4; //im using a positive offset because the forward vector already points forward.
+    const stepCheckDistance = 4.5; //im using a positive offset because the forward vector already points forward.
     const point = new THREE.Vector3(
         playerPosition.x + forward.x * stepCheckDistance,
         playerPosition.y,
@@ -300,9 +300,11 @@ function detectLowStep() {
 
 
 
-function updateCameraRotation() {
+function updatePlayerAnimations() {
     const delta = clock.getDelta();
     if (mixer) mixer.update(delta);
+}
+function updateCamPerspective() {
     const targetZ = cameraMode.isThirdPerson ? 6 : 0;
     pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
 }
@@ -320,8 +322,9 @@ function respawnIfOutOfBounds() {
 }
 export function updatePlayer() {
     mapKeysToPlayer(); 
-    updateCameraRotation();
+    updatePlayerAnimations();
+    updateCamPerspective();
     updatePlayerTransformations();
-    respawnIfOutOfBounds()
     detectLowStep();
+    respawnIfOutOfBounds()
 }

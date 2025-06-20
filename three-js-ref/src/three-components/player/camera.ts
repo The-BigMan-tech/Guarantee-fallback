@@ -34,12 +34,12 @@ function clampPitch() {
     euler.x += (clampedX - euler.x) * smoothFactor;
     targetQuaternion.setFromEuler(euler);
 }
-function renderCameraKeys() {
+function mapKeysToCamera() {
     if (keysPressed['ArrowUp']) rotateCameraY(-cameraRotationDelta);  
     if (keysPressed['ArrowDown']) rotateCameraY(+cameraRotationDelta);
 }
-export function animateCamera() {
-    renderCameraKeys()
+export function updateCamera() {
+    mapKeysToCamera()
     pitchObject.quaternion.slerp(targetQuaternion,cameraRotationSpeed);
 }
 
