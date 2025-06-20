@@ -437,6 +437,7 @@ velocity-based detection
 position-based detection--unsuitable for platforms
 collision-based detection
 raycast detection
+collider query detection
 
 *so the pattern i used which is through the flag ensures that i dont step upin the same movement where i collide with the object.i move,collide,update position,check if i should step and the next movement i make is a step up not that i move and step up simultaneously
 
@@ -493,3 +494,8 @@ the scalar and random multiplication alone won’t produce values in the desired
 so the min and the max without adding the min height will be off by min height units which if ignored for a large value can be a problem
 
 so the calculation just gets the range between the min and max height.its a difference not a full rep of the height.so i have to add this range to the min height to enter the range i want and what this does is that the random func is just a weight on the range ensuring that the range is weighted differently across the loop
+
+*Character controller
+rule based character controller
+kinematic based character controller
+dynamic based character controller

@@ -6,6 +6,7 @@ import { cameraMode, gravityY, keysPressed, toggleThirdPerson } from "./globals"
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld } from "../physics-world";
+import { cube } from "../terrain";
 
 
 const loader:GLTFLoader = new GLTFLoader();
@@ -46,17 +47,11 @@ const targetQuaternion = new THREE.Quaternion();
 const rotationDelta = 0.05;
 const rotationSpeed = 0.4;
 
-const maxHeightDiffFromGround = 0.4
 let shouldPlayJumpAnimation = false;
-let groundLevel:number = 1;//initial ground level of the terrain
 
 const maxHeight = 4//*tune here
 let obstacleHeight = 0;
 let shouldStepUp = false;
-
-const stableFrameCount = 15;
-const positionThreshold = 0.02;  // Adjust based on your precision needs
-const lastYPositions: number[] = [];
 
 
 loader.load(modelPath,
@@ -246,30 +241,25 @@ function mapKeysToPlayer() {
 
 
 function isGrounded() {
-    const playerY = playerPosition.y 
-    const groundY = groundLevel
-    const heightDifference = Number(Math.abs(playerY - groundY))
-    const onGround = heightDifference  <= maxHeightDiffFromGround//account for small precision differences
+    let onGround = false
+    const point = {...player.position,y:Math.round(player.position.y) - 1}
 
-    console.log('playerY:', playerY);
-    console.log('groundLevel:', groundLevel);
-    console.log('groundY:', groundY);
-    console.log("Height diff: ",heightDifference);
+    console.log('Point Query Player: ', player.position.y);
+    console.log(' Point Query Point:', point.y);
+    console.log("Point Query Spawn: ",cube.position.y);
+
+    physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
+        const collider = physicsWorld.getCollider(colliderObject.handle);
+        const shape = collider.shape
+        if (shape instanceof RAPIER.Capsule) return true//ignore the player and continue checking
+        console.log("PointY Ground: ",point.y);
+        console.log('Ground Collider shape:', shape);
+
+        onGround = true
+        return false;//*tune here
+    });  
+    console.log("Point On Ground?: ",onGround);
     return onGround 
-}
-function updateGroundLevel() {
-    const currentY = playerRigidBody.translation().y;
-    lastYPositions.push(currentY);
-    if (lastYPositions.length > stableFrameCount) {
-        lastYPositions.shift();
-    }
-    if (lastYPositions.length === stableFrameCount) {
-        const minY = Math.min(...lastYPositions);
-        const maxY = Math.max(...lastYPositions);
-        if ((maxY - minY) < positionThreshold) {
-            groundLevel = currentY 
-        }
-    }
 }
 
 
@@ -327,7 +317,6 @@ function respawnIfOutOfBounds() {
     }
 }
 export function updatePlayer() {
-    updateGroundLevel();
     mapKeysToPlayer(); 
     updateCameraRotation();
     updatePlayerTransformations();
