@@ -33,7 +33,7 @@ let jumpAction:THREE.AnimationAction | null = null;
 
 
 //Tunable variables
-const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);
+const velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
 const horizontalVelocity = 30;
 const jumpVelocity = 30;
 
@@ -184,24 +184,32 @@ function moveOverObstacle() {
 function mapKeysToPlayer() {
     velocity.set(0,0,0);//im resetting the velocity and impulse every frame to prevent accumulation over time
 
+    const pressedJump = keysPressed['Space']
+    let modifiedHorizontalVelocity = horizontalVelocity;
+
+    if (pressedJump) {
+        movePlayerUp(jumpVelocity)//the linvel made it sluggish so i had to increase the number
+        shouldPlayJumpAnimation = true;
+        modifiedHorizontalVelocity -= 15//this is to prevent the player from going way passed the intended place to jump to because of velocity
+    }
     if (keysPressed['KeyW']) {
         if (shouldStepUp) {
             moveOverObstacle();
         }else {
-            movePlayerForward(horizontalVelocity);
+            movePlayerForward(modifiedHorizontalVelocity);
             forcePlayerDown()
         }
     }
     if (keysPressed['KeyS']) {
-        movePlayerBackward(horizontalVelocity);
+        movePlayerBackward(modifiedHorizontalVelocity);
         forcePlayerDown()
     }
     if (keysPressed['KeyA']) {
-        movePlayerLeft(horizontalVelocity);
+        movePlayerLeft(modifiedHorizontalVelocity);
         forcePlayerDown()
     }
     if (keysPressed['KeyD']) {
-        movePlayerRight(horizontalVelocity);
+        movePlayerRight(modifiedHorizontalVelocity);
         forcePlayerDown()
     }
     if (keysPressed['ArrowLeft'])  {
@@ -210,10 +218,6 @@ function mapKeysToPlayer() {
     if (keysPressed['ArrowRight']) {
         rotatePlayerX(+rotationDelta)
     };
-    if (keysPressed['Space']) {
-        movePlayerUp(jumpVelocity)//the linvel made it sluggish so i had to increase the number
-        shouldPlayJumpAnimation = true;
-    }
     toggleThirdPerson();
     mapKeysToAnimation();
 
