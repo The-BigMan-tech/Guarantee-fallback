@@ -48,8 +48,8 @@ const rotationDelta = 0.04;
 const rotationSpeed = 0.4;
 
 
-const maxStepUpHeight = 4//*tune here
-const stepCheckDistance = 4.5; //im using a positive offset because the forward vector already points forward.
+const maxStepUpHeight = 3//*tune here
+const stepCheckDistance = 3; //im using a positive offset because the forward vector already points forward.
 let shouldPlayJumpAnimation = false;
 let obstacleHeight = 0;
 let shouldStepUp = false;
@@ -179,16 +179,15 @@ export function rotatePlayerX(rotationDelta: number) {
 
 
 function calculateUpwardVelocity() {
-    const destinationHeight = obstacleHeight 
+    const destinationHeight = Math.round(obstacleHeight)
     const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
-    const upwardVelocity = (destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight);
-    console.log("Final upward velocity: ",velocity.y);
+    const upwardVelocity = Math.round((destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight));
     return upwardVelocity
 }
 function calculateForwardVelocity(upwardVelocity:number) {
-    const destinationHeight = obstacleHeight 
+    const destinationHeight = Math.round(obstacleHeight)
     const timeToReachHeight = (upwardVelocity/gravityY) + Math.sqrt((2*destinationHeight)/gravityY)
-    const forwardVelocity = Math.ceil(stepCheckDistance/timeToReachHeight)
+    const forwardVelocity = Math.round(stepCheckDistance/timeToReachHeight)
     console.log("Final forward velocity: ",forwardVelocity);
     return forwardVelocity
 }
@@ -222,6 +221,7 @@ function mapKeysToPlayer() {
             movePlayerForward(velocityDelta);
             if (!isGrounded()) velocity.y -= gravityY;//to force the player down if he isnt stepping up and he is in the air.the effect of this is seen when the player is stepping down
         }
+        console.log("Final upward velocity: ",velocity.y);
     }
     if (keysPressed['KeyS']) {
         movePlayerBackward(velocityDelta);

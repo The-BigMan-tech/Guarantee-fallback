@@ -5,7 +5,7 @@ import * as RAPIER from '@dimforge/rapier3d'
 import PoissonDiskSampling from 'poisson-disk-sampling';
 import { startingLevelY } from './player/globals';
 
-const groundArea = 500; // max range for distribution on XZ plane
+const groundArea = 800; // max range for distribution on XZ plane
 const minDistance = 40; // minimum distance between points (adjust to cube size)
 
 const pds = new PoissonDiskSampling({
@@ -18,7 +18,7 @@ const points = pds.fill(); // array of [x, z] points
 export const cubesGroup = new THREE.Object3D();
 
 const tallCubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f});
-const minHeight = 2;
+const minHeight = 1;
 const maxHeight = 30;
 
 for (let i = 0; i < points.length; i++) {
