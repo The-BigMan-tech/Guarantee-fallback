@@ -35,20 +35,21 @@ const playerRigidBody = physicsWorld.createRigidBody(playerBody)
 physicsWorld.createCollider(playerCollider,playerRigidBody);
 playerRigidBody.setTranslation(playerPosition,true);
 
-const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);
+const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);//velocity controls horizontal motion
 const velocityDelta = 30;
 
-const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);
+const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);//impulse controls vertical motion
 const impulseDelta = 80;
 const jumpImpulse = 30;
 
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
-const rotationDelta = 0.05;
+const rotationDelta = 0.04;
 const rotationSpeed = 0.4;
 
 
-const maxHeight = 3//*tune here
+const maxStepUpHeight = 4//*tune here
+const stepCheckDistance = 4.5; //im using a positive offset because the forward vector already points forward.
 let shouldPlayJumpAnimation = false;
 let obstacleHeight = 0;
 let shouldStepUp = false;
@@ -181,11 +182,20 @@ function calculateUpwardVelocity() {
     const destinationHeight = obstacleHeight 
     const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
     const upwardVelocity = (destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight);
+    console.log("Final upward velocity: ",velocity.y);
     return upwardVelocity
 }
+function calculateForwardVelocity(upwardVelocity:number) {
+    const destinationHeight = obstacleHeight 
+    const timeToReachHeight = (upwardVelocity/gravityY) + Math.sqrt((2*destinationHeight)/gravityY)
+    const forwardVelocity = Math.ceil(stepCheckDistance/timeToReachHeight)
+    console.log("Final forward velocity: ",forwardVelocity);
+    return forwardVelocity
+}
 function mapKeysToPlayer() {
-    velocity.set(0,0,0);//im resetting the velocity and impulse every frame to prevent accumulation
+    velocity.set(0,0,0);//im resetting the velocity and impulse every frame to prevent accumulation over time
     impulse.set(0,0,0);
+
     toggleThirdPerson();
     if (keysPressed['ArrowLeft'])  {
         rotatePlayerX(-rotationDelta)
@@ -204,35 +214,34 @@ function mapKeysToPlayer() {
         if (shouldStepUp) {
             console.log('Attemptig to step up');
             shouldPlayJumpAnimation = false;
-            const forwardVelocity = 10
             const upwardVelocity = calculateUpwardVelocity()
+            const forwardVelocity = calculateForwardVelocity(upwardVelocity)
             movePlayerForward(forwardVelocity);
             velocity.y += upwardVelocity 
         }else {
             movePlayerForward(velocityDelta);
             if (!isGrounded()) velocity.y -= gravityY;//to force the player down if he isnt stepping up and he is in the air.the effect of this is seen when the player is stepping down
         }
-        console.log("Final upward velocity: ",velocity.y);
     }
     if (keysPressed['KeyS']) {
         movePlayerBackward(velocityDelta);
-        if (!shouldStepUp && !isGrounded()) velocity.y -= gravityY
+        if (!shouldStepUp && !isGrounded()) velocity.y -= gravityY;
     }
     if (keysPressed['KeyA']) {
         movePlayerLeft(velocityDelta);
-        if (!shouldStepUp && !isGrounded()) velocity.y -= gravityY
+        if (!shouldStepUp && !isGrounded()) velocity.y -= gravityY;
     }
     if (keysPressed['KeyD']) {
         movePlayerRight(velocityDelta);
-        if (!shouldStepUp && !isGrounded()) velocity.y -= gravityY
+        if (!shouldStepUp && !isGrounded()) velocity.y -= gravityY;
     }
-    if (keysPressed['Space'] && isGrounded()) {
+    if (keysPressed['Space']) {
         movePlayerUp(jumpImpulse)//the linvel made it sluggish so i had to increase the number
         shouldPlayJumpAnimation = true;
-        velocity.add(impulse);
+        velocity.add(impulse);//the reason why im still regarding this as impulse even when im adding it to the velocity directly is because when this takes effect,setting linvel directly wont run and as such,it behaves under natural forces like gravity not an explicit one like velocity
     }
     mapKeysToAnimation();
-    if (isGrounded() || shouldStepUp) playerRigidBody.setLinvel(velocity,true);
+    if (isGrounded() || shouldStepUp) playerRigidBody.setLinvel(velocity,true);//i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
     playerPosition = playerRigidBody.translation();
     shouldStepUp = false;
     obstacleHeight = 0
@@ -243,7 +252,7 @@ function mapKeysToPlayer() {
 function isGrounded() {
     let onGround = false
     const posY = Math.floor(player.position.y)//i used floor instead of round for stability cuz of edge cases caused by precision
-    const groundPosY = posY - 1;//the ground should be just one cord lower than the player since te player stands over the ground
+    const groundPosY = posY - 1.5;//the ground should be just one cord lower than the player since te player stands over the ground
     const point = {...player.position,y:groundPosY}
 
     console.log('Point Query Player: ', player.position.y);
@@ -272,7 +281,7 @@ function detectLowStep() {
     const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
     forward.applyQuaternion(quat).normalize();
 
-    const stepCheckDistance = 4.5; //im using a positive offset because the forward vector already points forward.
+
     const point = new THREE.Vector3(
         playerPosition.x + forward.x * stepCheckDistance,
         playerPosition.y,
@@ -280,6 +289,7 @@ function detectLowStep() {
     );
 
     physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
+        console.log('PointY Obstacle: ', point.y);
         const collider = physicsWorld.getCollider(colliderObject.handle);
         const shape = collider.shape
         console.log('Collider shape:', shape);
@@ -289,7 +299,7 @@ function detectLowStep() {
             const height = halfExtents.y * 2;
             obstacleHeight = height;
             console.log('Obstacle height:', height);
-            if (height <= maxHeight) {
+            if (height <= maxStepUpHeight) {
                 console.log("STEPPING UP");
                 shouldStepUp = true
             }
