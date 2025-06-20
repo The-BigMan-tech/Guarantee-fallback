@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { pitchObject } from "./camera.three";
-import { walkSound } from "./sounds.three";
+import { landSound, walkSound } from "./sounds.three";
 import { cameraMode, gravityY, keysPressed, toggleThirdPerson } from "./globals.three";
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
@@ -35,12 +35,10 @@ const playerRigidBody = physicsWorld.createRigidBody(playerBody)
 physicsWorld.createCollider(playerCollider,playerRigidBody);
 playerRigidBody.setTranslation(playerPosition,true);
 
-const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);//velocity controls horizontal motion
+const velocity:THREE.Vector3 = new THREE.Vector3(0,1,0);
 const velocityDelta = 30;
-
-const impulse:THREE.Vector3 = new THREE.Vector3(0,0,0);//impulse controls vertical motion
-const impulseDelta = 80;
 const jumpImpulse = 30;
+
 
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
@@ -162,15 +160,15 @@ function movePlayerRight(velocityDelta:number) {
     right.applyQuaternion(player.quaternion);
     velocity.add(right)
 }
-function movePlayerUp(impulseDelta:number) {
-    const up = new THREE.Vector3(0,impulseDelta,0);
+function movePlayerUp(velocityDelta:number) {
+    const up = new THREE.Vector3(0,velocityDelta,0);
     up.applyQuaternion(player.quaternion);
-    impulse.add(up);
+    velocity.add(up);
 }
-function movePlayerDown(impulseDelta:number) {
-    const down = new THREE.Vector3(0,-impulseDelta,0);
+function movePlayerDown(velocityDelta:number) {
+    const down = new THREE.Vector3(0,-velocityDelta,0);
     down.applyQuaternion(player.quaternion);
-    impulse.add(down)
+    velocity.add(down);
 }
 export function rotatePlayerX(rotationDelta: number) {
     targetRotation.y -= rotationDelta; 
@@ -191,64 +189,65 @@ function calculateForwardVelocity(upwardVelocity:number) {
     console.log("Final forward velocity: ",forwardVelocity);
     return forwardVelocity
 }
+
+
+function forcePlayerDown() {//to force the player down if he isnt stepping up and he is in the air while moving forward.the effect of this is seen when the player is stepping down
+    if (!shouldStepUp && !isGrounded()) {
+        movePlayerDown(gravityY)
+    };
+}
+function moveOverObstacle() {
+    console.log('Attemptig to step up');
+    shouldPlayJumpAnimation = false;
+    const upwardVelocity = calculateUpwardVelocity()
+    const forwardVelocity = calculateForwardVelocity(upwardVelocity)
+    movePlayerForward(forwardVelocity);
+    movePlayerUp(upwardVelocity);
+}
 function mapKeysToPlayer() {
     velocity.set(0,0,0);//im resetting the velocity and impulse every frame to prevent accumulation over time
-    impulse.set(0,0,0);
 
-    toggleThirdPerson();
     if (keysPressed['ArrowLeft'])  {
         rotatePlayerX(-rotationDelta)
     };  
     if (keysPressed['ArrowRight']) {
         rotatePlayerX(+rotationDelta)
     };
-    if (keysPressed['KeyQ']) {
-        movePlayerDown(impulseDelta);
-    }
-    if (keysPressed['KeyE']) {
-        movePlayerUp(impulseDelta)
-        shouldPlayJumpAnimation = false;
-    }
     if (keysPressed['KeyW']) {
         if (shouldStepUp) {
-            console.log('Attemptig to step up');
-            shouldPlayJumpAnimation = false;
-            const upwardVelocity = calculateUpwardVelocity()
-            const forwardVelocity = calculateForwardVelocity(upwardVelocity)
-            movePlayerForward(forwardVelocity);
-            velocity.y += upwardVelocity 
+            moveOverObstacle();
         }else {
             movePlayerForward(velocityDelta);
-            if (!isGrounded()) velocity.y -= gravityY;//to force the player down if he isnt stepping up and he is in the air.the effect of this is seen when the player is stepping down
+            forcePlayerDown()
         }
-        console.log("Final upward velocity: ",velocity.y);
     }
     if (keysPressed['KeyS']) {
         movePlayerBackward(velocityDelta);
-        if (!shouldStepUp && !isGrounded()) velocity.y -= gravityY;
+        forcePlayerDown()
     }
     if (keysPressed['KeyA']) {
         movePlayerLeft(velocityDelta);
-        if (!shouldStepUp && !isGrounded()) velocity.y -= gravityY;
+        forcePlayerDown()
     }
     if (keysPressed['KeyD']) {
         movePlayerRight(velocityDelta);
-        if (!shouldStepUp && !isGrounded()) velocity.y -= gravityY;
+        forcePlayerDown()
     }
     if (keysPressed['Space']) {
         movePlayerUp(jumpImpulse)//the linvel made it sluggish so i had to increase the number
         shouldPlayJumpAnimation = true;
-        velocity.add(impulse);//the reason why im still regarding this as impulse even when im adding it to the velocity directly is because when this takes effect,setting linvel directly wont run and as such,it behaves under natural forces like gravity not an explicit one like velocity
     }
+    toggleThirdPerson();
     mapKeysToAnimation();
-    if (isGrounded() || shouldStepUp) playerRigidBody.setLinvel(velocity,true);//i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
+    if (isGrounded() || shouldStepUp) {//i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
+        playerRigidBody.setLinvel(velocity,true)
+    };
     playerPosition = playerRigidBody.translation();
     shouldStepUp = false;
     obstacleHeight = 0
 }
 
-
-
+let playLandSound = true
 function isGrounded() {
     let onGround = false
     const posY = Math.floor(player.position.y)//i used floor instead of round for stability cuz of edge cases caused by precision
@@ -267,9 +266,14 @@ function isGrounded() {
         console.log('Ground Collider shape:', shape);
 
         onGround = true
+        if (playLandSound) {
+            landSound.play();
+            playLandSound = false
+        }
         return false;//*tune here
     });  
     console.log("Point On Ground?: ",onGround);
+    if (!onGround) playLandSound = true;
     return onGround 
 }
 

@@ -7,10 +7,9 @@ export const landSound = new THREE.PositionalAudio(listener);
 
 audioLoader.load('walking.mp3',(buffer)=> {
     walkSound.setBuffer(buffer);
-    walkSound.setLoop(false);
     walkSound.setVolume(40);
 });
 audioLoader.load('landing.mp3',(buffer)=> {
     landSound.setBuffer(buffer);
-    landSound.setVolume(40);
+    landSound.setVolume(30);
 });
