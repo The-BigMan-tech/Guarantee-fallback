@@ -11,6 +11,10 @@ import { cube } from "../terrain.three";
 const maxStepUpHeight = 3//*tune here
 const stepCheckDistance = 4.5; //im using a positive offset because the forward vector already points forward.
 const spawnPoint = new RAPIER.Vector3(0,20,0)
+const characterHeight = 1
+const characterWidth = 1
+const mass = 40
+const modelPath:string = './silvermoon.glb';
 
 //Player group and positioning
 export const player = new THREE.Group();//dont directly control the player position.do it through the rigid body
@@ -18,9 +22,9 @@ let playerPosition:RAPIER.Vector3 = spawnPoint;//so that the player spawns high 
 
 
 //Physics body creation
-const playerCollider = RAPIER.ColliderDesc.capsule(0.5, 1);
+const playerCollider = RAPIER.ColliderDesc.capsule(characterHeight/2,characterWidth);
 const playerBody = RAPIER.RigidBodyDesc.dynamic();
-playerBody.mass = 40
+playerBody.mass = mass
 
 const playerRigidBody = physicsWorld.createRigidBody(playerBody)
 physicsWorld.createCollider(playerCollider,playerRigidBody);
@@ -61,7 +65,6 @@ let shouldStepUp = false;
 loadPlayerModel();
 function loadPlayerModel() {
     const loader:GLTFLoader = new GLTFLoader();
-    const modelPath:string = './silvermoon.glb';
     loader.load(modelPath,
         gltf=>{
             const playerModel = gltf.scene
