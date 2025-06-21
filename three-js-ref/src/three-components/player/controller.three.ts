@@ -8,9 +8,13 @@ import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld } from "../physics-world.three";
 import { cube } from "../terrain.three";
 
+const maxStepUpHeight = 3//*tune here
+const stepCheckDistance = 4.5; //im using a positive offset because the forward vector already points forward.
+const spawnPoint = new RAPIER.Vector3(0,20,0)
+
 //Player group and positioning
 export const player = new THREE.Group();//dont directly control the player position.do it through the rigid body
-let playerPosition:RAPIER.Vector3 = new RAPIER.Vector3(0,10,0);//so that the player spawns high enough to fall on top of a block not inbetween
+let playerPosition:RAPIER.Vector3 = spawnPoint;//so that the player spawns high enough to fall on top of a block not inbetween
 
 
 //Physics body creation
@@ -43,9 +47,9 @@ const targetQuaternion = new THREE.Quaternion();
 const rotationDelta = 0.04;
 const rotationSpeed = 0.4;
 
-const maxStepUpHeight = 3//*tune here
-const stepCheckDistance = 4.5; //im using a positive offset because the forward vector already points forward.
 
+const groundDetectionDistance = 1.5
+const outOfBoundsY = -60
 
 //Global variables
 let shouldPlayJumpAnimation = false;
@@ -92,26 +96,6 @@ function fadeToAnimation(newAction: THREE.AnimationAction) {
         newAction.play();
         if (currentAction) currentAction.crossFadeTo(newAction, 0.4, false);
         currentAction = newAction;
-    }
-}
-function mapKeysToAnimation() {
-    if (mixer && idleAction && walkAction && jumpAction) {//only play animations if all animations have been loaded siuccesfully
-        if (!isGrounded() && shouldPlayJumpAnimation && !shouldStepUp) {
-            walkSound.stop();
-            fadeToAnimation(jumpAction);
-        }else if (keysPressed['KeyW']) {//each key will have its own animation
-            if (!walkSound.isPlaying) walkSound.play();
-            fadeToAnimation(walkAction);
-        }else if (keysPressed['KeyA']) {
-            if (!walkSound.isPlaying) walkSound.play();
-        }else if (keysPressed['KeyS']) {
-            if (!walkSound.isPlaying) walkSound.play();
-        }else if (keysPressed['KeyD']) {
-            if (!walkSound.isPlaying) walkSound.play();
-        }else {
-            walkSound.stop();
-            fadeToAnimation(idleAction);
-        }
     }
 }
 
@@ -167,14 +151,14 @@ export function rotatePlayerX(rotationDelta: number) {
 function calculateUpwardVelocity() {
     const destinationHeight = Math.round(obstacleHeight)
     const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
-    const upwardVelocity = Math.round((destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight));
+    const upwardVelocity = (destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight);
     console.log("Final upward velocity: ",upwardVelocity);
     return upwardVelocity
 }
 function calculateForwardVelocity(upwardVelocity:number) {
     const destinationHeight = Math.round(obstacleHeight)
     const timeToReachHeight = (upwardVelocity/gravityY) + Math.sqrt((2*destinationHeight)/gravityY)
-    const forwardVelocity = Math.round(stepCheckDistance/timeToReachHeight)
+    const forwardVelocity = stepCheckDistance/timeToReachHeight
     console.log("Final forward velocity: ",forwardVelocity);
     return forwardVelocity
 }
@@ -223,13 +207,32 @@ function mapKeysToPlayer() {
     };
     toggleThirdPerson();
 }
-
+function mapKeysToAnimation() {
+    if (mixer && idleAction && walkAction && jumpAction) {//only play animations if all animations have been loaded siuccesfully
+        if (!isGrounded() && shouldPlayJumpAnimation && !shouldStepUp) {
+            walkSound.stop();
+            fadeToAnimation(jumpAction);
+        }else if (keysPressed['KeyW']) {//each key will have its own animation
+            if (!walkSound.isPlaying) walkSound.play();
+            fadeToAnimation(walkAction);
+        }else if (keysPressed['KeyA']) {
+            if (!walkSound.isPlaying) walkSound.play();
+        }else if (keysPressed['KeyS']) {
+            if (!walkSound.isPlaying) walkSound.play();
+        }else if (keysPressed['KeyD']) {
+            if (!walkSound.isPlaying) walkSound.play();
+        }else {
+            walkSound.stop();
+            fadeToAnimation(idleAction);
+        }
+    }
+}
 
 let playLandSound = true
 function isGrounded() {
     let onGround = false
     const posY = Math.floor(player.position.y)//i used floor instead of round for stability cuz of edge cases caused by precision
-    const groundPosY = posY - 1.5;//the ground should be just one cord lower than the player since te player stands over the ground
+    const groundPosY = posY - groundDetectionDistance;//the ground should be just one cord lower than the player since te player stands over the ground
     const point = {...player.position,y:groundPosY}
 
     console.log('Point Query Player: ', player.position.y);
@@ -313,8 +316,8 @@ function updatePlayerTransformations() {
     playerRigidBody.setRotation(targetQuaternion,true);
 }
 function respawnIfOutOfBounds() {
-    if (playerPosition.y <= -60) {
-        playerRigidBody.setTranslation({x:0,y:20,z:0},true);
+    if (playerPosition.y <= outOfBoundsY) {
+        playerRigidBody.setTranslation(spawnPoint,true);
         playerPosition = playerRigidBody.translation();
         player.position.set(playerPosition.x,playerPosition.y,playerPosition.z);
     }
