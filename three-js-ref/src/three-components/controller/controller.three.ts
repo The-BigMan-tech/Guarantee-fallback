@@ -132,14 +132,14 @@ export class Controller {
     private calculateUpwardVelocity() {
         const destinationHeight = Math.round(this.obstacleHeight)
         const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
-        const upwardVelocity = (destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight);
+        const upwardVelocity = Math.round((destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight));
         console.log("Final upward velocity: ",upwardVelocity);
         return upwardVelocity
     }
     private calculateForwardVelocity(upwardVelocity:number) {
         const destinationHeight = Math.round(this.obstacleHeight)
         const timeToReachHeight = (upwardVelocity/gravityY) + Math.sqrt((2*destinationHeight)/gravityY)
-        const forwardVelocity = this.fixedData.stepCheckDistance/timeToReachHeight
+        const forwardVelocity = Math.round(this.fixedData.stepCheckDistance/timeToReachHeight)
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
@@ -232,7 +232,7 @@ export class Controller {
         this.shouldPlayJumpAnimation = false;
         const upwardVelocity = this.calculateUpwardVelocity()
         const forwardVelocity = this.calculateForwardVelocity(upwardVelocity)
-        this.moveForward(forwardVelocity);
+        this.moveForward(forwardVelocity + this.dynamicData.jumpResistance);//i added jump resistance here because when moving the characyer up,jump resistance resists this forward velocity but what i want is for it to only resist forward velocity when jumping not stepping over
         this.moveCharacterUp(upwardVelocity);
         this.shouldPlayJumpAnimation = false;
     }
@@ -249,7 +249,7 @@ export class Controller {
         this.forceCharacterDown()
     }
 
-    
+
     protected moveCharacterForward(velocityDelta:number) {
         if (this.shouldStepUp) this.moveOverObstacle()
         else this.moveForward(velocityDelta);
