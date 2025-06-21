@@ -1,11 +1,8 @@
 import * as THREE from "three"
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
-import { pitchObject } from "./camera.three";
-import { gravityY } from "../physics-world.three";
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
-import { physicsWorld ,outOfBoundsY} from "../physics-world.three";
-import { cube } from "../terrain.three";
+import { physicsWorld} from "../physics-world.three";
 
 interface FixedControllerData {
     modelPath:string,
@@ -15,6 +12,7 @@ interface FixedControllerData {
     mass:number,
     groundDetectionDistance:number,
     stepCheckDistance:number,
+    camera:THREE.Object3D<THREE.Object3DEventMap> | null
 }
 interface DynamicControllerData {
     maxStepUpHeight:number,
@@ -82,18 +80,31 @@ class Controller {
     }
     private loadCharacterModel() {
         const loader:GLTFLoader = new GLTFLoader();
-        loader.load(modelPath,
+        loader.load(this.fixedData.modelPath,
             gltf=>{
                 const characterModel = gltf.scene
                 characterModel.position.z = 0.3
-                player.add(characterModel);
-                player.add(pitchObject)
-                player.add(listener)
-                mixer = new AnimationMixer(characterModel);
-                loadPlayerAnimations(gltf);
+                this.character.add(characterModel);
+                if (this.fixedData.camera) this.character.add(this.fixedData.camera)
+                this.character.add(this.listener)
+                this.mixer = new AnimationMixer(characterModel);
+                this.loadCharacterAnimations(gltf);
                 loadCharacterSounds();
             },undefined, 
             error =>console.error( error ),
         );
+    }
+    private loadCharacterAnimations(gltf:GLTF) {
+        const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
+        const walkClip = THREE.AnimationClip.findByName(gltf.animations, 'sprinting'); 
+        const jumpClip = THREE.AnimationClip.findByName(gltf.animations, 'jumping'); 
+    
+        if (walkClip) this.walkAction = this.mixer.clipAction(walkClip);
+        if (jumpClip) this.jumpAction = this.mixer.clipAction(jumpClip);
+        if (idleClip) {
+            this.idleAction = this.mixer.clipAction(idleClip);
+            this.idleAction.play();
+            this.currentAction = this.idleAction;
+        }
     }
 }
