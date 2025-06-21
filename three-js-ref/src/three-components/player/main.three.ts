@@ -86,7 +86,7 @@ class Player extends Controller {
         const targetZ = this.isThirdPerson ? 6 : 0;
         this.dynamicData.camera.position.z += (targetZ - this.dynamicData.camera.position.z) * 0.1; // 0.1 
     }
-    beforeCharacterUpdate() {
+    beforeCharacterUpdate() {//this is where all character updates to this instance happens.
         updateCameraRotation();
         this.mapKeysToPlayer();
         this.mapKeysToAnimations();
