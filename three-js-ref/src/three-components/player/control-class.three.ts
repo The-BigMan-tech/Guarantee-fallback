@@ -25,6 +25,10 @@ interface DynamicControllerData {
     camera:THREE.Object3D<THREE.Object3DEventMap> | null
 }
 class Controller {
+    public character: THREE.Group<THREE.Object3DEventMap>
+    public dynamicData:DynamicControllerData;
+    private fixedData:FixedControllerData;
+
     private velocity:THREE.Vector3;
     private targetRotation:THREE.Euler;
     private targetQuaternion:THREE.Quaternion;
@@ -38,20 +42,17 @@ class Controller {
     private clock:THREE.Clock;
     private currentAction: THREE.AnimationAction | null;
 
-    private fixedData:FixedControllerData;
-    public character: THREE.Group<THREE.Object3DEventMap>
-    public dynamicData:DynamicControllerData;
-
-    protected walkSound: THREE.PositionalAudio
-    protected landSound: THREE.PositionalAudio;
-
     private shouldStepUp: boolean
     private mixer: THREE.AnimationMixer | null;
     private idleAction: THREE.AnimationAction | null;
     private walkAction: THREE.AnimationAction | null;
     private jumpAction:THREE.AnimationAction | null;
-    protected shouldPlayJumpAnimation: boolean;
+    private shouldPlayJumpAnimation: boolean;
 
+    protected walkSound: THREE.PositionalAudio;
+    protected landSound: THREE.PositionalAudio;
+
+    
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         this.fixedData = fixedData
         this.dynamicData = dynamicData
@@ -275,7 +276,8 @@ class Controller {
         const up = new THREE.Vector3(0,velocityDelta,0);
         up.applyQuaternion(this.character.quaternion);
         this.velocity.add(up);
-        this.dynamicData.horizontalVelocity -= this.dynamicData.jumpResistance
+        this.dynamicData.horizontalVelocity -= this.dynamicData.jumpResistance;
+        this.shouldPlayJumpAnimation = true;
     }
     protected moveCharacterDown(velocityDelta:number) {
         const down = new THREE.Vector3(0,-velocityDelta,0);
@@ -314,12 +316,9 @@ class Player extends Controller {
     private mapKeysToPlayer() {
         if (keysPressed['Space']) {
             this.moveCharacterUp(this.dynamicData.jumpVelocity)//the linvel made it sluggish so i had to increase the number
-            this.shouldPlayJumpAnimation = true;
         }
         if (keysPressed['KeyW']) {
-            if (keysPressed['ShiftLeft']) {//for sprinting
-                this.dynamicData.horizontalVelocity += 10
-            }
+            if (keysPressed['ShiftLeft']) this.dynamicData.horizontalVelocity += 10;
             this.moveCharacterForward(this.dynamicData.horizontalVelocity)
         }
         if (keysPressed['KeyS']) {
