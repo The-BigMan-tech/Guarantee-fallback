@@ -295,6 +295,7 @@ export class Controller {
         this.respawnIfOutOfBounds();
     }
     protected isAirBorne() {
+        console.log('Airborne shouldStepUp:', this.shouldStepUp);
         return !this.isGrounded() && this.shouldPlayJumpAnimation && !this.shouldStepUp
     }
     protected playJumpAnimation() {

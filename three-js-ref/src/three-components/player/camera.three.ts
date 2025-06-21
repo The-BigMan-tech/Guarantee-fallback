@@ -1,6 +1,4 @@
 import * as THREE from 'three';
-import { cameraMode, keysPressed } from './globals.three';
-
 
 const FOV = 75;
 const nearPoint = 0.1;
@@ -16,16 +14,22 @@ pitchObject.add(camera);
 pitchObject.position.y = 4
 targetQuaternion.copy(pitchObject.quaternion);
 
-export function rotateCameraY(delta:number) {
+function rotateCameraY(delta:number,isThirdPerson:boolean) {
     const pitchChange = new THREE.Quaternion();
-    pitchChange.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -delta);
+    pitchChange.setFromAxisAngle(new THREE.Vector3(1, 0, 0),delta);
     targetQuaternion.multiplyQuaternions(pitchChange, targetQuaternion);
-    clampPitch()
+    clampPitch(isThirdPerson)
 }
-function clampPitch() {
+export function rotateCameraUp(isThirdPerson:boolean) {
+    rotateCameraY(cameraRotationDelta,isThirdPerson)
+}
+export function rotateCameraDown(isThirdPerson:boolean) {
+    rotateCameraY(-cameraRotationDelta,isThirdPerson)
+}
+function clampPitch(isThirdPerson:boolean) {
     const maxPitchFirstPerson = THREE.MathUtils.degToRad(70);
     const maxPitchThirdPerson = THREE.MathUtils.degToRad(10);
-    const maxPitch = cameraMode.isThirdPerson ? maxPitchThirdPerson : maxPitchFirstPerson;
+    const maxPitch = isThirdPerson ? maxPitchThirdPerson : maxPitchFirstPerson;
 
     const euler = new THREE.Euler().setFromQuaternion(targetQuaternion, 'YXZ');   // Convert targetQuaternion to Euler angles to access pitch (x rotation)
     const clampedX = THREE.MathUtils.clamp(euler.x, -maxPitch, maxPitch);// Clamp pitch angle within the chosen range
@@ -34,12 +38,7 @@ function clampPitch() {
     euler.x += (clampedX - euler.x) * smoothFactor;
     targetQuaternion.setFromEuler(euler);
 }
-function mapKeysToCamera() {
-    if (keysPressed['ArrowUp']) rotateCameraY(-cameraRotationDelta);  
-    if (keysPressed['ArrowDown']) rotateCameraY(+cameraRotationDelta);
-}
 export function updateCamera() {
-    mapKeysToCamera()
     pitchObject.quaternion.slerp(targetQuaternion,cameraRotationSpeed);
 }
 
