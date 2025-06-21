@@ -1,8 +1,8 @@
 import * as THREE from "three"
 import * as RAPIER from '@dimforge/rapier3d'
-import { physicsWorld } from "./physics-world.three";
+import { physicsWorld,groundLevelY, startingLevelY } from "./physics-world.three";
 import { EdgesGeometry, LineSegments, LineBasicMaterial } from 'three';
-import { groundLevelY, startingLevelY } from "./player/globals.three";
+ 
 
 //Flat-terrain with grid
 const groundHeight = 1

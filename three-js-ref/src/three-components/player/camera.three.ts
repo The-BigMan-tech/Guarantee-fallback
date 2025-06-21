@@ -1,12 +1,10 @@
 import * as THREE from 'three';
 import { cameraMode, keysPressed } from './globals.three';
-import { listener } from './sounds.three';
 
 const FOV = 75;
 const nearPoint = 0.1;
 const farPoint = 1000;
 export const camera = new THREE.PerspectiveCamera(FOV,undefined,nearPoint,farPoint);
-camera.add(listener);
 
 const cameraRotationDelta = 0.05;
 const cameraRotationSpeed = 0.5;

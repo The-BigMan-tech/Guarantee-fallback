@@ -1,12 +1,26 @@
 import * as THREE from "three"
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { pitchObject } from "./camera.three";
-import { landSound, walkSound } from "./sounds.three";
-import { cameraMode, gravityY, keysPressed, toggleThirdPerson } from "./globals.three";
+import { cameraMode,keysPressed, toggleThirdPerson } from "./globals.three";
+import { gravityY } from "../physics-world.three";
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld } from "../physics-world.three";
 import { cube } from "../terrain.three";
+
+const audioLoader = new THREE.AudioLoader();
+export const listener = new THREE.AudioListener();
+export const walkSound = new THREE.PositionalAudio(listener);
+export const landSound = new THREE.PositionalAudio(listener);
+
+audioLoader.load('walking.mp3',(buffer)=> {
+    walkSound.setBuffer(buffer);
+    walkSound.setVolume(40);
+});
+audioLoader.load('landing.mp3',(buffer)=> {
+    landSound.setBuffer(buffer);
+    landSound.setVolume(30);
+});
 
 const maxStepUpHeight = 3//*tune here
 const stepCheckDistance = 4.5; //im using a positive offset because the forward vector already points forward.
@@ -72,6 +86,7 @@ function loadPlayerModel() {
             player.add(playerModel);
             pitchObject.position.y = 4
             player.add(pitchObject)
+            player.add(listener)
             mixer = new AnimationMixer(playerModel);
             loadPlayerAnimations(gltf);
         },undefined, 
@@ -270,7 +285,7 @@ function detectLowStep() {
 
     const point = new THREE.Vector3(
         playerPosition.x + forward.x * stepCheckDistance,
-        playerPosition.y,
+        playerPosition.y-1,//to detect obstacles that are too low
         playerPosition.z + forward.z * stepCheckDistance
     );
     
