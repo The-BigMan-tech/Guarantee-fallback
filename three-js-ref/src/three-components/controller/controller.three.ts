@@ -3,10 +3,8 @@ import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY} from "../physics-world.three";
-import { keysPressed,toggleThirdPerson,cameraMode} from "./globals.three";
-import { pitchObject, rotateCameraY } from "./camera.three";
 
-interface FixedControllerData {
+export interface FixedControllerData {
     modelPath:string,
     spawnPoint: RAPIER.Vector3,
     characterHeight:number,
@@ -15,7 +13,7 @@ interface FixedControllerData {
     groundDetectionDistance:number,
     stepCheckDistance:number,
 }
-interface DynamicControllerData {
+export interface DynamicControllerData {
     maxStepUpHeight:number,
     jumpVelocity:number,
     jumpResistance:number,
@@ -24,7 +22,7 @@ interface DynamicControllerData {
     rotationSpeed:number,
     camera:THREE.Object3D<THREE.Object3DEventMap> | null
 }
-class Controller {
+export class Controller {
     public character: THREE.Group<THREE.Object3DEventMap>
     public dynamicData:DynamicControllerData;
     private fixedData:FixedControllerData;
@@ -309,86 +307,3 @@ class Controller {
         if (this.mixer && this.idleAction) this.fadeToAnimation(this.idleAction)
     }
 }
-class Player extends Controller {
-    constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
-        super(fixedData,dynamicData)
-    }
-    private mapKeysToPlayer() {
-        if (keysPressed['Space']) {
-            this.moveCharacterUp(this.dynamicData.jumpVelocity)//the linvel made it sluggish so i had to increase the number
-        }
-        if (keysPressed['KeyW']) {
-            if (keysPressed['ShiftLeft']) this.dynamicData.horizontalVelocity += 10;
-            this.moveCharacterForward(this.dynamicData.horizontalVelocity)
-        }
-        if (keysPressed['KeyS']) {
-            this.moveCharacterBackward(this.dynamicData.horizontalVelocity);
-        }
-        if (keysPressed['KeyA']) {
-            this.moveCharacterLeft(this.dynamicData.horizontalVelocity);
-        }
-        if (keysPressed['KeyD']) {
-            this.moveCharacterRight(this.dynamicData.horizontalVelocity);
-        }
-        if (keysPressed['ArrowLeft'])  {
-            this.rotateCharacterX(-this.dynamicData.rotationDelta)
-        };  
-        if (keysPressed['ArrowRight']) {
-            this.rotateCharacterX(+this.dynamicData.rotationDelta)
-        };
-        toggleThirdPerson();
-    }
-    private mapKeysToAnimations() {
-        if (this.isAirBorne()) {
-            this.walkSound.stop()
-            this.playJumpAnimation()
-        }else if (keysPressed['KeyW']) {//each key will have its own animation
-            this.walkSound.play()
-            this.playWalkAnimation()
-        }else if (keysPressed['KeyA']) {
-            this.walkSound.play();
-        }else if (keysPressed['KeyS']) {
-            this.walkSound.play();
-        }else if (keysPressed['KeyD']) {
-            this.walkSound.play();
-        }else {
-            this.walkSound.stop();
-            this.playIdleAnimation()
-        }
-    }
-    private updateCamPerspective() {
-        if (!this.dynamicData.camera) return;
-        const targetZ = cameraMode.isThirdPerson ? 6 : 0;
-        this.dynamicData.camera.position.z += (targetZ - this.dynamicData.camera.position.z) * 0.1; // 0.1 
-    }
-    public updatePlayer() {
-        this.mapKeysToPlayer();
-        this.mapKeysToAnimations();
-        this.updateCamPerspective();
-        this.updateCharacter()
-    }
-    // public onPointerLockMove(event: MouseEvent) {
-    //     const rotationSpeed = 0.002;
-    //     this.rotatePlayerX(event.movementX * rotationSpeed);
-    //     rotateCameraY(event.movementY * rotationSpeed);
-    // }
-}
-const playerFixedData:FixedControllerData = {
-    modelPath:'./silvermoon.glb',
-    spawnPoint: new RAPIER.Vector3(0,20,0),
-    characterHeight:1,
-    characterWidth:1,
-    mass:40,
-    groundDetectionDistance:1.5,
-    stepCheckDistance:4.5,
-}
-const playerDynamicData:DynamicControllerData = {
-    maxStepUpHeight:3,
-    jumpVelocity:30,
-    jumpResistance:15,
-    horizontalVelocity:30,
-    rotationDelta:0.04,
-    rotationSpeed:0.4,
-    camera:pitchObject
-}
-export const player2 = new Player(playerFixedData,playerDynamicData)
