@@ -5,9 +5,8 @@ import { cameraMode,keysPressed, toggleThirdPerson } from "./globals.three";
 import { gravityY } from "../physics-world.three";
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
-import { physicsWorld } from "../physics-world.three";
+import { physicsWorld ,outOfBoundsY} from "../physics-world.three";
 import { cube } from "../terrain.three";
-
 
 
 const maxStepUpHeight = 3//*tune here
@@ -29,7 +28,6 @@ const rotationDelta = 0.04;
 const rotationSpeed = 0.4;
 
 const groundDetectionDistance = 1.5
-const outOfBoundsY = -60
 
 
 //Player group and positioning
