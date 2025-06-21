@@ -14,7 +14,7 @@ renderer.shadowMap.enabled = true
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setAnimationLoop(()=>{   
     physicsWorld.step()   
-    player.updatePlayer()
+    player.updateCharacter()
     updateSun();
     renderer.render( scene,camera);
 });

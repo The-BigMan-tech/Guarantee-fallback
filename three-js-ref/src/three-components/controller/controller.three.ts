@@ -22,7 +22,8 @@ export interface DynamicControllerData {
     rotationSpeed:number,
     camera:THREE.Object3D<THREE.Object3DEventMap> | null
 }
-export class Controller {
+//i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
+export abstract class Controller {
     public character: THREE.Group<THREE.Object3DEventMap>
     public dynamicData:DynamicControllerData;
     private fixedData:FixedControllerData;
@@ -288,7 +289,8 @@ export class Controller {
         this.targetRotation.y -= rotationDelta; 
         this.targetQuaternion.setFromEuler(this.targetRotation);
     }
-    protected updateCharacter() {
+    public updateCharacter() {
+        this.beforeCharacterUpdate();
         this.updateCharacterAnimations();
         this.applyVelocity();
         this.updateCharacterTransformations();
@@ -308,4 +310,5 @@ export class Controller {
     protected playIdleAnimation() {
         if (this.mixer && this.idleAction) this.fadeToAnimation(this.idleAction)
     }
+    abstract beforeCharacterUpdate():void//this is a hook where the entity must be controlled before updating
 }
