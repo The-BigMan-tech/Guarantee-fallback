@@ -115,11 +115,18 @@ function mapKeysToAnimation() {
 }
 
 //im resetting the velocity and impulse every frame to prevent accumulation over time
-function movePlayerForward(velocityDelta:number) {
+function moveForward(velocityDelta:number) {
     const forward = new THREE.Vector3(0,0,-velocityDelta);//direction vector
     forward.applyQuaternion(player.quaternion);//setting the direction to the rigid body's world space
     velocity.add(forward);
     forcePlayerDown()
+}
+function moveCharacterForward(velocityDelta:number) {
+    if (shouldStepUp) {
+        moveOverObstacle();
+    }else {
+        moveForward(velocityDelta);
+    }
 }
 function movePlayerBackward(velocityDelta:number) {
     const backward = new THREE.Vector3(0,0,velocityDelta);
@@ -181,7 +188,7 @@ function moveOverObstacle() {
     shouldPlayJumpAnimation = false;
     const upwardVelocity = calculateUpwardVelocity()
     const forwardVelocity = calculateForwardVelocity(upwardVelocity)
-    movePlayerForward(forwardVelocity);
+    moveForward(forwardVelocity);
     movePlayerUp(upwardVelocity);
 }
 
@@ -198,11 +205,7 @@ function mapKeysToPlayer() {
         if (keysPressed['ShiftLeft']) {//for sprinting
             modifiedHorizontalVelocity += 10
         }
-        if (shouldStepUp) {
-            moveOverObstacle();
-        }else {
-            movePlayerForward(modifiedHorizontalVelocity);
-        }
+        moveCharacterForward(modifiedHorizontalVelocity)
     }
     if (keysPressed['KeyS']) {
         movePlayerBackward(modifiedHorizontalVelocity);
@@ -220,7 +223,6 @@ function mapKeysToPlayer() {
         rotatePlayerX(+rotationDelta)
     };
     toggleThirdPerson();
-    mapKeysToAnimation();
 }
 
 
@@ -321,11 +323,13 @@ function respawnIfOutOfBounds() {
 
 export function updatePlayer() {
     mapKeysToPlayer(); 
-    updatePlayerAnimations();
     updateCamPerspective();
+
+    mapKeysToAnimation();
+    updatePlayerAnimations();
     applyVelocity();
     updatePlayerTransformations();
     resetVariables();
     detectLowStep();
-    respawnIfOutOfBounds()
+    respawnIfOutOfBounds();
 }
