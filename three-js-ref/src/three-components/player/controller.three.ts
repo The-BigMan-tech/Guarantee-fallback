@@ -8,19 +8,7 @@ import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld } from "../physics-world.three";
 import { cube } from "../terrain.three";
 
-const audioLoader = new THREE.AudioLoader();
-export const listener = new THREE.AudioListener();
-export const walkSound = new THREE.PositionalAudio(listener);
-export const landSound = new THREE.PositionalAudio(listener);
 
-audioLoader.load('walking.mp3',(buffer)=> {
-    walkSound.setBuffer(buffer);
-    walkSound.setVolume(40);
-});
-audioLoader.load('landing.mp3',(buffer)=> {
-    landSound.setBuffer(buffer);
-    landSound.setVolume(30);
-});
 
 const maxStepUpHeight = 3//*tune here
 const stepCheckDistance = 4.5; //im using a positive offset because the forward vector already points forward.
@@ -29,6 +17,20 @@ const characterHeight = 1
 const characterWidth = 1
 const mass = 40
 const modelPath:string = './silvermoon.glb';
+
+const velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
+const jumpVelocity = 30;
+const jumpResistance = 15;//this is to prevent the player from going way passed the intended place to jump to because of velocity
+let horizontalVelocity = 30;
+
+const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
+const targetQuaternion = new THREE.Quaternion();
+const rotationDelta = 0.04;
+const rotationSpeed = 0.4;
+
+const groundDetectionDistance = 1.5
+const outOfBoundsY = -60
+
 
 //Player group and positioning
 export const player = new THREE.Group();//dont directly control the player position.do it through the rigid body
@@ -54,25 +56,15 @@ let walkAction: THREE.AnimationAction | null = null;
 let jumpAction:THREE.AnimationAction | null = null;
 
 
-//Tunable variables
-const velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
-const jumpVelocity = 30;
-const jumpResistance = 15;//this is to prevent the player from going way passed the intended place to jump to because of velocity
-let horizontalVelocity = 30;
-
-const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
-const targetQuaternion = new THREE.Quaternion();
-const rotationDelta = 0.04;
-const rotationSpeed = 0.4;
-
-
-const groundDetectionDistance = 1.5
-const outOfBoundsY = -60
+const listener = new THREE.AudioListener();
+const walkSound = new THREE.PositionalAudio(listener);
+const landSound = new THREE.PositionalAudio(listener);
 
 //Global variables
 let shouldPlayJumpAnimation = false;
 let obstacleHeight = 0;
 let shouldStepUp = false;
+let playLandSound = true
 
 
 //Functions
@@ -88,6 +80,7 @@ function loadPlayerModel() {
             player.add(listener)
             mixer = new AnimationMixer(playerModel);
             loadPlayerAnimations(gltf);
+            loadCharacterSounds();
         },undefined, 
         error =>console.error( error ),
     );
@@ -105,7 +98,17 @@ function loadPlayerAnimations(gltf:GLTF) {
         currentAction = idleAction;
     }
 }
-
+function loadCharacterSounds() {    
+    const audioLoader = new THREE.AudioLoader();
+    audioLoader.load('walking.mp3',(buffer)=> {
+        walkSound.setBuffer(buffer);
+        walkSound.setVolume(40);
+    });
+    audioLoader.load('landing.mp3',(buffer)=> {
+        landSound.setBuffer(buffer);
+        landSound.setVolume(30);
+    });
+}
 
 function fadeToAnimation(newAction: THREE.AnimationAction) {
     if (newAction !== currentAction) {
@@ -194,58 +197,6 @@ function moveOverObstacle() {
     moveForward(forwardVelocity);
     movePlayerUp(upwardVelocity);
 }
-
-
-function mapKeysToPlayer() {
-    if (keysPressed['Space']) {
-        movePlayerUp(jumpVelocity)//the linvel made it sluggish so i had to increase the number
-        shouldPlayJumpAnimation = true;
-    }
-    if (keysPressed['KeyW']) {
-        if (keysPressed['ShiftLeft']) {//for sprinting
-            horizontalVelocity += 10
-        }
-        moveCharacterForward(horizontalVelocity)
-    }
-    if (keysPressed['KeyS']) {
-        movePlayerBackward(horizontalVelocity);
-    }
-    if (keysPressed['KeyA']) {
-        movePlayerLeft(horizontalVelocity);
-    }
-    if (keysPressed['KeyD']) {
-        movePlayerRight(horizontalVelocity);
-    }
-    if (keysPressed['ArrowLeft'])  {
-        rotatePlayerX(-rotationDelta)
-    };  
-    if (keysPressed['ArrowRight']) {
-        rotatePlayerX(+rotationDelta)
-    };
-    toggleThirdPerson();
-}
-function mapKeysToAnimation() {
-    if (mixer && idleAction && walkAction && jumpAction) {//only play animations if all animations have been loaded siuccesfully
-        if (!isGrounded() && shouldPlayJumpAnimation && !shouldStepUp) {
-            walkSound.stop();
-            fadeToAnimation(jumpAction);
-        }else if (keysPressed['KeyW']) {//each key will have its own animation
-            if (!walkSound.isPlaying) walkSound.play();
-            fadeToAnimation(walkAction);
-        }else if (keysPressed['KeyA']) {
-            if (!walkSound.isPlaying) walkSound.play();
-        }else if (keysPressed['KeyS']) {
-            if (!walkSound.isPlaying) walkSound.play();
-        }else if (keysPressed['KeyD']) {
-            if (!walkSound.isPlaying) walkSound.play();
-        }else {
-            walkSound.stop();
-            fadeToAnimation(idleAction);
-        }
-    }
-}
-
-let playLandSound = true
 function isGrounded() {
     let onGround = false
     const posY = Math.floor(playerPosition.y)//i used floor instead of round for stability cuz of edge cases caused by precision
@@ -318,14 +269,9 @@ function resetVariables() {
     shouldStepUp = false;
     obstacleHeight = 0
 }
-
 function updatePlayerAnimations() {
     const delta = clock.getDelta();
     if (mixer) mixer.update(delta);
-}
-function updateCamPerspective() {
-    const targetZ = cameraMode.isThirdPerson ? 6 : 0;
-    pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
 }
 function updatePlayerTransformations() {
     player.position.set(playerPosition.x,playerPosition.y-1.6,playerPosition.z);//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
@@ -339,17 +285,69 @@ function respawnIfOutOfBounds() {
         player.position.set(playerPosition.x,playerPosition.y,playerPosition.z);
     }
 }
-
-
 export function updatePlayer() {
     mapKeysToPlayer(); 
-    updateCamPerspective();
-
     mapKeysToAnimation();
+    updateCamPerspective();
+    
     updatePlayerAnimations();
     applyVelocity();
     updatePlayerTransformations();
     resetVariables();
     detectLowStep();
     respawnIfOutOfBounds();
+}
+
+
+function mapKeysToPlayer() {
+    if (keysPressed['Space']) {
+        movePlayerUp(jumpVelocity)//the linvel made it sluggish so i had to increase the number
+        shouldPlayJumpAnimation = true;
+    }
+    if (keysPressed['KeyW']) {
+        if (keysPressed['ShiftLeft']) {//for sprinting
+            horizontalVelocity += 10
+        }
+        moveCharacterForward(horizontalVelocity)
+    }
+    if (keysPressed['KeyS']) {
+        movePlayerBackward(horizontalVelocity);
+    }
+    if (keysPressed['KeyA']) {
+        movePlayerLeft(horizontalVelocity);
+    }
+    if (keysPressed['KeyD']) {
+        movePlayerRight(horizontalVelocity);
+    }
+    if (keysPressed['ArrowLeft'])  {
+        rotatePlayerX(-rotationDelta)
+    };  
+    if (keysPressed['ArrowRight']) {
+        rotatePlayerX(+rotationDelta)
+    };
+    toggleThirdPerson();
+}
+function mapKeysToAnimation() {
+    if (mixer && idleAction && walkAction && jumpAction) {//only play animations if all animations have been loaded siuccesfully
+        if (!isGrounded() && shouldPlayJumpAnimation && !shouldStepUp) {
+            walkSound.stop();
+            fadeToAnimation(jumpAction);
+        }else if (keysPressed['KeyW']) {//each key will have its own animation
+            if (!walkSound.isPlaying) walkSound.play();
+            fadeToAnimation(walkAction);
+        }else if (keysPressed['KeyA']) {
+            if (!walkSound.isPlaying) walkSound.play();
+        }else if (keysPressed['KeyS']) {
+            if (!walkSound.isPlaying) walkSound.play();
+        }else if (keysPressed['KeyD']) {
+            if (!walkSound.isPlaying) walkSound.play();
+        }else {
+            walkSound.stop();
+            fadeToAnimation(idleAction);
+        }
+    }
+}
+function updateCamPerspective() {
+    const targetZ = cameraMode.isThirdPerson ? 6 : 0;
+    pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
 }
