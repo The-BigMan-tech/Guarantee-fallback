@@ -132,14 +132,14 @@ export class Controller {
     private calculateUpwardVelocity() {
         const destinationHeight = Math.round(this.obstacleHeight)
         const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
-        const upwardVelocity = Math.round((destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight));
+        const upwardVelocity = (destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight);//i chose not to round this one to ensure that i dont shoot not even the slightest over the obstacle
         console.log("Final upward velocity: ",upwardVelocity);
         return upwardVelocity
     }
     private calculateForwardVelocity(upwardVelocity:number) {
         const destinationHeight = Math.round(this.obstacleHeight)
         const timeToReachHeight = (upwardVelocity/gravityY) + Math.sqrt((2*destinationHeight)/gravityY)
-        const forwardVelocity = Math.round(this.fixedData.stepCheckDistance/timeToReachHeight)
+        const forwardVelocity = Math.round(this.fixedData.stepCheckDistance/timeToReachHeight)//i rounded this one to ensure that the forward velocity is treated fair enough to move over the obstacle.ceiling it will overshoot it
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
