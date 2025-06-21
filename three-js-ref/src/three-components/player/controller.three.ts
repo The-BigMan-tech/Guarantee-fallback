@@ -118,7 +118,11 @@ function fadeToAnimation(newAction: THREE.AnimationAction) {
         currentAction = newAction;
     }
 }
-
+function forcePlayerDown() {//to force the player down if he isnt stepping up and he is in the air while moving forward.the effect of this is seen when the player is stepping down
+    if (!shouldStepUp && !isGrounded()) {
+        movePlayerDown(gravityY)
+    };
+}
 //im resetting the velocity and impulse every frame to prevent accumulation over time
 function moveForward(velocityDelta:number) {
     const forward = new THREE.Vector3(0,0,-velocityDelta);//direction vector
@@ -127,11 +131,8 @@ function moveForward(velocityDelta:number) {
     forcePlayerDown()
 }
 function moveCharacterForward(velocityDelta:number) {
-    if (shouldStepUp) {
-        moveOverObstacle();
-    }else {
-        moveForward(velocityDelta);
-    }
+    if (shouldStepUp) moveOverObstacle()
+    else moveForward(velocityDelta);
 }
 function movePlayerBackward(velocityDelta:number) {
     const backward = new THREE.Vector3(0,0,velocityDelta);
@@ -182,13 +183,6 @@ function calculateForwardVelocity(upwardVelocity:number) {
     console.log("Final forward velocity: ",forwardVelocity);
     return forwardVelocity
 }
-
-
-function forcePlayerDown() {//to force the player down if he isnt stepping up and he is in the air while moving forward.the effect of this is seen when the player is stepping down
-    if (!shouldStepUp && !isGrounded()) {
-        movePlayerDown(gravityY)
-    };
-}
 function moveOverObstacle() {
     console.log('Attemptig to step up');
     shouldPlayJumpAnimation = false;
@@ -197,6 +191,8 @@ function moveOverObstacle() {
     moveForward(forwardVelocity);
     movePlayerUp(upwardVelocity);
 }
+
+
 function isGrounded() {
     let onGround = false
     const posY = Math.floor(playerPosition.y)//i used floor instead of round for stability cuz of edge cases caused by precision
