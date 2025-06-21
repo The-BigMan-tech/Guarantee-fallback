@@ -143,26 +143,6 @@ export class Controller {
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
-    private moveOverObstacle() {
-        console.log('Attemptig to step up');
-        this.shouldPlayJumpAnimation = false;
-        const upwardVelocity = this.calculateUpwardVelocity()
-        const forwardVelocity = this.calculateForwardVelocity(upwardVelocity)
-        this.moveForward(forwardVelocity);
-        this.moveCharacterUp(upwardVelocity);
-    }
-    private forceCharacterDown() {//to force the player down if he isnt stepping up and he is in the air while moving forward.the effect of this is seen when the player is stepping down
-        if (!this.shouldStepUp && !this.isGrounded()) {
-            this.moveCharacterDown(gravityY)
-        };
-    }
-    //im resetting the velocity and impulse every frame to prevent accumulation over time
-    private moveForward(velocityDelta:number) {
-        const forward = new THREE.Vector3(0,0,-velocityDelta);//direction vector
-        forward.applyQuaternion(this.character.quaternion);//setting the direction to the rigid body's world space
-        this.velocity.add(forward);
-        this.forceCharacterDown()
-    }
     private isGrounded() {
         let onGround = false
         const posY = Math.floor(this.characterPosition.y)//i used floor instead of round for stability cuz of edge cases caused by precision
@@ -247,6 +227,28 @@ export class Controller {
             this.character.position.set(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
         }
     }
+    private moveOverObstacle() {
+        console.log('Attemptig to step up');
+        this.shouldPlayJumpAnimation = false;
+        const upwardVelocity = this.calculateUpwardVelocity()
+        const forwardVelocity = this.calculateForwardVelocity(upwardVelocity)
+        this.moveForward(forwardVelocity);
+        this.moveCharacterUp(upwardVelocity);
+        this.shouldPlayJumpAnimation = false;
+    }
+    private forceCharacterDown() {//to force the player down if he isnt stepping up and he is in the air while moving forward.the effect of this is seen when the player is stepping down
+        if (!this.shouldStepUp && !this.isGrounded()) {
+            this.moveCharacterDown(gravityY)
+        };
+    }
+    //im resetting the velocity and impulse every frame to prevent accumulation over time
+    private moveForward(velocityDelta:number) {
+        const forward = new THREE.Vector3(0,0,-velocityDelta);//direction vector
+        forward.applyQuaternion(this.character.quaternion);//setting the direction to the rigid body's world space
+        this.velocity.add(forward);
+        this.forceCharacterDown()
+    }
+
     
     protected moveCharacterForward(velocityDelta:number) {
         if (this.shouldStepUp) this.moveOverObstacle()
@@ -295,7 +297,6 @@ export class Controller {
         this.respawnIfOutOfBounds();
     }
     protected isAirBorne() {
-        console.log('Airborne shouldStepUp:', this.shouldStepUp);
         return !this.isGrounded() && this.shouldPlayJumpAnimation && !this.shouldStepUp
     }
     protected playJumpAnimation() {

@@ -1,4 +1,4 @@
-import { pitchObject,rotateCameraDown,rotateCameraUp,updateCamera} from "../player/camera.three";
+import { pitchObject,rotateCameraDown,rotateCameraUp,updateCameraRotation} from "../player/camera.three";
 import { Controller } from "../controller/controller.three";
 import type { FixedControllerData,DynamicControllerData} from "../controller/controller.three";
 import * as RAPIER from "@dimforge/rapier3d"
@@ -87,7 +87,7 @@ class Player extends Controller {
         this.dynamicData.camera.position.z += (targetZ - this.dynamicData.camera.position.z) * 0.1; // 0.1 
     }
     public updatePlayer() {
-        updateCamera()
+        updateCameraRotation();
         this.mapKeysToPlayer();
         this.mapKeysToAnimations();
         this.updateCamPerspective();

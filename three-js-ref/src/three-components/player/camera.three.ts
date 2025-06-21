@@ -38,7 +38,7 @@ function clampPitch(isThirdPerson:boolean) {
     euler.x += (clampedX - euler.x) * smoothFactor;
     targetQuaternion.setFromEuler(euler);
 }
-export function updateCamera() {
+export function updateCameraRotation() {
     pitchObject.quaternion.slerp(targetQuaternion,cameraRotationSpeed);
 }
 
