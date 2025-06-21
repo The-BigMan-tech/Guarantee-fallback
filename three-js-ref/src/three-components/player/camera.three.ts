@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { cameraMode, keysPressed } from './globals.three';
 
+
 const FOV = 75;
 const nearPoint = 0.1;
 const farPoint = 1000;

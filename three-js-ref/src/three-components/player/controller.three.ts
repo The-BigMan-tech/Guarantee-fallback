@@ -74,7 +74,7 @@ function loadPlayerModel() {
             const playerModel = gltf.scene
             playerModel.position.z = 0.3
             player.add(playerModel);
-            player.add(pitchObject)
+            // player.add(pitchObject)
             player.add(listener)
             mixer = new AnimationMixer(playerModel);
             loadPlayerAnimations(gltf);
