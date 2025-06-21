@@ -4,7 +4,7 @@ import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY} from "../physics-world.three";
 import { keysPressed,toggleThirdPerson,cameraMode} from "./globals.three";
-import { pitchObject } from "./camera.three";
+import { pitchObject, rotateCameraY } from "./camera.three";
 
 interface FixedControllerData {
     modelPath:string,
@@ -45,11 +45,11 @@ class Controller {
     protected walkSound: THREE.PositionalAudio
     protected landSound: THREE.PositionalAudio;
 
-    protected shouldStepUp: boolean
-    protected mixer: THREE.AnimationMixer | null;
-    protected idleAction: THREE.AnimationAction | null;
-    protected walkAction: THREE.AnimationAction | null;
-    protected jumpAction:THREE.AnimationAction | null;
+    private shouldStepUp: boolean
+    private mixer: THREE.AnimationMixer | null;
+    private idleAction: THREE.AnimationAction | null;
+    private walkAction: THREE.AnimationAction | null;
+    private jumpAction:THREE.AnimationAction | null;
     protected shouldPlayJumpAnimation: boolean;
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
@@ -122,6 +122,14 @@ class Controller {
             this.landSound.setVolume(30);
         });
     }
+    private fadeToAnimation(newAction: THREE.AnimationAction) {
+        if (newAction !== this.currentAction) {
+            newAction.reset();
+            newAction.play();
+            if (this.currentAction) this.currentAction.crossFadeTo(newAction, 0.4, false);
+            this.currentAction = newAction;
+        }
+    }
     private calculateUpwardVelocity() {
         const destinationHeight = Math.round(this.obstacleHeight)
         const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
@@ -156,54 +164,7 @@ class Controller {
         this.velocity.add(forward);
         this.forceCharacterDown()
     }
-
-
-    protected moveCharacterForward(velocityDelta:number) {
-        if (this.shouldStepUp) this.moveOverObstacle()
-        else this.moveForward(velocityDelta);
-    }
-    protected moveCharacterBackward(velocityDelta:number) {
-        const backward = new THREE.Vector3(0,0,velocityDelta);
-        backward.applyQuaternion(this.character.quaternion);
-        this.velocity.add(backward);
-        this.forceCharacterDown()
-    }
-    protected moveCharacterLeft(velocityDelta:number) {
-        const left = new THREE.Vector3(-velocityDelta,0,0);
-        left.applyQuaternion(this.character.quaternion);
-        this.velocity.add(left);
-        this.forceCharacterDown()
-    }
-    protected moveCharacterRight(velocityDelta:number) {
-        const right = new THREE.Vector3(velocityDelta,0,0);
-        right.applyQuaternion(this.character.quaternion);
-        this.velocity.add(right);
-        this.forceCharacterDown()
-    }
-    protected moveCharacterUp(velocityDelta:number) {
-        const up = new THREE.Vector3(0,velocityDelta,0);
-        up.applyQuaternion(this.character.quaternion);
-        this.velocity.add(up);
-        this.dynamicData.horizontalVelocity -= this.dynamicData.jumpResistance
-    }
-    protected moveCharacterDown(velocityDelta:number) {
-        const down = new THREE.Vector3(0,-velocityDelta,0);
-        down.applyQuaternion(this.character.quaternion);
-        this.velocity.add(down);
-    }
-    protected rotatePlayerX(rotationDelta: number) {
-        this.targetRotation.y -= rotationDelta; 
-        this.targetQuaternion.setFromEuler(this.targetRotation);
-    }
-    protected fadeToAnimation(newAction: THREE.AnimationAction) {
-        if (newAction !== this.currentAction) {
-            newAction.reset();
-            newAction.play();
-            if (this.currentAction) this.currentAction.crossFadeTo(newAction, 0.4, false);
-            this.currentAction = newAction;
-        }
-    }
-    protected isGrounded() {
+    private isGrounded() {
         let onGround = false
         const posY = Math.floor(this.characterPosition.y)//i used floor instead of round for stability cuz of edge cases caused by precision
         const groundPosY = posY - this.fixedData.groundDetectionDistance;//the ground should be just one cord lower than the player since te player stands over the ground
@@ -230,8 +191,6 @@ class Controller {
         if (!onGround) this.playLandSound = true;
         return onGround 
     }
-
-    
     private detectLowStep() {
         const forward = new THREE.Vector3(0, 0, -1); // Local forward
         const rotation = this.characterRigidBody.rotation();
@@ -289,6 +248,44 @@ class Controller {
             this.character.position.set(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
         }
     }
+    
+    protected moveCharacterForward(velocityDelta:number) {
+        if (this.shouldStepUp) this.moveOverObstacle()
+        else this.moveForward(velocityDelta);
+    }
+    protected moveCharacterBackward(velocityDelta:number) {
+        const backward = new THREE.Vector3(0,0,velocityDelta);
+        backward.applyQuaternion(this.character.quaternion);
+        this.velocity.add(backward);
+        this.forceCharacterDown()
+    }
+    protected moveCharacterLeft(velocityDelta:number) {
+        const left = new THREE.Vector3(-velocityDelta,0,0);
+        left.applyQuaternion(this.character.quaternion);
+        this.velocity.add(left);
+        this.forceCharacterDown()
+    }
+    protected moveCharacterRight(velocityDelta:number) {
+        const right = new THREE.Vector3(velocityDelta,0,0);
+        right.applyQuaternion(this.character.quaternion);
+        this.velocity.add(right);
+        this.forceCharacterDown()
+    }
+    protected moveCharacterUp(velocityDelta:number) {
+        const up = new THREE.Vector3(0,velocityDelta,0);
+        up.applyQuaternion(this.character.quaternion);
+        this.velocity.add(up);
+        this.dynamicData.horizontalVelocity -= this.dynamicData.jumpResistance
+    }
+    protected moveCharacterDown(velocityDelta:number) {
+        const down = new THREE.Vector3(0,-velocityDelta,0);
+        down.applyQuaternion(this.character.quaternion);
+        this.velocity.add(down);
+    }
+    protected rotateCharacterX(rotationDelta: number) {
+        this.targetRotation.y -= rotationDelta; 
+        this.targetQuaternion.setFromEuler(this.targetRotation);
+    }
     protected updateCharacter() {
         this.updateCharacterAnimations();
         this.applyVelocity();
@@ -296,6 +293,18 @@ class Controller {
         this.resetVariables();
         this.detectLowStep();
         this.respawnIfOutOfBounds();
+    }
+    protected isAirBorne() {
+        return !this.isGrounded() && this.shouldPlayJumpAnimation && !this.shouldStepUp
+    }
+    protected playJumpAnimation() {
+        if (this.mixer && this.jumpAction) this.fadeToAnimation(this.jumpAction)
+    }
+    protected playWalkAnimation() {
+        if (this.mixer && this.walkAction) this.fadeToAnimation(this.walkAction)
+    }
+    protected playIdleAnimation() {
+        if (this.mixer && this.idleAction) this.fadeToAnimation(this.idleAction)
     }
 }
 class Player extends Controller {
@@ -311,7 +320,7 @@ class Player extends Controller {
             if (keysPressed['ShiftLeft']) {//for sprinting
                 this.dynamicData.horizontalVelocity += 10
             }
-            this. moveCharacterForward(this.dynamicData.horizontalVelocity)
+            this.moveCharacterForward(this.dynamicData.horizontalVelocity)
         }
         if (keysPressed['KeyS']) {
             this.moveCharacterBackward(this.dynamicData.horizontalVelocity);
@@ -323,31 +332,29 @@ class Player extends Controller {
             this.moveCharacterRight(this.dynamicData.horizontalVelocity);
         }
         if (keysPressed['ArrowLeft'])  {
-            this.rotatePlayerX(-this.dynamicData.rotationDelta)
+            this.rotateCharacterX(-this.dynamicData.rotationDelta)
         };  
         if (keysPressed['ArrowRight']) {
-            this.rotatePlayerX(+this.dynamicData.rotationDelta)
+            this.rotateCharacterX(+this.dynamicData.rotationDelta)
         };
         toggleThirdPerson();
     }
     private mapKeysToAnimations() {
-        if (this.mixer && this.idleAction && this.walkAction && this.jumpAction) {//only play animations if all animations have been loaded siuccesfully
-            if (!this.isGrounded() && this.shouldPlayJumpAnimation && !this.shouldStepUp) {
-                this.walkSound.stop();
-                this.fadeToAnimation(this.jumpAction);
-            }else if (keysPressed['KeyW']) {//each key will have its own animation
-                if (!this.walkSound.isPlaying) this.walkSound.play();
-                this.fadeToAnimation(this.walkAction);
-            }else if (keysPressed['KeyA']) {
-                if (!this.walkSound.isPlaying) this.walkSound.play();
-            }else if (keysPressed['KeyS']) {
-                if (!this.walkSound.isPlaying) this.walkSound.play();
-            }else if (keysPressed['KeyD']) {
-                if (!this.walkSound.isPlaying) this.walkSound.play();
-            }else {
-                this.walkSound.stop();
-                this.fadeToAnimation(this.idleAction);
-            }
+        if (this.isAirBorne()) {
+            this.walkSound.stop()
+            this.playJumpAnimation()
+        }else if (keysPressed['KeyW']) {//each key will have its own animation
+            this.walkSound.play()
+            this.playWalkAnimation()
+        }else if (keysPressed['KeyA']) {
+            this.walkSound.play();
+        }else if (keysPressed['KeyS']) {
+            this.walkSound.play();
+        }else if (keysPressed['KeyD']) {
+            this.walkSound.play();
+        }else {
+            this.walkSound.stop();
+            this.playIdleAnimation()
         }
     }
     private updateCamPerspective() {
@@ -361,6 +368,11 @@ class Player extends Controller {
         this.updateCamPerspective();
         this.updateCharacter()
     }
+    // public onPointerLockMove(event: MouseEvent) {
+    //     const rotationSpeed = 0.002;
+    //     this.rotatePlayerX(event.movementX * rotationSpeed);
+    //     rotateCameraY(event.movementY * rotationSpeed);
+    // }
 }
 const playerFixedData:FixedControllerData = {
     modelPath:'./silvermoon.glb',

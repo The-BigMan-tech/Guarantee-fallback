@@ -1,6 +1,6 @@
 import { canvas,renderer } from './three-components/renderer.three';
-import { camera,rotateCameraY} from './three-components/player/camera.three';
-import { rotatePlayerX } from './three-components/player/controller.three';
+import { camera} from './three-components/player/camera.three';
+import { player2 } from './three-components/player/control-class.three';
 import './App.css'
 import { useEffect, useRef } from 'react';
 import { keysPressed } from './three-components/player/globals.three';
@@ -21,18 +21,13 @@ function App() {
             renderer.setSize(width, height);
         }
         function onPointerLockChange() {
-            if (document.pointerLockElement === container) {
-                console.log('Pointer locked');
-                document.addEventListener('mousemove', onPointerLockMove, false);
-            } else {
-                console.log('Pointer unlocked');
-                document.removeEventListener('mousemove', onPointerLockMove, false);
-            }
-        }
-        function onPointerLockMove(event: MouseEvent) {
-            const rotationSpeed = 0.002;
-            rotatePlayerX(event.movementX * rotationSpeed);
-            rotateCameraY(event.movementY * rotationSpeed);
+            // if (document.pointerLockElement === container) {
+            //     console.log('Pointer locked');
+            //     document.addEventListener('mousemove',player2.onPointerLockMove(), false);
+            // } else {
+            //     console.log('Pointer unlocked');
+            //     document.removeEventListener('mousemove',player2.onPointerLockMove(), false);
+            // }
         }
         function onClick() {
             const container = containerRef.current;

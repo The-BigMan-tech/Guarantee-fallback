@@ -231,7 +231,7 @@ function getDirResult(currentSearchPath:string,rootPath:string):AppThunk<Promise
             return FsResult.Ok(searchedData)
 
         }else {//if none of the cases were fulfilled,read it from the disk
-            const dirResult = await readDirectory(currentSearchPath,'arbitrary');//arbritrayry order is preferred here since it uses its own heuristic to prioritize folders over metadata like size.ill still leave the other options in the tauri side in case of future requirements
+            const dirResult = await readDirectory(currentSearchPath);//arbritrayry order is preferred here since it uses its own heuristic to prioritize folders over metadata like size.ill still leave the other options in the tauri side in case of future requirements
             if ((dirResult.value !== null) && !(dirResult.value instanceof Error)) {//cache before return so that it caches as it searches
                 const result = await Promise.all(dirResult.value)
                 await searchCache.set(currentSearchPath,result);
