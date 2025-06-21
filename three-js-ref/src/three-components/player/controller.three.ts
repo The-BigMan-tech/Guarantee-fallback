@@ -34,8 +34,9 @@ let jumpAction:THREE.AnimationAction | null = null;
 
 //Tunable variables
 const velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
-const horizontalVelocity = 30;
 const jumpVelocity = 30;
+const jumpResistance = 15;//this is to prevent the player from going way passed the intended place to jump to because of velocity
+let horizontalVelocity = 30;
 
 const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
 const targetQuaternion = new THREE.Quaternion();
@@ -150,6 +151,7 @@ function movePlayerUp(velocityDelta:number) {
     const up = new THREE.Vector3(0,velocityDelta,0);
     up.applyQuaternion(player.quaternion);
     velocity.add(up);
+    horizontalVelocity -= jumpResistance
 }
 function movePlayerDown(velocityDelta:number) {
     const down = new THREE.Vector3(0,-velocityDelta,0);
@@ -194,27 +196,24 @@ function moveOverObstacle() {
 
 
 function mapKeysToPlayer() {
-    let modifiedHorizontalVelocity = horizontalVelocity;
-
     if (keysPressed['Space']) {
         movePlayerUp(jumpVelocity)//the linvel made it sluggish so i had to increase the number
         shouldPlayJumpAnimation = true;
-        modifiedHorizontalVelocity -= 15//this is to prevent the player from going way passed the intended place to jump to because of velocity
     }
     if (keysPressed['KeyW']) {
         if (keysPressed['ShiftLeft']) {//for sprinting
-            modifiedHorizontalVelocity += 10
+            horizontalVelocity += 10
         }
-        moveCharacterForward(modifiedHorizontalVelocity)
+        moveCharacterForward(horizontalVelocity)
     }
     if (keysPressed['KeyS']) {
-        movePlayerBackward(modifiedHorizontalVelocity);
+        movePlayerBackward(horizontalVelocity);
     }
     if (keysPressed['KeyA']) {
-        movePlayerLeft(modifiedHorizontalVelocity);
+        movePlayerLeft(horizontalVelocity);
     }
     if (keysPressed['KeyD']) {
-        movePlayerRight(modifiedHorizontalVelocity);
+        movePlayerRight(horizontalVelocity);
     }
     if (keysPressed['ArrowLeft'])  {
         rotatePlayerX(-rotationDelta)
@@ -295,6 +294,7 @@ function applyVelocity() {
 }
 function resetVariables() {
     velocity.set(0,0,0);//to prevent accumulaion over time
+    horizontalVelocity = 30
     shouldStepUp = false;
     obstacleHeight = 0
 }
