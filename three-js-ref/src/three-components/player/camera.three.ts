@@ -12,6 +12,7 @@ const targetQuaternion = new THREE.Quaternion();
 export const pitchObject = new THREE.Object3D();
 
 pitchObject.add(camera);
+pitchObject.position.y = 4
 targetQuaternion.copy(pitchObject.quaternion);
 
 export function rotateCameraY(delta:number) {

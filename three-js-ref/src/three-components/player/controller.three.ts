@@ -84,7 +84,6 @@ function loadPlayerModel() {
             const playerModel = gltf.scene
             playerModel.position.z = 0.3
             player.add(playerModel);
-            pitchObject.position.y = 4
             player.add(pitchObject)
             player.add(listener)
             mixer = new AnimationMixer(playerModel);
@@ -249,11 +248,11 @@ function mapKeysToAnimation() {
 let playLandSound = true
 function isGrounded() {
     let onGround = false
-    const posY = Math.floor(player.position.y)//i used floor instead of round for stability cuz of edge cases caused by precision
+    const posY = Math.floor(playerPosition.y)//i used floor instead of round for stability cuz of edge cases caused by precision
     const groundPosY = posY - groundDetectionDistance;//the ground should be just one cord lower than the player since te player stands over the ground
-    const point = {...player.position,y:groundPosY}
+    const point = {...playerPosition,y:groundPosY}
 
-    console.log('Point Query Player: ', player.position.y);
+    console.log('Point Query Player: ', playerPosition.y);
     console.log(' Point Query Point:', point.y);
     console.log("Point Query Spawn: ",cube.position.y + cube.scale.y);
 
@@ -329,7 +328,7 @@ function updateCamPerspective() {
     pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
 }
 function updatePlayerTransformations() {
-    player.position.set(playerPosition.x,playerPosition.y,playerPosition.z);
+    player.position.set(playerPosition.x,playerPosition.y-1.6,playerPosition.z);//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
     player.quaternion.slerp(targetQuaternion, rotationSpeed);
     playerRigidBody.setRotation(targetQuaternion,true);
 }
