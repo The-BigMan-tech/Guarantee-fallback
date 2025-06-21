@@ -43,7 +43,7 @@ const rotationDelta = 0.04;
 const rotationSpeed = 0.4;
 
 const maxStepUpHeight = 3//*tune here
-const stepCheckDistance = 3; //im using a positive offset because the forward vector already points forward.
+const stepCheckDistance = 4.5; //im using a positive offset because the forward vector already points forward.
 
 
 //Global variables
@@ -114,26 +114,30 @@ function mapKeysToAnimation() {
     }
 }
 
-
+//im resetting the velocity and impulse every frame to prevent accumulation over time
 function movePlayerForward(velocityDelta:number) {
     const forward = new THREE.Vector3(0,0,-velocityDelta);//direction vector
     forward.applyQuaternion(player.quaternion);//setting the direction to the rigid body's world space
-    velocity.add(forward)
+    velocity.add(forward);
+    forcePlayerDown()
 }
 function movePlayerBackward(velocityDelta:number) {
     const backward = new THREE.Vector3(0,0,velocityDelta);
     backward.applyQuaternion(player.quaternion);
-    velocity.add(backward)
+    velocity.add(backward);
+    forcePlayerDown()
 }
 function movePlayerLeft(velocityDelta:number) {
     const left = new THREE.Vector3(-velocityDelta,0,0);
     left.applyQuaternion(player.quaternion);
-    velocity.add(left)
+    velocity.add(left);
+    forcePlayerDown()
 }
 function movePlayerRight(velocityDelta:number) {
     const right = new THREE.Vector3(velocityDelta,0,0);
     right.applyQuaternion(player.quaternion);
-    velocity.add(right)
+    velocity.add(right);
+    forcePlayerDown()
 }
 function movePlayerUp(velocityDelta:number) {
     const up = new THREE.Vector3(0,velocityDelta,0);
@@ -155,6 +159,7 @@ function calculateUpwardVelocity() {
     const destinationHeight = Math.round(obstacleHeight)
     const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
     const upwardVelocity = Math.round((destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight));
+    console.log("Final upward velocity: ",upwardVelocity);
     return upwardVelocity
 }
 function calculateForwardVelocity(upwardVelocity:number) {
@@ -182,12 +187,9 @@ function moveOverObstacle() {
 
 
 function mapKeysToPlayer() {
-    velocity.set(0,0,0);//im resetting the velocity and impulse every frame to prevent accumulation over time
-
-    const pressedJump = keysPressed['Space']
     let modifiedHorizontalVelocity = horizontalVelocity;
 
-    if (pressedJump) {
+    if (keysPressed['Space']) {
         movePlayerUp(jumpVelocity)//the linvel made it sluggish so i had to increase the number
         shouldPlayJumpAnimation = true;
         modifiedHorizontalVelocity -= 15//this is to prevent the player from going way passed the intended place to jump to because of velocity
@@ -200,20 +202,16 @@ function mapKeysToPlayer() {
             moveOverObstacle();
         }else {
             movePlayerForward(modifiedHorizontalVelocity);
-            forcePlayerDown()
         }
     }
     if (keysPressed['KeyS']) {
         movePlayerBackward(modifiedHorizontalVelocity);
-        forcePlayerDown()
     }
     if (keysPressed['KeyA']) {
         movePlayerLeft(modifiedHorizontalVelocity);
-        forcePlayerDown()
     }
     if (keysPressed['KeyD']) {
         movePlayerRight(modifiedHorizontalVelocity);
-        forcePlayerDown()
     }
     if (keysPressed['ArrowLeft'])  {
         rotatePlayerX(-rotationDelta)
@@ -223,12 +221,6 @@ function mapKeysToPlayer() {
     };
     toggleThirdPerson();
     mapKeysToAnimation();
-
-    //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
-    if (isGrounded() || shouldStepUp) playerRigidBody.setLinvel(velocity,true);
-    playerPosition = playerRigidBody.translation();
-    shouldStepUp = false;
-    obstacleHeight = 0
 }
 
 
@@ -294,7 +286,16 @@ function detectLowStep() {
         return true;//*tune here
     });    
 }
-
+function applyVelocity() { 
+    //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
+    if (isGrounded() || shouldStepUp) playerRigidBody.setLinvel(velocity,true);
+    playerPosition = playerRigidBody.translation();
+}
+function resetVariables() {
+    velocity.set(0,0,0);//to prevent accumulaion over time
+    shouldStepUp = false;
+    obstacleHeight = 0
+}
 
 function updatePlayerAnimations() {
     const delta = clock.getDelta();
@@ -322,7 +323,9 @@ export function updatePlayer() {
     mapKeysToPlayer(); 
     updatePlayerAnimations();
     updateCamPerspective();
+    applyVelocity();
     updatePlayerTransformations();
+    resetVariables();
     detectLowStep();
     respawnIfOutOfBounds()
 }

@@ -1,0 +1,357 @@
+import * as THREE from "three"
+import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
+import { pitchObject } from "./camera.three";
+import { landSound, walkSound } from "./sounds.three";
+import { cameraMode, gravityY, keysPressed, toggleThirdPerson } from "./globals.three";
+import { AnimationMixer } from 'three';
+import * as RAPIER from '@dimforge/rapier3d'
+import { physicsWorld } from "../physics-world.three";
+import { cube } from "../terrain.three";
+
+//Player group and positioning
+const spawnPoint = new RAPIER.Vector3(0,20,0);//so that the player spawns high enough to fall on top of a block not inbetween
+const modelPath:string = './silvermoon.glb';
+
+const characterHeight = 1
+const characterWidth = 1
+const mass = 40
+
+const velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
+const horizontalVelocity = 30;
+const jumpVelocity = 30;
+const sprintBoost = 15;
+const jumpResistance = 15;
+
+const groundDetectionDistance = 1.5;
+const outOfBoundsY = -60;
+
+const targetRotation =  new THREE.Euler(0, 0, 0, 'YXZ');
+const targetQuaternion = new THREE.Quaternion();
+const rotationDelta = 0.04;
+const rotationSpeed = 0.4;
+
+const maxStepUpHeight = 3//*tune here
+const stepCheckDistance = 4.5; //im using a positive offset because the forward vector already points forward.
+const animationTransition = 0.4
+
+const perspectiveToggleSpeed = 0.1;
+const thirdPersonCamPos = 6;
+const firstPersonCamPos = 0;
+
+
+
+
+//Physics body creation
+export const character = new THREE.Group();//dont directly control the player position.do it through the rigid body
+const characterCollider = RAPIER.ColliderDesc.capsule(characterHeight/2,characterWidth);
+const characterBody = RAPIER.RigidBodyDesc.dynamic();
+let characterPosition:RAPIER.Vector3 = spawnPoint//set the initial position to the spawnpoint
+characterBody.mass = mass;
+
+const characterRigidBody = physicsWorld.createRigidBody(characterBody)
+physicsWorld.createCollider(characterCollider,characterRigidBody);
+characterRigidBody.setTranslation(characterPosition,true);
+
+
+//Animation references
+const clock = new THREE.Clock();
+let mixer: THREE.AnimationMixer;
+let currentAction: THREE.AnimationAction | null = null;
+let idleAction: THREE.AnimationAction | null = null;
+let walkAction: THREE.AnimationAction | null = null;
+let jumpAction:THREE.AnimationAction | null = null;
+
+
+//Global variables
+let shouldPlayJumpAnimation = false;
+let obstacleHeight = 0;
+let shouldStepUp = false;
+let modifiedHorizontalVelocity = horizontalVelocity;
+
+
+//Functions
+loadCharacterModel();
+function loadCharacterModel() {
+    const loader:GLTFLoader = new GLTFLoader();
+    loader.load(modelPath,
+        gltf=>{
+            const characterModel = gltf.scene
+            characterModel.position.z = 0.3
+            character.add(characterModel);
+            pitchObject.position.y = 4
+            character.add(pitchObject)
+            mixer = new AnimationMixer(characterModel);
+            loadCharacterAnimations(gltf);
+        },undefined, 
+        error =>console.error( error ),
+    );
+}
+function loadCharacterAnimations(gltf:GLTF) {
+    const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
+    const walkClip = THREE.AnimationClip.findByName(gltf.animations, 'sprinting'); 
+    const jumpClip = THREE.AnimationClip.findByName(gltf.animations, 'jumping'); 
+
+    if (walkClip) walkAction = mixer.clipAction(walkClip);
+    if (jumpClip) jumpAction = mixer.clipAction(jumpClip);
+    if (idleClip) {
+        idleAction = mixer.clipAction(idleClip);
+        idleAction.play();
+        currentAction = idleAction;
+    }
+}
+
+
+function fadeToAnimation(newAction: THREE.AnimationAction) {
+    if (newAction !== currentAction) {
+        newAction.reset();
+        newAction.play();
+        if (currentAction) currentAction.crossFadeTo(newAction,animationTransition, false);
+        currentAction = newAction;
+    }
+}
+function mapKeysToAnimation() {
+    if (mixer && idleAction && walkAction && jumpAction) {//only play animations if all animations have been loaded siuccesfully
+        if (!isGrounded() && shouldPlayJumpAnimation && !shouldStepUp) {
+            walkSound.stop();
+            fadeToAnimation(jumpAction);
+        }else if (keysPressed['KeyW']) {//each key will have its own animation
+            walkSound.play();
+            fadeToAnimation(walkAction);
+        }else if (keysPressed['KeyA']) {
+            walkSound.play();
+        }else if (keysPressed['KeyS']) {
+            walkSound.play();
+        }else if (keysPressed['KeyD']) {
+            walkSound.play();
+        }else {
+            walkSound.stop();
+            fadeToAnimation(idleAction);
+        }
+    }
+}
+
+
+function calculateUpwardVelocity() {
+    const destinationHeight = Math.round(obstacleHeight)
+    const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
+    const upwardVelocity = Math.round((destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight));
+    return upwardVelocity
+}
+function calculateForwardVelocity(upwardVelocity:number) {
+    const destinationHeight = Math.round(obstacleHeight)
+    const timeToReachHeight = (upwardVelocity/gravityY) + Math.sqrt((2*destinationHeight)/gravityY)
+    const forwardVelocity = Math.round(stepCheckDistance/timeToReachHeight)
+    console.log("Final forward velocity: ",forwardVelocity);
+    return forwardVelocity
+}
+function forceCharacterDown() {//to force the player down if he isnt stepping up and he is in the air while moving forward.the effect of this is seen when the player is stepping down
+    if (!shouldStepUp && !isGrounded()) {
+        moveCharacterDown(gravityY)
+    };
+}
+function moveOverObstacle() {
+    console.log('Attemptig to step up');
+    shouldPlayJumpAnimation = false;
+    const upwardVelocity = calculateUpwardVelocity()
+    const forwardVelocity = calculateForwardVelocity(upwardVelocity)
+    moveForward(forwardVelocity);
+    moveCharacterUp(upwardVelocity);
+}
+
+function moveForward(velocityDelta:number) {
+    const forward = new THREE.Vector3(0,0,-velocityDelta);//direction vector
+    forward.applyQuaternion(character.quaternion);//setting the direction to the rigid body's world space
+    velocity.add(forward);
+    forceCharacterDown()
+}
+function moveCharacterForward(velocityDelta:number) {
+    if (shouldStepUp) {
+        moveOverObstacle();
+    }else {
+        moveForward(velocityDelta);
+    }
+}
+function moveCharacterBackward(velocityDelta:number) {
+    const backward = new THREE.Vector3(0,0,velocityDelta);
+    backward.applyQuaternion(character.quaternion);
+    velocity.add(backward);
+    forceCharacterDown();
+}
+function moveCharacterLeft(velocityDelta:number) {
+    const left = new THREE.Vector3(-velocityDelta,0,0);
+    left.applyQuaternion(character.quaternion);
+    velocity.add(left);
+    forceCharacterDown()
+}
+function moveCharacterRight(velocityDelta:number) {
+    const right = new THREE.Vector3(velocityDelta,0,0);
+    right.applyQuaternion(character.quaternion);
+    velocity.add(right);
+    forceCharacterDown()
+}
+function moveCharacterUp(velocityDelta:number) {
+    const up = new THREE.Vector3(0,velocityDelta,0);
+    up.applyQuaternion(character.quaternion);
+    velocity.add(up);
+    forceCharacterDown();
+    shouldPlayJumpAnimation = true;
+    modifiedHorizontalVelocity -= jumpResistance //this is to prevent the player from going way passed the intended place to jump to because of velocity
+}
+function moveCharacterDown(velocityDelta:number) {
+    const down = new THREE.Vector3(0,-velocityDelta,0);
+    down.applyQuaternion(character.quaternion);
+    velocity.add(down);
+    forceCharacterDown();
+}
+
+function rotateCharacterLeft(rotationDelta: number) {
+    targetRotation.y += rotationDelta; 
+    targetQuaternion.setFromEuler(targetRotation);
+}
+function rotateCharacterRight(rotationDelta: number) {
+    targetRotation.y -= rotationDelta; 
+    targetQuaternion.setFromEuler(targetRotation);
+}
+export function rotateCharacterX(rotationDelta: number) {
+    targetRotation.y -= rotationDelta; 
+    targetQuaternion.setFromEuler(targetRotation);
+}
+
+
+
+
+
+function mapKeysToPlayer() {
+    if (keysPressed['Space']) {
+        moveCharacterUp(jumpVelocity)//the linvel made it sluggish so i had to increase the number
+    }
+    if (keysPressed['KeyW']) {
+        if (keysPressed['ShiftLeft']) {//for sprinting
+            modifiedHorizontalVelocity -= sprintBoost
+        }
+        moveCharacterForward(modifiedHorizontalVelocity)
+    }
+    if (keysPressed['KeyS']) {
+        moveCharacterBackward(modifiedHorizontalVelocity);
+    }
+    if (keysPressed['KeyA']) {
+        moveCharacterLeft(modifiedHorizontalVelocity);
+    }
+    if (keysPressed['KeyD']) {
+        moveCharacterRight(modifiedHorizontalVelocity);
+    }
+    if (keysPressed['ArrowLeft'])  {
+        rotateCharacterLeft(rotationDelta)
+    };  
+    if (keysPressed['ArrowRight']) {
+        rotateCharacterRight(rotationDelta)
+    };
+    toggleThirdPerson();
+    mapKeysToAnimation();
+
+    //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
+    if (isGrounded() || shouldStepUp) characterRigidBody.setLinvel(velocity,true);
+    characterPosition = characterRigidBody.translation();
+    shouldStepUp = false;
+    obstacleHeight = 0;
+    modifiedHorizontalVelocity = horizontalVelocity;
+}
+function resetVelocity() {
+    velocity.set(0,0,0);//im resetting the velocity and impulse every frame to prevent accumulation over time
+}
+
+let playLandSound = true
+function isGrounded() {
+    let onGround = false
+    const posY = Math.floor(character.position.y)//i used floor instead of round for stability cuz of edge cases caused by precision
+    const groundPosY = posY - groundDetectionDistance;//the ground should be just one cord lower than the player since te player stands over the ground
+    const point = {...character.position,y:groundPosY}
+
+    console.log('Point Query Player: ',character.position.y);
+    console.log(' Point Query Point:', point.y);
+    console.log("Point Query Spawn: ",cube.position.y + cube.scale.y);
+
+    physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
+        const collider = physicsWorld.getCollider(colliderObject.handle);
+        const shape = collider.shape
+        if (shape instanceof RAPIER.Capsule) return true//ignore the player and continue checking
+        console.log("PointY Ground: ",point.y);
+        console.log('Ground Collider shape:', shape);
+
+        onGround = true
+        if (playLandSound) {
+            landSound.play();
+            playLandSound = false
+        }
+        return false;//*tune here
+    });  
+    console.log("Point On Ground?: ",onGround);
+    if (!onGround) playLandSound = true;
+    return onGround 
+}
+
+
+function detectLowStep() {
+    const forward = new THREE.Vector3(0, 0, -1); // Local forward
+    const rotation = characterRigidBody.rotation();
+    const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
+    forward.applyQuaternion(quat).normalize();
+
+    const point = new THREE.Vector3(
+        characterPosition.x + forward.x * stepCheckDistance,
+        characterPosition.y,
+        characterPosition.z + forward.z * stepCheckDistance
+    );
+    
+    physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
+        console.log('PointY Obstacle: ', point.y);
+        const collider = physicsWorld.getCollider(colliderObject.handle);
+        const shape = collider.shape
+        console.log('Collider shape:', shape);
+        
+        if (shape instanceof RAPIER.Cuboid) {
+            const halfExtents = shape.halfExtents;
+            const height = halfExtents.y * 2;
+            obstacleHeight = height;
+            console.log('Obstacle height:', height);
+            if (height <= maxStepUpHeight) {
+                console.log("STEPPING UP");
+                shouldStepUp = true
+            }
+        }
+        return true;//*tune here
+    });    
+}
+
+
+function updateCharacterAnimations() {
+    const delta = clock.getDelta();
+    if (mixer) mixer.update(delta);
+}
+function updateCamPerspective() {
+    const targetZ = cameraMode.isThirdPerson ? thirdPersonCamPos : firstPersonCamPos;
+    pitchObject.position.z += (targetZ - pitchObject.position.z) * perspectiveToggleSpeed; // 0.1 
+}
+function updateCharacterTransformations() {
+    character.position.set(characterPosition.x,characterPosition.y,characterPosition.z);
+    character.quaternion.slerp(targetQuaternion, rotationSpeed);
+    characterRigidBody.setRotation(targetQuaternion,true);
+}
+function respawnIfOutOfBounds() {
+    if (characterPosition.y <= outOfBoundsY) {
+        characterRigidBody.setTranslation(spawnPoint,true);
+        characterPosition = characterRigidBody.translation();
+        character.position.set(characterPosition.x,characterPosition.y,characterPosition.z);
+    }
+}
+
+
+export function updatePlayer() {
+    resetVelocity()
+    mapKeysToPlayer(); 
+    updateCharacterAnimations();
+    updateCamPerspective();
+    updateCharacterTransformations();
+    detectLowStep();
+    respawnIfOutOfBounds()
+}
