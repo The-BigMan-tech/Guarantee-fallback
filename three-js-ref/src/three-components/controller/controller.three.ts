@@ -174,9 +174,9 @@ export abstract class Controller {
         const isRoundable = Math.round(charPosY) > charPosY
         console.log("Point is Roundable: ",isRoundable);
 
-        const posY = (isRoundable)?Math.floor(charPosY):charPosY//i used floor instead of round for stability cuz of edge cases caused by precision
+        const posY = (isRoundable)?Math.floor(charPosY):charPosY-1//i used floor instead of round for stability cuz of edge cases caused by precision
         const groundPosY = posY - this.groundDetectionDistance;//the ground should be just a few cord lower than the player since te player stands over the ground
-        const point = {...this.characterPosition,y:(!isRoundable)?groundPosY-1:groundPosY}
+        const point = {...this.characterPosition,y:groundPosY}
         
         console.log("Point Ground detection distance: ",this.groundDetectionDistance);
         console.log('Point Query Player: ',charPosY);
