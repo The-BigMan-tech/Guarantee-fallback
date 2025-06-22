@@ -35,48 +35,46 @@ function createBoxLine(halfWidth:number,halfHeight:number) {
 export abstract class Controller {
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
-    private character: THREE.Group<THREE.Object3DEventMap>//made it private to prevent mutation but added a getter for it to be added to the scene
+    
+    private character: THREE.Group<THREE.Object3DEventMap> = new THREE.Group();//made it private to prevent mutation but added a getter for it to be added to the scene
+    private characterBody: RAPIER.RigidBodyDesc = RAPIER.RigidBodyDesc.dynamic();
+    private characterPosition:RAPIER.Vector3
+    private characterCollider: RAPIER.ColliderDesc
+    private characterRigidBody:RAPIER.RigidBody;
     private characterColliderHandle:number;
     private charLine: THREE.LineSegments;
     private modelZOffset:number = 0.3;
 
-    private obtscaleDetectionDistance:number;
+    private obstacleHeight: number = 0;
+    private obtscaleDetectionDistance:number = 4.5;
     private groundDetectionDistance:number;
-    private listener: THREE.AudioListener;
-    private velocity:THREE.Vector3;
-    private targetRotation:THREE.Euler;
-    private targetQuaternion:THREE.Quaternion;
-    private characterPosition:RAPIER.Vector3
-    private characterCollider: RAPIER.ColliderDesc
-    private characterBody: RAPIER.RigidBodyDesc;
-    private characterRigidBody:RAPIER.RigidBody;
-    private obstacleHeight: number
-    private playLandSound: boolean;
-    private clock:THREE.Clock;
-    private currentAction: THREE.AnimationAction | null;
+    
+    private velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
+    private targetRotation:THREE.Euler = new THREE.Euler(0, 0, 0, 'YXZ');
+    private targetQuaternion:THREE.Quaternion = new THREE.Quaternion();
 
-    private shouldStepUp: boolean
-    private mixer: THREE.AnimationMixer | null;
-    private idleAction: THREE.AnimationAction | null;
-    private walkAction: THREE.AnimationAction | null;
-    private jumpAction:THREE.AnimationAction | null;
-    private shouldPlayJumpAnimation: boolean;
-    private walkSound: THREE.PositionalAudio;//the inheriting class can only access this sound through exposed methods
-    private landSound: THREE.PositionalAudio;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
+
+    private listener: THREE.AudioListener = new THREE.AudioListener();;
+    private playLandSound: boolean = true;
+    private walkSound: THREE.PositionalAudio = new THREE.PositionalAudio(this.listener);;//the inheriting class can only access this sound through exposed methods
+    private landSound: THREE.PositionalAudio = new THREE.PositionalAudio(this.listener);;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
+
+    private clock:THREE.Clock = new THREE.Clock();
+    private mixer: THREE.AnimationMixer | null = null;
+    private currentAction: THREE.AnimationAction | null = null;
+    private idleAction: THREE.AnimationAction | null = null;
+    private walkAction: THREE.AnimationAction | null = null;
+    private jumpAction:THREE.AnimationAction | null = null;
+
+    private shouldStepUp: boolean = false;
+    private shouldPlayJumpAnimation: boolean = false;
 
     
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = fixedData.characterHeight/2;
         this.fixedData = fixedData
         this.dynamicData = dynamicData
-
-        this.velocity = new THREE.Vector3(0,0,0);
-        this.targetRotation = new THREE.Euler(0, 0, 0, 'YXZ');
-        this.targetQuaternion = new THREE.Quaternion();
-
-        this.character = new THREE.Group();
         this.characterPosition = this.fixedData.spawnPoint
-        
         if (this.fixedData.shape == 'capsule') {
             const radius = this.fixedData.characterWidth
             this.characterCollider = RAPIER.ColliderDesc.capsule(halfHeight,radius);
@@ -88,32 +86,14 @@ export abstract class Controller {
         }
         this.charLine.position.y += 2
         this.charLine.position.z += this.modelZOffset;
-        this.character.add(this.charLine)
-        this.characterBody = RAPIER.RigidBodyDesc.dynamic()
-        this.characterBody.mass = this.fixedData.mass;
+        this.character.add(this.charLine);
 
+        this.characterBody.mass = this.fixedData.mass;
         this.characterRigidBody = physicsWorld.createRigidBody(this.characterBody);
         this.characterColliderHandle = physicsWorld.createCollider(this.characterCollider,this.characterRigidBody).handle;
         this.characterRigidBody.setTranslation(this.characterPosition,true);
 
-        this.clock = new THREE.Clock();
-        this.mixer = null;
-        this.currentAction = null
-        this.idleAction = null
-        this.walkAction = null
-        this.jumpAction = null
-
-        this.listener = new THREE.AudioListener();
-        this.walkSound = new THREE.PositionalAudio(this.listener);
-        this.landSound = new THREE.PositionalAudio(this.listener);
-
-        this.shouldPlayJumpAnimation = false;
-        this.obstacleHeight = 0;
-        this.shouldStepUp = false
-        this.playLandSound = true;
-
         this.groundDetectionDistance = halfHeight + 0.5 + ((halfHeight%2) * 0.5);
-        this.obtscaleDetectionDistance = 4.5;
         this.loadCharacterModel()
     }
     private loadCharacterModel() {
