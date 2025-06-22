@@ -129,5 +129,6 @@ const playerDynamicData:DynamicControllerData = {
     rotationDelta:0.04,
     rotationSpeed:0.4,
     maxStepUpHeight:3,
+    gravityScale:1
 }
 export const player = new Player(playerFixedData,playerDynamicData)

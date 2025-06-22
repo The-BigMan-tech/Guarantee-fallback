@@ -18,6 +18,7 @@ export interface DynamicControllerData {
     horizontalVelocity:number,
     rotationDelta:number,
     rotationSpeed:number,
+    gravityScale:number
 }
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
@@ -25,7 +26,7 @@ export abstract class Controller {
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
     private character: THREE.Group<THREE.Object3DEventMap>//made it private to prevent mutation but added a getter for it to be added to the scene
 
-    private lowObtscaleCheckDistance:number;
+    private obtscaleDetectionDistance:number;
     private groundDetectionDistance:number;
     private listener: THREE.AudioListener;
     private velocity:THREE.Vector3;
@@ -53,33 +54,40 @@ export abstract class Controller {
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         this.fixedData = fixedData
         this.dynamicData = dynamicData
+
         this.velocity = new THREE.Vector3(0,0,0);
         this.targetRotation = new THREE.Euler(0, 0, 0, 'YXZ');
         this.targetQuaternion = new THREE.Quaternion();
+
         this.character = new THREE.Group();
         this.characterPosition = this.fixedData.spawnPoint
         this.characterCollider = RAPIER.ColliderDesc.capsule(this.fixedData.characterHeight/2,this.fixedData.characterWidth)
         this.characterBody = RAPIER.RigidBodyDesc.dynamic()
         this.characterBody.mass = this.fixedData.mass;
+
         this.characterRigidBody = physicsWorld.createRigidBody(this.characterBody);
         physicsWorld.createCollider(this.characterCollider,this.characterRigidBody);
         this.characterRigidBody.setTranslation(this.characterPosition,true);
+
         this.clock = new THREE.Clock();
         this.mixer = null;
         this.currentAction = null
         this.idleAction = null
         this.walkAction = null
         this.jumpAction = null
+
         this.listener = new THREE.AudioListener();
         this.walkSound = new THREE.PositionalAudio(this.listener);
         this.landSound = new THREE.PositionalAudio(this.listener);
+
         this.shouldPlayJumpAnimation = false;
         this.obstacleHeight = 0;
         this.shouldStepUp = false
         this.playLandSound = true;
+
         const halfHeight = this.fixedData.characterHeight/2;
         this.groundDetectionDistance = halfHeight + 0.5 + ((halfHeight%2) * 0.5);
-        this.lowObtscaleCheckDistance = 4.5;
+        this.obtscaleDetectionDistance = 4.5;
         this.loadCharacterModel()
     }
     private loadCharacterModel() {
@@ -140,7 +148,7 @@ export abstract class Controller {
     private calculateForwardVelocity(upwardVelocity:number) {
         const destinationHeight = Math.round(this.obstacleHeight)
         const timeToReachHeight = (upwardVelocity/gravityY) + Math.sqrt((2*destinationHeight)/gravityY)
-        const forwardVelocity = Math.round(this.lowObtscaleCheckDistance/timeToReachHeight)//i rounded this one to ensure that the forward velocity is treated fair enough to move over the obstacle.ceiling it will overshoot it
+        const forwardVelocity = Math.round(this.obtscaleDetectionDistance/timeToReachHeight)//i rounded this one to ensure that the forward velocity is treated fair enough to move over the obstacle.ceiling it will overshoot it
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
@@ -172,22 +180,25 @@ export abstract class Controller {
         if (!onGround) this.playLandSound = true;
         return onGround 
     }
-    private detectLowObstacle() {
+    private orientPoint(distance:number):THREE.Vector3 {
         const forward = new THREE.Vector3(0, 0, -1); // Local forward
         const rotation = this.characterRigidBody.rotation();
         const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
         forward.applyQuaternion(quat).normalize();
     
         const point = new THREE.Vector3(
-            this.characterPosition.x + forward.x * this.lowObtscaleCheckDistance,
+            this.characterPosition.x + forward.x * distance,
             this.characterPosition.y-(this.groundDetectionDistance-0.5),//to detect obstacles that are too low
-            this.characterPosition.z + forward.z * this.lowObtscaleCheckDistance
+            this.characterPosition.z + forward.z * distance
         );
-        
+        return point
+    }
+    private detectLowObstacle() {
+        const point:THREE.Vector3 = this.orientPoint(this.obtscaleDetectionDistance)
         physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
-            console.log('PointY Obstacle: ', point.y);
             const collider = physicsWorld.getCollider(colliderObject.handle);
             const shape = collider.shape
+            console.log('PointY Obstacle: ', point.y);
             console.log('Collider shape:', shape);
             
             if (shape instanceof RAPIER.Cuboid) {
@@ -318,6 +329,7 @@ export abstract class Controller {
     }
     private updateController() {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         this.defineBehaviour();
+        this.characterRigidBody.setGravityScale(this.dynamicData.gravityScale,true)
         this.updateCharacterAnimations();
         this.applyVelocity();
         this.updateCharacterTransformations();
