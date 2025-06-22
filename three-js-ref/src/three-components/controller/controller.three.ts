@@ -84,8 +84,10 @@ export abstract class Controller {
             this.characterCollider = RAPIER.ColliderDesc.capsule(halfHeight,radius);
             this.charLine = createCapsuleLine(radius,halfHeight)
         }else {
-            this.characterCollider = RAPIER.ColliderDesc.cuboid(halfWidth,halfHeight,halfWidth);
-            this.charLine = createBoxLine(halfWidth,halfHeight)
+            const increasedHalfWidth = halfWidth + 0.5;//i increased it to make it as volumetric as its capsule counterpart
+            const increasedHalfWidth = halfWidth + 0.5;
+            this.characterCollider = RAPIER.ColliderDesc.cuboid(increasedHalfWidth,halfHeight,increasedHalfWidth);
+            this.charLine = createBoxLine(increasedHalfWidth,halfHeight)
         }
         this.charLine.position.set(0,2,this.modelZOffset)//the offset is to ensure its accurate visually
         this.character.add(this.charLine);
