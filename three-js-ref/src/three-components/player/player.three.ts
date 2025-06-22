@@ -130,6 +130,7 @@ const playerFixedData:FixedControllerData = {
     spawnPoint: new RAPIER.Vector3(0,20,0),
     characterHeight:4,
     characterWidth:1,
+    shape:'capsule',
     mass:40,
 }
 const playerDynamicData:DynamicControllerData = {

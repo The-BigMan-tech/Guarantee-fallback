@@ -9,6 +9,7 @@ export interface FixedControllerData {
     spawnPoint: RAPIER.Vector3,
     characterHeight:number,
     characterWidth:number,
+    shape:'capsule' | 'box'
     mass:number,
 }
 export interface DynamicControllerData {
@@ -63,7 +64,14 @@ export abstract class Controller {
 
         this.character = new THREE.Group();
         this.characterPosition = this.fixedData.spawnPoint
-        this.characterCollider = RAPIER.ColliderDesc.capsule(halfHeight,this.fixedData.characterWidth);
+        
+        if (this.fixedData.shape == 'capsule') {
+            const radius = this.fixedData.characterWidth
+            this.characterCollider = RAPIER.ColliderDesc.capsule(halfHeight,radius);
+        }else {
+            const halfWidth = this.fixedData.characterWidth/2;
+            this.characterCollider = RAPIER.ColliderDesc.cuboid(halfWidth,halfHeight,halfWidth);
+        }
         this.characterBody = RAPIER.RigidBodyDesc.dynamic()
         this.characterBody.mass = this.fixedData.mass;
 
@@ -191,9 +199,9 @@ export abstract class Controller {
         forward.applyQuaternion(quat).normalize();
     
         const point = new THREE.Vector3(
-            this.characterPosition.x + forward.x * distance,
-            this.characterPosition.y-(this.groundDetectionDistance-0.5),//to detect obstacles that are too low
-            this.characterPosition.z + forward.z * distance
+            this.characterPosition.x + (forward.x * distance),
+            this.characterPosition.y - (this.groundDetectionDistance-0.5),//to detect obstacles that are too low
+            this.characterPosition.z + (forward.z * distance)
         );
         return point
     }
