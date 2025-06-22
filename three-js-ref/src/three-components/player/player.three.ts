@@ -29,6 +29,9 @@ class Player extends Controller {
         this.offsetY = (camArgs.offsetY=='auto')?fixedData.characterHeight:camArgs.offsetY
         this.camera = new Camera(camArgs)
         this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
+        Player.addEventListeners()
+    }
+    private static addEventListeners() {
         document.addEventListener('keydown',Player.onKeyDown);
         document.addEventListener('keyup', Player.onKeyUp);
     }
