@@ -85,7 +85,7 @@ class Player extends Controller {
         if (this.isAirBorne()) {
             this.stopWalkSound()
             this.playJumpAnimation()
-            this.targetZ = -0.2;
+            if (!this.isThirdPerson) this.targetZ = -0.2;
         }else if (Player.keysPressed['KeyW']) {//each key will have its own animation
             this.playWalkSound()
             this.playWalkAnimation()
