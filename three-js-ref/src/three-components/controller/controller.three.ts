@@ -333,9 +333,9 @@ export abstract class Controller {
     }
     private updateController() {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         this.defineBehaviour();
+        this.applyVelocity();
         this.characterRigidBody.setGravityScale(this.dynamicData.gravityScale,true)
         this.updateCharacterAnimations();
-        this.applyVelocity();
         this.updateCharacterTransformations();
         this.resetVariables();
         this.detectLowObstacle();
