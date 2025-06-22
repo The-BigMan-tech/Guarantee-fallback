@@ -7,15 +7,19 @@ import * as THREE from "three"
 
 class Player extends Controller {
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
+    public camera:Camera;
     private canToggleCamera:boolean;//to debounce perspective toggling
     private isThirdPerson:boolean;
-    public camera:Camera;
+    private cameraClampAngle:number;
+    private static firstPersonClamp = 90
+    private static thirdPersonClamp = 10;
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         super(fixedData,dynamicData);
         this.canToggleCamera = true;
         this.isThirdPerson = false;
         this.camera = new Camera({...PlayerCamArgs,offsetY:fixedData.characterHeight})
+        this.cameraClampAngle = Player.firstPersonClamp;
         this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
         document.addEventListener('keydown',Player.onKeyDown);
         document.addEventListener('keyup', Player.onKeyUp);
@@ -54,10 +58,10 @@ class Player extends Controller {
             this.rotateCharacterX(+this.dynamicData.rotationDelta)
         };
         if (Player.keysPressed['ArrowUp']) {
-            this.camera.rotateCameraUp(this.isThirdPerson)
+            this.camera.rotateCameraUp(this.cameraClampAngle)
         };  
         if (Player.keysPressed['ArrowDown']) {
-            this.camera.rotateCameraDown(this.isThirdPerson)
+            this.camera.rotateCameraDown(this.cameraClampAngle)
         };
         if (Player.keysPressed['KeyT']) {
             if (this.canToggleCamera) {
@@ -84,15 +88,22 @@ class Player extends Controller {
             this.playIdleAnimation()
         }
     }
-    private manageCamera() {//this is where the camera is updated and optionally adding other behaviour to the camera before that update
+    private toggleThirdPerson() {//this is where the camera is updated and optionally adding other behaviour to the camera before that update
         const camPosition = this.camera.cam3D.position
-        const targetZ = this.isThirdPerson ? 6 : 0;
+        let targetZ;
+        if (this.isThirdPerson) {
+            this.cameraClampAngle = Player.thirdPersonClamp
+            targetZ = 6
+        }else {
+            this.cameraClampAngle = Player.firstPersonClamp
+            targetZ = 0
+        }
         const newCamPosition = new THREE.Vector3(camPosition.x,camPosition.y,targetZ)
         this.camera.translateCamera(newCamPosition,0.1);
-        this.camera.updateCamera();
     }
     protected defineBehaviour() {//this is where all character updates to this instance happens.
-        this.manageCamera();
+        this.toggleThirdPerson();
+        this.camera.updateCamera()
         this.mapKeysToPlayer();
         this.mapKeysToAnimations();
     }
