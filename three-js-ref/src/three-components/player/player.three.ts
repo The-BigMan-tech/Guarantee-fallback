@@ -4,7 +4,14 @@ import type { FixedControllerData,DynamicControllerData} from "../controller/con
 import * as RAPIER from "@dimforge/rapier3d"
 import * as THREE from "three"
 
-
+interface PlayerCamData {
+    FOV: number;
+    nearPoint: number;
+    farPoint: number;
+    cameraRotationDelta: number;
+    cameraRotationSpeed: number;
+    offsetY:number | 'auto';
+}
 class Player extends Controller {
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
     public camera:Camera;
@@ -109,14 +116,6 @@ class Player extends Controller {
         this.mapKeysToPlayer();
         this.mapKeysToAnimations();
     }
-}
-interface PlayerCamData {
-    FOV: number;
-    nearPoint: number;
-    farPoint: number;
-    cameraRotationDelta: number;
-    cameraRotationSpeed: number;
-    offsetY:number | 'auto';
 }
 const PlayerCamArgs:PlayerCamData = {
     FOV:75,
