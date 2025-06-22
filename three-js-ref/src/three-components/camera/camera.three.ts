@@ -52,13 +52,13 @@ export class Camera {
     public rotateCameraDown(clampAngle:number) {
         this.rotateCameraY(-this.cameraRotationDelta,clampAngle)
     }
-    public updateCamera() {
-        this.camera3D.quaternion.slerp(this.targetQuaternion,this.cameraRotationSpeed);
-        this.camera3D.position.lerp(this.targetPosition,this.translationSpeed)
-    }
     public translateCamera(translation:THREE.Vector3,speed:number) {
         this.targetPosition = translation;
         this.translationSpeed = speed
+    }
+    public updateCamera() {
+        this.camera3D.quaternion.slerp(this.targetQuaternion,this.cameraRotationSpeed);
+        this.camera3D.position.lerp(this.targetPosition,this.translationSpeed)
     }
     get cam3D() {
         return this.camera3D
