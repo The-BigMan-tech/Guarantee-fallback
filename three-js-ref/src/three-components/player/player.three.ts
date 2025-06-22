@@ -1,16 +1,22 @@
-import { pitchObject,rotateCameraDown,rotateCameraUp,updateCameraRotation} from "./camera.three";
+import { Camera, type CameraData } from "./camera.three";
 import { Controller } from "../controller/controller.three";
 import type { FixedControllerData,DynamicControllerData} from "../controller/controller.three";
 import * as RAPIER from "@dimforge/rapier3d"
+import * as THREE from "three"
+
 
 class Player extends Controller {
+    public camera:Camera;
+    private camPosition:THREE.Vector3;
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
     private canToggleCamera:boolean;
     private isThirdPerson:boolean;
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         super(fixedData,dynamicData);
-        this.addObject(pitchObject);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
+        this.camera = new Camera(PlayerCamArgs)
+        this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
+        this.camPosition = this.camera.cam3D.position
         this.canToggleCamera = true;
         this.isThirdPerson = false;
         document.addEventListener('keydown',Player.onKeyDown);
@@ -50,10 +56,10 @@ class Player extends Controller {
             this.rotateCharacterX(+this.dynamicData.rotationDelta)
         };
         if (Player.keysPressed['ArrowUp']) {
-            rotateCameraUp(this.isThirdPerson)
+            this.camera.rotateCameraUp(this.isThirdPerson)
         };  
         if (Player.keysPressed['ArrowDown']) {
-            rotateCameraDown(this.isThirdPerson)
+            this.camera.rotateCameraDown(this.isThirdPerson)
         };
         if (Player.keysPressed['KeyT']) {
             if (this.canToggleCamera) {
@@ -84,14 +90,24 @@ class Player extends Controller {
     }
     private updateCamPerspective() {
         const targetZ = this.isThirdPerson ? 6 : 0;
-        pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
+        const newCamPosition = new THREE.Vector3(this.camPosition.x,this.camPosition.y,targetZ)
+        this.camera.translateCamera(newCamPosition,0.1)
     }
     protected defineBehaviour() {//this is where all character updates to this instance happens.
-        updateCameraRotation();
+        this.camPosition = this.camera.cam3D.position
+        this.camera.updateCamera();
         this.mapKeysToPlayer();
         this.mapKeysToAnimations();
         this.updateCamPerspective();
     }
+}
+const PlayerCamArgs:CameraData = {
+    FOV:75,
+    nearPoint:0.1,
+    farPoint:1000,
+    cameraRotationDelta:0.05,
+    cameraRotationSpeed:0.5,
+    offsetY:4
 }
 const playerFixedData:FixedControllerData = {
     modelPath:'./silvermoon.glb',

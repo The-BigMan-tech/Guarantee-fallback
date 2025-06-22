@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import { camera } from './player/camera.three';
 import { scene } from './scene.three';
 import { loadEnv } from './env.three';
 import { updateSun } from './sun.three';
@@ -16,5 +15,5 @@ renderer.setAnimationLoop(()=>{
     physicsWorld.step()   
     player.updateCharacter()
     updateSun();
-    renderer.render( scene,camera);
+    renderer.render( scene,player.camera.cam);
 });

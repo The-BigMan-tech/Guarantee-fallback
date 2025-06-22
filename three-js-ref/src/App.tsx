@@ -1,5 +1,5 @@
 import { canvas,renderer } from './three-components/renderer.three';
-import { camera} from './three-components/player/camera.three';
+import { player } from './three-components/player/player.three';
 import './App.css'
 import { useEffect, useRef } from 'react';
 
@@ -15,8 +15,8 @@ function App() {
         function resizeRendererToContainer(container: HTMLElement) {
             const width = container.clientWidth;
             const height = container.clientHeight;
-            camera.aspect = width / height;
-            camera.updateProjectionMatrix();
+            player.camera.cam.aspect = width / height;
+            player.camera.cam.updateProjectionMatrix();
             renderer.setSize(width, height);
         }
         resizeRendererToContainer(container);
