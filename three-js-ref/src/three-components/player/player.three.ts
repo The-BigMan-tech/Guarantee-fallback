@@ -1,4 +1,4 @@
-import { pitchObject,rotateCameraDown,rotateCameraUp,updateCameraRotation} from "../player/camera.three";
+import { pitchObject,rotateCameraDown,rotateCameraUp,updateCameraRotation} from "./camera.three";
 import { Controller } from "../controller/controller.three";
 import type { FixedControllerData,DynamicControllerData} from "../controller/controller.three";
 import * as RAPIER from "@dimforge/rapier3d"

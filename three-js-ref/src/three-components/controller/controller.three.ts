@@ -23,9 +23,10 @@ export interface DynamicControllerData {
 }
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
-    public character: THREE.Group<THREE.Object3DEventMap>//needs to be public to be added to the scene
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
+    private character: THREE.Group<THREE.Object3DEventMap>//made it private to prevent mutation but added a getter for it to be added to the scene
+
 
     private listener: THREE.AudioListener;
     private velocity:THREE.Vector3;
@@ -286,20 +287,7 @@ export abstract class Controller {
         this.targetRotation.y -= rotationDelta; 
         this.targetQuaternion.setFromEuler(this.targetRotation);
     }
-    protected addObject(externalObject:THREE.Object3D) {//any object that must be added like a camera for a player should be done through here.it reuqires the class to put any object he wants under a threejs 3d object
-        this.character.add(externalObject)
-    }
 
-    protected abstract defineBehaviour():void//this is a hook where the entity must be controlled before updating
-    public updateCharacter() {//needs to be public to be added to the render loop
-        this.defineBehaviour();
-        this.updateCharacterAnimations();
-        this.applyVelocity();
-        this.updateCharacterTransformations();
-        this.resetVariables();
-        this.detectLowStep();
-        this.respawnIfOutOfBounds();
-    }
 
     protected isAirBorne() {
         return !this.isGrounded() && this.shouldPlayJumpAnimation && !this.shouldStepUp
@@ -320,4 +308,25 @@ export abstract class Controller {
     protected stopWalkSound() {
         this.walkSound.stop()
     }
+
+    
+    protected addObject(externalObject:THREE.Object3D) {//any object that must be added like a camera for a player should be done through here.it reuqires the class to put any object he wants under a threejs 3d object
+        this.character.add(externalObject)
+    }
+    private updateController() {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
+        this.defineBehaviour();
+        this.updateCharacterAnimations();
+        this.applyVelocity();
+        this.updateCharacterTransformations();
+        this.resetVariables();
+        this.detectLowStep();
+        this.respawnIfOutOfBounds();
+    }
+    get updateCharacter() {
+        return this.updateController
+    }
+    get characterController() {
+        return this.character
+    }
+    protected abstract defineBehaviour():void//this is a hook where the entity must be controlled before updating
 }

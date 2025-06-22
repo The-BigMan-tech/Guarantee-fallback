@@ -1,5 +1,34 @@
 import * as THREE from 'three';
 
+interface CameraData {
+    FOV:number;
+    nearPoint:number,
+    farPoint:number,
+    cameraRotationDelta:number;
+    cameraRotationSpeed:number;
+}
+export class Camera {
+    private cameraObject:THREE.PerspectiveCamera;
+    private camera3D:THREE.Object3D;
+    private targetQuaternion:THREE.Quaternion
+    private FOV:number;
+    private nearPoint:number;
+    private farPoint:number;
+    private cameraRotationDelta:number;
+    private cameraRotationSpeed:number;
+
+    constructor(camData:CameraData) {
+        this.FOV = camData.FOV;
+        this.nearPoint = camData.nearPoint;
+        this.farPoint = camData.farPoint;
+        this.cameraRotationDelta = camData.cameraRotationDelta;
+        this.cameraRotationSpeed = camData.cameraRotationSpeed;
+        this.cameraObject =  new THREE.PerspectiveCamera(this.FOV,undefined,this.nearPoint,this.farPoint);
+        this.targetQuaternion = new THREE.Quaternion();
+        this.camera3D = new THREE.Object3D();
+        this.camera3D.add(this.cameraObject)
+    }
+}
 const FOV = 75;
 const nearPoint = 0.1;
 const farPoint = 1000;
