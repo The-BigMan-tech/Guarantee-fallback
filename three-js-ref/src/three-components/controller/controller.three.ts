@@ -25,6 +25,7 @@ export abstract class Controller {
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
     private character: THREE.Group<THREE.Object3DEventMap>//made it private to prevent mutation but added a getter for it to be added to the scene
+    private characterColliderHandle:number;
 
     private obtscaleDetectionDistance:number;
     private groundDetectionDistance:number;
@@ -52,6 +53,7 @@ export abstract class Controller {
 
     
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
+        const halfHeight = fixedData.characterHeight/2;
         this.fixedData = fixedData
         this.dynamicData = dynamicData
 
@@ -61,12 +63,12 @@ export abstract class Controller {
 
         this.character = new THREE.Group();
         this.characterPosition = this.fixedData.spawnPoint
-        this.characterCollider = RAPIER.ColliderDesc.capsule(this.fixedData.characterHeight/2,this.fixedData.characterWidth)
+        this.characterCollider = RAPIER.ColliderDesc.capsule(halfHeight,this.fixedData.characterWidth);
         this.characterBody = RAPIER.RigidBodyDesc.dynamic()
         this.characterBody.mass = this.fixedData.mass;
 
         this.characterRigidBody = physicsWorld.createRigidBody(this.characterBody);
-        physicsWorld.createCollider(this.characterCollider,this.characterRigidBody);
+        this.characterColliderHandle = physicsWorld.createCollider(this.characterCollider,this.characterRigidBody).handle;
         this.characterRigidBody.setTranslation(this.characterPosition,true);
 
         this.clock = new THREE.Clock();
@@ -85,7 +87,6 @@ export abstract class Controller {
         this.shouldStepUp = false
         this.playLandSound = true;
 
-        const halfHeight = this.fixedData.characterHeight/2;
         this.groundDetectionDistance = halfHeight + 0.5 + ((halfHeight%2) * 0.5);
         this.obtscaleDetectionDistance = 4.5;
         this.loadCharacterModel()
@@ -155,7 +156,7 @@ export abstract class Controller {
     private isGrounded() {
         let onGround = false
         const posY = Math.floor(this.characterPosition.y)//i used floor instead of round for stability cuz of edge cases caused by precision
-        const groundPosY = posY - this.groundDetectionDistance;//the ground should be just one cord lower than the player since te player stands over the ground
+        const groundPosY = posY - this.groundDetectionDistance;//the ground should be just a few cord lower than the player since te player stands over the ground
         const point = {...this.characterPosition,y:groundPosY}
         
         console.log("Point Ground detection distance: ",this.groundDetectionDistance);
@@ -163,17 +164,20 @@ export abstract class Controller {
         console.log(' Point Query Point:', point.y);
     
         physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
+            const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
+            console.log("Is character collider: ",isCharacterCollider);
+            if (isCharacterCollider) return true;//skip the check for the player and contiune searching for other colliers at that point
             const collider = physicsWorld.getCollider(colliderObject.handle);
             const shape = collider.shape
-            if (shape instanceof RAPIER.Capsule) return true//ignore the player and continue checking
+    
             console.log("PointY Ground: ",point.y);
             console.log('Ground Collider shape:', shape);
-    
-            onGround = true
+
             if (this.playLandSound) {
                 this.landSound.play();
                 this.playLandSound = false
             }
+            onGround = true
             return false;//*tune here
         });  
         console.log("Point On Ground?: ",onGround);
