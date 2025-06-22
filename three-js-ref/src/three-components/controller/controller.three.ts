@@ -179,7 +179,7 @@ export abstract class Controller {
     
         const point = new THREE.Vector3(
             this.characterPosition.x + forward.x * this.fixedData.stepCheckDistance,
-            this.characterPosition.y-1,//to detect obstacles that are too low
+            this.characterPosition.y-(this.groundDetectionDistance-0.5),//to detect obstacles that are too low
             this.characterPosition.z + forward.z * this.fixedData.stepCheckDistance
         );
         

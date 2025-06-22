@@ -19,7 +19,7 @@ export const cubesGroup = new THREE.Object3D();
 
 const tallCubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f});
 const minHeight = 1;
-const maxHeight = 30;
+const maxHeight = 1;
 
 for (let i = 0; i < points.length; i++) {
     const [x, z] = points[i];
