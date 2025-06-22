@@ -20,14 +20,17 @@ export interface DynamicControllerData {
     horizontalVelocity:number,
     rotationDelta:number,
     rotationSpeed:number,
-    camera:THREE.Object3D<THREE.Object3DEventMap> | null
 }
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
-    public character: THREE.Group<THREE.Object3DEventMap>
-    public dynamicData:DynamicControllerData;
+    public character: THREE.Group<THREE.Object3DEventMap>//needs to be public to be added to the scene
     private fixedData:FixedControllerData;
+    protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
 
+    protected walkSound: THREE.PositionalAudio;//so that the inheriting class can play the sound directly
+    protected landSound: THREE.PositionalAudio;
+
+    private listener: THREE.AudioListener;
     private velocity:THREE.Vector3;
     private targetRotation:THREE.Euler;
     private targetQuaternion:THREE.Quaternion;
@@ -35,7 +38,6 @@ export abstract class Controller {
     private characterCollider: RAPIER.ColliderDesc
     private characterBody: RAPIER.RigidBodyDesc;
     private characterRigidBody:RAPIER.RigidBody;
-    private listener: THREE.AudioListener;
     private obstacleHeight: number
     private playLandSound: boolean;
     private clock:THREE.Clock;
@@ -47,9 +49,6 @@ export abstract class Controller {
     private walkAction: THREE.AnimationAction | null;
     private jumpAction:THREE.AnimationAction | null;
     private shouldPlayJumpAnimation: boolean;
-
-    protected walkSound: THREE.PositionalAudio;
-    protected landSound: THREE.PositionalAudio;
 
     
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
@@ -88,7 +87,6 @@ export abstract class Controller {
                 const characterModel = gltf.scene
                 characterModel.position.z = 0.3
                 this.character.add(characterModel);
-                if (this.dynamicData.camera) this.character.add(this.dynamicData.camera)
                 this.character.add(this.listener)
                 this.mixer = new AnimationMixer(characterModel);
                 this.loadCharacterAnimations(gltf);
@@ -289,7 +287,10 @@ export abstract class Controller {
         this.targetRotation.y -= rotationDelta; 
         this.targetQuaternion.setFromEuler(this.targetRotation);
     }
-    public updateCharacter() {
+    protected addObject(externalObject:THREE.Object3D) {//any object that must be added like a camera for a player should be done through here.it reuqires the class to put any object he wants under a threejs 3d object
+        this.character.add(externalObject)
+    }
+    public updateCharacter() {//needs to be public to be added to the render loop
         this.defineBehaviour();
         this.updateCharacterAnimations();
         this.applyVelocity();

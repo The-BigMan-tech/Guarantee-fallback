@@ -10,6 +10,7 @@ class Player extends Controller {
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         super(fixedData,dynamicData);
+        this.addObject(pitchObject);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
         this.canToggleCamera = true;
         this.isThirdPerson = false;
         document.addEventListener('keydown',Player.onKeyDown);
@@ -82,9 +83,8 @@ class Player extends Controller {
         }
     }
     private updateCamPerspective() {
-        if (!this.dynamicData.camera) return;
         const targetZ = this.isThirdPerson ? 6 : 0;
-        this.dynamicData.camera.position.z += (targetZ - this.dynamicData.camera.position.z) * 0.1; // 0.1 
+        pitchObject.position.z += (targetZ - pitchObject.position.z) * 0.1; // 0.1 
     }
     protected defineBehaviour() {//this is where all character updates to this instance happens.
         updateCameraRotation();
@@ -109,6 +109,5 @@ const playerDynamicData:DynamicControllerData = {
     horizontalVelocity:30,
     rotationDelta:0.04,
     rotationSpeed:0.4,
-    camera:pitchObject
 }
 export const player = new Player(playerFixedData,playerDynamicData)
