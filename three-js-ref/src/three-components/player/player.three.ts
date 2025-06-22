@@ -14,12 +14,14 @@ class Player extends Controller {
     private static firstPersonClamp = 90
     private static thirdPersonClamp = 10;
 
-    constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
+    constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,camArgs:PlayerCamData) {
         super(fixedData,dynamicData);
         this.canToggleCamera = true;
         this.isThirdPerson = false;
-        this.camera = new Camera({...PlayerCamArgs,offsetY:fixedData.characterHeight})
         this.cameraClampAngle = Player.firstPersonClamp;
+
+        const offsetY = (camArgs.offsetY=='auto')?fixedData.characterHeight:camArgs.offsetY
+        this.camera = new Camera({...camArgs,offsetY})
         this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
         document.addEventListener('keydown',Player.onKeyDown);
         document.addEventListener('keyup', Player.onKeyUp);
@@ -108,12 +110,21 @@ class Player extends Controller {
         this.mapKeysToAnimations();
     }
 }
-const PlayerCamArgs = {
+interface PlayerCamData {
+    FOV: number;
+    nearPoint: number;
+    farPoint: number;
+    cameraRotationDelta: number;
+    cameraRotationSpeed: number;
+    offsetY:number | 'auto';
+}
+const PlayerCamArgs:PlayerCamData = {
     FOV:75,
     nearPoint:0.1,
     farPoint:1000,
     cameraRotationDelta:0.05,
     cameraRotationSpeed:0.5,
+    offsetY:'auto'
 }
 const playerFixedData:FixedControllerData = {
     modelPath:'./silvermoon.glb',
@@ -131,4 +142,4 @@ const playerDynamicData:DynamicControllerData = {
     maxStepUpHeight:3,
     gravityScale:1
 }
-export const player = new Player(playerFixedData,playerDynamicData)
+export const player = new Player(playerFixedData,playerDynamicData,PlayerCamArgs)

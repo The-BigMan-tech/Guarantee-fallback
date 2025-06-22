@@ -6,7 +6,7 @@ export interface CameraData {
     farPoint:number,
     cameraRotationDelta:number;
     cameraRotationSpeed:number;
-    offsetY:number;
+    offsetY:number
 }
 export class Camera {
     private perspectiveCamera:THREE.PerspectiveCamera;
