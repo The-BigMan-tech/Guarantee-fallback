@@ -6,7 +6,6 @@ export interface CameraData {
     farPoint:number,
     cameraRotationDelta:number;
     cameraRotationSpeed:number;
-    offsetY:number
 }
 export class Camera {
     private camera3D:THREE.Object3D = new THREE.Object3D();
@@ -21,7 +20,6 @@ export class Camera {
     private cameraRotationDelta:number;
     private cameraRotationSpeed:number;
 
-    public offsetY:number
 
     constructor(camData:CameraData) {
         this.FOV = camData.FOV;
@@ -30,7 +28,6 @@ export class Camera {
         this.cameraRotationDelta = camData.cameraRotationDelta;
         this.cameraRotationSpeed = camData.cameraRotationSpeed;
         this.perspectiveCamera = new THREE.PerspectiveCamera(this.FOV,undefined,this.nearPoint,this.farPoint);
-        this.offsetY = camData.offsetY;
         this.camera3D.add(this.perspectiveCamera);
         this.targetQuaternion.copy(this.camera3D.quaternion)
     }
@@ -56,7 +53,6 @@ export class Camera {
         this.rotateCameraY(-this.cameraRotationDelta,clampAngle)
     }
     public updateCamera() {
-        this.camera3D.position.y = this.offsetY
         this.camera3D.quaternion.slerp(this.targetQuaternion,this.cameraRotationSpeed);
         this.camera3D.position.lerp(this.targetPosition,this.translationSpeed)
     }

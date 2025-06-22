@@ -21,14 +21,16 @@ class Player extends Controller {
     private static thirdPersonClamp = 10;
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
 
+    private offsetY:number;
+
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,camArgs:PlayerCamData) {
         super(fixedData,dynamicData);
         this.canToggleCamera = true;
         this.isThirdPerson = false;
         this.cameraClampAngle = Player.firstPersonClamp;
 
-        const offsetY = (camArgs.offsetY=='auto')?fixedData.characterHeight:camArgs.offsetY
-        this.camera = new Camera({...camArgs,offsetY})
+        this.offsetY = (camArgs.offsetY=='auto')?fixedData.characterHeight:camArgs.offsetY
+        this.camera = new Camera(camArgs)
         this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
         document.addEventListener('keydown',Player.onKeyDown);
         document.addEventListener('keyup', Player.onKeyUp);
@@ -100,14 +102,17 @@ class Player extends Controller {
     private toggleThirdPerson() {//this is where the camera is updated and optionally adding other behaviour to the camera before that update
         const camPosition = this.camera.cam3D.position
         let targetZ;
+        let targetY;
         if (this.isThirdPerson) {
             this.cameraClampAngle = Player.thirdPersonClamp
             targetZ = 6
+            targetY = this.offsetY
         }else {
             this.cameraClampAngle = Player.firstPersonClamp
             targetZ = 0
+            targetY = this.offsetY-1
         }
-        const newCamPosition = new THREE.Vector3(camPosition.x,camPosition.y,targetZ)
+        const newCamPosition = new THREE.Vector3(camPosition.x,targetY,targetZ)
         this.camera.translateCamera(newCamPosition,0.1);
     }
     protected defineBehaviour() {//this is where all character updates to this instance happens.
