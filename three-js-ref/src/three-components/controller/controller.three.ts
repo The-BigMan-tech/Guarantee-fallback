@@ -21,12 +21,24 @@ export interface DynamicControllerData {
     rotationSpeed:number,
     gravityScale:number
 }
+function createCapsuleLine(radius:number,halfHeight:number) {
+    const charGeometry = new THREE.CapsuleGeometry(radius,halfHeight*2);
+    const charEdges = new THREE.EdgesGeometry(charGeometry);
+    return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
+}
+function createBoxLine(halfWidth:number,halfHeight:number) {
+    const charGeometry = new THREE.BoxGeometry(halfWidth*2,halfHeight*2,halfWidth*2);
+    const charEdges = new THREE.EdgesGeometry(charGeometry);
+    return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
+}
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
     private character: THREE.Group<THREE.Object3DEventMap>//made it private to prevent mutation but added a getter for it to be added to the scene
     private characterColliderHandle:number;
+    private charLine: THREE.LineSegments;
+    private modelZOffset:number = 0.3;
 
     private obtscaleDetectionDistance:number;
     private groundDetectionDistance:number;
@@ -68,10 +80,15 @@ export abstract class Controller {
         if (this.fixedData.shape == 'capsule') {
             const radius = this.fixedData.characterWidth
             this.characterCollider = RAPIER.ColliderDesc.capsule(halfHeight,radius);
+            this.charLine = createCapsuleLine(radius,halfHeight)
         }else {
             const halfWidth = this.fixedData.characterWidth/2;
             this.characterCollider = RAPIER.ColliderDesc.cuboid(halfWidth,halfHeight,halfWidth);
+            this.charLine = createBoxLine(halfWidth,halfHeight)
         }
+        this.charLine.position.y += 2
+        this.charLine.position.z += this.modelZOffset;
+        this.character.add(this.charLine)
         this.characterBody = RAPIER.RigidBodyDesc.dynamic()
         this.characterBody.mass = this.fixedData.mass;
 
@@ -104,7 +121,7 @@ export abstract class Controller {
         loader.load(this.fixedData.modelPath,
             gltf=>{
                 const characterModel = gltf.scene
-                characterModel.position.z = 0.3
+                characterModel.position.z = this.modelZOffset;
                 this.character.add(characterModel);
                 this.character.add(this.listener)
                 this.mixer = new AnimationMixer(characterModel);
@@ -241,7 +258,8 @@ export abstract class Controller {
         if (this.mixer) this.mixer.update(delta);
     }
     private updateCharacterTransformations() {
-        this.character.position.set(this.characterPosition.x,this.characterPosition.y-1.6,this.characterPosition.z);//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
+        const [posX,posY,posZ] = [this.characterPosition.x,this.characterPosition.y-1.6,this.characterPosition.z];//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
+        this.character.position.set(posX,posY,posZ);
         this.character.quaternion.slerp(this.targetQuaternion,this.dynamicData.rotationSpeed);
         this.characterRigidBody.setRotation(this.targetQuaternion,true);
     }
