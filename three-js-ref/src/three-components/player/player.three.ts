@@ -13,13 +13,13 @@ interface PlayerCamData {
     offsetY:number | 'auto';
 }
 class Player extends Controller {
-    private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
-    public camera:Camera;
     private canToggleCamera:boolean;//to debounce perspective toggling
     private isThirdPerson:boolean;
+    public camera:Camera;
     private cameraClampAngle:number;
     private static firstPersonClamp = 90
     private static thirdPersonClamp = 10;
+    private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,camArgs:PlayerCamData) {
         super(fixedData,dynamicData);
@@ -111,9 +111,9 @@ class Player extends Controller {
         this.camera.translateCamera(newCamPosition,0.1);
     }
     protected defineBehaviour() {//this is where all character updates to this instance happens.
+        this.mapKeysToPlayer();
         this.toggleThirdPerson();
         this.camera.updateCamera()
-        this.mapKeysToPlayer();
         this.mapKeysToAnimations();
     }
 }

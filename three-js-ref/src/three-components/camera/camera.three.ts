@@ -9,14 +9,19 @@ export interface CameraData {
     offsetY:number
 }
 export class Camera {
+    private camera3D:THREE.Object3D = new THREE.Object3D();
+    private targetQuaternion:THREE.Quaternion = new THREE.Quaternion();
+    private targetPosition:THREE.Vector3 = new THREE.Vector3(0,0,0);
+    private translationSpeed:number = 0;
+
     private perspectiveCamera:THREE.PerspectiveCamera;
-    private camera3D:THREE.Object3D;
     private FOV:number;
     private nearPoint:number;
     private farPoint:number;
     private cameraRotationDelta:number;
     private cameraRotationSpeed:number;
-    private targetQuaternion:THREE.Quaternion
+
+    public offsetY:number
 
     constructor(camData:CameraData) {
         this.FOV = camData.FOV;
@@ -24,11 +29,9 @@ export class Camera {
         this.farPoint = camData.farPoint;
         this.cameraRotationDelta = camData.cameraRotationDelta;
         this.cameraRotationSpeed = camData.cameraRotationSpeed;
-        this.perspectiveCamera =  new THREE.PerspectiveCamera(this.FOV,undefined,this.nearPoint,this.farPoint);
-        this.targetQuaternion = new THREE.Quaternion();
-        this.camera3D = new THREE.Object3D();
+        this.perspectiveCamera = new THREE.PerspectiveCamera(this.FOV,undefined,this.nearPoint,this.farPoint);
+        this.offsetY = camData.offsetY;
         this.camera3D.add(this.perspectiveCamera);
-        this.camera3D.position.y += camData.offsetY
         this.targetQuaternion.copy(this.camera3D.quaternion)
     }
     private clampPitch(clampAngle:number) {
@@ -53,10 +56,13 @@ export class Camera {
         this.rotateCameraY(-this.cameraRotationDelta,clampAngle)
     }
     public updateCamera() {
+        this.camera3D.position.y = this.offsetY
         this.camera3D.quaternion.slerp(this.targetQuaternion,this.cameraRotationSpeed);
+        this.camera3D.position.lerp(this.targetPosition,this.translationSpeed)
     }
     public translateCamera(translation:THREE.Vector3,speed:number) {
-        this.camera3D.position.lerp(translation,speed)
+        this.targetPosition = translation;
+        this.translationSpeed = speed
     }
     get cam3D() {
         return this.camera3D
