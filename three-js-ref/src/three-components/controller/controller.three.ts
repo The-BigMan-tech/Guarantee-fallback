@@ -99,7 +99,7 @@ export abstract class Controller {
         this.characterColliderHandle = physicsWorld.createCollider(this.characterCollider,this.characterRigidBody).handle;
         this.characterRigidBody.setTranslation(this.characterPosition,true);
 
-        this.groundDetectionDistance = halfHeight + 0.5 + ((halfHeight%2) * 0.5);
+        this.groundDetectionDistance = halfHeight + 0.5 + ((halfHeight%2) * 0.5);//i didnt just guess this from my head.i made the formula after trying different values and recording the ones that correctly matched a given character height,saw a pattern and crafted a formula for it
         this.loadCharacterModel()
     }
     private loadCharacterModel() {
