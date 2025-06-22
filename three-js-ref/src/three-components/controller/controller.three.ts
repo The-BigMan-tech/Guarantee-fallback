@@ -24,11 +24,8 @@ export interface DynamicControllerData {
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
     public character: THREE.Group<THREE.Object3DEventMap>//needs to be public to be added to the scene
-    private fixedData:FixedControllerData;
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
-
-    protected walkSound: THREE.PositionalAudio;//so that the inheriting class can play the sound directly
-    protected landSound: THREE.PositionalAudio;
+    private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
 
     private listener: THREE.AudioListener;
     private velocity:THREE.Vector3;
@@ -49,6 +46,8 @@ export abstract class Controller {
     private walkAction: THREE.AnimationAction | null;
     private jumpAction:THREE.AnimationAction | null;
     private shouldPlayJumpAnimation: boolean;
+    private walkSound: THREE.PositionalAudio;//the inheriting class can only access this sound through exposed methods
+    private landSound: THREE.PositionalAudio;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
 
     
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
@@ -250,7 +249,7 @@ export abstract class Controller {
 
 
     protected moveCharacterForward(velocityDelta:number) {
-        if (this.shouldStepUp) this.moveOverObstacle()
+        if (this.shouldStepUp) this.moveOverObstacle();
         else this.moveForward(velocityDelta);
     }
     protected moveCharacterBackward(velocityDelta:number) {
@@ -290,6 +289,8 @@ export abstract class Controller {
     protected addObject(externalObject:THREE.Object3D) {//any object that must be added like a camera for a player should be done through here.it reuqires the class to put any object he wants under a threejs 3d object
         this.character.add(externalObject)
     }
+
+    protected abstract defineBehaviour():void//this is a hook where the entity must be controlled before updating
     public updateCharacter() {//needs to be public to be added to the render loop
         this.defineBehaviour();
         this.updateCharacterAnimations();
@@ -299,6 +300,7 @@ export abstract class Controller {
         this.detectLowStep();
         this.respawnIfOutOfBounds();
     }
+
     protected isAirBorne() {
         return !this.isGrounded() && this.shouldPlayJumpAnimation && !this.shouldStepUp
     }
@@ -311,5 +313,11 @@ export abstract class Controller {
     protected playIdleAnimation() {
         if (this.mixer && this.idleAction) this.fadeToAnimation(this.idleAction)
     }
-    protected abstract defineBehaviour():void//this is a hook where the entity must be controlled before updating
+
+    protected playWalkSound() {
+        if (!this.walkSound.isPlaying) this.walkSound.play();
+    }
+    protected stopWalkSound() {
+        this.walkSound.stop()
+    }
 }

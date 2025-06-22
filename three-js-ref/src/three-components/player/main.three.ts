@@ -66,19 +66,19 @@ class Player extends Controller {
     }
     private mapKeysToAnimations() {
         if (this.isAirBorne()) {
-            this.walkSound.stop()
+            this.stopWalkSound()
             this.playJumpAnimation()
         }else if (Player.keysPressed['KeyW']) {//each key will have its own animation
-            if (!this.walkSound.isPlaying) this.walkSound.play();
+            this.playWalkSound()
             this.playWalkAnimation()
         }else if (Player.keysPressed['KeyA']) {
-            if (!this.walkSound.isPlaying) this.walkSound.play();
+            this.playWalkSound()
         }else if (Player.keysPressed['KeyS']) {
-            if (!this.walkSound.isPlaying) this.walkSound.play();
+            this.playWalkSound()
         }else if (Player.keysPressed['KeyD']) {
-            if (!this.walkSound.isPlaying) this.walkSound.play();
+            this.playWalkSound()
         }else {
-            this.walkSound.stop();
+            this.stopWalkSound()
             this.playIdleAnimation()
         }
     }
