@@ -73,7 +73,6 @@ export abstract class Controller {
     private shouldStepUp: boolean = false;
     private shouldPlayJumpAnimation: boolean = false;
 
-    
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = fixedData.characterHeight/2;
         const radius = fixedData.characterWidth;
@@ -166,7 +165,7 @@ export abstract class Controller {
     }
     private isGrounded() {
         if (this.characterRigidBody.isSleeping()) {
-            console.log("sleeping...");
+            console.log("sleeping... ground check");
             return;//to prevent unnecessary queries
         }
         let onGround = false
@@ -223,7 +222,10 @@ export abstract class Controller {
         return point
     }
     private detectLowObstacle() {
-        if (this.characterRigidBody.isSleeping()) return;
+        if (this.characterRigidBody.isSleeping()) {
+            console.log("sleeping... low obstacle check");
+            return;//to prevent unnecessary queries
+        }
         const point:THREE.Vector3 = this.orientPoint(this.obtscaleDetectionDistance)
         physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
             const collider = physicsWorld.getCollider(colliderObject.handle);
@@ -295,28 +297,33 @@ export abstract class Controller {
 
 
     protected moveCharacterForward(velocityDelta:number) {
+        this.characterRigidBody.wakeUp();
         if (this.shouldStepUp) this.moveOverObstacle();
         else this.moveForward(velocityDelta);
     }
     protected moveCharacterBackward(velocityDelta:number) {
+        this.characterRigidBody.wakeUp();
         const backward = new THREE.Vector3(0,0,velocityDelta);
         backward.applyQuaternion(this.character.quaternion);
         this.velocity.add(backward);
-        this.forceCharacterDown()
+        this.forceCharacterDown();
     }
     protected moveCharacterLeft(velocityDelta:number) {
+        this.characterRigidBody.wakeUp();
         const left = new THREE.Vector3(-velocityDelta,0,0);
         left.applyQuaternion(this.character.quaternion);
         this.velocity.add(left);
-        this.forceCharacterDown()
+        this.forceCharacterDown();
     }
     protected moveCharacterRight(velocityDelta:number) {
+        this.characterRigidBody.wakeUp();
         const right = new THREE.Vector3(velocityDelta,0,0);
         right.applyQuaternion(this.character.quaternion);
         this.velocity.add(right);
-        this.forceCharacterDown()
+        this.forceCharacterDown();
     }
     protected moveCharacterUp(velocityDelta:number) {
+        this.characterRigidBody.wakeUp();
         const up = new THREE.Vector3(0,velocityDelta,0);
         up.applyQuaternion(this.character.quaternion);
         this.velocity.add(up);
@@ -324,11 +331,13 @@ export abstract class Controller {
         this.shouldPlayJumpAnimation = true;
     }
     protected moveCharacterDown(velocityDelta:number) {
+        this.characterRigidBody.wakeUp();
         const down = new THREE.Vector3(0,-velocityDelta,0);
         down.applyQuaternion(this.character.quaternion);
         this.velocity.add(down);
     }
     protected rotateCharacterX(rotationDelta: number) {
+        this.characterRigidBody.wakeUp();
         this.targetRotation.y -= rotationDelta; 
         this.targetQuaternion.setFromEuler(this.targetRotation);
     }
@@ -359,6 +368,8 @@ export abstract class Controller {
         this.character.add(externalObject)
     }
     private updateController() {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
+        //im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
+        if (this.isGrounded()) this.characterRigidBody.sleep();
         this.defineBehaviour();
         this.applyVelocity();
         this.characterRigidBody.setGravityScale(this.dynamicData.gravityScale,true)
