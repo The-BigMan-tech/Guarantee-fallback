@@ -10,7 +10,6 @@ export interface FixedControllerData {
     characterHeight:number,
     characterWidth:number,
     mass:number,
-    stepCheckDistance:number,
 }
 export interface DynamicControllerData {
     maxStepUpHeight:number,
@@ -26,6 +25,7 @@ export abstract class Controller {
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
     private character: THREE.Group<THREE.Object3DEventMap>//made it private to prevent mutation but added a getter for it to be added to the scene
 
+    private lowObtscaleCheckDistance:number;
     private groundDetectionDistance:number;
     private listener: THREE.AudioListener;
     private velocity:THREE.Vector3;
@@ -78,7 +78,8 @@ export abstract class Controller {
         this.shouldStepUp = false
         this.playLandSound = true;
         const halfHeight = this.fixedData.characterHeight/2;
-        this.groundDetectionDistance = halfHeight + 0.5 + ((halfHeight%2) * 0.5)
+        this.groundDetectionDistance = halfHeight + 0.5 + ((halfHeight%2) * 0.5);
+        this.lowObtscaleCheckDistance = 4.5;
         this.loadCharacterModel()
     }
     private loadCharacterModel() {
@@ -139,7 +140,7 @@ export abstract class Controller {
     private calculateForwardVelocity(upwardVelocity:number) {
         const destinationHeight = Math.round(this.obstacleHeight)
         const timeToReachHeight = (upwardVelocity/gravityY) + Math.sqrt((2*destinationHeight)/gravityY)
-        const forwardVelocity = Math.round(this.fixedData.stepCheckDistance/timeToReachHeight)//i rounded this one to ensure that the forward velocity is treated fair enough to move over the obstacle.ceiling it will overshoot it
+        const forwardVelocity = Math.round(this.lowObtscaleCheckDistance/timeToReachHeight)//i rounded this one to ensure that the forward velocity is treated fair enough to move over the obstacle.ceiling it will overshoot it
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
@@ -178,9 +179,9 @@ export abstract class Controller {
         forward.applyQuaternion(quat).normalize();
     
         const point = new THREE.Vector3(
-            this.characterPosition.x + forward.x * this.fixedData.stepCheckDistance,
+            this.characterPosition.x + forward.x * this.lowObtscaleCheckDistance,
             this.characterPosition.y-(this.groundDetectionDistance-0.5),//to detect obstacles that are too low
-            this.characterPosition.z + forward.z * this.fixedData.stepCheckDistance
+            this.characterPosition.z + forward.z * this.lowObtscaleCheckDistance
         );
         
         physicsWorld.intersectionsWithPoint(point, (colliderObject) => {

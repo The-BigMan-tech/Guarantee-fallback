@@ -121,7 +121,6 @@ const playerFixedData:FixedControllerData = {
     characterHeight:4,
     characterWidth:1,
     mass:40,
-    stepCheckDistance:4.5,
 }
 const playerDynamicData:DynamicControllerData = {
     horizontalVelocity:30,
