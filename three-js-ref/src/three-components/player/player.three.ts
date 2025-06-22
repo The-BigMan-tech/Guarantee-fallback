@@ -12,11 +12,13 @@ class Player extends Controller {
     private isThirdPerson:boolean;
     public camera:Camera;
     private cameraClampAngle:number;
-    private static firstPersonClamp = 90
+    private static firstPersonClamp = 75;
     private static thirdPersonClamp = 10;
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
 
     private offsetY:number;
+    private targetZ:number = 0;//the 0 is just for initialization sake so ts wont complain but it will be changed correctly during the render loop
+    private targetY:number = 0;
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,camArgs:PlayerCamData) {
         super(fixedData,dynamicData);
@@ -80,6 +82,7 @@ class Player extends Controller {
         if (this.isAirBorne()) {
             this.stopWalkSound()
             this.playJumpAnimation()
+            this.targetZ = -0.2;
         }else if (Player.keysPressed['KeyW']) {//each key will have its own animation
             this.playWalkSound()
             this.playWalkAnimation()
@@ -95,26 +98,27 @@ class Player extends Controller {
         }
     }
     private toggleThirdPerson() {//this is where the camera is updated and optionally adding other behaviour to the camera before that update
-        const camPosition = this.camera.cam3D.position
-        let targetZ;
-        let targetY;
         if (this.isThirdPerson) {
             this.cameraClampAngle = Player.thirdPersonClamp
-            targetZ = 6
-            targetY = this.offsetY
+            this.targetZ = 6
+            this.targetY = this.offsetY
         }else {
             this.cameraClampAngle = Player.firstPersonClamp
-            targetZ = 0
-            targetY = this.offsetY-1
+            this.targetZ = 0
+            this.targetY = this.offsetY-1
         }
-        const newCamPosition = new THREE.Vector3(camPosition.x,targetY,targetZ)
-        this.camera.translateCamera(newCamPosition,0.1);
+    }
+    private updateCamPosition() {
+        const camPosition = this.camera.cam3D.position;
+        const newCamPosition = new THREE.Vector3(camPosition.x,this.targetY,this.targetZ)
+        this.camera.translateCamera(newCamPosition,0.2);
     }
     protected defineBehaviour() {//this is where all character updates to this instance happens.
-        this.mapKeysToPlayer();
         this.toggleThirdPerson();
-        this.camera.updateCamera()
+        this.mapKeysToPlayer();
         this.mapKeysToAnimations();
+        this.updateCamPosition();
+        this.camera.updateCamera();
     }
 }
 const PlayerCamArgs:PlayerCamData = {
