@@ -290,7 +290,7 @@ export abstract class Controller {
         this.targetQuaternion.setFromEuler(this.targetRotation);
     }
     public updateCharacter() {
-        this.beforeCharacterUpdate();
+        this.defineBehaviour();
         this.updateCharacterAnimations();
         this.applyVelocity();
         this.updateCharacterTransformations();
@@ -310,5 +310,5 @@ export abstract class Controller {
     protected playIdleAnimation() {
         if (this.mixer && this.idleAction) this.fadeToAnimation(this.idleAction)
     }
-    abstract beforeCharacterUpdate():void//this is a hook where the entity must be controlled before updating
+    protected abstract defineBehaviour():void//this is a hook where the entity must be controlled before updating
 }
