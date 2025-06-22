@@ -165,13 +165,21 @@ export abstract class Controller {
         return forwardVelocity
     }
     private isGrounded() {
+        if (this.characterRigidBody.isSleeping()) {
+            console.log("sleeping...");
+            return;//to prevent unnecessary queries
+        }
         let onGround = false
-        const posY = Math.floor(this.characterPosition.y)//i used floor instead of round for stability cuz of edge cases caused by precision
+        const charPosY = this.characterPosition.y
+        const isRoundable = Math.round(charPosY) > charPosY
+        console.log("Point is Roundable: ",isRoundable);
+
+        const posY = (isRoundable)?Math.floor(charPosY):charPosY//i used floor instead of round for stability cuz of edge cases caused by precision
         const groundPosY = posY - this.groundDetectionDistance;//the ground should be just a few cord lower than the player since te player stands over the ground
-        const point = {...this.characterPosition,y:groundPosY}
+        const point = {...this.characterPosition,y:(!isRoundable)?groundPosY-1:groundPosY}
         
         console.log("Point Ground detection distance: ",this.groundDetectionDistance);
-        console.log('Point Query Player: ', this.characterPosition.y);
+        console.log('Point Query Player: ',charPosY);
         console.log(' Point Query Point:', point.y);
     
         physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
@@ -209,6 +217,7 @@ export abstract class Controller {
         return point
     }
     private detectLowObstacle() {
+        if (this.characterRigidBody.isSleeping()) return;
         const point:THREE.Vector3 = this.orientPoint(this.obtscaleDetectionDistance)
         physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
             const collider = physicsWorld.getCollider(colliderObject.handle);

@@ -505,3 +505,5 @@ jumping is a bit unresponsive cuz of ground calculation
 typeof is for union while instanceof checks against unknown or any type
 
 website copiers can only download static html.thats why cyotek web copy fails to download some wbesites because some of them run entirely or a lot on javascript
+
+point casting is more optimized than shape casting
