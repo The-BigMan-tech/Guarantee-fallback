@@ -35,6 +35,8 @@ export interface DynamicControllerData {
 }
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
+    private static showHitBoxes = false;
+
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
     
@@ -76,6 +78,8 @@ export abstract class Controller {
         const halfHeight = fixedData.characterHeight/2;
         const radius = fixedData.characterWidth;
         const halfWidth = fixedData.characterWidth/2;
+        const increasedHalfWidth = halfWidth + 0.5;//i used this in the box collider creation to ensure that it is as volumetric as its capsule counterpart
+        const increasedHalfHeight = halfHeight + 0.5;//same thing goes for here
 
         this.fixedData = fixedData
         this.dynamicData = dynamicData
@@ -84,13 +88,11 @@ export abstract class Controller {
             this.characterCollider = RAPIER.ColliderDesc.capsule(halfHeight,radius);
             this.charLine = createCapsuleLine(radius,halfHeight)
         }else {
-            const increasedHalfWidth = halfWidth + 0.5;//i increased it to make it as volumetric as its capsule counterpart
-            const increasedHalfWidth = halfWidth + 0.5;
-            this.characterCollider = RAPIER.ColliderDesc.cuboid(increasedHalfWidth,halfHeight,increasedHalfWidth);
-            this.charLine = createBoxLine(increasedHalfWidth,halfHeight)
+            this.characterCollider = RAPIER.ColliderDesc.cuboid(increasedHalfWidth,increasedHalfHeight,increasedHalfWidth);
+            this.charLine = createBoxLine(increasedHalfWidth,increasedHalfHeight)
         }
         this.charLine.position.set(0,2,this.modelZOffset)//the offset is to ensure its accurate visually
-        this.character.add(this.charLine);
+        if (Controller.showHitBoxes) this.character.add(this.charLine);
 
         this.characterBody.mass = this.fixedData.mass;
         this.characterRigidBody = physicsWorld.createRigidBody(this.characterBody);
