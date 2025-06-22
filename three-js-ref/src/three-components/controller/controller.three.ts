@@ -171,7 +171,7 @@ export abstract class Controller {
         if (!onGround) this.playLandSound = true;
         return onGround 
     }
-    private detectLowStep() {
+    private detectLowObstacle() {
         const forward = new THREE.Vector3(0, 0, -1); // Local forward
         const rotation = this.characterRigidBody.rotation();
         const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
@@ -321,7 +321,7 @@ export abstract class Controller {
         this.applyVelocity();
         this.updateCharacterTransformations();
         this.resetVariables();
-        this.detectLowStep();
+        this.detectLowObstacle();
         this.respawnIfOutOfBounds();
     }
     get updateCharacter() {
