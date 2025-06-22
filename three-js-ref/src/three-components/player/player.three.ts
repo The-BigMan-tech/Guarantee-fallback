@@ -118,18 +118,17 @@ const PlayerCamArgs = {
 const playerFixedData:FixedControllerData = {
     modelPath:'./silvermoon.glb',
     spawnPoint: new RAPIER.Vector3(0,20,0),
-    characterHeight:1,
+    characterHeight:4,
     characterWidth:1,
     mass:40,
-    groundDetectionDistance:1.5,
     stepCheckDistance:4.5,
 }
 const playerDynamicData:DynamicControllerData = {
-    maxStepUpHeight:3,
+    horizontalVelocity:30,
     jumpVelocity:30,
     jumpResistance:15,
-    horizontalVelocity:30,
     rotationDelta:0.04,
     rotationSpeed:0.4,
+    maxStepUpHeight:3,
 }
 export const player = new Player(playerFixedData,playerDynamicData)

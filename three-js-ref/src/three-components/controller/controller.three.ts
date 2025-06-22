@@ -10,7 +10,6 @@ export interface FixedControllerData {
     characterHeight:number,
     characterWidth:number,
     mass:number,
-    groundDetectionDistance:number,
     stepCheckDistance:number,
 }
 export interface DynamicControllerData {
@@ -27,7 +26,7 @@ export abstract class Controller {
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
     private character: THREE.Group<THREE.Object3DEventMap>//made it private to prevent mutation but added a getter for it to be added to the scene
 
-
+    private groundDetectionDistance:number;
     private listener: THREE.AudioListener;
     private velocity:THREE.Vector3;
     private targetRotation:THREE.Euler;
@@ -78,6 +77,8 @@ export abstract class Controller {
         this.obstacleHeight = 0;
         this.shouldStepUp = false
         this.playLandSound = true;
+        const halfHeight = this.fixedData.characterHeight/2;
+        this.groundDetectionDistance = halfHeight + 0.5 + ((halfHeight%2) * 0.5)
         this.loadCharacterModel()
     }
     private loadCharacterModel() {
@@ -145,9 +146,10 @@ export abstract class Controller {
     private isGrounded() {
         let onGround = false
         const posY = Math.floor(this.characterPosition.y)//i used floor instead of round for stability cuz of edge cases caused by precision
-        const groundPosY = posY - this.fixedData.groundDetectionDistance;//the ground should be just one cord lower than the player since te player stands over the ground
+        const groundPosY = posY - this.groundDetectionDistance;//the ground should be just one cord lower than the player since te player stands over the ground
         const point = {...this.characterPosition,y:groundPosY}
-    
+        
+        console.log("Point Ground detection distance: ",this.groundDetectionDistance);
         console.log('Point Query Player: ', this.characterPosition.y);
         console.log(' Point Query Point:', point.y);
     
