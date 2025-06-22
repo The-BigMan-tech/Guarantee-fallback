@@ -4,6 +4,18 @@ import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY} from "../physics-world.three";
 
+
+function createCapsuleLine(radius:number,halfHeight:number) {
+    const charGeometry = new THREE.CapsuleGeometry(radius,halfHeight*2);
+    const charEdges = new THREE.EdgesGeometry(charGeometry);
+    return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
+}
+function createBoxLine(halfWidth:number,halfHeight:number) {
+    const charGeometry = new THREE.BoxGeometry(halfWidth*2,halfHeight*2,halfWidth*2);
+    const charEdges = new THREE.EdgesGeometry(charGeometry);
+    return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
+}
+
 export interface FixedControllerData {
     modelPath:string,
     spawnPoint: RAPIER.Vector3,
@@ -21,16 +33,6 @@ export interface DynamicControllerData {
     rotationSpeed:number,
     gravityScale:number
 }
-function createCapsuleLine(radius:number,halfHeight:number) {
-    const charGeometry = new THREE.CapsuleGeometry(radius,halfHeight*2);
-    const charEdges = new THREE.EdgesGeometry(charGeometry);
-    return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
-}
-function createBoxLine(halfWidth:number,halfHeight:number) {
-    const charGeometry = new THREE.BoxGeometry(halfWidth*2,halfHeight*2,halfWidth*2);
-    const charEdges = new THREE.EdgesGeometry(charGeometry);
-    return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
-}
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
@@ -43,7 +45,7 @@ export abstract class Controller {
     private characterRigidBody:RAPIER.RigidBody;
     private characterColliderHandle:number;
     private charLine: THREE.LineSegments;
-    private modelZOffset:number = 0.3;
+    private modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly
 
     private obstacleHeight: number = 0;
     private obtscaleDetectionDistance:number = 4.5;
@@ -72,20 +74,20 @@ export abstract class Controller {
     
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = fixedData.characterHeight/2;
+        const radius = fixedData.characterWidth;
+        const halfWidth = fixedData.characterWidth/2;
+
         this.fixedData = fixedData
         this.dynamicData = dynamicData
         this.characterPosition = this.fixedData.spawnPoint
         if (this.fixedData.shape == 'capsule') {
-            const radius = this.fixedData.characterWidth
             this.characterCollider = RAPIER.ColliderDesc.capsule(halfHeight,radius);
             this.charLine = createCapsuleLine(radius,halfHeight)
         }else {
-            const halfWidth = this.fixedData.characterWidth/2;
             this.characterCollider = RAPIER.ColliderDesc.cuboid(halfWidth,halfHeight,halfWidth);
             this.charLine = createBoxLine(halfWidth,halfHeight)
         }
-        this.charLine.position.y += 2
-        this.charLine.position.z += this.modelZOffset;
+        this.charLine.position.set(0,2,this.modelZOffset)//the offset is to ensure its accurate visually
         this.character.add(this.charLine);
 
         this.characterBody.mass = this.fixedData.mass;
