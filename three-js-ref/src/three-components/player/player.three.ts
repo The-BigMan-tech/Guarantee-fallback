@@ -1,15 +1,10 @@
-import { Camera } from "../camera/camera.three";
+import { Camera, type CameraData } from "../camera/camera.three";
 import { Controller } from "../controller/controller.three";
 import type { FixedControllerData,DynamicControllerData} from "../controller/controller.three";
 import * as RAPIER from "@dimforge/rapier3d"
 import * as THREE from "three"
 
-interface PlayerCamData {
-    FOV: number;
-    nearPoint: number;
-    farPoint: number;
-    cameraRotationDelta: number;
-    cameraRotationSpeed: number;
+interface PlayerCamData extends CameraData {
     offsetY:number | 'auto';
 }
 class Player extends Controller {
