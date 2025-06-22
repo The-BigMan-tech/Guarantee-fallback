@@ -8,13 +8,14 @@ interface PlayerCamData extends CameraData {
     offsetY:number | 'auto';
 }
 class Player extends Controller {
-    private canToggleCamera:boolean;//to debounce perspective toggling
-    private isThirdPerson:boolean;
-    public camera:Camera;
-    private cameraClampAngle:number;
     private static firstPersonClamp = 75;
     private static thirdPersonClamp = 10;
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
+    private cameraClampAngle:number = Player.firstPersonClamp;
+
+    public camera:Camera;
+    private canToggleCamera:boolean = true;//to debounce perspective toggling
+    private isThirdPerson:boolean = false;
 
     private offsetY:number;
     private targetZ:number = 0;//the 0 is just for initialization sake so ts wont complain but it will be changed correctly during the render loop
@@ -22,10 +23,6 @@ class Player extends Controller {
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,camArgs:PlayerCamData) {
         super(fixedData,dynamicData);
-        this.canToggleCamera = true;
-        this.isThirdPerson = false;
-        this.cameraClampAngle = Player.firstPersonClamp;
-
         this.offsetY = (camArgs.offsetY=='auto')?fixedData.characterHeight:camArgs.offsetY
         this.camera = new Camera(camArgs)
         this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
@@ -43,7 +40,6 @@ class Player extends Controller {
     }
     private mapKeysToPlayer() {
         if (Player.keysPressed['KeyP']) {
-            console.log("Terminated logs");
             console.log = ()=>{};
         }
         if (Player.keysPressed['Space']) {
