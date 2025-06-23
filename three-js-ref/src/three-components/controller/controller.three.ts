@@ -4,6 +4,7 @@ import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY} from "../physics-world.three";
 import { scene } from "../scene.three";
+import { C } from "vitest/dist/chunks/reporters.d.C1ogPriE.js";
 
 function createCapsuleLine(radius:number,halfHeight:number) {
     const charGeometry = new THREE.CapsuleGeometry(radius,halfHeight*2);
@@ -249,24 +250,24 @@ export abstract class Controller {
     }
     private updateObstacleDetectionDistance() {
         const delta = this.clock.getDelta();
-        const margin = 1; // tune as needed
+        const margin = 3; // tune as needed
         this.obstacleDetectionDistance = (this.dynamicData.horizontalVelocity * delta) + margin
         console.log("Obstacle detection distance: ",this.obstacleDetectionDistance);
     }
     private getSteps(maxDistance:number,density:number) {
         let steps = Math.floor(maxDistance * density);
-        const minSteps = 3;
+        const minSteps = 4;
         const maxSteps = 10;
         steps = Math.min(Math.max(steps, minSteps), maxSteps);
         return steps
     }
 
-    
+
     private detectLowObstacle():void {
         const forward = new THREE.Vector3(0,0,-1);
         const maxDistance = this.obstacleDetectionDistance;
         const pointDensity = 1.2
-        const steps = this.getSteps(maxDistance,pointDensity)
+        const steps = this.getSteps(maxDistance,pointDensity);
 
         let hasCollided = false
         for (let i = 1; i <= steps; i++) {
@@ -279,14 +280,15 @@ export abstract class Controller {
                 const collider = physicsWorld.getCollider(colliderObject.handle);
                 const shape = collider.shape
                 console.log('PointY Obstacle: ', point.y);
-                console.log('Collider shape:', shape);
+                console.log('Obstacle Collider shape:', shape);
 
                 if (shape instanceof RAPIER.Cuboid) {
                     hasCollided = true;
                     const halfExtents = shape.halfExtents;
                     const height = halfExtents.y * 2;
-                    this.obstacleHeight = height - this.calculateGroundPosition();
-                    console.log('Obstacle height:',this.obstacleHeight);
+                    const groundPosY = Math.max(0,this.calculateGroundPosition());//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative
+                    this.obstacleHeight = height - groundPosY;
+                    console.log("relative obstacle height: ",this.obstacleHeight);
                     if (this.obstacleHeight <= this.dynamicData.maxStepUpHeight) {
                         console.log("STEPPING UP");
                         this.shouldStepUp = true

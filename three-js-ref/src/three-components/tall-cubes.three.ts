@@ -18,7 +18,7 @@ const points = pds.fill(); // array of [x, z] points
 export const cubesGroup = new THREE.Object3D();
 
 const tallCubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f});
-const minHeight = 1;
+const minHeight = 3;
 const maxHeight = 3;
 
 for (let i = 0; i < points.length; i++) {
