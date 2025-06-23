@@ -35,7 +35,7 @@ export interface DynamicControllerData {
 }
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
-    private static showHitBoxes = false;
+    private static showHitBoxes = true;
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
@@ -47,7 +47,9 @@ export abstract class Controller {
     private characterRigidBody:RAPIER.RigidBody;
     private characterColliderHandle:number;
     private charLine: THREE.LineSegments;
-    private modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly
+
+    private modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera
+    private modelYOffset:number = 1.6;//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
 
     private obstacleHeight: number = 0;
     private obtscaleDetectionDistance:number = 4.5;
@@ -259,7 +261,7 @@ export abstract class Controller {
         if (this.mixer) this.mixer.update(delta);
     }
     private updateCharacterTransformations():void {
-        const [posX,posY,posZ] = [this.characterPosition.x,this.characterPosition.y-1.6,this.characterPosition.z];//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
+        const [posX,posY,posZ] = [this.characterPosition.x,this.characterPosition.y-this.modelYOffset,this.characterPosition.z];
         this.character.position.set(posX,posY,posZ);
         this.character.quaternion.slerp(this.targetQuaternion,this.dynamicData.rotationSpeed);
         this.characterRigidBody.setRotation(this.targetQuaternion,true);
