@@ -166,7 +166,7 @@ export abstract class Controller {
     private isGrounded():boolean {
         if (this.characterRigidBody.isSleeping()) {
             console.log("sleeping... ground check");
-            return false;//to prevent unnecessary queries
+            return true;//to prevent unnecessary queries.Since it sleeps only when its grounded.its appropriate to return true here saving computation
         }
         let onGround = false
         const charPosY = this.characterPosition.y
