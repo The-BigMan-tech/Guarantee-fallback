@@ -241,16 +241,26 @@ export abstract class Controller {
         );
         return point
     }
+    private getSteps(maxDistance:number,density:number) {
+        let steps = Math.floor(maxDistance * density);
+        const minSteps = 3;
+        const maxSteps = 10;
+        steps = Math.min(Math.max(steps, minSteps), maxSteps);
+        return steps
+    }
     private detectLowObstacle():void {
         const forward = new THREE.Vector3(0,0,-1);
-        const steps = 5;
         const maxDistance = this.obtscaleDetectionDistance;
+        const pointDensity = 1.2
+        const steps = this.getSteps(maxDistance,pointDensity)
 
+        let hasCollided = false
         for (let i = 1; i <= steps; i++) {
-            // if (this.shouldStepUp) break;
+            if (hasCollided) break;
             const distance = (maxDistance / steps) * i;
             const point:THREE.Vector3 = this.orientPoint(distance,forward);
-            
+            this.colorPoint(point,0x000000);
+
             physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
                 const collider = physicsWorld.getCollider(colliderObject.handle);
                 const shape = collider.shape
@@ -258,6 +268,7 @@ export abstract class Controller {
                 console.log('Collider shape:', shape);
 
                 if (shape instanceof RAPIER.Cuboid) {
+                    hasCollided = true;
                     const halfExtents = shape.halfExtents;
                     const height = halfExtents.y * 2;
                     this.obstacleHeight = height - this.calculateGroundPosition();
@@ -265,7 +276,7 @@ export abstract class Controller {
                     if (this.obstacleHeight <= this.dynamicData.maxStepUpHeight) {
                         console.log("STEPPING UP");
                         this.shouldStepUp = true
-                    }
+                    };
                 }
                 return true;//*tune here
             });    
