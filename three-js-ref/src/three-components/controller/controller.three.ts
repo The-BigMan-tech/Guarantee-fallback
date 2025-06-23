@@ -35,7 +35,7 @@ export interface DynamicControllerData {
 }
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
-    private static showHitBoxes = true;
+    private static showHitBoxes = false;
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
@@ -295,35 +295,37 @@ export abstract class Controller {
         this.forceCharacterDown()
     }
 
-
+    private wakeUpBody() {
+        if ( this.characterRigidBody.isSleeping()) this.characterRigidBody.wakeUp();
+    }
     protected moveCharacterForward(velocityDelta:number):void {
-        this.characterRigidBody.wakeUp();
+        this.wakeUpBody()
         if (this.shouldStepUp) this.moveOverObstacle();
         else this.moveForward(velocityDelta);
     }
     protected moveCharacterBackward(velocityDelta:number):void {
-        this.characterRigidBody.wakeUp();
+        this.wakeUpBody()
         const backward = new THREE.Vector3(0,0,velocityDelta);
         backward.applyQuaternion(this.character.quaternion);
         this.velocity.add(backward);
         this.forceCharacterDown();
     }
     protected moveCharacterLeft(velocityDelta:number):void {
-        this.characterRigidBody.wakeUp();
+        this.wakeUpBody()
         const left = new THREE.Vector3(-velocityDelta,0,0);
         left.applyQuaternion(this.character.quaternion);
         this.velocity.add(left);
         this.forceCharacterDown();
     }
     protected moveCharacterRight(velocityDelta:number):void {
-        this.characterRigidBody.wakeUp();
+        this.wakeUpBody()
         const right = new THREE.Vector3(velocityDelta,0,0);
         right.applyQuaternion(this.character.quaternion);
         this.velocity.add(right);
         this.forceCharacterDown();
     }
     protected moveCharacterUp(velocityDelta:number):void {
-        this.characterRigidBody.wakeUp();
+        this.wakeUpBody()
         const up = new THREE.Vector3(0,velocityDelta,0);
         up.applyQuaternion(this.character.quaternion);
         this.velocity.add(up);
@@ -331,13 +333,13 @@ export abstract class Controller {
         this.shouldPlayJumpAnimation = true;
     }
     protected moveCharacterDown(velocityDelta:number):void {
-        this.characterRigidBody.wakeUp();
+        this.wakeUpBody()
         const down = new THREE.Vector3(0,-velocityDelta,0);
         down.applyQuaternion(this.character.quaternion);
         this.velocity.add(down);
     }
     protected rotateCharacterX(rotationDelta: number):void {
-        this.characterRigidBody.wakeUp();
+        this.wakeUpBody()
         this.targetRotation.y -= rotationDelta; 
         this.targetQuaternion.setFromEuler(this.targetRotation);
     }
@@ -370,7 +372,7 @@ export abstract class Controller {
     //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateController():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         // im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
-        if (this.isGrounded()) this.characterRigidBody.sleep();
+        if (this.isGrounded() && !this.characterRigidBody.isSleeping()) this.characterRigidBody.sleep();
         this.defineBehaviour();
         this.updateCharacterAnimations();//im updating the animation before the early return so that it stops naturally
         if (this.characterRigidBody.isSleeping()) {
