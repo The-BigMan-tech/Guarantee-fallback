@@ -73,6 +73,8 @@ export abstract class Controller {
     private shouldStepUp: boolean = false;
     private shouldPlayJumpAnimation: boolean = false;
 
+    private originalHorizontalVel:number
+
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
         const halfWidth = Math.round(fixedData.characterWidth)/2;
@@ -83,6 +85,7 @@ export abstract class Controller {
         this.fixedData = fixedData
         this.dynamicData = dynamicData
         this.characterPosition = this.fixedData.spawnPoint
+
         if (this.fixedData.shape == 'capsule') {
             this.characterCollider = RAPIER.ColliderDesc.capsule(halfHeight,radius);
             this.charLine = createCapsuleLine(radius,halfHeight)
@@ -99,6 +102,7 @@ export abstract class Controller {
         this.characterRigidBody.setTranslation(this.characterPosition,true);
 
         this.groundDetectionDistance = halfHeight + 0.5 + ((halfHeight%2) * 0.5);//i didnt just guess this from my head.i made the formula after trying different values and recording the ones that correctly matched a given character height,saw a pattern and crafted a formula for it
+        this.originalHorizontalVel = dynamicData.horizontalVelocity;
         this.loadCharacterModel()
     }
     private loadCharacterModel():void {
@@ -252,7 +256,7 @@ export abstract class Controller {
     }
     private resetVariables():void {
         this.velocity.set(0,0,0);//to prevent accumulaion over time
-        this.dynamicData.horizontalVelocity = 30
+        this.dynamicData.horizontalVelocity = this.originalHorizontalVel;//the horizontal velocity is subject to runtime mutations so i have to reset it
         this.shouldStepUp = false;
         this.obstacleHeight = 0
     }
