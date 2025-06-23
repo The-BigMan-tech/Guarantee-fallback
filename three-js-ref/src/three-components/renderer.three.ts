@@ -12,8 +12,9 @@ loadEnv(scene,renderer)
 renderer.shadowMap.enabled = true
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setAnimationLoop(()=>{   
-    physicsWorld.step()   
+    physicsWorld.step()//a must to be called first
     player.updateCharacter()
     updateSun();
-    renderer.render( scene,player.camera.cam);
+    renderer.render( scene,player.camera.cam);//a must to be called last
+    player.clearPoints()
 });

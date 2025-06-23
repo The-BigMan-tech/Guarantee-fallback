@@ -3,7 +3,7 @@ import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY} from "../physics-world.three";
-
+import { scene } from "../scene.three";
 
 function createCapsuleLine(radius:number,halfHeight:number) {
     const charGeometry = new THREE.CapsuleGeometry(radius,halfHeight*2);
@@ -76,6 +76,7 @@ export abstract class Controller {
     private shouldPlayJumpAnimation: boolean = false;
 
     private originalHorizontalVel:number
+    private points:THREE.Object3D = new THREE.Object3D();
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
@@ -105,7 +106,7 @@ export abstract class Controller {
 
         this.groundDetectionDistance = halfHeight + 0.5 + ((halfHeight%2) * 0.5);//i didnt just guess this from my head.i made the formula after trying different values and recording the ones that correctly matched a given character height,saw a pattern and crafted a formula for it
         this.originalHorizontalVel = dynamicData.horizontalVelocity;
-        this.loadCharacterModel()
+        this.loadCharacterModel();
     }
     private loadCharacterModel():void {
         const loader:GLTFLoader = new GLTFLoader();
@@ -215,21 +216,30 @@ export abstract class Controller {
         if (!onGround) this.playLandSound = true;
         return onGround 
     }
-    private orientPoint(distance:number):THREE.Vector3 {
-        const forward = new THREE.Vector3(0, 0, -1); // Local forward
+    private colorPoint(position:THREE.Vector3, color:number) {
+        const geometry = new THREE.SphereGeometry(0.06,8,8); // Small sphere
+        const material = new THREE.MeshBasicMaterial({ color: color });
+        const point = new THREE.Mesh(geometry, material);
+        point.position.copy(position); // Set position
+        this.points.add(point)
+    }
+    private orientPoint(distance:number,directionVector:THREE.Vector3):THREE.Vector3 {
         const rotation = this.characterRigidBody.rotation();
         const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
-        forward.applyQuaternion(quat).normalize();
+        directionVector.applyQuaternion(quat).normalize();
     
         const point = new THREE.Vector3(
-            this.characterPosition.x + (forward.x * distance),
+            this.characterPosition.x + (directionVector.x * distance),
             this.characterPosition.y - (this.groundDetectionDistance-0.5),//to detect obstacles that are too low
-            this.characterPosition.z + (forward.z * distance)
+            this.characterPosition.z + (directionVector.z * distance)
         );
         return point
     }
     private detectLowObstacle():void {
-        const point:THREE.Vector3 = this.orientPoint(this.obtscaleDetectionDistance)
+        const forward = new THREE.Vector3(0,0,-1);
+        const point:THREE.Vector3 = this.orientPoint(this.obtscaleDetectionDistance,forward);
+        this.colorPoint(point,0x000000)
+    
         physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
             const collider = physicsWorld.getCollider(colliderObject.handle);
             const shape = collider.shape
@@ -372,10 +382,17 @@ export abstract class Controller {
     protected addObject(externalObject:THREE.Object3D):void {//any object that must be added like a camera for a player should be done through here.it reuqires the class to put any object he wants under a threejs 3d object
         this.character.add(externalObject)
     }
+    protected removeObject(externalObject:THREE.Object3D):void {
+        this.character.remove(externalObject)
+    }
+
+
     //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateController():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         // im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
-        if (this.isGrounded() && !this.characterRigidBody.isSleeping()) this.characterRigidBody.sleep();
+        if (this.isGrounded() && !this.characterRigidBody.isSleeping()) {
+            this.characterRigidBody.sleep();
+        } 
         this.defineBehaviour();
         this.updateCharacterAnimations();//im updating the animation before the early return so that it stops naturally
         if (this.characterRigidBody.isSleeping()) {
@@ -393,7 +410,11 @@ export abstract class Controller {
         return this.updateController
     }
     get characterController():THREE.Group {
+        scene.add(this.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created
         return this.character
+    }
+    public clearPoints() {
+        this.points.clear()
     }
     protected abstract defineBehaviour():void//this is a hook where the entity must be controlled before updating
 }
