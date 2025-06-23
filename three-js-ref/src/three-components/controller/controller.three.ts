@@ -157,6 +157,8 @@ export abstract class Controller {
             this.currentAction = newAction;
         }
     }
+
+
     private calculateUpwardVelocity():number {
         const destinationHeight = Math.round(this.obstacleHeight)
         const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
@@ -188,10 +190,20 @@ export abstract class Controller {
         console.log('Point Query Player: ',charPosY);
         return groundPosY
     }
+    private colorPoint(position:THREE.Vector3, color:number) {
+        if (!Controller.showPoints) return;
+        const geometry = new THREE.SphereGeometry(0.06,8,8); // Small sphere
+        const material = new THREE.MeshBasicMaterial({ color: color });
+        const point = new THREE.Mesh(geometry, material);
+        point.position.copy(position); // Set position
+        this.points.add(point);
+    }
     private colorGroundPoint() {//i rounded the height cuz the point doesnt always exactly touch the ground
         const point:THREE.Vector3 = new THREE.Vector3(this.characterPosition.x,Math.round(this.calculateGroundPosition()),this.characterPosition.z);
         this.colorPoint(point,0x000000)
     }
+
+
     private isGrounded():boolean {
         if (this.characterRigidBody.isSleeping()) return true;//to prevent unnecessary queries when the update loop calls it to know whether to force sleep force sleep.
         const point:THREE.Vector3 = new THREE.Vector3(this.characterPosition.x,this.calculateGroundPosition(),this.characterPosition.z)
@@ -221,14 +233,8 @@ export abstract class Controller {
         if (!onGround) this.playLandSound = true;
         return onGround 
     }
-    private colorPoint(position:THREE.Vector3, color:number) {
-        if (!Controller.showPoints) return;
-        const geometry = new THREE.SphereGeometry(0.06,8,8); // Small sphere
-        const material = new THREE.MeshBasicMaterial({ color: color });
-        const point = new THREE.Mesh(geometry, material);
-        point.position.copy(position); // Set position
-        this.points.add(point);
-    }
+
+
     private orientPoint(distance:number,directionVector:THREE.Vector3):THREE.Vector3 {
         const rotation = this.characterRigidBody.rotation();
         const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
@@ -241,6 +247,12 @@ export abstract class Controller {
         );
         return point
     }
+    private updateObstacleDetectionDistance() {
+        const delta = this.clock.getDelta();
+        const margin = 1; // tune as needed
+        this.obstacleDetectionDistance = (this.dynamicData.horizontalVelocity * delta) + margin
+        console.log("Obstacle detection distance: ",this.obstacleDetectionDistance);
+    }
     private getSteps(maxDistance:number,density:number) {
         let steps = Math.floor(maxDistance * density);
         const minSteps = 3;
@@ -248,6 +260,8 @@ export abstract class Controller {
         steps = Math.min(Math.max(steps, minSteps), maxSteps);
         return steps
     }
+
+    
     private detectLowObstacle():void {
         const forward = new THREE.Vector3(0,0,-1);
         const maxDistance = this.obstacleDetectionDistance;
@@ -282,6 +296,8 @@ export abstract class Controller {
             });    
         }
     }
+
+
     private applyVelocity():void {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
         if (this.isGrounded() || this.shouldStepUp) this.characterRigidBody.setLinvel(this.velocity,true);
         this.characterPosition = this.characterRigidBody.translation();
@@ -309,6 +325,13 @@ export abstract class Controller {
             this.character.position.set(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
         }
     }
+
+
+    private forceCharacterDown():void {//to force the player down if he isnt stepping up and he is in the air while moving forward.the effect of this is seen when the player is stepping down
+        if (!this.shouldStepUp && !this.isGrounded()) {
+            this.moveCharacterDown(gravityY)
+        };
+    }
     private moveOverObstacle():void {
         console.log('Attemptig to step up');
         this.shouldPlayJumpAnimation = false;
@@ -318,11 +341,6 @@ export abstract class Controller {
         this.moveCharacterUp(upwardVelocity);
         this.shouldPlayJumpAnimation = false;
     }
-    private forceCharacterDown():void {//to force the player down if he isnt stepping up and he is in the air while moving forward.the effect of this is seen when the player is stepping down
-        if (!this.shouldStepUp && !this.isGrounded()) {
-            this.moveCharacterDown(gravityY)
-        };
-    }
     //im resetting the velocity and impulse every frame to prevent accumulation over time
     private moveForward(velocityDelta:number):void {
         const forward = new THREE.Vector3(0,0,-velocityDelta);//direction vector
@@ -330,6 +348,7 @@ export abstract class Controller {
         this.velocity.add(forward);
         this.forceCharacterDown()
     }
+
 
     private wakeUpBody() {
         if ( this.characterRigidBody.isSleeping()) this.characterRigidBody.wakeUp();
@@ -402,6 +421,7 @@ export abstract class Controller {
     }
 
     
+
     protected addObject(externalObject:THREE.Object3D):void {//any object that must be added like a camera for a player should be done through here.it reuqires the class to put any object he wants under a threejs 3d object
         this.character.add(externalObject)
     }
@@ -409,19 +429,13 @@ export abstract class Controller {
         this.character.remove(externalObject)
     }
 
+
     private forceSleepIfIdle() {
         // im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
         if (this.isGrounded() && !this.characterRigidBody.isSleeping()) {
             this.characterRigidBody.sleep();
         } 
     }
-    private updateObstacleDetectionDistance() {
-        const delta = this.clock.getDelta();
-        const margin = 1; // tune as needed
-        this.obstacleDetectionDistance = (this.dynamicData.horizontalVelocity * delta) + margin
-        console.log("Obstacle detection distance: ",this.obstacleDetectionDistance);
-    }
-
     //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateController():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         this.forceSleepIfIdle();
