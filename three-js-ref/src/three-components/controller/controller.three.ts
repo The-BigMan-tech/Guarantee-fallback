@@ -101,7 +101,7 @@ export abstract class Controller {
         this.groundDetectionDistance = halfHeight + 0.5 + ((halfHeight%2) * 0.5);//i didnt just guess this from my head.i made the formula after trying different values and recording the ones that correctly matched a given character height,saw a pattern and crafted a formula for it
         this.loadCharacterModel()
     }
-    private loadCharacterModel() {
+    private loadCharacterModel():void {
         const loader:GLTFLoader = new GLTFLoader();
         loader.load(this.fixedData.modelPath,
             gltf=>{
@@ -116,7 +116,7 @@ export abstract class Controller {
             error =>console.error( error ),
         );
     }
-    private loadCharacterAnimations(gltf:GLTF) {
+    private loadCharacterAnimations(gltf:GLTF):void {
         if (!this.mixer) return;
         const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
         const walkClip = THREE.AnimationClip.findByName(gltf.animations, 'sprinting'); 
@@ -130,7 +130,7 @@ export abstract class Controller {
             this.currentAction = this.idleAction;
         }
     }
-    private loadCharacterSounds() {    
+    private loadCharacterSounds():void {    
         const audioLoader = new THREE.AudioLoader();
         audioLoader.load('walking.mp3',(buffer)=> {
             this.walkSound.setBuffer(buffer);
@@ -141,7 +141,7 @@ export abstract class Controller {
             this.landSound.setVolume(30);
         });
     }
-    private fadeToAnimation(newAction: THREE.AnimationAction) {
+    private fadeToAnimation(newAction: THREE.AnimationAction):void {
         if (newAction !== this.currentAction) {
             newAction.reset();
             newAction.play();
@@ -149,24 +149,24 @@ export abstract class Controller {
             this.currentAction = newAction;
         }
     }
-    private calculateUpwardVelocity() {
+    private calculateUpwardVelocity():number {
         const destinationHeight = Math.round(this.obstacleHeight)
         const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
         const upwardVelocity = (destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight);//i chose not to round this one to ensure that i dont shoot not even the slightest over the obstacle
         console.log("Final upward velocity: ",upwardVelocity);
         return upwardVelocity
     }
-    private calculateForwardVelocity(upwardVelocity:number) {
+    private calculateForwardVelocity(upwardVelocity:number):number {
         const destinationHeight = Math.round(this.obstacleHeight)
         const timeToReachHeight = (upwardVelocity/gravityY) + Math.sqrt((2*destinationHeight)/gravityY)
         const forwardVelocity = Math.round(this.obtscaleDetectionDistance/timeToReachHeight)//i rounded this one to ensure that the forward velocity is treated fair enough to move over the obstacle.ceiling it will overshoot it
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
-    private isGrounded() {
+    private isGrounded():boolean {
         if (this.characterRigidBody.isSleeping()) {
             console.log("sleeping... ground check");
-            return;//to prevent unnecessary queries
+            return false;//to prevent unnecessary queries
         }
         let onGround = false
         const charPosY = this.characterPosition.y
@@ -221,7 +221,7 @@ export abstract class Controller {
         );
         return point
     }
-    private detectLowObstacle() {
+    private detectLowObstacle():void {
         if (this.characterRigidBody.isSleeping()) {
             console.log("sleeping... low obstacle check");
             return;//to prevent unnecessary queries
@@ -246,34 +246,34 @@ export abstract class Controller {
             return true;//*tune here
         });    
     }
-    private applyVelocity() {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
+    private applyVelocity():void {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
         if (this.isGrounded() || this.shouldStepUp) this.characterRigidBody.setLinvel(this.velocity,true);
         this.characterPosition = this.characterRigidBody.translation();
     }
-    private resetVariables() {
+    private resetVariables():void {
         this.velocity.set(0,0,0);//to prevent accumulaion over time
         this.dynamicData.horizontalVelocity = 30
         this.shouldStepUp = false;
         this.obstacleHeight = 0
     }
-    private updateCharacterAnimations() {
+    private updateCharacterAnimations():void {
         const delta = this.clock.getDelta();
         if (this.mixer) this.mixer.update(delta);
     }
-    private updateCharacterTransformations() {
+    private updateCharacterTransformations():void {
         const [posX,posY,posZ] = [this.characterPosition.x,this.characterPosition.y-1.6,this.characterPosition.z];//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
         this.character.position.set(posX,posY,posZ);
         this.character.quaternion.slerp(this.targetQuaternion,this.dynamicData.rotationSpeed);
         this.characterRigidBody.setRotation(this.targetQuaternion,true);
     }
-    private respawnIfOutOfBounds() {
+    private respawnIfOutOfBounds():void {
         if (this.characterPosition.y <= outOfBoundsY) {
             this.characterRigidBody.setTranslation(this.fixedData.spawnPoint,true);
             this.characterPosition = this.characterRigidBody.translation();
             this.character.position.set(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
         }
     }
-    private moveOverObstacle() {
+    private moveOverObstacle():void {
         console.log('Attemptig to step up');
         this.shouldPlayJumpAnimation = false;
         const upwardVelocity = this.calculateUpwardVelocity()
@@ -282,13 +282,13 @@ export abstract class Controller {
         this.moveCharacterUp(upwardVelocity);
         this.shouldPlayJumpAnimation = false;
     }
-    private forceCharacterDown() {//to force the player down if he isnt stepping up and he is in the air while moving forward.the effect of this is seen when the player is stepping down
+    private forceCharacterDown():void {//to force the player down if he isnt stepping up and he is in the air while moving forward.the effect of this is seen when the player is stepping down
         if (!this.shouldStepUp && !this.isGrounded()) {
             this.moveCharacterDown(gravityY)
         };
     }
     //im resetting the velocity and impulse every frame to prevent accumulation over time
-    private moveForward(velocityDelta:number) {
+    private moveForward(velocityDelta:number):void {
         const forward = new THREE.Vector3(0,0,-velocityDelta);//direction vector
         forward.applyQuaternion(this.character.quaternion);//setting the direction to the rigid body's world space
         this.velocity.add(forward);
@@ -296,33 +296,33 @@ export abstract class Controller {
     }
 
 
-    protected moveCharacterForward(velocityDelta:number) {
+    protected moveCharacterForward(velocityDelta:number):void {
         this.characterRigidBody.wakeUp();
         if (this.shouldStepUp) this.moveOverObstacle();
         else this.moveForward(velocityDelta);
     }
-    protected moveCharacterBackward(velocityDelta:number) {
+    protected moveCharacterBackward(velocityDelta:number):void {
         this.characterRigidBody.wakeUp();
         const backward = new THREE.Vector3(0,0,velocityDelta);
         backward.applyQuaternion(this.character.quaternion);
         this.velocity.add(backward);
         this.forceCharacterDown();
     }
-    protected moveCharacterLeft(velocityDelta:number) {
+    protected moveCharacterLeft(velocityDelta:number):void {
         this.characterRigidBody.wakeUp();
         const left = new THREE.Vector3(-velocityDelta,0,0);
         left.applyQuaternion(this.character.quaternion);
         this.velocity.add(left);
         this.forceCharacterDown();
     }
-    protected moveCharacterRight(velocityDelta:number) {
+    protected moveCharacterRight(velocityDelta:number):void {
         this.characterRigidBody.wakeUp();
         const right = new THREE.Vector3(velocityDelta,0,0);
         right.applyQuaternion(this.character.quaternion);
         this.velocity.add(right);
         this.forceCharacterDown();
     }
-    protected moveCharacterUp(velocityDelta:number) {
+    protected moveCharacterUp(velocityDelta:number):void {
         this.characterRigidBody.wakeUp();
         const up = new THREE.Vector3(0,velocityDelta,0);
         up.applyQuaternion(this.character.quaternion);
@@ -330,44 +330,44 @@ export abstract class Controller {
         this.dynamicData.horizontalVelocity -= this.dynamicData.jumpResistance;
         this.shouldPlayJumpAnimation = true;
     }
-    protected moveCharacterDown(velocityDelta:number) {
+    protected moveCharacterDown(velocityDelta:number):void {
         this.characterRigidBody.wakeUp();
         const down = new THREE.Vector3(0,-velocityDelta,0);
         down.applyQuaternion(this.character.quaternion);
         this.velocity.add(down);
     }
-    protected rotateCharacterX(rotationDelta: number) {
+    protected rotateCharacterX(rotationDelta: number):void {
         this.characterRigidBody.wakeUp();
         this.targetRotation.y -= rotationDelta; 
         this.targetQuaternion.setFromEuler(this.targetRotation);
     }
 
 
-    protected isAirBorne() {
+    protected isAirBorne():boolean {
         return !this.isGrounded() && this.shouldPlayJumpAnimation && !this.shouldStepUp
     }
-    protected playJumpAnimation() {
+    protected playJumpAnimation():void {
         if (this.mixer && this.jumpAction) this.fadeToAnimation(this.jumpAction)
     }
-    protected playWalkAnimation() {
+    protected playWalkAnimation():void {
         if (this.mixer && this.walkAction) this.fadeToAnimation(this.walkAction)
     }
-    protected playIdleAnimation() {
+    protected playIdleAnimation():void {
         if (this.mixer && this.idleAction) this.fadeToAnimation(this.idleAction)
     }
 
-    protected playWalkSound() {
+    protected playWalkSound():void {
         if (!this.walkSound.isPlaying) this.walkSound.play();
     }
-    protected stopWalkSound() {
+    protected stopWalkSound():void {
         this.walkSound.stop()
     }
 
     
-    protected addObject(externalObject:THREE.Object3D) {//any object that must be added like a camera for a player should be done through here.it reuqires the class to put any object he wants under a threejs 3d object
+    protected addObject(externalObject:THREE.Object3D):void {//any object that must be added like a camera for a player should be done through here.it reuqires the class to put any object he wants under a threejs 3d object
         this.character.add(externalObject)
     }
-    private updateController() {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
+    private updateController():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         // im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.but this requires that movement functions in the inheriting classes must be called before functions like isAirBorne that relies on the ground detection check but its blocked when the character sleeps
         if (this.isGrounded()) this.characterRigidBody.sleep();
         this.defineBehaviour();
@@ -379,10 +379,10 @@ export abstract class Controller {
         this.detectLowObstacle();
         this.respawnIfOutOfBounds();
     }
-    get updateCharacter() {
+    get updateCharacter():() => void {
         return this.updateController
     }
-    get characterController() {
+    get characterController():THREE.Group {
         return this.character
     }
     protected abstract defineBehaviour():void//this is a hook where the entity must be controlled before updating
