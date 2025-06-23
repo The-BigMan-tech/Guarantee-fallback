@@ -53,7 +53,7 @@ export abstract class Controller {
     private modelYOffset:number = 1.6;//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
 
     private obstacleHeight: number = 0;
-    private obtscaleDetectionDistance:number = 4.5;
+    private obstacleDetectionDistance:number = 0;
     private groundDetectionDistance:number;
     
     private velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
@@ -167,7 +167,7 @@ export abstract class Controller {
     private calculateForwardVelocity(upwardVelocity:number):number {
         const destinationHeight = Math.round(this.obstacleHeight)
         const timeToReachHeight = (upwardVelocity/gravityY) + Math.sqrt((2*destinationHeight)/gravityY)
-        const forwardVelocity = Math.round(this.obtscaleDetectionDistance/timeToReachHeight)//i rounded this one to ensure that the forward velocity is treated fair enough to move over the obstacle.ceiling it will overshoot it
+        const forwardVelocity = Math.round(this.obstacleDetectionDistance/timeToReachHeight)//i rounded this one to ensure that the forward velocity is treated fair enough to move over the obstacle.ceiling it will overshoot it
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
@@ -250,7 +250,7 @@ export abstract class Controller {
     }
     private detectLowObstacle():void {
         const forward = new THREE.Vector3(0,0,-1);
-        const maxDistance = this.obtscaleDetectionDistance;
+        const maxDistance = this.obstacleDetectionDistance;
         const pointDensity = 1.2
         const steps = this.getSteps(maxDistance,pointDensity)
 
@@ -415,6 +415,13 @@ export abstract class Controller {
             this.characterRigidBody.sleep();
         } 
     }
+    private updateObstacleDetectionDistance() {
+        const delta = this.clock.getDelta();
+        const margin = 1; // tune as needed
+        this.obstacleDetectionDistance = (this.dynamicData.horizontalVelocity * delta) + margin
+        console.log("Obstacle detection distance: ",this.obstacleDetectionDistance);
+    }
+
     //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateController():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         this.forceSleepIfIdle();
@@ -426,6 +433,7 @@ export abstract class Controller {
         }else {
             this.points.clear();
             this.applyVelocity();
+            this.updateObstacleDetectionDistance();
             // this.colorGroundPoint();//i made color ground point its own separate function and called it once in the update loop cuz its called in th eupdate loop for decisions more than once
             this.characterRigidBody.setGravityScale(this.dynamicData.gravityScale,true)
             this.updateCharacterTransformations();
