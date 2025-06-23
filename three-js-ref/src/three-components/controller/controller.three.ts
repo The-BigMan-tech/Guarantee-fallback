@@ -169,26 +169,29 @@ export abstract class Controller {
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
-    private isGrounded():boolean {
-        if (this.characterRigidBody.isSleeping()) return true;//to prevent unnecessary queries when the update loop calls it to know whether to force sleep force sleep.
-
-        let onGround = false
-        const charPosY = this.characterPosition.y
-        const isRoundable = Math.round(charPosY) > charPosY
-        console.log("Point is Roundable: ",isRoundable);
-
-        //for cubes with heights that can be rounded to a higher integer,flooring it solves the problem of small precision issues that can prevent ground detection.
+    /**
+     *  for cubes with heights that can be rounded to a higher integer,flooring it solves the problem of small precision issues that can prevent ground detection.
         //but for cubes with heights that cant be rounded to a higher integer,precision gets more messy that flooring cant solve it.so after a feedback loop,i realized that they require a constant deduction of 1.
         //the two techniques for the different types of floats ensures that all floats are aggressively reduced to a number way smaller than them in terms of precision.This esnures that a number like 2.3,gets reduced 1.3 and a number of 2.6 gets reduced to 2.
         //Because point querying is very sensitive to precisison no matter how small,my approach is to make it insensitive to precision by aggressively reducing floats before working with them but not too much so that it loses its meaning entirely by overshooting to another point that clearly isnt what im querying for
         //ground detection distance is a one decimal float calculated by using the character height against a function.after reducing precision to a certain point but not too much to get the point most likely the player is standing on,subtracting this distance gets the right point that the ground is.
-
+     * 
+     */
+    private calculateGroundPosition() {
+        const charPosY = this.characterPosition.y
+        const isRoundable = Math.round(charPosY) > charPosY
         const posY = (isRoundable)?Math.floor(charPosY):charPosY-1
         const groundPosY = posY - this.groundDetectionDistance;//the ground should be just a few cord lower than the player since te player stands over the ground
-        const point = {...this.characterPosition,y:groundPosY}
-        
-        console.log("Point Ground detection distance: ",this.groundDetectionDistance);
+        console.log("Point is Roundable: ",isRoundable);
         console.log('Point Query Player: ',charPosY);
+        return groundPosY
+    }
+    private isGrounded():boolean {
+        if (this.characterRigidBody.isSleeping()) return true;//to prevent unnecessary queries when the update loop calls it to know whether to force sleep force sleep.
+
+        let onGround = false
+        const point = {...this.characterPosition,y:this.calculateGroundPosition()}
+        console.log("Point Ground detection distance: ",this.groundDetectionDistance);
         console.log(' Point Query Point:', point.y);
     
         physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
@@ -236,9 +239,9 @@ export abstract class Controller {
             if (shape instanceof RAPIER.Cuboid) {
                 const halfExtents = shape.halfExtents;
                 const height = halfExtents.y * 2;
-                this.obstacleHeight = height;
-                console.log('Obstacle height:', height);
-                if (height <= this.dynamicData.maxStepUpHeight) {
+                this.obstacleHeight = height - this.calculateGroundPosition();
+                console.log('Obstacle height:',this.obstacleHeight);
+                if (this.obstacleHeight <= this.dynamicData.maxStepUpHeight) {
                     console.log("STEPPING UP");
                     this.shouldStepUp = true
                 }
