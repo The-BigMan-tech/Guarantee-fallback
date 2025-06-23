@@ -8,10 +8,10 @@ interface PlayerCamData extends CameraData {
     offsetY:number | 'auto';
 }
 class Player extends Controller {
-    private static firstPersonClamp = 75;
-    private static thirdPersonClamp = 10;
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
-    private cameraClampAngle:number = Player.firstPersonClamp;
+    private firstPersonClamp = 75;
+    private thirdPersonClamp = 10;
+    private cameraClampAngle:number =  this.firstPersonClamp;
 
     public camera:Camera;
     private canToggleCamera:boolean = true;//to debounce perspective toggling
@@ -98,11 +98,11 @@ class Player extends Controller {
     }
     private toggleThirdPerson() {//this is where the camera is updated and optionally adding other behaviour to the camera before that update
         if (this.isThirdPerson) {
-            this.cameraClampAngle = Player.thirdPersonClamp
+            this.cameraClampAngle = this.thirdPersonClamp
             this.targetZ = 6
             this.targetY = this.offsetY
         }else {
-            this.cameraClampAngle = Player.firstPersonClamp
+            this.cameraClampAngle = this.firstPersonClamp
             this.targetZ = 0
             this.targetY = this.offsetY-1
         }
