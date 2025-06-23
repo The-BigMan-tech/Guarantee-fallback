@@ -188,14 +188,17 @@ export abstract class Controller {
         console.log('Point Query Player: ',charPosY);
         return groundPosY
     }
+    private colorGroundPoint() {//i rounded the height cuz the point doesnt always exactly touch the ground
+        const point:THREE.Vector3 = new THREE.Vector3(this.characterPosition.x,Math.round(this.calculateGroundPosition()),this.characterPosition.z);
+        this.colorPoint(point,0x000000)
+    }
     private isGrounded():boolean {
         if (this.characterRigidBody.isSleeping()) return true;//to prevent unnecessary queries when the update loop calls it to know whether to force sleep force sleep.
-        let onGround = false
         const point:THREE.Vector3 = new THREE.Vector3(this.characterPosition.x,this.calculateGroundPosition(),this.characterPosition.z)
-        this.colorPoint(point,0x000000)
+        let onGround = false
 
         console.log("Point Ground detection distance: ",this.groundDetectionDistance);
-        console.log(' Point Query Point:', point.y);
+        console.log(' Point Query Point:',point.y);
     
         physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
             const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
@@ -406,6 +409,7 @@ export abstract class Controller {
         }else {
             this.points.clear();
             this.applyVelocity();
+            // this.colorGroundPoint();//i made color ground point its own separate function and called it once in the update loop cuz its called in th eupdate loop for decisions more than once
             this.characterRigidBody.setGravityScale(this.dynamicData.gravityScale,true)
             this.updateCharacterTransformations();
             this.resetVariables();
