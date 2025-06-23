@@ -168,10 +168,8 @@ export abstract class Controller {
         return forwardVelocity
     }
     private isGrounded():boolean {
-        if (this.characterRigidBody.isSleeping()) {
-            console.log("sleeping... ground check");
-            return true;//to prevent unnecessary queries.Since it sleeps only when its grounded.its appropriate to return true here saving computation
-        }
+        if (this.characterRigidBody.isSleeping()) return true;//to prevent unnecessary queries when the update loop calls it to know whether to force sleep force sleep.
+
         let onGround = false
         const charPosY = this.characterPosition.y
         const isRoundable = Math.round(charPosY) > charPosY
@@ -226,10 +224,6 @@ export abstract class Controller {
         return point
     }
     private detectLowObstacle():void {
-        if (this.characterRigidBody.isSleeping()) {
-            console.log("sleeping... low obstacle check");
-            return;//to prevent unnecessary queries
-        }
         const point:THREE.Vector3 = this.orientPoint(this.obtscaleDetectionDistance)
         physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
             const collider = physicsWorld.getCollider(colliderObject.handle);
@@ -376,9 +370,13 @@ export abstract class Controller {
         // im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
         if (this.isGrounded()) this.characterRigidBody.sleep();
         this.defineBehaviour();
+        this.updateCharacterAnimations();
+        if (this.characterRigidBody.isSleeping()) {
+            console.log("sleeping...");
+            return;//to prevent unnecessary queries.Since it sleeps only when its grounded.its appropriate to return true here saving computation
+        }
         this.applyVelocity();
         this.characterRigidBody.setGravityScale(this.dynamicData.gravityScale,true)
-        this.updateCharacterAnimations();
         this.updateCharacterTransformations();
         this.resetVariables();
         this.detectLowObstacle();
