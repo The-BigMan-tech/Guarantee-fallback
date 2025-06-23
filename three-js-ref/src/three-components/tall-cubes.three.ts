@@ -19,13 +19,13 @@ export const cubesGroup = new THREE.Object3D();
 
 const tallCubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f});
 const minHeight = 1;
-const maxHeight = 3;
+const maxHeight = 30;
 
 for (let i = 0; i < points.length; i++) {
     const [x, z] = points[i];
 
     const height = minHeight + (Math.random() * (maxHeight - minHeight));
-    const posY = height / 2 + startingLevelY;//lifted it to prevent sinking
+    const posY = height / 2 + startingLevelY;//to make it stand on the startinglevl not that half of it is above and another half above
     const posX = x - groundArea/2; // center around zero.divide by two to align it around the ground's origin to prevent leakage from the ground
     const posZ = z - groundArea/2;
 
