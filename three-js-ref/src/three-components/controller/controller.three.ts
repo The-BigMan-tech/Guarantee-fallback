@@ -232,38 +232,44 @@ export abstract class Controller {
     private orientPoint(distance:number,directionVector:THREE.Vector3):THREE.Vector3 {
         const rotation = this.characterRigidBody.rotation();
         const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
-        directionVector.applyQuaternion(quat).normalize();
+        const dir = directionVector.clone().applyQuaternion(quat).normalize();
     
         const point = new THREE.Vector3(
-            this.characterPosition.x + (directionVector.x * distance),
+            this.characterPosition.x + (dir.x * distance),
             this.characterPosition.y - (this.groundDetectionDistance-0.5),//to detect obstacles that are too low
-            this.characterPosition.z + (directionVector.z * distance)
+            this.characterPosition.z + (dir.z * distance)
         );
         return point
     }
     private detectLowObstacle():void {
         const forward = new THREE.Vector3(0,0,-1);
-        const point:THREE.Vector3 = this.orientPoint(this.obtscaleDetectionDistance,forward);
-        this.colorPoint(point,0x000000)
-    
-        physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
-            const collider = physicsWorld.getCollider(colliderObject.handle);
-            const shape = collider.shape
-            console.log('PointY Obstacle: ', point.y);
-            console.log('Collider shape:', shape);
+        const steps = 5;
+        const maxDistance = this.obtscaleDetectionDistance;
+
+        for (let i = 1; i <= steps; i++) {
+            // if (this.shouldStepUp) break;
+            const distance = (maxDistance / steps) * i;
+            const point:THREE.Vector3 = this.orientPoint(distance,forward);
             
-            if (shape instanceof RAPIER.Cuboid) {
-                const halfExtents = shape.halfExtents;
-                const height = halfExtents.y * 2;
-                this.obstacleHeight = height - this.calculateGroundPosition();
-                console.log('Obstacle height:',this.obstacleHeight);
-                if (this.obstacleHeight <= this.dynamicData.maxStepUpHeight) {
-                    console.log("STEPPING UP");
-                    this.shouldStepUp = true
+            physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
+                const collider = physicsWorld.getCollider(colliderObject.handle);
+                const shape = collider.shape
+                console.log('PointY Obstacle: ', point.y);
+                console.log('Collider shape:', shape);
+
+                if (shape instanceof RAPIER.Cuboid) {
+                    const halfExtents = shape.halfExtents;
+                    const height = halfExtents.y * 2;
+                    this.obstacleHeight = height - this.calculateGroundPosition();
+                    console.log('Obstacle height:',this.obstacleHeight);
+                    if (this.obstacleHeight <= this.dynamicData.maxStepUpHeight) {
+                        console.log("STEPPING UP");
+                        this.shouldStepUp = true
+                    }
                 }
-            }
-            return true;//*tune here
-        });    
+                return true;//*tune here
+            });    
+        }
     }
     private applyVelocity():void {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
         if (this.isGrounded() || this.shouldStepUp) this.characterRigidBody.setLinvel(this.velocity,true);
