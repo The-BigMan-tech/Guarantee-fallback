@@ -16,5 +16,4 @@ renderer.setAnimationLoop(()=>{
     player.updateCharacter()
     updateSun();
     renderer.render( scene,player.camera.cam);//a must to be called last
-    player.clearPoints()
 });

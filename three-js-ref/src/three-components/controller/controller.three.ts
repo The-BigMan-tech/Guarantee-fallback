@@ -221,7 +221,7 @@ export abstract class Controller {
         const material = new THREE.MeshBasicMaterial({ color: color });
         const point = new THREE.Mesh(geometry, material);
         point.position.copy(position); // Set position
-        this.points.add(point)
+        this.points.add(point);
     }
     private orientPoint(distance:number,directionVector:THREE.Vector3):THREE.Vector3 {
         const rotation = this.characterRigidBody.rotation();
@@ -338,7 +338,7 @@ export abstract class Controller {
         this.forceCharacterDown();
     }
     protected moveCharacterUp(velocityDelta:number):void {
-        this.wakeUpBody()
+        this.wakeUpBody();
         const up = new THREE.Vector3(0,velocityDelta,0);
         up.applyQuaternion(this.character.quaternion);
         this.velocity.add(up);
@@ -346,13 +346,13 @@ export abstract class Controller {
         this.shouldPlayJumpAnimation = true;
     }
     protected moveCharacterDown(velocityDelta:number):void {
-        this.wakeUpBody()
+        this.wakeUpBody();
         const down = new THREE.Vector3(0,-velocityDelta,0);
         down.applyQuaternion(this.character.quaternion);
         this.velocity.add(down);
     }
     protected rotateCharacterX(rotationDelta: number):void {
-        this.wakeUpBody()
+        this.wakeUpBody();
         this.targetRotation.y -= rotationDelta; 
         this.targetQuaternion.setFromEuler(this.targetRotation);
     }
@@ -386,25 +386,29 @@ export abstract class Controller {
         this.character.remove(externalObject)
     }
 
-
-    //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
-    private updateController():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
+    private forceSleepIfIdle() {
         // im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
         if (this.isGrounded() && !this.characterRigidBody.isSleeping()) {
             this.characterRigidBody.sleep();
         } 
+    }
+    //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
+    private updateController():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
+        this.forceSleepIfIdle();
         this.defineBehaviour();
-        this.updateCharacterAnimations();//im updating the animation before the early return so that it stops naturally
+        this.updateCharacterAnimations();//im updating the animation before the early return so that it stops naturally 
         if (this.characterRigidBody.isSleeping()) {
             console.log("sleeping...");
             return;//to prevent unnecessary queries.Since it sleeps only when its grounded.its appropriate to return true here saving computation
+        }else {
+            this.points.clear();
+            this.applyVelocity();
+            this.characterRigidBody.setGravityScale(this.dynamicData.gravityScale,true)
+            this.updateCharacterTransformations();
+            this.resetVariables();
+            this.detectLowObstacle();
+            this.respawnIfOutOfBounds();
         }
-        this.applyVelocity();
-        this.characterRigidBody.setGravityScale(this.dynamicData.gravityScale,true)
-        this.updateCharacterTransformations();
-        this.resetVariables();
-        this.detectLowObstacle();
-        this.respawnIfOutOfBounds();
     }
     get updateCharacter():() => void {
         return this.updateController
@@ -412,9 +416,6 @@ export abstract class Controller {
     get characterController():THREE.Group {
         scene.add(this.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created
         return this.character
-    }
-    public clearPoints() {
-        this.points.clear()
     }
     protected abstract defineBehaviour():void//this is a hook where the entity must be controlled before updating
 }
