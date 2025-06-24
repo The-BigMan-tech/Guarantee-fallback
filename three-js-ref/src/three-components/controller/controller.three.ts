@@ -287,15 +287,29 @@ export abstract class Controller {
                     const groundPosY = Math.max(0,this.calculateGroundPosition());//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative
                     const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this
                     const stepOverPos = new THREE.Vector3(point.x,stepOverPosY,point.z)
-                    let hasCollidedAgain = false;
+                    let clearance = true;
+
                     physicsWorld.intersectionsWithPoint(stepOverPos, () => {
-                        hasCollidedAgain = true
+                        clearance = false
                         return false
                     })
-                    if (!hasCollidedAgain) {
+
+                    if (clearance) {
                         console.log("STEPPING UP");
-                        this.obstacleHeight = 3;
-                        this.shouldStepUp = true
+                        this.obstacleHeight = 2;
+                        this.shouldStepUp = true;
+
+                        for (let i=0;i <= this.dynamicData.maxStepUpHeight;i++) {
+                            stepOverPos.sub(new THREE.Vector3(0,1,0));
+                            physicsWorld.intersectionsWithPoint(stepOverPos,()=>{
+                                const relativeHeight = Math.floor(stepOverPos.y) - Math.ceil(groundPosY)
+                                console.log('Relative groundPosY:', groundPosY);
+                                console.log('Relative stepOverPos.y:', stepOverPos.y);
+                                console.log("Relative height: ",relativeHeight);
+                                return true
+                            })
+                        }
+                                                
                     }
                 }
                 return true;//*tune here
