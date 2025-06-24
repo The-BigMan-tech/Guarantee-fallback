@@ -323,6 +323,7 @@ export abstract class Controller {
     }
     protected collisionFreeMap:Map<string,boolean> = new Map<string, boolean>();
     protected detectObstaclesRadially() {
+        this.collisionFreeMap.clear();  // Clear old data before new detection
         const directions = [
             new THREE.Vector3(0, 0, -1),   // forward
             new THREE.Vector3(0, 0, 1),    // backward
@@ -333,7 +334,7 @@ export abstract class Controller {
             new THREE.Vector3(-1, 0, 1).normalize(),  // backward-left
             new THREE.Vector3(1, 0, 1).normalize()    // backward-right
         ];
-        const maxDistance = this.obstacleDetectionDistance + 2;//let it stretch a bit more for a proper radial view unlike deectlowobstacles which uses a linear view
+        const maxDistance = this.obstacleDetectionDistance + 2;//for a clear radial view
         const steps = this.getSteps(maxDistance,this.pointDensity);
 
         for (const dir of directions) {
@@ -341,7 +342,7 @@ export abstract class Controller {
             for (let i = 1; i <= steps; i++) {
                 const distance = (maxDistance / steps) * i;
                 const point:THREE.Vector3 = this.orientPoint(distance,dir);
-                const key = `${point.x.toFixed(3)}:${point.y.toFixed(3)}:${point.z.toFixed(3)}`;//using string as the key cuz objects are stored as references not by value which will be a problem later when retrieving the data
+                const key = `${point.x.toFixed(2)}:${point.y.toFixed(2)}:${point.z.toFixed(2)}`;//using string as the key cuz objects are stored as references not by value which will be a problem later when retrieving the data
                 this.collisionFreeMap.set(key,true)
 
                 this.colorPoint(point,0x000000);

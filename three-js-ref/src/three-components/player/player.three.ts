@@ -8,6 +8,10 @@ import * as THREE from "three"
 interface PlayerCamData extends CameraData {
     offsetY:number | 'auto';
 }
+function keyToVector3(key: string): THREE.Vector3 {
+    const [xStr, yStr, zStr] = key.split(':');
+    return new THREE.Vector3(parseFloat(xStr), parseFloat(yStr), parseFloat(zStr));
+}
 class Player extends Controller {
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
     private firstPersonClamp = 75;
@@ -116,13 +120,20 @@ class Player extends Controller {
         const newCamPosition = new THREE.Vector3(camPosition.x,this.targetY,this.targetZ)
         this.camera.translateCamera(newCamPosition,0.2);
     }
+    private findPath() {
+        this.detectObstaclesRadially();
+        for (const [key, isFree] of this.collisionFreeMap.entries()) {
+            const point = keyToVector3(key);
+            console.log(`Radial Point ${point.toArray()} is ${isFree ? 'free' : 'blocked'}`);
+        }
+    }
     protected defineBehaviour() {//this is where all character updates to this instance happens.
         this.toggleThirdPerson();
         this.mapKeysToPlayer();
         this.mapKeysToAnimations();
         this.updateCamPosition();
         this.camera.updateCamera();
-        this.detectObstaclesRadially()
+        this.findPath()
     }
 }
 const PlayerCamArgs:PlayerCamData = {
