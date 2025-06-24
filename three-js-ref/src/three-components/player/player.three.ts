@@ -122,6 +122,7 @@ class Player extends Controller {
         this.mapKeysToAnimations();
         this.updateCamPosition();
         this.camera.updateCamera();
+        this.detectObstaclesRadially()
     }
 }
 const PlayerCamArgs:PlayerCamData = {

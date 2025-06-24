@@ -4,7 +4,6 @@ import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY} from "../physics-world.three";
 import { scene } from "../scene.three";
-import { C } from "vitest/dist/chunks/reporters.d.C1ogPriE.js";
 
 function createCapsuleLine(radius:number,halfHeight:number) {
     const charGeometry = new THREE.CapsuleGeometry(radius,halfHeight*2);
@@ -274,7 +273,7 @@ export abstract class Controller {
             if (hasCollided) break;
             const distance = (maxDistance / steps) * i;
             const point:THREE.Vector3 = this.orientPoint(distance,forward);
-            this.colorPoint(point,0x000000);
+            // this.colorPoint(point,0x000000);
 
             physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
                 const collider = physicsWorld.getCollider(colliderObject.handle);
@@ -321,7 +320,43 @@ export abstract class Controller {
             });    
         }
     }
+    protected detectObstaclesRadially() {
+        const directions = [
+            new THREE.Vector3(0, 0, -1),   // forward
+            new THREE.Vector3(0, 0, 1),    // backward
+            new THREE.Vector3(-1, 0, 0),   // left
+            new THREE.Vector3(1, 0, 0),    // right
+            new THREE.Vector3(-1, 0, -1).normalize(), // forward-left
+            new THREE.Vector3(1, 0, -1).normalize(),  // forward-right
+            new THREE.Vector3(-1, 0, 1).normalize(),  // backward-left
+            new THREE.Vector3(1, 0, 1).normalize()    // backward-right
+        ];
+        const maxDistance = this.obstacleDetectionDistance;
+        const pointDensity = 1.2
+        const steps = this.getSteps(maxDistance,pointDensity);
 
+        let hasCollided = false;
+        for (const dir of directions) {
+            for (let i = 1; i <= steps; i++) {
+                if (hasCollided) break;
+                const distance = (maxDistance / steps) * i;
+                const point:THREE.Vector3 = this.orientPoint(distance,dir);
+                this.colorPoint(point,0x000000);
+
+                physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
+                    const collider = physicsWorld.getCollider(colliderObject.handle);
+                    const shape = collider.shape
+                    console.log('PointY Obstacle: ', point.y);
+                    console.log('Obstacle Collider shape:', shape);
+
+                    if (shape instanceof RAPIER.Cuboid) {
+                        hasCollided = true;
+                    }
+                    return true
+                })
+            }
+        }
+    }
 
     private applyVelocity():void {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
         if (this.isGrounded() || this.shouldStepUp) this.characterRigidBody.setLinvel(this.velocity,true);
