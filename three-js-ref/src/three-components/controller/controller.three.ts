@@ -33,7 +33,7 @@ export interface DynamicControllerData {
     rotationSpeed:number,
     gravityScale:number
 }
-interface CollisionMap {
+export interface CollisionMap {
     start:string,
     target:string,
     points:string[]
@@ -54,8 +54,8 @@ export abstract class Controller {
     private characterColliderHandle:number;
     private charLine: THREE.LineSegments;
 
-    private modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera
-    private modelYOffset:number = 1.6;//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
+    private modelZOffset:number = 0;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera
+    private modelYOffset:number = 3;//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
 
     private obstacleHeight: number = 0;
     private obstacleDetectionDistance:number = 0;
@@ -202,6 +202,7 @@ export abstract class Controller {
         const material = new THREE.MeshBasicMaterial({ color: color });
         const point = new THREE.Mesh(geometry, material);
         point.position.copy(position); // Set position
+        point.position.y -= 0.5;
         this.points.add(point);
     }
     private colorGroundPoint() {//i rounded the height cuz the point doesnt always exactly touch the ground
@@ -280,7 +281,14 @@ export abstract class Controller {
             const point:THREE.Vector3 = this.orientPoint(distance,forward);
             // this.colorPoint(point,0x000000);
 
-            physicsWorld.intersectionsWithPoint(point, () => {
+            physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
+                const collider = physicsWorld.getCollider(colliderObject.handle);
+                const shape = collider.shape
+                console.log('PointY Obstacle: ', point.y);
+                console.log('Obstacle Collider shape:', shape);
+
+                if (!(shape instanceof RAPIER.Cuboid)) return true;//only detect cubes
+
                 console.log('PointY Obstacle: ', point.y);
                 hasCollided = true;
 
@@ -320,21 +328,23 @@ export abstract class Controller {
     }
 
     private collisionMap:CollisionMap = {target:'',start:'',points:[]}
+    protected pathTargetPos:THREE.Vector3 = new THREE.Vector3();
+
     protected vector3ToKey(point:RAPIER.Vector3) {
-        return `${point.x.toFixed(2)}:${point.y.toFixed(2)}:${point.z.toFixed(2)}`
+        return `${point.x.toFixed(2)}*${point.y.toFixed(2)}*${point.z.toFixed(2)}`
     }
     protected keyToVector3(key: string): THREE.Vector3 {
-        const [xStr, yStr, zStr] = key.split(':');
+        const [xStr, yStr, zStr] = key.split('*');
         return new THREE.Vector3(parseFloat(xStr), parseFloat(yStr), parseFloat(zStr));
     }
-    protected detectObstaclesRadially(targetPosition:THREE.Vector3) {//targetpos is the player for example
+    protected detectObstaclesRadially() {//targetpos is the player for example
         const startKey = this.vector3ToKey(this.characterPosition)
+        this.collisionMap.points.length = 0;  // Clear old data before new detection
         this.collisionMap.target = ''
         this.collisionMap.start = startKey
-        this.collisionMap.points.length = 0;  // Clear old data before new detection
         this.collisionMap.points.push(startKey)
 
-        let dist = targetPosition.distanceTo(this.characterPosition)
+        let dist = this.pathTargetPos.distanceTo(this.characterPosition)
         const directions = [
             new THREE.Vector3(0, 0, -1),   // forward
             new THREE.Vector3(0, 0, 1),    // backward
@@ -355,12 +365,11 @@ export abstract class Controller {
                 const point:THREE.Vector3 = this.orientPoint(distance,dir);
                 const key = this.vector3ToKey(point);//using string as the key cuz objects are stored as references not by value which will be a problem later when retrieving the data
 
-                const distFromTarget = targetPosition.distanceTo(point)
+                const distFromTarget = this.pathTargetPos.distanceTo(point)
                 if (distFromTarget < dist) {
                     dist = distFromTarget
                     this.collisionMap.target = key
                 }
-
                 this.colorPoint(point,0x000000);
                 physicsWorld.intersectionsWithPoint(point,() => {
                     collided = true;
@@ -369,11 +378,19 @@ export abstract class Controller {
                 if (!collided || this.shouldStepUp) {
                     this.collisionMap.points.push(key)
                 }else {
-                    break
+                    
                 }
             }
         }
     }
+    protected onRadialDetection?(collisionMap:CollisionMap):void;
+    private radialHookWrapper() {
+        if (typeof this.onRadialDetection == 'function') {
+            this.detectObstaclesRadially()
+            this.onRadialDetection(this.collisionMap)
+        }
+    }
+
 
     private applyVelocity():void {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
         if (this.isGrounded() || this.shouldStepUp) this.characterRigidBody.setLinvel(this.velocity,true);
@@ -427,7 +444,7 @@ export abstract class Controller {
     }
 
 
-    private wakeUpBody() {
+    protected wakeUpBody() {
         if ( this.characterRigidBody.isSleeping()) this.characterRigidBody.wakeUp();
     }
     protected moveCharacterForward(velocityDelta:number):void {
@@ -489,7 +506,6 @@ export abstract class Controller {
     protected playIdleAnimation():void {
         if (this.mixer && this.idleAction) this.fadeToAnimation(this.idleAction)
     }
-
     protected playWalkSound():void {
         if (!this.walkSound.isPlaying) this.walkSound.play();
     }
@@ -506,14 +522,26 @@ export abstract class Controller {
         this.character.remove(externalObject)
     }
 
+    
+    get updateCharacter():() => void {
+        return this.updateController
+    }
+    get characterController():THREE.Group {
+        scene.add(this.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created
+        return this.character
+    }
+    get position():THREE.Vector3 {
+        return new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z)
+    }
 
+
+    protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
     private forceSleepIfIdle() {
-        // im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
-        if (this.isGrounded() && !this.characterRigidBody.isSleeping()) {
+        if (this.isGrounded() && !this.characterRigidBody.isSleeping()) {// im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
             this.characterRigidBody.sleep();
         } 
     }
-    //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
+     //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateController():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         this.forceSleepIfIdle();
         this.onLoop();
@@ -530,15 +558,8 @@ export abstract class Controller {
             this.updateCharacterTransformations();
             this.resetVariables();
             this.detectLowObstacle();
+            this.radialHookWrapper();
             this.respawnIfOutOfBounds();
         }
     }
-    get updateCharacter():() => void {
-        return this.updateController
-    }
-    get characterController():THREE.Group {
-        scene.add(this.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created
-        return this.character
-    }
-    protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
 }

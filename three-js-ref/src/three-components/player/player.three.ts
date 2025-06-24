@@ -1,6 +1,6 @@
 import { Camera, type CameraData } from "../camera/camera.three";
 import { Controller } from "../controller/controller.three";
-import type { FixedControllerData,DynamicControllerData} from "../controller/controller.three";
+import type { FixedControllerData,DynamicControllerData, CollisionMap} from "../controller/controller.three";
 import * as RAPIER from "@dimforge/rapier3d"
 import * as THREE from "three"
 
@@ -107,7 +107,7 @@ class Player extends Controller {
             this.targetY = this.offsetY
         }else {
             this.cameraClampAngle = this.firstPersonClamp
-            this.targetZ = 0
+            this.targetZ = -0.3
             this.targetY = this.offsetY-1
         }
     }
@@ -122,6 +122,11 @@ class Player extends Controller {
         this.mapKeysToAnimations();
         this.updateCamPosition();
         this.camera.updateCamera();
+        this.pathTargetPos = this.position;
+        this.wakeUpBody()
+    }
+    protected onRadialDetection(collisionMap: CollisionMap): void {
+        console.log("Entity collision map: ",collisionMap);
     }
 }
 const PlayerCamArgs:PlayerCamData = {
