@@ -451,35 +451,35 @@ export abstract class Controller {
     protected wakeUpBody() {
         if ( this.characterRigidBody.isSleeping()) this.characterRigidBody.wakeUp();
     }
-    protected moveCharacterForward(velocityDelta:number):void {
+    protected moveCharacterForward():void {
         this.wakeUpBody()
         if (this.shouldStepUp) this.moveOverObstacle();
-        else this.moveForward(velocityDelta);
+        else this.moveForward(this.dynamicData.horizontalVelocity);
     }
-    protected moveCharacterBackward(velocityDelta:number):void {
+    protected moveCharacterBackward():void {
         this.wakeUpBody()
-        const backward = new THREE.Vector3(0,0,velocityDelta);
+        const backward = new THREE.Vector3(0,0,this.dynamicData.horizontalVelocity);
         backward.applyQuaternion(this.character.quaternion);
         this.velocity.add(backward);
         this.forceCharacterDown();
     }
-    protected moveCharacterLeft(velocityDelta:number):void {
+    protected moveCharacterLeft():void {
         this.wakeUpBody()
-        const left = new THREE.Vector3(-velocityDelta,0,0);
+        const left = new THREE.Vector3(-this.dynamicData.horizontalVelocity,0,0);
         left.applyQuaternion(this.character.quaternion);
         this.velocity.add(left);
         this.forceCharacterDown();
     }
-    protected moveCharacterRight(velocityDelta:number):void {
+    protected moveCharacterRight():void {
         this.wakeUpBody()
-        const right = new THREE.Vector3(velocityDelta,0,0);
+        const right = new THREE.Vector3(this.dynamicData.horizontalVelocity,0,0);
         right.applyQuaternion(this.character.quaternion);
         this.velocity.add(right);
         this.forceCharacterDown();
     }
-    protected moveCharacterUp(velocityDelta:number):void {
+    protected moveCharacterUp(velocityDelta?:number):void {
         this.wakeUpBody();
-        const up = new THREE.Vector3(0,velocityDelta,0);
+        const up = new THREE.Vector3(0,velocityDelta || this.dynamicData.jumpVelocity,0);
         up.applyQuaternion(this.character.quaternion);
         this.velocity.add(up);
         this.dynamicData.horizontalVelocity -= this.dynamicData.jumpResistance;
@@ -491,9 +491,9 @@ export abstract class Controller {
         down.applyQuaternion(this.character.quaternion);
         this.velocity.add(down);
     }
-    protected rotateCharacterX(rotationDelta: number):void {
+    protected rotateCharacterX(sign:number):void {
         this.wakeUpBody();
-        this.targetRotation.y -= rotationDelta; 
+        this.targetRotation.y -= (this.dynamicData.rotationDelta * sign); 
         this.targetQuaternion.setFromEuler(this.targetRotation);
     }
 

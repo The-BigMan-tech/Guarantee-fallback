@@ -48,22 +48,22 @@ class Player extends Controller {
         }
         if (Player.keysPressed['KeyW']) {
             if (Player.keysPressed['ShiftLeft']) this.dynamicData.horizontalVelocity += 10;
-            this.moveCharacterForward(this.dynamicData.horizontalVelocity)
+            this.moveCharacterForward()
         }
         if (Player.keysPressed['KeyS']) {
-            this.moveCharacterBackward(this.dynamicData.horizontalVelocity);
+            this.moveCharacterBackward();
         }
         if (Player.keysPressed['KeyA']) {
-            this.moveCharacterLeft(this.dynamicData.horizontalVelocity);
+            this.moveCharacterLeft();
         }
         if (Player.keysPressed['KeyD']) {
-            this.moveCharacterRight(this.dynamicData.horizontalVelocity);
+            this.moveCharacterRight();
         }
         if (Player.keysPressed['ArrowLeft'])  {
-            this.rotateCharacterX(-this.dynamicData.rotationDelta)
+            this.rotateCharacterX(-1)
         };  
         if (Player.keysPressed['ArrowRight']) {
-            this.rotateCharacterX(+this.dynamicData.rotationDelta)
+            this.rotateCharacterX(+1)
         };
         if (Player.keysPressed['ArrowUp']) {
             this.camera.rotateCameraUp(this.cameraClampAngle)
