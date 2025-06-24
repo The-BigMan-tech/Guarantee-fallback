@@ -300,14 +300,18 @@ export abstract class Controller {
                         this.shouldStepUp = true;
 
                         for (let i=0;i <= this.dynamicData.maxStepUpHeight;i++) {
+                            let downwardClearance = true
                             stepOverPos.sub(new THREE.Vector3(0,1,0));
                             physicsWorld.intersectionsWithPoint(stepOverPos,()=>{
-                                const relativeHeight = Math.floor(stepOverPos.y) - Math.ceil(groundPosY)
-                                console.log('Relative groundPosY:', groundPosY);
-                                console.log('Relative stepOverPos.y:', stepOverPos.y);
+                                const relativeHeight = stepOverPos.y - groundPosY
+                                this.obstacleHeight = relativeHeight
                                 console.log("Relative height: ",relativeHeight);
+                                downwardClearance = false
                                 return true
                             })
+                            if (!downwardClearance) {
+                                break;
+                            }
                         }
                                                 
                     }
