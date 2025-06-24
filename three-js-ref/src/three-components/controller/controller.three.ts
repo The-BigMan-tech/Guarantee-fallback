@@ -285,7 +285,7 @@ export abstract class Controller {
                 if (shape instanceof RAPIER.Cuboid) {
                     hasCollided = true;
                     const groundPosY = Math.max(0,this.calculateGroundPosition());//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative
-                    const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this
+                    const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this.is it possible to step over
                     const stepOverPos = new THREE.Vector3(point.x,stepOverPosY,point.z)
                     let clearance = true;
 

@@ -517,3 +517,4 @@ order of operation
 *Yes, using velocity × deltaTime + margin to compute detection distance helps prevent overshooting obstacles because:You’re predicting how far the character will move in the next frame plus a buffer.This means the detection zone moves dynamically with the character’s speed and frame rate.It avoids detecting obstacles too late (which causes clipping) or too early (which causes unnecessary stopping).It aligns with best practices in game physics and collision detection to maintain smooth and responsive movement.
 
 three-step clearance check detection
+its now an unblocking three-step clearance detection mechanism cuz each step is tied to the clearance of the previous one which means that computation that arent necessary dont block the character update loop
