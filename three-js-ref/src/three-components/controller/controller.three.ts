@@ -321,7 +321,7 @@ export abstract class Controller {
             });    
         }
     }
-    private collisionFreeMap:Map<THREE.Vector3,boolean> = new Map<THREE.Vector3, boolean>();
+    protected collisionFreeMap:Map<string,boolean> = new Map<string, boolean>();
     protected detectObstaclesRadially() {
         const directions = [
             new THREE.Vector3(0, 0, -1),   // forward
@@ -341,7 +341,8 @@ export abstract class Controller {
             for (let i = 1; i <= steps; i++) {
                 const distance = (maxDistance / steps) * i;
                 const point:THREE.Vector3 = this.orientPoint(distance,dir);
-                this.collisionFreeMap.set(point,true)
+                const key = `${point.x.toFixed(3)}:${point.y.toFixed(3)}:${point.z.toFixed(3)}`;//using string as the key cuz objects are stored as references not by value which will be a problem later when retrieving the data
+                this.collisionFreeMap.set(key,true)
 
                 this.colorPoint(point,0x000000);
                 physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
@@ -351,11 +352,15 @@ export abstract class Controller {
                     console.log('Obstacle Collider shape:', shape);
 
                     if (shape instanceof RAPIER.Cuboid) {
-                        this.collisionFreeMap.set(point,false);
+                        this.collisionFreeMap.set(key,false);
+                        collided = true;
                         return false
                     }
                     return true
                 })
+                if (collided) {
+                    break
+                }
             }
         }
     }
