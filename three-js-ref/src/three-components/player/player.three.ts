@@ -8,10 +8,6 @@ import * as THREE from "three"
 interface PlayerCamData extends CameraData {
     offsetY:number | 'auto';
 }
-function keyToVector3(key: string): THREE.Vector3 {
-    const [xStr, yStr, zStr] = key.split(':');
-    return new THREE.Vector3(parseFloat(xStr), parseFloat(yStr), parseFloat(zStr));
-}
 class Player extends Controller {
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
     private firstPersonClamp = 75;
@@ -126,7 +122,6 @@ class Player extends Controller {
         this.mapKeysToAnimations();
         this.updateCamPosition();
         this.camera.updateCamera();
-        this.findPath()
     }
 }
 const PlayerCamArgs:PlayerCamData = {

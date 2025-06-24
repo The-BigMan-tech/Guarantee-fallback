@@ -38,9 +38,6 @@ interface CollisionMap {
     target:string,
     points:string[]
 }
-function vector3ToKey(point:RAPIER.Vector3) {
-    return `${point.x.toFixed(2)}:${point.y.toFixed(2)}:${point.z.toFixed(2)}`
-}
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
     private static showHitBoxes = false;
@@ -283,58 +280,61 @@ export abstract class Controller {
             const point:THREE.Vector3 = this.orientPoint(distance,forward);
             // this.colorPoint(point,0x000000);
 
-            physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
-                const collider = physicsWorld.getCollider(colliderObject.handle);
-                const shape = collider.shape
+            physicsWorld.intersectionsWithPoint(point, () => {
                 console.log('PointY Obstacle: ', point.y);
-                console.log('Obstacle Collider shape:', shape);
+                hasCollided = true;
 
-                if (shape instanceof RAPIER.Cuboid) {
-                    hasCollided = true;
-                    const groundPosY = Math.max(0,this.calculateGroundPosition());//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative
-                    const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this.is it possible to step over
-                    const stepOverPos = new THREE.Vector3(point.x,stepOverPosY,point.z)
-                    let clearance = true;
-
-                    physicsWorld.intersectionsWithPoint(stepOverPos, () => {
-                        clearance = false
-                        return false
-                    })
-
-                    if (clearance) {
-                        console.log("STEPPING UP");
-                        this.obstacleHeight = 2;
-                        this.shouldStepUp = true;
-
-                        const downwardCheckPos = stepOverPos.clone();//i cloned it to prevent subtle bugs if i reuse stepoverpos later
-                        for (let i=0;i <= this.dynamicData.maxStepUpHeight;i++) {
-                            let downwardClearance = true
-                            downwardCheckPos.sub(new THREE.Vector3(0,1,0));
-                            physicsWorld.intersectionsWithPoint(downwardCheckPos,()=>{
-                                const relativeHeight = downwardCheckPos.y - groundPosY
-                                this.obstacleHeight = relativeHeight
-                                console.log("Relative height: ",relativeHeight);
-                                downwardClearance = false
-                                return true
-                            })
-                            if (!downwardClearance) {
-                                break;
-                            }
-                        }
-                                                
-                    }
+                const groundPosY = Math.max(0,this.calculateGroundPosition());//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative
+                const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this.is it possible to step over
+                const stepOverPos = new THREE.Vector3(point.x,stepOverPosY,point.z)
+                
+                let clearance = true;
+                physicsWorld.intersectionsWithPoint(stepOverPos, () => {
+                    clearance = false
                     return false
+                })
+
+                if (clearance) {
+                    console.log("STEPPING UP");
+                    this.obstacleHeight = 2;
+                    this.shouldStepUp = true;
+                    const downwardCheckPos = stepOverPos.clone();//i cloned it to prevent subtle bugs if i reuse stepoverpos later
+                    for (let i=0;i <= this.dynamicData.maxStepUpHeight;i++) {
+                        let downwardClearance = true
+                        downwardCheckPos.sub(new THREE.Vector3(0,1,0));
+                        physicsWorld.intersectionsWithPoint(downwardCheckPos,()=>{
+                            const relativeHeight = downwardCheckPos.y - groundPosY
+                            this.obstacleHeight = relativeHeight
+                            console.log("Relative height: ",relativeHeight);
+                            downwardClearance = false
+                            return true
+                        })
+                        if (!downwardClearance) {
+                            break;
+                        }
+                    }                        
                 }
-                return true;//*tune here
+                return true
             });    
         }
     }
+    protected vector3ToKey(point:RAPIER.Vector3) {
+        return `${point.x.toFixed(2)}:${point.y.toFixed(2)}:${point.z.toFixed(2)}`
+    }
+    protected keyToVector3(key: string): THREE.Vector3 {
+        const [xStr, yStr, zStr] = key.split(':');
+        return new THREE.Vector3(parseFloat(xStr), parseFloat(yStr), parseFloat(zStr));
+    }
     
     protected collisionMap:CollisionMap = {target:'',start:'',points:[]}
-    protected detectObstaclesRadially() {
-        this.collisionMap.points.length = 0;  // Clear old data before new detection
+    protected detectObstaclesRadially(targetPosition:THREE.Vector3) {//targetpos is the player for example
+        const startKey = this.vector3ToKey(this.characterPosition)
         this.collisionMap.target = ''
-        this.collisionMap.start = vector3ToKey(this.characterPosition)
+        this.collisionMap.start = startKey
+        this.collisionMap.points.length = 0;  // Clear old data before new detection
+        this.collisionMap.points.push(startKey)
+
+        let dist = targetPosition.distanceTo(this.characterPosition)
         const directions = [
             new THREE.Vector3(0, 0, -1),   // forward
             new THREE.Vector3(0, 0, 1),    // backward
@@ -354,22 +354,21 @@ export abstract class Controller {
                 const distance = (maxDistance / steps) * i;
                 const point:THREE.Vector3 = this.orientPoint(distance,dir);
                 const key = vector3ToKey(point);//using string as the key cuz objects are stored as references not by value which will be a problem later when retrieving the data
-                this.colorPoint(point,0x000000);
-                
-                physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
-                    const collider = physicsWorld.getCollider(colliderObject.handle);
-                    const shape = collider.shape
-                    console.log('PointY Obstacle: ', point.y);
-                    console.log('Obstacle Collider shape:', shape);
 
-                    if (shape instanceof RAPIER.Cuboid) {
-                        collided = true;
-                        return false
-                    }
+                const distFromTarget = targetPosition.distanceTo(point)
+                if (distFromTarget < dist) {
+                    dist = distFromTarget
+                    this.collisionMap.target = key
+                }
+
+                this.colorPoint(point,0x000000);
+                physicsWorld.intersectionsWithPoint(point,() => {
+                    collided = true;
                     return true
                 })
                 if (!collided || this.shouldStepUp) {
                     this.collisionMap.points.push(key)
+                }else {
                     break
                 }
             }
