@@ -33,6 +33,14 @@ export interface DynamicControllerData {
     rotationSpeed:number,
     gravityScale:number
 }
+interface CollisionMap {
+    start:string,
+    target:string,
+    points:string[]
+}
+function vector3ToKey(point:RAPIER.Vector3) {
+    return `${point.x.toFixed(2)}:${point.y.toFixed(2)}:${point.z.toFixed(2)}`
+}
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
     private static showHitBoxes = false;
@@ -321,9 +329,12 @@ export abstract class Controller {
             });    
         }
     }
-    protected collisionFreeMap:Map<string,boolean> = new Map<string, boolean>();
+    
+    protected collisionMap:CollisionMap = {target:'',start:'',points:[]}
     protected detectObstaclesRadially() {
-        this.collisionFreeMap.clear();  // Clear old data before new detection
+        this.collisionMap.points.length = 0;  // Clear old data before new detection
+        this.collisionMap.target = ''
+        this.collisionMap.start = vector3ToKey(this.characterPosition)
         const directions = [
             new THREE.Vector3(0, 0, -1),   // forward
             new THREE.Vector3(0, 0, 1),    // backward
@@ -342,10 +353,9 @@ export abstract class Controller {
             for (let i = 1; i <= steps; i++) {
                 const distance = (maxDistance / steps) * i;
                 const point:THREE.Vector3 = this.orientPoint(distance,dir);
-                const key = `${point.x.toFixed(2)}:${point.y.toFixed(2)}:${point.z.toFixed(2)}`;//using string as the key cuz objects are stored as references not by value which will be a problem later when retrieving the data
-                this.collisionFreeMap.set(key,true)
-
+                const key = vector3ToKey(point);//using string as the key cuz objects are stored as references not by value which will be a problem later when retrieving the data
                 this.colorPoint(point,0x000000);
+                
                 physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
                     const collider = physicsWorld.getCollider(colliderObject.handle);
                     const shape = collider.shape
@@ -353,13 +363,13 @@ export abstract class Controller {
                     console.log('Obstacle Collider shape:', shape);
 
                     if (shape instanceof RAPIER.Cuboid) {
-                        this.collisionFreeMap.set(key,false);
                         collided = true;
                         return false
                     }
                     return true
                 })
-                if (collided) {
+                if (!collided || this.shouldStepUp) {
+                    this.collisionMap.points.push(key)
                     break
                 }
             }

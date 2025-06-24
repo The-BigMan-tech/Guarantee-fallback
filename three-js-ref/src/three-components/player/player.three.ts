@@ -120,13 +120,6 @@ class Player extends Controller {
         const newCamPosition = new THREE.Vector3(camPosition.x,this.targetY,this.targetZ)
         this.camera.translateCamera(newCamPosition,0.2);
     }
-    private findPath() {
-        this.detectObstaclesRadially();
-        for (const [key, isFree] of this.collisionFreeMap.entries()) {
-            const point = keyToVector3(key);
-            console.log(`Radial Point ${point.toArray()} is ${isFree ? 'free' : 'blocked'}`);
-        }
-    }
     protected defineBehaviour() {//this is where all character updates to this instance happens.
         this.toggleThirdPerson();
         this.mapKeysToPlayer();
