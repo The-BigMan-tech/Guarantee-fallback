@@ -250,7 +250,7 @@ export abstract class Controller {
     }
     private updateObstacleDetectionDistance() {
         const delta = this.clock.getDelta();
-        const margin = 3; // tune as needed
+        const margin = 4; // tune as needed
         this.obstacleDetectionDistance = (this.dynamicData.horizontalVelocity * delta) + margin
         console.log("Obstacle detection distance: ",this.obstacleDetectionDistance);
     }
@@ -284,15 +284,19 @@ export abstract class Controller {
 
                 if (shape instanceof RAPIER.Cuboid) {
                     hasCollided = true;
-                    const halfExtents = shape.halfExtents;
-                    const height = halfExtents.y * 2;
                     const groundPosY = Math.max(0,this.calculateGroundPosition());//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative
-                    this.obstacleHeight = height - groundPosY;
-                    console.log("relative obstacle height: ",this.obstacleHeight);
-                    if (this.obstacleHeight <= this.dynamicData.maxStepUpHeight) {
+                    const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this
+                    const stepOverPos = new THREE.Vector3(point.x,stepOverPosY,point.z)
+                    let hasCollidedAgain = false;
+                    physicsWorld.intersectionsWithPoint(stepOverPos, () => {
+                        hasCollidedAgain = true
+                        return false
+                    })
+                    if (!hasCollidedAgain) {
                         console.log("STEPPING UP");
+                        this.obstacleHeight = 3;
                         this.shouldStepUp = true
-                    };
+                    }
                 }
                 return true;//*tune here
             });    
