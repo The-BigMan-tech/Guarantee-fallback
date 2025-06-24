@@ -299,11 +299,12 @@ export abstract class Controller {
                         this.obstacleHeight = 2;
                         this.shouldStepUp = true;
 
+                        const downwardCheckPos = stepOverPos.clone();//i cloned it to prevent subtle bugs if i reuse stepoverpos later
                         for (let i=0;i <= this.dynamicData.maxStepUpHeight;i++) {
                             let downwardClearance = true
-                            stepOverPos.sub(new THREE.Vector3(0,1,0));
-                            physicsWorld.intersectionsWithPoint(stepOverPos,()=>{
-                                const relativeHeight = stepOverPos.y - groundPosY
+                            downwardCheckPos.sub(new THREE.Vector3(0,1,0));
+                            physicsWorld.intersectionsWithPoint(downwardCheckPos,()=>{
+                                const relativeHeight = downwardCheckPos.y - groundPosY
                                 this.obstacleHeight = relativeHeight
                                 console.log("Relative height: ",relativeHeight);
                                 downwardClearance = false
