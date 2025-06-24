@@ -116,7 +116,7 @@ class Player extends Controller {
         const newCamPosition = new THREE.Vector3(camPosition.x,this.targetY,this.targetZ)
         this.camera.translateCamera(newCamPosition,0.2);
     }
-    protected defineBehaviour() {//this is where all character updates to this instance happens.
+    protected onLoop() {//this is where all character updates to this instance happens.
         this.toggleThirdPerson();
         this.mapKeysToPlayer();
         this.mapKeysToAnimations();

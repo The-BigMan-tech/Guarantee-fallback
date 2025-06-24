@@ -318,6 +318,8 @@ export abstract class Controller {
             });    
         }
     }
+
+    private collisionMap:CollisionMap = {target:'',start:'',points:[]}
     protected vector3ToKey(point:RAPIER.Vector3) {
         return `${point.x.toFixed(2)}:${point.y.toFixed(2)}:${point.z.toFixed(2)}`
     }
@@ -325,8 +327,6 @@ export abstract class Controller {
         const [xStr, yStr, zStr] = key.split(':');
         return new THREE.Vector3(parseFloat(xStr), parseFloat(yStr), parseFloat(zStr));
     }
-    
-    protected collisionMap:CollisionMap = {target:'',start:'',points:[]}
     protected detectObstaclesRadially(targetPosition:THREE.Vector3) {//targetpos is the player for example
         const startKey = this.vector3ToKey(this.characterPosition)
         this.collisionMap.target = ''
@@ -353,7 +353,7 @@ export abstract class Controller {
             for (let i = 1; i <= steps; i++) {
                 const distance = (maxDistance / steps) * i;
                 const point:THREE.Vector3 = this.orientPoint(distance,dir);
-                const key = vector3ToKey(point);//using string as the key cuz objects are stored as references not by value which will be a problem later when retrieving the data
+                const key = this.vector3ToKey(point);//using string as the key cuz objects are stored as references not by value which will be a problem later when retrieving the data
 
                 const distFromTarget = targetPosition.distanceTo(point)
                 if (distFromTarget < dist) {
@@ -516,7 +516,7 @@ export abstract class Controller {
     //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateController():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         this.forceSleepIfIdle();
-        this.defineBehaviour();
+        this.onLoop();
         this.updateCharacterAnimations();//im updating the animation before the early return so that it stops naturally 
         if (this.characterRigidBody.isSleeping()) {
             console.log("sleeping...");
@@ -540,5 +540,5 @@ export abstract class Controller {
         scene.add(this.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created
         return this.character
     }
-    protected abstract defineBehaviour():void//this is a hook where the entity must be controlled before updating
+    protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
 }
