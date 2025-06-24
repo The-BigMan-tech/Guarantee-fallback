@@ -2,7 +2,13 @@ import { Controller} from "../controller/controller.three";
 import type {FixedControllerData,DynamicControllerData,CollisionMap} from "../controller/controller.three";
 import * as RAPIER from "@dimforge/rapier3d"
 import { player } from "../player/player.three";
+import dijkstra from 'dijkstrajs';
 
+interface Graph {
+    [nodeKey: string]: {
+      [neighborKey: string]: number  // edge weight (distance)
+    }
+}
 class Entity extends Controller {
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         super(fixedData,dynamicData);
@@ -12,7 +18,32 @@ class Entity extends Controller {
         this.wakeUpBody()
     }
     protected onRadialDetection(collisionMap: CollisionMap): void {
+        const graph: Graph = {};
         console.log("Entity collision map: ",collisionMap);
+        const points = collisionMap.points;
+        for (const key of points) {
+            graph[key] = {};
+            const posA = this.keyToVector3(key);
+            
+            for (const otherKey of points) {
+                if (key === otherKey) continue;
+                const posB = this.keyToVector3(otherKey);
+            
+                const distance = posA.distanceTo(posB);
+                const maxConnectionDistance = 2; // example threshold
+            
+                if (distance <= maxConnectionDistance) {
+                    graph[key][otherKey] = distance;  // edge weight
+                }
+            }
+        }
+        if (!collisionMap.target) return;
+        const shortestPath = dijkstra.find_path(graph, collisionMap.start, collisionMap.target);
+        shortestPath.forEach((element:string) => {
+            const pointVector = this.keyToVector3(element);
+            console.log("Point vector: ",pointVector);
+        });
+        console.log('Entity shortestPath:', shortestPath);
     }
 }
 const entityFixedData:FixedControllerData = {

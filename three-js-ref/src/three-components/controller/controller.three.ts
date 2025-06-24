@@ -196,7 +196,7 @@ export abstract class Controller {
         console.log('Point Query Player: ',charPosY);
         return groundPosY
     }
-    private colorPoint(position:THREE.Vector3, color:number) {
+    protected colorPoint(position:THREE.Vector3, color:number) {
         if (!Controller.showPoints) return;
         const geometry = new THREE.SphereGeometry(0.06,8,8); // Small sphere
         const material = new THREE.MeshBasicMaterial({ color: color });
@@ -368,10 +368,6 @@ export abstract class Controller {
                 const key = this.vector3ToKey(point);//using string as the key cuz objects are stored as references not by value which will be a problem later when retrieving the data
 
                 const distFromTarget = this.pathTargetPos.distanceTo(point)
-                if (distFromTarget < dist) {
-                    dist = distFromTarget
-                    this.collisionMap.target = key
-                }
                 this.colorPoint(startingPoint,0x380202)
                 this.colorPoint(point,0x053206)
 
@@ -380,7 +376,11 @@ export abstract class Controller {
                     return false
                 })
                 if (!collided || this.shouldStepUp) {
-                    this.collisionMap.points.push(key)
+                    this.collisionMap.points.push(key);
+                    if (distFromTarget < dist) {
+                        dist = distFromTarget
+                        this.collisionMap.target = key
+                    }
                 }else {
                     break
                 }
