@@ -11,7 +11,7 @@ export const scene = new THREE.Scene();
 scene.add(directionalLight);
 scene.add(sky);
 scene.add(player.characterController);
-// scene.add(entity.characterController);
+scene.add(entity.characterController);
 scene.add(terrain);
 scene.add(cube)
 scene.add(cubesGroup)

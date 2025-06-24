@@ -41,7 +41,7 @@ export interface CollisionMap {
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
     private static showHitBoxes = false;
-    private static showPoints = true;
+    private static showPoints = false;
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
@@ -262,7 +262,7 @@ export abstract class Controller {
     }
     private getSteps(maxDistance:number,density:number) {
         let steps = Math.floor(maxDistance * density);
-        const minSteps = 4;
+        const minSteps = 3;
         const maxSteps = 10;
         steps = Math.min(Math.max(steps, minSteps), maxSteps);
         return steps
@@ -338,13 +338,15 @@ export abstract class Controller {
         return new THREE.Vector3(parseFloat(xStr), parseFloat(yStr), parseFloat(zStr));
     }
     protected detectObstaclesRadially() {//targetpos is the player for example
-        const startKey = this.vector3ToKey(this.characterPosition)
+        const groundPosY = this.calculateGroundPosition()+1.5
+        const startingPoint = new THREE.Vector3(this.characterPosition.x,groundPosY,this.characterPosition.z)
+        const startKey = this.vector3ToKey(startingPoint)
         this.collisionMap.points.length = 0;  // Clear old data before new detection
         this.collisionMap.target = ''
         this.collisionMap.start = startKey
         this.collisionMap.points.push(startKey)
 
-        let dist = this.pathTargetPos.distanceTo(this.characterPosition)
+        let dist = this.pathTargetPos.distanceTo(startingPoint)
         const directions = [
             new THREE.Vector3(0, 0, -1),   // forward
             new THREE.Vector3(0, 0, 1),    // backward
@@ -355,7 +357,7 @@ export abstract class Controller {
             new THREE.Vector3(-1, 0, 1).normalize(),  // backward-left
             new THREE.Vector3(1, 0, 1).normalize()    // backward-right
         ];
-        const maxDistance = this.obstacleDetectionDistance + 2;//for a clear radial view
+        const maxDistance = this.obstacleDetectionDistance;//for a clear radial view
         const steps = this.getSteps(maxDistance,this.pointDensity);
 
         for (const dir of directions) {
@@ -370,15 +372,17 @@ export abstract class Controller {
                     dist = distFromTarget
                     this.collisionMap.target = key
                 }
-                this.colorPoint(point,0x000000);
+                this.colorPoint(startingPoint,0x380202)
+                this.colorPoint(point,0x053206)
+
                 physicsWorld.intersectionsWithPoint(point,() => {
                     collided = true;
-                    return true
+                    return false
                 })
                 if (!collided || this.shouldStepUp) {
                     this.collisionMap.points.push(key)
                 }else {
-                    
+                    break
                 }
             }
         }

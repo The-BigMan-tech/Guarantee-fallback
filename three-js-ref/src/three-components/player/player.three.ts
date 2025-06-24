@@ -122,11 +122,6 @@ class Player extends Controller {
         this.mapKeysToAnimations();
         this.updateCamPosition();
         this.camera.updateCamera();
-        this.pathTargetPos = this.position;
-        this.wakeUpBody()
-    }
-    protected onRadialDetection(collisionMap: CollisionMap): void {
-        console.log("Entity collision map: ",collisionMap);
     }
 }
 const PlayerCamArgs:PlayerCamData = {
