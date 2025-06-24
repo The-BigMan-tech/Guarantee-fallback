@@ -78,6 +78,7 @@ export abstract class Controller {
 
     private originalHorizontalVel:number
     private points:THREE.Object3D = new THREE.Object3D();
+    private pointDensity = 1.2
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
@@ -265,8 +266,7 @@ export abstract class Controller {
     private detectLowObstacle():void {
         const forward = new THREE.Vector3(0,0,-1);
         const maxDistance = this.obstacleDetectionDistance;
-        const pointDensity = 1.2
-        const steps = this.getSteps(maxDistance,pointDensity);
+        const steps = this.getSteps(maxDistance,this.pointDensity);
 
         let hasCollided = false
         for (let i = 1; i <= steps; i++) {
@@ -315,11 +315,13 @@ export abstract class Controller {
                         }
                                                 
                     }
+                    return false
                 }
                 return true;//*tune here
             });    
         }
     }
+    private collisionFreeMap:Map<THREE.Vector3,boolean> = new Map<THREE.Vector3, boolean>();
     protected detectObstaclesRadially() {
         const directions = [
             new THREE.Vector3(0, 0, -1),   // forward
@@ -331,18 +333,17 @@ export abstract class Controller {
             new THREE.Vector3(-1, 0, 1).normalize(),  // backward-left
             new THREE.Vector3(1, 0, 1).normalize()    // backward-right
         ];
-        const maxDistance = this.obstacleDetectionDistance;
-        const pointDensity = 1.2
-        const steps = this.getSteps(maxDistance,pointDensity);
+        const maxDistance = this.obstacleDetectionDistance + 2;//let it stretch a bit more for a proper radial view unlike deectlowobstacles which uses a linear view
+        const steps = this.getSteps(maxDistance,this.pointDensity);
 
-        let hasCollided = false;
         for (const dir of directions) {
+            let collided = false;
             for (let i = 1; i <= steps; i++) {
-                if (hasCollided) break;
                 const distance = (maxDistance / steps) * i;
                 const point:THREE.Vector3 = this.orientPoint(distance,dir);
-                this.colorPoint(point,0x000000);
+                this.collisionFreeMap.set(point,true)
 
+                this.colorPoint(point,0x000000);
                 physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
                     const collider = physicsWorld.getCollider(colliderObject.handle);
                     const shape = collider.shape
@@ -350,7 +351,8 @@ export abstract class Controller {
                     console.log('Obstacle Collider shape:', shape);
 
                     if (shape instanceof RAPIER.Cuboid) {
-                        hasCollided = true;
+                        this.collisionFreeMap.set(point,false);
+                        return false
                     }
                     return true
                 })
