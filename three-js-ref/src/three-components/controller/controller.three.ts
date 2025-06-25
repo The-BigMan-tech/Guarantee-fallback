@@ -41,7 +41,7 @@ export interface CollisionMap {
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
     private static showHitBoxes = false;
-    private static showPoints = false;
+    private static showPoints = true;
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
@@ -270,6 +270,7 @@ export abstract class Controller {
 
 
     private detectLowObstacle():void {
+        console.log("Entity detect low obstacle");
         const forward = new THREE.Vector3(0,0,-1);
         const maxDistance = this.obstacleDetectionDistance;
         const steps = this.getSteps(maxDistance,this.pointDensity);
@@ -279,7 +280,7 @@ export abstract class Controller {
             if (hasCollided) break;
             const distance = (maxDistance / steps) * i;
             const point:THREE.Vector3 = this.orientPoint(distance,forward);
-            // this.colorPoint(point,0x000000);
+            this.colorPoint(point,0x000000);
 
             physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
                 const collider = physicsWorld.getCollider(colliderObject.handle);
@@ -304,7 +305,6 @@ export abstract class Controller {
 
                 if (clearance) {
                     console.log("STEPPING UP");
-                    this.obstacleHeight = 2;
                     this.shouldStepUp = true;
                     const downwardCheckPos = stepOverPos.clone();//i cloned it to prevent subtle bugs if i reuse stepoverpos later
                     for (let i=0;i <= this.dynamicData.maxStepUpHeight;i++) {
@@ -326,7 +326,10 @@ export abstract class Controller {
             });    
         }
     }
-
+    private autoMoveForward() {
+        console.log("Entity Obstacle height: ",this.obstacleHeight);
+        this.moveCharacterForward();
+    }
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
         const characterPos = this.character.position;
         const direction = pathTargetPos.clone().sub(characterPos);
@@ -350,7 +353,7 @@ export abstract class Controller {
             if (distToTarget > distThreshold) {
                 this.playWalkAnimation()
                 this.playWalkSound();
-                this.moveCharacterForward()
+                this.autoMoveForward();
             }else {
                 this.playIdleAnimation()
                 this.stopWalkSound();
@@ -412,7 +415,7 @@ export abstract class Controller {
     }
 
 
-    private wakeUpBody() {
+    protected wakeUpBody() {
         if ( this.characterRigidBody.isSleeping()) this.characterRigidBody.wakeUp();
     }
     protected moveCharacterForward():void {
@@ -494,7 +497,7 @@ export abstract class Controller {
     get updateCharacter():() => void {
         return this.updateController
     }
-    get characterController():THREE.Group {
+    get controller():THREE.Group {
         scene.add(this.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created
         return this.character
     }

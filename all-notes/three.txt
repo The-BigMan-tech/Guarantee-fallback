@@ -524,3 +524,6 @@ game framework
 distance to is the hypotenuse distance not the arithmetic distance like in sub
 
 radians for rotation
+
+players move  with keybinds
+entities move with target positions

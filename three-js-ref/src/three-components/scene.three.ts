@@ -10,8 +10,8 @@ import { entity } from './entity/entity.three';
 export const scene = new THREE.Scene();
 scene.add(directionalLight);
 scene.add(sky);
-scene.add(player.characterController);
-scene.add(entity.characterController);
+scene.add(player.controller);
+scene.add(entity.controller);
 scene.add(terrain);
 scene.add(cube)
 scene.add(cubesGroup)

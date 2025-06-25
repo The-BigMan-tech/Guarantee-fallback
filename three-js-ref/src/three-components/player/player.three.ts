@@ -83,8 +83,7 @@ class Player extends Controller {
             this.stopWalkSound()
             this.playJumpAnimation()
             if (!this.isThirdPerson) {
-                this.targetY -= 0.2;
-                this.targetZ = -0.3;
+                this.targetZ = -0.5;
             }
         }else if (Player.keysPressed['KeyW']) {//each key will have its own animation
             this.playWalkSound()
@@ -108,7 +107,7 @@ class Player extends Controller {
         }else {
             this.cameraClampAngle = this.firstPersonClamp
             this.targetZ = 0
-            this.targetY = this.offsetY-1
+            this.targetY = this.offsetY
         }
     }
     private updateCamPosition() {
