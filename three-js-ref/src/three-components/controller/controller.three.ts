@@ -348,7 +348,12 @@ export abstract class Controller {
             const distToTarget = characterPos.distanceTo(pathTargetPos);
             const distThreshold = 5;
             if (distToTarget > distThreshold) {
+                this.playWalkAnimation()
+                this.playWalkSound();
                 this.moveCharacterForward()
+            }else {
+                this.playIdleAnimation()
+                this.stopWalkSound();
             }
         }
     }

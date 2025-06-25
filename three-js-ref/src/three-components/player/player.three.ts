@@ -1,6 +1,6 @@
 import { Camera, type CameraData } from "../camera/camera.three";
 import { Controller } from "../controller/controller.three";
-import type { FixedControllerData,DynamicControllerData, CollisionMap} from "../controller/controller.three";
+import type { FixedControllerData,DynamicControllerData } from "../controller/controller.three";
 import * as RAPIER from "@dimforge/rapier3d"
 import * as THREE from "three"
 
@@ -39,7 +39,7 @@ class Player extends Controller {
     private static onKeyUp(event:KeyboardEvent) {
         Player.keysPressed[event.code] = false
     }
-    private mapKeysToPlayer() {
+    private bindKeysToControls() {
         if (Player.keysPressed['KeyP']) {
             console.log = ()=>{};
         }
@@ -78,7 +78,7 @@ class Player extends Controller {
             }
         }else this.canToggleCamera = true;  // reset when key released
     }
-    private mapKeysToAnimations() {
+    private bindKeysToAnimations() {
         if (this.isAirBorne()) {
             this.stopWalkSound()
             this.playJumpAnimation()
@@ -118,8 +118,8 @@ class Player extends Controller {
     }
     protected onLoop() {//this is where all character updates to this instance happens.
         this.toggleThirdPerson();
-        this.mapKeysToPlayer();
-        this.mapKeysToAnimations();
+        this.bindKeysToControls();
+        this.bindKeysToAnimations();
         this.updateCamPosition();
         this.camera.updateCamera();
     }
