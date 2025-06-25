@@ -9,10 +9,8 @@ class Entity extends Controller {
         super(fixedData,dynamicData);
     }
     protected onLoop(): void {
-        this.wakeUpBody();
         this.moveToTarget(player.position)
     }
-    
 }
 const entityFixedData:FixedControllerData = {
     modelPath:'./silvermoon.glb',
@@ -24,7 +22,7 @@ const entityFixedData:FixedControllerData = {
 }
 const entityDynamicData:DynamicControllerData = {
     horizontalVelocity:10,
-    jumpVelocity:30,
+    jumpVelocity:20,
     jumpResistance:15,
     rotationDelta:0.05,
     rotationSpeed:0.4,

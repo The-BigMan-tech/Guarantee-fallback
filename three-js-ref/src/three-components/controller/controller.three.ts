@@ -329,19 +329,14 @@ export abstract class Controller {
 
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
         const characterPos = this.character.position;
-        const distToTarget = characterPos.distanceTo(pathTargetPos);
-        const distThreshold = 5;
-
-        console.log("Entity dist to target: ",distToTarget);
-
         const direction = pathTargetPos.clone().sub(characterPos);
         const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
         const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
         const normAngle = (angleDiff + (2*Math.PI)) % (2 * Math.PI) ;//we normalized the angle cuz its measured in radians not degrees
         const normAngleInDegrees = Number((normAngle * (180/Math.PI)).toFixed(2))
 
-        const rotationThreshold = 10;
 
+        const rotationThreshold = 10;
         if ((normAngleInDegrees > rotationThreshold)) {
             console.log("Passed rotation threshols");
             if (normAngleInDegrees < 180) {
@@ -350,15 +345,12 @@ export abstract class Controller {
                 this.rotateCharacterX(-1)
             }
         }else {
-            // if (distToTarget > 3) {
-            //     this.moveCharacterForward()
-            // }
+            const distToTarget = characterPos.distanceTo(pathTargetPos);
+            const distThreshold = 5;
+            if (distToTarget > distThreshold) {
+                this.moveCharacterForward()
+            }
         }
-        console.log("Entity current pos",characterPos);
-        console.log("Entity target pos",pathTargetPos);
-        console.log("Entity direction: ",direction);
-        console.log('Entity charDirection:', charDirection);
-        console.log('Entity norm angle:',normAngleInDegrees);
     }
 
 
@@ -415,7 +407,7 @@ export abstract class Controller {
     }
 
 
-    protected wakeUpBody() {
+    private wakeUpBody() {
         if ( this.characterRigidBody.isSleeping()) this.characterRigidBody.wakeUp();
     }
     protected moveCharacterForward():void {
