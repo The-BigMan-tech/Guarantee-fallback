@@ -298,6 +298,7 @@ export abstract class Controller {
                 const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this.is it possible to step over
                 const stepOverPos = new THREE.Vector3(point.x,stepOverPosY,point.z)
                 this.obstacleDistance = distance
+                
 
                 let clearance = true;
                 physicsWorld.intersectionsWithPoint(stepOverPos, () => {
@@ -357,6 +358,7 @@ export abstract class Controller {
         console.log("Entity Obstacle height: ",this.obstacleHeight);
         console.log("Entity Obstacle distance: ",this.obstacleDistance);
     }
+
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
         const characterPos = this.character.position;
         const direction = pathTargetPos.clone().sub(characterPos);
