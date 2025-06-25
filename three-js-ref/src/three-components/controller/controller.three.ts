@@ -327,29 +327,33 @@ export abstract class Controller {
                 return true
             });    
         }
+        if (!hasCollided) {
+            this.obstacleDistance = Infinity
+        }
     }
     private canJumpOntoObstacle() {//checks if the entity can jump on it based on the horizontal distance covered
         const reductionScale = 20//i reduced velocities by 20 to create a more realistic environment
         const timeUp = (this.dynamicData.jumpVelocity/reductionScale) * 9.8;//usimg realistic gravity here to avoid distance inflation
         const totalTime = 2 * timeUp;
-        const horizontalDistance = ((this.dynamicData.horizontalVelocity/reductionScale)-(this.dynamicData.jumpResistance/reductionScale)) * totalTime
+        const horizontalDistance = ((this.dynamicData.horizontalVelocity/reductionScale)-(this.dynamicData.jumpResistance/reductionScale)) * totalTime;
+        const canJump = (horizontalDistance >= this.obstacleDistance);
         console.log('Entity horizontalDistance:', horizontalDistance);
-        return (horizontalDistance >= this.obstacleDistance);
+        console.log("Entity horizontalDistance can jump: ",canJump);
+        return canJump
     }
     private autoMoveForward() {
-        if (!this.isAirBorne()) {
+        this.stopWalkSound();
+        if (this.isGrounded()) {
             console.log("Entity is walking");
             this.playWalkAnimation()
             this.playWalkSound();
             this.moveCharacterForward();
-        }else {
-            this.stopWalkSound();
         }
         if (this.canJumpOntoObstacle()) {
             console.log("Entity is jumping");
-            this.shouldPlayJumpAnimation = true
             this.playJumpAnimation();
             this.moveCharacterUp();
+            this.moveCharacterForward()
         }
         console.log("Entity Obstacle height: ",this.obstacleHeight);
         console.log("Entity Obstacle distance: ",this.obstacleDistance);
