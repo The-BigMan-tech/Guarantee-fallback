@@ -353,6 +353,7 @@ export abstract class Controller {
             console.log("Entity is jumping");
             this.playJumpAnimation();
             this.moveCharacterUp();
+            
         }
         this.moveCharacterForward();
         console.log("Entity Obstacle height: ",this.obstacleHeight);

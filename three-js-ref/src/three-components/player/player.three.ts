@@ -1,3 +1,4 @@
+import { degToRad } from "three/src/math/MathUtils.js";
 import { Camera, type CameraData } from "../camera/camera.three";
 import { Controller } from "../controller/controller.three";
 import type { FixedControllerData,DynamicControllerData } from "../controller/controller.three";
@@ -16,7 +17,7 @@ class Player extends Controller {
 
     public camera:Camera;
     private canToggleCamera:boolean = true;//to debounce perspective toggling
-    private isThirdPerson:boolean = false;
+    private camMode = 1
 
     private offsetY:number;
     private targetZ:number = 0;//the 0 is just for initialization sake so ts wont complain but it will be changed correctly during the render loop
@@ -72,8 +73,12 @@ class Player extends Controller {
             this.camera.rotateCameraDown(this.cameraClampAngle)
         };
         if (Player.keysPressed['KeyT']) {
-            if (this.canToggleCamera) {
-                this.isThirdPerson = !this.isThirdPerson;
+            if (this.canToggleCamera) { 
+                if (this.camMode==3) {
+                    this.camMode = 1
+                }else {
+                    this.camMode += 1;
+                }
                 this.canToggleCamera = false;  // prevent further toggles until key released
             }
         }else this.canToggleCamera = true;  // reset when key released
@@ -82,7 +87,7 @@ class Player extends Controller {
         if (this.isAirBorne()) {
             this.stopWalkSound()
             this.playJumpAnimation()
-            if (!this.isThirdPerson) {
+            if (this.camMode == 0) {
                 this.targetZ = -0.5;
             }
         }else if (Player.keysPressed['KeyW']) {//each key will have its own animation
@@ -100,11 +105,15 @@ class Player extends Controller {
         }
     }
     private toggleThirdPerson() {//this is where the camera is updated and optionally adding other behaviour to the camera before that update
-        if (this.isThirdPerson) {
+        if (this.camMode == 3) {
             this.cameraClampAngle = this.thirdPersonClamp
             this.targetZ = 6
             this.targetY = this.offsetY
-        }else {
+        }else if (this.camMode == 2){
+            this.cameraClampAngle = this.thirdPersonClamp
+            this.targetZ = -6
+            this.targetY = this.offsetY;
+        }else if (this.camMode == 1){
             this.cameraClampAngle = this.firstPersonClamp
             this.targetZ = 0
             this.targetY = this.offsetY
