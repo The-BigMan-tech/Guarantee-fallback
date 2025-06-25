@@ -44,7 +44,7 @@ class Player extends Controller {
             console.log = ()=>{};
         }
         if (Player.keysPressed['Space']) {
-            this.moveCharacterUp(this.dynamicData.jumpVelocity)//the linvel made it sluggish so i had to increase the number
+            this.moveCharacterUp()
         }
         if (Player.keysPressed['KeyW']) {
             if (Player.keysPressed['ShiftLeft']) this.dynamicData.horizontalVelocity += 10;

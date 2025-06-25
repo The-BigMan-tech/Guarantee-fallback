@@ -83,7 +83,9 @@ export abstract class Controller {
 
     private originalHorizontalVel:number
     private points:THREE.Object3D = new THREE.Object3D();
-    private pointDensity = 1.2
+    private pointDensity = 1.2;
+
+    private obstacleDistance:number = 0;//unlike obstacledetection distance which is a fixed unit telling the contoller how far to detect obstacles ahead of time,this one actually tells the realtime distance of an obstacle form the controller
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
@@ -295,7 +297,8 @@ export abstract class Controller {
                 const groundPosY = Math.max(0,this.calculateGroundPosition());//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative
                 const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this.is it possible to step over
                 const stepOverPos = new THREE.Vector3(point.x,stepOverPosY,point.z)
-                
+                this.obstacleDistance = distance
+
                 let clearance = true;
                 physicsWorld.intersectionsWithPoint(stepOverPos, () => {
                     clearance = false
@@ -327,9 +330,32 @@ export abstract class Controller {
             });    
         }
     }
+    private canJumpOntoObstacle() {//checks if the entity can jump on it based on the horizontal distance covered
+        const reductionScale = 20//i reduced velocities by 20 to create a more realistic environment
+        const timeUp = (this.dynamicData.jumpVelocity/reductionScale) * 9.8;//usimg realistic gravity here to avoid distance inflation
+        const totalTime = 2 * timeUp;
+        const horizontalDistance = ((this.dynamicData.horizontalVelocity/reductionScale)-(this.dynamicData.jumpResistance/reductionScale)) * totalTime
+        console.log('Entity horizontalDistance:', horizontalDistance);
+        return (horizontalDistance >= this.obstacleDistance);
+    }
     private autoMoveForward() {
         console.log("Entity Obstacle height: ",this.obstacleHeight);
-        this.moveCharacterForward();
+        console.log("Entity Obstacle distance: ",this.obstacleDistance);
+        if (this.obstacleHeight == Infinity) {
+            if (this.canJumpOntoObstacle()) {
+                console.log("Entity is jumping");
+                this.shouldPlayJumpAnimation = true
+                this.playJumpAnimation();
+                this.moveCharacterUp();
+            }
+        }else {
+            if (!this.isAirBorne()) {
+                console.log("Entity is walking");
+                this.playWalkAnimation()
+                this.playWalkSound();
+                this.moveCharacterForward();
+            }
+        }
     }
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
         const characterPos = this.character.position;
@@ -352,8 +378,6 @@ export abstract class Controller {
             const distToTarget = characterPos.distanceTo(pathTargetPos);
             const distThreshold = 5;
             if (distToTarget > distThreshold) {
-                this.playWalkAnimation()
-                this.playWalkSound();
                 this.autoMoveForward();
             }else {
                 this.playIdleAnimation()
