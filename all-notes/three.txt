@@ -520,3 +520,7 @@ three-step clearance check detection
 its now an unblocking three-step clearance detection mechanism cuz each step is tied to the clearance of the previous one which means that computation that arent necessary dont block the character update loop
 
 game framework
+
+distance to is the hypotenuse distance not the arithmetic distance like in sub
+
+radians for rotation

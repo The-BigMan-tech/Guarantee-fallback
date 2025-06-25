@@ -344,7 +344,11 @@ export abstract class Controller {
 
         if ((normAngleInDegrees > rotationThreshold)) {
             console.log("Passed rotation threshols");
-            // this.rotateCharacterX(+1)
+            if (normAngleInDegrees < 180) {
+                this.rotateCharacterX(+1)
+            }else {
+                this.rotateCharacterX(-1)
+            }
         }else {
             // if (distToTarget > 3) {
             //     this.moveCharacterForward()
