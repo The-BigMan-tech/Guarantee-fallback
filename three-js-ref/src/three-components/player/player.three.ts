@@ -107,7 +107,7 @@ class Player extends Controller {
             this.targetY = this.offsetY
         }else {
             this.cameraClampAngle = this.firstPersonClamp
-            this.targetZ = -0.3
+            this.targetZ = 0
             this.targetY = this.offsetY-1
         }
     }

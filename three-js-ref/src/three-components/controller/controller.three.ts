@@ -54,7 +54,7 @@ export abstract class Controller {
     private characterColliderHandle:number;
     private charLine: THREE.LineSegments;
 
-    private modelZOffset:number = 0;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera
+    private modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera
     private modelYOffset:number = 3;//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
 
     private obstacleHeight: number = 0;
@@ -328,28 +328,28 @@ export abstract class Controller {
     }
 
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
-        const currentPos = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y, this.characterPosition.z);
-        const distToTarget = currentPos.distanceTo(pathTargetPos);
+        const characterPos = this.character.position;
+        const distToTarget = characterPos.distanceTo(pathTargetPos);
         const distThreshold = 5;
 
         console.log("Entity dist to target: ",distToTarget);
-        if (distToTarget < distThreshold) return;
 
-        const direction = pathTargetPos.clone().sub(currentPos.normalize());
+        const direction = pathTargetPos.clone().sub(characterPos);
         const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
         const angle = Math.atan2(direction.x,direction.z)-Math.atan2(charDirection.x,charDirection.z);
-        const normAngle =  ((angle + Math.PI) % (2 * Math.PI)) - Math.PI ;
         
-        const absAngle = Number(Math.abs(normAngle).toFixed(2))
+        const absAngle = Number(Math.abs(angle).toFixed(2))
         const rotationThreshold = 0.07;
 
-        const rotationStep = Math.sign(normAngle) * Math.min(Math.abs(normAngle),this.dynamicData.rotationSpeed)
-
-        if (absAngle > rotationThreshold) {
+        if ((absAngle > rotationThreshold)) {
             console.log("Passed rotation threshols");
             this.rotateCharacterX(+1)
+        }else {
+            // if (distToTarget > 3) {
+            //     this.moveCharacterForward()
+            // }
         }
-        console.log("Entity current pos",currentPos);
+        console.log("Entity current pos",characterPos);
         console.log("Entity target pos",pathTargetPos);
         console.log("Entity direction: ",direction);
         console.log('Entity charDirection:', charDirection);
