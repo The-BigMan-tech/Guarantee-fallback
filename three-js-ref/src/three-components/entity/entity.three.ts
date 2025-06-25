@@ -9,7 +9,6 @@ class Entity extends Controller {
         super(fixedData,dynamicData);
     }
     protected onLoop(): void {
-        this.wakeUpBody();
         this.moveToTarget(player.position)
     }
 }

@@ -57,7 +57,7 @@ export abstract class Controller {
     private modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera
     private modelYOffset:number = 3;//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
 
-    private obstacleHeight: number = 0;
+    private obstacleHeight: number = 0;//0 means there is no obstacle infront of the player,a nmber above this means there is an obstacle but the character can walk over it,infinty means that tere is an obstacle and the character cant walk over it
     private obstacleDetectionDistance:number = 0;
     private groundDetectionDistance:number;
     
@@ -270,7 +270,6 @@ export abstract class Controller {
 
 
     private detectLowObstacle():void {
-        console.log("Entity detect low obstacle");
         const forward = new THREE.Vector3(0,0,-1);
         const maxDistance = this.obstacleDetectionDistance;
         const steps = this.getSteps(maxDistance,this.pointDensity);
@@ -321,6 +320,8 @@ export abstract class Controller {
                             break;
                         }
                     }                        
+                }else {
+                    this.obstacleHeight = Infinity;//this means that the character cant step over the obstacle
                 }
                 return true
             });    
@@ -419,7 +420,7 @@ export abstract class Controller {
         if ( this.characterRigidBody.isSleeping()) this.characterRigidBody.wakeUp();
     }
     protected moveCharacterForward():void {
-        this.wakeUpBody()
+        this.wakeUpBody();
         if (this.shouldStepUp) this.moveOverObstacle();
         else this.moveForward(this.dynamicData.horizontalVelocity);
     }
