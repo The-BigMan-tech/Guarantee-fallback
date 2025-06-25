@@ -327,72 +327,33 @@ export abstract class Controller {
         }
     }
 
-    private collisionMap:CollisionMap = {target:'',start:'',points:[]}
-    protected pathTargetPos:THREE.Vector3 = new THREE.Vector3();
+    protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
+        const currentPos = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y, this.characterPosition.z);
+        const distToTarget = currentPos.distanceTo(pathTargetPos);
+        const distThreshold = 5;
 
-    protected vector3ToKey(point:RAPIER.Vector3) {
-        return `${point.x.toFixed(2)}*${point.y.toFixed(2)}*${point.z.toFixed(2)}`
-    }
-    protected keyToVector3(key: string): THREE.Vector3 {
-        const [xStr, yStr, zStr] = key.split('*');
-        return new THREE.Vector3(parseFloat(xStr), parseFloat(yStr), parseFloat(zStr));
-    }
-    protected detectObstaclesRadially() {//targetpos is the player for example
-        const groundPosY = this.calculateGroundPosition()+1.5
-        const startingPoint = new THREE.Vector3(this.characterPosition.x,groundPosY,this.characterPosition.z)
-        const startKey = this.vector3ToKey(startingPoint)
-        this.collisionMap.points.length = 0;  // Clear old data before new detection
-        this.collisionMap.target = ''
-        this.collisionMap.start = startKey
-        this.collisionMap.points.push(startKey)
+        console.log("Entity dist to target: ",distToTarget);
+        if (distToTarget < distThreshold) return;
 
-        let dist = this.pathTargetPos.distanceTo(startingPoint)
-        const directions = [
-            new THREE.Vector3(0, 0, -1),   // forward
-            new THREE.Vector3(0, 0, 1),    // backward
-            new THREE.Vector3(-1, 0, 0),   // left
-            new THREE.Vector3(1, 0, 0),    // right
-            new THREE.Vector3(-1, 0, -1).normalize(), // forward-left
-            new THREE.Vector3(1, 0, -1).normalize(),  // forward-right
-            new THREE.Vector3(-1, 0, 1).normalize(),  // backward-left
-            new THREE.Vector3(1, 0, 1).normalize()    // backward-right
-        ];
-        const maxDistance = this.obstacleDetectionDistance;//for a clear radial view
-        const steps = this.getSteps(maxDistance,this.pointDensity);
+        const direction = pathTargetPos.clone().sub(currentPos.normalize());
+        const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
+        const angle = Math.atan2(direction.x,direction.z)-Math.atan2(charDirection.x,charDirection.z);
+        const normAngle =  ((angle + Math.PI) % (2 * Math.PI)) - Math.PI ;
+        
+        const absAngle = Number(Math.abs(normAngle).toFixed(2))
+        const rotationThreshold = 0.07;
 
-        for (const dir of directions) {
-            let collided = false;
-            for (let i = 1; i <= steps; i++) {
-                const distance = (maxDistance / steps) * i;
-                const point:THREE.Vector3 = this.orientPoint(distance,dir);
-                const key = this.vector3ToKey(point);//using string as the key cuz objects are stored as references not by value which will be a problem later when retrieving the data
+        const rotationStep = Math.sign(normAngle) * Math.min(Math.abs(normAngle),this.dynamicData.rotationSpeed)
 
-                const distFromTarget = this.pathTargetPos.distanceTo(point)
-                this.colorPoint(startingPoint,0x380202)
-                this.colorPoint(point,0x053206)
-
-                physicsWorld.intersectionsWithPoint(point,() => {
-                    collided = true;
-                    return false
-                })
-                if (!collided || this.shouldStepUp) {
-                    this.collisionMap.points.push(key);
-                    if (distFromTarget < dist) {
-                        dist = distFromTarget
-                        this.collisionMap.target = key
-                    }
-                }else {
-                    break
-                }
-            }
+        if (absAngle > rotationThreshold) {
+            console.log("Passed rotation threshols");
+            this.rotateCharacterX(+1)
         }
-    }
-    protected onRadialDetection?(collisionMap:CollisionMap):void;
-    private radialHookWrapper() {
-        if (typeof this.onRadialDetection == 'function') {
-            this.detectObstaclesRadially()
-            this.onRadialDetection(this.collisionMap)
-        }
+        console.log("Entity current pos",currentPos);
+        console.log("Entity target pos",pathTargetPos);
+        console.log("Entity direction: ",direction);
+        console.log('Entity charDirection:', charDirection);
+        console.log('Entity absAngle:',absAngle);
     }
 
 
@@ -416,6 +377,7 @@ export abstract class Controller {
         this.character.quaternion.slerp(this.targetQuaternion,this.dynamicData.rotationSpeed);
         this.characterRigidBody.setRotation(this.targetQuaternion,true);
     }
+
     private respawnIfOutOfBounds():void {
         if (this.characterPosition.y <= outOfBoundsY) {
             this.characterRigidBody.setTranslation(this.fixedData.spawnPoint,true);
@@ -562,7 +524,6 @@ export abstract class Controller {
             this.updateCharacterTransformations();
             this.resetVariables();
             this.detectLowObstacle();
-            this.radialHookWrapper();
             this.respawnIfOutOfBounds();
         }
     }
