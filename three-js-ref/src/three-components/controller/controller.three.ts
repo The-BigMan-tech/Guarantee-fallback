@@ -323,8 +323,6 @@ export abstract class Controller {
                             break;
                         }
                     }                        
-                }else {
-                    this.obstacleHeight = Infinity;//this means that the character cant step over the obstacle
                 }
                 return true
             });    
@@ -339,23 +337,22 @@ export abstract class Controller {
         return (horizontalDistance >= this.obstacleDistance);
     }
     private autoMoveForward() {
+        if (!this.isAirBorne()) {
+            console.log("Entity is walking");
+            this.playWalkAnimation()
+            this.playWalkSound();
+            this.moveCharacterForward();
+        }else {
+            this.stopWalkSound();
+        }
+        if (this.canJumpOntoObstacle()) {
+            console.log("Entity is jumping");
+            this.shouldPlayJumpAnimation = true
+            this.playJumpAnimation();
+            this.moveCharacterUp();
+        }
         console.log("Entity Obstacle height: ",this.obstacleHeight);
         console.log("Entity Obstacle distance: ",this.obstacleDistance);
-        if (this.obstacleHeight == Infinity) {
-            if (this.canJumpOntoObstacle()) {
-                console.log("Entity is jumping");
-                this.shouldPlayJumpAnimation = true
-                this.playJumpAnimation();
-                this.moveCharacterUp();
-            }
-        }else {
-            if (!this.isAirBorne()) {
-                console.log("Entity is walking");
-                this.playWalkAnimation()
-                this.playWalkSound();
-                this.moveCharacterForward();
-            }
-        }
     }
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
         const characterPos = this.character.position;
@@ -395,7 +392,8 @@ export abstract class Controller {
         this.velocity.set(0,0,0);//to prevent accumulaion over time
         this.dynamicData.horizontalVelocity = this.originalHorizontalVel;//the horizontal velocity is subject to runtime mutations so i have to reset it
         this.shouldStepUp = false;
-        this.obstacleHeight = 0
+        this.obstacleHeight = 0;
+        this.obstacleDistance = 0;
     }
     private updateCharacterAnimations():void {
         const delta = this.clock.getDelta();
