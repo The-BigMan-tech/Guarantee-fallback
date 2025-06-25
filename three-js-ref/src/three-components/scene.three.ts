@@ -5,7 +5,7 @@ import { player } from './player/player.three';
 import { terrain } from './terrain.three';
 import { cube } from './terrain.three';
 import {cubesGroup } from './tall-cubes.three';
-import { entity } from './entity/entity';
+import { entity } from './entity/entity.three';
 
 export const scene = new THREE.Scene();
 scene.add(directionalLight);
