@@ -336,14 +336,15 @@ export abstract class Controller {
 
         const direction = pathTargetPos.clone().sub(characterPos);
         const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
-        const angle = Math.atan2(direction.x,direction.z)-Math.atan2(charDirection.x,charDirection.z);
-        
-        const absAngle = Number(Math.abs(angle).toFixed(2))
-        const rotationThreshold = 0.07;
+        const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
+        const normAngle = (angleDiff + (2*Math.PI)) % (2 * Math.PI) ;//we normalized the angle cuz its measured in radians not degrees
+        const normAngleInDegrees = Number((normAngle * (180/Math.PI)).toFixed(2))
 
-        if ((absAngle > rotationThreshold)) {
+        const rotationThreshold = 10;
+
+        if ((normAngleInDegrees > rotationThreshold)) {
             console.log("Passed rotation threshols");
-            this.rotateCharacterX(+1)
+            // this.rotateCharacterX(+1)
         }else {
             // if (distToTarget > 3) {
             //     this.moveCharacterForward()
@@ -353,7 +354,7 @@ export abstract class Controller {
         console.log("Entity target pos",pathTargetPos);
         console.log("Entity direction: ",direction);
         console.log('Entity charDirection:', charDirection);
-        console.log('Entity absAngle:',absAngle);
+        console.log('Entity norm angle:',normAngleInDegrees);
     }
 
 
