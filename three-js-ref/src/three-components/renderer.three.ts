@@ -10,12 +10,14 @@ export const renderer = new THREE.WebGLRenderer({antialias:true});//play with th
 export const canvas = renderer.domElement;
 
 loadEnv(scene,renderer)
+
 renderer.shadowMap.enabled = true
 renderer.setPixelRatio(window.devicePixelRatio)
+
 renderer.setAnimationLoop(()=>{   
     physicsWorld.step()//a must to be called first
     player.updateCharacter();
-    // entity.updateCharacter();
+    entity.updateCharacter();
     updateSun();
     renderer.render( scene,player.camera.cam);//a must to be called last
 });
