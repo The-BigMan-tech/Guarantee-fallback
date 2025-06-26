@@ -542,8 +542,8 @@ export abstract class Controller {
     }
 
     
-    get updateCharacter():() => void {
-        return this.updateController
+    get updateController():() => void {
+        return this.updateCharacter
     }
     get controller():THREE.Group {
         scene.add(this.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created
@@ -561,7 +561,7 @@ export abstract class Controller {
         } 
     }
      //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
-    private updateController():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
+    private updateCharacter():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         this.forceSleepIfIdle();
         this.onLoop();
         this.updateCharacterAnimations();//im updating the animation before the early return so that it stops naturally 

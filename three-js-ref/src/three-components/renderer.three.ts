@@ -16,8 +16,8 @@ renderer.setPixelRatio(window.devicePixelRatio)
 
 renderer.setAnimationLoop(()=>{   
     physicsWorld.step()//a must to be called first
-    player.updateCharacter();
-    entity.updateCharacter();
+    player.updateController();
+    entity.updateController();
     updateSun();
     renderer.render( scene,player.camera.cam);//a must to be called last
 });
