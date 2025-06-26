@@ -361,6 +361,8 @@ export abstract class Controller {
     }
     private autoMoveForward() {
         this.stopWalkSound();
+        //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward and it has not reached close to the target
+        const shouldWalkAroundObstacle = this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose
         if (this.isGrounded()) {
             console.log("Entity is walking");
             this.playWalkAnimation()
@@ -370,11 +372,14 @@ export abstract class Controller {
             console.log("Entity is jumping");
             this.playJumpAnimation();
             this.moveCharacterUp();
-        }
+        };
         this.moveCharacterForward();
+
         console.log("Entity Obstacle height: ",this.obstacleHeight);
         console.log("Entity Obstacle distance: ",this.obstacleDistance);
         console.log('Entity should step up: ',this.shouldStepUp);
+        console.log("Entity movement| can move forward: ",this.canWalkForward);
+        console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
     }
     private isTargetClose = false;
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
@@ -399,7 +404,7 @@ export abstract class Controller {
             const distThreshold = 5;
             this.isTargetClose = distToTarget < distThreshold;
             if (!this.isTargetClose) {
-                // this.autoMoveForward();
+                this.autoMoveForward();
             }else {
                 this.playIdleAnimation()
                 this.stopWalkSound();
@@ -407,23 +412,24 @@ export abstract class Controller {
         }
     }
 
-    private canWalkForward:boolean = true
+    private canWalkForward:boolean = false
     private applyVelocity():void {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
         const prevCharPosition = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
         console.log('Character| prevCharPosition:', prevCharPosition);
 
         if (this.isGrounded() || this.shouldStepUp) {
             this.characterRigidBody.setLinvel(this.velocity,true);
-            if (Math.abs(this.velocity.z) !== 0) {//this checks if i moved forward
+            if (Math.abs(this.velocity.z) > 0) {//this checks if i moved forward
                 const posDiff = prevCharPosition.distanceTo(this.characterRigidBody.translation());
                 const readablePosDiff = Number(posDiff.toFixed(2));
-                const diffThreshold = 0.2//i fixed this based on observations
+                const diffThreshold = (Math.abs(this.velocity.y) > 0)?0.5:0.15//this was made based on observation.when the char jumps,the thresh needs to be higher cuz the extra y comp means that the diff will be smaller
                 if (readablePosDiff < diffThreshold) {
                     this.canWalkForward = false
                 }else {
                     this.canWalkForward = true
                 }
                 console.log("Can walk forward| pos diff: ",readablePosDiff);
+                console.log("Can walk forward| diff thresh: ",diffThreshold);
                 console.log("Can walk forward| boolean: ",this.canWalkForward);
             }
         };

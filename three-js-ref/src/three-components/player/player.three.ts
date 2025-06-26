@@ -149,7 +149,7 @@ const playerFixedData:FixedControllerData = {
 }
 const playerDynamicData:DynamicControllerData = {
     horizontalVelocity:30,
-    jumpVelocity:30,
+    jumpVelocity:35,
     jumpResistance:15,
     rotationDelta:0.04,
     rotationSpeed:0.4,
