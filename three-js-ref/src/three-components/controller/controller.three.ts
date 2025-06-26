@@ -406,19 +406,27 @@ export abstract class Controller {
         }
     }
 
-
+    private canWalkForward:boolean = true
     private applyVelocity():void {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
         const prevCharPosition = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
         console.log('Character| prevCharPosition:', prevCharPosition);
 
-        if (this.isGrounded() || this.shouldStepUp) this.characterRigidBody.setLinvel(this.velocity,true);
+        if (this.isGrounded() || this.shouldStepUp) {
+            this.characterRigidBody.setLinvel(this.velocity,true);
+            if (Math.abs(this.velocity.z) !== 0) {//this checks if i moved forward
+                const posDiff = prevCharPosition.distanceTo(this.characterRigidBody.translation());
+                const readablePosDiff = Number(posDiff.toFixed(2));
+                const diffThreshold = 0.2//i fixed this based on observations
+                if (readablePosDiff < diffThreshold) {
+                    this.canWalkForward = false
+                }else {
+                    this.canWalkForward = true
+                }
+                console.log("Can walk forward| pos diff: ",readablePosDiff);
+                console.log("Can walk forward| boolean: ",this.canWalkForward);
+            }
+        };
         this.characterPosition = this.characterRigidBody.translation();
-        console.log('Character| new characterPosition:', this.characterPosition);
-
-        if ((Math.abs(this.velocity.z) > 0) && (Math.abs(this.velocity.x) > 0)) {//this checks if i moved forward
-            const isBlocked = prevCharPosition.distanceTo(this.characterPosition);
-            console.log("Is Character blocked: ",isBlocked);
-        }
     }
     private resetVariables():void {
         this.velocity.set(0,0,0);//to prevent accumulaion over time
