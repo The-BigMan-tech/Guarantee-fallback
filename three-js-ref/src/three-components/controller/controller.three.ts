@@ -376,7 +376,7 @@ export abstract class Controller {
         console.log("Entity Obstacle distance: ",this.obstacleDistance);
         console.log('Entity should step up: ',this.shouldStepUp);
     }
-
+    private isTargetClose = false;
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
         const characterPos = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z)
         const direction = pathTargetPos.clone().sub(characterPos);
@@ -397,7 +397,8 @@ export abstract class Controller {
         }else {
             const distToTarget = characterPos.distanceTo(pathTargetPos);
             const distThreshold = 5;
-            if (distToTarget > distThreshold) {
+            this.isTargetClose = distToTarget < distThreshold;
+            if (!this.isTargetClose) {
                 this.autoMoveForward();
             }else {
                 this.playIdleAnimation()
