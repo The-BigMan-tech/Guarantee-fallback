@@ -367,19 +367,25 @@ export abstract class Controller {
     //the calculations used in this function was derived from real physics rules since the whole of this is built on a physics engine
     //tune the reduction scale as needed
     private canJumpOntoObstacle() {//checks if the entity can jump on it based on the horizontal distance covered
-        const reductionScale = 20//i reduced velocities by 20 to create a more realistic environment
-        const realisticGravity = 10
-        const timeUp = (this.dynamicData.jumpVelocity/reductionScale) * realisticGravity;//usimg realistic gravity here to avoid distance inflation
-        const totalTime = 2 * timeUp;
-        const horizontalDistance = ((this.dynamicData.horizontalVelocity/reductionScale)-(this.dynamicData.jumpResistance/reductionScale)) * totalTime;
-        const maxJumpHeight = (this.dynamicData.jumpVelocity / reductionScale) * timeUp - (0.5 * realisticGravity * Math.pow(timeUp, 2));
+        const reductionX = 15//im adding reduction scales to prevent inflation from high values
+        const reductionY = 5;
 
-        const canJumpDistanceX = (horizontalDistance >= this.obstacleDistance);
-        const canJumpDistanceY = (maxJumpHeight >= this.obstacleHeight);
+        const realisticGravity = 10
+        const timeUp = this.dynamicData.jumpVelocity / realisticGravity;
+        const totalTime = 2 * timeUp;
+
+        const horizontalDistance = ((this.dynamicData.horizontalVelocity/reductionX)-(this.dynamicData.jumpResistance/reductionX)) * totalTime;
+        const distanceX = Number(horizontalDistance.toFixed(2))
+
+        const maxJumpHeight = ((this.dynamicData.jumpVelocity * timeUp) - (0.5 * realisticGravity * Math.pow(timeUp, 2)))/reductionY;
+        const distanceY = Number(maxJumpHeight.toFixed(2))
+
+        const canJumpDistanceX = (distanceX >= this.obstacleDistance);
+        const canJumpDistanceY = (distanceY >= this.obstacleHeight);
         
-        console.log('Entity Distance X:', horizontalDistance);
-        console.log('Entity Distance Y:', maxJumpHeight);
-        
+        console.log('Entity Distance X:', distanceX);
+        console.log('Entity Distance Y:', distanceY);
+
         return canJumpDistanceX
     }
     private autoMoveForward(shouldWalkAroundObstacle:boolean) {
@@ -434,7 +440,7 @@ export abstract class Controller {
             const distThreshold = 5;
             this.isTargetClose = distToTarget < distThreshold;
             if (!this.isTargetClose) {
-                // this.autoMoveForward(shouldWalkAroundObstacle);
+                this.autoMoveForward(shouldWalkAroundObstacle);
             }else {
                 this.playIdleAnimation()
                 this.stopWalkSound();
