@@ -331,14 +331,29 @@ export abstract class Controller {
                         physicsWorld.intersectionsWithPoint(downwardCheckPos,()=>{
                             const relativeHeight = downwardCheckPos.y - groundPosY
                             this.obstacleHeight = relativeHeight
-                            console.log("Relative height: ",relativeHeight);
+                            console.log("Relative height checked down: ",relativeHeight);
                             downwardClearance = false
                             return true
                         })
                         if (!downwardClearance) {
                             break;
                         }
-                    }                        
+                    }                     
+                }else {
+                    const upwardCheckPos = stepOverPos.clone();
+                    for (let i=0;i <= this.dynamicData.maxStepUpHeight;i++) {
+                        let upwardClearance = true
+                        upwardCheckPos.add(new THREE.Vector3(0,1,0));
+                        physicsWorld.intersectionsWithPoint(upwardCheckPos,()=>{
+                            upwardClearance = false
+                            return true
+                        })
+                        if (upwardClearance) {
+                            const relativeHeight = upwardCheckPos.y - groundPosY -1;//the -1 is a tested artificial deuction for accuracy when calculating the height upwards
+                            console.log("Relative height checked up: ",relativeHeight);
+                            break;
+                        }
+                    }   
                 }
                 return true
             });    
@@ -411,7 +426,7 @@ export abstract class Controller {
             const distThreshold = 5;
             this.isTargetClose = distToTarget < distThreshold;
             if (!this.isTargetClose) {
-                this.autoMoveForward(shouldWalkAroundObstacle);
+                // this.autoMoveForward(shouldWalkAroundObstacle);
             }else {
                 this.playIdleAnimation()
                 this.stopWalkSound();
