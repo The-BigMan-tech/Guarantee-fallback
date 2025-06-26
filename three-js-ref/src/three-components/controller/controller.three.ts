@@ -201,7 +201,7 @@ export abstract class Controller {
      * 
      */
     private calculateGroundPosition() {
-        const charPosY = Number(this.characterPosition.y.toFixed(1));
+        const charPosY = Number(this.characterPosition.y.toFixed(1));//rounding it to exactly 1dp isnt just there to make reading the pos simpler but a necessity for the calculation to work
         const isRoundable = Math.round(charPosY) > charPosY;
         const posY = (isRoundable) ? Math.floor(charPosY) : charPosY-1;
         const groundPosY = Number((posY - this.groundDetectionDistance).toFixed(2));//the ground should be just a few cord lower than the player since te player stands over the ground

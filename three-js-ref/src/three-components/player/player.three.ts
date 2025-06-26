@@ -143,7 +143,7 @@ const PlayerCamArgs:PlayerCamData = {
 const playerFixedData:FixedControllerData = {
     modelPath:'./silvermoon.glb',
     spawnPoint: new RAPIER.Vector3(0,20,0),
-    characterHeight:1,
+    characterHeight:2,
     characterWidth:1,
     shape:'capsule',
     mass:40,
