@@ -24,7 +24,7 @@ class Player extends Controller {
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,camArgs:PlayerCamData) {
         super(fixedData,dynamicData);
-        this.offsetY = (camArgs.offsetY=='auto')?fixedData.characterHeight+1.5:camArgs.offsetY
+        this.offsetY = (camArgs.offsetY=='auto')?fixedData.characterHeight+2:camArgs.offsetY
         this.camera = new Camera(camArgs)
         this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
         Player.addEventListeners()
@@ -153,7 +153,7 @@ const playerDynamicData:DynamicControllerData = {
     jumpResistance:15,
     rotationDelta:0.04,
     rotationSpeed:0.4,
-    maxStepUpHeight:3,
+    maxStepUpHeight:2,
     gravityScale:1
 }
 export const player = new Player(playerFixedData,playerDynamicData,PlayerCamArgs)
