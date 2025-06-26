@@ -388,6 +388,11 @@ export abstract class Controller {
         const normAngleInDegrees = Number((normAngle * (180/Math.PI)).toFixed(2))
         const rotationThreshold = 10;//the magnitude of the rotation diff before it rotates to the target direction
 
+        //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward and it has not reached close to the target
+        const shouldWalkAroundObstacle = this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose;
+        console.log("Entity movement| can move forward: ",this.canWalkForward);
+        console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
+
         if ((normAngleInDegrees > rotationThreshold)) {
             console.log("Passed rotation threshols");
             if (normAngleInDegrees < 180) {
@@ -406,10 +411,6 @@ export abstract class Controller {
                 this.stopWalkSound();
             }
         }
-        //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward and it has not reached close to the target
-        const shouldWalkAroundObstacle = this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose;
-        console.log("Entity movement| can move forward: ",this.canWalkForward);
-        console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
     }
 
     private canWalkForward:boolean = false
@@ -419,7 +420,7 @@ export abstract class Controller {
 
         if (this.isGrounded() || this.shouldStepUp) {
             this.characterRigidBody.setLinvel(this.velocity,true);
-            if (Math.abs(this.velocity.z) > 0 && !this.shouldStepUp) {//this checks if i moved forward
+            if (Math.abs(this.velocity.z) > 0 && !this.shouldStepUp) {//this checks if i moved forward but it doesnt check if i should step up cuz if it can step up,then it can walk forward
                 const posDiff = prevCharPosition.distanceTo(this.characterRigidBody.translation());
                 const readablePosDiff = Number(posDiff.toFixed(2));
                 const diffThreshold = (Math.abs(this.velocity.y) > 0)?0.5:0.15//this was made based on observation.when the char jumps,the thresh needs to be higher cuz the extra y comp means that the diff will be smaller
