@@ -408,8 +408,17 @@ export abstract class Controller {
 
 
     private applyVelocity():void {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
+        const prevCharPosition = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
+        console.log('Character| prevCharPosition:', prevCharPosition);
+
         if (this.isGrounded() || this.shouldStepUp) this.characterRigidBody.setLinvel(this.velocity,true);
         this.characterPosition = this.characterRigidBody.translation();
+        console.log('Character| new characterPosition:', this.characterPosition);
+
+        if ((Math.abs(this.velocity.z) > 0) && (Math.abs(this.velocity.x) > 0)) {//this checks if i moved forward
+            const isBlocked = prevCharPosition.distanceTo(this.characterPosition);
+            console.log("Is Character blocked: ",isBlocked);
+        }
     }
     private resetVariables():void {
         this.velocity.set(0,0,0);//to prevent accumulaion over time
@@ -517,13 +526,13 @@ export abstract class Controller {
         return !onGround && this.shouldPlayJumpAnimation && !this.shouldStepUp
     }
     protected playJumpAnimation():void {
-        if (this.mixer && this.jumpAction) this.fadeToAnimation(this.jumpAction)
+        if (this.mixer && this.jumpAction) this.fadeToAnimation(this.jumpAction);
     }
     protected playWalkAnimation():void {
-        if (this.mixer && this.walkAction) this.fadeToAnimation(this.walkAction)
+        if (this.mixer && this.walkAction) this.fadeToAnimation(this.walkAction);
     }
     protected playIdleAnimation():void {
-        if (this.mixer && this.idleAction) this.fadeToAnimation(this.idleAction)
+        if (this.mixer && this.idleAction) this.fadeToAnimation(this.idleAction);
     }
     protected playWalkSound():void {
         if (!this.walkSound.isPlaying) this.walkSound.play();
@@ -554,12 +563,13 @@ export abstract class Controller {
     }
 
 
-    protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
+
     private forceSleepIfIdle() {
         if (this.isGrounded() && !this.characterRigidBody.isSleeping()) {// im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
             this.characterRigidBody.sleep();
         } 
     }
+    protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
      //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateCharacter():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         this.forceSleepIfIdle();
