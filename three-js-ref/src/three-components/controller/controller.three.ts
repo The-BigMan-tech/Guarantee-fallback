@@ -55,7 +55,7 @@ export abstract class Controller {
     private charLine: THREE.LineSegments;
 
     private modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera
-    private modelYOffset:number = 3;//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
+    private modelYOffset:number = 0;//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
 
     private obstacleHeight: number = 0;//0 means there is no obstacle infront of the player,a nmber above this means there is an obstacle but the character can walk over it,infinty means that tere is an obstacle and the character cant walk over it
     private obstacleDetectionDistance:number = 0;
@@ -98,7 +98,7 @@ export abstract class Controller {
         this.dynamicData = dynamicData
         this.characterPosition = this.fixedData.spawnPoint
 
-        if (this.fixedData.shape == 'capsule') {
+        if (fixedData.shape == 'capsule') {
             this.characterCollider = RAPIER.ColliderDesc.capsule(halfHeight,radius);
             this.charLine = createCapsuleLine(radius,halfHeight)
         }else {
@@ -113,8 +113,9 @@ export abstract class Controller {
         this.characterColliderHandle = physicsWorld.createCollider(this.characterCollider,this.characterRigidBody).handle;
         this.characterRigidBody.setTranslation(this.characterPosition,true);
 
-        this.groundDetectionDistance = halfHeight + 0.5 + ((halfHeight%2) * 0.5);//i didnt just guess this from my head.i made the formula after trying different values and recording the ones that correctly matched a given character height,saw a pattern and crafted a formula for it
+        this.groundDetectionDistance = halfHeight + 0.5 + ((fixedData.characterHeight%2) * 0.5);//i didnt just guess this from my head.i made the formula after trying different values and recording the ones that correctly matched a given character height,saw a pattern and crafted a formula for it
         this.originalHorizontalVel = dynamicData.horizontalVelocity;
+        this.modelYOffset = fixedData.characterHeight;
         this.loadCharacterModel();
     }
     private loadCharacterModel():void {
@@ -341,9 +342,10 @@ export abstract class Controller {
             });    
         }
         if (!hasCollided) {
-            this.obstacleDistance = Infinity
+            this.obstacleDistance = Infinity//infinity distance means there are no obstacles
         }
     }
+    //tune the reduction scale as needed
     private canJumpOntoObstacle() {//checks if the entity can jump on it based on the horizontal distance covered
         const reductionScale = 20//i reduced velocities by 20 to create a more realistic environment
         const realisticGravity = 10
