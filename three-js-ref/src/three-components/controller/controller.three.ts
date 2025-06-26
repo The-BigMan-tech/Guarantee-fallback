@@ -361,14 +361,15 @@ export abstract class Controller {
     }
     private autoMoveForward() {
         this.stopWalkSound();
+        const onGround = this.isGrounded()
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward and it has not reached close to the target
-        const shouldWalkAroundObstacle = this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose
-        if (this.isGrounded()) {
+        const shouldWalkAroundObstacle = this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose && !this.shouldStepUp
+        if (onGround) {
             console.log("Entity is walking");
             this.playWalkAnimation()
             this.playWalkSound();
         }
-        if (this.canJumpOntoObstacle() && !this.shouldStepUp && this.isGrounded()) {
+        if (this.canJumpOntoObstacle() && !this.shouldStepUp && onGround) {
             console.log("Entity is jumping");
             this.playJumpAnimation();
             this.moveCharacterUp();
