@@ -314,6 +314,7 @@ export abstract class Controller {
             })
             if (upwardClearance) {
                 const relativeHeight = Number((upwardCheckPos.y - groundPosY - 1).toFixed(2));//the -1 is a tested artificial deuction for accuracy when calculating the height upwards
+                this.obstacleHeight = relativeHeight
                 console.log("Relative height checked up: ",relativeHeight);
                 break;
             }
@@ -363,6 +364,7 @@ export abstract class Controller {
             this.obstacleDistance = Infinity//infinity distance means there are no obstacles
         }
     }
+    //the calculations used in this function was derived from real physics rules since the whole of this is built on a physics engine
     //tune the reduction scale as needed
     private canJumpOntoObstacle() {//checks if the entity can jump on it based on the horizontal distance covered
         const reductionScale = 20//i reduced velocities by 20 to create a more realistic environment
@@ -370,10 +372,15 @@ export abstract class Controller {
         const timeUp = (this.dynamicData.jumpVelocity/reductionScale) * realisticGravity;//usimg realistic gravity here to avoid distance inflation
         const totalTime = 2 * timeUp;
         const horizontalDistance = ((this.dynamicData.horizontalVelocity/reductionScale)-(this.dynamicData.jumpResistance/reductionScale)) * totalTime;
-        const canJump = (horizontalDistance >= this.obstacleDistance);
-        console.log('Entity horizontalDistance:', horizontalDistance);
-        console.log("Entity horizontalDistance can jump: ",canJump);
-        return canJump
+        const maxJumpHeight = (this.dynamicData.jumpVelocity / reductionScale) * timeUp - (0.5 * realisticGravity * Math.pow(timeUp, 2));
+
+        const canJumpDistanceX = (horizontalDistance >= this.obstacleDistance);
+        const canJumpDistanceY = (maxJumpHeight >= this.obstacleHeight);
+        
+        console.log('Entity Distance X:', horizontalDistance);
+        console.log('Entity Distance Y:', maxJumpHeight);
+        
+        return canJumpDistanceX
     }
     private autoMoveForward(shouldWalkAroundObstacle:boolean) {
         this.stopWalkSound();
