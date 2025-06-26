@@ -376,7 +376,7 @@ export abstract class Controller {
     }
 
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
-        const characterPos = this.character.position;
+        const characterPos = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z)
         const direction = pathTargetPos.clone().sub(characterPos);
         const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
         const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
