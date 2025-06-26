@@ -383,7 +383,7 @@ export abstract class Controller {
         console.log("Entity Obstacle distance: ",this.obstacleDistance);
         console.log('Entity should step up: ',this.shouldStepUp);
     }
-
+    
     private isTargetClose = false;
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
         const characterPos = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z)
@@ -420,25 +420,28 @@ export abstract class Controller {
     }
 
     private canWalkForward:boolean = false
+    private checkIfCanWalkForward(prevCharPosition:THREE.Vector3) {
+        if (Math.abs(this.velocity.z) > 0 && !this.shouldStepUp) {//this checks if i moved forward but it doesnt check if i should step up cuz if it can step up,then it can walk forward
+            const ifComponentY = (Math.abs(this.velocity.y) > 0)
+            const posDiff = prevCharPosition.distanceTo(this.characterRigidBody.translation());
+            const readablePosDiff = Number(posDiff.toFixed(2));
+            const diffThreshold = (ifComponentY) ? 0.5 : 0.15//this was made based on observation.when the char jumps,the thresh needs to be higher cuz the extra y comp means that the diff will be bigger 
+            if (readablePosDiff < diffThreshold) {
+                this.canWalkForward = false;
+            }else {
+                this.canWalkForward = true;
+            }
+            console.log("Can walk forward| pos diff: ",readablePosDiff);
+            console.log("Can walk forward| diff thresh: ",diffThreshold);
+            console.log("Can walk forward| boolean: ",this.canWalkForward);
+        }
+    }
     private applyVelocity():void {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
         const prevCharPosition = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
         console.log('Character| prevCharPosition:', prevCharPosition);
-
         if (this.isGrounded() || this.shouldStepUp) {
             this.characterRigidBody.setLinvel(this.velocity,true);
-            if (Math.abs(this.velocity.z) > 0 && !this.shouldStepUp) {//this checks if i moved forward but it doesnt check if i should step up cuz if it can step up,then it can walk forward
-                const posDiff = prevCharPosition.distanceTo(this.characterRigidBody.translation());
-                const readablePosDiff = Number(posDiff.toFixed(2));
-                const diffThreshold = (Math.abs(this.velocity.y) > 0)?0.5:0.15//this was made based on observation.when the char jumps,the thresh needs to be higher cuz the extra y comp means that the diff will be smaller
-                if (readablePosDiff < diffThreshold) {
-                    this.canWalkForward = false
-                }else {
-                    this.canWalkForward = true
-                }
-                console.log("Can walk forward| pos diff: ",readablePosDiff);
-                console.log("Can walk forward| diff thresh: ",diffThreshold);
-                console.log("Can walk forward| boolean: ",this.canWalkForward);
-            }
+            this.checkIfCanWalkForward(prevCharPosition)
         };
         this.characterPosition = this.characterRigidBody.translation();
     }
