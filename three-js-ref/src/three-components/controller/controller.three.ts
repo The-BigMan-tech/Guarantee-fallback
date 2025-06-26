@@ -38,9 +38,10 @@ export interface CollisionMap {
     target:string,
     points:string[]
 }
+//todo:Ground detection breaks depending on the character height
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
-    private static showHitBoxes = true;
+    private static showHitBoxes = false;//the hitboxes are a bit broken
     private static showPoints = false;
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
@@ -54,7 +55,6 @@ export abstract class Controller {
     private characterColliderHandle:number;
     private charLine: THREE.LineSegments;
 
-    private modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera
     private modelYOffset:number = 0;//i minused 1.6 on the y-axis cuz the model wasnt exactly touching the ground
 
     private obstacleHeight: number = 0;//0 means there is no obstacle infront of the player,a nmber above this means there is an obstacle but the character can walk over it,infinty means that tere is an obstacle and the character cant walk over it
@@ -100,12 +100,12 @@ export abstract class Controller {
 
         if (fixedData.shape == 'capsule') {
             this.characterCollider = RAPIER.ColliderDesc.capsule(halfHeight,radius);
-            this.charLine = createCapsuleLine(radius,fixedData.characterHeight)
+            this.charLine = createCapsuleLine(radius,fixedData.characterHeight-0.5)//this is an offset to make the hitbox visually accurate to its physics body height
         }else {
             this.characterCollider = RAPIER.ColliderDesc.cuboid(increasedHalfWidth,increasedHalfHeight,increasedHalfWidth);
             this.charLine = createBoxLine(increasedHalfWidth,increasedHalfHeight)
         }
-        this.charLine.position.set(0,2,0.5)//the offset is to ensure its accurate visually
+        this.charLine.position.set(0,2.5,0.2)//these are artificial offsets to the hitbox relative to the character cuz the position can never be fully accurate on its own.so it needs this for it to be visually accurate
         if (Controller.showHitBoxes) this.character.add(this.charLine);
 
         this.characterBody.mass = this.fixedData.mass;
@@ -115,7 +115,7 @@ export abstract class Controller {
 
         this.groundDetectionDistance = halfHeight + 0.5 + ((fixedData.characterHeight%2) * 0.5);//i didnt just guess this from my head.i made the formula after trying different values and recording the ones that correctly matched a given character height,saw a pattern and crafted a formula for it
         this.originalHorizontalVel = dynamicData.horizontalVelocity;
-        this.modelYOffset = fixedData.characterHeight;
+        this.modelYOffset = fixedData.characterHeight-0.5;
         this.loadCharacterModel();
     }
     private loadCharacterModel():void {
@@ -123,7 +123,6 @@ export abstract class Controller {
         loader.load(this.fixedData.modelPath,
             gltf=>{
                 const characterModel = gltf.scene
-                characterModel.position.z = this.modelZOffset;
                 this.character.add(characterModel);
                 this.character.add(this.listener)
                 this.mixer = new AnimationMixer(characterModel);
@@ -202,12 +201,14 @@ export abstract class Controller {
      * 
      */
     private calculateGroundPosition() {
-        const charPosY = this.characterPosition.y
-        const isRoundable = Math.round(charPosY) > charPosY
-        const posY = (isRoundable)?Math.floor(charPosY):charPosY-1
-        const groundPosY = posY - this.groundDetectionDistance;//the ground should be just a few cord lower than the player since te player stands over the ground
-        console.log("Point is Roundable: ",isRoundable);
-        console.log('Point Query Player: ',charPosY);
+        const charPosY = Number(this.characterPosition.y.toFixed(1));
+        const isRoundable = Math.round(charPosY) > charPosY;
+        const posY = (isRoundable) ? Math.floor(charPosY) : charPosY-1;
+        const groundPosY = Number((posY - this.groundDetectionDistance).toFixed(2));//the ground should be just a few cord lower than the player since te player stands over the ground
+        console.log('Point Query| Player: ',charPosY);
+        console.log("Point Query| is Roundable: ",isRoundable);
+        console.log('Point Query| Pos: ',posY);
+        console.log('Point Query| Final: ',groundPosY);
         return groundPosY
     }
     protected colorPoint(position:THREE.Vector3, color:number) {
@@ -231,7 +232,6 @@ export abstract class Controller {
         let onGround = false
 
         console.log("Point Ground detection distance: ",this.groundDetectionDistance);
-        console.log(' Point Query Point:',point.y);
     
         physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
             const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
@@ -250,7 +250,7 @@ export abstract class Controller {
             onGround = true
             return false;//*tune here
         });  
-        console.log("Point On Ground?: ",onGround);
+        console.log("Point Query| Ground?: ",onGround);
         if (!onGround) this.playLandSound = true;
         return onGround 
     }
@@ -510,7 +510,9 @@ export abstract class Controller {
 
 
     protected isAirBorne():boolean {
-        return !this.isGrounded() && this.shouldPlayJumpAnimation && !this.shouldStepUp
+        const onGround = this.isGrounded() ;
+        console.log("Airborne| on ground: ",onGround);
+        return !onGround && this.shouldPlayJumpAnimation && !this.shouldStepUp
     }
     protected playJumpAnimation():void {
         if (this.mixer && this.jumpAction) this.fadeToAnimation(this.jumpAction)
