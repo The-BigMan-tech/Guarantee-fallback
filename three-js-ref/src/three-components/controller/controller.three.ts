@@ -359,21 +359,26 @@ export abstract class Controller {
         console.log("Entity horizontalDistance can jump: ",canJump);
         return canJump
     }
-    private autoMoveForward() {
+    private autoMoveForward(shouldWalkAroundObstacle:boolean) {
         this.stopWalkSound();
-        const onGround = this.isGrounded()
-        if (onGround) {
-            console.log("Entity is walking");
-            this.playWalkAnimation()
+        if (shouldWalkAroundObstacle) {
+            this.moveCharacterLeft();
+            this.playWalkAnimation();
             this.playWalkSound();
-        }
-        if (this.canJumpOntoObstacle() && !this.shouldStepUp && onGround) {
-            console.log("Entity is jumping");
-            this.playJumpAnimation();
-            this.moveCharacterUp();
-        };
-        this.moveCharacterForward();
-
+        }else 
+            const onGround = this.isGrounded()
+            if (onGround) {
+                console.log("Entity is walking");
+                this.playWalkAnimation()
+                this.playWalkSound();
+            }
+            if (this.canJumpOntoObstacle() && !this.shouldStepUp && onGround) {
+                console.log("Entity is jumping");
+                this.playJumpAnimation();
+                this.moveCharacterUp();
+            };
+            this.moveCharacterForward();
+        
         console.log("Entity Obstacle height: ",this.obstacleHeight);
         console.log("Entity Obstacle distance: ",this.obstacleDistance);
         console.log('Entity should step up: ',this.shouldStepUp);
@@ -405,7 +410,7 @@ export abstract class Controller {
             const distThreshold = 5;
             this.isTargetClose = distToTarget < distThreshold;
             if (!this.isTargetClose) {
-                this.autoMoveForward();
+                this.autoMoveForward(shouldWalkAroundObstacle);
             }else {
                 this.playIdleAnimation()
                 this.stopWalkSound();
