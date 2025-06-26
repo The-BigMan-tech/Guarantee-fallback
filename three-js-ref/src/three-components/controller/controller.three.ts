@@ -284,7 +284,41 @@ export abstract class Controller {
         return steps
     }
 
-
+    private calcHeightTopDown(stepOverPos:THREE.Vector3,groundPosY:number) {
+        console.log("STEPPING UP");
+        this.shouldStepUp = true;
+        const downwardCheckPos = stepOverPos.clone();//i cloned it to prevent subtle bugs if i reuse stepoverpos later
+        for (let i=0;i <= this.dynamicData.maxStepUpHeight;i++) {
+            let downwardClearance = true
+            downwardCheckPos.sub(new THREE.Vector3(0,1,0));
+            physicsWorld.intersectionsWithPoint(downwardCheckPos,()=>{
+                const relativeHeight = Number((downwardCheckPos.y - groundPosY).toFixed(2));//to make the result more concise
+                this.obstacleHeight = relativeHeight
+                console.log("Relative height checked down: ",relativeHeight);
+                downwardClearance = false
+                return true
+            })
+            if (!downwardClearance) {
+                break;
+            }
+        }   
+    }
+    private calcHeightBottomUp(stepOverPos:THREE.Vector3,groundPosY:number) {
+        const upwardCheckPos = stepOverPos.clone();
+        for (let i=0;i <= this.dynamicData.maxStepUpHeight;i++) {
+            let upwardClearance = true
+            upwardCheckPos.add(new THREE.Vector3(0,1,0));
+            physicsWorld.intersectionsWithPoint(upwardCheckPos,()=>{
+                upwardClearance = false
+                return true
+            })
+            if (upwardClearance) {
+                const relativeHeight = Number((upwardCheckPos.y - groundPosY - 1).toFixed(2));//the -1 is a tested artificial deuction for accuracy when calculating the height upwards
+                console.log("Relative height checked up: ",relativeHeight);
+                break;
+            }
+        }   
+    }
     private detectLowObstacle():void {
         if (!this.isGrounded()) return;
         const forward = new THREE.Vector3(0,0,-1);
@@ -303,7 +337,6 @@ export abstract class Controller {
                 const shape = collider.shape
                 console.log('PointY Obstacle: ', point.y);
                 console.log('Obstacle Collider shape:', shape);
-
                 if (!(shape instanceof RAPIER.Cuboid)) return true;//only detect cubes
 
                 console.log('PointY Obstacle: ', point.y);
@@ -313,47 +346,15 @@ export abstract class Controller {
                 const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this.is it possible to step over
                 const stepOverPos = new THREE.Vector3(point.x,stepOverPosY,point.z)
                 this.obstacleDistance = distance
-                
-
                 let clearance = true;
                 physicsWorld.intersectionsWithPoint(stepOverPos, () => {
                     clearance = false
                     return false
                 })
-
                 if (clearance) {
-                    console.log("STEPPING UP");
-                    this.shouldStepUp = true;
-                    const downwardCheckPos = stepOverPos.clone();//i cloned it to prevent subtle bugs if i reuse stepoverpos later
-                    for (let i=0;i <= this.dynamicData.maxStepUpHeight;i++) {
-                        let downwardClearance = true
-                        downwardCheckPos.sub(new THREE.Vector3(0,1,0));
-                        physicsWorld.intersectionsWithPoint(downwardCheckPos,()=>{
-                            const relativeHeight = downwardCheckPos.y - groundPosY
-                            this.obstacleHeight = relativeHeight
-                            console.log("Relative height checked down: ",relativeHeight);
-                            downwardClearance = false
-                            return true
-                        })
-                        if (!downwardClearance) {
-                            break;
-                        }
-                    }                     
+                    this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
-                    const upwardCheckPos = stepOverPos.clone();
-                    for (let i=0;i <= this.dynamicData.maxStepUpHeight;i++) {
-                        let upwardClearance = true
-                        upwardCheckPos.add(new THREE.Vector3(0,1,0));
-                        physicsWorld.intersectionsWithPoint(upwardCheckPos,()=>{
-                            upwardClearance = false
-                            return true
-                        })
-                        if (upwardClearance) {
-                            const relativeHeight = upwardCheckPos.y - groundPosY -1;//the -1 is a tested artificial deuction for accuracy when calculating the height upwards
-                            console.log("Relative height checked up: ",relativeHeight);
-                            break;
-                        }
-                    }   
+                    this.calcHeightBottomUp(stepOverPos,groundPosY)   
                 }
                 return true
             });    
