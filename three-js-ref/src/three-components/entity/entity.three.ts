@@ -21,8 +21,8 @@ const entityFixedData:FixedControllerData = {
     mass:40,
 }
 const entityDynamicData:DynamicControllerData = {
-    horizontalVelocity:16,
-    jumpVelocity:9,
+    horizontalVelocity:20,
+    jumpVelocity:22,
     jumpResistance:6,
     rotationDelta:0.05,
     rotationSpeed:0.4,

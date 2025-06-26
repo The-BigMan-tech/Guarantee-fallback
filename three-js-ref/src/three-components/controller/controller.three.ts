@@ -283,6 +283,7 @@ export abstract class Controller {
 
 
     private detectLowObstacle():void {
+        if (!this.isGrounded()) return;
         const forward = new THREE.Vector3(0,0,-1);
         const maxDistance = this.obstacleDetectionDistance;
         const steps = this.getSteps(maxDistance,this.pointDensity);
@@ -345,7 +346,8 @@ export abstract class Controller {
     }
     private canJumpOntoObstacle() {//checks if the entity can jump on it based on the horizontal distance covered
         const reductionScale = 20//i reduced velocities by 20 to create a more realistic environment
-        const timeUp = (this.dynamicData.jumpVelocity/reductionScale) * 9.8;//usimg realistic gravity here to avoid distance inflation
+        const realisticGravity = 10
+        const timeUp = (this.dynamicData.jumpVelocity/reductionScale) * realisticGravity;//usimg realistic gravity here to avoid distance inflation
         const totalTime = 2 * timeUp;
         const horizontalDistance = ((this.dynamicData.horizontalVelocity/reductionScale)-(this.dynamicData.jumpResistance/reductionScale)) * totalTime;
         const canJump = (horizontalDistance >= this.obstacleDistance);
@@ -360,15 +362,15 @@ export abstract class Controller {
             this.playWalkAnimation()
             this.playWalkSound();
         }
-        if (this.canJumpOntoObstacle()) {
+        if (this.canJumpOntoObstacle() && !this.shouldStepUp && this.isGrounded()) {
             console.log("Entity is jumping");
             this.playJumpAnimation();
             this.moveCharacterUp();
-            
         }
         this.moveCharacterForward();
         console.log("Entity Obstacle height: ",this.obstacleHeight);
         console.log("Entity Obstacle distance: ",this.obstacleDistance);
+        console.log('Entity should step up: ',this.shouldStepUp);
     }
 
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
