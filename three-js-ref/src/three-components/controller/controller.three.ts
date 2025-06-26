@@ -380,7 +380,7 @@ export abstract class Controller {
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
         const characterPos = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z)
         const direction = pathTargetPos.clone().sub(characterPos);
-        const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
+        const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.characterRigidBody.rotation())
         const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
         const normAngle = (angleDiff + (2*Math.PI)) % (2 * Math.PI) ;//we normalized the angle cuz its measured in radians not degrees
         const normAngleInDegrees = Number((normAngle * (180/Math.PI)).toFixed(2))
@@ -399,7 +399,7 @@ export abstract class Controller {
             const distThreshold = 5;
             this.isTargetClose = distToTarget < distThreshold;
             if (!this.isTargetClose) {
-                this.autoMoveForward();
+                // this.autoMoveForward();
             }else {
                 this.playIdleAnimation()
                 this.stopWalkSound();
