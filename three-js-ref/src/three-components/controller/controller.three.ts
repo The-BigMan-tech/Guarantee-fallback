@@ -128,6 +128,7 @@ export abstract class Controller {
                 this.mixer = new AnimationMixer(characterModel);
                 this.loadCharacterAnimations(gltf);
                 this.loadCharacterSounds();
+                this.applyMaterialToModel(characterModel)
             },undefined, 
             error =>console.error( error ),
         );
@@ -145,6 +146,16 @@ export abstract class Controller {
             this.idleAction.play();
             this.currentAction = this.idleAction;
         }
+    }
+    private applyMaterialToModel(playerModel:THREE.Group<THREE.Object3DEventMap>) {
+        playerModel.traverse((obj) => {//apply a metallic material
+            if (!(obj instanceof THREE.Mesh)) return
+            if (obj.material && obj.material.isMeshStandardMaterial) {
+                obj.material.metalness = 0.5; 
+                obj.material.roughness = 0.6;   
+                obj.material.needsUpdate = true;
+            }
+        });
     }
     private loadCharacterSounds():void {    
         const audioLoader = new THREE.AudioLoader();
