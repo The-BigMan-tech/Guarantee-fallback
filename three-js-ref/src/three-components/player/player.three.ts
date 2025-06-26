@@ -1,4 +1,3 @@
-import { degToRad } from "three/src/math/MathUtils.js";
 import { Camera, type CameraData } from "../camera/camera.three";
 import { Controller } from "../controller/controller.three";
 import type { FixedControllerData,DynamicControllerData } from "../controller/controller.three";
