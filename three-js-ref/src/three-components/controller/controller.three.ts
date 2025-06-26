@@ -365,7 +365,7 @@ export abstract class Controller {
             this.moveCharacterLeft();
             this.playWalkAnimation();
             this.playWalkSound();
-        }else 
+        }else {
             const onGround = this.isGrounded()
             if (onGround) {
                 console.log("Entity is walking");
@@ -378,11 +378,12 @@ export abstract class Controller {
                 this.moveCharacterUp();
             };
             this.moveCharacterForward();
-        
+        }
         console.log("Entity Obstacle height: ",this.obstacleHeight);
         console.log("Entity Obstacle distance: ",this.obstacleDistance);
         console.log('Entity should step up: ',this.shouldStepUp);
     }
+
     private isTargetClose = false;
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
         const characterPos = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z)
@@ -393,8 +394,8 @@ export abstract class Controller {
         const normAngleInDegrees = Number((normAngle * (180/Math.PI)).toFixed(2))
         const rotationThreshold = 10;//the magnitude of the rotation diff before it rotates to the target direction
 
-        //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward and it has not reached close to the target
-        const shouldWalkAroundObstacle = this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose;
+        //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
+        const shouldWalkAroundObstacle = this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose && !this.canJumpOntoObstacle();
         console.log("Entity movement| can move forward: ",this.canWalkForward);
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
