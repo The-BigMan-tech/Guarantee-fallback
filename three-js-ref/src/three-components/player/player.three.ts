@@ -31,9 +31,9 @@ class Player extends Controller {
     private targetZ:number = 0;//the 0 is just for initialization sake so ts wont complain but it will be changed correctly during the render loop
     private targetY:number = 0;
 
-    private toggleCooldown: number = 0.3; // Cooldown in seconds
+    private toggleCooldown: number = 0.3; // Cooldown in seconds.this value in particular works the best
     private lastToggleTime: number = 0;
-    
+
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,camArgs:PlayerCamData) {
         super(fixedData,dynamicData);
         this.offsetY = (camArgs.offsetY=='auto')?fixedData.characterHeight+2:camArgs.offsetY;
@@ -115,25 +115,27 @@ class Player extends Controller {
         }
     }
     private toggleCamPerspective() {
-        switch (this.camModeNum) {
-            case CameraMode.FirstPerson: {
-                this.targetZ = 0;
-                this.camRotationSpeed = this.originalCamRotSpeed
-                this.cameraClampAngle = this.firstPersonClamp
-                this.camera.setCameraRotationX(0,0);
-                break;
-            }
-            case CameraMode.SecondPerson: {
-                this.targetZ = -6;
-                this.camRotationSpeed = 1;
-                this.camera.setCameraRotationX(0,1);
-                break;
-            }
-            case CameraMode.ThirdPerson: {
-                this.targetZ = 6
-                this.cameraClampAngle = this.thirdPersonClamp;
-                this.camRotationSpeed = 1
-                this.camera.setCameraRotationX(0,0)
+        if ((Player.keysPressed['KeyT'])) {
+            switch (this.camModeNum) {
+                case CameraMode.FirstPerson: {
+                    this.targetZ = 0;
+                    this.camRotationSpeed = this.originalCamRotSpeed
+                    this.cameraClampAngle = this.firstPersonClamp
+                    this.camera.setCameraRotationX(0,0);
+                    break;
+                }
+                case CameraMode.SecondPerson: {
+                    this.targetZ = -6;
+                    this.camRotationSpeed = 1;
+                    this.camera.setCameraRotationX(0,1);
+                    break;
+                }
+                case CameraMode.ThirdPerson: {
+                    this.targetZ = 6
+                    this.cameraClampAngle = this.thirdPersonClamp;
+                    this.camRotationSpeed = 1
+                    this.camera.setCameraRotationX(0,0)
+                }
             }
         }
     }
