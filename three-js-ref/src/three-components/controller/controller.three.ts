@@ -206,7 +206,7 @@ export abstract class Controller {
         const charPosY = Number(this.characterPosition.y.toFixed(2));//rounding it to exactly 2dp isnt just there to make reading the pos simpler but a necessity for the calculation to work
         const isRoundable = Math.round(charPosY) > charPosY;
         const posY = (isRoundable) ? Math.floor(charPosY) : charPosY-1;
-        const groundPosY = Number((posY - this.groundDetectionDistance).toFixed(2));//the ground should be just a few cord lower than the player since te player stands over the ground
+        const groundPosY = posY - this.groundDetectionDistance;//the ground should be just a few cord lower than the player since te player stands over the ground
         console.log('Point Query| Player: ',charPosY);
         console.log("Point Query| is Roundable: ",isRoundable);
         console.log('Point Query| Pos: ',posY);
@@ -416,8 +416,10 @@ export abstract class Controller {
         return new THREE.Vector3(charDirection.x, 0, charDirection.z).normalize();
     }
     private isTargetClose = false;
-    private pathTargetPos = new THREE.Vector3();
+
+    private prevPath:THREE.Vector3 | null = null;
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
+        pathTargetPos = this.prevPath || pathTargetPos
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
         const shouldWalkAroundObstacle = (this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose && !this.canJumpOntoObstacle()) 
         console.log("Entity movement| obstacle height: ",this.obstacleHeight);
@@ -427,23 +429,30 @@ export abstract class Controller {
         console.log("Entity movement| canJump: ",this.canJumpOntoObstacle());
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
-        console.log("Entity movement| pathTarget: ",this.pathTargetPos);
+        console.log("Entity movement| pathTarget: ",pathTargetPos);
         if (shouldWalkAroundObstacle) { 
             const horizontalForward = this.getHorizontalForward();
             const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
-            const offsetDistance = 1.5; 
-            this.pathTargetPos.add(leftVector.multiplyScalar(offsetDistance));
+            const lateralOffset = leftVector.clone().multiplyScalar(50);  // Left shift
+            const backwardVector = horizontalForward.clone().negate();
+            const backwardOffset = backwardVector.multiplyScalar(10);
+            pathTargetPos.add(backwardOffset).add(lateralOffset);
+            this.prevPath = pathTargetPos
         }
-        console.log("Entity movement| newPathTarget: ",this.pathTargetPos);
-        // this.colorPoint(pathTargetPos,0x000000)
+        console.log("Entity movement| newPathTarget: ",pathTargetPos);
+        this.colorPoint(pathTargetPos,0x000000)
 
         const characterPos = this.character.position;
-        const direction = this.pathTargetPos.clone().sub(characterPos);
+        const direction = pathTargetPos.clone().sub(characterPos);
         const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
         const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
         const normAngle = (angleDiff + (2*Math.PI)) % (2 * Math.PI) ;//we normalized the angle cuz its measured in radians not degrees
         const normAngleInDegrees = Number((normAngle * (180/Math.PI)).toFixed(2))
         const rotationThreshold = 10;//the magnitude of the rotation diff before it rotates to the target direction
+
+        const distToTarget = characterPos.distanceTo(pathTargetPos);
+        const distThreshold = 5;
+        this.isTargetClose = distToTarget < distThreshold;
 
         if ((normAngleInDegrees > rotationThreshold)) {
             console.log("Passed rotation threshols");
@@ -453,9 +462,6 @@ export abstract class Controller {
                 this.rotateCharacterX(-1)
             }
         }else {
-            const distToTarget = characterPos.distanceTo(this.pathTargetPos);
-            const distThreshold = 5;
-            this.isTargetClose = distToTarget < distThreshold;
             if (!this.isTargetClose) {
                 this.autoMoveForward();
             }else {
