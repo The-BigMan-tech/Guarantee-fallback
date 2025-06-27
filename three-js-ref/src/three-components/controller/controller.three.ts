@@ -433,10 +433,8 @@ export abstract class Controller {
         if (shouldWalkAroundObstacle) { 
             const horizontalForward = this.getHorizontalForward();
             const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
-            const lateralOffset = leftVector.clone().multiplyScalar(50);  // Left shift
-            const backwardVector = horizontalForward.clone().negate();
-            const backwardOffset = backwardVector.multiplyScalar(10);
-            pathTargetPos.add(backwardOffset).add(lateralOffset);
+            const lateralOffset = leftVector.clone().multiplyScalar(10);  // Left shift
+            pathTargetPos.add(lateralOffset);
             this.prevPath = pathTargetPos
         }
         console.log("Entity movement| newPathTarget: ",pathTargetPos);
