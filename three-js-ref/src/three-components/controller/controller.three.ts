@@ -336,10 +336,10 @@ export abstract class Controller {
                 return true
             })
             if (leftClearance) {
-                const relativeWidth = Math.sqrt(
+                const relativeWidth = Number(Math.sqrt(
                     Math.pow(leftCheckPos.x - point.x, 2) +
                     Math.pow(leftCheckPos.z - point.z, 2)
-                );
+                ).toFixed(2));
                 console.log("Relative width: ",relativeWidth);
                 break;
             }
@@ -367,7 +367,6 @@ export abstract class Controller {
 
                 console.log('PointY Obstacle: ', point.y);
                 hasCollided = true;
-                this.calcObstacleWidth(point)
 
                 const groundPosY = Math.max(0,this.calculateGroundPosition());//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative
                 const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this.is it possible to step over
@@ -382,7 +381,8 @@ export abstract class Controller {
                 if (clearance) {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
-                    this.calcHeightBottomUp(stepOverPos,groundPosY)   
+                    this.calcHeightBottomUp(stepOverPos,groundPosY) ;
+                    this.calcObstacleWidth(point) 
                 }
                 return true
             });    
