@@ -42,7 +42,7 @@ export interface CollisionMap {
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
     private static showHitBoxes = false;//the hitboxes are a bit broken
-    private static showPoints = false;
+    private static showPoints = true;
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
@@ -332,7 +332,7 @@ export abstract class Controller {
             if (hasCollided) break;
             const distance = (maxDistance / steps) * i;
             const point:THREE.Vector3 = this.orientPoint(distance,forward);
-            this.colorPoint(point,0x000000);
+            // this.colorPoint(point,0x000000);
 
             physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
                 const collider = physicsWorld.getCollider(colliderObject.handle);
@@ -391,26 +391,21 @@ export abstract class Controller {
 
         return canJump
     }
-    private autoMoveForward(shouldWalkAroundObstacle:boolean) {
+    private autoMoveForward() {
         this.stopWalkSound();
-        if (shouldWalkAroundObstacle) {
-            this.moveCharacterLeft();
-            this.playWalkAnimation();
+        const onGround = this.isGrounded()
+        if (onGround) {
+            console.log("Entity is walking");
+            this.playWalkAnimation()
             this.playWalkSound();
-        }else {
-            const onGround = this.isGrounded()
-            if (onGround) {
-                console.log("Entity is walking");
-                this.playWalkAnimation()
-                this.playWalkSound();
-            }
-            if (this.canJumpOntoObstacle() && !this.shouldStepUp && onGround) {
-                console.log("Entity is jumping");
-                this.playJumpAnimation();
-                this.moveCharacterUp();
-            };
-            this.moveCharacterForward();
         }
+        if (this.canJumpOntoObstacle() && !this.shouldStepUp && onGround) {
+            console.log("Entity is jumping");
+            this.playJumpAnimation();
+            this.moveCharacterUp();
+        };
+        this.moveCharacterForward();
+        
         console.log("Entity Obstacle height: ",this.obstacleHeight);
         console.log("Entity Obstacle distance: ",this.obstacleDistance);
         console.log('Entity should step up: ',this.shouldStepUp);
@@ -435,6 +430,15 @@ export abstract class Controller {
         console.log("Entity movement| canJump: ",this.canJumpOntoObstacle());
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
+        console.log("Entity movement| pathTarget: ",pathTargetPos);
+        if (shouldWalkAroundObstacle) {
+            const offset = new THREE.Vector3(-2, 0, 0);
+            const newTargetPos = pathTargetPos.clone().add(offset); 
+            pathTargetPos.copy(newTargetPos);
+        }
+        console.log("Entity movement| newPathTarget: ",pathTargetPos);
+        this.colorPoint(pathTargetPos,0x000000)
+        
         if ((normAngleInDegrees > rotationThreshold)) {
             console.log("Passed rotation threshols");
             if (normAngleInDegrees < 180) {
@@ -447,7 +451,7 @@ export abstract class Controller {
             const distThreshold = 5;
             this.isTargetClose = distToTarget < distThreshold;
             if (!this.isTargetClose) {
-                this.autoMoveForward(shouldWalkAroundObstacle);
+                this.autoMoveForward();
             }else {
                 this.playIdleAnimation()
                 this.stopWalkSound();
