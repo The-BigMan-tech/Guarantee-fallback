@@ -9,11 +9,11 @@ interface PlayerCamData extends CameraData {
     cameraRotationSpeed:number;
     offsetY:number | 'auto';
 }
-const cameraModeMap = new Map<number, string>([
-    [1, "FirstPerson"],
-    [2, "SecondPerson"],
-    [3, "ThirdPerson"]
-]);
+enum CameraMode {
+    FirstPerson = 1,
+    SecondPerson = 2,
+    ThirdPerson = 3
+}
 
 class Player extends Controller {
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
@@ -96,8 +96,8 @@ class Player extends Controller {
         if (this.isAirBorne()) {
             this.stopWalkSound()
             this.playJumpAnimation()
-            switch (cameraModeMap.get(this.camModeNum)) {
-                case "FirstPerson": this.targetZ = -0.5;
+            switch (this.camModeNum) {
+                case CameraMode.FirstPerson: this.targetZ = -0.5;
             }
         }else if (Player.keysPressed['KeyW']) {//each key will have its own animation
             this.playWalkSound()
@@ -114,21 +114,21 @@ class Player extends Controller {
         }
     }
     private toggleCamPerspective() {
-        switch (cameraModeMap.get(this.camModeNum)) {
-            case "FirstPerson": {
+        switch (this.camModeNum) {
+            case CameraMode.FirstPerson: {
                 this.targetZ = 0;
                 this.camRotationSpeed = this.originalCamRotSpeed
                 this.cameraClampAngle = this.firstPersonClamp
                 this.camera.setCameraRotationX(0,0);
                 break;
             }
-            case "SecondPerson": {
+            case CameraMode.SecondPerson: {
                 this.targetZ = -6;
                 this.camRotationSpeed = 1;
                 this.camera.setCameraRotationX(0,1);
                 break;
             }
-            case "ThirdPerson": {
+            case CameraMode.ThirdPerson: {
                 this.targetZ = 6
                 this.cameraClampAngle = this.thirdPersonClamp;
                 this.camRotationSpeed = 1
