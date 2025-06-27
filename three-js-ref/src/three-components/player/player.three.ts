@@ -9,6 +9,11 @@ interface PlayerCamData extends CameraData {
     cameraRotationSpeed:number;
     offsetY:number | 'auto';
 }
+const cameraModeMap = new Map<number, string>([
+    [1, "FirstPerson"],
+    [2, "SecondPerson"],
+    [3, "ThirdPerson"]
+]);
 
 class Player extends Controller {
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
@@ -18,7 +23,9 @@ class Player extends Controller {
 
     public camera:Camera;
     private canToggleCamera:boolean = true;//to debounce perspective toggling
-    private camMode:1 | 2 | 3 = 1;//this corresponds to first,second and third person views
+
+    private camModeNum:1 | 2 | 3 = 1;//this corresponds to first,second and third person views
+
     private camRotationSpeed:number;
     private originalCamRotSpeed:number
 
@@ -28,10 +35,11 @@ class Player extends Controller {
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,camArgs:PlayerCamData) {
         super(fixedData,dynamicData);
-        this.offsetY = (camArgs.offsetY=='auto')?fixedData.characterHeight+2:camArgs.offsetY
-        this.camera = new Camera(camArgs)
+        this.offsetY = (camArgs.offsetY=='auto')?fixedData.characterHeight+2:camArgs.offsetY;
+        this.targetY = this.offsetY;
         this.camRotationSpeed = camArgs.cameraRotationSpeed;
         this.originalCamRotSpeed = camArgs.cameraRotationSpeed;
+        this.camera = new Camera(camArgs)
         this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
         Player.addEventListeners()
     }
@@ -79,7 +87,7 @@ class Player extends Controller {
         };
         if (Player.keysPressed['KeyT']) {
             if (this.canToggleCamera) { 
-                this.camMode = ((this.camMode<3)?this.camMode + 1:1) as 1 | 2 | 3;//this is to increase the camMode,when its 3rd person,reset it back to 1st person and repeat 
+                this.camModeNum = ((this.camModeNum<3)?this.camModeNum + 1:1) as 1 | 2 | 3;//this is to increase the camMode,when its 3rd person,reset it back to 1st person and repeat 
                 this.canToggleCamera = false;  // prevent further toggles until key released
             }
         }else this.canToggleCamera = true;  // reset when key released
@@ -88,8 +96,8 @@ class Player extends Controller {
         if (this.isAirBorne()) {
             this.stopWalkSound()
             this.playJumpAnimation()
-            if (this.camMode == 1) {
-                this.targetZ = -0.5;
+            switch (cameraModeMap.get(this.camModeNum)) {
+                case "FirstPerson": this.targetZ = -0.5;
             }
         }else if (Player.keysPressed['KeyW']) {//each key will have its own animation
             this.playWalkSound()
@@ -106,22 +114,27 @@ class Player extends Controller {
         }
     }
     private toggleCamPerspective() {//this is where the camera is updated and optionally adding other behaviour to the camera before that update
-        if (this.camMode == 3) {//Third person
-            this.targetZ = 6
-            this.cameraClampAngle = this.thirdPersonClamp;
-            this.camRotationSpeed = 1
-            this.camera.setCameraRotationX(0,0)
-        }else if (this.camMode == 2){//Second person
-            this.targetZ = -6;
-            this.camRotationSpeed = 1;
-            this.camera.setCameraRotationX(0,1)
-        }else if (this.camMode == 1){//First person
-            this.targetZ = 0;
-            this.camRotationSpeed = this.originalCamRotSpeed
-            this.cameraClampAngle = this.firstPersonClamp
-            this.camera.setCameraRotationX(0,0)
+        switch (cameraModeMap.get(this.camModeNum)) {
+            case "FirstPerson": {
+                this.targetZ = 0;
+                this.camRotationSpeed = this.originalCamRotSpeed
+                this.cameraClampAngle = this.firstPersonClamp
+                this.camera.setCameraRotationX(0,0);
+                break;
+            }
+            case "SecondPerson": {
+                this.targetZ = -6;
+                this.camRotationSpeed = 1;
+                this.camera.setCameraRotationX(0,1);
+                break;
+            }
+            case "ThirdPerson": {
+                this.targetZ = 6
+                this.cameraClampAngle = this.thirdPersonClamp;
+                this.camRotationSpeed = 1
+                this.camera.setCameraRotationX(0,0)
+            }
         }
-        this.targetY = this.offsetY;
     }
     private updateCamPosition() {
         const camPosition = this.camera.cam3D.position;
