@@ -48,7 +48,7 @@ export class Camera {
     public setCameraRotationX(angle: number,orientation:1 | 0) {//-1 is normal orientation and +1 is upsisde down
         const rotAngle = THREE.MathUtils.degToRad(angle);
         const targetQuaternion = new THREE.Quaternion();
-        targetQuaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), rotAngle);
+        targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotAngle);
         if (orientation == 1) {
             const correctionQuaternion = new THREE.Quaternion();//to flip it back to the right orientation
             correctionQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI); // 180 degrees around y-axis
