@@ -305,8 +305,8 @@ export abstract class Controller {
     }
     private calcHeightBottomUp(stepOverPos:THREE.Vector3,groundPosY:number) {
         const upwardCheckPos = stepOverPos.clone();
-        
-        for (let i=0;i <= 10;i++) {
+        const maxHeightToCheck = 30
+        for (let i=0;i <= maxHeightToCheck;i++) {
             let upwardClearance = true
             upwardCheckPos.add(new THREE.Vector3(0,1,0));
             physicsWorld.intersectionsWithPoint(upwardCheckPos,()=>{
