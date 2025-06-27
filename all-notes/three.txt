@@ -537,3 +537,5 @@ entities move with target positions
 *so using a broad type like number but only reading hardcoded values is highly error prone but using a union of hardcoded values instead of the broad number type is safer but still unreadable.using a map and switch case makes it easier to read which causes less errors but it isnt type safe so the best way to implement variant data is with an enum and switch case
 
 *so in three js,the best way to use time reliably is through the clock because of frame independence.helps manage time in a way that's decoupled from the frame rate. This means your game logic can run consistently regardless of how fast or slow frames are rendered.
+
+*Managing camera rotations with multiple perspectives can inherently lead to some complexity. When toggling perspectives, it's often challenging to maintain the exact orientation if the rotation isn't stored or handled properly.

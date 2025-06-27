@@ -121,7 +121,7 @@ class Player extends Controller {
             this.stopWalkSound()
             this.playJumpAnimation()
             switch (this.camModeNum) {
-                case CameraMode.FirstPerson: this.targetZ = -0.5;
+                case CameraMode.FirstPerson: this.targetZ = -0.6;
             }
         }else if (Player.keysPressed['KeyW']) {//each key will have its own animation
             this.playWalkSound()
@@ -180,7 +180,7 @@ const PlayerCamArgs:PlayerCamData = {
     FOV:75,
     nearPoint:0.1,
     farPoint:1000,
-    cameraRotationDelta:3,//in degrees
+    cameraRotationDelta:1,//in degrees
     cameraRotationSpeed:0.5,
     offsetY:'auto'
 }
@@ -193,9 +193,9 @@ const playerFixedData:FixedControllerData = {
     mass:40,
 }
 const playerDynamicData:DynamicControllerData = {
-    horizontalVelocity:25,
-    jumpVelocity:35,
-    jumpResistance:20,
+    horizontalVelocity:15,
+    jumpVelocity:30,
+    jumpResistance:30,
     rotationDelta:0.04,//in radians
     rotationSpeed:0.4,
     maxStepUpHeight:2,

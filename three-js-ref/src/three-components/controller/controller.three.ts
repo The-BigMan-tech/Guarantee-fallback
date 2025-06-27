@@ -272,7 +272,7 @@ export abstract class Controller {
     }
     private updateObstacleDetectionDistance() {
         const delta = this.clock.getDelta();
-        const margin = 4; // tune as needed
+        const margin = 4; // tune as needed.its how far ahead do you want to detect obstacles in addition to the calculated dist which is usually below 1 cuz delta frames are usually fractions of a second
         this.obstacleDetectionDistance = (this.dynamicData.horizontalVelocity * delta) + margin
         console.log("Obstacle detection distance: ",this.obstacleDetectionDistance);
     }
@@ -368,8 +368,8 @@ export abstract class Controller {
     //the calculations used in this function was derived from real physics rules since the whole of this is built on a physics engine
     //tune the reduction scale as needed
     private canJumpOntoObstacle() {//checks if the entity can jump on it based on the horizontal distance covered
-        const reductionX = 20//im adding reduction scales to prevent inflation from high values
-        const reductionY = 5;
+        const reductionX = 15//im adding reduction scales to prevent inflation from high values.They are carefully tuned according to play feedback
+        const reductionY = 6;
 
         const realisticGravity = 10
         const timeUp = this.dynamicData.jumpVelocity / realisticGravity;
@@ -433,7 +433,6 @@ export abstract class Controller {
         console.log("Entity movement| pathTarget: ",pathTargetPos);
         if (shouldWalkAroundObstacle) {
             const leftDirection = new THREE.Vector3(-1, 0, 0).applyQuaternion(this.characterRigidBody.rotation());
-            // leftDirection.normalize(); // Ensure the direction is normalized
             const offsetDistance = 2; // Adjust this for how far to offset
             const newTargetPos = pathTargetPos.clone().add(leftDirection.multiplyScalar(offsetDistance)); // Move left of the target position
             pathTargetPos.copy(newTargetPos); // Update the target position
