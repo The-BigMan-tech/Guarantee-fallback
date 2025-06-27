@@ -16,7 +16,7 @@ class Player extends Controller {
 
     public camera:Camera;
     private canToggleCamera:boolean = true;//to debounce perspective toggling
-    private camMode = 1
+    private camMode:1 | 2 | 3 = 1;//this corresponds to first,second and third person views
 
     private offsetY:number;
     private targetZ:number = 0;//the 0 is just for initialization sake so ts wont complain but it will be changed correctly during the render loop
@@ -86,7 +86,7 @@ class Player extends Controller {
         if (this.isAirBorne()) {
             this.stopWalkSound()
             this.playJumpAnimation()
-            if (this.camMode == 0) {
+            if (this.camMode == 1) {
                 this.targetZ = -0.5;
             }
         }else if (Player.keysPressed['KeyW']) {//each key will have its own animation
@@ -104,21 +104,19 @@ class Player extends Controller {
         }
     }
     private toggleCamPerspective() {//this is where the camera is updated and optionally adding other behaviour to the camera before that update
-        if (this.camMode == 3) {
-            this.cameraClampAngle = this.thirdPersonClamp
+        if (this.camMode == 3) {//Third person
             this.targetZ = 6
-            this.targetY = this.offsetY;
+            this.cameraClampAngle = this.thirdPersonClamp
             this.camera.setCameraRotationX(0,0)
-        }else if (this.camMode == 2){
+        }else if (this.camMode == 2){//Second person
             this.targetZ = -6
-            this.targetY = this.offsetY;
             this.camera.setCameraRotationX(0,1)
-        }else if (this.camMode == 1){
+        }else if (this.camMode == 1){//First person
+            this.targetZ = 0;
             this.cameraClampAngle = this.firstPersonClamp
-            this.targetZ = 0
-            this.targetY = this.offsetY
             this.camera.setCameraRotationX(0,0)
         }
+        this.targetY = this.offsetY;
     }
     private updateCamPosition() {
         const camPosition = this.camera.cam3D.position;
