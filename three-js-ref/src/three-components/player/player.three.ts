@@ -18,6 +18,7 @@ enum CameraMode {
 class Player extends Controller {
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
     private firstPersonClamp = 75;
+    private secondPersonClamp = 70;
     private thirdPersonClamp = 10;
     private cameraClampAngle:number =  this.firstPersonClamp;
 
@@ -149,6 +150,7 @@ class Player extends Controller {
                 case CameraMode.SecondPerson: {
                     this.targetZ = -6;
                     this.camRotationSpeed = 1;
+                    this.cameraClampAngle = this.secondPersonClamp
                     this.camera.setCameraRotationX(0,1);
                     break;
                 }
