@@ -432,13 +432,15 @@ export abstract class Controller {
 
         console.log("Entity movement| pathTarget: ",pathTargetPos);
         if (shouldWalkAroundObstacle) {
-            const offset = new THREE.Vector3(-2, 0, 0);
-            const newTargetPos = pathTargetPos.clone().add(offset); 
-            pathTargetPos.copy(newTargetPos);
+            const leftDirection = new THREE.Vector3(-1, 0, 0).applyQuaternion(this.characterRigidBody.rotation());
+            // leftDirection.normalize(); // Ensure the direction is normalized
+            const offsetDistance = 2; // Adjust this for how far to offset
+            const newTargetPos = pathTargetPos.clone().add(leftDirection.multiplyScalar(offsetDistance)); // Move left of the target position
+            pathTargetPos.copy(newTargetPos); // Update the target position
         }
         console.log("Entity movement| newPathTarget: ",pathTargetPos);
         this.colorPoint(pathTargetPos,0x000000)
-        
+
         if ((normAngleInDegrees > rotationThreshold)) {
             console.log("Passed rotation threshols");
             if (normAngleInDegrees < 180) {
