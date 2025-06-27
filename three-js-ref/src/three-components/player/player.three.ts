@@ -148,7 +148,7 @@ class Player extends Controller {
                     break;
                 }
                 case CameraMode.SecondPerson: {
-                    this.targetZ = -6;
+                    this.targetZ = -35;
                     this.camRotationSpeed = 1;
                     this.cameraClampAngle = this.secondPersonClamp
                     this.camera.setCameraRotationX(0,1);
@@ -193,7 +193,7 @@ const playerFixedData:FixedControllerData = {
     mass:40,
 }
 const playerDynamicData:DynamicControllerData = {
-    horizontalVelocity:15,
+    horizontalVelocity:25,
     jumpVelocity:30,
     jumpResistance:30,
     rotationDelta:0.04,//in radians
