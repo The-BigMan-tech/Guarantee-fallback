@@ -9,6 +9,7 @@ interface PlayerCamData extends CameraData {
     cameraRotationSpeed:number;
     offsetY:number | 'auto';
 }
+
 class Player extends Controller {
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
     private firstPersonClamp = 75;
@@ -78,11 +79,7 @@ class Player extends Controller {
         };
         if (Player.keysPressed['KeyT']) {
             if (this.canToggleCamera) { 
-                if (this.camMode==3) {
-                    this.camMode = 1
-                }else {
-                    this.camMode += 1;
-                }
+                this.camMode = ((this.camMode<3)?this.camMode + 1:1) as 1 | 2 | 3;//this is to increase the camMode,when its 3rd person,reset it back to 1st person and repeat 
                 this.canToggleCamera = false;  // prevent further toggles until key released
             }
         }else this.canToggleCamera = true;  // reset when key released
@@ -112,7 +109,7 @@ class Player extends Controller {
         if (this.camMode == 3) {//Third person
             this.targetZ = 6
             this.cameraClampAngle = this.thirdPersonClamp;
-            this.camRotationSpeed = this.originalCamRotSpeed
+            this.camRotationSpeed = 1
             this.camera.setCameraRotationX(0,0)
         }else if (this.camMode == 2){//Second person
             this.targetZ = -6;
