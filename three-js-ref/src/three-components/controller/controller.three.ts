@@ -42,7 +42,7 @@ export interface CollisionMap {
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
     private static showHitBoxes = false;//the hitboxes are a bit broken
-    private static showPoints = true;
+    private static showPoints = false;
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
@@ -418,7 +418,7 @@ export abstract class Controller {
     
     private isTargetClose = false;
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
-        const characterPos = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z)
+        const characterPos = this.character.position;
         const direction = pathTargetPos.clone().sub(characterPos);
         const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.characterRigidBody.rotation())
         const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
@@ -427,7 +427,7 @@ export abstract class Controller {
         const rotationThreshold = 10;//the magnitude of the rotation diff before it rotates to the target direction
 
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
-        const shouldWalkAroundObstacle = this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose && !this.canJumpOntoObstacle();
+        const shouldWalkAroundObstacle = (this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose && !this.canJumpOntoObstacle()) 
         console.log("Entity movement| obstacle height: ",this.obstacleHeight);
         console.log("Entity movement| obstacle distance: ",this.obstacleDistance);
         console.log("Entity movement| can move forward: ",this.canWalkForward);
@@ -485,7 +485,7 @@ export abstract class Controller {
         this.velocity.set(0,0,0);//to prevent accumulaion over time
         this.dynamicData.horizontalVelocity = this.originalHorizontalVel;//the horizontal velocity is subject to runtime mutations so i have to reset it
         this.shouldStepUp = false;
-        this.obstacleHeight = 0;
+        // this.obstacleHeight = 0;
         this.obstacleDistance = 0;
     }
     private updateCharacterAnimations():void {
