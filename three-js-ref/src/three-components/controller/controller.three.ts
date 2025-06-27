@@ -415,13 +415,21 @@ export abstract class Controller {
         const charDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(this.character.quaternion);
         return new THREE.Vector3(charDirection.x, 0, charDirection.z).normalize();
     }
+    private distanceXZ(a: THREE.Vector3, b: THREE.Vector3): number {
+        const dx = a.x - b.x;
+        const dz = a.z - b.z;
+        return Math.sqrt(dx * dx + dz * dz);
+    }
+    
     private isTargetClose = false;
 
     private prevPath:THREE.Vector3 | null = null;
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
-        pathTargetPos = this.prevPath || pathTargetPos
+        pathTargetPos = this.prevPath || pathTargetPos;
+        const characterPos = this.character.position;
+        const distThreshold = 5;
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
-        const shouldWalkAroundObstacle = (this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose && !this.canJumpOntoObstacle()) 
+        let shouldWalkAroundObstacle = (this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose && !this.canJumpOntoObstacle()) 
         console.log("Entity movement| obstacle height: ",this.obstacleHeight);
         console.log("Entity movement| obstacle distance: ",this.obstacleDistance);
         console.log("Entity movement| can move forward: ",this.canWalkForward);
@@ -430,17 +438,28 @@ export abstract class Controller {
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
         console.log("Entity movement| pathTarget: ",pathTargetPos);
+
+        if (this.prevPath) {
+            console.log("Entity movement| prev path: ",this.prevPath);
+            const distToPrevPath = this.distanceXZ(characterPos, this.prevPath);
+            if (distToPrevPath < distThreshold) {
+                this.prevPath = null;
+                shouldWalkAroundObstacle = false;
+                console.log("Entity movement has reached destination");
+            }
+        }
+
         if (shouldWalkAroundObstacle) { 
             const horizontalForward = this.getHorizontalForward();
             const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
-            const lateralOffset = leftVector.clone().multiplyScalar(10);  // Left shift
+            const lateralOffset = leftVector.clone().multiplyScalar(5);  // Left shift
             pathTargetPos.add(lateralOffset);
             this.prevPath = pathTargetPos
         }
         console.log("Entity movement| newPathTarget: ",pathTargetPos);
         this.colorPoint(pathTargetPos,0x000000)
 
-        const characterPos = this.character.position;
+        
         const direction = pathTargetPos.clone().sub(characterPos);
         const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
         const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
@@ -449,7 +468,6 @@ export abstract class Controller {
         const rotationThreshold = 10;//the magnitude of the rotation diff before it rotates to the target direction
 
         const distToTarget = characterPos.distanceTo(pathTargetPos);
-        const distThreshold = 5;
         this.isTargetClose = distToTarget < distThreshold;
 
         if ((normAngleInDegrees > rotationThreshold)) {
