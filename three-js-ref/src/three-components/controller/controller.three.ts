@@ -447,7 +447,7 @@ export abstract class Controller {
             const distThreshold = 5;
             this.isTargetClose = distToTarget < distThreshold;
             if (!this.isTargetClose) {
-                // this.autoMoveForward(shouldWalkAroundObstacle);
+                this.autoMoveForward(shouldWalkAroundObstacle);
             }else {
                 this.playIdleAnimation()
                 this.stopWalkSound();
