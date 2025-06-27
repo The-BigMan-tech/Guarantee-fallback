@@ -103,19 +103,21 @@ class Player extends Controller {
             this.playIdleAnimation()
         }
     }
-    private toggleThirdPerson() {//this is where the camera is updated and optionally adding other behaviour to the camera before that update
+    private toggleCamPerspective() {//this is where the camera is updated and optionally adding other behaviour to the camera before that update
         if (this.camMode == 3) {
             this.cameraClampAngle = this.thirdPersonClamp
             this.targetZ = 6
-            this.targetY = this.offsetY
+            this.targetY = this.offsetY;
+            this.camera.setCameraRotationX(0,0)
         }else if (this.camMode == 2){
-            this.cameraClampAngle = this.thirdPersonClamp
             this.targetZ = -6
             this.targetY = this.offsetY;
+            this.camera.setCameraRotationX(0,1)
         }else if (this.camMode == 1){
             this.cameraClampAngle = this.firstPersonClamp
             this.targetZ = 0
             this.targetY = this.offsetY
+            this.camera.setCameraRotationX(0,0)
         }
     }
     private updateCamPosition() {
@@ -124,7 +126,7 @@ class Player extends Controller {
         this.camera.translateCamera(newCamPosition,0.2);
     }
     protected onLoop() {//this is where all character updates to this instance happens.
-        this.toggleThirdPerson();
+        this.toggleCamPerspective();
         this.bindKeysToControls();
         this.bindKeysToAnimations();
         this.updateCamPosition();
@@ -135,7 +137,7 @@ const PlayerCamArgs:PlayerCamData = {
     FOV:75,
     nearPoint:0.1,
     farPoint:1000,
-    cameraRotationDelta:0.05,
+    cameraRotationDelta:3,//in degrees
     cameraRotationSpeed:0.5,
     offsetY:'auto'
 }
@@ -151,7 +153,7 @@ const playerDynamicData:DynamicControllerData = {
     horizontalVelocity:25,
     jumpVelocity:35,
     jumpResistance:15,
-    rotationDelta:0.04,
+    rotationDelta:0.04,//in radians
     rotationSpeed:0.4,
     maxStepUpHeight:2,
     gravityScale:1

@@ -580,7 +580,7 @@ export abstract class Controller {
         down.applyQuaternion(this.character.quaternion);
         this.velocity.add(down);
     }
-    protected rotateCharacterX(sign:number):void {
+    protected rotateCharacterX(sign:1 | -1):void {
         this.wakeUpBody();
         this.targetRotation.y -= (this.dynamicData.rotationDelta * sign); 
         this.targetQuaternion.setFromEuler(this.targetRotation);
