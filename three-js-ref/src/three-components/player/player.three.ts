@@ -6,6 +6,7 @@ import * as THREE from "three"
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
+    cameraRotationSpeed:number;
     offsetY:number | 'auto';
 }
 class Player extends Controller {
@@ -17,6 +18,8 @@ class Player extends Controller {
     public camera:Camera;
     private canToggleCamera:boolean = true;//to debounce perspective toggling
     private camMode:1 | 2 | 3 = 1;//this corresponds to first,second and third person views
+    private camRotationSpeed:number;
+    private originalCamRotSpeed:number
 
     private offsetY:number;
     private targetZ:number = 0;//the 0 is just for initialization sake so ts wont complain but it will be changed correctly during the render loop
@@ -26,6 +29,8 @@ class Player extends Controller {
         super(fixedData,dynamicData);
         this.offsetY = (camArgs.offsetY=='auto')?fixedData.characterHeight+2:camArgs.offsetY
         this.camera = new Camera(camArgs)
+        this.camRotationSpeed = camArgs.cameraRotationSpeed;
+        this.originalCamRotSpeed = camArgs.cameraRotationSpeed;
         this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
         Player.addEventListeners()
     }
@@ -106,13 +111,16 @@ class Player extends Controller {
     private toggleCamPerspective() {//this is where the camera is updated and optionally adding other behaviour to the camera before that update
         if (this.camMode == 3) {//Third person
             this.targetZ = 6
-            this.cameraClampAngle = this.thirdPersonClamp
+            this.cameraClampAngle = this.thirdPersonClamp;
+            this.camRotationSpeed = this.originalCamRotSpeed
             this.camera.setCameraRotationX(0,0)
         }else if (this.camMode == 2){//Second person
-            this.targetZ = -6
+            this.targetZ = -6;
+            this.camRotationSpeed = 1;
             this.camera.setCameraRotationX(0,1)
         }else if (this.camMode == 1){//First person
             this.targetZ = 0;
+            this.camRotationSpeed = this.originalCamRotSpeed
             this.cameraClampAngle = this.firstPersonClamp
             this.camera.setCameraRotationX(0,0)
         }
@@ -128,7 +136,7 @@ class Player extends Controller {
         this.bindKeysToControls();
         this.bindKeysToAnimations();
         this.updateCamPosition();
-        this.camera.updateCamera();
+        this.camera.updateCamera(this.camRotationSpeed);
     }
 }
 const PlayerCamArgs:PlayerCamData = {

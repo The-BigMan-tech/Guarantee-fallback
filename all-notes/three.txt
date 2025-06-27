@@ -529,3 +529,5 @@ players move  with keybinds
 entities move with target positions
 
 *i built my controller on rapier 0.17.3
+
+"Magic numbers" refer to hard-coded values (like 1, 2, or 3) that appear in your code without any explanation. They can make the code harder to understand and maintain because their meaning isn't clear at first glance.
