@@ -113,7 +113,7 @@ class Player extends Controller {
             this.playIdleAnimation()
         }
     }
-    private toggleCamPerspective() {//this is where the camera is updated and optionally adding other behaviour to the camera before that update
+    private toggleCamPerspective() {
         switch (cameraModeMap.get(this.camModeNum)) {
             case "FirstPerson": {
                 this.targetZ = 0;
@@ -142,9 +142,9 @@ class Player extends Controller {
         this.camera.translateCamera(newCamPosition,0.2);
     }
     protected onLoop() {//this is where all character updates to this instance happens.
-        this.toggleCamPerspective();
         this.bindKeysToControls();
         this.bindKeysToAnimations();
+        this.toggleCamPerspective();
         this.updateCamPosition();
         this.camera.updateCamera(this.camRotationSpeed);
     }
