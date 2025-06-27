@@ -69,6 +69,12 @@ class Player extends Controller {
             if (Player.keysPressed['KeyD']) {
                 this.moveCharacterLeft();
             }
+            if (Player.keysPressed['ArrowUp']) {
+                this.camera.rotateCameraDown(this.cameraClampAngle)
+            };  
+            if (Player.keysPressed['ArrowDown']) {
+                this.camera.rotateCameraUp(this.cameraClampAngle)
+            };
         }else {//Normal WASD controls
             if (Player.keysPressed['KeyW']) {
                 if (Player.keysPressed['ShiftLeft']) this.dynamicData.horizontalVelocity += 10;
@@ -83,6 +89,12 @@ class Player extends Controller {
             if (Player.keysPressed['KeyD']) {
                 this.moveCharacterRight();
             }
+            if (Player.keysPressed['ArrowUp']) {
+                this.camera.rotateCameraUp(this.cameraClampAngle)
+            };  
+            if (Player.keysPressed['ArrowDown']) {
+                this.camera.rotateCameraDown(this.cameraClampAngle)
+            };
         }
         if (Player.keysPressed['KeyP']) {
             console.log = ()=>{};
@@ -95,12 +107,6 @@ class Player extends Controller {
         };  
         if (Player.keysPressed['ArrowRight']) {
             this.rotateCharacterX(+1)
-        };
-        if (Player.keysPressed['ArrowUp']) {
-            this.camera.rotateCameraUp(this.cameraClampAngle)
-        };  
-        if (Player.keysPressed['ArrowDown']) {
-            this.camera.rotateCameraDown(this.cameraClampAngle)
         };
         if (Player.keysPressed['KeyT']) {
             if ((this.lastToggleTime + this.toggleCooldown) <= this.clock.elapsedTime) { //this is a debouncing mechanism
@@ -187,7 +193,7 @@ const playerFixedData:FixedControllerData = {
 const playerDynamicData:DynamicControllerData = {
     horizontalVelocity:25,
     jumpVelocity:35,
-    jumpResistance:15,
+    jumpResistance:20,
     rotationDelta:0.04,//in radians
     rotationSpeed:0.4,
     maxStepUpHeight:2,
