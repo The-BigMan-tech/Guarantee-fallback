@@ -72,7 +72,7 @@ export abstract class Controller {
     private walkSound: THREE.PositionalAudio = new THREE.PositionalAudio(this.listener);;//the inheriting class can only access this sound through exposed methods
     private landSound: THREE.PositionalAudio = new THREE.PositionalAudio(this.listener);;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
 
-    private clock:THREE.Clock = new THREE.Clock();
+    protected clock:THREE.Clock = new THREE.Clock();
     private mixer: THREE.AnimationMixer | null = null;
     private currentAction: THREE.AnimationAction | null = null;
     private idleAction: THREE.AnimationAction | null = null;

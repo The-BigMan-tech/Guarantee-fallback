@@ -21,9 +21,7 @@ class Player extends Controller {
     private thirdPersonClamp = 10;
     private cameraClampAngle:number =  this.firstPersonClamp;
 
-    public camera:Camera;
-    private canToggleCamera:boolean = true;//to debounce perspective toggling
-
+    public  camera:Camera;
     private camModeNum:1 | 2 | 3 = 1;//this corresponds to first,second and third person views
 
     private camRotationSpeed:number;
@@ -33,6 +31,9 @@ class Player extends Controller {
     private targetZ:number = 0;//the 0 is just for initialization sake so ts wont complain but it will be changed correctly during the render loop
     private targetY:number = 0;
 
+    private toggleCooldown: number = 0.3; // Cooldown in seconds
+    private lastToggleTime: number = 0;
+    
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,camArgs:PlayerCamData) {
         super(fixedData,dynamicData);
         this.offsetY = (camArgs.offsetY=='auto')?fixedData.characterHeight+2:camArgs.offsetY;
@@ -64,11 +65,11 @@ class Player extends Controller {
             if (Player.keysPressed['ShiftLeft']) this.dynamicData.horizontalVelocity += 10;
             this.moveCharacterForward()
         }
-        if (Player.keysPressed['KeyS']) {
-            this.moveCharacterBackward();
-        }
         if (Player.keysPressed['KeyA']) {
             this.moveCharacterLeft();
+        }
+        if (Player.keysPressed['KeyS']) {
+            this.moveCharacterBackward();
         }
         if (Player.keysPressed['KeyD']) {
             this.moveCharacterRight();
@@ -86,11 +87,11 @@ class Player extends Controller {
             this.camera.rotateCameraDown(this.cameraClampAngle)
         };
         if (Player.keysPressed['KeyT']) {
-            if (this.canToggleCamera) { 
+            if ((this.lastToggleTime + this.toggleCooldown) <= this.clock.elapsedTime) { //this is a debouncing mechanism
                 this.camModeNum = ((this.camModeNum<3)?this.camModeNum + 1:1) as 1 | 2 | 3;//this is to increase the camMode,when its 3rd person,reset it back to 1st person and repeat 
-                this.canToggleCamera = false;  // prevent further toggles until key released
+                this.lastToggleTime = this.clock.elapsedTime
             }
-        }else this.canToggleCamera = true;  // reset when key released
+        }
     }
     private bindKeysToAnimations() {
         if (this.isAirBorne()) {
