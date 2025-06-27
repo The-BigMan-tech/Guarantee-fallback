@@ -539,3 +539,7 @@ entities move with target positions
 *so in three js,the best way to use time reliably is through the clock because of frame independence.helps manage time in a way that's decoupled from the frame rate. This means your game logic can run consistently regardless of how fast or slow frames are rendered.
 
 *Managing camera rotations with multiple perspectives can inherently lead to some complexity. When toggling perspectives, it's often challenging to maintain the exact orientation if the rotation isn't stored or handled properly.
+
+*wall following
+
+*By defining four clear rules—(1) walk directly to the target, (2) try to walk over the obstacle, (3) try to jump over it, and (4) steer around it.Each rule acts as a fallback if the previous one fails, ensuring the entity always attempts the simplest solution first (direct path) and only escalates to more complex maneuvers (steering) when necessary.

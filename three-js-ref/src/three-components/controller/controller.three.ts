@@ -321,7 +321,31 @@ export abstract class Controller {
             }
         }   
     }
-    private detectLowObstacle():void {
+    private calcObstacleWidth(point: THREE.Vector3) {
+        const horizontalForward = this.getHorizontalForward();
+        const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
+
+        const leftCheckPos = point.clone();
+        const maxWidthToCheck = 30;
+        for (let i=0;i <= maxWidthToCheck;i++) {
+            let leftClearance = true
+            leftCheckPos.add(leftVector);
+
+            physicsWorld.intersectionsWithPoint(leftCheckPos,()=>{
+                leftClearance = false
+                return true
+            })
+            if (leftClearance) {
+                const relativeWidth = Math.sqrt(
+                    Math.pow(leftCheckPos.x - point.x, 2) +
+                    Math.pow(leftCheckPos.z - point.z, 2)
+                );
+                console.log("Relative width: ",relativeWidth);
+                break;
+            }
+        }  
+    }
+    private detectObstacle():void {
         if (!this.isGrounded()) return;
         const forward = new THREE.Vector3(0,0,-1);
         const maxDistance = this.obstacleDetectionDistance;
@@ -343,10 +367,12 @@ export abstract class Controller {
 
                 console.log('PointY Obstacle: ', point.y);
                 hasCollided = true;
+                this.calcObstacleWidth(point)
 
                 const groundPosY = Math.max(0,this.calculateGroundPosition());//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative
                 const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this.is it possible to step over
                 const stepOverPos = new THREE.Vector3(point.x,stepOverPosY,point.z)
+                
                 this.obstacleDistance = distance
                 let clearance = true;
                 physicsWorld.intersectionsWithPoint(stepOverPos, () => {
@@ -450,13 +476,14 @@ export abstract class Controller {
 
         if (shouldWalkAroundObstacle) { 
             const horizontalForward = this.getHorizontalForward();
+            //Swapping x and z and negating x gives you the left-facing perpendicular vector in the XZ plane.
             const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
-            const lateralOffset = leftVector.clone().multiplyScalar(5);  // Left shift
+            const lateralOffset = leftVector.clone().multiplyScalar(1);  // Left shift
             pathTargetPos.add(lateralOffset);
             this.prevPath = pathTargetPos
         }
         console.log("Entity movement| newPathTarget: ",pathTargetPos);
-        this.colorPoint(pathTargetPos,0x000000)
+        // this.colorPoint(pathTargetPos,0x000000)
 
         
         const direction = pathTargetPos.clone().sub(characterPos);
@@ -478,7 +505,7 @@ export abstract class Controller {
             }
         }else {
             if (!this.isTargetClose) {
-                this.autoMoveForward();
+                // this.autoMoveForward();
             }else {
                 this.playIdleAnimation()
                 this.stopWalkSound();
@@ -679,7 +706,7 @@ export abstract class Controller {
             this.characterRigidBody.setGravityScale(this.dynamicData.gravityScale,true)
             this.updateCharacterTransformations();
             this.resetVariables();
-            this.detectLowObstacle();
+            this.detectObstacle();
             this.respawnIfOutOfBounds();
         }
     }
