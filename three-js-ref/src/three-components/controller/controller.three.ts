@@ -429,7 +429,7 @@ export abstract class Controller {
         const characterPos = this.character.position;
         const distThreshold = 5;
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
-        let shouldWalkAroundObstacle = (this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose && !this.canJumpOntoObstacle()) 
+        const shouldWalkAroundObstacle = (this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose && !this.canJumpOntoObstacle()) 
         console.log("Entity movement| obstacle height: ",this.obstacleHeight);
         console.log("Entity movement| obstacle distance: ",this.obstacleDistance);
         console.log("Entity movement| can move forward: ",this.canWalkForward);
@@ -444,7 +444,6 @@ export abstract class Controller {
             const distToPrevPath = this.distanceXZ(characterPos, this.prevPath);
             if (distToPrevPath < distThreshold) {
                 this.prevPath = null;
-                shouldWalkAroundObstacle = false;
                 console.log("Entity movement has reached destination");
             }
         }
