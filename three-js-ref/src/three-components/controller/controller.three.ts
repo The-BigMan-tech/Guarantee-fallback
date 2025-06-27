@@ -42,7 +42,7 @@ export interface CollisionMap {
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
     private static showHitBoxes = false;//the hitboxes are a bit broken
-    private static showPoints = false;
+    private static showPoints = true;
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
@@ -305,7 +305,8 @@ export abstract class Controller {
     }
     private calcHeightBottomUp(stepOverPos:THREE.Vector3,groundPosY:number) {
         const upwardCheckPos = stepOverPos.clone();
-        for (let i=0;i <= this.dynamicData.maxStepUpHeight;i++) {
+        
+        for (let i=0;i <= 10;i++) {
             let upwardClearance = true
             upwardCheckPos.add(new THREE.Vector3(0,1,0));
             physicsWorld.intersectionsWithPoint(upwardCheckPos,()=>{
@@ -367,7 +368,7 @@ export abstract class Controller {
     //the calculations used in this function was derived from real physics rules since the whole of this is built on a physics engine
     //tune the reduction scale as needed
     private canJumpOntoObstacle() {//checks if the entity can jump on it based on the horizontal distance covered
-        const reductionX = 15//im adding reduction scales to prevent inflation from high values
+        const reductionX = 20//im adding reduction scales to prevent inflation from high values
         const reductionY = 5;
 
         const realisticGravity = 10
@@ -382,11 +383,13 @@ export abstract class Controller {
 
         const canJumpDistanceX = (distanceX >= this.obstacleDistance);
         const canJumpDistanceY = (distanceY >= this.obstacleHeight);
-        
+        const canJump = (canJumpDistanceX && canJumpDistanceY);
+
         console.log('Entity Distance X:', distanceX);
         console.log('Entity Distance Y:', distanceY);
+        console.log('Entity Distance Jump check:', distanceY);
 
-        return canJumpDistanceX
+        return canJump
     }
     private autoMoveForward(shouldWalkAroundObstacle:boolean) {
         this.stopWalkSound();
@@ -425,7 +428,11 @@ export abstract class Controller {
 
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
         const shouldWalkAroundObstacle = this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose && !this.canJumpOntoObstacle();
+        console.log("Entity movement| obstacle height: ",this.obstacleHeight);
+        console.log("Entity movement| obstacle distance: ",this.obstacleDistance);
         console.log("Entity movement| can move forward: ",this.canWalkForward);
+        console.log("Entity movement| is target close: ",this.isTargetClose);
+        console.log("Entity movement| canJump: ",this.canJumpOntoObstacle());
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
         if ((normAngleInDegrees > rotationThreshold)) {
@@ -440,7 +447,7 @@ export abstract class Controller {
             const distThreshold = 5;
             this.isTargetClose = distToTarget < distThreshold;
             if (!this.isTargetClose) {
-                this.autoMoveForward(shouldWalkAroundObstacle);
+                // this.autoMoveForward(shouldWalkAroundObstacle);
             }else {
                 this.playIdleAnimation()
                 this.stopWalkSound();
