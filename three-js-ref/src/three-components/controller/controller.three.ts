@@ -358,7 +358,7 @@ export abstract class Controller {
             if (hasCollided) break;
             const distance = (maxDistance / steps) * i;
             const point:THREE.Vector3 = this.orientPoint(distance,forward);
-            // this.colorPoint(point,0x000000);
+            this.colorPoint(point,0x000000);
 
             physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
                 const collider = physicsWorld.getCollider(colliderObject.handle);
@@ -456,19 +456,22 @@ export abstract class Controller {
         pathTargetPos = this.prevPath || pathTargetPos;
         const characterPos = this.character.position;
         const distThreshold = 5;
+        const onGround = this.isGrounded()
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
-        const shouldWalkAroundObstacle = (this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose && !this.canJumpOntoObstacle()) 
+        const shouldWalkAroundObstacle = ((this.obstacleDistance !== Infinity) && !this.shouldStepUp && !this.isTargetClose && !this.canJumpOntoObstacle()) 
         console.log("Entity movement| obstacle height: ",this.obstacleHeight);
         console.log("Entity movement| obstacle distance: ",this.obstacleDistance);
         console.log("Entity movement| can move forward: ",this.canWalkForward);
         console.log("Entity movement| is target close: ",this.isTargetClose);
         console.log("Entity movement| canJump: ",this.canJumpOntoObstacle());
+        console.log("Entity movement| shouldStepUp: ",this.shouldStepUp);
+        console.log("Entity movement| isGrounded: ",onGround);
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
-        console.log("Entity movement| pathTarget: ",pathTargetPos);
+        console.log("Entity path| pathTarget: ",pathTargetPos);
 
         if (this.prevPath) {
-            console.log("Entity movement| prev path: ",this.prevPath);
+            console.log("Entity path| prev path: ",this.prevPath);
             const distToPrevPath = this.distanceXZ(characterPos, this.prevPath);
             if (distToPrevPath < distThreshold) {
                 this.prevPath = null;
@@ -477,15 +480,15 @@ export abstract class Controller {
         }
 
         if (shouldWalkAroundObstacle) { 
-            console.log("Entity movement| relative width: ",this.obstacleWidth);
+            console.log("Entity path| relative width: ",this.obstacleWidth);
             const horizontalForward = this.getHorizontalForward();
             //Swapping x and z and negating x gives you the left-facing perpendicular vector in the XZ plane.
             const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
-            const lateralOffset = leftVector.clone().multiplyScalar(this.obstacleWidth/3);  // Left shift
+            const lateralOffset = leftVector.clone().multiplyScalar(Math.max(1,this.obstacleWidth/2));  // Left shift
             pathTargetPos.add(lateralOffset);
             this.prevPath = pathTargetPos
         }
-        console.log("Entity movement| newPathTarget: ",pathTargetPos);
+        console.log("Entity path| newPathTarget: ",pathTargetPos);
         // this.colorPoint(pathTargetPos,0x000000)
 
         
@@ -514,7 +517,7 @@ export abstract class Controller {
                 this.stopWalkSound();
             }
         }
-        console.log("Entity movement| currentPos: ",characterPos);
+        console.log("Entity path| currentPos: ",characterPos);
     }
 
     private canWalkForward:boolean = false
@@ -549,6 +552,7 @@ export abstract class Controller {
         this.shouldStepUp = false;
         // this.obstacleHeight = 0;
         this.obstacleDistance = 0;
+        this.obstacleWidth = 0;
     }
     private updateCharacterAnimations():void {
         const delta = this.clock.getDelta();
