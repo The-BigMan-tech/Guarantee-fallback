@@ -543,3 +543,9 @@ entities move with target positions
 *wall following
 
 *By defining four clear rules—(1) walk directly to the target, (2) try to walk over the obstacle, (3) try to jump over it, and (4) steer around it.Each rule acts as a fallback if the previous one fails, ensuring the entity always attempts the simplest solution first (direct path) and only escalates to more complex maneuvers (steering) when necessary.
+
+*Your scan moves in unit increments (or whatever your step size is), so you’ll rarely hit the exact edge of the cube, but you’ll get very close.
+
+*Absolutely, your approach is both necessary and correct. Tying the width calculation (and other obstacle property calculations) to the state of clearance is critical for accurate, efficient, and realistic obstacle detection.If you calculated the width on every frame, regardless of whether there’s an obstacle or not, you’d get meaningless or outdated values.By only calculating width when there is no clearance (i.e., when the entity can’t step over or jump over), you ensure that the width measurement is relevant to the current obstacle blocking the path.
+
+*Your methods not only detect the presence of obstacles but also measure their dimensions (height and width) in a way that’s directly useful for AI navigation decisions.

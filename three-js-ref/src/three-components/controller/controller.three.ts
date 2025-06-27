@@ -87,6 +87,7 @@ export abstract class Controller {
     private pointDensity = 1.2;
 
     private obstacleDistance:number = 0;//unlike obstacledetection distance which is a fixed unit telling the contoller how far to detect obstacles ahead of time,this one actually tells the realtime distance of an obstacle form the controller
+    private obstacleWidth:number = 0;
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
@@ -340,6 +341,7 @@ export abstract class Controller {
                     Math.pow(leftCheckPos.x - point.x, 2) +
                     Math.pow(leftCheckPos.z - point.z, 2)
                 ).toFixed(2));
+                this.obstacleWidth = relativeWidth
                 console.log("Relative width: ",relativeWidth);
                 break;
             }
@@ -475,10 +477,11 @@ export abstract class Controller {
         }
 
         if (shouldWalkAroundObstacle) { 
+            console.log("Entity movement| relative width: ",this.obstacleWidth);
             const horizontalForward = this.getHorizontalForward();
             //Swapping x and z and negating x gives you the left-facing perpendicular vector in the XZ plane.
             const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
-            const lateralOffset = leftVector.clone().multiplyScalar(1);  // Left shift
+            const lateralOffset = leftVector.clone().multiplyScalar(this.obstacleWidth/3);  // Left shift
             pathTargetPos.add(lateralOffset);
             this.prevPath = pathTargetPos
         }
@@ -505,7 +508,7 @@ export abstract class Controller {
             }
         }else {
             if (!this.isTargetClose) {
-                // this.autoMoveForward();
+                this.autoMoveForward();
             }else {
                 this.playIdleAnimation()
                 this.stopWalkSound();
