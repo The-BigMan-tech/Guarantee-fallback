@@ -55,24 +55,33 @@ class Player extends Controller {
         Player.keysPressed[event.code] = false
     }
     private bindKeysToControls() {
-        if (Player.keysPressed['KeyP']) {
-            console.log = ()=>{};
-        }
-        if (Player.keysPressed['Space']) {
-            this.moveCharacterUp()
+        if (this.camModeNum == CameraMode.SecondPerson) {//inverted controls for second person
+            if (Player.keysPressed['KeyA']) {
+                this.moveCharacterRight();
+            }
+            if (Player.keysPressed['KeyD']) {
+                this.moveCharacterLeft();
+            }
+        }else {//Normal WASD controls
+            if (Player.keysPressed['KeyA']) {
+                this.moveCharacterLeft();
+            }
+            if (Player.keysPressed['KeyD']) {
+                this.moveCharacterRight();
+            }
         }
         if (Player.keysPressed['KeyW']) {
             if (Player.keysPressed['ShiftLeft']) this.dynamicData.horizontalVelocity += 10;
             this.moveCharacterForward()
         }
-        if (Player.keysPressed['KeyA']) {
-            this.moveCharacterLeft();
-        }
         if (Player.keysPressed['KeyS']) {
             this.moveCharacterBackward();
         }
-        if (Player.keysPressed['KeyD']) {
-            this.moveCharacterRight();
+        if (Player.keysPressed['KeyP']) {
+            console.log = ()=>{};
+        }
+        if (Player.keysPressed['Space']) {
+            this.moveCharacterUp()
         }
         if (Player.keysPressed['ArrowLeft'])  {
             this.rotateCharacterX(-1)
