@@ -410,9 +410,13 @@ export abstract class Controller {
         console.log("Entity Obstacle distance: ",this.obstacleDistance);
         console.log('Entity should step up: ',this.shouldStepUp);
     }
-    
+    // Helper method to get horizontal forward direction
+    private getHorizontalForward(): THREE.Vector3 {
+        const charDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(this.character.quaternion);
+        return new THREE.Vector3(charDirection.x, 0, charDirection.z).normalize();
+    }
     private isTargetClose = false;
-
+    private pathTargetPos = new THREE.Vector3();
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
         const shouldWalkAroundObstacle = (this.obstacleDistance !== Infinity && !this.canWalkForward && !this.isTargetClose && !this.canJumpOntoObstacle()) 
@@ -423,19 +427,18 @@ export abstract class Controller {
         console.log("Entity movement| canJump: ",this.canJumpOntoObstacle());
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
-        console.log("Entity movement| pathTarget: ",pathTargetPos);
+        console.log("Entity movement| pathTarget: ",this.pathTargetPos);
         if (shouldWalkAroundObstacle) { 
-            const offsetDirection = new THREE.Vector3(-1, 0, 1); // Backwards direction
-            const backwardsDirection = offsetDirection.applyQuaternion(this.character.quaternion); // Apply character rotation
-            const offsetDistance = 50; // Adjust this for how far to offset
-            const newTargetPos = pathTargetPos.clone().add(backwardsDirection.multiplyScalar(offsetDistance));
-            pathTargetPos.copy(newTargetPos)
+            const horizontalForward = this.getHorizontalForward();
+            const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
+            const offsetDistance = 1.5; 
+            this.pathTargetPos.add(leftVector.multiplyScalar(offsetDistance));
         }
-        console.log("Entity movement| newPathTarget: ",pathTargetPos);
-        this.colorPoint(pathTargetPos,0x000000)
+        console.log("Entity movement| newPathTarget: ",this.pathTargetPos);
+        // this.colorPoint(pathTargetPos,0x000000)
 
         const characterPos = this.character.position;
-        const direction = pathTargetPos.clone().sub(characterPos);
+        const direction = this.pathTargetPos.clone().sub(characterPos);
         const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
         const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
         const normAngle = (angleDiff + (2*Math.PI)) % (2 * Math.PI) ;//we normalized the angle cuz its measured in radians not degrees
@@ -450,7 +453,7 @@ export abstract class Controller {
                 this.rotateCharacterX(-1)
             }
         }else {
-            const distToTarget = characterPos.distanceTo(pathTargetPos);
+            const distToTarget = characterPos.distanceTo(this.pathTargetPos);
             const distThreshold = 5;
             this.isTargetClose = distToTarget < distThreshold;
             if (!this.isTargetClose) {
