@@ -15,7 +15,6 @@ function createBoxLine(halfWidth:number,halfHeight:number) {
     const charEdges = new THREE.EdgesGeometry(charGeometry);
     return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
 }
-type DetourState = null | "starting_detour" | "detouring";
 
 export interface FixedControllerData {
     modelPath:string,
@@ -338,41 +337,16 @@ export abstract class Controller {
             })
             if (leftClearance) {
                 const forward = this.getHorizontalForward();
-                this.obstacleClearancePoint = leftCheckPos.clone().add(forward.multiplyScalar(overshoot));
+                const finalPos = leftCheckPos.clone().add(forward.multiplyScalar(overshoot));
+                this.obstacleClearancePoint = finalPos;
                 console.log('charcter clearance point:', this.obstacleClearancePoint);
                 break;
             }
         }  
     }
-    private detectOnRight() {
-        const maxDistance = this.obstacleDetectionDistance;
-        const steps = this.getSteps(maxDistance,this.pointDensity);
-        const horizontalForward = this.getHorizontalForward(); // normalized
-        const right = new THREE.Vector3(-horizontalForward.z, 0, horizontalForward.x).normalize();
-        const agentPos = this.character.position.clone();
-
-        let hasCollidedRight = false
-        for (let i = 1; i <= steps; i++) {//this is meant for the agent.ill find a way to return before here if the inheritung class is a player
-            if (hasCollidedRight) break;
-            const distance = (maxDistance / steps) * i;
-            const point = agentPos.clone().add(right.clone().multiplyScalar(distance));
-            point.y = this.characterPosition.y - (this.groundDetectionDistance-0.5)
-            this.colorPoint(point,0x000000);
-
-            physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
-                const collider = physicsWorld.getCollider(colliderObject.handle);
-                const shape = collider.shape
-                if (!(shape instanceof RAPIER.Cuboid)) return true;//only detect cubes
-                hasCollidedRight = true;
-                this.calcClearanceForAgent(point,1)
-                return true;
-            })
-        }
-    }
     private detectObstacle():void {
         if (!this.isGrounded()) return;//to prevent detection when in the air
-        if (this.logDetour) console.log("Entity path| Detour State: ",this.detourState);
-        
+
         const forward = new THREE.Vector3(0,0,-1);
         const maxDistance = this.obstacleDetectionDistance;
         const steps = this.getSteps(maxDistance,this.pointDensity);
@@ -408,7 +382,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    this.calcClearanceForAgent(point,3);
+                    this.calcClearanceForAgent(point,2);
                 }
                 return true
             });    
@@ -492,7 +466,6 @@ export abstract class Controller {
     private branchedPath:THREE.Vector3 | null = null;
 
     private logDetour = false;
-    private detourState:DetourState = null;
 
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
         this.logDetour = true;
