@@ -336,7 +336,10 @@ export abstract class Controller {
                 return true
             })
             if (leftClearance) {
-                this.obstacleClearancePoint = leftCheckPos.clone()
+                const overshoot = 10;//how many times passed this point should the clearance be
+                const horizontalForward = this.getHorizontalForward();
+                const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
+                this.obstacleClearancePoint = leftCheckPos.clone().add(leftVector.clone().multiplyScalar(overshoot));
                 break;
             }
         }  
@@ -489,7 +492,12 @@ export abstract class Controller {
         }
         const detouredPath = currentPath.clone();
         if (shouldWalkAroundObstacle) { 
-            detouredPath.copy(this.obstacleClearancePoint);
+            const overshoot = 1; // How far forward to nudge the point
+            const horizontalForward = this.getHorizontalForward(); // Should be normalized
+            const overShotClearancePoint = this.obstacleClearancePoint.clone().sub(
+                horizontalForward.clone().multiplyScalar(overshoot)
+            );
+            detouredPath.copy(overShotClearancePoint);
             console.log('Entity path| detouredPath:',this.obstacleClearancePoint);
             this.branchedPath = detouredPath;
         }

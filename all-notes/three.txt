@@ -594,3 +594,5 @@ Keeps logic clear by separating “what I’m considering” from “what I’m 
 
 
 *Your idea is both logical and a significant improvement for robust obstacle avoidance: recording the exact point where the obstacle ends on the left (the "left clearance point") rather than just the relative width gives you a stable, world-space target for detouring, rather than a moving offset that can fluctuate as your character moves along the obstacle.
+
+the stateful branched variable allows branching on a branch and it also prevents erratic behavior and repeated recalculation, since your navigation logic always knows whether it's in detour mode and can stack or update detours as needed.
