@@ -592,3 +592,5 @@ Used within the current frame to calculate a new detour based on currentPath.
 Not persisted—simply a candidate for the next branched path.
 Keeps logic clear by separating “what I’m considering” from “what I’m committed to.”
 
+
+*Your idea is both logical and a significant improvement for robust obstacle avoidance: recording the exact point where the obstacle ends on the left (the "left clearance point") rather than just the relative width gives you a stable, world-space target for detouring, rather than a moving offset that can fluctuate as your character moves along the obstacle.

@@ -346,7 +346,7 @@ export abstract class Controller {
         }  
     }
     private detectObstacle():void {
-        if (!this.isGrounded()) return;
+        if (!this.isGrounded()) return;//to prevent detection when in the air
         const forward = new THREE.Vector3(0,0,-1);
         const maxDistance = this.obstacleDetectionDistance;
         const steps = this.getSteps(maxDistance,this.pointDensity);
@@ -497,7 +497,7 @@ export abstract class Controller {
             console.log("Entity path| relative width: ",this.obstacleWidth);
             const horizontalForward = this.getHorizontalForward();
             const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
-            const lateralOffset = leftVector.multiplyScalar(Math.max(1,this.obstacleWidth+3));  // Left shift
+            const lateralOffset = leftVector.clone().multiplyScalar(Math.max(1,this.obstacleWidth+3));  // Left shift
             detouredPath.add(lateralOffset);
             this.branchedPath = detouredPath;
         }
