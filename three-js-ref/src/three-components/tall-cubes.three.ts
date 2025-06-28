@@ -29,13 +29,13 @@ for (let i = 0; i < points.length; i++) {
     const posX = x - groundArea/2; // center around zero.divide by two to align it around the ground's origin to prevent leakage from the ground
     const posZ = z - groundArea/2;
 
-    const tallCubeGeometry = new THREE.BoxGeometry(30,height,30);
+    const tallCubeGeometry = new THREE.BoxGeometry(20,height,20);
     const tallCube = new THREE.Mesh(tallCubeGeometry, tallCubeMaterial);
     const tallCubeEdges = new EdgesGeometry(tallCubeGeometry);
     const tallCubeLine = new LineSegments(tallCubeEdges, new LineBasicMaterial({ color: 0x000000 }));
     tallCube.add(tallCubeLine)
 
-    const tallCubeCollider = RAPIER.ColliderDesc.cuboid(15,height/2,15);
+    const tallCubeCollider = RAPIER.ColliderDesc.cuboid(10,height/2,10);
     tallCubeCollider.setFriction(0.5)
     const tallCubeBody = RAPIER.RigidBodyDesc.fixed();
     const tallCubeRigidBody = physicsWorld.createRigidBody(tallCubeBody);

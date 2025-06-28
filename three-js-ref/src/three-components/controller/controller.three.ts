@@ -338,7 +338,7 @@ export abstract class Controller {
             if (leftClearance) {
                 const forward = this.getHorizontalForward();
                 const finalPos = leftCheckPos.clone().add(forward.multiplyScalar(overshoot));
-                this.obstacleClearancePoint = finalPos;
+                this.obstacleClearancePoint = finalPos
                 console.log('charcter clearance point:', this.obstacleClearancePoint);
                 break;
             }
@@ -353,7 +353,7 @@ export abstract class Controller {
 
         const horizontalForward = this.getHorizontalForward();
         const right = new THREE.Vector3(-horizontalForward.z, 0, horizontalForward.x).normalize();
-        const rightOffsetDistance = 2;
+        const rightOffsetDistance = 1.5;
 
         let hasCollidedForward = false
         for (let i = 1; i <= steps; i++) {
