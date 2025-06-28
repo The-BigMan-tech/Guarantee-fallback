@@ -42,7 +42,7 @@ export interface CollisionMap {
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
     private static showHitBoxes = false;//the hitboxes are a bit broken
-    private static showPoints = false;
+    private static showPoints = true;
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
@@ -320,7 +320,7 @@ export abstract class Controller {
             }
         }   
     }
-    private obstacleClearancePoint:THREE.Vector3 = new THREE.Vector3()
+    private obstacleClearancePoint:THREE.Vector3 = new THREE.Vector3();
     private calcObstacleWidth(point: THREE.Vector3) {
         const horizontalForward = this.getHorizontalForward();
         const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
@@ -336,7 +336,7 @@ export abstract class Controller {
                 return true
             })
             if (leftClearance) {
-                this.obstacleClearancePoint = point
+                this.obstacleClearancePoint = leftCheckPos.clone()
                 break;
             }
         }  
@@ -465,7 +465,6 @@ export abstract class Controller {
         const currentPath = this.branchedPath || originalPath;
         const characterPos = this.character.position;
         const distToOriginalTarget = characterPos.distanceTo(originalPath);
-        const distThreshold = 5;
 
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
         const shouldWalkAroundObstacle = (this.obstacleDistance !== Infinity && (!this.shouldStepUp || !this.canWalkForward) && !this.isTargetClose && !this.canJumpOntoObstacle()) //either you cant step up or u cant walk forward
@@ -477,27 +476,34 @@ export abstract class Controller {
         console.log("Entity movement| shouldStepUp: ",this.shouldStepUp);
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
-        console.log("Entity path| prev path: ",this.branchedPath);
-        console.log("Entity path| pathTarget: ",currentPath);
+        console.log("Entity path| branched path: ",this.branchedPath);
+        console.log("Entity path| original path: ",originalPath);
 
         console.log('Entity distToOldTarget:', distToOriginalTarget);
         if (this.branchedPath) {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
             console.log('Entity distToPrevPath:', distToBranchedPath);
-            if ((distToBranchedPath < distThreshold) || (distToOriginalTarget < this.roundToNearestTens(distToBranchedPath))) {
-                this.branchedPath = null;
-            }
+            // if ((distToBranchedPath < distThreshold) || (distToOriginalTarget < this.roundToNearestTens(distToBranchedPath))) {
+            //     this.branchedPath = null;
+            // }
         }
         const detouredPath = currentPath.clone();
         if (shouldWalkAroundObstacle) { 
             detouredPath.copy(this.obstacleClearancePoint);
-            console.log('Entity path| detouredPath:', detouredPath);
+            console.log('Entity path| detouredPath:',this.obstacleClearancePoint);
             this.branchedPath = detouredPath;
         }
         // this.colorPoint(pathTargetPos,0x000000)
         const finalDir = this.getSteeringDirection(detouredPath)
         const distToTarget = characterPos.distanceTo(detouredPath);
+        const epsilon = 0.01;
+        let distThreshold = 5;
+
+        if (currentPath.distanceTo(detouredPath) > epsilon) {//means they are different
+            distThreshold = 0.1
+        }
         this.isTargetClose = distToTarget < distThreshold;
+
         if (finalDir !== null) {
             console.log("Passed rotation threshols");
             this.rotateCharacterX(finalDir)
@@ -508,7 +514,6 @@ export abstract class Controller {
             this.playIdleAnimation()
             this.stopWalkSound();
         }
-        console.log("Entity path| newPathTarget: ",detouredPath);
         console.log("Entity path| currentPos: ",characterPos);
     }
 
@@ -544,7 +549,6 @@ export abstract class Controller {
         this.shouldStepUp = false;
         // this.obstacleHeight = 0;
         this.obstacleDistance = 0;
-        this.obstacleClearancePoint.set(0,0,0)
     }
     private updateCharacterAnimations():void {
         const delta = this.clock.getDelta();
