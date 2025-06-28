@@ -451,8 +451,11 @@ export abstract class Controller {
 
     private prevPath:THREE.Vector3 | null = null;
     protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
-        pathTargetPos = this.prevPath || pathTargetPos;
         const characterPos = this.character.position;
+        const distToOriginalTarget = characterPos.distanceTo(pathTargetPos);
+
+        pathTargetPos = this.prevPath || pathTargetPos;
+    
         const distThreshold = 5;
         const onGround = this.isGrounded()
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
@@ -467,11 +470,12 @@ export abstract class Controller {
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
         console.log("Entity path| pathTarget: ",pathTargetPos);
+        console.log("Entity path| prev path: ",this.prevPath);
 
+        console.log('Entity distToOldTarget:', distToOriginalTarget);
         if (this.prevPath) {
-            console.log("Entity path| prev path: ",this.prevPath);
             const distToPrevPath = this.distanceXZ(characterPos, this.prevPath);
-            if (distToPrevPath < distThreshold) {
+            if ((distToPrevPath < 10)) {
                 this.prevPath = null;
                 console.log("Entity movement has reached destination");
             }
