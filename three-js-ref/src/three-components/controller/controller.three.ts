@@ -475,7 +475,7 @@ export abstract class Controller {
         console.log('Entity distToOldTarget:', distToOriginalTarget);
         if (this.prevPath) {
             const distToPrevPath = this.distanceXZ(characterPos, this.prevPath);
-            if ((distToPrevPath < 10)) {
+            if ((distToPrevPath < distThreshold) || (distToOriginalTarget < 20)) {
                 this.prevPath = null;
                 console.log("Entity movement has reached destination");
             }
