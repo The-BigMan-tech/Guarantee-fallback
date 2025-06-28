@@ -351,11 +351,18 @@ export abstract class Controller {
         const maxDistance = this.obstacleDetectionDistance;
         const steps = this.getSteps(maxDistance,this.pointDensity);
 
+        const horizontalForward = this.getHorizontalForward();
+        const right = new THREE.Vector3(-horizontalForward.z, 0, horizontalForward.x).normalize();
+        const rightOffsetDistance = 2;
+
         let hasCollidedForward = false
         for (let i = 1; i <= steps; i++) {
             if (hasCollidedForward) break;
             const distance = (maxDistance / steps) * i;
-            const point:THREE.Vector3 = this.orientPoint(distance,forward);
+            let point:THREE.Vector3 = this.orientPoint(distance,forward);
+            if (i == 2) {
+                point = point.add(right.clone().multiplyScalar(rightOffsetDistance));
+            }
             this.colorPoint(point,0x000000);
 
             physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
@@ -382,7 +389,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    this.calcClearanceForAgent(point,2);
+                    if (i == 2) this.calcClearanceForAgent(point,1);
                 }
                 return true
             });    
@@ -465,10 +472,7 @@ export abstract class Controller {
     private isTargetClose = false;
     private branchedPath:THREE.Vector3 | null = null;
 
-    private logDetour = false;
-
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
-        this.logDetour = true;
         const currentPath = this.branchedPath || originalPath;
         const characterPos = this.character.position;
         const distToOriginalTarget = this.distanceXZ(characterPos,originalPath)
@@ -489,7 +493,7 @@ export abstract class Controller {
 
         console.log('Entity distToOldTarget:', distToOriginalTarget);
 
-        let distThreshold = 3;
+        let distThreshold = 5;
         if (this.branchedPath) {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
             console.log('Entity distToPrevPath:', distToBranchedPath);
