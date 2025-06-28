@@ -86,7 +86,7 @@ export abstract class Controller {
     private pointDensity = 1.2;
 
     private obstacleDistance:number = 0;//unlike obstacledetection distance which is a fixed unit telling the contoller how far to detect obstacles ahead of time,this one actually tells the realtime distance of an obstacle form the controller
-    private obstacleWidth:number = 0;
+
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
@@ -320,6 +320,7 @@ export abstract class Controller {
             }
         }   
     }
+    private obstacleClearancePoint:THREE.Vector3 = new THREE.Vector3()
     private calcObstacleWidth(point: THREE.Vector3) {
         const horizontalForward = this.getHorizontalForward();
         const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
@@ -335,12 +336,7 @@ export abstract class Controller {
                 return true
             })
             if (leftClearance) {
-                const relativeWidth = Number(Math.sqrt(
-                    Math.pow(leftCheckPos.x - point.x, 2) +
-                    Math.pow(leftCheckPos.z - point.z, 2)
-                ).toFixed(2));
-                this.obstacleWidth = relativeWidth
-                console.log("Relative width: ",relativeWidth);
+                this.obstacleClearancePoint = point
                 break;
             }
         }  
@@ -481,8 +477,8 @@ export abstract class Controller {
         console.log("Entity movement| shouldStepUp: ",this.shouldStepUp);
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
-        console.log("Entity path| pathTarget: ",currentPath);
         console.log("Entity path| prev path: ",this.branchedPath);
+        console.log("Entity path| pathTarget: ",currentPath);
 
         console.log('Entity distToOldTarget:', distToOriginalTarget);
         if (this.branchedPath) {
@@ -494,11 +490,8 @@ export abstract class Controller {
         }
         const detouredPath = currentPath.clone();
         if (shouldWalkAroundObstacle) { 
-            console.log("Entity path| relative width: ",this.obstacleWidth);
-            const horizontalForward = this.getHorizontalForward();
-            const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
-            const lateralOffset = leftVector.clone().multiplyScalar(Math.max(1,this.obstacleWidth+3));  // Left shift
-            detouredPath.add(lateralOffset);
+            detouredPath.copy(this.obstacleClearancePoint);
+            console.log('Entity path| detouredPath:', detouredPath);
             this.branchedPath = detouredPath;
         }
         // this.colorPoint(pathTargetPos,0x000000)
@@ -551,7 +544,7 @@ export abstract class Controller {
         this.shouldStepUp = false;
         // this.obstacleHeight = 0;
         this.obstacleDistance = 0;
-        this.obstacleWidth = 0;
+        this.obstacleClearancePoint.set(0,0,0)
     }
     private updateCharacterAnimations():void {
         const delta = this.clock.getDelta();
