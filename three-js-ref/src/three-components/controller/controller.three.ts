@@ -371,7 +371,7 @@ export abstract class Controller {
     }
     private detectObstacle():void {
         if (!this.isGrounded()) return;//to prevent detection when in the air
-        if (this.logDetour) console.log("",this.onDetour);
+        if (this.logDetour) console.log("On Detour: ",this.onDetour);
         const forward = new THREE.Vector3(0,0,-1);
         const maxDistance = this.obstacleDetectionDistance;
         const steps = this.getSteps(maxDistance,this.pointDensity);
@@ -513,11 +513,13 @@ export abstract class Controller {
 
         console.log("Entity path| branched path: ",this.branchedPath);
         console.log("Entity path| original path: ",originalPath);
+        console.log("Entity path| char pos: ",characterPos);
 
         console.log('Entity distToOldTarget:', distToOriginalTarget);
 
         let distThreshold = 5;
         if (this.branchedPath) {
+            this.onDetour = true;
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
             console.log('Entity distToPrevPath:', distToBranchedPath);
             //this is if it has reached the branched path
@@ -532,7 +534,6 @@ export abstract class Controller {
         const detouredPath = currentPath.clone();
         if (shouldWalkAroundObstacle) { 
             detouredPath.copy(this.obstacleClearancePoint);
-            this.onDetour = true;
             console.log('Entity path| detouredPath:',this.obstacleClearancePoint);
             this.branchedPath = detouredPath;
         }
@@ -556,7 +557,6 @@ export abstract class Controller {
             this.playIdleAnimation()
             this.stopWalkSound();
         }
-        console.log("Entity path| currentPos: ",characterPos);
     }
 
     private canWalkForward:boolean = false
