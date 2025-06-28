@@ -484,9 +484,9 @@ export abstract class Controller {
             const horizontalForward = this.getHorizontalForward();
             //Swapping x and z and negating x gives you the left-facing perpendicular vector in the XZ plane.
             const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
-            const lateralOffset = leftVector.clone().multiplyScalar(Math.max(1,this.obstacleWidth/2));  // Left shift
+            const lateralOffset = leftVector.clone().multiplyScalar(Math.max(1,this.obstacleWidth));  // Left shift
             pathTargetPos.add(lateralOffset);
-            this.prevPath = pathTargetPos
+            this.prevPath = pathTargetPos;
         }
         console.log("Entity path| newPathTarget: ",pathTargetPos);
         // this.colorPoint(pathTargetPos,0x000000)
@@ -509,13 +509,12 @@ export abstract class Controller {
             }else {
                 this.rotateCharacterX(-1)
             }
+        }
+        if (!this.isTargetClose) {
+            this.autoMoveForward();
         }else {
-            if (!this.isTargetClose) {
-                this.autoMoveForward();
-            }else {
-                this.playIdleAnimation()
-                this.stopWalkSound();
-            }
+            this.playIdleAnimation()
+            this.stopWalkSound();
         }
         console.log("Entity path| currentPos: ",characterPos);
     }
