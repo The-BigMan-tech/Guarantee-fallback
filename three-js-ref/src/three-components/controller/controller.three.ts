@@ -495,12 +495,7 @@ export abstract class Controller {
         }
         const detouredPath = currentPath.clone();
         if (shouldWalkAroundObstacle) { 
-            const overshoot = 1; // How far forward to nudge the point
-            const horizontalForward = this.getHorizontalForward(); // Should be normalized
-            const overShotClearancePoint = this.obstacleClearancePoint.clone().sub(
-                horizontalForward.clone().multiplyScalar(overshoot)
-            );
-            detouredPath.copy(overShotClearancePoint);
+            detouredPath.copy(this.obstacleClearancePoint);
             console.log('Entity path| detouredPath:',this.obstacleClearancePoint);
             this.branchedPath = detouredPath;
         }
