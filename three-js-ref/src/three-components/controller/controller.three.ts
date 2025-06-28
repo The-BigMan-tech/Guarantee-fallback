@@ -336,10 +336,6 @@ export abstract class Controller {
                 return true
             })
             if (leftClearance) {
-                const overshoot = 5;//how many times passed this point should the clearance be
-                const horizontalForward = this.getHorizontalForward();
-                const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
-                leftCheckPos.x += leftVector.clone().multiplyScalar(overshoot).x
                 this.obstacleClearancePoint = leftCheckPos.clone()
                 break;
             }

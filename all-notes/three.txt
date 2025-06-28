@@ -596,3 +596,14 @@ Keeps logic clear by separating “what I’m considering” from “what I’m 
 *Your idea is both logical and a significant improvement for robust obstacle avoidance: recording the exact point where the obstacle ends on the left (the "left clearance point") rather than just the relative width gives you a stable, world-space target for detouring, rather than a moving offset that can fluctuate as your character moves along the obstacle.
 
 the stateful branched variable allows branching on a branch and it also prevents erratic behavior and repeated recalculation, since your navigation logic always knows whether it's in detour mode and can stack or update detours as needed.
+
+*A human player will naturally walk up to an obstacle and linger at the edge, giving your detection logic time to find and use the clearance point. In contrast, an AI agent often moves more efficiently and purposefully, which can expose edge cases in your navigation logic that a casual player might not encounter.
+
+Why This Happens
+Player Behavior:
+Players tend to approach obstacles at varying speeds, sometimes stopping, turning, or adjusting their path. This "casual" approach gives the detection logic more time and more varied positions to work from, making it easier to find a usable clearance point.
+
+Agent Behavior:
+AI agents, especially those optimized for efficiency, tend to move in straight lines and immediately attempt to detour as soon as an obstacle is detected. They may not linger at the edge, and their movement can be more "binary" (either moving or not), which can make the detection logic more brittle if it expects the agent to be at a certain spot for a certain amount of time.
+
+*so my entity is more robust cuz now unlike before,it uses an absolute world space cords not a relative one which means i dont have to manually steer the entity's path with a left vector so it moved smartly around an obstacle and the value is stable across movement but the detection still slides away from the obstacle
