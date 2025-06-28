@@ -55,7 +55,6 @@ export abstract class Controller {
     private characterColliderHandle:number;
     private charLine: THREE.LineSegments;
 
-    private modelYOffset:number = 0;//initial value of offset
     private modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera
 
     private obstacleHeight: number = 0;//0 means there is no obstacle infront of the player,a nmber above this means there is an obstacle but the character can walk over it,infinty means that tere is an obstacle and the character cant walk over it
@@ -117,7 +116,6 @@ export abstract class Controller {
 
         this.groundDetectionDistance = halfHeight + 0.5 + ((fixedData.characterHeight%2) * 0.5);//i didnt just guess this from my head.i made the formula after trying different values and recording the ones that correctly matched a given character height,saw a pattern and crafted a formula for it
         this.originalHorizontalVel = dynamicData.horizontalVelocity;
-        this.modelYOffset = fixedData.characterHeight-1;
         this.loadCharacterModel();
     }
     private loadCharacterModel():void {
@@ -458,7 +456,7 @@ export abstract class Controller {
         const distThreshold = 5;
         const onGround = this.isGrounded()
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
-        const shouldWalkAroundObstacle = ((this.obstacleDistance !== Infinity) && !this.shouldStepUp && !this.isTargetClose && !this.canJumpOntoObstacle()) 
+        const shouldWalkAroundObstacle = (this.obstacleDistance !== Infinity && (!this.shouldStepUp || !this.canWalkForward) && !this.isTargetClose && !this.canJumpOntoObstacle()) //either you cant step up or u cant walk forward
         console.log("Entity movement| obstacle height: ",this.obstacleHeight);
         console.log("Entity movement| obstacle distance: ",this.obstacleDistance);
         console.log("Entity movement| can move forward: ",this.canWalkForward);
@@ -520,7 +518,7 @@ export abstract class Controller {
     }
 
     private canWalkForward:boolean = false
-    private checkIfCanWalkForward(prevCharPosition:THREE.Vector3) {
+    private checkIfCanWalkForward(prevCharPosition:THREE.Vector3) {//defense mechanism to catch failures of shouldStepUp cuz of faulty collision detection
         if (Math.abs(this.velocity.z) > 0 && !this.shouldStepUp) {//this checks if i moved forward but it doesnt check if i should step up cuz if it can step up,then it can walk forward
             const ifComponentY = (Math.abs(this.velocity.y) > 0)
             const posDiff = prevCharPosition.distanceTo(this.characterRigidBody.translation());
@@ -558,7 +556,8 @@ export abstract class Controller {
         if (this.mixer) this.mixer.update(delta);
     }
     private updateCharacterTransformations():void {
-        const [posX,posY,posZ] = [this.characterPosition.x,this.characterPosition.y-this.modelYOffset,this.characterPosition.z];
+        //i minused it from ground detction distance to get it to stay exactly on the ground
+        const [posX,posY,posZ] = [this.characterPosition.x,this.characterPosition.y-this.groundDetectionDistance,this.characterPosition.z];
         this.character.position.set(posX,posY,posZ);
         this.character.quaternion.slerp(this.targetQuaternion,this.dynamicData.rotationSpeed);
         this.characterRigidBody.setRotation(this.targetQuaternion,true);
