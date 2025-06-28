@@ -12,6 +12,7 @@ class Entity extends Controller {
         this.moveToTarget(player.position)
     }
 }
+//char height and width can break for arbritary values that havent been tested
 const entityFixedData:FixedControllerData = {
     modelPath:'./silvermoon.glb',
     spawnPoint: new RAPIER.Vector3(0,20,-10),
