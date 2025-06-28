@@ -97,10 +97,10 @@ class Player extends Controller {
             this.moveCharacterUp()
         }
         if (Player.keysPressed['ArrowLeft'])  {
-            this.rotateCharacterX(-1)
+            this.rotateCharacterX('left')
         };  
         if (Player.keysPressed['ArrowRight']) {
-            this.rotateCharacterX(+1)
+            this.rotateCharacterX('right')
         };
         if (Player.keysPressed['KeyT']) {
             if ((this.lastToggleTime + this.toggleCooldown) <= this.clock.elapsedTime) { //this is a debouncing mechanism

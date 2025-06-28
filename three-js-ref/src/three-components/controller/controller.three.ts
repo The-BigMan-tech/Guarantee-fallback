@@ -511,9 +511,9 @@ export abstract class Controller {
         if ((normAngleInDegrees > rotationThreshold)) {
             console.log("Passed rotation threshols");
             if (normAngleInDegrees < 180) {
-                this.rotateCharacterX(+1)
+                this.rotateCharacterX('right')
             }else {
-                this.rotateCharacterX(-1)
+                this.rotateCharacterX('left')
             }
         }
         if (!this.isTargetClose) {
@@ -646,7 +646,8 @@ export abstract class Controller {
         down.applyQuaternion(this.character.quaternion);
         this.velocity.add(down);
     }
-    protected rotateCharacterX(sign:1 | -1):void {
+    protected rotateCharacterX(direction:'left' | 'right'):void {
+        const sign = (direction=="right")? 1 : -1
         this.wakeUpBody();
         this.targetRotation.y -= (this.dynamicData.rotationDelta * sign); 
         this.targetQuaternion.setFromEuler(this.targetRotation);
