@@ -450,8 +450,19 @@ export abstract class Controller {
     private roundToNearestTens(num:number):number {
         return Math.round(num / 10) * 10;
     }
+    private getSteeringDirection(path:THREE.Vector3):'right' | 'left' | null {
+        const direction = path.clone().sub(this.character.position);
+        const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
+        const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
+        const normAngle = (angleDiff + (2*Math.PI)) % (2 * Math.PI) ;//we normalized the angle cuz its measured in radians not degrees
+        const normAngleInDegrees = Number((normAngle * (180/Math.PI)).toFixed(2));
+        const rotationThreshold = 10;//the magnitude of the rotation diff before it rotates to the target direction
+        if (normAngleInDegrees > rotationThreshold) {
+            return (normAngleInDegrees < 180)?'right':'left'
+        }
+        return null
+    }
     private isTargetClose = false;
-
     private branchedPath:THREE.Vector3 | null = null;
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
         const characterPos = this.character.position;
@@ -493,27 +504,14 @@ export abstract class Controller {
             detouredPath.add(lateralOffset);
             this.branchedPath = detouredPath;
         }
-        console.log("Entity path| newPathTarget: ",detouredPath);
+
         // this.colorPoint(pathTargetPos,0x000000)
-
-        
-        const direction = detouredPath.clone().sub(characterPos);
-        const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
-        const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
-        const normAngle = (angleDiff + (2*Math.PI)) % (2 * Math.PI) ;//we normalized the angle cuz its measured in radians not degrees
-        const normAngleInDegrees = Number((normAngle * (180/Math.PI)).toFixed(2))
-        const rotationThreshold = 10;//the magnitude of the rotation diff before it rotates to the target direction
-
+        const dir = this.getSteeringDirection(detouredPath)
         const distToTarget = characterPos.distanceTo(detouredPath);
         this.isTargetClose = distToTarget < distThreshold;
-
-        if ((normAngleInDegrees > rotationThreshold)) {
+        if (dir !== null) {
             console.log("Passed rotation threshols");
-            if (normAngleInDegrees < 180) {
-                this.rotateCharacterX('right')
-            }else {
-                this.rotateCharacterX('left')
-            }
+            this.rotateCharacterX(dir)
         }
         if (!this.isTargetClose) {
             this.autoMoveForward();
@@ -521,6 +519,7 @@ export abstract class Controller {
             this.playIdleAnimation()
             this.stopWalkSound();
         }
+        console.log("Entity path| newPathTarget: ",detouredPath);
         console.log("Entity path| currentPos: ",characterPos);
     }
 
