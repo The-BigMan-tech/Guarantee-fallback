@@ -490,25 +490,24 @@ export abstract class Controller {
             console.log('Entity distToPrevPath:', distToBranchedPath);
             if ((distToBranchedPath < distThreshold) || (distToOriginalTarget < this.roundToNearestTens(distToBranchedPath))) {
                 this.branchedPath = null;
-                console.log("Entity movement has reached destination");
             }
         }
         const detouredPath = currentPath.clone();
         if (shouldWalkAroundObstacle) { 
             console.log("Entity path| relative width: ",this.obstacleWidth);
             const horizontalForward = this.getHorizontalForward();
-            const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();//Swapping x and z and negating x gives you the left-facing perpendicular vector in the XZ plane.
-            const lateralOffset = leftVector.clone().multiplyScalar(Math.max(1,this.obstacleWidth));  // Left shift
+            const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
+            const lateralOffset = leftVector.multiplyScalar(Math.max(1,this.obstacleWidth+3));  // Left shift
             detouredPath.add(lateralOffset);
             this.branchedPath = detouredPath;
         }
         // this.colorPoint(pathTargetPos,0x000000)
-        const dir = this.getSteeringDirection(detouredPath)
+        const finalDir = this.getSteeringDirection(detouredPath)
         const distToTarget = characterPos.distanceTo(detouredPath);
         this.isTargetClose = distToTarget < distThreshold;
-        if (dir !== null) {
+        if (finalDir !== null) {
             console.log("Passed rotation threshols");
-            this.rotateCharacterX(dir)
+            this.rotateCharacterX(finalDir)
         }
         if (!this.isTargetClose) {
             this.autoMoveForward();
