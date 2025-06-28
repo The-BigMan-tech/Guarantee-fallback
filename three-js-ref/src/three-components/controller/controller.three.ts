@@ -464,14 +464,13 @@ export abstract class Controller {
     }
     private isTargetClose = false;
     private branchedPath:THREE.Vector3 | null = null;
+
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
+        const currentPath = this.branchedPath || originalPath;
         const characterPos = this.character.position;
         const distToOriginalTarget = characterPos.distanceTo(originalPath);
-
-        const currentPath = this.branchedPath || originalPath;
-    
         const distThreshold = 5;
-        const onGround = this.isGrounded()
+
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
         const shouldWalkAroundObstacle = (this.obstacleDistance !== Infinity && (!this.shouldStepUp || !this.canWalkForward) && !this.isTargetClose && !this.canJumpOntoObstacle()) //either you cant step up or u cant walk forward
         console.log("Entity movement| obstacle height: ",this.obstacleHeight);
@@ -480,7 +479,6 @@ export abstract class Controller {
         console.log("Entity movement| is target close: ",this.isTargetClose);
         console.log("Entity movement| canJump: ",this.canJumpOntoObstacle());
         console.log("Entity movement| shouldStepUp: ",this.shouldStepUp);
-        console.log("Entity movement| isGrounded: ",onGround);
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
         console.log("Entity path| pathTarget: ",currentPath);
@@ -504,7 +502,6 @@ export abstract class Controller {
             detouredPath.add(lateralOffset);
             this.branchedPath = detouredPath;
         }
-
         // this.colorPoint(pathTargetPos,0x000000)
         const dir = this.getSteeringDirection(detouredPath)
         const distToTarget = characterPos.distanceTo(detouredPath);

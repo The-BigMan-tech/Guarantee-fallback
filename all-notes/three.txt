@@ -554,3 +554,41 @@ entities move with target positions
 
 detour
 rebranching logic
+
+*Roles of the Four Path Types
+1. originalPath
+---------------
+^Definition: 
+The straight line from the character to the ultimate target (e.g., the player or a goal).
+^Purpose:
+The “ideal” path; the entity should always try to rejoin this path after any detour.
+Used for strategic decisions (e.g., which side to detour around an obstacle).
+Should not be mutated—remains constant during navigation to the current target.
+
+2. branchedPath
+----------------
+^Definition: 
+A persistent detour point set when the entity needs to avoid an obstacle.
+^Purpose:
+Guides the entity temporarily away from the original path to go around an obstacle.
+Remains active until the entity reaches it or until a rebranching condition is met.
+Only set when a detour is necessary; otherwise, it’s null.
+
+3. currentPath
+---------------
+^Definition: 
+The path the entity is currently following in this frame.
+^Purpose:
+Reflects the active navigation goal: either branchedPath (if set) or originalPath.
+Used for movement and rotation in the current update.
+Acts as the “working” target for this frame.
+
+4. detouredPath
+---------------
+^Definition:
+A local, temporary path variable created when a detour decision is made.
+^Purpose:
+Used within the current frame to calculate a new detour based on currentPath.
+Not persisted—simply a candidate for the next branched path.
+Keeps logic clear by separating “what I’m considering” from “what I’m committed to.”
+
