@@ -484,27 +484,27 @@ export abstract class Controller {
                 console.log("Entity movement has reached destination");
             }
         }
-
+        const detouredPath = currentPath.clone();
         if (shouldWalkAroundObstacle) { 
             console.log("Entity path| relative width: ",this.obstacleWidth);
             const horizontalForward = this.getHorizontalForward();
             const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();//Swapping x and z and negating x gives you the left-facing perpendicular vector in the XZ plane.
             const lateralOffset = leftVector.clone().multiplyScalar(Math.max(1,this.obstacleWidth));  // Left shift
-            currentPath.add(lateralOffset);
-            this.branchedPath = currentPath;
+            detouredPath.add(lateralOffset);
+            this.branchedPath = detouredPath;
         }
-        console.log("Entity path| newPathTarget: ",currentPath);
+        console.log("Entity path| newPathTarget: ",detouredPath);
         // this.colorPoint(pathTargetPos,0x000000)
 
         
-        const direction = currentPath.clone().sub(characterPos);
+        const direction = detouredPath.clone().sub(characterPos);
         const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
         const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
         const normAngle = (angleDiff + (2*Math.PI)) % (2 * Math.PI) ;//we normalized the angle cuz its measured in radians not degrees
         const normAngleInDegrees = Number((normAngle * (180/Math.PI)).toFixed(2))
         const rotationThreshold = 10;//the magnitude of the rotation diff before it rotates to the target direction
 
-        const distToTarget = characterPos.distanceTo(currentPath);
+        const distToTarget = characterPos.distanceTo(detouredPath);
         this.isTargetClose = distToTarget < distThreshold;
 
         if ((normAngleInDegrees > rotationThreshold)) {
