@@ -611,3 +611,5 @@ AI agents, especially those optimized for efficiency, tend to move in straight l
 binary state variable
 multi-state variable
 
+*Instead of running separate detection logic for forward and right directions and juggling states, you embed the “right detection” behavior directly into the forward detection line by offsetting a point. This reduces complexity and potential bugs.
+

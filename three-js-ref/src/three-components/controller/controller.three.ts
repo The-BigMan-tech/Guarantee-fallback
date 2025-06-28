@@ -353,14 +353,14 @@ export abstract class Controller {
 
         const horizontalForward = this.getHorizontalForward();
         const right = new THREE.Vector3(-horizontalForward.z, 0, horizontalForward.x).normalize();
-        const rightOffsetDistance = 1.5;
+        const rightOffsetDistance = 2;
 
         let hasCollidedForward = false
         for (let i = 1; i <= steps; i++) {
             if (hasCollidedForward) break;
             const distance = (maxDistance / steps) * i;
             let point:THREE.Vector3 = this.orientPoint(distance,forward);
-            if (i == 2) {
+            if (i == steps) {
                 point = point.add(right.clone().multiplyScalar(rightOffsetDistance));
             }
             this.colorPoint(point,0x000000);
@@ -389,7 +389,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if (i == 2) this.calcClearanceForAgent(point,1);
+                    if (i == steps) this.calcClearanceForAgent(point,1);
                 }
                 return true
             });    
@@ -479,12 +479,6 @@ export abstract class Controller {
 
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
         const shouldWalkAroundObstacle = (this.obstacleDistance !== Infinity && (!this.shouldStepUp || !this.canWalkForward) && !this.isTargetClose && !this.canJumpOntoObstacle()) //either you cant step up or u cant walk forward
-        console.log("Entity movement| obstacle height: ",this.obstacleHeight);
-        console.log("Entity movement| obstacle distance: ",this.obstacleDistance);
-        console.log("Entity movement| can move forward: ",this.canWalkForward);
-        console.log("Entity movement| is target close: ",this.isTargetClose);
-        console.log("Entity movement| canJump: ",this.canJumpOntoObstacle());
-        console.log("Entity movement| shouldStepUp: ",this.shouldStepUp);
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
         console.log("Entity path| branched path: ",this.branchedPath);
