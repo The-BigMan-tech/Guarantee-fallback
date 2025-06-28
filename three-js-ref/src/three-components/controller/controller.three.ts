@@ -336,7 +336,7 @@ export abstract class Controller {
                 return true
             })
             if (leftClearance) {
-                const overshoot = 10;//how many times passed this point should the clearance be
+                const overshoot = 1;//how many times passed this point should the clearance be
                 const horizontalForward = this.getHorizontalForward();
                 const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
                 this.obstacleClearancePoint = leftCheckPos.clone().add(leftVector.clone().multiplyScalar(overshoot));
@@ -467,7 +467,7 @@ export abstract class Controller {
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
         const currentPath = this.branchedPath || originalPath;
         const characterPos = this.character.position;
-        const distToOriginalTarget = characterPos.distanceTo(originalPath);
+        const distToOriginalTarget = this.distanceXZ(characterPos,originalPath)
 
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
         const shouldWalkAroundObstacle = (this.obstacleDistance !== Infinity && (!this.shouldStepUp || !this.canWalkForward) && !this.isTargetClose && !this.canJumpOntoObstacle()) //either you cant step up or u cant walk forward
@@ -483,12 +483,15 @@ export abstract class Controller {
         console.log("Entity path| original path: ",originalPath);
 
         console.log('Entity distToOldTarget:', distToOriginalTarget);
+
+        let distThreshold = 5;
         if (this.branchedPath) {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
             console.log('Entity distToPrevPath:', distToBranchedPath);
-            // if ((distToBranchedPath < distThreshold) || (distToOriginalTarget < this.roundToNearestTens(distToBranchedPath))) {
-            //     this.branchedPath = null;
-            // }
+            if ((distToBranchedPath < distThreshold) || (distToOriginalTarget < this.roundToNearestTens(distToBranchedPath))) {
+                this.branchedPath = null;
+                console.log("Cleared branch");
+            }
         }
         const detouredPath = currentPath.clone();
         if (shouldWalkAroundObstacle) { 
@@ -505,7 +508,6 @@ export abstract class Controller {
         const finalDir = this.getSteeringDirection(detouredPath)
         const distToTarget = characterPos.distanceTo(detouredPath);
         const epsilon = 0.01;
-        let distThreshold = 5;
 
         if (currentPath.distanceTo(detouredPath) > epsilon) {//means they are different
             distThreshold = 0.1
