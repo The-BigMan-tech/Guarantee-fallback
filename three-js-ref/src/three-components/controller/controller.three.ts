@@ -15,6 +15,7 @@ function createBoxLine(halfWidth:number,halfHeight:number) {
     const charEdges = new THREE.EdgesGeometry(charGeometry);
     return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
 }
+type DetourState = null | "starting_detour" | "detouring";
 
 export interface FixedControllerData {
     modelPath:string,
@@ -321,7 +322,7 @@ export abstract class Controller {
         }   
     }
     private obstacleClearancePoint:THREE.Vector3 = new THREE.Vector3();
-    private calcClearanceForAgent(point: THREE.Vector3) {
+    private calcClearanceForAgent(point: THREE.Vector3,overshoot:number) {
         const horizontalForward = this.getHorizontalForward();
         const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
 
@@ -336,7 +337,6 @@ export abstract class Controller {
                 return true
             })
             if (leftClearance) {
-                const overshoot = 2; // tweak as needed
                 const forward = this.getHorizontalForward();
                 this.obstacleClearancePoint = leftCheckPos.clone().add(forward.multiplyScalar(overshoot));
                 console.log('charcter clearance point:', this.obstacleClearancePoint);
@@ -364,14 +364,15 @@ export abstract class Controller {
                 const shape = collider.shape
                 if (!(shape instanceof RAPIER.Cuboid)) return true;//only detect cubes
                 hasCollidedRight = true;
-                this.calcClearanceForAgent(point)
+                this.calcClearanceForAgent(point,1)
                 return true;
             })
         }
     }
     private detectObstacle():void {
         if (!this.isGrounded()) return;//to prevent detection when in the air
-        if (this.logDetour) console.log("On Detour: ",this.onDetour);
+        if (this.logDetour) console.log("Entity path| Detour State: ",this.detourState);
+        
         const forward = new THREE.Vector3(0,0,-1);
         const maxDistance = this.obstacleDetectionDistance;
         const steps = this.getSteps(maxDistance,this.pointDensity);
@@ -407,16 +408,13 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if (!this.onDetour) this.calcClearanceForAgent(point);
+                    this.calcClearanceForAgent(point,3);
                 }
                 return true
             });    
         }
         if (!hasCollidedForward) {
             this.obstacleDistance = Infinity//infinity distance means there are no obstacles
-        }
-        if (this.onDetour) {
-            this.detectOnRight()
         }
     }
     //the calculations used in this function was derived from real physics rules since the whole of this is built on a physics engine
@@ -493,8 +491,9 @@ export abstract class Controller {
     private isTargetClose = false;
     private branchedPath:THREE.Vector3 | null = null;
 
-    private logDetour = false
-    private onDetour:boolean = false;
+    private logDetour = false;
+    private detourState:DetourState = null;
+
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
         this.logDetour = true;
         const currentPath = this.branchedPath || originalPath;
@@ -513,28 +512,24 @@ export abstract class Controller {
 
         console.log("Entity path| branched path: ",this.branchedPath);
         console.log("Entity path| original path: ",originalPath);
-        console.log("Entity path| char pos: ",characterPos);
+        console.log("Entity path| compare char pos: ",characterPos);
 
         console.log('Entity distToOldTarget:', distToOriginalTarget);
 
-        let distThreshold = 5;
+        let distThreshold = 3;
         if (this.branchedPath) {
-            this.onDetour = true;
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
             console.log('Entity distToPrevPath:', distToBranchedPath);
             //this is if it has reached the branched path
             if ((distToBranchedPath < distThreshold) || (distToOriginalTarget < this.roundToNearestTens(distToBranchedPath))) {
                 this.branchedPath = null;
-                if (this.onDetour) {//so this will run only if it has reached the branch path and its on detour
-                    this.onDetour = false
-                }
                 console.log("Cleared branch");
             }
         }
         const detouredPath = currentPath.clone();
         if (shouldWalkAroundObstacle) { 
             detouredPath.copy(this.obstacleClearancePoint);
-            console.log('Entity path| detouredPath:',this.obstacleClearancePoint);
+            console.log('Entity path| compare detouredPath:',this.obstacleClearancePoint);
             this.branchedPath = detouredPath;
         }
         // this.colorPoint(pathTargetPos,0x000000)

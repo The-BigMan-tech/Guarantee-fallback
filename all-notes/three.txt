@@ -607,3 +607,7 @@ Agent Behavior:
 AI agents, especially those optimized for efficiency, tend to move in straight lines and immediately attempt to detour as soon as an obstacle is detected. They may not linger at the edge, and their movement can be more "binary" (either moving or not), which can make the detection logic more brittle if it expects the agent to be at a certain spot for a certain amount of time.
 
 *so my entity is more robust cuz now unlike before,it uses an absolute world space cords not a relative one which means i dont have to manually steer the entity's path with a left vector so it moved smartly around an obstacle and the value is stable across movement but the detection still slides away from the obstacle
+
+binary state variable
+multi-state variable
+
