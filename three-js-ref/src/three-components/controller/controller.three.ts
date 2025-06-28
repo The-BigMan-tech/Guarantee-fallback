@@ -344,12 +344,15 @@ export abstract class Controller {
     private detectObstacle():void {
         if (!this.isGrounded()) return;//to prevent detection when in the air
         const forward = new THREE.Vector3(0,0,-1);
+        const right = new THREE.Vector3(1,0,0)
+
+
         const maxDistance = this.obstacleDetectionDistance;
         const steps = this.getSteps(maxDistance,this.pointDensity);
 
-        let hasCollided = false
+        let hasCollidedForward = false
         for (let i = 1; i <= steps; i++) {
-            if (hasCollided) break;
+            if (hasCollidedForward) break;
             const distance = (maxDistance / steps) * i;
             const point:THREE.Vector3 = this.orientPoint(distance,forward);
             this.colorPoint(point,0x000000);
@@ -362,7 +365,7 @@ export abstract class Controller {
                 if (!(shape instanceof RAPIER.Cuboid)) return true;//only detect cubes
 
                 console.log('PointY Obstacle: ', point.y);
-                hasCollided = true;
+                hasCollidedForward = true;
 
                 const groundPosY = Math.max(0,this.calculateGroundPosition());//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative
                 const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this.is it possible to step over
@@ -383,8 +386,16 @@ export abstract class Controller {
                 return true
             });    
         }
-        if (!hasCollided) {
+        if (!hasCollidedForward) {
             this.obstacleDistance = Infinity//infinity distance means there are no obstacles
+        }
+
+        let hasCollidedRight = false
+        for (let i = 1; i <= steps; i++) {
+            if (hasCollidedRight) break;
+            const distance = (maxDistance / steps) * i;
+            const point:THREE.Vector3 = this.orientPoint(distance,right);
+            this.colorPoint(point,0x000000);
         }
     }
     //the calculations used in this function was derived from real physics rules since the whole of this is built on a physics engine
