@@ -447,6 +447,9 @@ export abstract class Controller {
         return Math.sqrt(dx * dx + dz * dz);
     }
     
+    private roundToNearestTens(num:number):number {
+        return Math.round(num / 10) * 10;
+    }
     private isTargetClose = false;
 
     private prevPath:THREE.Vector3 | null = null;
@@ -475,7 +478,8 @@ export abstract class Controller {
         console.log('Entity distToOldTarget:', distToOriginalTarget);
         if (this.prevPath) {
             const distToPrevPath = this.distanceXZ(characterPos, this.prevPath);
-            if ((distToPrevPath < distThreshold) || (distToOriginalTarget < 20)) {
+            console.log('Entity distToPrevPath:', distToPrevPath);
+            if ((distToPrevPath < distThreshold) || (distToOriginalTarget < this.roundToNearestTens(distToPrevPath))) {
                 this.prevPath = null;
                 console.log("Entity movement has reached destination");
             }
@@ -561,7 +565,7 @@ export abstract class Controller {
     }
     private updateCharacterTransformations():void {
         //i minused it from ground detction distance to get it to stay exactly on the ground
-        const [posX,posY,posZ] = [this.characterPosition.x,this.characterPosition.y-this.groundDetectionDistance,this.characterPosition.z];
+        const [posX,posY,posZ] = [this.characterPosition.x,this.characterPosition.y-this.groundDetectionDistance-0.5,this.characterPosition.z];
         this.character.position.set(posX,posY,posZ);
         this.character.quaternion.slerp(this.targetQuaternion,this.dynamicData.rotationSpeed);
         this.characterRigidBody.setRotation(this.targetQuaternion,true);
