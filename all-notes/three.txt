@@ -551,3 +551,6 @@ entities move with target positions
 *Your methods not only detect the presence of obstacles but also measure their dimensions (height and width) in a way that’s directly useful for AI navigation decisions.
 
 *so as noted,the first check in this condition is to ensure that when it has reached the prev path,it shoud branch back to the original and the second one is to ensure that it doesnt steer too far from the target.the lack of this second condition before was why travelling to a ne wpath using the obstacle width overshot it not that the obstacle width itself or using it was defective
+
+detour
+rebranching logic

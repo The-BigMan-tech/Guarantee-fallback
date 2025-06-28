@@ -452,12 +452,12 @@ export abstract class Controller {
     }
     private isTargetClose = false;
 
-    private prevPath:THREE.Vector3 | null = null;
-    protected moveToTarget(pathTargetPos:THREE.Vector3) {//targetpos is the player for example
+    private branchedPath:THREE.Vector3 | null = null;
+    protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
         const characterPos = this.character.position;
-        const distToOriginalTarget = characterPos.distanceTo(pathTargetPos);
+        const distToOriginalTarget = characterPos.distanceTo(originalPath);
 
-        pathTargetPos = this.prevPath || pathTargetPos;
+        const currentPath = this.branchedPath || originalPath;
     
         const distThreshold = 5;
         const onGround = this.isGrounded()
@@ -472,15 +472,15 @@ export abstract class Controller {
         console.log("Entity movement| isGrounded: ",onGround);
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
-        console.log("Entity path| pathTarget: ",pathTargetPos);
-        console.log("Entity path| prev path: ",this.prevPath);
+        console.log("Entity path| pathTarget: ",currentPath);
+        console.log("Entity path| prev path: ",this.branchedPath);
 
         console.log('Entity distToOldTarget:', distToOriginalTarget);
-        if (this.prevPath) {
-            const distToPrevPath = this.distanceXZ(characterPos, this.prevPath);
-            console.log('Entity distToPrevPath:', distToPrevPath);
-            if ((distToPrevPath < distThreshold) || (distToOriginalTarget < this.roundToNearestTens(distToPrevPath))) {
-                this.prevPath = null;
+        if (this.branchedPath) {
+            const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
+            console.log('Entity distToPrevPath:', distToBranchedPath);
+            if ((distToBranchedPath < distThreshold) || (distToOriginalTarget < this.roundToNearestTens(distToBranchedPath))) {
+                this.branchedPath = null;
                 console.log("Entity movement has reached destination");
             }
         }
@@ -488,24 +488,23 @@ export abstract class Controller {
         if (shouldWalkAroundObstacle) { 
             console.log("Entity path| relative width: ",this.obstacleWidth);
             const horizontalForward = this.getHorizontalForward();
-            //Swapping x and z and negating x gives you the left-facing perpendicular vector in the XZ plane.
-            const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
+            const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();//Swapping x and z and negating x gives you the left-facing perpendicular vector in the XZ plane.
             const lateralOffset = leftVector.clone().multiplyScalar(Math.max(1,this.obstacleWidth));  // Left shift
-            pathTargetPos.add(lateralOffset);
-            this.prevPath = pathTargetPos;
+            currentPath.add(lateralOffset);
+            this.branchedPath = currentPath;
         }
-        console.log("Entity path| newPathTarget: ",pathTargetPos);
+        console.log("Entity path| newPathTarget: ",currentPath);
         // this.colorPoint(pathTargetPos,0x000000)
 
         
-        const direction = pathTargetPos.clone().sub(characterPos);
+        const direction = currentPath.clone().sub(characterPos);
         const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
         const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
         const normAngle = (angleDiff + (2*Math.PI)) % (2 * Math.PI) ;//we normalized the angle cuz its measured in radians not degrees
         const normAngleInDegrees = Number((normAngle * (180/Math.PI)).toFixed(2))
         const rotationThreshold = 10;//the magnitude of the rotation diff before it rotates to the target direction
 
-        const distToTarget = characterPos.distanceTo(pathTargetPos);
+        const distToTarget = characterPos.distanceTo(currentPath);
         this.isTargetClose = distToTarget < distThreshold;
 
         if ((normAngleInDegrees > rotationThreshold)) {
