@@ -494,7 +494,8 @@ export abstract class Controller {
             //this is if it has reached the branched path
             if ((distToBranchedPath < distThreshold) || (distToOriginalTarget < this.roundToNearestTens(distToBranchedPath))) {
                 this.branchedPath = null;
-                console.log("Cleared branch");
+                console.log('Cleared this branch');
+                return;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.
             }
         }
         const detouredPath = currentPath.clone();
