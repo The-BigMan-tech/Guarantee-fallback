@@ -86,7 +86,7 @@ export abstract class Controller {
     private pointDensity = 1.2;
 
     private obstacleDistance:number = 0;//unlike obstacledetection distance which is a fixed unit telling the contoller how far to detect obstacles ahead of time,this one actually tells the realtime distance of an obstacle form the controller
-
+    private widthDebuf:number
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
@@ -114,9 +114,17 @@ export abstract class Controller {
         this.characterColliderHandle = physicsWorld.createCollider(this.characterCollider,this.characterRigidBody).handle;
         this.characterRigidBody.setTranslation(this.characterPosition,true);
 
+        this.widthDebuf = fixedData.characterWidth - 1;
         this.groundDetectionDistance = halfHeight + 0.5 + ((fixedData.characterHeight%2) * 0.5);//i didnt just guess this from my head.i made the formula after trying different values and recording the ones that correctly matched a given character height,saw a pattern and crafted a formula for it
+
         this.originalHorizontalVel = dynamicData.horizontalVelocity;
         this.loadCharacterModel();
+    }
+    private calculateGroundPosition() {
+        const initGroundPosY = Number((this.characterPosition.y - this.groundDetectionDistance).toFixed(2)) - 1;
+        const finalGroundPosY = Number((initGroundPosY - this.widthDebuf).toFixed(1))
+        console.log('groundPosY:',finalGroundPosY);
+        return finalGroundPosY
     }
     private loadCharacterModel():void {
         const loader:GLTFLoader = new GLTFLoader();
@@ -193,19 +201,6 @@ export abstract class Controller {
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
-    /**
-     *  for cubes with heights that can be rounded to a higher integer,flooring it solves the problem of small precision issues that can prevent ground detection.
-        //but for cubes with heights that cant be rounded to a higher integer,precision gets more messy that flooring cant solve it.so after a feedback loop,i realized that they require a constant deduction of 1.
-        //the two techniques for the different types of floats ensures that all floats are aggressively reduced to a number way smaller than them in terms of precision.This esnures that a number like 2.3,gets reduced 1.3 and a number of 2.6 gets reduced to 2.
-        //Because point querying is very sensitive to precisison no matter how small,my approach is to make it insensitive to precision by aggressively reducing floats before working with them but not too much so that it loses its meaning entirely by overshooting to another point that clearly isnt what im querying for
-        //ground detection distance is a one decimal float calculated by using the character height against a function.after reducing precision to a certain point but not too much to get the point most likely the player is standing on,subtracting this distance gets the right point that the ground is.
-     * 
-     */
-    private calculateGroundPosition() {
-        const groundPosY = Number((this.characterPosition.y - this.groundDetectionDistance).toFixed(2)) - 1;
-        console.log('groundPosY:', groundPosY);
-        return groundPosY
-    }
     protected colorPoint(position:THREE.Vector3, color:number) {
         if (!Controller.showPoints) return;
         const geometry = new THREE.SphereGeometry(0.06,8,8); // Small sphere
@@ -217,7 +212,7 @@ export abstract class Controller {
     }
     private colorGroundPoint() {//i rounded the height cuz the point doesnt always exactly touch the ground
         const point:THREE.Vector3 = new THREE.Vector3(this.characterPosition.x,Math.round(this.calculateGroundPosition()),this.characterPosition.z);
-        this.colorPoint(point,0x000000)
+        this.colorPoint(point,0xffffff)
     }
 
 
@@ -537,7 +532,7 @@ export abstract class Controller {
             this.rotateCharacterX(finalDir);
         }else {
             if (!this.isTargetClose) {
-                this.autoMoveForward();
+                // this.autoMoveForward();
             }else {
                 this.playIdleAnimation();
                 this.stopWalkSound();
