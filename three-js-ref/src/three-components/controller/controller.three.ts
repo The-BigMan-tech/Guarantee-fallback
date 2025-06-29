@@ -316,10 +316,10 @@ export abstract class Controller {
             }
         }   
     }
-    private calcClearanceForAgent(point: THREE.Vector3,overshoot:number) {
+    private calcClearanceForAgent(point: THREE.Vector3,overshoot:number,originalPoint:THREE.Vector3) {
         const horizontalForward = this.getHorizontalForward();
         const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
-        const maxWidthToCheck = 30;
+        const maxWidthToCheck = 40;
 
 
         const leftCheckPos = point.clone();
@@ -343,9 +343,9 @@ export abstract class Controller {
             }
         }  
         if (finalPos) {
-            const parallelSpace = 30//space between this and the previous point in parallel
-            const obstacleFacePos = point.clone().add(leftVector.clone().multiplyScalar(-parallelSpace));
+            const obstacleFacePos = originalPoint.clone().add(leftVector.clone().multiplyScalar(2));
             const secondScanPos = obstacleFacePos.clone();
+            this.colorPoint(secondScanPos,0x000000)
                     
             for (let i = 0; i <= stoppedWidth; i++) {
                 let leftBlocked = false
@@ -358,7 +358,7 @@ export abstract class Controller {
                     return true;
                 })
                 if (leftBlocked) {
-                    this.obstacleClearancePoint = secondScanPos
+                    this.obstacleClearancePoint = secondScanPos;
                     console.log('Adjusted clearance point: ',this.obstacleClearancePoint);
                     break;
                 }
@@ -374,30 +374,33 @@ export abstract class Controller {
 
         const horizontalForward = this.getHorizontalForward();
         const right = new THREE.Vector3(-horizontalForward.z, 0, horizontalForward.x).normalize();
+        
         let hasCollidedForward = false;
 
         for (let i = 1; i <= steps; i++) {
             if (hasCollidedForward) break;
             const distance = (maxDistance / steps) * i;
-            let point:THREE.Vector3 = this.orientPoint(distance,forward);
+            const point:THREE.Vector3 = this.orientPoint(distance,forward);
+            let offsetPoint:THREE.Vector3 = point.clone();
+
             if ((i == steps) || (i == 2)) {
-                point = point.add(right.clone().multiplyScalar(2));
+                offsetPoint = offsetPoint.add(right.clone().multiplyScalar(2));
             }
 
-            this.colorPoint(point,0x000000);
-            physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
+            this.colorPoint(offsetPoint,0x000000);
+            physicsWorld.intersectionsWithPoint(offsetPoint, (colliderObject) => {
                 const collider = physicsWorld.getCollider(colliderObject.handle);
                 const shape = collider.shape
-                console.log('PointY Obstacle: ', point.y);
+                console.log('PointY Obstacle: ',offsetPoint.y);
                 console.log('Obstacle Collider shape:', shape);
                 if (!(shape instanceof RAPIER.Cuboid)) return true;//only detect cubes
 
-                console.log('PointY Obstacle: ', point.y);
+                console.log('PointY Obstacle: ', offsetPoint.y);
                 hasCollidedForward = true;
 
-                const groundPosY = point.y
+                const groundPosY = offsetPoint.y
                 const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this.is it possible to step over
-                const stepOverPos = new THREE.Vector3(point.x,stepOverPosY,point.z)
+                const stepOverPos = new THREE.Vector3(offsetPoint.x,stepOverPosY,offsetPoint.z)
                 
                 this.obstacleDistance = distance
                 let clearance = true;
@@ -409,7 +412,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if ((i == steps) || (i == 2)) this.calcClearanceForAgent(point,7);
+                    if ((i == steps) || (i == 2)) this.calcClearanceForAgent(offsetPoint,7,point);
                 }
                 return true
             });    
