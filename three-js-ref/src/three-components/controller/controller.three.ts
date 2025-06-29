@@ -319,13 +319,16 @@ export abstract class Controller {
     private calcClearanceForAgent(point: THREE.Vector3,overshoot:number) {
         const horizontalForward = this.getHorizontalForward();
         const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
-
-        const leftCheckPos = point.clone();
         const maxWidthToCheck = 30;
 
+
+        const leftCheckPos = point.clone();
+        let stoppedWidth:number = 0;
+        let finalPos: THREE.Vector3 | null = null;
         for (let i=0;i <= maxWidthToCheck;i++) {
             let leftClearance = true
             leftCheckPos.add(leftVector);
+            stoppedWidth = i
 
             physicsWorld.intersectionsWithPoint(leftCheckPos,()=>{     
                 leftClearance = false
@@ -333,12 +336,34 @@ export abstract class Controller {
             })
             if (leftClearance) {
                 const forward = this.getHorizontalForward();
-                const finalPos = leftCheckPos.clone().add(forward.multiplyScalar(overshoot));
+                finalPos = leftCheckPos.clone().add(forward.multiplyScalar(overshoot));
                 this.obstacleClearancePoint = finalPos
-                console.log('charcter clearance point:', this.obstacleClearancePoint);
+                console.log('character clearance point:', this.obstacleClearancePoint);
                 break;
             }
         }  
+        if (finalPos) {
+            const parallelSpace = 30//space between this and the previous point in parallel
+            const obstacleFacePos = point.clone().add(leftVector.clone().multiplyScalar(-parallelSpace));
+            const secondScanPos = obstacleFacePos.clone();
+                    
+            for (let i = 0; i <= stoppedWidth; i++) {
+                let leftBlocked = false
+                secondScanPos.add(leftVector);
+                
+                physicsWorld.intersectionsWithPoint(secondScanPos,(colliderObject)=>{  
+                    const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
+                    if (isCharacterCollider) return true;
+                    leftBlocked = true;
+                    return true;
+                })
+                if (leftBlocked) {
+                    this.obstacleClearancePoint = secondScanPos
+                    console.log('Adjusted clearance point: ',this.obstacleClearancePoint);
+                    break;
+                }
+            }
+        }
     }
     private detectObstacle():void {
         if (!this.isGrounded()) return;//to prevent detection when in the air

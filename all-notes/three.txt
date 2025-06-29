@@ -632,3 +632,6 @@ rotating while moving-fluidity
 Exactly! Your algorithm itself is fundamentally sound and works well for isolated or perfectly aligned obstacles. The issue arises because it doesn’t yet account for adjacent or overlapping blocks that aren’t perfectly aligned, which creates complex obstacle boundaries your current clearance logic doesn’t handle.
 
 Deadlock
+
+left-steering
+clock-wise perimeter steering
