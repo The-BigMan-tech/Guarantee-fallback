@@ -87,6 +87,12 @@ export abstract class Controller {
 
     private obstacleDistance:number = 0;//unlike obstacledetection distance which is a fixed unit telling the contoller how far to detect obstacles ahead of time,this one actually tells the realtime distance of an obstacle form the controller
     private widthDebuf:number
+    private obstacleClearancePoint:THREE.Vector3 = new THREE.Vector3();
+
+    private isTargetClose = false;
+    private branchedPath:THREE.Vector3 | null = null;
+
+    private canWalkForward:boolean = false
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
@@ -310,7 +316,6 @@ export abstract class Controller {
             }
         }   
     }
-    private obstacleClearancePoint:THREE.Vector3 = new THREE.Vector3();
     private calcClearanceForAgent(point: THREE.Vector3,overshoot:number) {
         const horizontalForward = this.getHorizontalForward();
         const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
@@ -385,7 +390,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if ((i == middlePoint) || (i == steps)) this.calcClearanceForAgent(point,6);
+                    if ((i == middlePoint) || (i == steps)) this.calcClearanceForAgent(point,7);
                 }
                 return true
             });    
@@ -465,8 +470,7 @@ export abstract class Controller {
         }
         return null
     }
-    private isTargetClose = false;
-    private branchedPath:THREE.Vector3 | null = null;
+
 
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
         const currentPath = this.branchedPath || originalPath;
@@ -503,12 +507,13 @@ export abstract class Controller {
                 console.log('Cleared this branch');
                 return;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.although,the code still works if i dont return here but i believe it will jitter if i dont put this
             }
-        } 
+        }
         const detouredPath = currentPath.clone();
         if (shouldWalkAroundObstacle && !(this.obstacleClearancePoint.equals({x:0,y:0,z:0}))) { 
-            detouredPath.copy(this.obstacleClearancePoint);
-            console.log('Entity path| compare detouredPath:',this.obstacleClearancePoint);
+            detouredPath.copy(this.obstacleClearancePoint.clone());//i need to clone it before emptying it
+            this.obstacleClearancePoint.set(0,0,0);//reset the clearance point after use.although,the code still ran well even though i didnt do this but its best to stay safe.
             this.branchedPath = detouredPath;
+            console.log('Entity path| compare detouredPath:',detouredPath);
         }
 
         const finalDir = this.getSteeringDirection(detouredPath)
@@ -533,7 +538,7 @@ export abstract class Controller {
         }
     }
 
-    private canWalkForward:boolean = false
+
     private checkIfCanWalkForward(prevCharPosition:THREE.Vector3) {//defense mechanism to catch failures of shouldStepUp cuz of faulty collision detection
         if (Math.abs(this.velocity.z) > 0 && !this.shouldStepUp) {//this checks if i moved forward but it doesnt check if i should step up cuz if it can step up,then it can walk forward
             const ifComponentY = (Math.abs(this.velocity.y) > 0)
