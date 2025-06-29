@@ -360,7 +360,7 @@ export abstract class Controller {
             if (hasCollidedForward) break;
             const distance = (maxDistance / steps) * i;
             let point:THREE.Vector3 = this.orientPoint(distance,forward);
-            if (i == steps) {
+            if (i == 2) {
                 point = point.add(right.clone().multiplyScalar(rightOffsetDistance));
             }
             this.colorPoint(point,0x000000);
@@ -389,7 +389,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if (i == steps) this.calcClearanceForAgent(point,1);
+                    if (i == 2) this.calcClearanceForAgent(point,1);
                 }
                 return true
             });    
@@ -498,7 +498,7 @@ export abstract class Controller {
             }
         }
         const detouredPath = currentPath.clone();
-        if (shouldWalkAroundObstacle) { 
+        if (shouldWalkAroundObstacle && !(this.obstacleClearancePoint.equals({x:0,y:0,z:0}))) { 
             detouredPath.copy(this.obstacleClearancePoint);
             console.log('Entity path| compare detouredPath:',this.obstacleClearancePoint);
             this.branchedPath = detouredPath;
@@ -555,8 +555,8 @@ export abstract class Controller {
         this.velocity.set(0,0,0);//to prevent accumulaion over time
         this.dynamicData.horizontalVelocity = this.originalHorizontalVel;//the horizontal velocity is subject to runtime mutations so i have to reset it
         this.shouldStepUp = false;
-        // this.obstacleHeight = 0;
         this.obstacleDistance = 0;
+         // this.obstacleHeight = 0;
     }
     private updateCharacterAnimations():void {
         const delta = this.clock.getDelta();
