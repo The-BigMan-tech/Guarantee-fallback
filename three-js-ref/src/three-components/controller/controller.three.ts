@@ -485,12 +485,12 @@ export abstract class Controller {
         console.log("Entity path| original path: ",originalPath);
         console.log("Entity path| compare char pos: ",characterPos);
 
-        console.log('Entity distToOldTarget:', distToOriginalTarget);
+        console.log('Entity distToOriginalTarget:', distToOriginalTarget);
 
-        let distThreshold = 5;
+        let distThreshold = 5;//this is to tell the algorithm how close to the target the character should be to be considered its close to the target or far from the target.
         if (this.branchedPath) {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
-            console.log('Entity distToPrevPath:', distToBranchedPath);
+            console.log('Entity distToBranchedPath:', distToBranchedPath);
             //this is if it has reached the branched path
             if ((distToBranchedPath < distThreshold) || (distToOriginalTarget < this.roundToNearestTens(distToBranchedPath))) {
                 this.branchedPath = null;
@@ -506,23 +506,24 @@ export abstract class Controller {
         }
         // this.colorPoint(pathTargetPos,0x000000)
         const finalDir = this.getSteeringDirection(detouredPath)
-        const distToTarget = characterPos.distanceTo(detouredPath);
+        const distToFinalDest = characterPos.distanceTo(detouredPath)
         const epsilon = 0.01;
 
         if (currentPath.distanceTo(detouredPath) > epsilon) {//means they are different
-            distThreshold = 0.1
+            distThreshold = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
         }
-        this.isTargetClose = distToTarget < distThreshold;
-
+        this.isTargetClose = distToFinalDest < distThreshold;
+        console.log("Entity distToFinalDest: ",distToFinalDest);
         if (finalDir !== null) {
             console.log("Passed rotation threshols");
             this.rotateCharacterX(finalDir)
-        }
-        if (!this.isTargetClose) {
-            this.autoMoveForward();
         }else {
-            this.playIdleAnimation();
-            this.stopWalkSound();
+            if (!this.isTargetClose) {
+                this.autoMoveForward();
+            }else {
+                this.playIdleAnimation();
+                this.stopWalkSound();
+            }
         }
     }
 
