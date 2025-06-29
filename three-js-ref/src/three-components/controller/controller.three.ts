@@ -390,7 +390,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if ((i == middlePoint) || (i == steps)) this.calcClearanceForAgent(point,7);
+                    if ((i == middlePoint) || (i == steps)) this.calcClearanceForAgent(point,6.5);
                 }
                 return true
             });    
@@ -511,7 +511,6 @@ export abstract class Controller {
         const detouredPath = currentPath.clone();
         if (shouldWalkAroundObstacle && !(this.obstacleClearancePoint.equals({x:0,y:0,z:0}))) { 
             detouredPath.copy(this.obstacleClearancePoint.clone());//i need to clone it before emptying it
-            this.obstacleClearancePoint.set(0,0,0);//reset the clearance point after use.although,the code still ran well even though i didnt do this but its best to stay safe.
             this.branchedPath = detouredPath;
             console.log('Entity path| compare detouredPath:',detouredPath);
         }
@@ -553,6 +552,7 @@ export abstract class Controller {
             console.log("Can walk forward| pos diff: ",readablePosDiff);
             console.log("Can walk forward| diff thresh: ",diffThreshold);
             console.log("Can walk forward| boolean: ",this.canWalkForward);
+            console.log('Can walk forward| clearance point',this.obstacleClearancePoint);
         }
     }
     private applyVelocity():void {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
@@ -569,6 +569,7 @@ export abstract class Controller {
         this.dynamicData.horizontalVelocity = this.originalHorizontalVel;//the horizontal velocity is subject to runtime mutations so i have to reset it
         this.shouldStepUp = false;
         this.obstacleDistance = 0;
+        this.obstacleClearancePoint.set(0,0,0);//reset the clearance point after use.although,the code still ran well even though i didnt do this but its best to stay safe.
          // this.obstacleHeight = 0;
     }
     private updateCharacterAnimations():void {
