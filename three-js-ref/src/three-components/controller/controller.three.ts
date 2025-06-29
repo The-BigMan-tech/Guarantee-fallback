@@ -202,14 +202,8 @@ export abstract class Controller {
      * 
      */
     private calculateGroundPosition() {
-        const charPosY = Number(this.characterPosition.y.toFixed(2));//rounding it to exactly 2dp isnt just there to make reading the pos simpler but a necessity for the calculation to work
-        const isRoundable = Math.round(charPosY) > charPosY;
-        const posY = (isRoundable) ? Math.floor(charPosY) : charPosY-1;
-        const groundPosY = posY - this.groundDetectionDistance;//the ground should be just a few cord lower than the player since te player stands over the ground
-        console.log('Point Query| Player: ',charPosY);
-        console.log("Point Query| is Roundable: ",isRoundable);
-        console.log('Point Query| Pos: ',posY);
-        console.log('Point Query| Final: ',groundPosY);
+        const groundPosY = Number((this.characterPosition.y - this.groundDetectionDistance).toFixed(2)) - 1;
+        console.log('groundPosY:', groundPosY);
         return groundPosY
     }
     protected colorPoint(position:THREE.Vector3, color:number) {
@@ -327,8 +321,10 @@ export abstract class Controller {
 
         const leftCheckPos = point.clone();
         const maxWidthToCheck = 30;
+
         let firstColliderHandle:number | null = null;
         let overshotCollider:boolean = false;
+
         for (let i=0;i <= maxWidthToCheck;i++) {
             let leftClearance = true
             leftCheckPos.add(leftVector);
@@ -349,7 +345,7 @@ export abstract class Controller {
                 const forward = this.getHorizontalForward();
                 let finalPos: THREE.Vector3;
                 if (overshotCollider) {
-                    const backOffDistance = 1.0; // tune this value as needed
+                    const backOffDistance = 2; // tune this value as needed
                     const backOffPos = leftCheckPos.clone().add(leftVector.clone().multiplyScalar(-backOffDistance));
                     finalPos = backOffPos.clone().add(forward.multiplyScalar(overshoot));
                     console.log('Overshot the collider');
