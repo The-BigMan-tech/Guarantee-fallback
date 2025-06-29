@@ -17,7 +17,7 @@ const entityFixedData:FixedControllerData = {
     modelPath:'./silvermoon.glb',
     spawnPoint: new RAPIER.Vector3(0,20,-10),
     characterHeight:2,
-    characterWidth:2,
+    characterWidth:1,
     shape:'capsule',
     mass:40,
 }

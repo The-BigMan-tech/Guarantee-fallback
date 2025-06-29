@@ -340,7 +340,7 @@ export abstract class Controller {
                 const forward = this.getHorizontalForward();
                 let finalPos: THREE.Vector3;
                 if (overshotCollider) {
-                    const backOffDistance = 2; // tune this value as needed
+                    const backOffDistance = 5; // tune this value as needed
                     const backOffPos = leftCheckPos.clone().add(leftVector.clone().multiplyScalar(-backOffDistance));
                     finalPos = backOffPos.clone().add(forward.multiplyScalar(overshoot));
                     console.log('Overshot the collider');
@@ -490,9 +490,15 @@ export abstract class Controller {
         const currentPath = this.branchedPath || originalPath;
         const characterPos = this.character.position;
         const distToOriginalTarget = this.distanceXZ(characterPos,originalPath)
-
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
-        const shouldWalkAroundObstacle = (this.obstacleDistance !== Infinity && (!this.shouldStepUp || !this.canWalkForward) && !this.isTargetClose && !this.canJumpOntoObstacle()) //either you cant step up or u cant walk forward
+
+        const shouldWalkAroundObstacle = (
+            this.obstacleDistance !== Infinity && 
+            !this.isTargetClose && 
+            !this.canJumpOntoObstacle() &&
+            (!this.shouldStepUp || !this.canWalkForward) 
+        ) //either you cant step up or u cant walk forward
+
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
         console.log("Entity path| branched path: ",this.branchedPath);
