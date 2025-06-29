@@ -327,7 +327,8 @@ export abstract class Controller {
         let finalPos: THREE.Vector3 | null = null;
         for (let i=0;i <= maxWidthToCheck;i++) {
             let leftClearance = true
-            leftCheckPos.add(leftVector);
+            this.colorPoint(leftCheckPos,0x000000)
+            leftCheckPos.add(horizontalForward);
             stoppedWidth = i
 
             physicsWorld.intersectionsWithPoint(leftCheckPos,()=>{     
@@ -345,11 +346,12 @@ export abstract class Controller {
         if (finalPos) {
             const obstacleFacePos = originalPoint.clone().add(leftVector.clone().multiplyScalar(2));
             const secondScanPos = obstacleFacePos.clone();
-            this.colorPoint(secondScanPos,0x000000)
                     
             for (let i = 0; i <= stoppedWidth; i++) {
-                let leftBlocked = false
-                secondScanPos.add(leftVector);
+                let leftBlocked = false;
+                this.colorPoint(secondScanPos,0x000000)
+                secondScanPos.add(horizontalForward);
+                
                 
                 physicsWorld.intersectionsWithPoint(secondScanPos,(colliderObject)=>{  
                     const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
@@ -547,7 +549,7 @@ export abstract class Controller {
             this.rotateCharacterX(finalDir);
         }else {
             if (!this.isTargetClose) {
-                this.autoMoveForward();
+                // this.autoMoveForward();
             }else {
                 this.playIdleAnimation();
                 this.stopWalkSound();
