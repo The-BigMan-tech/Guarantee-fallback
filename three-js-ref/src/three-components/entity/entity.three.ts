@@ -26,7 +26,7 @@ const entityDynamicData:DynamicControllerData = {
     jumpVelocity:25,
     jumpResistance:6,
     rotationDelta:0.05,
-    rotationSpeed:0.8,
+    rotationSpeed:0.2,
     maxStepUpHeight:2,
     gravityScale:1
 }

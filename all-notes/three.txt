@@ -618,3 +618,6 @@ multi-state variable
 one branch at a time,not a history of branches
 
 Reactive obstacle avoidance algorithms 
+
+rotating before moving--precision
+rotating while moving-fluidity

@@ -516,7 +516,7 @@ export abstract class Controller {
         console.log("Entity distToFinalDest: ",distToFinalDest);
         if (finalDir !== null) {
             console.log("Passed rotation threshols");
-            this.rotateCharacterX(finalDir)
+            this.rotateCharacterX(finalDir);
         }else {
             if (!this.isTargetClose) {
                 this.autoMoveForward();
