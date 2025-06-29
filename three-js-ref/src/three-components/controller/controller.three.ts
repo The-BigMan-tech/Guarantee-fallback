@@ -195,7 +195,7 @@ export abstract class Controller {
     }
     private calculateForwardVelocity(upwardVelocity:number):number {
         const totalAirTime = (2 * upwardVelocity) / gravityY;
-        const forwardVelocity = Math.ceil(this.obstacleDetectionDistance / totalAirTime) + 1;
+        const forwardVelocity = Math.ceil(this.obstacleDetectionDistance / totalAirTime);
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
@@ -250,7 +250,7 @@ export abstract class Controller {
     
         const point = new THREE.Vector3(
             this.characterPosition.x + (dir.x * distance),
-            Math.max(0,this.calculateGroundPosition()) + 1,//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative
+            Math.max(0,this.calculateGroundPosition()) + 1,//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative.The +1 is a required inflation.trust me,it will crash if you remove it.
             this.characterPosition.z + (dir.z * distance)
         );
         return point
@@ -271,17 +271,20 @@ export abstract class Controller {
     }
 
     private calcHeightTopDown(stepOverPos:THREE.Vector3,groundPosY:number) {
-        console.log("STEPPING UP");
-        this.shouldStepUp = true;
         const downwardCheckPos = stepOverPos.clone();//i cloned it to prevent subtle bugs if i reuse stepoverpos later
         for (let i=0;i <= this.dynamicData.maxStepUpHeight;i++) {
             let downwardClearance = true
             downwardCheckPos.sub(new THREE.Vector3(0,1,0));
+
             physicsWorld.intersectionsWithPoint(downwardCheckPos,()=>{
-                const relativeHeight = Number((downwardCheckPos.y - groundPosY + 1).toFixed(2));//to make the result more concise
+                const relativeHeight = Number((downwardCheckPos.y - groundPosY + 1).toFixed(2));//i fixed it to 2dp to make the result more concise.the +1 is an artificial inflation for accuracy
                 this.obstacleHeight = relativeHeight
-                console.log("Relative height checked down: ",relativeHeight);
                 downwardClearance = false
+                console.log("Relative height checked down: ",relativeHeight);
+                if (relativeHeight <= this.dynamicData.maxStepUpHeight) {
+                    console.log("STEPPING UP");
+                    this.shouldStepUp = true;
+                }
                 return true
             })
             if (!downwardClearance) {
@@ -300,7 +303,7 @@ export abstract class Controller {
                 return true
             })
             if (upwardClearance) {
-                const relativeHeight = Number((upwardCheckPos.y - groundPosY - 1).toFixed(2));//the -1 is a tested artificial deuction for accuracy when calculating the height upwards
+                const relativeHeight = Number((upwardCheckPos.y - groundPosY).toFixed(2));
                 this.obstacleHeight = relativeHeight
                 console.log("Relative height checked up: ",relativeHeight);
                 break;
