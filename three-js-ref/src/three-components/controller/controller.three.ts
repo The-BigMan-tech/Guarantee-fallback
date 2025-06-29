@@ -253,7 +253,7 @@ export abstract class Controller {
     
         const point = new THREE.Vector3(
             this.characterPosition.x + (dir.x * distance),
-            this.characterPosition.y - (this.groundDetectionDistance-0.5),//to detect obstacles that are too low
+            Math.max(0,this.calculateGroundPosition()) + 1,//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative
             this.characterPosition.z + (dir.z * distance)
         );
         return point
@@ -389,7 +389,7 @@ export abstract class Controller {
                 console.log('PointY Obstacle: ', point.y);
                 hasCollidedForward = true;
 
-                const groundPosY = Math.max(0,this.calculateGroundPosition());//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative
+                const groundPosY = point.y
                 const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this.is it possible to step over
                 const stepOverPos = new THREE.Vector3(point.x,stepOverPosY,point.z)
                 

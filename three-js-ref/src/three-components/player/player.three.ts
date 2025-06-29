@@ -181,7 +181,7 @@ const playerFixedData:FixedControllerData = {
     modelPath:'./silvermoon.glb',
     spawnPoint: new RAPIER.Vector3(0,20,0),
     characterHeight:2,//can be changed.calculations are reinforced for varying heights
-    characterWidth:1,//breaks across arbitrary widths cuz calc havent been reinforced for this
+    characterWidth:2,//breaks across arbitrary widths cuz calc havent been reinforced for this
     shape:'capsule',
     mass:40,
 }
