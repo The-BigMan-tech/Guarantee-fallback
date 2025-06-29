@@ -495,7 +495,7 @@ export abstract class Controller {
             if ((distToBranchedPath < distThreshold) || (distToOriginalTarget < this.roundToNearestTens(distToBranchedPath))) {
                 this.branchedPath = null;
                 console.log('Cleared this branch');
-                return;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.
+                return;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.although,the code still works if i dont return here but i believe it will jitter if i dont put this
             }
         }
         const detouredPath = currentPath.clone();
@@ -517,13 +517,12 @@ export abstract class Controller {
         if (finalDir !== null) {
             console.log("Passed rotation threshols");
             this.rotateCharacterX(finalDir)
+        }
+        if (!this.isTargetClose) {
+            this.autoMoveForward();
         }else {
-            if (!this.isTargetClose) {
-                this.autoMoveForward();
-            }else {
-                this.playIdleAnimation()
-                this.stopWalkSound();
-            }
+            this.playIdleAnimation();
+            this.stopWalkSound();
         }
     }
 

@@ -613,3 +613,8 @@ multi-state variable
 
 *Instead of running separate detection logic for forward and right directions and juggling states, you embed the “right detection” behavior directly into the forward detection line by offsetting a point. This reduces complexity and potential bugs.
 
+*and also,i dont think detouredpath doesnt live long enough cuz it resets every frame to take the char towards that detoured pount till completion.so its just for steering the char.but by setting the branched path to this detour path,it ensures that on the next frame,it proceeds to where the detoured path intedned for it to go.so branched path is just a way to persist the detoured path
+
+one branch at a time,not a history of branches
+
+Reactive obstacle avoidance algorithms 
