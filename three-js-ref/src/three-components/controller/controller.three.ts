@@ -559,6 +559,7 @@ export abstract class Controller {
         this.dynamicData.horizontalVelocity = this.originalHorizontalVel;//the horizontal velocity is subject to runtime mutations so i have to reset it
         this.shouldStepUp = false;
         this.obstacleDistance = 0;
+        this.obstacleClearancePoint.set(0,0,0)
          // this.obstacleHeight = 0;
     }
     private updateCharacterAnimations():void {
