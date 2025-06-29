@@ -188,16 +188,14 @@ export abstract class Controller {
 
 
     private calculateUpwardVelocity():number {
-        const destinationHeight = Math.round(this.obstacleHeight)
-        const timeToReachHeight = Math.sqrt((2*destinationHeight)/gravityY);
-        const upwardVelocity = (destinationHeight/timeToReachHeight) + (0.5 * gravityY * timeToReachHeight);//i chose not to round this one to ensure that i dont shoot not even the slightest over the obstacle
+        const destinationHeight = this.obstacleHeight; // no need to round here
+        const upwardVelocity = Math.sqrt(2 * gravityY * destinationHeight);
         console.log("Final upward velocity: ",upwardVelocity);
         return upwardVelocity
     }
     private calculateForwardVelocity(upwardVelocity:number):number {
-        const destinationHeight = Math.round(this.obstacleHeight)
-        const timeToReachHeight = (upwardVelocity/gravityY) + Math.sqrt((2*destinationHeight)/gravityY)
-        const forwardVelocity = Math.round(this.obstacleDetectionDistance/timeToReachHeight)//i rounded this one to ensure that the forward velocity is treated fair enough to move over the obstacle.ceiling it will overshoot it
+        const totalAirTime = (2 * upwardVelocity) / gravityY;
+        const forwardVelocity = Math.ceil(this.obstacleDetectionDistance / totalAirTime) + 1;
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
@@ -280,7 +278,7 @@ export abstract class Controller {
             let downwardClearance = true
             downwardCheckPos.sub(new THREE.Vector3(0,1,0));
             physicsWorld.intersectionsWithPoint(downwardCheckPos,()=>{
-                const relativeHeight = Number((downwardCheckPos.y - groundPosY).toFixed(2));//to make the result more concise
+                const relativeHeight = Number((downwardCheckPos.y - groundPosY + 1).toFixed(2));//to make the result more concise
                 this.obstacleHeight = relativeHeight
                 console.log("Relative height checked down: ",relativeHeight);
                 downwardClearance = false

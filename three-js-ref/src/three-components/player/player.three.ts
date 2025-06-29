@@ -191,7 +191,7 @@ const playerDynamicData:DynamicControllerData = {
     jumpResistance:30,
     rotationDelta:0.04,//in radians
     rotationSpeed:0.4,
-    maxStepUpHeight:2,
+    maxStepUpHeight:1,
     gravityScale:1
 }
 export const player = new Player(playerFixedData,playerDynamicData,PlayerCamArgs)
