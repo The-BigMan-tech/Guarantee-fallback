@@ -360,7 +360,7 @@ export abstract class Controller {
             if (hasCollidedForward) break;
             const distance = (maxDistance / steps) * i;
             let point:THREE.Vector3 = this.orientPoint(distance,forward);
-            if (i == 2) {
+            if ((i == 2) || (i==steps)) {//this is to ensure that the foremost point detects it at least slihtly while the middle one does the accurate calc
                 point = point.add(right.clone().multiplyScalar(rightOffsetDistance));
             }
             this.colorPoint(point,0x000000);
@@ -389,7 +389,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if (i == 2) this.calcClearanceForAgent(point,1);
+                    if ((i == 2) || (i==steps)) this.calcClearanceForAgent(point,5);
                 }
                 return true
             });    
@@ -516,12 +516,13 @@ export abstract class Controller {
         if (finalDir !== null) {
             console.log("Passed rotation threshols");
             this.rotateCharacterX(finalDir)
-        }
-        if (!this.isTargetClose) {
-            this.autoMoveForward();
         }else {
-            this.playIdleAnimation()
-            this.stopWalkSound();
+            if (!this.isTargetClose) {
+                this.autoMoveForward();
+            }else {
+                this.playIdleAnimation()
+                this.stopWalkSound();
+            }
         }
     }
 
