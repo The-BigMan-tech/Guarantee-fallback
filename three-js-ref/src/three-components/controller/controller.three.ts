@@ -318,36 +318,17 @@ export abstract class Controller {
         const leftCheckPos = point.clone();
         const maxWidthToCheck = 30;
 
-        let firstColliderHandle:number | null = null;
-        let overshotCollider:boolean = false;
-
         for (let i=0;i <= maxWidthToCheck;i++) {
             let leftClearance = true
             leftCheckPos.add(leftVector);
 
-            physicsWorld.intersectionsWithPoint(leftCheckPos,(colliderObject)=>{
-                if (!firstColliderHandle) {
-                    firstColliderHandle = colliderObject.handle;
-                }
-                if (colliderObject.handle !== firstColliderHandle) {
-                    leftClearance = true
-                    overshotCollider = true
-                }else {
-                    leftClearance = false
-                }
+            physicsWorld.intersectionsWithPoint(leftCheckPos,()=>{     
+                leftClearance = false
                 return true
             })
             if (leftClearance) {
                 const forward = this.getHorizontalForward();
-                let finalPos: THREE.Vector3;
-                if (overshotCollider) {
-                    const backOffDistance = 5; // tune this value as needed
-                    const backOffPos = leftCheckPos.clone().add(leftVector.clone().multiplyScalar(-backOffDistance));
-                    finalPos = backOffPos.clone().add(forward.multiplyScalar(overshoot));
-                    console.log('Overshot the collider');
-                }else {
-                    finalPos = leftCheckPos.clone().add(forward.multiplyScalar(overshoot));
-                }
+                const finalPos = leftCheckPos.clone().add(forward.multiplyScalar(overshoot));
                 this.obstacleClearancePoint = finalPos
                 console.log('charcter clearance point:', this.obstacleClearancePoint);
                 break;
