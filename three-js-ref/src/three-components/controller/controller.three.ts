@@ -245,7 +245,6 @@ export abstract class Controller {
         return onGround 
     }
 
-
     private orientPoint(distance:number,directionVector:THREE.Vector3):THREE.Vector3 {
         const rotation = this.characterRigidBody.rotation();
         const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
@@ -258,6 +257,7 @@ export abstract class Controller {
         );
         return point
     }
+
     private updateObstacleDetectionDistance() {
         const delta = this.clock.getDelta();
         const margin = 4; // tune as needed.its how far ahead do you want to detect obstacles in addition to the calculated dist which is usually below 1 cuz delta frames are usually fractions of a second
@@ -532,7 +532,7 @@ export abstract class Controller {
             this.rotateCharacterX(finalDir);
         }else {
             if (!this.isTargetClose) {
-                // this.autoMoveForward();
+                this.autoMoveForward();
             }else {
                 this.playIdleAnimation();
                 this.stopWalkSound();
@@ -579,7 +579,7 @@ export abstract class Controller {
     }
     private updateCharacterTransformations():void {
         //i minused it from ground detction distance to get it to stay exactly on the ground
-        const [posX,posY,posZ] = [this.characterPosition.x,this.characterPosition.y-this.groundDetectionDistance-0.5,this.characterPosition.z];
+        const [posX,posY,posZ] = [this.characterPosition.x,this.calculateGroundPosition()+0.5,this.characterPosition.z];
         this.character.position.set(posX,posY,posZ);
         this.character.quaternion.slerp(this.targetQuaternion,this.dynamicData.rotationSpeed);
         this.characterRigidBody.setRotation(this.targetQuaternion,true);
