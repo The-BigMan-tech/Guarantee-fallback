@@ -327,17 +327,35 @@ export abstract class Controller {
 
         const leftCheckPos = point.clone();
         const maxWidthToCheck = 30;
+        let firstColliderHandle:number | null = null;
+        let overshotCollider:boolean = false;
         for (let i=0;i <= maxWidthToCheck;i++) {
             let leftClearance = true
             leftCheckPos.add(leftVector);
 
-            physicsWorld.intersectionsWithPoint(leftCheckPos,()=>{
-                leftClearance = false
+            physicsWorld.intersectionsWithPoint(leftCheckPos,(colliderObject)=>{
+                if (!firstColliderHandle) {
+                    firstColliderHandle = colliderObject.handle;
+                }
+                if (colliderObject.handle !== firstColliderHandle) {
+                    leftClearance = true
+                    overshotCollider = true
+                }else {
+                    leftClearance = false
+                }
                 return true
             })
             if (leftClearance) {
                 const forward = this.getHorizontalForward();
-                const finalPos = leftCheckPos.clone().add(forward.multiplyScalar(overshoot));
+                let finalPos: THREE.Vector3;
+                if (overshotCollider) {
+                    const backOffDistance = 1.0; // tune this value as needed
+                    const backOffPos = leftCheckPos.clone().add(leftVector.clone().multiplyScalar(-backOffDistance));
+                    finalPos = backOffPos.clone().add(forward.multiplyScalar(overshoot));
+                    console.log('Overshot the collider');
+                }else {
+                    finalPos = leftCheckPos.clone().add(forward.multiplyScalar(overshoot));
+                }
                 this.obstacleClearancePoint = finalPos
                 console.log('charcter clearance point:', this.obstacleClearancePoint);
                 break;
@@ -518,7 +536,6 @@ export abstract class Controller {
             distThreshold = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
         }
         this.isTargetClose = distToFinalDest < distThreshold;
-        console.log("Entity distToFinalDest: ",distToFinalDest);
         if (finalDir !== null) {
             console.log("Passed rotation threshols");
             this.rotateCharacterX(finalDir);

@@ -621,3 +621,14 @@ Reactive obstacle avoidance algorithms
 
 rotating before moving--precision
 rotating while moving-fluidity
+
+*Your clearance calculation (calcClearanceForAgent) finds a clearance point by scanning sideways (to the left) from the collision point until it finds free space.
+*This works well when obstacles are isolated or perfectly adjacent (aligned so the clearance path is clear).
+*However, when obstacles overlap or partially intersect, their combined shape creates complex boundaries.
+*The clearance calculation for the first block is correct, but as the scan continues, it extends into the overlapping adjacent block’s space.
+*Because the adjacent block’s wall is perpendicular (not parallel) to the first block’s wall, it blocks the clearance path, causing the character to get stuck.
+*The character tries to reach the clearance point calculated beyond the first block, but the adjacent block physically obstructs that path, leading to a deadlock.
+
+Exactly! Your algorithm itself is fundamentally sound and works well for isolated or perfectly aligned obstacles. The issue arises because it doesn’t yet account for adjacent or overlapping blocks that aren’t perfectly aligned, which creates complex obstacle boundaries your current clearance logic doesn’t handle.
+
+Deadlock
