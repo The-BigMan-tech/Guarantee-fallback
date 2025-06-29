@@ -349,20 +349,14 @@ export abstract class Controller {
 
         const horizontalForward = this.getHorizontalForward();
         const right = new THREE.Vector3(-horizontalForward.z, 0, horizontalForward.x).normalize();
-        
+        let hasCollidedForward = false;
 
-        let hasCollidedForward = false
         for (let i = 1; i <= steps; i++) {
             if (hasCollidedForward) break;
             const distance = (maxDistance / steps) * i;
             let point:THREE.Vector3 = this.orientPoint(distance,forward);
-            const middlePoint = Math.ceil(steps/2);
-
-            //overshoot the middle and foremost point to the right for a better opportunity to properly calculate the clearance point for the agent.the reason why its to the right is because when you turn left to a wall,its your right that faces the wall
-            if (i == steps) {//im overshooting the foremost one cuz its requires for that intial turn but because it slides off almost immediately cuz of agent movement,it doesnt properly calculate the clearance
+            if ((i == steps) || (i == 2)) {
                 point = point.add(right.clone().multiplyScalar(2));
-            }else if (i == middlePoint) {//im overshooting the middle point cuz even when the agent quickly turns,the one in the middle doesnt slide off cuz its closer to the agent itself not too ahead of it
-                point = point.add(right.clone().multiplyScalar(1));//i noticed from gameplay that this should have a smaller offset than the foremosy one 
             }
 
             this.colorPoint(point,0x000000);
@@ -390,7 +384,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if ((i == middlePoint) || (i == steps)) this.calcClearanceForAgent(point,6.5);
+                    if ((i == steps) || (i == 2)) this.calcClearanceForAgent(point,7);
                 }
                 return true
             });    
@@ -494,15 +488,11 @@ export abstract class Controller {
         let distThreshold = 5;//this is to tell the algorithm how close to the target the character should be to be considered its close to the target or far from the target.
         if (this.branchedPath) {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
-            const distToOriginalTarget = this.distanceXZ(characterPos,originalPath)
-
             const hasReachedBranch = (distToBranchedPath < distThreshold) 
-            const isTheOriginalPathShorter = distToOriginalTarget < this.roundToNearestTens(distToBranchedPath);
             const isTheTargetCloseEnough =  (characterPos.distanceTo(originalPath) < 15);
-
-            console.log('Entity distToOriginalTarget:', distToOriginalTarget);
+            
             console.log('Entity distToBranchedPath:', distToBranchedPath);
-            if (hasReachedBranch || isTheOriginalPathShorter || isTheTargetCloseEnough) {
+            if (hasReachedBranch || isTheTargetCloseEnough) {
                 this.branchedPath = null;
                 console.log('Cleared this branch');
                 return;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.although,the code still works if i dont return here but i believe it will jitter if i dont put this
@@ -552,7 +542,6 @@ export abstract class Controller {
             console.log("Can walk forward| pos diff: ",readablePosDiff);
             console.log("Can walk forward| diff thresh: ",diffThreshold);
             console.log("Can walk forward| boolean: ",this.canWalkForward);
-            console.log('Can walk forward| clearance point',this.obstacleClearancePoint);
         }
     }
     private applyVelocity():void {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
