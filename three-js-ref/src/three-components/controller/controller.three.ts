@@ -353,18 +353,23 @@ export abstract class Controller {
 
         const horizontalForward = this.getHorizontalForward();
         const right = new THREE.Vector3(-horizontalForward.z, 0, horizontalForward.x).normalize();
-        const rightOffsetDistance = 2;
+        
 
         let hasCollidedForward = false
         for (let i = 1; i <= steps; i++) {
             if (hasCollidedForward) break;
             const distance = (maxDistance / steps) * i;
             let point:THREE.Vector3 = this.orientPoint(distance,forward);
-            if ((i == 2) || (i==steps)) {//this is to ensure that the foremost point detects it at least slihtly while the middle one does the accurate calc
-                point = point.add(right.clone().multiplyScalar(rightOffsetDistance));
-            }
-            this.colorPoint(point,0x000000);
+            const middlePoint = Math.ceil(steps/2);
 
+            //overshoot the middle and foremost point to the right for a better opportunity to properly calculate the clearance point for the agent.the reason why its to the right is because when you turn left to a wall,its your right that faces the wall
+            if (i == steps) {//im overshooting the foremost one cuz its requires for that intial turn but because it slides off almost immediately cuz of agent movement,it doesnt properly calculate the clearance
+                point = point.add(right.clone().multiplyScalar(2));
+            }else if (i == middlePoint) {//im overshooting the middle point cuz even when the agent quickly turns,the one in the middle doesnt slide off cuz its closer to the agent itself not too ahead of it
+                point = point.add(right.clone().multiplyScalar(1));//i noticed from gameplay that this should have a smaller offset than the foremosy one 
+            }
+
+            this.colorPoint(point,0x000000);
             physicsWorld.intersectionsWithPoint(point, (colliderObject) => {
                 const collider = physicsWorld.getCollider(colliderObject.handle);
                 const shape = collider.shape
@@ -389,7 +394,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if ((i == 2) || (i==steps)) this.calcClearanceForAgent(point,5);
+                    if ((i == middlePoint) || (i == steps)) this.calcClearanceForAgent(point,6);
                 }
                 return true
             });    

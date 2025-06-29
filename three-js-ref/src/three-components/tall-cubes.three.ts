@@ -21,6 +21,7 @@ const tallCubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f});
 const minHeight = 7;
 const maxHeight = 7;
 
+const width = 20
 for (let i = 0; i < points.length; i++) {
     const [x, z] = points[i];
 
@@ -29,13 +30,13 @@ for (let i = 0; i < points.length; i++) {
     const posX = x - groundArea/2; // center around zero.divide by two to align it around the ground's origin to prevent leakage from the ground
     const posZ = z - groundArea/2;
 
-    const tallCubeGeometry = new THREE.BoxGeometry(40,height,40);
+    const tallCubeGeometry = new THREE.BoxGeometry(width,height,width);
     const tallCube = new THREE.Mesh(tallCubeGeometry, tallCubeMaterial);
     const tallCubeEdges = new EdgesGeometry(tallCubeGeometry);
     const tallCubeLine = new LineSegments(tallCubeEdges, new LineBasicMaterial({ color: 0x000000 }));
     tallCube.add(tallCubeLine)
 
-    const tallCubeCollider = RAPIER.ColliderDesc.cuboid(20,height/2,20);
+    const tallCubeCollider = RAPIER.ColliderDesc.cuboid(width/2,height/2,width/2);
     tallCubeCollider.setFriction(0.5)
     const tallCubeBody = RAPIER.RigidBodyDesc.fixed();
     const tallCubeRigidBody = physicsWorld.createRigidBody(tallCubeBody);

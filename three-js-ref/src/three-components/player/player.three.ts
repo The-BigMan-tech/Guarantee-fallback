@@ -4,7 +4,7 @@ import type { FixedControllerData,DynamicControllerData } from "../controller/co
 import * as RAPIER from "@dimforge/rapier3d"
 import * as THREE from "three"
 
-// console.log = ()=>{};
+console.log = ()=>{};
 interface PlayerCamData extends CameraData {
     cameraRotationSpeed:number;
     offsetY:number | 'auto';
