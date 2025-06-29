@@ -471,7 +471,6 @@ export abstract class Controller {
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
         const currentPath = this.branchedPath || originalPath;
         const characterPos = this.character.position;
-        const distToOriginalTarget = this.distanceXZ(characterPos,originalPath)
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
 
         const shouldWalkAroundObstacle = (
@@ -487,34 +486,40 @@ export abstract class Controller {
         console.log("Entity path| original path: ",originalPath);
         console.log("Entity path| compare char pos: ",characterPos);
 
-        console.log('Entity distToOriginalTarget:', distToOriginalTarget);
 
         let distThreshold = 5;//this is to tell the algorithm how close to the target the character should be to be considered its close to the target or far from the target.
         if (this.branchedPath) {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
+            const distToOriginalTarget = this.distanceXZ(characterPos,originalPath)
+
+            const hasReachedBranch = (distToBranchedPath < distThreshold) 
+            const isTheOriginalPathShorter = distToOriginalTarget < this.roundToNearestTens(distToBranchedPath);
+            const isTheTargetCloseEnough =  (characterPos.distanceTo(originalPath) < 15);
+
+            console.log('Entity distToOriginalTarget:', distToOriginalTarget);
             console.log('Entity distToBranchedPath:', distToBranchedPath);
-            //this is if it has reached the branched path
-            if ((distToBranchedPath < distThreshold) || (distToOriginalTarget < this.roundToNearestTens(distToBranchedPath))) {
+            if (hasReachedBranch || isTheOriginalPathShorter || isTheTargetCloseEnough) {
                 this.branchedPath = null;
                 console.log('Cleared this branch');
                 return;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.although,the code still works if i dont return here but i believe it will jitter if i dont put this
             }
-        }
+        } 
         const detouredPath = currentPath.clone();
         if (shouldWalkAroundObstacle && !(this.obstacleClearancePoint.equals({x:0,y:0,z:0}))) { 
             detouredPath.copy(this.obstacleClearancePoint);
             console.log('Entity path| compare detouredPath:',this.obstacleClearancePoint);
             this.branchedPath = detouredPath;
         }
-        // this.colorPoint(pathTargetPos,0x000000)
+
         const finalDir = this.getSteeringDirection(detouredPath)
         const distToFinalDest = characterPos.distanceTo(detouredPath)
         const epsilon = 0.01;
+        this.isTargetClose = distToFinalDest < distThreshold;
 
+        
         if (currentPath.distanceTo(detouredPath) > epsilon) {//means they are different
             distThreshold = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
         }
-        this.isTargetClose = distToFinalDest < distThreshold;
         if (finalDir !== null) {
             console.log("Passed rotation threshols");
             this.rotateCharacterX(finalDir);
@@ -559,7 +564,6 @@ export abstract class Controller {
         this.dynamicData.horizontalVelocity = this.originalHorizontalVel;//the horizontal velocity is subject to runtime mutations so i have to reset it
         this.shouldStepUp = false;
         this.obstacleDistance = 0;
-        this.obstacleClearancePoint.set(0,0,0)
          // this.obstacleHeight = 0;
     }
     private updateCharacterAnimations():void {
