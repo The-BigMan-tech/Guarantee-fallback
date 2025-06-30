@@ -505,26 +505,31 @@ export abstract class Controller {
         const characterPos = this.character.position;
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
 
-        const onSameYLevel = Math.abs(characterPos.y - originalPath.y) < 0.1//*to be used
+        const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y))
+        const onDifferentYLevel = YDifference > 2//*to be used
+        
         const shouldWalkAroundObstacle = (
-            this.obstacleDistance !== Infinity && 
-            !this.isTargetClose && 
-            !this.canJumpOntoObstacle() &&
-            (!this.shouldStepUp || !this.canWalkForward) 
+            (this.obstacleDistance !== Infinity) && 
+            (!this.isTargetClose) && 
+            (!this.canJumpOntoObstacle()) &&
+            (!this.shouldStepUp || !this.canWalkForward) &&
+            (onDifferentYLevel)
         ) 
 
-        console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
-
         console.log("Entity path| branched path: ",this.branchedPath);
-        console.log("Entity path| original path: ",originalPath);
+        console.log("Entity path| compare original path: ",originalPath);
         console.log("Entity path| compare char pos: ",characterPos);
-
+        console.log('compare Y diff: ',YDifference);
+        console.log('compare onDifferentYLevel:', onDifferentYLevel);
+        console.log("Entity movement| compare should walk around obstacle: ",shouldWalkAroundObstacle);
+        
 
         let distThreshold = 5;//this is to tell the algorithm how close to the target the character should be to be considered its close to the target or far from the target.
         if (this.branchedPath) {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
             const hasReachedBranch = (distToBranchedPath < distThreshold) 
             const isTheTargetCloseEnough =  (characterPos.distanceTo(originalPath) < 15);
+            console.log('isTheTargetCloseEnough:', isTheTargetCloseEnough);
             
             console.log('Entity distToBranchedPath:', distToBranchedPath);
             if (hasReachedBranch || isTheTargetCloseEnough) {
@@ -537,7 +542,7 @@ export abstract class Controller {
         if (shouldWalkAroundObstacle && !(this.obstacleClearancePoint.equals({x:0,y:0,z:0}))) { 
             detouredPath.copy(this.obstacleClearancePoint.clone());//i need to clone it before emptying it
             this.branchedPath = detouredPath;
-            console.log('Entity path| compare detouredPath:',detouredPath);
+            console.log('Entity path| detouredPath:',detouredPath);
         }
 
         const finalDir = this.getSteeringDirection(detouredPath)
@@ -549,7 +554,7 @@ export abstract class Controller {
             distThreshold = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
         }
         this.isTargetClose = distToFinalDest < distThreshold;
-        
+
         if (finalDir !== null) {
             console.log("Passed rotation threshols");
             this.rotateCharacterX(finalDir);
