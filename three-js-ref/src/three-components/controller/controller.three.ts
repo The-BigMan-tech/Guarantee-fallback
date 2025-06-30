@@ -347,8 +347,7 @@ export abstract class Controller {
                     return true
                 })
                 if (straightClearance) {
-                    const forward = this.getHorizontalForward();
-                    finalPos = straightLinePos.clone().add(forward.multiplyScalar(5));
+                    finalPos = straightLinePos.clone().add(horizontalForward.clone().multiplyScalar(5));
                     this.obstacleClearancePoint = finalPos;
                     this.colorPoint(finalPos,0x34053e);
                     console.log('character clearance point:', this.obstacleClearancePoint);

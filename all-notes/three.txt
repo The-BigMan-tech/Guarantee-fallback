@@ -660,3 +660,6 @@ This geometric setup leads to conflicting clearance points and causes the entity
 
 Even after fixing the V-shape, retaining the clearance point as a state flag is wise.
 
+*Distinct roles for foremost and side clearance points:
+The foremost point now effectively leads your entity away from adjacent obstacles, preventing collisions ahead.
+The side point guides the entity along the obstacle surface, enabling smooth wall-following behavior.
