@@ -89,7 +89,7 @@ export abstract class Controller {
     private widthDebuf:number
     private obstacleClearancePoint:THREE.Vector3 = new THREE.Vector3();
 
-    private isTargetClose = false;
+    private isFinalDestClose = false;
     private branchedPath:THREE.Vector3 | null = null;
 
     private canWalkForward:boolean = false
@@ -388,10 +388,14 @@ export abstract class Controller {
         for (let i = 1; i <= steps; i++) {
             const distance = (maxDistance / steps) * i;
             const point:THREE.Vector3 = this.orientPoint(distance,forward);
+
+            const firstPoint = 1;
+            const foremostPoint = steps;
+
             let offsetPoint:THREE.Vector3 = point.clone();
 
             let purpose:'foremostRay' | 'sideRay' = 'foremostRay'
-            if ((i == 3)) {
+            if ((i == firstPoint)) {
                 offsetPoint = offsetPoint.add(right.clone().multiplyScalar(4));
                 purpose = 'sideRay'
             }
@@ -418,7 +422,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if ((i == steps) || (i == 3)) this.calcClearanceForAgent(offsetPoint,1,purpose);
+                    if ((i == foremostPoint) || (i == firstPoint)) this.calcClearanceForAgent(offsetPoint,1,purpose);
                 }
                 return true
             });    
@@ -508,7 +512,7 @@ export abstract class Controller {
         
         const shouldWalkAroundObstacle = (
             (this.obstacleDistance !== Infinity) && 
-            (!this.isTargetClose) && 
+            (!this.isFinalDestClose) && 
             (!this.canJumpOntoObstacle()) &&
             (!this.shouldStepUp || !this.canWalkForward)
         ) 
@@ -548,13 +552,13 @@ export abstract class Controller {
         if (currentPath.distanceTo(detouredPath) > epsilon) {//means they are different
             distThreshold = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
         }
-        this.isTargetClose = distToFinalDest < distThreshold;
+        this.isFinalDestClose = distToFinalDest < distThreshold;
 
         if (finalDir !== null) {
             console.log("Passed rotation threshols");
             this.rotateCharacterX(finalDir);
         }else {
-            if (!this.isTargetClose) {
+            if (!this.isFinalDestClose) {
                 this.autoMoveForward();
             }else {
                 this.playIdleAnimation();
