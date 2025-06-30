@@ -505,13 +505,12 @@ export abstract class Controller {
         const characterPos = this.character.position;
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
 
-        const onSameYLevel = Math.abs(characterPos.y - originalPath.y) < 3
+        const onSameYLevel = Math.abs(characterPos.y - originalPath.y) < 0.1//*to be used
         const shouldWalkAroundObstacle = (
             this.obstacleDistance !== Infinity && 
             !this.isTargetClose && 
             !this.canJumpOntoObstacle() &&
-            (!this.shouldStepUp || !this.canWalkForward)  &&
-            !onSameYLevel
+            (!this.shouldStepUp || !this.canWalkForward) 
         ) 
 
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
@@ -544,18 +543,19 @@ export abstract class Controller {
         const finalDir = this.getSteeringDirection(detouredPath)
         const distToFinalDest = characterPos.distanceTo(detouredPath)
         const epsilon = 0.01;
-        this.isTargetClose = distToFinalDest < distThreshold;
-
+        
         
         if (currentPath.distanceTo(detouredPath) > epsilon) {//means they are different
             distThreshold = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
         }
+        this.isTargetClose = distToFinalDest < distThreshold;
+        
         if (finalDir !== null) {
             console.log("Passed rotation threshols");
             this.rotateCharacterX(finalDir);
         }else {
             if (!this.isTargetClose) {
-                // this.autoMoveForward();
+                this.autoMoveForward();
             }else {
                 this.playIdleAnimation();
                 this.stopWalkSound();
