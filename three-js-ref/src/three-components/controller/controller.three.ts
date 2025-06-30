@@ -107,13 +107,11 @@ export abstract class Controller {
 
         if (fixedData.shape == 'capsule') {
             this.characterCollider = RAPIER.ColliderDesc.capsule(halfHeight,radius);
-            this.charLine = createCapsuleLine(radius,fixedData.characterHeight-0.5)//this is an offset to make the hitbox visually accurate to its physics body height
+            this.charLine = createCapsuleLine(radius,fixedData.characterHeight)//this is an offset to make the hitbox visually accurate to its physics body height
         }else {
             this.characterCollider = RAPIER.ColliderDesc.cuboid(increasedHalfWidth,increasedHalfHeight,increasedHalfWidth);
             this.charLine = createBoxLine(increasedHalfWidth,increasedHalfHeight)
         }
-        this.charLine.position.set(0,2.5,0.2)//these are artificial offsets to the hitbox relative to the character cuz the position can never be fully accurate on its own.so it needs this for it to be visually accurate
-        if (Controller.showHitBoxes) this.character.add(this.charLine);
 
         this.characterBody.mass = this.fixedData.mass;
         this.characterRigidBody = physicsWorld.createRigidBody(this.characterBody);
@@ -124,6 +122,10 @@ export abstract class Controller {
         this.groundDetectionDistance = halfHeight + 0.5 + ((fixedData.characterHeight%2) * 0.5);//i didnt just guess this from my head.i made the formula after trying different values and recording the ones that correctly matched a given character height,saw a pattern and crafted a formula for it
 
         this.originalHorizontalVel = dynamicData.horizontalVelocity;
+
+        this.charLine.position.set(0,fixedData.characterHeight + 1,this.modelZOffset)//these are artificial offsets to the hitbox relative to the character cuz the position can never be fully accurate on its own.so it needs this for it to be visually accurate
+        if (Controller.showHitBoxes) this.character.add(this.charLine);
+
         this.loadCharacterModel();
     }
     private calculateGroundPosition() {
@@ -365,6 +367,7 @@ export abstract class Controller {
                     const nudgePoint = rayLinePos.clone().add(leftVector.multiplyScalar(5));
                     this.colorPoint(nudgePoint,0x19044c)
                     this.obstacleClearancePoint = nudgePoint;
+                    console.log('Adjusted clearance point:', this.obstacleClearancePoint);
                     break
                 }
             }
