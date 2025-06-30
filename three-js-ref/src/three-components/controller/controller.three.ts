@@ -331,7 +331,9 @@ export abstract class Controller {
                 straightLinePos.add(horizontalForward);
                 stoppedWidth = i
 
-                physicsWorld.intersectionsWithPoint(straightLinePos,()=>{     
+                physicsWorld.intersectionsWithPoint(straightLinePos,(colliderObject)=>{
+                    const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
+                    if (isCharacterCollider) return true;     
                     straightClearance = false
                     return true
                 })
@@ -346,23 +348,24 @@ export abstract class Controller {
         }
         if (purpose == "foremostRay") {
             const rayLinePos = point.clone();
-                    
+            let rayBlocked = false;
+
             for (let i = 0; i <= stoppedWidth; i++) {
-                let rayBlocked = false;
                 this.colorPoint(rayLinePos,0x290202)
                 rayLinePos.add(horizontalForward);
-                
-                
+                    
                 physicsWorld.intersectionsWithPoint(rayLinePos,(colliderObject)=>{  
                     const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
                     if (isCharacterCollider) return true;
                     rayBlocked = true;
                     return true;
                 })
-                if (rayBlocked) {
-                    this.obstacleClearancePoint = rayLinePos;
-                    console.log('Adjusted clearance point: ',this.obstacleClearancePoint);
-                    break;
+                if (rayBlocked)  {
+                    const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
+                    const nudgePoint = rayLinePos.clone().add(leftVector.multiplyScalar(5));
+                    this.colorPoint(nudgePoint,0x19044c)
+                    this.obstacleClearancePoint = nudgePoint;
+                    break
                 }
             }
         }
@@ -392,11 +395,8 @@ export abstract class Controller {
 
             this.colorPoint(offsetPoint,0x000000);
             physicsWorld.intersectionsWithPoint(offsetPoint, (colliderObject) => {
-                const collider = physicsWorld.getCollider(colliderObject.handle);
-                const shape = collider.shape
-                console.log('PointY Obstacle: ',offsetPoint.y);
-                console.log('Obstacle Collider shape:', shape);
-                if (!(shape instanceof RAPIER.Cuboid)) return true;//only detect cubes
+                const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
+                if (isCharacterCollider) return true;
 
                 console.log('PointY Obstacle: ', offsetPoint.y);
                 hasCollidedForward = true;

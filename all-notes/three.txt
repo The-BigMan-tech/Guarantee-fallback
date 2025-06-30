@@ -642,3 +642,14 @@ code health
 Point marker
 hitbox
 transparent collider with edge geometry
+
+
+For the foremost ray, since it represents a forward scanning ray that should stop upon hitting an obstacle, it makes sense to set the rayBlocked flag once a collision is detected and then break out of the loop. This prevents unnecessary further checks beyond the first collision, optimizing performance and reflecting that the path ahead is blocked.
+
+For the side ray, which is used to check clearance along the side without stopping at the first collision, you want to reset or set the clearance flag (e.g., leftClearance) to true at the start of each loop iteration. This is because the side ray’s purpose is to scan an entire lateral range, and even if some points are blocked, the overall clearance might still be acceptable if other points are free. So it should not stop scanning on the first collision but continue checking all points.
+
+The forward ray detects a blocking obstacle directly ahead and stops there.
+
+The left shift is primarily to nudge or lead the agent parallel to the wall, so you just want a fixed offset (e.g., 5 units left) to guide the agent’s movement.
+
+Since the side ray is responsible for clearance checking, it will detect if the path along the wall is actually free or blocked.
