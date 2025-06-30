@@ -323,11 +323,16 @@ export abstract class Controller {
     private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay') {
         const horizontalForward = this.getHorizontalForward();
         const maxWidthToCheck = 40;
+        const reachedPreviousClearance = this.obstacleClearancePoint.equals({x:0,y:0,z:0})//it only clears when the entity has reached the previous branch
         let stoppedWidth:number = 0;
-
-
+        console.log('reachedPreviousClearance:', reachedPreviousClearance);
+        
+        if (!reachedPreviousClearance) {
+            return;
+        }
         if (purpose == 'sideRay') {
             const straightLinePos = point.clone();
+            let finalPos: THREE.Vector3 | null = null;
             for (let i=0;i <= maxWidthToCheck;i++) {
                 let straightClearance = true
                 this.colorPoint(straightLinePos,0x033e2b)
@@ -335,13 +340,16 @@ export abstract class Controller {
                 stoppedWidth = i
 
                 physicsWorld.intersectionsWithPoint(straightLinePos,(colliderObject)=>{
+                    const shape = physicsWorld.getCollider(colliderObject.handle).shape
                     const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
-                    if (isCharacterCollider) return true;     
+                    if (isCharacterCollider || !(shape instanceof RAPIER.Cuboid)) return true;
                     straightClearance = false
                     return true
                 })
                 if (straightClearance) {
-                    this.obstacleClearancePoint = straightLinePos
+                    const forward = this.getHorizontalForward();
+                    finalPos = straightLinePos.clone().add(forward.multiplyScalar(2));
+                    this.obstacleClearancePoint = finalPos
                     this.prioritizeBranch = false
                     console.log('character clearance point:', this.obstacleClearancePoint);
                     break;
@@ -356,9 +364,10 @@ export abstract class Controller {
                 this.colorPoint(rayLinePos,0x290202)
                 rayLinePos.add(horizontalForward);
                     
-                physicsWorld.intersectionsWithPoint(rayLinePos,(colliderObject)=>{  
+                physicsWorld.intersectionsWithPoint(rayLinePos,(colliderObject)=>{ 
+                    const shape = physicsWorld.getCollider(colliderObject.handle).shape 
                     const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
-                    if (isCharacterCollider) return true;
+                    if (isCharacterCollider || !(shape instanceof RAPIER.Cuboid)) return true;
                     rayBlocked = true;
                     return true;
                 })
@@ -404,8 +413,9 @@ export abstract class Controller {
 
             this.colorPoint(offsetPoint,0x000000);
             physicsWorld.intersectionsWithPoint(offsetPoint, (colliderObject) => {
+                const shape = physicsWorld.getCollider(colliderObject.handle).shape
                 const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
-                if (isCharacterCollider) return true;
+                if (isCharacterCollider || !(shape instanceof RAPIER.Cuboid)) return true;//avoid the character own collider and any other collier that isnt a cuboid cuz im using capsule for entities and the player and i dont want false positives
 
                 console.log('PointY Obstacle: ', offsetPoint.y);
                 hasCollidedForward = true;
@@ -534,7 +544,8 @@ export abstract class Controller {
             console.log('isOriginalPathClose:', isOriginalPathClose);
             
             console.log('Entity distToBranchedPath:', distToBranchedPath);
-            if (!this.prioritizeBranch && (hasReachedBranch || isOriginalPathClose)) {
+            if ((hasReachedBranch || isOriginalPathClose)) {
+                this.obstacleClearancePoint.set(0,0,0);
                 this.branchedPath = null;
                 console.log('Cleared this branch');
                 return;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.although,the code still works if i dont return here but i believe it will jitter if i dont put this
@@ -542,7 +553,7 @@ export abstract class Controller {
         }
         const detouredPath = currentPath.clone();
         if (shouldWalkAroundObstacle && !(this.obstacleClearancePoint.equals({x:0,y:0,z:0}))) { 
-            detouredPath.copy(this.obstacleClearancePoint.clone());//i need to clone it before emptying it
+            detouredPath.copy(this.obstacleClearancePoint);
             this.branchedPath = detouredPath;
             console.log('Entity path| detouredPath:',detouredPath);
         }
@@ -562,7 +573,7 @@ export abstract class Controller {
             this.rotateCharacterX(finalDir);
         }else {
             if (!this.isFinalDestClose) {
-                // this.autoMoveForward();
+                this.autoMoveForward();
             }else {
                 this.playIdleAnimation();
                 this.stopWalkSound();
@@ -601,7 +612,7 @@ export abstract class Controller {
         this.dynamicData.horizontalVelocity = this.originalHorizontalVel;//the horizontal velocity is subject to runtime mutations so i have to reset it
         this.shouldStepUp = false;
         this.obstacleDistance = 0;
-        this.obstacleClearancePoint.set(0,0,0);//reset the clearance point after use.although,the code still ran well even though i didnt do this but its best to stay safe.
+        // this.obstacleClearancePoint.set(0,0,0);//reset the clearance point after use.although,the code still ran well even though i didnt do this but its best to stay safe.
          // this.obstacleHeight = 0;
     }
     private updateCharacterAnimations():void {
