@@ -326,9 +326,9 @@ export abstract class Controller {
         let stoppedWidth:number = 0;
         console.log('reachedPreviousClearance:', reachedPreviousClearance);
 
-        // if (!reachedPreviousClearance) {
-        //     return;
-        // }
+        if (!reachedPreviousClearance) {
+            return;
+        }
         if (purpose == 'sideRay') {
             const straightLinePos = point.clone();
             let finalPos: THREE.Vector3 | null = null;
@@ -347,8 +347,9 @@ export abstract class Controller {
                 })
                 if (straightClearance) {
                     const forward = this.getHorizontalForward();
-                    finalPos = straightLinePos.clone().add(forward.multiplyScalar(4));
-                    this.obstacleClearancePoint = finalPos
+                    finalPos = straightLinePos.clone().add(forward.multiplyScalar(5));
+                    this.obstacleClearancePoint = finalPos;
+                    this.colorPoint(finalPos,0x34053e);
                     console.log('character clearance point:', this.obstacleClearancePoint);
                     break;
                 }
@@ -495,9 +496,7 @@ export abstract class Controller {
         return Math.sqrt(dx * dx + dz * dz);
     }
     
-    private roundToNearestTens(num:number):number {
-        return Math.round(num / 10) * 10;
-    }
+
     private getSteeringDirection(path:THREE.Vector3):'right' | 'left' | null {
         const direction = path.clone().sub(this.character.position);
         const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
@@ -535,8 +534,11 @@ export abstract class Controller {
         if (this.branchedPath) {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
             const hasReachedBranch = (distToBranchedPath < distThreshold) 
-            const isOriginalPathClose =  (characterPos.distanceTo(originalPath) < distThreshold);
             
+            const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y))
+            const onSameYLevel = YDifference < 2
+            const isOriginalPathClose =  (onSameYLevel) && (characterPos.distanceTo(originalPath) < 10);
+
             console.log('isOriginalPathClose:', isOriginalPathClose);
             
             console.log('Entity distToBranchedPath:', distToBranchedPath);
@@ -563,13 +565,12 @@ export abstract class Controller {
             distThreshold = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
         }
         this.isFinalDestClose = distToFinalDest < distThreshold;
-
         if (finalDir !== null) {
             console.log("Passed rotation threshols");
             this.rotateCharacterX(finalDir);
         }else {
             if (!this.isFinalDestClose) {
-                // this.autoMoveForward();
+                this.autoMoveForward();
             }else {
                 this.playIdleAnimation();
                 this.stopWalkSound();
