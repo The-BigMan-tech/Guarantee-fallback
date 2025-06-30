@@ -391,8 +391,8 @@ export abstract class Controller {
             let offsetPoint:THREE.Vector3 = point.clone();
 
             let purpose:'foremostRay' | 'sideRay' = 'foremostRay'
-            if ((i == 1)) {
-                offsetPoint = offsetPoint.add(right.clone().multiplyScalar(2));
+            if ((i == 3)) {
+                offsetPoint = offsetPoint.add(right.clone().multiplyScalar(4));
                 purpose = 'sideRay'
             }
 
@@ -418,7 +418,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if ((i == steps) || (i == 1)) this.calcClearanceForAgent(offsetPoint,7,purpose);
+                    if ((i == steps) || (i == 3)) this.calcClearanceForAgent(offsetPoint,1,purpose);
                 }
                 return true
             });    
@@ -505,34 +505,29 @@ export abstract class Controller {
         const characterPos = this.character.position;
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
 
-        const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y))
-        const onDifferentYLevel = YDifference > 2//*to be used
         
         const shouldWalkAroundObstacle = (
             (this.obstacleDistance !== Infinity) && 
             (!this.isTargetClose) && 
             (!this.canJumpOntoObstacle()) &&
-            (!this.shouldStepUp || !this.canWalkForward) &&
-            (onDifferentYLevel)
+            (!this.shouldStepUp || !this.canWalkForward)
         ) 
 
         console.log("Entity path| branched path: ",this.branchedPath);
         console.log("Entity path| compare original path: ",originalPath);
         console.log("Entity path| compare char pos: ",characterPos);
-        console.log('compare Y diff: ',YDifference);
-        console.log('compare onDifferentYLevel:', onDifferentYLevel);
-        console.log("Entity movement| compare should walk around obstacle: ",shouldWalkAroundObstacle);
+        console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
         
 
         let distThreshold = 5;//this is to tell the algorithm how close to the target the character should be to be considered its close to the target or far from the target.
         if (this.branchedPath) {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
             const hasReachedBranch = (distToBranchedPath < distThreshold) 
-            const isTheTargetCloseEnough =  (characterPos.distanceTo(originalPath) < 15);
-            console.log('isTheTargetCloseEnough:', isTheTargetCloseEnough);
+            const isOriginalPathClose =  (characterPos.distanceTo(originalPath) < distThreshold);
+            console.log('isOriginalPathClose:', isOriginalPathClose);
             
             console.log('Entity distToBranchedPath:', distToBranchedPath);
-            if (hasReachedBranch || isTheTargetCloseEnough) {
+            if (hasReachedBranch || isOriginalPathClose) {
                 this.branchedPath = null;
                 console.log('Cleared this branch');
                 return;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.although,the code still works if i dont return here but i believe it will jitter if i dont put this
