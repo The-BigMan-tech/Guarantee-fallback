@@ -320,7 +320,7 @@ export abstract class Controller {
     }
     private prioritizeBranch:boolean = false
 
-    private calcClearanceForAgent(point: THREE.Vector3,overshoot:number,purpose:'foremostRay' | 'sideRay') {
+    private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay') {
         const horizontalForward = this.getHorizontalForward();
         const maxWidthToCheck = 40;
         let stoppedWidth:number = 0;
@@ -328,7 +328,6 @@ export abstract class Controller {
 
         if (purpose == 'sideRay') {
             const straightLinePos = point.clone();
-            let finalPos: THREE.Vector3 | null = null;
             for (let i=0;i <= maxWidthToCheck;i++) {
                 let straightClearance = true
                 this.colorPoint(straightLinePos,0x033e2b)
@@ -342,9 +341,7 @@ export abstract class Controller {
                     return true
                 })
                 if (straightClearance) {
-                    const forward = this.getHorizontalForward();
-                    finalPos = straightLinePos.clone().add(forward.multiplyScalar(overshoot));
-                    this.obstacleClearancePoint = finalPos
+                    this.obstacleClearancePoint = straightLinePos
                     this.prioritizeBranch = false
                     console.log('character clearance point:', this.obstacleClearancePoint);
                     break;
@@ -427,7 +424,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if ((i == foremostPoint) || (i == firstPoint)) this.calcClearanceForAgent(offsetPoint,1,purpose);
+                    if ((i == foremostPoint) || (i == firstPoint)) this.calcClearanceForAgent(offsetPoint,purpose);
                 }
                 return true
             });    
