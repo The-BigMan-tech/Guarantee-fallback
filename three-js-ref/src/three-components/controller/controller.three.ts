@@ -318,6 +318,8 @@ export abstract class Controller {
             }
         }   
     }
+    private prioritizeBranch:boolean = false
+
     private calcClearanceForAgent(point: THREE.Vector3,overshoot:number,purpose:'foremostRay' | 'sideRay') {
         const horizontalForward = this.getHorizontalForward();
         const maxWidthToCheck = 40;
@@ -343,6 +345,7 @@ export abstract class Controller {
                     const forward = this.getHorizontalForward();
                     finalPos = straightLinePos.clone().add(forward.multiplyScalar(overshoot));
                     this.obstacleClearancePoint = finalPos
+                    this.prioritizeBranch = false
                     console.log('character clearance point:', this.obstacleClearancePoint);
                     break;
                 }
@@ -367,11 +370,13 @@ export abstract class Controller {
                     const nudgePoint = rayLinePos.clone().add(leftVector.multiplyScalar(5));
                     this.colorPoint(nudgePoint,0x19044c)
                     this.obstacleClearancePoint = nudgePoint;
+                    this.prioritizeBranch = true
                     console.log('Adjusted clearance point:', this.obstacleClearancePoint);
                     break
                 }
             }
         }
+        console.log('prioritizeBranch:',this.prioritizeBranch);
     }
     private detectObstacle():void {
         if (!this.isGrounded()) return;//to prevent detection when in the air
@@ -396,7 +401,7 @@ export abstract class Controller {
 
             let purpose:'foremostRay' | 'sideRay' = 'foremostRay'
             if ((i == firstPoint)) {
-                offsetPoint = offsetPoint.add(right.clone().multiplyScalar(4));
+                offsetPoint = offsetPoint.add(right.clone().multiplyScalar(3));
                 purpose = 'sideRay'
             }
 
@@ -528,10 +533,11 @@ export abstract class Controller {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
             const hasReachedBranch = (distToBranchedPath < distThreshold) 
             const isOriginalPathClose =  (characterPos.distanceTo(originalPath) < distThreshold);
+            
             console.log('isOriginalPathClose:', isOriginalPathClose);
             
             console.log('Entity distToBranchedPath:', distToBranchedPath);
-            if (hasReachedBranch || isOriginalPathClose) {
+            if (!this.prioritizeBranch && (hasReachedBranch || isOriginalPathClose)) {
                 this.branchedPath = null;
                 console.log('Cleared this branch');
                 return;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.although,the code still works if i dont return here but i believe it will jitter if i dont put this
@@ -559,7 +565,7 @@ export abstract class Controller {
             this.rotateCharacterX(finalDir);
         }else {
             if (!this.isFinalDestClose) {
-                this.autoMoveForward();
+                // this.autoMoveForward();
             }else {
                 this.playIdleAnimation();
                 this.stopWalkSound();
