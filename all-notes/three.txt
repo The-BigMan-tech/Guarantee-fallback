@@ -635,3 +635,10 @@ Deadlock
 
 left-steering
 clock-wise perimeter steering
+
+code health
+
+*Visual debugger
+Point marker
+hitbox
+transparent collider with edge geometry

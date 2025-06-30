@@ -264,7 +264,7 @@ export abstract class Controller {
 
     private updateObstacleDetectionDistance() {
         const delta = this.clock.getDelta();
-        const margin = 4; // tune as needed.its how far ahead do you want to detect obstacles in addition to the calculated dist which is usually below 1 cuz delta frames are usually fractions of a second
+        const margin = 5; // tune as needed.its how far ahead do you want to detect obstacles in addition to the calculated dist which is usually below 1 cuz delta frames are usually fractions of a second
         this.obstacleDetectionDistance = (this.dynamicData.horizontalVelocity * delta) + margin
         console.log("Obstacle detection distance: ",this.obstacleDetectionDistance);
     }
@@ -316,51 +316,51 @@ export abstract class Controller {
             }
         }   
     }
-    private calcClearanceForAgent(point: THREE.Vector3,overshoot:number,originalPoint:THREE.Vector3) {
+    private calcClearanceForAgent(point: THREE.Vector3,overshoot:number,purpose:'foremostRay' | 'sideRay') {
         const horizontalForward = this.getHorizontalForward();
-        const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
         const maxWidthToCheck = 40;
-
-
-        const leftCheckPos = point.clone();
         let stoppedWidth:number = 0;
-        let finalPos: THREE.Vector3 | null = null;
-        for (let i=0;i <= maxWidthToCheck;i++) {
-            let leftClearance = true
-            this.colorPoint(leftCheckPos,0x000000)
-            leftCheckPos.add(horizontalForward);
-            stoppedWidth = i
 
-            physicsWorld.intersectionsWithPoint(leftCheckPos,()=>{     
-                leftClearance = false
-                return true
-            })
-            if (leftClearance) {
-                const forward = this.getHorizontalForward();
-                finalPos = leftCheckPos.clone().add(forward.multiplyScalar(overshoot));
-                this.obstacleClearancePoint = finalPos
-                console.log('character clearance point:', this.obstacleClearancePoint);
-                break;
-            }
-        }  
-        if (finalPos) {
-            const obstacleFacePos = originalPoint.clone().add(leftVector.clone().multiplyScalar(2));
-            const secondScanPos = obstacleFacePos.clone();
+
+        if (purpose == 'sideRay') {
+            const straightLinePos = point.clone();
+            let finalPos: THREE.Vector3 | null = null;
+            for (let i=0;i <= maxWidthToCheck;i++) {
+                let straightClearance = true
+                this.colorPoint(straightLinePos,0x033e2b)
+                straightLinePos.add(horizontalForward);
+                stoppedWidth = i
+
+                physicsWorld.intersectionsWithPoint(straightLinePos,()=>{     
+                    straightClearance = false
+                    return true
+                })
+                if (straightClearance) {
+                    const forward = this.getHorizontalForward();
+                    finalPos = straightLinePos.clone().add(forward.multiplyScalar(overshoot));
+                    this.obstacleClearancePoint = finalPos
+                    console.log('character clearance point:', this.obstacleClearancePoint);
+                    break;
+                }
+            }  
+        }
+        if (purpose == "foremostRay") {
+            const rayLinePos = point.clone();
                     
             for (let i = 0; i <= stoppedWidth; i++) {
-                let leftBlocked = false;
-                this.colorPoint(secondScanPos,0x000000)
-                secondScanPos.add(horizontalForward);
+                let rayBlocked = false;
+                this.colorPoint(rayLinePos,0x290202)
+                rayLinePos.add(horizontalForward);
                 
                 
-                physicsWorld.intersectionsWithPoint(secondScanPos,(colliderObject)=>{  
+                physicsWorld.intersectionsWithPoint(rayLinePos,(colliderObject)=>{  
                     const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
                     if (isCharacterCollider) return true;
-                    leftBlocked = true;
+                    rayBlocked = true;
                     return true;
                 })
-                if (leftBlocked) {
-                    this.obstacleClearancePoint = secondScanPos;
+                if (rayBlocked) {
+                    this.obstacleClearancePoint = rayLinePos;
                     console.log('Adjusted clearance point: ',this.obstacleClearancePoint);
                     break;
                 }
@@ -380,13 +380,14 @@ export abstract class Controller {
         let hasCollidedForward = false;
 
         for (let i = 1; i <= steps; i++) {
-            if (hasCollidedForward) break;
             const distance = (maxDistance / steps) * i;
             const point:THREE.Vector3 = this.orientPoint(distance,forward);
             let offsetPoint:THREE.Vector3 = point.clone();
 
-            if ((i == steps) || (i == 2)) {
+            let purpose:'foremostRay' | 'sideRay' = 'foremostRay'
+            if ((i == 1)) {
                 offsetPoint = offsetPoint.add(right.clone().multiplyScalar(2));
+                purpose = 'sideRay'
             }
 
             this.colorPoint(offsetPoint,0x000000);
@@ -414,7 +415,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if ((i == steps) || (i == 2)) this.calcClearanceForAgent(offsetPoint,7,point);
+                    if ((i == steps) || (i == 1)) this.calcClearanceForAgent(offsetPoint,7,purpose);
                 }
                 return true
             });    
@@ -501,12 +502,14 @@ export abstract class Controller {
         const characterPos = this.character.position;
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
 
+        const onSameYLevel = Math.abs(characterPos.y - originalPath.y) < 3
         const shouldWalkAroundObstacle = (
             this.obstacleDistance !== Infinity && 
             !this.isTargetClose && 
             !this.canJumpOntoObstacle() &&
-            (!this.shouldStepUp || !this.canWalkForward) 
-        ) //either you cant step up or u cant walk forward
+            (!this.shouldStepUp || !this.canWalkForward)  &&
+            !onSameYLevel
+        ) 
 
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
