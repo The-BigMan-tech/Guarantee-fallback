@@ -653,3 +653,10 @@ The forward ray detects a blocking obstacle directly ahead and stops there.
 The left shift is primarily to nudge or lead the agent parallel to the wall, so you just want a fixed offset (e.g., 5 units left) to guide the agent’s movement.
 
 Since the side ray is responsible for clearance checking, it will detect if the path along the wall is actually free or blocked.
+
+When the entity approaches the collider at an angle, casting rays strictly forward and sideways (based on a fixed forward vector) causes the rays to form a V-shape into the wall.
+
+This geometric setup leads to conflicting clearance points and causes the entity to oscillate or get "confused" about where to move.
+
+Even after fixing the V-shape, retaining the clearance point as a state flag is wise.
+

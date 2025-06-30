@@ -318,7 +318,6 @@ export abstract class Controller {
             }
         }   
     }
-    private prioritizeBranch:boolean = false
 
     private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay') {
         const horizontalForward = this.getHorizontalForward();
@@ -326,10 +325,10 @@ export abstract class Controller {
         const reachedPreviousClearance = this.obstacleClearancePoint.equals({x:0,y:0,z:0})//it only clears when the entity has reached the previous branch
         let stoppedWidth:number = 0;
         console.log('reachedPreviousClearance:', reachedPreviousClearance);
-        
-        if (!reachedPreviousClearance) {
-            return;
-        }
+
+        // if (!reachedPreviousClearance) {
+        //     return;
+        // }
         if (purpose == 'sideRay') {
             const straightLinePos = point.clone();
             let finalPos: THREE.Vector3 | null = null;
@@ -348,9 +347,8 @@ export abstract class Controller {
                 })
                 if (straightClearance) {
                     const forward = this.getHorizontalForward();
-                    finalPos = straightLinePos.clone().add(forward.multiplyScalar(2));
+                    finalPos = straightLinePos.clone().add(forward.multiplyScalar(4));
                     this.obstacleClearancePoint = finalPos
-                    this.prioritizeBranch = false
                     console.log('character clearance point:', this.obstacleClearancePoint);
                     break;
                 }
@@ -373,16 +371,14 @@ export abstract class Controller {
                 })
                 if (rayBlocked)  {
                     const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
-                    const nudgePoint = rayLinePos.clone().add(leftVector.multiplyScalar(5));
+                    const nudgePoint = rayLinePos.clone().add(leftVector.multiplyScalar(4));
                     this.colorPoint(nudgePoint,0x19044c)
                     this.obstacleClearancePoint = nudgePoint;
-                    this.prioritizeBranch = true
                     console.log('Adjusted clearance point:', this.obstacleClearancePoint);
                     break
                 }
             }
         }
-        console.log('prioritizeBranch:',this.prioritizeBranch);
     }
     private detectObstacle():void {
         if (!this.isGrounded()) return;//to prevent detection when in the air
@@ -544,7 +540,7 @@ export abstract class Controller {
             console.log('isOriginalPathClose:', isOriginalPathClose);
             
             console.log('Entity distToBranchedPath:', distToBranchedPath);
-            if ((hasReachedBranch || isOriginalPathClose)) {
+            if (hasReachedBranch || isOriginalPathClose) {
                 this.obstacleClearancePoint.set(0,0,0);
                 this.branchedPath = null;
                 console.log('Cleared this branch');
@@ -573,7 +569,7 @@ export abstract class Controller {
             this.rotateCharacterX(finalDir);
         }else {
             if (!this.isFinalDestClose) {
-                this.autoMoveForward();
+                // this.autoMoveForward();
             }else {
                 this.playIdleAnimation();
                 this.stopWalkSound();
