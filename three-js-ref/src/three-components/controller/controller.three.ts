@@ -42,7 +42,7 @@ export interface CollisionMap {
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
     private static showHitBoxes = false;//the hitboxes are a bit broken
-    private static showPoints = false;
+    private static showPoints = true;
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
@@ -327,9 +327,9 @@ export abstract class Controller {
         let stoppedWidth:number = 0;
         console.log('reachedPreviousClearance:', reachedPreviousClearance);
 
-        if (!reachedPreviousClearance) {
-            return;
-        }
+        // if (!reachedPreviousClearance) {
+        //     return;
+        // }
         if (purpose == 'sideRay') {
             const straightLinePos = point.clone();
             let finalPos: THREE.Vector3 | null = null;
@@ -537,7 +537,7 @@ export abstract class Controller {
             const hasReachedBranch = (distToBranchedPath < distThreshold) 
             
             const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y))
-            const onSameYLevel = YDifference < 2
+            const onSameYLevel = YDifference < 2.5
             const isOriginalPathClose =  (onSameYLevel) && (characterPos.distanceTo(originalPath) < 10);
 
             console.log('isOriginalPathClose:', isOriginalPathClose);
