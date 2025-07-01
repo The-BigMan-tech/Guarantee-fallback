@@ -715,3 +715,38 @@ Keep the state scoped and temporary, existing only during the detectObstacle() e
 This technique leverages JavaScript/TypeScript’s reference semantics for objects, enabling you to pass a reference to a mutable container that holds your value, instead of passing a primitive by value.
 
 state pollution
+
+so the foremost ray despite stopping immediately on collision making incremental stepping not look any different than just direct checking is still important so that it effectively detects obstacles that are close to the point  not just directly at that so that it wont miss them and limiting it to stopped width is a good optimization and safety net to prevent it from over scanning more than necessary eeven though that when i still give it a high limit,it will stop immediately on detction so the limiter range will hardly be explored
+
+Limiting the scan distance with stoppedWidth acts as a smart optimization and safety net:
+
+It prevents the foremost ray from scanning unnecessarily far beyond where the side ray has already found clearance.
+
+This keeps collision checks efficient without sacrificing detection quality.
+
+Since the foremost ray stops on the first collision, the limit often won’t be fully reached, but it guarantees a maximum scan distance.
+
+
+Great observation! You’re absolutely right — on the initial collision, before the agent starts sliding or nudging along the obstacle, the side ray’s clearance check often won’t find any clearance ahead, so stoppedWidth remains zero. This means:
+
+The foremost ray’s scan range (stoppedWidth) will be zero initially.
+
+The foremost ray will effectively perform only a single-step collision check at the initial point.
+
+This is expected behavior because at the very start, the agent hasn’t yet found a path alongside the obstacle.
+
+What happens after nudging starts?
+Once the agent starts sliding along the obstacle, the side ray will begin detecting clearance points further along the wall.
+
+At that point, the side ray updates stoppedWidth to a positive value.
+
+This allows the foremost ray to scan a larger range ahead, improving obstacle detection as the agent moves around the corner or along the obstacle.
+
+Why this is okay and even desirable
+On the initial impact, the agent needs to react immediately to avoid collision — a short scan (or single check) is sufficient.
+
+As the agent adjusts its path and moves alongside the obstacle, it benefits from a longer scan range to anticipate upcoming obstacles and plan smoother avoidance.
+
+This behavior naturally models realistic obstacle negotiation: immediate stop on impact, then careful scanning while sliding.
+
+so in summary,having the foremost ray under a loop and clamped at stopped width is robust even though it may not affect the overall result in many consitions

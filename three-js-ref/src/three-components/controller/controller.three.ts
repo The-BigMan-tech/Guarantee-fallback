@@ -319,7 +319,7 @@ export abstract class Controller {
             }
         }   
     }
-    private useClockwiseScan:boolean = false;
+    private useClockwiseScan:boolean = true;
     private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay',stoppedWidthRef:[number]) {
         const horizontalForward = this.getHorizontalForward();
         const maxWidthToCheck = 40;
