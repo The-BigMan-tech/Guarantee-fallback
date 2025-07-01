@@ -489,14 +489,14 @@ export abstract class Controller {
 
         return canJump
     }
-    private autoMoveForward(originalPathY:number) {
+    private autoMoveForward(finalDestY:number) {
         this.stopWalkSound();
         const onGround = this.isGrounded();
 
-        const greaterOrSameYLevel = Math.round(originalPathY - this.character.position.y) >= 2;
+        const greaterOrSameYLevel = Math.round(finalDestY - this.character.position.y) >= 2;//this is to ensure it doesnt jumps proactively when im below it.it should just walk down
         const jumpProactively = greaterOrSameYLevel && !this.groundIsPresentForward;
         
-        console.log("jump proactively. y diff: ", (originalPathY - this.character.position.y));
+        console.log("jump proactively. y diff: ", (finalDestY - this.character.position.y));
         console.log('jump proactively. groundIsNotPresentForward: ',!this.groundIsPresentForward);
         console.log('jump proactively. greaterOrSameYLevel: ',greaterOrSameYLevel);
 
@@ -543,9 +543,9 @@ export abstract class Controller {
         }
         return null
     }
-    private moveAgent(originalPathY:number) {
+    private moveAgent(finalDestY:number) {
         if (!this.isFinalDestClose) {
-            this.autoMoveForward(originalPathY);
+            this.autoMoveForward(finalDestY);
         }else {
             this.playIdleAnimation();
             this.stopWalkSound();
@@ -588,29 +588,29 @@ export abstract class Controller {
                 return;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.although,the code still works if i dont return here but i believe it will jitter if i dont put this
             }
         }
-        const detouredPath = currentPath.clone();
+        const finalPath = currentPath.clone();
         if (shouldWalkAroundObstacle && !(this.obstacleClearancePoint.equals({x:0,y:0,z:0}))) { 
-            detouredPath.copy(this.obstacleClearancePoint);
-            this.branchedPath = detouredPath;
-            console.log('Entity path| detouredPath:',detouredPath);
+            finalPath.copy(this.obstacleClearancePoint);
+            this.branchedPath = finalPath;
+            console.log('Entity path| finalPath:',finalPath);
         }
 
-        const finalDir = this.getSteeringDirection(detouredPath)
-        const distToFinalDest = characterPos.distanceTo(detouredPath)
+        const finalDir = this.getSteeringDirection(finalPath)
+        const distToFinalDest = characterPos.distanceTo(finalPath)
         const epsilon = 0.01;
         
 
-        if (currentPath.distanceTo(detouredPath) > epsilon) {//means they are different
+        if (currentPath.distanceTo(finalPath) > epsilon) {//means they are different
             distThreshold = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
         }
         this.isFinalDestClose = distToFinalDest < distThreshold;
         
         if (shouldWalkAroundObstacle) {//if should walk aroud an obstacle,i want it to move and rotate at the same time for a fluid walk around the obstacle's perimeter
             if (finalDir !== null) this.rotateCharacterX(finalDir);
-            this.moveAgent(originalPath.y);
+            this.moveAgent(finalPath.y);
         }else {//if its not walking around an obstacle,i want it to either rotate or move but not at the same time in the same frame.this is for precision
             if (finalDir !== null) this.rotateCharacterX(finalDir);
-            else this.moveAgent(originalPath.y);
+            else this.moveAgent(finalPath.y);
         }
     }
 

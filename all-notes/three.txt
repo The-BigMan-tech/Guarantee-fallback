@@ -787,4 +787,16 @@ The agent tries to jump over the gap as soon as it detects no ground ahead, with
 Graceful failure handling:
 If the jump fails (e.g., falls down), the agent can then detect the obstacle up close and use the existing canJumpOntoObstacle() logic to successfully jump onto the obstacle.
 
-so i have five rules for navigation that to another player,it will look like its very intelligent.1.move in a straight line to the target.2,if theres a obstacle ahead,,try to walk over it.3,if it cant walk over it,try to jump over it.4,if it cant jump over it,try to walk around its perimeter.these rules work well when theres a ground between it and the target but if theres a gap in the floor between us,rule 5 will tell it to jump over it.this can happen when the ground for example got destroyed forming a critter or if we it wants to parkour for example from block to block till it reaches me
+so i have five rules for navigation that to another player,it will look like its very intelligent.1.move in a straight line to the target.2,if theres a obstacle ahead,,try to walk over it.3,if it cant walk over it,try to jump over it.4,if it cant jump over it,try to walk around its perimeter.these rules work well when theres a ground between it and the target but if theres a gap in the floor between us,rule 5 will tell it to jump over it.this can happen when the ground for example got destroyed forming a critter or if we it wants to parkour for example from block to block till it reaches me.
+
+Your navigation logic clearly distinguishes between:
+
+Original path--the goal
+branched path--detour state
+current path--the current target between the branched path or the original path
+final path--the actual target im heading to
+
+
+*five rules for navigation
+*two-ray obstacle avoidance mechanism
+*four types of paths
