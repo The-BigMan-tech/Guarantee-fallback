@@ -846,3 +846,13 @@ Even if you clear many branches per walk, the flip decision runs at most once pe
 This makes the flip decision feel discrete and throttled, not continuous or jittery.
 
 The reset of the timer when not on a branched path prevents the timer from accumulating during normal walking, so flips only happen during obstacle navigation.
+
+Your time-based approach for flipping the perimeter scanning direction is more stable and effective than tying it to branch clears because it directly measures progress toward the goal over time, rather than inferring progress indirectly through branch events.Branch clears happen frequently due to raycast sensitivity (e.g., 100+ clears per wall walk), but they don’t reliably indicate directional progress. Your timer ignores this noise and evaluates progress only when sufficient time has passed.
+
+Setting branch-clear thresholds (like 200 clears) was fragile because:
+
+Branch frequency varies with movement speed and obstacle complexity.
+
+It didn’t account for actual distance covered or goal proximity.
+
+*well thats it.my navigation is complete.with five rules-walking straight at target,walking over obstacles,juping over obstacles,walking the perimeter of obstacles,proactively jumping when there are gaps  with a bonus of a decision block that determines which perimeter direction it should steer at.all complete from scratch with three js and rapier.no game engine.the entity navigation is done.
