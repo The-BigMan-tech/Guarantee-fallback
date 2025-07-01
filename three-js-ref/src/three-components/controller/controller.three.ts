@@ -320,22 +320,21 @@ export abstract class Controller {
         }   
     }
     private useClockwiseScan:boolean = false;
-    private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay') {
+    private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay',stoppedWidthRef:[number]) {
         const horizontalForward = this.getHorizontalForward();
         const maxWidthToCheck = 40;
         const reachedPreviousClearance = this.obstacleClearancePoint.equals({x:0,y:0,z:0})//it only clears when the entity has reached the previous branch
         
-        let stoppedWidth:number = 0;
         console.log('reachedPreviousClearance:', reachedPreviousClearance);
 
-        if (purpose == 'sideRay') {
+        if (purpose == 'sideRay') {//only the side or foremost ray can be called at a time per call.but the side ray is guaranteed to be called before the foremist ray becuase the detcetion loop starts from the first point to the foremost one
             const straightLinePos = point.clone();//i termed this straight line cuz it penetrates through blocks to get a clearance point
             let finalPos: THREE.Vector3 | null = null;
             for (let i=0;i <= maxWidthToCheck;i++) {
                 let straightClearance = true
                 this.colorPoint(straightLinePos,0x033e2b)
                 straightLinePos.add(horizontalForward);
-                stoppedWidth = i
+                stoppedWidthRef[0] = i//the purpose of stopped width is for the foremost ray to only scan between the char current position and where the side ray said that there was clearance. 
 
                 physicsWorld.intersectionsWithPoint(straightLinePos,(colliderObject)=>{
                     const shape = physicsWorld.getCollider(colliderObject.handle).shape
@@ -356,11 +355,11 @@ export abstract class Controller {
         if (purpose == "foremostRay") {
             const horizontalBackward = horizontalForward.clone().negate();
             const direction = this.useClockwiseScan ? horizontalForward : horizontalBackward;
-            
+
             const rayLinePos = point.clone();//i termed this ray even though its just shooting points because it behaves like one cuz when it hits an obstacle,it casts a new point at 180 to where the point hit rather than penetrating through the block like the one form the side ray
             let rayBlocked = false;
 
-            for (let i = 0; i <= stoppedWidth; i++) {
+            for (let i = 0; i <= stoppedWidthRef[0]; i++) {
                 this.colorPoint(rayLinePos,0x290202)
                 rayLinePos.add(direction);
                     
@@ -394,6 +393,7 @@ export abstract class Controller {
         const left = right.clone().negate();
 
         let hasCollidedForward = false;
+        const stoppedWidthRef:[number] = [0];//the type annotation is more explicit this way that its a mutable container
 
         for (let i = 1; i <= steps; i++) {
             const distance = (maxDistance / steps) * i;
@@ -434,7 +434,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if ((i == foremostPoint) || (i == firstPoint)) this.calcClearanceForAgent(offsetPoint,purpose);
+                    if ((i == foremostPoint) || (i == firstPoint)) this.calcClearanceForAgent(offsetPoint,purpose,stoppedWidthRef);
                 }
                 return true
             });    

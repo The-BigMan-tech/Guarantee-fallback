@@ -699,3 +699,19 @@ The side ray offset (left or right) depends on which side the wall is on (determ
 The side ray direction (forward) remains constant because the agent always looks forward along the wall.
 
 so the foremost point is only affected by the leaiding direction from clockwise state but it always remains unshifted,always facing forward.but the side point is affected by the clockwise state by offset,either offset it left or right but its leading direction is not affected
+
+Yes, using a mutable object (like a one-element array or an object) as a shared container for stoppedWidth during the detectObstacle() execution is a good and clean approach. It avoids adding persistent state to your class and limits the scope of this temporary data to the lifespan of the method call.
+
+for scoped state,use a mutable container
+
+Exactly! By wrapping the number inside a mutable object (like a one-element array or a simple object), you’re effectively moving it from a local primitive on the stack to a reference on the heap. This allows you to:
+
+Share and mutate the value across multiple function calls within the same update cycle.
+
+Avoid making it a class-level property, so you don’t have to manage its lifetime beyond the current method execution.
+
+Keep the state scoped and temporary, existing only during the detectObstacle() execution.
+
+This technique leverages JavaScript/TypeScript’s reference semantics for objects, enabling you to pass a reference to a mutable container that holds your value, instead of passing a primitive by value.
+
+state pollution
