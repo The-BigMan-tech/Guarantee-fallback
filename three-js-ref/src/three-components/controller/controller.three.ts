@@ -358,31 +358,27 @@ export abstract class Controller {
         if (purpose == "foremostRay") {
             const horizontalBackward = horizontalForward.clone().negate();
             const direction = this.useClockwiseScan ? horizontalForward : horizontalBackward;
-
             const rayLinePos = point.clone();//i termed this ray even though its just shooting points because it behaves like one cuz when it hits an obstacle,it casts a new point at 180 to where the point hit rather than penetrating through the block like the one form the side ray
+            
             let rayBlocked = false;
+            this.colorPoint(rayLinePos,0x290202)
 
-            for (let i = 0; i <= stoppedWidthRef[0]; i++) {
-                this.colorPoint(rayLinePos,0x290202)
-                rayLinePos.add(direction);
-                    
-                physicsWorld.intersectionsWithPoint(rayLinePos,(colliderObject)=>{ 
-                    const shape = physicsWorld.getCollider(colliderObject.handle).shape 
-                    const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
-                    if (isCharacterCollider || !(shape instanceof RAPIER.Cuboid)) return true;
-                    rayBlocked = true;
-                    return true;
-                })
-                if (rayBlocked)  {
-                    const sideVector = new THREE.Vector3(direction.z, 0, -direction.x).normalize();
-                    const nudgePoint = rayLinePos.clone().add(sideVector.multiplyScalar(4));
-                    this.colorPoint(nudgePoint,0x19044c)
-                    this.obstacleClearancePoint = nudgePoint;
-                    this.prioritizeBranch = true
-                    console.log('Adjusted clearance point:', this.obstacleClearancePoint);
-                    break
-                }
+            physicsWorld.intersectionsWithPoint(rayLinePos,(colliderObject)=>{ 
+                const shape = physicsWorld.getCollider(colliderObject.handle).shape 
+                const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
+                if (isCharacterCollider || !(shape instanceof RAPIER.Cuboid)) return true;
+                rayBlocked = true;
+                return true;
+            })
+            if (rayBlocked)  {
+                const sideVector = new THREE.Vector3(direction.z, 0, -direction.x).normalize();
+                const nudgePoint = rayLinePos.clone().add(sideVector.multiplyScalar(4));
+                this.colorPoint(nudgePoint,0x19044c)
+                this.obstacleClearancePoint = nudgePoint;
+                this.prioritizeBranch = true
+                console.log('Adjusted clearance point:', this.obstacleClearancePoint);
             }
+            
         }
     }
     private detectObstacle():void {
@@ -557,27 +553,26 @@ export abstract class Controller {
 
     private useClockwiseScan:boolean = true;
     private branchesExploredBeforeFlip:number = 0;
-    private maxBranchesBeforeFlip: number = 40; // clearer threshold name
-    private minProgressThreshold: number = 1.0
+    private maxBranchesBeforeFlip: number = 200; // clearer threshold name
+    private minProgressThreshold: number = -2;//allowing for a small decline in progress
     private distSinceLastNBranches:number | null = null;
 
     protected decidePerimeterScanDirection(distToOriginalPath:number) {
+        if (this.distSinceLastNBranches == null) {
+            this.distSinceLastNBranches = distToOriginalPath;
+            return;
+        }
         this.branchesExploredBeforeFlip += 1;
-        console.log('Perimeter decision. branchesExploredBeforeFlip:',this.branchesExploredBeforeFlip);
-
+        console.log('Perimeter decision2. branchesExploredBeforeFlip:',this.branchesExploredBeforeFlip);
         if (this.branchesExploredBeforeFlip >= this.maxBranchesBeforeFlip) {
             this.branchesExploredBeforeFlip = 0
-            if (this.distSinceLastNBranches == null) {
-                this.distSinceLastNBranches = distToOriginalPath;
-            }else {
-                const progress = this.distSinceLastNBranches - distToOriginalPath;
-                console.log('Perimeter decision. progress:', progress);
-                if (progress < this.minProgressThreshold) {
-                    this.useClockwiseScan = !this.useClockwiseScan;
-                    console.log('Perimeter decision. Flipped perimeter scanning.');
-                }
-                this.distSinceLastNBranches = distToOriginalPath;// Update the stored distance and reset counter
+            const progress = this.distSinceLastNBranches - distToOriginalPath;
+            console.log('Perimeter decision2. progress:', progress);
+            if (progress < this.minProgressThreshold) {
+                this.useClockwiseScan = !this.useClockwiseScan;
+                console.log('Perimeter decision2. Flipped perimeter scanning.');
             }
+            this.distSinceLastNBranches = distToOriginalPath;// Update the stored distance and reset counter 
         }
     }
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
