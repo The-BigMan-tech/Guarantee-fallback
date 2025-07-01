@@ -412,10 +412,6 @@ export abstract class Controller {
                 offsetPoint = offsetPoint.add(sideOffset.clone().multiplyScalar(3));
                 purpose = 'sideRay'
             }
-            if (i == 2) {
-                
-            }
-
             this.colorPoint(offsetPoint,0x000000);
             physicsWorld.intersectionsWithPoint(offsetPoint, (colliderObject) => {
                 const shape = physicsWorld.getCollider(colliderObject.handle).shape
@@ -449,6 +445,22 @@ export abstract class Controller {
         if (!hasCollidedForward) {
             this.obstacleDistance = Infinity//infinity distance means there are no obstacles
         }
+        this.checkForGroundAhead(steps+1,forward)
+    }
+
+    private groundIsPresentForward:boolean = false;
+    private checkForGroundAhead(distance:number,forward:THREE.Vector3) {
+        const aheadGroundDetPoint:THREE.Vector3 = this.orientPoint(distance,forward);
+        aheadGroundDetPoint.y = this.calculateGroundPosition();
+        this.colorPoint(aheadGroundDetPoint,0x3e2503);  
+
+        physicsWorld.intersectionsWithPoint(aheadGroundDetPoint, (colliderObject) => {
+            const shape = physicsWorld.getCollider(colliderObject.handle).shape
+            const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
+            if (isCharacterCollider || !(shape instanceof RAPIER.Cuboid)) return true;
+            this.groundIsPresentForward = true;
+            return false;
+        })
     }
     //the calculations used in this function was derived from real physics rules since the whole of this is built on a physics engine
     //tune the reduction scale as needed
@@ -478,15 +490,23 @@ export abstract class Controller {
 
         return canJump
     }
-    private autoMoveForward() {
+    private autoMoveForward(originalPathY:number) {
         this.stopWalkSound();
-        const onGround = this.isGrounded()
+        const onGround = this.isGrounded();
+
+        const greaterOrSameYLevel = Math.round(originalPathY - this.character.position.y) >= 2;
+        const jumpProactively = greaterOrSameYLevel && !this.groundIsPresentForward;
+        
+        console.log("jump proactively. y diff: ", (originalPathY - this.character.position.y));
+        console.log('jump proactively. groundIsNotPresentForward: ',!this.groundIsPresentForward);
+        console.log('jump proactively. greaterOrSameYLevel: ',greaterOrSameYLevel);
+
         if (onGround) {
             console.log("Entity is walking");
             this.playWalkAnimation()
             this.playWalkSound();
         }
-        if (this.canJumpOntoObstacle() && !this.shouldStepUp && onGround) {
+        if ((jumpProactively || this.canJumpOntoObstacle()) && !this.shouldStepUp && onGround) {
             console.log("Entity is jumping");
             this.playJumpAnimation();
             this.moveCharacterUp();
@@ -505,7 +525,7 @@ export abstract class Controller {
     private distanceXZ(a: THREE.Vector3, b: THREE.Vector3): number {
         const dx = a.x - b.x;
         const dz = a.z - b.z;
-        return Math.sqrt(dx * dx + dz * dz);
+        return Math.sqrt((dx * dx) + (dz * dz));
     }
 
     private getAngleDiff(path:THREE.Vector3):degrees {
@@ -524,9 +544,9 @@ export abstract class Controller {
         }
         return null
     }
-    private moveAgent() {
+    private moveAgent(originalPathY:number) {
         if (!this.isFinalDestClose) {
-            this.autoMoveForward();
+            this.autoMoveForward(originalPathY);
         }else {
             this.playIdleAnimation();
             this.stopWalkSound();
@@ -555,7 +575,7 @@ export abstract class Controller {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
             const hasReachedBranch = (distToBranchedPath < distThreshold) 
             
-            const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y))
+            const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));
             const onSameYLevel = YDifference < 2.5
             const isOriginalPathClose =  (onSameYLevel) && (characterPos.distanceTo(originalPath) < 10);
 
@@ -588,10 +608,10 @@ export abstract class Controller {
         
         if (shouldWalkAroundObstacle) {//if should walk aroud an obstacle,i want it to move and rotate at the same time for a fluid walk around the obstacle's perimeter
             if (finalDir !== null) this.rotateCharacterX(finalDir);
-            this.moveAgent();
+            this.moveAgent(originalPath.y);
         }else {//if its not walking around an obstacle,i want it to either rotate or move but not at the same time in the same frame.this is for precision
             if (finalDir !== null) this.rotateCharacterX(finalDir);
-            else this.moveAgent();
+            else this.moveAgent(originalPath.y);
         }
     }
 
@@ -626,6 +646,7 @@ export abstract class Controller {
         this.dynamicData.horizontalVelocity = this.originalHorizontalVel;//the horizontal velocity is subject to runtime mutations so i have to reset it
         this.shouldStepUp = false;
         this.obstacleDistance = 0;
+        this.groundIsPresentForward = false;
          // this.obstacleHeight = 0;
     }
     private updateCharacterAnimations():void {
