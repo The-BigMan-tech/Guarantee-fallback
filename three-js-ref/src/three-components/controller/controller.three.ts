@@ -4,6 +4,7 @@ import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY} from "../physics-world.three";
 import { scene } from "../scene.three";
+import { radToDeg } from "three/src/math/MathUtils.js";
 
 function createCapsuleLine(radius:number,halfHeight:number) {
     const charGeometry = new THREE.CapsuleGeometry(radius,halfHeight*2);
@@ -38,6 +39,7 @@ export interface CollisionMap {
     target:string,
     points:string[]
 }
+type degrees = number;
 //*The ground position calculation may break for an arbritary charcter height.a stable and tested height is 2. 1,3 and 4 have been played tested and are smooth but the ground check jitters a little between false and true cuz jumping from the ground at times at these values feels uresponsive
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
@@ -498,23 +500,26 @@ export abstract class Controller {
         const dz = a.z - b.z;
         return Math.sqrt(dx * dx + dz * dz);
     }
-    
 
-    private getSteeringDirection(path:THREE.Vector3):'right' | 'left' | null {
+    private getAngleDiff(path:THREE.Vector3):degrees {
         const direction = path.clone().sub(this.character.position);
         const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
         const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
         const normAngle = (angleDiff + (2*Math.PI)) % (2 * Math.PI) ;//we normalized the angle cuz its measured in radians not degrees
         const normAngleInDegrees = Number((normAngle * (180/Math.PI)).toFixed(2));
+        return normAngleInDegrees;
+    }
+    private getSteeringDirection(path:THREE.Vector3):'right' | 'left' | null {
+        const angle:degrees = this.getAngleDiff(path)
         const rotationThreshold = 10;//the magnitude of the rotation diff before it rotates to the target direction
-        if (normAngleInDegrees > rotationThreshold) {
-            return (normAngleInDegrees < 180)?'right':'left'
+        if (angle > rotationThreshold) {
+            return (angle < 180)?'right':'left'
         }
         return null
     }
     private moveAgent() {
         if (!this.isFinalDestClose) {
-            // this.autoMoveForward();
+            this.autoMoveForward();
         }else {
             this.playIdleAnimation();
             this.stopWalkSound();
@@ -525,14 +530,25 @@ export abstract class Controller {
         const characterPos = this.character.position;
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
 
-        const forward = this.getHorizontalForward(); // normalized forward vector on XZ plane
+        const forward = this.getHorizontalForward().clone().setY(0).normalize(); // normalized forward vector on XZ plane
         const toTarget = new THREE.Vector3().subVectors(originalPath, characterPos).setY(0).normalize();
 
-        const cross = new THREE.Vector3().crossVectors(forward, toTarget);
-        this.useClockwiseScan = (cross.y < 0); // true if target is on right side 
+        const cross = (forward.x * toTarget.z) - (forward.z * toTarget.x); // equivalent to cross product y-component on XZ plane
+        const dot = forward.dot(toTarget);
+        const angleRad = Math.atan2(cross, dot);
+        const angleDeg = Number(radToDeg(angleRad).toFixed(2));
+        const thresh = 10; // degrees threshold
 
-        console.log("Use clockwise",this.useClockwiseScan)
+        // Only update useClockwiseScan if angle magnitude exceeds threshold
+        if (angleDeg < -thresh) {
+            this.useClockwiseScan = true;  // target is sufficiently to the right → clockwise
+        } else if (angleDeg > thresh) {
+            this.useClockwiseScan = false; // target is sufficiently to the left → anticlockwise
+        }
+        console.log('use clockwise. angleDeg: ', angleDeg);
+        console.log('use clockwise. boolean: ',this.useClockwiseScan);
 
+        
         const shouldWalkAroundObstacle = (
             (this.obstacleDistance !== Infinity) && 
             (!this.isFinalDestClose) && 

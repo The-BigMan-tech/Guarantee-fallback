@@ -750,3 +750,15 @@ As the agent adjusts its path and moves alongside the obstacle, it benefits from
 This behavior naturally models realistic obstacle negotiation: immediate stop on impact, then careful scanning while sliding.
 
 so in summary,having the foremost ray under a loop and clamped at stopped width is robust even though it may not affect the overall result in many consitions
+
+When the target moves or the agent turns, the sign of cross.y can flip frequently, causing useClockwiseScan to toggle between true and false.
+
+This results in the agent not committing to a side and switching directions, often defaulting back to clockwise because of how the vectors align.
+
+so if i use atan2 directly,its clamped between - and + PI radians but if i compute a atan2 difference,it may be outside the range and it needs to be clamped.and another thing is that the angle i get is returned between - to + 180 degrres not the positive 0 to 360 degrees.so to do that,i have to use 2PI
+
+Perimeter scanning benefits from signed angles because you want a clear, direct indication of turning direction relative to the obstacle.
+
+Direct steering towards a target can be implemented with either range, but using 0°–360° is common when you want to work with absolute angles or when integrating with rotation systems that expect positive angles.
+
+so using signed angle can be used for all cases where an angle is needed to make decisions that requires a clear indication on direction especially in perimeter scanning decision but using circular angles can also be used for some decisions that can go through the additional 180 check to make a decision.this is favoured here for easier interpretation cuz degrees is a natural angle to think in.
