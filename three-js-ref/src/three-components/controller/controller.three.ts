@@ -509,14 +509,37 @@ export abstract class Controller {
         }
         return null
     }
-
-
+    private moveAgent() {
+        if (!this.isFinalDestClose) {
+            this.autoMoveForward();
+        }else {
+            this.playIdleAnimation();
+            this.stopWalkSound();
+        }
+    }
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
         const currentPath = this.branchedPath || originalPath;
         const characterPos = this.character.position;
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
 
-        
+         // Vector from character to target on XZ plane
+        const toTarget = new THREE.Vector3().subVectors(currentPath, characterPos).setY(0).normalize();
+        const forward = this.getHorizontalForward();
+        const dot = forward.dot(toTarget);// Dot product to determine relative position
+
+        const threshold = 0.1;
+        let useClockwiseScan = true;
+
+        if (dot > threshold) {
+            useClockwiseScan = true;
+        } else if (dot < -threshold) {
+            useClockwiseScan = false;
+        } else {
+            useClockwiseScan = true;
+        }
+
+        console.log("Use clockwise",useClockwiseScan)
+
         const shouldWalkAroundObstacle = (
             (this.obstacleDistance !== Infinity) && 
             (!this.isFinalDestClose) && 
@@ -565,15 +588,13 @@ export abstract class Controller {
             distThreshold = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
         }
         this.isFinalDestClose = distToFinalDest < distThreshold;
-        if (finalDir !== null) {
-            console.log("Passed rotation threshols");
-            this.rotateCharacterX(finalDir);
-        }
-        if (!this.isFinalDestClose) {
-            this.autoMoveForward();
-        }else {
-            this.playIdleAnimation();
-            this.stopWalkSound();
+        
+        if (shouldWalkAroundObstacle) {//if should walk aroud an obstacle,i want it to move and rotate at the same time for a fluid walk around the obstacle's perimeter
+            if (finalDir !== null) this.rotateCharacterX(finalDir);
+            this.moveAgent();
+        }else {//if its not walking around an obstacle,i want it to either rotate or move but not at the same time in the same frame.this is for precision
+            if (finalDir !== null) this.rotateCharacterX(finalDir);
+            else this.moveAgent();
         }
     }
 
