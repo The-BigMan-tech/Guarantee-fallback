@@ -92,7 +92,7 @@ export abstract class Controller {
     private isFinalDestClose = false;
     private branchedPath:THREE.Vector3 | null = null;
 
-    private canWalkForward:boolean = false
+    private canWalkForward:boolean = false;
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
@@ -319,16 +319,17 @@ export abstract class Controller {
             }
         }   
     }
-
+    private useClockwiseScan:boolean = false;
     private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay') {
         const horizontalForward = this.getHorizontalForward();
         const maxWidthToCheck = 40;
         const reachedPreviousClearance = this.obstacleClearancePoint.equals({x:0,y:0,z:0})//it only clears when the entity has reached the previous branch
+        
         let stoppedWidth:number = 0;
         console.log('reachedPreviousClearance:', reachedPreviousClearance);
 
         if (purpose == 'sideRay') {
-            const straightLinePos = point.clone();
+            const straightLinePos = point.clone();//i termed this straight line cuz it penetrates through blocks to get a clearance point
             let finalPos: THREE.Vector3 | null = null;
             for (let i=0;i <= maxWidthToCheck;i++) {
                 let straightClearance = true
@@ -353,12 +354,15 @@ export abstract class Controller {
             }  
         }
         if (purpose == "foremostRay") {
-            const rayLinePos = point.clone();
+            const horizontalBackward = horizontalForward.clone().negate();
+            const direction = this.useClockwiseScan ? horizontalForward : horizontalBackward;
+            
+            const rayLinePos = point.clone();//i termed this ray even though its just shooting points because it behaves like one cuz when it hits an obstacle,it casts a new point at 180 to where the point hit rather than penetrating through the block like the one form the side ray
             let rayBlocked = false;
 
             for (let i = 0; i <= stoppedWidth; i++) {
                 this.colorPoint(rayLinePos,0x290202)
-                rayLinePos.add(horizontalForward);
+                rayLinePos.add(direction);
                     
                 physicsWorld.intersectionsWithPoint(rayLinePos,(colliderObject)=>{ 
                     const shape = physicsWorld.getCollider(colliderObject.handle).shape 
@@ -368,8 +372,8 @@ export abstract class Controller {
                     return true;
                 })
                 if (rayBlocked)  {
-                    const leftVector = new THREE.Vector3(horizontalForward.z, 0, -horizontalForward.x).normalize();
-                    const nudgePoint = rayLinePos.clone().add(leftVector.multiplyScalar(4));
+                    const sideVector = new THREE.Vector3(direction.z, 0, -direction.x).normalize();
+                    const nudgePoint = rayLinePos.clone().add(sideVector.multiplyScalar(4));
                     this.colorPoint(nudgePoint,0x19044c)
                     this.obstacleClearancePoint = nudgePoint;
                     console.log('Adjusted clearance point:', this.obstacleClearancePoint);
@@ -510,13 +514,12 @@ export abstract class Controller {
     }
     private moveAgent() {
         if (!this.isFinalDestClose) {
-            this.autoMoveForward();
+            // this.autoMoveForward();
         }else {
             this.playIdleAnimation();
             this.stopWalkSound();
         }
     }
-    private useClockwiseScan:boolean = true;
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
         const currentPath = this.branchedPath || originalPath;
         const characterPos = this.character.position;

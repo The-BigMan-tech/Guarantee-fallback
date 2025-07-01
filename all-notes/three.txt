@@ -689,3 +689,13 @@ This is a method designed to update the internal state of the game or an object 
 
 
 data from update methods become available in the N+1 frame to prevent stale data and race conditions
+
+Side ray is offset perpendicular to the forward direction (to the right or left depending on useClockwiseScan), and when it hits an obstacle, the clearance points it casts should always be forward along the agent’s forward vector. This is because the side ray "slides" along the obstacle wall, which lies to the side, but the agent is always looking forward to find clearance ahead.
+
+Foremost ray is cast parallel to the forward direction (or backward if useClockwiseScan is false), and when it hits an obstacle, the clearance point is nudged perpendicular to the forward direction (to the side) to steer the agent around the obstacle.
+
+The side ray offset (left or right) depends on which side the wall is on (determined by useClockwiseScan).
+
+The side ray direction (forward) remains constant because the agent always looks forward along the wall.
+
+so the foremost point is only affected by the leaiding direction from clockwise state but it always remains unshifted,always facing forward.but the side point is affected by the clockwise state by offset,either offset it left or right but its leading direction is not affected
