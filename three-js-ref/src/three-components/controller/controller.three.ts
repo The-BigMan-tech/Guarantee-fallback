@@ -327,9 +327,6 @@ export abstract class Controller {
         let stoppedWidth:number = 0;
         console.log('reachedPreviousClearance:', reachedPreviousClearance);
 
-        // if (!reachedPreviousClearance) {
-        //     return;
-        // }
         if (purpose == 'sideRay') {
             const straightLinePos = point.clone();
             let finalPos: THREE.Vector3 | null = null;
@@ -390,7 +387,8 @@ export abstract class Controller {
 
         const horizontalForward = this.getHorizontalForward();
         const right = new THREE.Vector3(-horizontalForward.z, 0, horizontalForward.x).normalize();
-        
+        const left = right.clone().negate();
+
         let hasCollidedForward = false;
 
         for (let i = 1; i <= steps; i++) {
@@ -404,7 +402,8 @@ export abstract class Controller {
 
             let purpose:'foremostRay' | 'sideRay' = 'foremostRay'
             if ((i == firstPoint)) {
-                offsetPoint = offsetPoint.add(right.clone().multiplyScalar(3));
+                const sideOffset = this.useClockwiseScan ? right : left
+                offsetPoint = offsetPoint.add(sideOffset.clone().multiplyScalar(3));
                 purpose = 'sideRay'
             }
 
@@ -517,6 +516,7 @@ export abstract class Controller {
             this.stopWalkSound();
         }
     }
+    private useClockwiseScan:boolean = true;
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
         const currentPath = this.branchedPath || originalPath;
         const characterPos = this.character.position;
@@ -526,9 +526,9 @@ export abstract class Controller {
         const toTarget = new THREE.Vector3().subVectors(originalPath, characterPos).setY(0).normalize();
 
         const cross = new THREE.Vector3().crossVectors(forward, toTarget);
-        const useClockwiseScan = (cross.y < 0); // true if target is on right side 
+        this.useClockwiseScan = (cross.y < 0); // true if target is on right side 
 
-        console.log("Use clockwise",useClockwiseScan)
+        console.log("Use clockwise",this.useClockwiseScan)
 
         const shouldWalkAroundObstacle = (
             (this.obstacleDistance !== Infinity) && 

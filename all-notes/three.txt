@@ -680,3 +680,9 @@ The cross product tells you if the clock hand is on the left side (say between 9
 
 Using only the dot product to decide “front or back” can help you know if you should generally move forward or consider turning around, but it won’t give you enough information to decide the turning direction around obstacles.
 
+update method
+
+The kind of method you describe—one that is called exactly once per game loop iteration, typically at a fixed point in the update sequence, and not meant to be called arbitrarily elsewhere—is commonly known as an "update method" or simply part of the "update phase" in the game loop.
+
+Update Method:
+This is a method designed to update the internal state of the game or an object for the current frame. It is called once per frame, usually by the main game loop or the engine's update system. It is not intended to be invoked directly from other parts of the code outside the update cycle.
