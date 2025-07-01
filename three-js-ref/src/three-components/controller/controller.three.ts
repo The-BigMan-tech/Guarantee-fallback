@@ -320,6 +320,7 @@ export abstract class Controller {
             }
         }   
     }
+    private prioritizeBranch
     private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay',stoppedWidthRef:[number]) {
         const horizontalForward = this.getHorizontalForward();
         const maxWidthToCheck = 40;
@@ -559,6 +560,8 @@ export abstract class Controller {
 
     protected decidePerimeterScanDirection(distToOriginalPath:number) {
         this.branchesExploredBeforeFlip += 1;
+        console.log('Perimeter decision. branchesExploredBeforeFlip:',this.branchesExploredBeforeFlip);
+
         if (this.branchesExploredBeforeFlip >= this.maxBranchesBeforeFlip) {
             this.branchesExploredBeforeFlip = 0
             if (this.distSinceLastNBranches == null) {
@@ -592,12 +595,12 @@ export abstract class Controller {
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
         
 
-        let distThreshold = 5;//this is to tell the algorithm how close to the target the character should be to be considered its close to the target or far from the target.
         if (this.branchedPath) {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);// i used xz distance here not the hypotenuse distance to discard the y component when deciding the dist to a branch cuz taking its y comp into account can take it forever before it considers it has reached there and its y comp isnt important to the final goal.
             const distToOriginalPath = characterPos.distanceTo(originalPath);
+            const distToBranchedPathThresh = 10
 
-            const hasReachedBranch = (distToBranchedPath < distThreshold) 
+            const hasReachedBranch = (distToBranchedPath < distToBranchedPathThresh) 
             
             const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));
             const onSameYLevel = YDifference < 2.5
@@ -605,7 +608,7 @@ export abstract class Controller {
 
             console.log('isOriginalPathClose:', isOriginalPathClose);
             
-            console.log('Entity distToBranchedPath:', distToBranchedPath);
+            console.log('perimeter decision. Entity distToBranchedPath:', distToBranchedPath);
             if (hasReachedBranch || isOriginalPathClose) {
                 this.obstacleClearancePoint.set(0,0,0);
                 this.branchedPath = null;
@@ -624,13 +627,13 @@ export abstract class Controller {
         const finalDir = this.getSteeringDirection(finalPath)
         const distToFinalDest = characterPos.distanceTo(finalPath)
         const epsilon = 0.01;
-        
+        let distToFinalDestThresh = 5;//this is to tell the algorithm how close to the target the character should be to be considered its close to the target or far from the target.
 
         if (currentPath.distanceTo(finalPath) > epsilon) {//means they are different
-            distThreshold = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
+            distToFinalDestThresh = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
         }
-        this.isFinalDestClose = distToFinalDest < distThreshold;
-        
+        this.isFinalDestClose = distToFinalDest < distToFinalDestThresh;
+
         if (shouldWalkAroundObstacle) {//if should walk aroud an obstacle,i want it to move and rotate at the same time for a fluid walk around the obstacle's perimeter
             if (finalDir !== null) this.rotateCharacterX(finalDir);
             this.moveAgent(finalPath.y);
@@ -664,7 +667,7 @@ export abstract class Controller {
             this.characterRigidBody.setLinvel(this.velocity,true);
             this.checkIfCanWalkForward(prevCharPosition)
         };
-        this.characterPosition = this.characterRigidBody.translation();
+        this.characterPosition = this.characterRigidBody.translation();//its important to do this after the if statement
     }
     //todo:Find a good place reset obstacle height.im not sure if it will work here
     private resetSomeVariables():void {
