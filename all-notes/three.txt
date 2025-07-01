@@ -762,3 +762,19 @@ Perimeter scanning benefits from signed angles because you want a clear, direct 
 Direct steering towards a target can be implemented with either range, but using 0°–360° is common when you want to work with absolute angles or when integrating with rotation systems that expect positive angles.
 
 so using signed angle can be used for all cases where an angle is needed to make decisions that requires a clear indication on direction especially in perimeter scanning decision but using circular angles can also be used for some decisions that can go through the additional 180 check to make a decision.this is favoured here for easier interpretation cuz degrees is a natural angle to think in.
+
+Using an angle threshold alone to decide when to switch scanning direction is generally not sufficient to ensure stable commitment in perimeter navigation around obstacles. This is because, as you observed, the agent’s forward vector changes continuously as it moves, causing the signed angle to oscillate around zero even if the threshold is applied.
+
+Yes, that’s exactly the limitation of using an angle threshold alone for decision-making in navigation: it cannot guarantee commitment to a direction when the agent’s position and orientation are constantly changing.
+
+Why angle threshold alone has this limit:
+The angle between the agent’s forward vector and the target direction naturally fluctuates as the agent moves, especially when navigating around obstacles.
+
+Even a small movement can cause the signed angle to cross the threshold repeatedly.
+
+This leads to frequent switching decisions (clockwise vs anticlockwise), causing jitter or oscillation.
+The threshold acts as a filter but does not provide persistence or context about previous decisions or the agent’s state.
+
+Angle thresholds are useful to reduce jitter by ignoring small angle changes.
+
+But they do not enforce commitment to a chosen direction over time or distance.

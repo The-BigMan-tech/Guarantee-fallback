@@ -85,7 +85,7 @@ export abstract class Controller {
 
     private originalHorizontalVel:number
     private points:THREE.Object3D = new THREE.Object3D();
-    private pointDensity = 1.2;
+    private pointDensity = 1.5;
 
     private obstacleDistance:number = 0;//unlike obstacledetection distance which is a fixed unit telling the contoller how far to detect obstacles ahead of time,this one actually tells the realtime distance of an obstacle form the controller
     private widthDebuf:number
@@ -412,6 +412,9 @@ export abstract class Controller {
                 offsetPoint = offsetPoint.add(sideOffset.clone().multiplyScalar(3));
                 purpose = 'sideRay'
             }
+            if (i == 2) {
+                
+            }
 
             this.colorPoint(offsetPoint,0x000000);
             physicsWorld.intersectionsWithPoint(offsetPoint, (colliderObject) => {
@@ -427,6 +430,8 @@ export abstract class Controller {
                 const stepOverPos = new THREE.Vector3(offsetPoint.x,stepOverPosY,offsetPoint.z)
                 
                 this.obstacleDistance = distance
+                console.log('this obstacleDistance:', this.obstacleDistance);
+
                 let clearance = true;
                 physicsWorld.intersectionsWithPoint(stepOverPos, () => {
                     clearance = false
@@ -465,9 +470,11 @@ export abstract class Controller {
         const canJumpDistanceY = (distanceY >= this.obstacleHeight);
         const canJump = (canJumpDistanceX && canJumpDistanceY);
 
+        console.log('Jump. obstacleDistance:', this.obstacleDistance);
+        console.log('Jump. obstacleHeight', this.obstacleHeight);
+
         console.log('Entity Distance X:', distanceX);
         console.log('Entity Distance Y:', distanceY);
-        console.log('Entity Distance Jump check:', distanceY);
 
         return canJump
     }
@@ -529,25 +536,6 @@ export abstract class Controller {
         const currentPath = this.branchedPath || originalPath;
         const characterPos = this.character.position;
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
-
-        const forward = this.getHorizontalForward().clone().setY(0).normalize(); // normalized forward vector on XZ plane
-        const toTarget = new THREE.Vector3().subVectors(originalPath, characterPos).setY(0).normalize();
-
-        const cross = (forward.x * toTarget.z) - (forward.z * toTarget.x); // equivalent to cross product y-component on XZ plane
-        const dot = forward.dot(toTarget);
-        const angleRad = Math.atan2(cross, dot);
-        const angleDeg = Number(radToDeg(angleRad).toFixed(2));
-        const thresh = 10; // degrees threshold
-
-        // Only update useClockwiseScan if angle magnitude exceeds threshold
-        if (angleDeg < -thresh) {
-            this.useClockwiseScan = true;  // target is sufficiently to the right → clockwise
-        } else if (angleDeg > thresh) {
-            this.useClockwiseScan = false; // target is sufficiently to the left → anticlockwise
-        }
-        console.log('use clockwise. angleDeg: ', angleDeg);
-        console.log('use clockwise. boolean: ',this.useClockwiseScan);
-
         
         const shouldWalkAroundObstacle = (
             (this.obstacleDistance !== Infinity) && 
