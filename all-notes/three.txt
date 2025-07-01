@@ -778,3 +778,13 @@ The threshold acts as a filter but does not provide persistence or context about
 Angle thresholds are useful to reduce jitter by ignoring small angle changes.
 
 But they do not enforce commitment to a chosen direction over time or distance.
+
+if i check horizontal distance,it means that it will try to jump over this gap only when it knows it can do so.but it will be more intuitive that it ried to jump over the gap then fell down and then becuase theres an obstacle infornt of it,can jump onto obstacle will trigger making it jump over it successfully.its like it tried an attempt,failed and tried again when up close as long as when its on the ground it can jump over the obstacle
+
+Realistic “trial and error” behavior:
+The agent tries to jump over the gap as soon as it detects no ground ahead, without requiring perfect knowledge of jump feasibility.
+
+Graceful failure handling:
+If the jump fails (e.g., falls down), the agent can then detect the obstacle up close and use the existing canJumpOntoObstacle() logic to successfully jump onto the obstacle.
+
+so i have five rules for navigation that to another player,it will look like its very intelligent.1.move in a straight line to the target.2,if theres a obstacle ahead,,try to walk over it.3,if it cant walk over it,try to jump over it.4,if it cant jump over it,try to walk around its perimeter.these rules work well when theres a ground between it and the target but if theres a gap in the floor between us,rule 5 will tell it to jump over it.this can happen when the ground for example got destroyed forming a critter or if we it wants to parkour for example from block to block till it reaches me

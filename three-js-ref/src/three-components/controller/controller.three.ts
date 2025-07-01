@@ -4,7 +4,6 @@ import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY} from "../physics-world.three";
 import { scene } from "../scene.three";
-import { radToDeg } from "three/src/math/MathUtils.js";
 
 function createCapsuleLine(radius:number,halfHeight:number) {
     const charGeometry = new THREE.CapsuleGeometry(radius,halfHeight*2);
@@ -265,7 +264,7 @@ export abstract class Controller {
         );
         return point
     }
-
+    //todo:make the margin to be equal the jump distance.
     private updateObstacleDetectionDistance() {
         const delta = this.clock.getDelta();
         //*Be cautious when changing this margin.it has to be smaller or equal to the distance that the entity can jump or else,it will never jump
@@ -641,6 +640,7 @@ export abstract class Controller {
         };
         this.characterPosition = this.characterRigidBody.translation();
     }
+    //todo:Find a good place reset obstacle height.im not sure if it will work here
     private resetSomeVariables():void {
         this.velocity.set(0,0,0);//to prevent accumulaion over time
         this.dynamicData.horizontalVelocity = this.originalHorizontalVel;//the horizontal velocity is subject to runtime mutations so i have to reset it
