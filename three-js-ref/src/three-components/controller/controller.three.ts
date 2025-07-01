@@ -320,14 +320,15 @@ export abstract class Controller {
             }
         }   
     }
-    private prioritizeBranch
+    private prioritizeBranch:boolean = false;
+
     private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay',stoppedWidthRef:[number]) {
         const horizontalForward = this.getHorizontalForward();
         const maxWidthToCheck = 40;
         const reachedPreviousClearance = this.obstacleClearancePoint.equals({x:0,y:0,z:0})//it only clears when the entity has reached the previous branch
         
         console.log('reachedPreviousClearance:', reachedPreviousClearance);
-
+        
         if (purpose == 'sideRay') {//only the side or foremost ray can be called at a time per call.but the side ray is guaranteed to be called before the foremist ray becuase the detcetion loop starts from the first point to the foremost one
             const straightLinePos = point.clone();//i termed this straight line cuz it penetrates through blocks to get a clearance point
             let finalPos: THREE.Vector3 | null = null;
@@ -347,6 +348,7 @@ export abstract class Controller {
                 if (straightClearance) {
                     finalPos = straightLinePos.clone().add(horizontalForward.clone().multiplyScalar(5));
                     this.obstacleClearancePoint = finalPos;
+                    this.prioritizeBranch = false
                     this.colorPoint(finalPos,0x34053e);
                     console.log('character clearance point:', this.obstacleClearancePoint);
                     break;
@@ -376,6 +378,7 @@ export abstract class Controller {
                     const nudgePoint = rayLinePos.clone().add(sideVector.multiplyScalar(4));
                     this.colorPoint(nudgePoint,0x19044c)
                     this.obstacleClearancePoint = nudgePoint;
+                    this.prioritizeBranch = true
                     console.log('Adjusted clearance point:', this.obstacleClearancePoint);
                     break
                 }
@@ -554,7 +557,7 @@ export abstract class Controller {
 
     private useClockwiseScan:boolean = true;
     private branchesExploredBeforeFlip:number = 0;
-    private maxBranchesBeforeFlip: number = 10; // clearer threshold name
+    private maxBranchesBeforeFlip: number = 40; // clearer threshold name
     private minProgressThreshold: number = 1.0
     private distSinceLastNBranches:number | null = null;
 
@@ -598,7 +601,7 @@ export abstract class Controller {
         if (this.branchedPath) {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);// i used xz distance here not the hypotenuse distance to discard the y component when deciding the dist to a branch cuz taking its y comp into account can take it forever before it considers it has reached there and its y comp isnt important to the final goal.
             const distToOriginalPath = characterPos.distanceTo(originalPath);
-            const distToBranchedPathThresh = 10
+            const distToBranchedPathThresh = (this.prioritizeBranch) ? 5 : 10;//i priortized the branch created from the clearance point set by the foremost ray.cuz the foremost ray oly nudges the clearance point a little to the side so the dist will be very small so setting a smaller threshold for it means that it will easily overlook clearing the branch.but for the bracnch created from the side ray,i made the threshold stricter by making it 10.so it will clear it at 9 units away from the branch
 
             const hasReachedBranch = (distToBranchedPath < distToBranchedPathThresh) 
             
@@ -608,7 +611,9 @@ export abstract class Controller {
 
             console.log('isOriginalPathClose:', isOriginalPathClose);
             
-            console.log('perimeter decision. Entity distToBranchedPath:', distToBranchedPath);
+            console.log('perimeter decision1. Entity distToBranchedPath:', distToBranchedPath);
+            console.log('perimeter decision1. distToBranchedPathThresh:', distToBranchedPathThresh);
+
             if (hasReachedBranch || isOriginalPathClose) {
                 this.obstacleClearancePoint.set(0,0,0);
                 this.branchedPath = null;
