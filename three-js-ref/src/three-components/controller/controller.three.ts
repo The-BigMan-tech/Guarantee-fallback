@@ -614,12 +614,11 @@ export abstract class Controller {
         };
         this.characterPosition = this.characterRigidBody.translation();
     }
-    private resetVariables():void {
+    private resetSomeVariables():void {
         this.velocity.set(0,0,0);//to prevent accumulaion over time
         this.dynamicData.horizontalVelocity = this.originalHorizontalVel;//the horizontal velocity is subject to runtime mutations so i have to reset it
         this.shouldStepUp = false;
         this.obstacleDistance = 0;
-        // this.obstacleClearancePoint.set(0,0,0);//reset the clearance point after use.although,the code still ran well even though i didnt do this but its best to stay safe.
          // this.obstacleHeight = 0;
     }
     private updateCharacterAnimations():void {
@@ -778,13 +777,12 @@ export abstract class Controller {
         }else {
             this.points.clear();
             this.applyVelocity();
-            this.updateObstacleDetectionDistance();
-            // this.colorGroundPoint();//i made color ground point its own separate function and called it once in the update loop cuz its called in th eupdate loop for decisions more than once
-            this.characterRigidBody.setGravityScale(this.dynamicData.gravityScale,true)
             this.updateCharacterTransformations();
-            this.resetVariables();
+            this.updateObstacleDetectionDistance();//must be called before resetting cuz it relies on a variable that needs to be used befor it gets reset
+            this.resetSomeVariables();//must be called before obstacle detection to prevent overriding its result
             this.detectObstacle();
             this.respawnIfOutOfBounds();
+            this.characterRigidBody.setGravityScale(this.dynamicData.gravityScale,true);
         }
     }
 }
