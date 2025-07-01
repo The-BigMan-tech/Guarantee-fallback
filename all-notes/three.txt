@@ -663,3 +663,20 @@ Even after fixing the V-shape, retaining the clearance point as a state flag is 
 *Distinct roles for foremost and side clearance points:
 The foremost point now effectively leads your entity away from adjacent obstacles, preventing collisions ahead.
 The side point guides the entity along the obstacle surface, enabling smooth wall-following behavior.
+
+*The dot product produces a scalar (a single number) that tells you how much two vectors point in the same general direction (their alignment), but it does not encode which side one vector is relative to the other. It only indicates the angle magnitude between vectors, not the direction of rotation or side (left/right) information.
+
+*The cross product, on the other hand, produces a vector that is perpendicular to the plane formed by the two input vectors. Crucially, the direction (sign) of this vector encodes the relative orientation of the vectors — for example, whether the target is to the left or right of the forward direction. This directional information is exactly what you need for robust steering decisions like choosing clockwise vs anticlockwise scanning around obstacles
+
+*The dot product tells you if the target is roughly in front or behind your entity because it measures how much two vectors point in the same direction (alignment). It produces a scalar value that reflects this but gives no information about which side the target is on.
+
+The cross product tells you if the target is on the left or right side relative to your entity’s forward direction. It produces a vector perpendicular to the plane of the two vectors, and the sign of its vertical (Y) component encodes this left/right side information.
+
+So, like a clock face analogy:
+
+The dot product is like knowing if the clock hand is pointing roughly towards 12 o’clock (front) or 6 o’clock (back), without knowing if it’s tilted left or right.
+
+The cross product tells you if the clock hand is on the left side (say between 9 and 12, anticlockwise) or the right side (between 12 and 3, clockwise) of the forward direction.
+
+Using only the dot product to decide “front or back” can help you know if you should generally move forward or consider turning around, but it won’t give you enough information to decide the turning direction around obstacles.
+

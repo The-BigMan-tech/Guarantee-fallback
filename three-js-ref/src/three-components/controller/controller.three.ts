@@ -522,21 +522,11 @@ export abstract class Controller {
         const characterPos = this.character.position;
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
 
-         // Vector from character to target on XZ plane
-        const toTarget = new THREE.Vector3().subVectors(currentPath, characterPos).setY(0).normalize();
-        const forward = this.getHorizontalForward();
-        const dot = forward.dot(toTarget);// Dot product to determine relative position
+        const forward = this.getHorizontalForward(); // normalized forward vector on XZ plane
+        const toTarget = new THREE.Vector3().subVectors(originalPath, characterPos).setY(0).normalize();
 
-        const threshold = 0.1;
-        let useClockwiseScan = true;
-
-        if (dot > threshold) {
-            useClockwiseScan = true;
-        } else if (dot < -threshold) {
-            useClockwiseScan = false;
-        } else {
-            useClockwiseScan = true;
-        }
+        const cross = new THREE.Vector3().crossVectors(forward, toTarget);
+        const useClockwiseScan = (cross.y < 0); // true if target is on right side 
 
         console.log("Use clockwise",useClockwiseScan)
 
@@ -583,7 +573,7 @@ export abstract class Controller {
         const distToFinalDest = characterPos.distanceTo(detouredPath)
         const epsilon = 0.01;
         
-        
+
         if (currentPath.distanceTo(detouredPath) > epsilon) {//means they are different
             distThreshold = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
         }
