@@ -73,6 +73,7 @@ export abstract class Controller {
     private landSound: THREE.PositionalAudio = new THREE.PositionalAudio(this.listener);;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
 
     protected clock:THREE.Clock = new THREE.Clock();
+    private clockDelta:number | null = null;
     private mixer: THREE.AnimationMixer | null = null;
     private currentAction: THREE.AnimationAction | null = null;
     private idleAction: THREE.AnimationAction | null = null;
@@ -266,7 +267,7 @@ export abstract class Controller {
     }
     //todo:make the margin to be equal the jump distance.
     private updateObstacleDetectionDistance() {
-        const delta = this.clock.getDelta();
+        const delta = this.clockDelta || 0;
         //*Be cautious when changing this margin.it has to be smaller or equal to the distance that the entity can jump or else,it will never jump
         const margin = 4; // tune as needed.its how far ahead do you want to detect obstacles in addition to the calculated dist which is usually below 1 cuz delta frames are usually fractions of a second
         this.obstacleDetectionDistance = (this.dynamicData.horizontalVelocity * delta) + margin
@@ -552,32 +553,20 @@ export abstract class Controller {
     }
 
     private useClockwiseScan:boolean = true;
-    private branchesExploredBeforeFlip:number = 0;
-    private maxBranchesBeforeFlip: number = 200; // clearer threshold name
-    private minProgressThreshold: number = -2;//allowing for a small decline in progress
-    private distSinceLastNBranches:number | null = null;
+
 
     protected decidePerimeterScanDirection(distToOriginalPath:number) {
-        if (this.distSinceLastNBranches == null) {
-            this.distSinceLastNBranches = distToOriginalPath;
-            return;
-        }
-        this.branchesExploredBeforeFlip += 1;
-        console.log('Perimeter decision2. branchesExploredBeforeFlip:',this.branchesExploredBeforeFlip);
-        if (this.branchesExploredBeforeFlip >= this.maxBranchesBeforeFlip) {
-            this.branchesExploredBeforeFlip = 0
-            const progress = this.distSinceLastNBranches - distToOriginalPath;
-            console.log('Perimeter decision2. progress:', progress);
-            if (progress < this.minProgressThreshold) {
-                this.useClockwiseScan = !this.useClockwiseScan;
-                console.log('Perimeter decision2. Flipped perimeter scanning.');
-            }
-            this.distSinceLastNBranches = distToOriginalPath;// Update the stored distance and reset counter 
-        }
+        console.log('Perimeter. distToOriginalPath:', distToOriginalPath);
+        // this.useClockwiseScan = !this.useClockwiseScan;
+        // this.branchedPath = null;
+        // console.log('Perimeter decision2. Flipped perimeter scanning.');
     }
+
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
-        const currentPath = this.branchedPath || originalPath;
         const characterPos = this.character.position;
+        this.decidePerimeterScanDirection(characterPos.distanceTo(originalPath))
+
+        const currentPath = this.branchedPath || originalPath;
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
         
         const shouldWalkAroundObstacle = (
@@ -612,11 +601,11 @@ export abstract class Controller {
             if (hasReachedBranch || isOriginalPathClose) {
                 this.obstacleClearancePoint.set(0,0,0);
                 this.branchedPath = null;
-                this.decidePerimeterScanDirection(distToOriginalPath)
                 console.log('Cleared this branch');
                 return;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.although,the code still works if i dont return here but i believe it will jitter if i dont put this
             }
         }
+
         const finalPath = currentPath.clone();
         if (shouldWalkAroundObstacle && !(this.obstacleClearancePoint.equals({x:0,y:0,z:0}))) { 
             finalPath.copy(this.obstacleClearancePoint);
@@ -680,6 +669,7 @@ export abstract class Controller {
     }
     private updateCharacterAnimations():void {
         const delta = this.clock.getDelta();
+        this.clockDelta = delta;
         if (this.mixer) this.mixer.update(delta);
     }
     private updateCharacterTransformations():void {
