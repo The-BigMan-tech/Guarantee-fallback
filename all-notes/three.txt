@@ -813,3 +813,36 @@ continuous point sampling leads to inflation of branch counts.Even small rotatio
 clock.getDelta() mutates the clock’s internal time reference, so calling it multiple times per frame causes incorrect delta timing.
 Always call getDelta() once per frame, store the result, and pass it around.
 This ensures consistent timing for animations and navigation logic, preventing freezing or slowdowns.
+
+You only call decidePerimeterScanDirection inside the if (hasReachedBranch || isOriginalPathClose) block, which means it runs only when the agent reaches a branch or gets close to the original path.
+
+If your agent spends significant time navigating between branches or walking normally, this condition is false, so the flip decision logic is not triggered.Your flip decision is tied to branch clearance events, so it only evaluates progress and flips scanning direction at discrete points, not continuously.
+
+This is often desirable because flipping scanning direction too frequently or unnecessarily can cause jitter.
+
+Why flip checks feel discrete despite many branch clears
+1. Flip check only happens when:
+The timer timeSinceLastFlipCheck exceeds flipCheckInterval (e.g., 1 second), AND
+
+A branch is cleared (hasReachedBranch || isOriginalPathClose), triggering the flip decision.
+
+2. Timer accumulates only when navigating branches
+You accumulate delta time continuously every frame while navigating branches.
+
+When not on a branched path, you reset the timer to zero (timeSinceLastFlipCheck = 0).
+
+This means the timer only counts up during branched path navigation.
+
+3. Multiple branch clears contribute to reaching the interval
+Each branch clear happens quickly, but the timer accumulates delta time across frames.
+
+If branch clears happen frequently but less than the flip interval apart, the flip decision won’t trigger every clear.
+
+Only when the accumulated time since the last flip check exceeds the interval will the flip decision run on a branch clear.
+
+4. Result:
+Even if you clear many branches per walk, the flip decision runs at most once per flip interval.
+
+This makes the flip decision feel discrete and throttled, not continuous or jittery.
+
+The reset of the timer when not on a branched path prevents the timer from accumulating during normal walking, so flips only happen during obstacle navigation.

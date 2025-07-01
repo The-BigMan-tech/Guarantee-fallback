@@ -269,7 +269,7 @@ export abstract class Controller {
     private updateObstacleDetectionDistance() {
         const delta = this.clockDelta || 0;
         //*Be cautious when changing this margin.it has to be smaller or equal to the distance that the entity can jump or else,it will never jump
-        const margin = 4; // tune as needed.its how far ahead do you want to detect obstacles in addition to the calculated dist which is usually below 1 cuz delta frames are usually fractions of a second
+        const margin = 3; // tune as needed.its how far ahead do you want to detect obstacles in addition to the calculated dist which is usually below 1 cuz delta frames are usually fractions of a second
         this.obstacleDetectionDistance = (this.dynamicData.horizontalVelocity * delta) + margin
         console.log("Obstacle detection distance: ",this.obstacleDetectionDistance);
     }
@@ -553,19 +553,28 @@ export abstract class Controller {
     }
 
     private useClockwiseScan:boolean = true;
-
+    private timeSinceLastFlipCheck: number = 0;
+    private flipCheckInterval: number = 1.0; // seconds, adjust as needed
+    private minProgressThreshold: number = -2; // allow small backward movement
+    private distSinceLastDelta: number | null = null;
 
     protected decidePerimeterScanDirection(distToOriginalPath:number) {
-        console.log('Perimeter. distToOriginalPath:', distToOriginalPath);
-        // this.useClockwiseScan = !this.useClockwiseScan;
-        // this.branchedPath = null;
-        // console.log('Perimeter decision2. Flipped perimeter scanning.');
+        if (this.distSinceLastDelta === null) {
+            this.distSinceLastDelta = distToOriginalPath;
+            return;
+        }
+        const progress = this.distSinceLastDelta - distToOriginalPath;
+        console.log('Perimeter. Progress:', progress);
+        if (progress < this.minProgressThreshold) {
+            this.useClockwiseScan = !this.useClockwiseScan;
+            console.log('Perimeter. Flipped perimeter scanning direction.');
+        }
+        this.distSinceLastDelta = distToOriginalPath;   
     }
 
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
+        this.timeSinceLastFlipCheck += this.clockDelta || 0;
         const characterPos = this.character.position;
-        this.decidePerimeterScanDirection(characterPos.distanceTo(originalPath))
-
         const currentPath = this.branchedPath || originalPath;
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
         
@@ -602,8 +611,14 @@ export abstract class Controller {
                 this.obstacleClearancePoint.set(0,0,0);
                 this.branchedPath = null;
                 console.log('Cleared this branch');
+                if (this.timeSinceLastFlipCheck >= this.flipCheckInterval) {
+                    this.timeSinceLastFlipCheck = 0;
+                    this.decidePerimeterScanDirection(distToOriginalPath);
+                }
                 return;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.although,the code still works if i dont return here but i believe it will jitter if i dont put this
             }
+        } else {
+            this.timeSinceLastFlipCheck = 0;
         }
 
         const finalPath = currentPath.clone();
