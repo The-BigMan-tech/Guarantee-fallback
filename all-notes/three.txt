@@ -797,6 +797,13 @@ current path--the current target between the branched path or the original path
 final path--the actual target im heading to
 
 
-*five rules for navigation
+*five rules for navigation--walking straight,walking over,jumping over,perimeter scan,proactive jumping
 *two-ray obstacle avoidance mechanism
 *four types of paths
+*branch progress
+
+variable clarity or brevity
+
+so normally,when change is calculated,its normally var1 - var0 but because of the context of progress where progress is made as the variable decreases,it becomes var0 - var1 and it should be positive if theres any progress
+
+so i built something that game engines dont offer out of the box without a game engine to begin with.so game engines arent a must for game dev.just a good engineering mind and the willingnesss to create things yourself

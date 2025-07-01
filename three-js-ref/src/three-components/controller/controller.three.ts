@@ -320,7 +320,6 @@ export abstract class Controller {
             }
         }   
     }
-    private useClockwiseScan:boolean = true;
     private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay',stoppedWidthRef:[number]) {
         const horizontalForward = this.getHorizontalForward();
         const maxWidthToCheck = 40;
@@ -551,6 +550,30 @@ export abstract class Controller {
             this.stopWalkSound();
         }
     }
+
+    private useClockwiseScan:boolean = true;
+    private branchesExploredBeforeFlip:number = 0;
+    private maxBranchesBeforeFlip: number = 10; // clearer threshold name
+    private minProgressThreshold: number = 1.0
+    private distSinceLastNBranches:number | null = null;
+
+    protected decidePerimeterScanDirection(distToOriginalPath:number) {
+        this.branchesExploredBeforeFlip += 1;
+        if (this.branchesExploredBeforeFlip >= this.maxBranchesBeforeFlip) {
+            this.branchesExploredBeforeFlip = 0
+            if (this.distSinceLastNBranches == null) {
+                this.distSinceLastNBranches = distToOriginalPath;
+            }else {
+                const progress = this.distSinceLastNBranches - distToOriginalPath;
+                console.log('Perimeter decision. progress:', progress);
+                if (progress < this.minProgressThreshold) {
+                    this.useClockwiseScan = !this.useClockwiseScan;
+                    console.log('Perimeter decision. Flipped perimeter scanning.');
+                }
+                this.distSinceLastNBranches = distToOriginalPath;// Update the stored distance and reset counter
+            }
+        }
+    }
     protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
         const currentPath = this.branchedPath || originalPath;
         const characterPos = this.character.position;
@@ -571,12 +594,14 @@ export abstract class Controller {
 
         let distThreshold = 5;//this is to tell the algorithm how close to the target the character should be to be considered its close to the target or far from the target.
         if (this.branchedPath) {
-            const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);
+            const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);// i used xz distance here not the hypotenuse distance to discard the y component when deciding the dist to a branch cuz taking its y comp into account can take it forever before it considers it has reached there and its y comp isnt important to the final goal.
+            const distToOriginalPath = characterPos.distanceTo(originalPath);
+
             const hasReachedBranch = (distToBranchedPath < distThreshold) 
             
             const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));
             const onSameYLevel = YDifference < 2.5
-            const isOriginalPathClose =  (onSameYLevel) && (characterPos.distanceTo(originalPath) < 10);
+            const isOriginalPathClose =  (onSameYLevel) && (distToOriginalPath < 10);
 
             console.log('isOriginalPathClose:', isOriginalPathClose);
             
@@ -584,6 +609,7 @@ export abstract class Controller {
             if (hasReachedBranch || isOriginalPathClose) {
                 this.obstacleClearancePoint.set(0,0,0);
                 this.branchedPath = null;
+                this.decidePerimeterScanDirection(distToOriginalPath)
                 console.log('Cleared this branch');
                 return;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.although,the code still works if i dont return here but i believe it will jitter if i dont put this
             }
