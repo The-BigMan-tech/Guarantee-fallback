@@ -547,12 +547,14 @@ export abstract class Controller {
 
     private useClockwiseScan:boolean = true;
     private timeSinceLastFlipCheck: number = 0;
-    private flipCheckInterval:seconds = 0.5; // Minimum time interval between perimeter scan flip checks.Note: The flip check runs only when certain navigation conditions are met,so actual flips happen discretely, not strictly every interval.fine tune as needed to control the interval of flip checks
-    private minProgressThreshold: number = -2; // allow small backward movement
+    private flipCheckInterval:seconds = 1; // Minimum time interval between perimeter scan flip checks.Note: The flip check runs only when certain navigation conditions are met,so actual flips happen discretely, not strictly every interval.fine tune as needed to control the interval of flip checks
+    private minProgressThreshold: number = -2; // allow some declination in progress
     private distSinceLastDelta: number | null = null;
 
     protected decidePerimeterScanDirection(distToOriginalPath:number,distSinceLastDelta:number) {
         const progress = distSinceLastDelta - distToOriginalPath;
+        console.log('Perimeter. distSinceLastDelta:', distSinceLastDelta);
+        console.log('Perimeter. distToOriginalPath:', distToOriginalPath);
         console.log('Perimeter. Progress:', progress);
         if (progress < this.minProgressThreshold) {
             this.useClockwiseScan = !this.useClockwiseScan;
