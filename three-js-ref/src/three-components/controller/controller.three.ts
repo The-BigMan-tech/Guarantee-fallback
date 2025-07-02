@@ -497,8 +497,8 @@ export abstract class Controller {
         const jumpProactively = greaterOrSameYLevel && !this.groundIsPresentForward;
         
         console.log("jump proactively. y diff: ", (finalDestY - this.character.position.y));
-        console.log('jump proactively. groundIsNotPresentForward: ',!this.groundIsPresentForward);
-        console.log('jump proactively. greaterOrSameYLevel: ',greaterOrSameYLevel);
+        console.log('.*jump proactively. groundIsNotPresentForward: ',!this.groundIsPresentForward);
+        console.log('.*jump proactively. greaterOrSameYLevel: ',greaterOrSameYLevel);
 
         if (onGround) {
             console.log("Entity is walking");
@@ -506,7 +506,7 @@ export abstract class Controller {
             this.playWalkSound();
         }
         if ((jumpProactively || this.canJumpOntoObstacle()) && !this.shouldStepUp && onGround) {
-            console.log("Entity is jumping");
+            console.log(".*Entity is jumping");
             this.playJumpAnimation();
             this.moveCharacterUp();
         };
@@ -581,8 +581,9 @@ export abstract class Controller {
         const distToOriginalPath = characterPos.distanceTo(originalPath);
 
         const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));
-        const onSameYLevel = YDifference < 2.5
-        const hasReachedOriginalPath =  (onSameYLevel) && (distToOriginalPath < 5);
+        const onSameYLevel = YDifference < 2.5;
+        const targetReachedDistance = 5//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
+        const hasReachedOriginalPath =  (onSameYLevel) && (distToOriginalPath < targetReachedDistance);
 
         if (hasReachedOriginalPath) {
             this.terminateBranch();
@@ -595,13 +596,15 @@ export abstract class Controller {
         if (this.branchedPath) {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);// i used xz distance here not the hypotenuse distance to discard the y component when deciding the dist to a branch cuz taking its y comp into account can take it forever before it considers it has reached there and its y comp isnt important to the final goal.
             const distToBranchedPathThresh = (this.prioritizeBranch) ? 5 : 10;//i priortized the branch created from the clearance point set by the foremost ray.cuz the foremost ray oly nudges the clearance point a little to the side so the dist will be very small so setting a smaller threshold for it means that it will easily overlook clearing the branch.but for the bracnch created from the side ray,i made the threshold stricter by making it 10.so it will clear it at 9 units away from the branch
-            const hasReachedBranch = (distToBranchedPath < distToBranchedPathThresh) 
-            const isOriginalPathClose =  (onSameYLevel) && (distToOriginalPath < 10);
+            const hasReachedBranch = (distToBranchedPath < distToBranchedPathThresh);
+
+            const rebranchDistance = 10//this defines how close must the entity be to the original path before it discards the branch its going to and to go back to the original path.this is to make it to discard a branch when the original path is close
+            const rebranchToOriginalPath =  (onSameYLevel) && (distToOriginalPath < rebranchDistance);
 
             console.log('Entity distToBranchedPath:', distToBranchedPath);
             console.log('distToBranchedPathThresh:', distToBranchedPathThresh);
 
-            if (hasReachedBranch || isOriginalPathClose) {
+            if (hasReachedBranch || rebranchToOriginalPath) {
                 this.terminateBranch();
                 if (this.timeSinceLastFlipCheck >= this.flipCheckInterval) {
                     this.timeSinceLastFlipCheck = 0;
