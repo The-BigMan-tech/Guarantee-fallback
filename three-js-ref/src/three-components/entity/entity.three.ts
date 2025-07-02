@@ -9,7 +9,7 @@ class Entity extends Controller {
         super(fixedData,dynamicData);
     }
     protected onLoop(): void {
-        this.moveToTarget(player.position)
+        this.navToTarget(player.position)
     }
 }
 //char height and width can break for arbritary values that havent been tested

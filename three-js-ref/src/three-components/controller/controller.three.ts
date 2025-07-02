@@ -543,14 +543,6 @@ export abstract class Controller {
         }
         return null
     }
-    private moveAgent(finalDestY:number) {
-        if (!this.isFinalDestClose) {
-            this.autoMoveForward(finalDestY);
-        }else {
-            this.playIdleAnimation();
-            this.stopWalkSound();
-        }
-    }
 
     private useClockwiseScan:boolean = true;
     private timeSinceLastFlipCheck: number = 0;
@@ -571,25 +563,55 @@ export abstract class Controller {
         }
         this.distSinceLastDelta = distToOriginalPath;   
     }
+    private static readonly ZERO_VECTOR = new THREE.Vector3(0,0,0);
 
+    private terminateBranch() {
+        this.obstacleClearancePoint.copy(Controller.ZERO_VECTOR);//removing any possible clearance point and terminating the branch
+        this.branchedPath = null;
+        console.log('.:Cleared this branch');
+    }
+    private moveAgent(finalDestY:number) {
+        if (!this.isFinalDestClose) {
+            this.autoMoveForward(finalDestY);
+        }
+    }
     protected navToTarget(originalPath:THREE.Vector3):boolean {//targetpos is the player for example
+        this.timeSinceLastFlipCheck += this.clockDelta || 0;
         const characterPos = this.character.position;
         const distToOriginalPath = characterPos.distanceTo(originalPath);
 
         const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));
         const onSameYLevel = YDifference < 2.5
-        const isOriginalPathClose =  (onSameYLevel) && (distToOriginalPath < 10);
+        const hasReachedOriginalPath =  (onSameYLevel) && (distToOriginalPath < 5);
 
-        console.log('isOriginalPathClose:', isOriginalPathClose);
-        if (isOriginalPathClose) {
-            this.obstacleClearancePoint.set(0,0,0);//removing any possible clearance point and terminating the branch
-            this.branchedPath = null;
+        if (hasReachedOriginalPath) {
+            this.terminateBranch();
+            this.playIdleAnimation();
+            this.stopWalkSound();
+            console.log('.:Reached original path');
             return true
-        }
+        } 
 
-        this.timeSinceLastFlipCheck += this.clockDelta || 0;
-        const currentPath = this.branchedPath || originalPath;
-        //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
+        if (this.branchedPath) {
+            const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);// i used xz distance here not the hypotenuse distance to discard the y component when deciding the dist to a branch cuz taking its y comp into account can take it forever before it considers it has reached there and its y comp isnt important to the final goal.
+            const distToBranchedPathThresh = (this.prioritizeBranch) ? 5 : 10;//i priortized the branch created from the clearance point set by the foremost ray.cuz the foremost ray oly nudges the clearance point a little to the side so the dist will be very small so setting a smaller threshold for it means that it will easily overlook clearing the branch.but for the bracnch created from the side ray,i made the threshold stricter by making it 10.so it will clear it at 9 units away from the branch
+            const hasReachedBranch = (distToBranchedPath < distToBranchedPathThresh) 
+            const isOriginalPathClose =  (onSameYLevel) && (distToOriginalPath < 10);
+
+            console.log('Entity distToBranchedPath:', distToBranchedPath);
+            console.log('distToBranchedPathThresh:', distToBranchedPathThresh);
+
+            if (hasReachedBranch || isOriginalPathClose) {
+                this.terminateBranch();
+                if (this.timeSinceLastFlipCheck >= this.flipCheckInterval) {
+                    this.timeSinceLastFlipCheck = 0;
+                    this.decidePerimeterScanDirection(distToOriginalPath);
+                }
+            }
+        }else {
+            this.timeSinceLastFlipCheck = 0;
+        }
+         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
         
         const shouldWalkAroundObstacle = (
             (this.obstacleDistance !== Infinity) && 
@@ -597,37 +619,15 @@ export abstract class Controller {
             (!this.canJumpOntoObstacle()) &&
             (!this.shouldStepUp || !this.canWalkForward)
         ) 
-
         console.log("Entity path| branched path: ",this.branchedPath);
         console.log("Entity path| compare original path: ",originalPath);
         console.log("Entity path| compare char pos: ",characterPos);
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
-        
 
-        if (this.branchedPath) {
-            const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);// i used xz distance here not the hypotenuse distance to discard the y component when deciding the dist to a branch cuz taking its y comp into account can take it forever before it considers it has reached there and its y comp isnt important to the final goal.
-            const distToBranchedPathThresh = (this.prioritizeBranch) ? 5 : 10;//i priortized the branch created from the clearance point set by the foremost ray.cuz the foremost ray oly nudges the clearance point a little to the side so the dist will be very small so setting a smaller threshold for it means that it will easily overlook clearing the branch.but for the bracnch created from the side ray,i made the threshold stricter by making it 10.so it will clear it at 9 units away from the branch
-            const hasReachedBranch = (distToBranchedPath < distToBranchedPathThresh) 
-            
-            console.log('Entity distToBranchedPath:', distToBranchedPath);
-            console.log('distToBranchedPathThresh:', distToBranchedPathThresh);
 
-            if (hasReachedBranch) {
-                this.obstacleClearancePoint.set(0,0,0);
-                this.branchedPath = null;
-                console.log('Cleared this branch');
-                if (this.timeSinceLastFlipCheck >= this.flipCheckInterval) {
-                    this.timeSinceLastFlipCheck = 0;
-                    this.decidePerimeterScanDirection(distToOriginalPath);
-                }
-                return false;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.although,the code still works if i dont return here but i believe it will jitter if i dont put this
-            }
-        } else {
-            this.timeSinceLastFlipCheck = 0;
-        }
-
+        const currentPath = this.branchedPath || originalPath;
         const finalPath = currentPath.clone();
-        if (shouldWalkAroundObstacle && !(this.obstacleClearancePoint.equals({x:0,y:0,z:0}))) { 
+        if (shouldWalkAroundObstacle && !(this.obstacleClearancePoint.equals(Controller.ZERO_VECTOR)) ) { 
             finalPath.copy(this.obstacleClearancePoint);
             this.branchedPath = finalPath;
             console.log('Entity path| finalPath:',finalPath);
