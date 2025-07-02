@@ -771,17 +771,18 @@ export abstract class Controller {
     
     private impulse:THREE.Vector3 = new THREE.Vector3();
     private isKnockedBack:boolean = false;
-    private appliedKnockbackImpulse:boolean = false;
+    private appliedKnockbackImpulse:boolean = false;//to debounce the knockback
 
     private knockbackTimer:number = 0;
-    private knockbackCooldown:seconds = 3;
+    private knockbackCooldown:seconds = 2;//to give the physics engine time to reflect the knockback
 
     public knockbackCharacter(sourcePosition: THREE.Vector3,knockbackImpulse:number):void {
         this.wakeUpBody();
+        const upwardScalar = 3
         const direction = new THREE.Vector3().subVectors(this.position, sourcePosition).normalize();
         const impulse = new RAPIER.Vector3(
             direction.x * knockbackImpulse,
-            direction.y * knockbackImpulse,
+            knockbackImpulse * upwardScalar,
             direction.z * knockbackImpulse
         );
         this.impulse.copy(impulse);

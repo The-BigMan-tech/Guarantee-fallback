@@ -929,3 +929,6 @@ However, the raycast returns the exact mesh or sub-object that was hit, which mi
 
 isDescendantOf then helps you identify which entity owns that intersected mesh by walking up the object’s parent chain until it finds the entity’s root object.
 
+The impulse needed to lift an object depends on its mass and the gravity force pulling it down.
+
+*The gravity of my physiscs world will remain constant

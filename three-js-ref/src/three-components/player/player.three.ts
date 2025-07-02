@@ -84,18 +84,6 @@ class Player extends Controller {
         }
         return null;
     }
-    private attack(entities: Entity[]) {
-        if (this.attackTimer < this.attackCooldown) return;
-        this.lookedAtEntity = this.getTheLookedAtEntity(entities, 10);
-        if (this.lookedAtEntity) {
-            const targetHealth = this.lookedAtEntity.health;
-            if (targetHealth && !targetHealth.isDead) {
-                targetHealth.takeDamage(this.attackDamage);
-                this.lookedAtEntity.knockbackCharacter(this.position,this.knockback);
-                this.attackTimer = 0;
-            }
-        }
-    }
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:PlayerMiscData) {
         super(fixedData,dynamicData);
@@ -239,6 +227,20 @@ class Player extends Controller {
         const newCamPosition = new THREE.Vector3(camPosition.x,this.targetY,this.targetZ)
         this.camera.translateCamera(newCamPosition,0.2);
     }
+
+
+    private attack(entities: Entity[]) {
+        if (this.attackTimer < this.attackCooldown) return;
+        this.lookedAtEntity = this.getTheLookedAtEntity(entities, 10);
+        if (this.lookedAtEntity) {
+            const targetHealth = this.lookedAtEntity.health;
+            if (targetHealth && !targetHealth.isDead) {
+                targetHealth.takeDamage(this.attackDamage);
+                this.lookedAtEntity.knockbackCharacter(this.position,this.knockback);
+                this.attackTimer = 0;
+            }
+        }
+    }
     private handleRespawn() {
         if (this.health.isDead && !this.isRespawning) {
             this.isRespawning = true;
@@ -260,6 +262,8 @@ class Player extends Controller {
             this.targetY = this.offsetY;
         }
     }
+
+
     protected onLoop() {//this is where all character updates to this instance happens.
         this.attackTimer += this.clockDelta || 0;
         this.displayHealth();
@@ -293,7 +297,7 @@ const playerDynamicData:DynamicControllerData = {
 const playerMiscData:PlayerMiscData = {
     healthValue:10,
     attackDamage:1,
-    knockback:5,
+    knockback:150,
     camArgs: {
         FOV:75,
         nearPoint:0.1,
