@@ -42,8 +42,10 @@ class Player extends Controller {
     private lastToggleTime: number = 0;
 
     private isRespawning: boolean = false;
-    private respawnDelay: number = 5; // seconds
+    private respawnDelay: number = 10; // seconds
     private respawnTimer: number = 0;
+
+    private playerHeight:number;
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:PlayerMiscData) {
         super(fixedData,dynamicData);
@@ -55,6 +57,7 @@ class Player extends Controller {
         this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
         Player.addEventListeners();
         this.health = new Health(miscData.healthValue);
+        this.playerHeight = fixedData.characterHeight;
     }
     private displayHealth() {
         console.log('Health. Player: ',this.health.value);
@@ -189,8 +192,16 @@ class Player extends Controller {
             }
         }
     }
+    private updateCameraHeightBasedOnHealth() {
+        if (this.health.isDead) {
+            this.targetY = this.offsetY - this.playerHeight;
+        } else {
+            this.targetY = this.offsetY;
+        }
+    }
     protected onLoop() {//this is where all character updates to this instance happens.
         this.displayHealth();
+        this.updateCameraHeightBasedOnHealth();
         this.handleRespawn();
         this.bindKeysToControls();
         this.bindKeysToAnimations();
