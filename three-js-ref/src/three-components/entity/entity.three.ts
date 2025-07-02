@@ -155,8 +155,6 @@ export class Entity extends Controller {
         this.respondToExternalState();
         this.respondToInternalState();
     }
-    get updateOnLoop() {
-        return this.onLoop;
-    }
 }
+export const entities:Entity[] = [];
 

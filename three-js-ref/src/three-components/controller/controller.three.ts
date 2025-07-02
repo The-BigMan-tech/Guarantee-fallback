@@ -3,7 +3,6 @@ import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY} from "../physics-world.three";
-import { scene } from "../scene.three";
 
 function createCapsuleLine(radius:number,halfHeight:number) {
     const charGeometry = new THREE.CapsuleGeometry(radius,halfHeight*2);
@@ -85,7 +84,7 @@ export abstract class Controller {
     private shouldPlayJumpAnimation: boolean = false;
 
     private originalHorizontalVel:number
-    private points:THREE.Object3D = new THREE.Object3D();
+    public points:THREE.Object3D = new THREE.Object3D();
     private pointDensity = 1.5;
 
     private obstacleDistance:number = 0;//unlike obstacledetection distance which is a fixed unit telling the contoller how far to detect obstacles ahead of time,this one actually tells the realtime distance of an obstacle form the controller
@@ -906,7 +905,6 @@ export abstract class Controller {
         return this.updateCharacter
     }
     get controller():THREE.Group {
-        scene.add(this.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created
         return this.character
     }
     get position():THREE.Vector3 {

@@ -3,8 +3,7 @@ import type {FixedControllerData,DynamicControllerData} from "../controller/cont
 import type { EntityMiscData, ManagingStructure } from "./entity.three";
 import * as RAPIER from '@dimforge/rapier3d'
 import { player } from "../player/player.three";
-import { Entity } from "./entity.three";
-import { entities } from "./entities.three";
+import { Entity,entities} from "./entity.three";
 
 export const entityGroup:THREE.Group = new THREE.Group();
 
@@ -39,7 +38,8 @@ for (let i = 0;i <= 1;i++) {
     const entity = new Entity(entityFixedData,entityDynamicData,entityMiscData,managingStruct);
     entities.push(entity);
     entityGroup.add(entity.controller);
+    entityGroup.add(entity.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created)
 }
 export function updateAllEntities() {
-    entities.forEach(entity => entity.updateOnLoop());
+    entities.forEach(entity => entity.updateController());
 }
