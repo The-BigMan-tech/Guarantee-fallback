@@ -27,7 +27,7 @@ class Entity extends Controller {
     private readonly attackCooldown = 1; // cooldown duration in seconds
     private attackTimer = 0;    // timer accumulator
 
-    private patrolRadius = 20; // max distance from current position to patrol
+    private patrolRadius = 15; // max distance from current position to patrol
     private patrolTarget: THREE.Vector3 | null = null;
     private patrolCooldown = 3; // seconds between patrol target changes
     private patrolTimer = 0;
@@ -42,9 +42,6 @@ class Entity extends Controller {
         this.targetController = miscData.targetController
         this.targetHealth = miscData.targetHealth;
         this.attackDamage = miscData.attackDamage
-    }
-    private displayHealth() {
-        console.log("Health. Entity: ",this.health.value);
     }
     private getRandomPatrolPoint(): THREE.Vector3 {
         const currentPos = this.position.clone();
@@ -62,7 +59,10 @@ class Entity extends Controller {
     private chase() {
         if (this.navPosition) {
             const atTarget = this.navToTarget(this.navPosition);
-            if (atTarget) this.act();
+            if (atTarget) {
+                this.act();
+                this.respondToState();//any state change from the above hook will be caught and responded to in the same frame
+            }
         }
     }
     private attack() {
@@ -74,38 +74,42 @@ class Entity extends Controller {
     }
 
     private respondToState() {
-        if (this.state.behaviour == "patrol") {
-            this.patrol();
-        }
-        if (this.state.behaviour == "chasing" || this.state.behaviour == "patrol") {
-            this.chase();
-        }
-        if (this.state.behaviour == "attack") {
-            this.attack();
+        switch (this.state.behaviour) {
+            case 'patrol': {
+                this.patrol();
+                this.chase();
+                break;
+            }
+            case 'chasing': {
+                this.chase();
+                break;
+            }
+            case 'attack': {
+                this.attack();
+                break;
+            }
         }
     }
-
+    private respondToTargetHealth() {
+        console.log("Health. Entity: ",this.health.value);
+        if (!this.targetController || !this.targetHealth) return;
+        if (this.targetHealth.isDead && (this.state.behaviour !== 'patrol')) {
+            this.navPosition = null;
+            this.state.behaviour = "patrol";
+        }
+        if (!this.targetHealth.isDead) {//we want to continuously chase the target constantly every frame its not dead because navToTArget as used in chase doesnt remember the target position by design choice.you have to pass it to it every frame to progress it towards that target.
+            this.navPosition = this.targetController.position;
+            this.state.behaviour = "chasing"
+        }
+    }
     private act() {//the behaviour when it reaches the target will be later tied to a state machine
         console.log("Agent has reached target");
         this.state.behaviour = 'attack'
     }
-    private updateNavPosition() {//the navPosition is updated internally by the entity.ill later tie it to a behaviour state machine
-        if (!this.targetController || !this.targetHealth) return;
-        if (this.targetHealth.isDead && (this.state.behaviour !== 'patrol')) {
-            this.navPosition = null;
-            this.state.behaviour = 'patrol'
-        }
-        if (!this.targetHealth.isDead) {
-            console.log('Chasing target');
-            this.navPosition = this.targetController.position;
-            this.state.behaviour = 'chasing'
-        }
-    }
     protected onLoop(): void {
         this.attackTimer += this.clockDelta || 0;
         this.patrolTimer += this.clockDelta || 0;
-        this.displayHealth();
-        this.updateNavPosition();
+        this.respondToTargetHealth();
         this.respondToState();
     }
 }
