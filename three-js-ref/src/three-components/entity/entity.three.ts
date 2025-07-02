@@ -11,8 +11,9 @@ interface EntityMiscData {
     targetHealth:Health | null,
     attackDamage:number
 }
+type Behaviour = 'chasing' | 'attack' | 'patrol'
 interface EntityStateMachine {
-    behaviour:'idle' | 'chasing'
+    behaviour:Behaviour
 }
 class Entity extends Controller {
     private targetController:Controller | null = null;
@@ -26,9 +27,15 @@ class Entity extends Controller {
     private readonly attackCooldown = 1; // cooldown duration in seconds
     private attackTimer = 0;    // timer accumulator
 
+    private patrolRadius = 20; // max distance from current position to patrol
+    private patrolTarget: THREE.Vector3 | null = null;
+    private patrolCooldown = 3; // seconds between patrol target changes
+    private patrolTimer = 0;
+
     private state:EntityStateMachine = {
-        behaviour:'idle'
+        behaviour:'patrol'
     }
+
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:EntityMiscData) {
         super(fixedData,dynamicData);
         this.health = new Health(miscData.healthValue);
@@ -39,6 +46,25 @@ class Entity extends Controller {
     private displayHealth() {
         console.log("Health. Entity: ",this.health.value);
     }
+    private getRandomPatrolPoint(): THREE.Vector3 {
+        const currentPos = this.position.clone();
+        const randomPoint = (Math.random() - 0.5) * 2 * this.patrolRadius
+        const randomOffset = new THREE.Vector3(randomPoint,0,randomPoint);
+        return currentPos.add(randomOffset);
+    }
+    private patrol() {
+        if (this.patrolTimer >= this.patrolCooldown) {
+            this.patrolTarget = this.getRandomPatrolPoint();
+            this.navPosition = this.patrolTarget;
+            this.patrolTimer = 0;
+        }
+    }  
+    private chase() {
+        if (this.navPosition) {
+            const atTarget = this.navToTarget(this.navPosition);
+            if (atTarget) this.act();
+        }
+    }
     private attack() {
         if (!this.targetHealth) return;
         if (this.attackTimer >= this.attackCooldown) {
@@ -46,16 +72,28 @@ class Entity extends Controller {
             this.attackTimer = 0;
         }
     }
-    private act() {//the behaviour when it reaches the target will be later tied to a state machine
-        console.log("Agent has reached target");
-        this.attack();
+
+    private respondToState() {
+        if (this.state.behaviour == "patrol") {
+            this.patrol();
+        }
+        if (this.state.behaviour == "chasing" || this.state.behaviour == "patrol") {
+            this.chase();
+        }
+        if (this.state.behaviour == "attack") {
+            this.attack();
+        }
     }
 
+    private act() {//the behaviour when it reaches the target will be later tied to a state machine
+        console.log("Agent has reached target");
+        this.state.behaviour = 'attack'
+    }
     private updateNavPosition() {//the navPosition is updated internally by the entity.ill later tie it to a behaviour state machine
         if (!this.targetController || !this.targetHealth) return;
-        if (this.targetHealth.isDead) {
+        if (this.targetHealth.isDead && (this.state.behaviour !== 'patrol')) {
             this.navPosition = null;
-            this.state.behaviour = 'idle'
+            this.state.behaviour = 'patrol'
         }
         if (!this.targetHealth.isDead) {
             console.log('Chasing target');
@@ -65,14 +103,10 @@ class Entity extends Controller {
     }
     protected onLoop(): void {
         this.attackTimer += this.clockDelta || 0;
+        this.patrolTimer += this.clockDelta || 0;
         this.displayHealth();
         this.updateNavPosition();
-        if (this.navPosition) {
-            const atTarget = this.navToTarget(this.navPosition);
-            if (atTarget) {
-                this.act()
-            }
-        }
+        this.respondToState();
     }
 }
 //char height and width can break for arbritary values that havent been tested
