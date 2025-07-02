@@ -2,6 +2,7 @@ import { canvas,renderer } from './three-components/renderer.three';
 import { player } from './three-components/player/player.three';
 import './App.css'
 import { useEffect, useRef } from 'react';
+import { Crosshair } from './crosshair';
 
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
                 tabIndex={0}  
                 className='w-full h-full z-0'>
             </div>
+            <Crosshair/>
         </div>
     )
 }

@@ -932,3 +932,11 @@ isDescendantOf then helps you identify which entity owns that intersected mesh b
 The impulse needed to lift an object depends on its mass and the gravity force pulling it down.
 
 *The gravity of my physiscs world will remain constant
+
+thats why i used velocity.cuz velocity resets forces like gravity so i can fine tune it to make the char feel very light even when jumping.but i cnstrained it under isgrounded cuz linear velocity prevents the physics engine from simulating gravity on me when i jump so when i use lin vel directly to jump,it feels instant and i dont come dwon.so i constained it to when im on the ground.
+
+setLinvel for fine-tuning on ground: When your character is grounded, using setLinvel allows you to precisely control horizontal movement. This gives you the immediate, snappy feel you want, letting you dictate how "light" or "heavy" the character feels by directly manipulating their speed . It's essentially overriding the physics engine's natural friction and acceleration calculations to give you immediate control.
+
+and for knockbacj i used impulse for that sweet and smooth sliding behavour that comes from it rather than just instant moving.so i fine tuned the forces i used on my rigid bidy and when
+
+so i use lin vel for direct horizontal movement,i still use lin vel for the initial jump but when its airborne,it turns of immediately allowing the engine to take over and simulate forces and for knockback,i used impulse.this was gotten from observations but ideally,i thought that if i just used ione type of force,it will solve all my problems but i had to fine tune it and i had to discover it myself cuz rapier doc doesnt touch the use cases of these forces as related to game dev only general physics simulation
