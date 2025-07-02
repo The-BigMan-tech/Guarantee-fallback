@@ -26,7 +26,7 @@ class Player extends Controller {
     private thirdPersonClamp = 10;
     private cameraClampAngle:number =  this.firstPersonClamp;
 
-    private health:Health;
+    public health:Health;
     public  camera:Camera;
 
     private camModeNum:1 | 2 | 3 = 1;//this corresponds to first,second and third person views

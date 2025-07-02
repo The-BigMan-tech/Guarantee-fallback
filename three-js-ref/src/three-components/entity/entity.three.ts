@@ -7,30 +7,39 @@ import { Health } from "../health/health";
 
 interface EntityMiscData {
     healthValue:number,
-    currentTarget:Controller | null
+    targetController:Controller | null,
+    targetHealth:Health | null,
+    attackDamage:number
 }
 class Entity extends Controller {
-    private health:Health;
-    private currentTarget:Controller | null = null;
+    private targetController:Controller | null = null;
     private navPosition:THREE.Vector3 | null = null;//strictly for position in case where the entity might not have a target ref but it still wants to go navigate somewhere
+
+    public health:Health;
+    private targetHealth:Health | null = null;
+
+    private attackDamage:number;
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:EntityMiscData) {
         super(fixedData,dynamicData);
         this.health = new Health(miscData.healthValue);
-        this.currentTarget = miscData.currentTarget
+        this.targetController = miscData.targetController
+        this.targetHealth = miscData.targetHealth;
+        this.attackDamage = miscData.attackDamage
     }
     private attack() {
-        
+        if (!this.targetHealth) return;
+        this.targetHealth.takeDamage(this.attackDamage)
     }
     private displayHealth() {
         console.log("Health. Entity: ",this.health.value);
     }
-    private act() {
+    private act() {//the behaviour when it reaches the target will be later tied to a state machine
         console.log("Agent has reached target");
         this.attack()
     }
-    private updateNavPosition() {
-        this.navPosition = this.currentTarget?.position || null
+    private updateNavPosition() {//the navPosition is updated internally by the entity.ill later tie it to a behaviour state machine
+        this.navPosition = this.targetController?.position || null
     }
     protected onLoop(): void {
         this.displayHealth();
@@ -62,7 +71,9 @@ const entityDynamicData:DynamicControllerData = {
     gravityScale:1
 }
 const entityMiscData:EntityMiscData = {
+    targetController:player,
+    targetHealth:player.health,
     healthValue:10,
-    currentTarget:player
+    attackDamage:1
 }
 export const entity = new Entity(entityFixedData,entityDynamicData,entityMiscData)

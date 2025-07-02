@@ -877,3 +877,11 @@ so because i didnt put the decision for flipping directly under nav to target bu
 The flip interval acts as a minimum cooldown timer, but the actual flip decision only occurs when the entity reaches certain navigation states (like clearing a branch).
 
 so i can name it by either technical functionality or behaviour.
+
+Not all controllers may have health (e.g., non-damageable objects or NPCs).
+
+You want to keep a reference to the target’s Controller for position, movement, etc.
+
+But damage application requires a reference to the target’s Health component (if it exists).
+
+Keep currentTarget: Controller | null in your Entity, for navigation and general info.

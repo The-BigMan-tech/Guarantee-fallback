@@ -693,10 +693,12 @@ export abstract class Controller {
         this.groundIsPresentForward = false;
          // this.obstacleHeight = 0;
     }
-    private updateCharacterAnimations():void {
+    private updateClockDelta() {
         const delta = this.clock.getDelta();
         this.clockDelta = delta;
-        if (this.mixer) this.mixer.update(delta);
+    }
+    private updateCharacterAnimations():void {
+        if (this.mixer) this.mixer.update(this.clockDelta || 0);
     }
     private updateCharacterTransformations():void {
         //i minused it from ground detction distance to get it to stay exactly on the ground
@@ -838,10 +840,12 @@ export abstract class Controller {
             this.characterRigidBody.sleep();
         } 
     }
+   
     protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
      //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateCharacter():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         this.forceSleepIfIdle();
+        this.updateClockDelta();
         this.onLoop();
         this.updateCharacterAnimations();//im updating the animation before the early return so that it stops naturally 
         if (this.characterRigidBody.isSleeping()) {
