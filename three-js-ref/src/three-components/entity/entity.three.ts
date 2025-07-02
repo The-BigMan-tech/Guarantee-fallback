@@ -15,7 +15,7 @@ type Behaviour = 'chasing' | 'attack' | 'patrol'
 interface EntityStateMachine {
     behaviour:Behaviour
 }
-class Entity extends Controller {
+export class Entity extends Controller {
     private targetController:Controller | null = null;
     private navPosition:THREE.Vector3 | null = null;//strictly for position in case where the entity might not have a target ref but it still wants to go navigate somewhere
 

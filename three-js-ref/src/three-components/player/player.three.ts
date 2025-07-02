@@ -4,6 +4,8 @@ import type { FixedControllerData,DynamicControllerData } from "../controller/co
 import * as RAPIER from "@dimforge/rapier3d"
 import * as THREE from "three"
 import { Health } from "../health/health";
+import { Entity } from "../entity/entity.three";
+import { entities } from "../scene.three";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -12,7 +14,8 @@ interface PlayerCamData extends CameraData {
 }
 interface PlayerMiscData {
     camArgs:PlayerCamData
-    healthValue:number
+    healthValue:number,
+    attackDamage:number
 }
 enum CameraMode {
     FirstPerson = 1,
@@ -47,6 +50,45 @@ class Player extends Controller {
 
     private playerHeight:number;
 
+    private attackDamage:number;
+    private raycaster = new THREE.Raycaster();
+    private lookDirection = new THREE.Vector2(0, 0); // center of screen for forward raycast
+
+    private attackCooldown = 0.5; // half a second cooldown
+    private attackTimer = 0;
+
+    private isDescendantOf(child: THREE.Object3D, parent: THREE.Object3D): boolean {
+        let current = child;
+        while (current) {
+            if (current === parent) return true;
+            current = current.parent!;
+        }
+        return false;
+    }
+    public getLookedAtEntityHealth(entities:Entity[], maxDistance = 10): Health | null {
+        this.raycaster.setFromCamera(this.lookDirection, this.camera.perspectiveCamera);
+        const objectsToTest = entities.map(e => e.controller); // implement getRootObject() to return THREE.Object3D of entity
+        const intersects = this.raycaster.intersectObjects(objectsToTest, true);
+        
+        if (intersects.length > 0 && intersects[0].distance <= maxDistance) {
+            const intersectedObject = intersects[0].object;// Find which entity corresponds to the intersected object
+            for (const entity of entities) {
+                if (this.isDescendantOf(intersectedObject, entity.controller)) {
+                    return entity.health;
+                }
+            }
+        }
+        return null;
+    }
+    private attack(entities: Entity[]) {
+        if (this.attackTimer < this.attackCooldown) return;
+        const targetHealth = this.getLookedAtEntityHealth(entities, 10);
+        if (targetHealth && !targetHealth.isDead) {
+            targetHealth.takeDamage(this.attackDamage);
+            this.attackTimer = 0;
+        }
+    }
+
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:PlayerMiscData) {
         super(fixedData,dynamicData);
         this.offsetY = (miscData.camArgs.offsetY=='auto')?fixedData.characterHeight+2:miscData.camArgs.offsetY;
@@ -58,6 +100,7 @@ class Player extends Controller {
         Player.addEventListeners();
         this.health = new Health(miscData.healthValue);
         this.playerHeight = fixedData.characterHeight;
+        this.attackDamage = miscData.attackDamage;
     }
     private displayHealth() {
         console.log('Health. Player: ',this.health.value);
@@ -124,6 +167,9 @@ class Player extends Controller {
             if (Player.keysPressed['ArrowRight']) {
                 this.rotateCharacterX('right')
             };
+            if (Player.keysPressed['KeyQ']) {
+                this.attack(entities);
+            }
         }
         if (Player.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
             if ((this.lastToggleTime + this.toggleCooldown) <= this.clock.elapsedTime) { //this is a debouncing mechanism
@@ -206,6 +252,7 @@ class Player extends Controller {
         }
     }
     protected onLoop() {//this is where all character updates to this instance happens.
+        this.attackTimer += this.clockDelta || 0;
         this.displayHealth();
         this.updateCameraHeightBasedOnHealth();
         this.handleRespawn();
@@ -236,6 +283,7 @@ const playerDynamicData:DynamicControllerData = {
 }
 const playerMiscData:PlayerMiscData = {
     healthValue:10,
+    attackDamage:1,
     camArgs: {
         FOV:75,
         nearPoint:0.1,
