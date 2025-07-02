@@ -462,6 +462,9 @@ export abstract class Controller {
             return false;
         })
     }
+
+
+
     //the calculations used in this function was derived from real physics rules since the whole of this is built on a physics engine
     //tune the reduction scale as needed
     private canJumpOntoObstacle() {//checks if the entity can jump on it based on the horizontal distance covered
@@ -517,6 +520,9 @@ export abstract class Controller {
         console.log("Entity Obstacle distance: ",this.obstacleDistance);
         console.log('Entity should step up: ',this.shouldStepUp);
     }
+
+
+
     // Helper method to get horizontal forward direction
     private getHorizontalForward(): THREE.Vector3 {
         const charDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(this.character.quaternion);
@@ -527,6 +533,9 @@ export abstract class Controller {
         const dz = a.z - b.z;
         return Math.sqrt((dx * dx) + (dz * dz));
     }
+
+
+
 
     private getAngleDiff(path:THREE.Vector3):degrees {
         const direction = path.clone().sub(this.character.position);
@@ -545,16 +554,19 @@ export abstract class Controller {
         return null
     }
 
+
+
+
     private useClockwiseScan:boolean = true;
     private timeSinceLastFlipCheck: number = 0;
     private flipCheckInterval:seconds = 1; // Minimum time interval between perimeter scan flip checks.Note: The flip check runs only when certain navigation conditions are met,so actual flips happen discretely, not strictly every interval.fine tune as needed to control the interval of flip checks
     private minProgressThreshold: number = -2; // allow some declination in progress
     private distSinceLastDelta: number | null = null;
+    private static readonly ZERO_VECTOR = new THREE.Vector3(0,0,0);
+
 
     protected decidePerimeterScanDirection(distToOriginalPath:number,distSinceLastDelta:number) {
         const progress = distSinceLastDelta - distToOriginalPath;
-        console.log('Perimeter. distSinceLastDelta:', distSinceLastDelta);
-        console.log('Perimeter. distToOriginalPath:', distToOriginalPath);
         console.log('Perimeter. Progress:', progress);
         if (progress < this.minProgressThreshold) {
             this.useClockwiseScan = !this.useClockwiseScan;
@@ -562,7 +574,6 @@ export abstract class Controller {
         }
         this.distSinceLastDelta = distToOriginalPath;   
     }
-    private static readonly ZERO_VECTOR = new THREE.Vector3(0,0,0);
 
     private terminateBranch() {
         this.obstacleClearancePoint.copy(Controller.ZERO_VECTOR);//removing any possible clearance point and terminating the branch
@@ -665,6 +676,9 @@ export abstract class Controller {
     }
 
 
+
+
+    
     private checkIfCanWalkForward(prevCharPosition:THREE.Vector3) {//defense mechanism to catch failures of shouldStepUp cuz of faulty collision detection
         if (Math.abs(this.velocity.z) > 0 && !this.shouldStepUp) {//this checks if i moved forward but it doesnt check if i should step up cuz if it can step up,then it can walk forward
             const ifComponentY = (Math.abs(this.velocity.y) > 0)
@@ -691,7 +705,7 @@ export abstract class Controller {
         if (this.isKnockedBack) {
             this.characterRigidBody.applyImpulse(this.impulse,true);
         }
-        if (this.knockbackTimer > this.knockbackCooldown) {
+        if (this.knockbackTimer > this.knockbackCooldown) {//i cant reset it to false immediately under the same frame so it needs to reflect this change so i used a cooldown
             this.isKnockedBack = false;
             this.knockbackTimer = 0;
         }
@@ -706,10 +720,18 @@ export abstract class Controller {
         this.groundIsPresentForward = false;
          // this.obstacleHeight = 0;
     }
+
+
+
+
     private updateClockDelta() {
         const delta = this.clock.getDelta();
         this.clockDelta = delta;
-        this.knockbackTimer += this.clockDelta || 0;
+    }
+    private updateKnockbackCooldown() {
+        if (this.isKnockedBack) {
+            this.knockbackTimer += this.clockDelta || 0;
+        }
     }
     private updateCharacterAnimations():void {
         if (this.mixer) this.mixer.update(this.clockDelta || 0);
@@ -721,6 +743,9 @@ export abstract class Controller {
         this.character.quaternion.slerp(this.targetQuaternion,this.dynamicData.rotationSpeed);
         this.characterRigidBody.setRotation(this.targetQuaternion,true);
     }
+
+
+
     protected respawn() {
         this.characterRigidBody.setTranslation(this.fixedData.spawnPoint,true);
         this.characterPosition = this.characterRigidBody.translation();
@@ -731,6 +756,27 @@ export abstract class Controller {
             this.respawn()
         }
     }
+
+
+    
+    private impulse:THREE.Vector3 = new THREE.Vector3();
+    private isKnockedBack:boolean = false;
+
+    private knockbackTimer:number = 0;
+    private knockbackCooldown:seconds = 3;
+
+    public knockbackCharacter(sourcePosition: THREE.Vector3,knockbackImpulse:number):void {
+        this.wakeUpBody();
+        const direction = new THREE.Vector3().subVectors(this.position, sourcePosition).normalize();
+        const impulse = new RAPIER.Vector3(
+            direction.x * knockbackImpulse,
+            direction.y * knockbackImpulse,
+            direction.z * knockbackImpulse
+        );
+        this.impulse.copy(impulse);
+        this.isKnockedBack = true;
+    }
+
 
 
     private forceCharacterDown():void {//to force the player down if he isnt stepping up and he is in the air while moving forward.the effect of this is seen when the player is stepping down
@@ -754,11 +800,14 @@ export abstract class Controller {
         this.velocity.add(forward);
         this.forceCharacterDown()
     }
-
-
     protected wakeUpBody() {
         if ( this.characterRigidBody.isSleeping()) this.characterRigidBody.wakeUp();
     }
+
+
+
+
+
     protected moveCharacterForward():void {
         this.wakeUpBody();
         if (this.shouldStepUp) this.moveOverObstacle();
@@ -771,27 +820,6 @@ export abstract class Controller {
         this.velocity.add(backward);
         this.forceCharacterDown();
     }
-
-
-    private impulse:THREE.Vector3 = new THREE.Vector3();
-    private isKnockedBack:boolean = false;
-
-    private knockbackTimer:number = 0;
-    private knockbackCooldown:seconds = 3;
-
-    public knockbackCharacter(sourcePosition: THREE.Vector3,knockbackImpulse:number):void {
-        this.wakeUpBody();
-        const direction = new THREE.Vector3().subVectors(this.position, sourcePosition).normalize();
-        const impulse = new RAPIER.Vector3(
-            direction.x * knockbackImpulse,
-            direction.y * knockbackImpulse,
-            direction.z * knockbackImpulse
-        );
-        this.impulse.copy(impulse);
-        this.isKnockedBack = true;
-    }
-
-    
     protected moveCharacterLeft():void {
         this.wakeUpBody()
         const left = new THREE.Vector3(-this.dynamicData.horizontalVelocity,0,0);
@@ -828,6 +856,8 @@ export abstract class Controller {
     }
 
 
+
+
     protected isAirBorne():boolean {
         const onGround = this.isGrounded() ;
         console.log("Airborne| on ground: ",onGround);
@@ -859,6 +889,7 @@ export abstract class Controller {
     }
 
     
+
     get updateController():() => void {
         return this.updateCharacter
     }
@@ -872,17 +903,19 @@ export abstract class Controller {
 
 
 
+    protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
     private forceSleepIfIdle() {
         if (this.isGrounded() && !this.characterRigidBody.isSleeping() && !this.isKnockedBack) {// im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
             this.characterRigidBody.sleep();
         } 
     }
 
-    protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
+
      //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateCharacter():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         this.forceSleepIfIdle();
         this.updateClockDelta();
+        this.updateKnockbackCooldown();
         this.onLoop();
         this.updateCharacterAnimations();//im updating the animation before the early return so that it stops naturally 
         if (this.characterRigidBody.isSleeping()) {
