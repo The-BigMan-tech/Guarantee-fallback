@@ -767,7 +767,8 @@ export abstract class Controller {
         this.forceCharacterDown();
     }
     private impulse:THREE.Vector3 = new THREE.Vector3();
-    private isKnockedBack:boolean = false
+    public isKnockedBack:boolean = false;
+
     public knockbackCharacter(knockbackVelocity:number):void {
         this.wakeUpBody();
         const backward = new THREE.Vector3(0, 0, 1); // +Z is usually forward in Three.js, adjust if needed
@@ -781,7 +782,6 @@ export abstract class Controller {
             backward.z * knockbackVelocity
         );
         this.impulse.copy(impulse);
-        this.isKnockedBack = true;
     }
     protected moveCharacterLeft():void {
         this.wakeUpBody()

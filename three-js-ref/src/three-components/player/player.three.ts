@@ -58,7 +58,8 @@ class Player extends Controller {
     private attackCooldown = 0.5; // half a second cooldown
     private attackTimer = 0;
 
-    private knockback:number
+    private knockback:number;
+    private lookedAtEntity:Entity | null = null;
 
     private isDescendantOf(child: THREE.Object3D, parent: THREE.Object3D): boolean {
         let current = child;
@@ -85,15 +86,16 @@ class Player extends Controller {
     }
     private attack(entities: Entity[]) {
         if (this.attackTimer < this.attackCooldown) return;
-        const lookedAtEntity = this.getTheLookedAtEntity(entities, 10);
-        if (!lookedAtEntity) return;
-        const targetHealth = lookedAtEntity.health;
-        if (targetHealth && !targetHealth.isDead) {
-            targetHealth.takeDamage(this.attackDamage);
-            lookedAtEntity.knockbackCharacter(this.knockback);
-            this.attackTimer = 0;
+        this.lookedAtEntity = this.getTheLookedAtEntity(entities, 10);
+        if (this.lookedAtEntity) {
+            const targetHealth = this.lookedAtEntity.health;
+            if (targetHealth && !targetHealth.isDead) {
+                targetHealth.takeDamage(this.attackDamage);
+                this.lookedAtEntity.knockbackCharacter(this.knockback);
+                this.lookedAtEntity.isKnockedBack = true
+                this.attackTimer = 0;
+            }
         }
-        // lookedAtEntity.isKnockedBack = false;
     }
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:PlayerMiscData) {
@@ -292,7 +294,7 @@ const playerDynamicData:DynamicControllerData = {
 const playerMiscData:PlayerMiscData = {
     healthValue:10,
     attackDamage:1,
-    knockback:200,
+    knockback:10,
     camArgs: {
         FOV:75,
         nearPoint:0.1,
