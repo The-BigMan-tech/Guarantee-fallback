@@ -19,6 +19,10 @@ export class Health {
         if (this.isDead) return;
         this.currentHealth = Math.min(this.currentHealth + amount, this.maximumHealth);
     }
+    public revive() {
+        this.currentHealth = this.maxHealth
+        this.isDead = false
+    }
     private die() {// Trigger death logic like animations, disabling controls, etc.
         this.isDead = true;
     }

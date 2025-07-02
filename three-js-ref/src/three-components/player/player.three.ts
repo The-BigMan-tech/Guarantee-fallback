@@ -41,6 +41,10 @@ class Player extends Controller {
     private toggleCooldown: number = 0.3; // Cooldown in seconds.this value in particular works the best
     private lastToggleTime: number = 0;
 
+    private isRespawning: boolean = false;
+    private respawnDelay: number = 5; // seconds
+    private respawnTimer: number = 0;
+
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:PlayerMiscData) {
         super(fixedData,dynamicData);
         this.offsetY = (miscData.camArgs.offsetY=='auto')?fixedData.characterHeight+2:miscData.camArgs.offsetY;
@@ -171,8 +175,23 @@ class Player extends Controller {
         const newCamPosition = new THREE.Vector3(camPosition.x,this.targetY,this.targetZ)
         this.camera.translateCamera(newCamPosition,0.2);
     }
+    private handleRespawn() {
+        if (this.health.isDead && !this.isRespawning) {
+            this.isRespawning = true;
+            this.respawnTimer = 0;
+        }
+        if (this.isRespawning) {
+            this.respawnTimer += this.clockDelta || 0;
+            if (this.respawnTimer >= this.respawnDelay) {
+                this.respawn();
+                this.health.revive();
+                this.isRespawning = false;
+            }
+        }
+    }
     protected onLoop() {//this is where all character updates to this instance happens.
-        this.displayHealth()
+        this.displayHealth();
+        this.handleRespawn();
         this.bindKeysToControls();
         this.bindKeysToAnimations();
         this.toggleCamPerspective();
