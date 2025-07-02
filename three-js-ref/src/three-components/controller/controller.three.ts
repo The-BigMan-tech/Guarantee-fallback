@@ -52,7 +52,7 @@ export abstract class Controller {
     private characterBody: RAPIER.RigidBodyDesc = RAPIER.RigidBodyDesc.dynamic();
     private characterPosition:RAPIER.Vector3
     private characterCollider: RAPIER.ColliderDesc
-    protected characterRigidBody:RAPIER.RigidBody;//im only exposing this for cleanup purposes
+    protected characterRigidBody:RAPIER.RigidBody | null;//im only exposing this for cleanup purposes
     private characterColliderHandle:number;
     private charLine: THREE.LineSegments;
 
@@ -230,6 +230,7 @@ export abstract class Controller {
 
 
     private isGrounded():boolean {
+        if (!this.characterRigidBody) return false;
         if (this.characterRigidBody.isSleeping()) return true;//to prevent unnecessary queries when the update loop calls it to know whether to force sleep force sleep.
         const point:THREE.Vector3 = new THREE.Vector3(this.characterPosition.x,this.calculateGroundPosition(),this.characterPosition.z)
         let onGround = false
@@ -259,6 +260,7 @@ export abstract class Controller {
     }
 
     private orientPoint(distance:number,directionVector:THREE.Vector3):THREE.Vector3 {
+        if (!this.characterRigidBody) return Controller.ZERO_VECTOR;
         const rotation = this.characterRigidBody.rotation();
         const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
         const dir = directionVector.clone().applyQuaternion(quat).normalize();
@@ -684,6 +686,7 @@ export abstract class Controller {
 
     
     private checkIfCanWalkForward(prevCharPosition:THREE.Vector3) {//defense mechanism to catch failures of shouldStepUp cuz of faulty collision detection
+        if (!this.characterRigidBody) return;
         if (Math.abs(this.velocity.z) > 0 && !this.shouldStepUp) {//this checks if i moved forward but it doesnt check if i should step up cuz if it can step up,then it can walk forward
             const ifComponentY = (Math.abs(this.velocity.y) > 0)
             const posDiff = prevCharPosition.distanceTo(this.characterRigidBody.translation());
@@ -703,6 +706,7 @@ export abstract class Controller {
 
 
     private applyKnockback() {
+        if (!this.characterRigidBody) return;
         if (this.isKnockedBack && !this.appliedKnockbackImpulse) {
             this.characterRigidBody.applyImpulse(this.impulse,true);
             this.appliedKnockbackImpulse = true;
@@ -714,6 +718,7 @@ export abstract class Controller {
         }
     }
     private applyVelocity():void {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
+        if (!this.characterRigidBody) return;
         const prevCharPosition = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
         console.log('Character| prevCharPosition:', prevCharPosition);
         if ((this.isGrounded() || this.shouldStepUp) && !this.isKnockedBack) {
@@ -751,6 +756,7 @@ export abstract class Controller {
         if (this.mixer) this.mixer.update(this.clockDelta || 0);
     }
     private updateCharacterTransformations():void {
+        if (!this.characterRigidBody) return;
         //i minused it from ground detction distance to get it to stay exactly on the ground
         const [posX,posY,posZ] = [this.characterPosition.x,this.calculateGroundPosition()+0.5,this.characterPosition.z];
         this.character.position.set(posX,posY,posZ);
@@ -761,6 +767,7 @@ export abstract class Controller {
 
 
     protected respawn() {
+        if (!this.characterRigidBody) return;
         this.characterRigidBody.setTranslation(this.fixedData.spawnPoint,true);
         this.characterPosition = this.characterRigidBody.translation();
         this.character.position.set(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
@@ -818,6 +825,7 @@ export abstract class Controller {
         this.forceCharacterDown()
     }
     protected wakeUpBody() {
+        if (!this.characterRigidBody) return;
         if ( this.characterRigidBody.isSleeping()) this.characterRigidBody.wakeUp();
     }
 
@@ -929,6 +937,7 @@ export abstract class Controller {
 
     protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
     private forceSleepIfIdle() {
+        if (!this.characterRigidBody) return;
         if (this.isGrounded() && !this.characterRigidBody.isSleeping() && !this.isKnockedBack) {// im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
             this.characterRigidBody.sleep();
         } 
@@ -937,12 +946,13 @@ export abstract class Controller {
 
      //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateCharacter():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
+        if (!this.characterRigidBody) return;
         this.forceSleepIfIdle();
         this.updateClockDelta();
         this.updateKnockbackCooldown();
         this.onLoop();
         this.updateCharacterAnimations();//im updating the animation before the early return so that it stops naturally 
-        if (this.characterRigidBody.isSleeping()) {
+        if (this.characterRigidBody && this.characterRigidBody.isSleeping()) {
             console.log("sleeping...");
             return;//to prevent unnecessary queries.Since it sleeps only when its grounded.its appropriate to return true here saving computation
         }else {
@@ -953,7 +963,9 @@ export abstract class Controller {
             this.resetSomeVariables();//must be called before obstacle detection to prevent overriding its result
             this.detectObstacle();
             this.respawnIfOutOfBounds();
-            this.characterRigidBody.setGravityScale(this.dynamicData.gravityScale,true);
+            if (this.characterRigidBody) {
+                this.characterRigidBody.setGravityScale(this.dynamicData.gravityScale,true);
+            }
         }
     }
 }

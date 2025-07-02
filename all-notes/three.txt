@@ -942,3 +942,5 @@ and for knockbacj i used impulse for that sweet and smooth sliding behavour that
 so i use lin vel for direct horizontal movement,i still use lin vel for the initial jump but when its airborne,it turns of immediately allowing the engine to take over and simulate forces and for knockback,i used impulse.this was gotten from observations but ideally,i thought that if i just used ione type of force,it will solve all my problems but i had to fine tune it and i had to discover it myself cuz rapier doc doesnt touch the use cases of these forces as related to game dev only general physics simulation
 
 *private-first encapsulation
+
+knockback,time to respawn,entity manager

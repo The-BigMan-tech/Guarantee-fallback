@@ -147,11 +147,15 @@ export class Entity extends Controller {
                 this.points.clear();//clear the points array used for visual debugging
                 this.struct.group.remove(this.points)//remove them from the scene
                 this.struct.group.remove(this.controller);//remove the controller from the scene
-                physicsWorld.removeRigidBody(this.characterRigidBody);//remove its rigid body from the physics world
+                console.log("Rigid body: ",this.characterRigidBody);
                 this.disposeHierarchy(this.controller);//remove the geometry data from the gpu
                 this.disposeMixer();//to prevent animation updates
                 const index = this.struct.entities.indexOf(this);
                 if (index !== -1) this.struct.entities.splice(index, 1);//remove it from the entity array to prevent its physics controller from updating,stop the player from possibly intersecting with it although unlikely since its removed from the scene and finally for garbae collection
+                if (this.characterRigidBody) {
+                    physicsWorld.removeRigidBody(this.characterRigidBody);//remove its rigid body from the physics world
+                    this.characterRigidBody = null;
+                }
                 this.isRemoved = true;
             }
         }
@@ -163,9 +167,9 @@ export class Entity extends Controller {
     protected onLoop(): void {
         this.attackTimer += this.clockDelta || 0;
         this.patrolTimer += this.clockDelta || 0;
-        this.handleRemoval();
         this.respondToExternalState();
         this.respondToInternalState();
+        this.handleRemoval();
     }
 }
 export const entities:Entity[] = [];

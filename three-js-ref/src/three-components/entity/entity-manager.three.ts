@@ -29,7 +29,7 @@ function spawnEntities() {
         const entityMiscData:EntityMiscData = {
             targetController:player,
             targetHealth:player.health,
-            healthValue:10,
+            healthValue:1,
             attackDamage:0
         }
         const managingStruct:ManagingStructure = {
