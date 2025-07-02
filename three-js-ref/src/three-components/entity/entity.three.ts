@@ -35,7 +35,7 @@ export class Entity extends Controller {
     private patrolTimer = 0;
 
     private cleanupTimer = 0;
-    private cleanupCooldown = 3;//to allow playing an animation before removal
+    private cleanupCooldown = 5;//to allow playing an animation before removal
 
     private struct:ManagingStructure;
 
@@ -133,8 +133,11 @@ export class Entity extends Controller {
     private isRemoved = false;//to ensure resources are cleaned only once per dead entity
     public handleRemoval() {
         if (this.health.isDead && !this.isRemoved) {
+            this.cleanupTimer += this.clockDelta || 0;
             //play death animation here.
             if (this.cleanupTimer >= this.cleanupCooldown) {
+                this.points.clear();//clear the points marker
+                this.struct.group.remove(this.points)//remove it from the scene
                 this.struct.group.remove(this.controller);//remove it from the scene
                 this.disposeHierarchy(this.controller);//remove the geometry data from the gpu
                 const index = this.struct.entities.indexOf(this);
@@ -150,7 +153,6 @@ export class Entity extends Controller {
     protected onLoop(): void {
         this.attackTimer += this.clockDelta || 0;
         this.patrolTimer += this.clockDelta || 0;
-        this.cleanupTimer += this.clockDelta || 0;
         this.handleRemoval();
         this.respondToExternalState();
         this.respondToInternalState();
