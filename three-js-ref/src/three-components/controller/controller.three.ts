@@ -572,9 +572,22 @@ export abstract class Controller {
         this.distSinceLastDelta = distToOriginalPath;   
     }
 
-    protected moveToTarget(originalPath:THREE.Vector3) {//targetpos is the player for example
-        this.timeSinceLastFlipCheck += this.clockDelta || 0;
+    protected navToTarget(originalPath:THREE.Vector3):boolean {//targetpos is the player for example
         const characterPos = this.character.position;
+        const distToOriginalPath = characterPos.distanceTo(originalPath);
+
+        const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));
+        const onSameYLevel = YDifference < 2.5
+        const isOriginalPathClose =  (onSameYLevel) && (distToOriginalPath < 10);
+
+        console.log('isOriginalPathClose:', isOriginalPathClose);
+        if (isOriginalPathClose) {
+            this.obstacleClearancePoint.set(0,0,0);//removing any possible clearance point and terminating the branch
+            this.branchedPath = null;
+            return true
+        }
+
+        this.timeSinceLastFlipCheck += this.clockDelta || 0;
         const currentPath = this.branchedPath || originalPath;
         //this reads that the entity should walk around the obstacle if there is an obstacle,it cant walk forward,it has not reached close to the target and it knows for sure it cant jump,then it should walk around the obstacle
         
@@ -593,21 +606,13 @@ export abstract class Controller {
 
         if (this.branchedPath) {
             const distToBranchedPath = this.distanceXZ(characterPos, this.branchedPath);// i used xz distance here not the hypotenuse distance to discard the y component when deciding the dist to a branch cuz taking its y comp into account can take it forever before it considers it has reached there and its y comp isnt important to the final goal.
-            const distToOriginalPath = characterPos.distanceTo(originalPath);
             const distToBranchedPathThresh = (this.prioritizeBranch) ? 5 : 10;//i priortized the branch created from the clearance point set by the foremost ray.cuz the foremost ray oly nudges the clearance point a little to the side so the dist will be very small so setting a smaller threshold for it means that it will easily overlook clearing the branch.but for the bracnch created from the side ray,i made the threshold stricter by making it 10.so it will clear it at 9 units away from the branch
-
             const hasReachedBranch = (distToBranchedPath < distToBranchedPathThresh) 
             
-            const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));
-            const onSameYLevel = YDifference < 2.5
-            const isOriginalPathClose =  (onSameYLevel) && (distToOriginalPath < 10);
+            console.log('Entity distToBranchedPath:', distToBranchedPath);
+            console.log('distToBranchedPathThresh:', distToBranchedPathThresh);
 
-            console.log('isOriginalPathClose:', isOriginalPathClose);
-            
-            console.log('perimeter decision1. Entity distToBranchedPath:', distToBranchedPath);
-            console.log('perimeter decision1. distToBranchedPathThresh:', distToBranchedPathThresh);
-
-            if (hasReachedBranch || isOriginalPathClose) {
+            if (hasReachedBranch) {
                 this.obstacleClearancePoint.set(0,0,0);
                 this.branchedPath = null;
                 console.log('Cleared this branch');
@@ -615,7 +620,7 @@ export abstract class Controller {
                     this.timeSinceLastFlipCheck = 0;
                     this.decidePerimeterScanDirection(distToOriginalPath);
                 }
-                return;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.although,the code still works if i dont return here but i believe it will jitter if i dont put this
+                return false;//return from this branch cuz if i dont,the character will proceed to walk towards this branch which it has already done during the last detour.although,the code still works if i dont return here but i believe it will jitter if i dont put this
             }
         } else {
             this.timeSinceLastFlipCheck = 0;
@@ -645,6 +650,7 @@ export abstract class Controller {
             if (finalDir !== null) this.rotateCharacterX(finalDir);
             else this.moveAgent(finalPath.y);
         }
+        return false
     }
 
 
