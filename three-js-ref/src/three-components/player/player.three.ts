@@ -65,7 +65,7 @@ class Player extends Controller {
         }
         return false;
     }
-    public getLookedAtEntityHealth(entities:Entity[], maxDistance = 10): Health | null {
+    public getTheLookedAtEntity(entities:Entity[], maxDistance = 10):Entity | null {
         this.raycaster.setFromCamera(this.lookDirection, this.camera.perspectiveCamera);
         const objectsToTest = entities.map(e => e.controller); // implement getRootObject() to return THREE.Object3D of entity
         const intersects = this.raycaster.intersectObjects(objectsToTest, true);
@@ -74,7 +74,7 @@ class Player extends Controller {
             const intersectedObject = intersects[0].object;// Find which entity corresponds to the intersected object
             for (const entity of entities) {
                 if (this.isDescendantOf(intersectedObject, entity.controller)) {
-                    return entity.health;
+                    return entity;
                 }
             }
         }
@@ -82,7 +82,7 @@ class Player extends Controller {
     }
     private attack(entities: Entity[]) {
         if (this.attackTimer < this.attackCooldown) return;
-        const targetHealth = this.getLookedAtEntityHealth(entities, 10);
+        const targetHealth = this.getTheLookedAtEntity(entities, 10)?.health;
         if (targetHealth && !targetHealth.isDead) {
             targetHealth.takeDamage(this.attackDamage);
             this.attackTimer = 0;
