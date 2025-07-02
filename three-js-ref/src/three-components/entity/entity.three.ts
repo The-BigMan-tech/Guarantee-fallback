@@ -140,6 +140,6 @@ const entityMiscData:EntityMiscData = {
     targetController:player,
     targetHealth:player.health,
     healthValue:10,
-    attackDamage:1
+    attackDamage:0
 }
 export const entity = new Entity(entityFixedData,entityDynamicData,entityMiscData)

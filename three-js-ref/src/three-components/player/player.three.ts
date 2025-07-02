@@ -15,7 +15,8 @@ interface PlayerCamData extends CameraData {
 interface PlayerMiscData {
     camArgs:PlayerCamData
     healthValue:number,
-    attackDamage:number
+    attackDamage:number,
+    knockback:number
 }
 enum CameraMode {
     FirstPerson = 1,
@@ -29,7 +30,7 @@ class Player extends Controller {
     private thirdPersonClamp = 10;
     private cameraClampAngle:number =  this.firstPersonClamp;
 
-    public health:Health;
+    public  health:Health;
     public  camera:Camera;
 
     private camModeNum:1 | 2 | 3 = 1;//this corresponds to first,second and third person views
@@ -45,7 +46,7 @@ class Player extends Controller {
     private lastToggleTime: number = 0;
 
     private isRespawning: boolean = false;
-    private respawnDelay: number = 10; // seconds
+    private respawnDelay: number = 7; // seconds
     private respawnTimer: number = 0;
 
     private playerHeight:number;
@@ -56,6 +57,8 @@ class Player extends Controller {
 
     private attackCooldown = 0.5; // half a second cooldown
     private attackTimer = 0;
+
+    private knockback:number
 
     private isDescendantOf(child: THREE.Object3D, parent: THREE.Object3D): boolean {
         let current = child;
@@ -82,11 +85,15 @@ class Player extends Controller {
     }
     private attack(entities: Entity[]) {
         if (this.attackTimer < this.attackCooldown) return;
-        const targetHealth = this.getTheLookedAtEntity(entities, 10)?.health;
+        const lookedAtEntity = this.getTheLookedAtEntity(entities, 10);
+        if (!lookedAtEntity) return;
+        const targetHealth = lookedAtEntity.health;
         if (targetHealth && !targetHealth.isDead) {
             targetHealth.takeDamage(this.attackDamage);
+            lookedAtEntity.knockbackCharacter(this.knockback);
             this.attackTimer = 0;
         }
+        // lookedAtEntity.isKnockedBack = false;
     }
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:PlayerMiscData) {
@@ -101,6 +108,7 @@ class Player extends Controller {
         this.health = new Health(miscData.healthValue);
         this.playerHeight = fixedData.characterHeight;
         this.attackDamage = miscData.attackDamage;
+        this.knockback = miscData.knockback;
     }
     private displayHealth() {
         console.log('Health. Player: ',this.health.value);
@@ -284,6 +292,7 @@ const playerDynamicData:DynamicControllerData = {
 const playerMiscData:PlayerMiscData = {
     healthValue:10,
     attackDamage:1,
+    knockback:200,
     camArgs: {
         FOV:75,
         nearPoint:0.1,

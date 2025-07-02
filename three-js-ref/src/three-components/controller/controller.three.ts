@@ -684,10 +684,13 @@ export abstract class Controller {
     private applyVelocity():void {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
         const prevCharPosition = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
         console.log('Character| prevCharPosition:', prevCharPosition);
-        if (this.isGrounded() || this.shouldStepUp) {
+        if ((this.isGrounded() || this.shouldStepUp) && !this.isKnockedBack) {
             this.characterRigidBody.setLinvel(this.velocity,true);
             this.checkIfCanWalkForward(prevCharPosition)
         };
+        if (this.isKnockedBack) {
+            this.characterRigidBody.applyImpulse(this.impulse,true)
+        }
         this.characterPosition = this.characterRigidBody.translation();//its important to do this after the if statement
     }
     //todo:Find a good place reset obstacle height.im not sure if it will work here
@@ -756,12 +759,29 @@ export abstract class Controller {
         if (this.shouldStepUp) this.moveOverObstacle();
         else this.moveForward(this.dynamicData.horizontalVelocity);
     }
-    protected moveCharacterBackward():void {
+    protected moveCharacterBackward(velocityDelta?:number):void {
         this.wakeUpBody()
-        const backward = new THREE.Vector3(0,0,this.dynamicData.horizontalVelocity);
+        const backward = new THREE.Vector3(0,0,velocityDelta || this.dynamicData.horizontalVelocity);
         backward.applyQuaternion(this.character.quaternion);
         this.velocity.add(backward);
         this.forceCharacterDown();
+    }
+    private impulse:THREE.Vector3 = new THREE.Vector3();
+    private isKnockedBack:boolean = false
+    public knockbackCharacter(knockbackVelocity:number):void {
+        this.wakeUpBody();
+        const backward = new THREE.Vector3(0, 0, 1); // +Z is usually forward in Three.js, adjust if needed
+        backward.applyQuaternion(this.character.quaternion); // rotate to character's facing
+        backward.normalize();
+    
+        // Convert to Rapier vector and scale by knockbackVelocity
+        const impulse = new RAPIER.Vector3(
+            backward.x * knockbackVelocity,
+            backward.y * knockbackVelocity,
+            backward.z * knockbackVelocity
+        );
+        this.impulse.copy(impulse);
+        this.isKnockedBack = true;
     }
     protected moveCharacterLeft():void {
         this.wakeUpBody()
@@ -844,7 +864,7 @@ export abstract class Controller {
 
 
     private forceSleepIfIdle() {
-        if (this.isGrounded() && !this.characterRigidBody.isSleeping()) {// im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
+        if (this.isGrounded() && !this.characterRigidBody.isSleeping() && !this.isKnockedBack) {// im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
             this.characterRigidBody.sleep();
         } 
     }
