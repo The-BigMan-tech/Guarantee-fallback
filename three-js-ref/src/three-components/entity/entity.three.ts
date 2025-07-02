@@ -9,7 +9,8 @@ export interface EntityMiscData {
     healthValue:number,
     targetController:Controller | null,
     targetHealth:Health | null,
-    attackDamage:number
+    attackDamage:number,
+    knockback:number
 }
 interface EntityStateMachine {
     behaviour:Behaviour
@@ -39,6 +40,7 @@ export class Entity extends Controller {
     private cleanupCooldown = 5;//to allow playing an animation before removal
 
     private struct:ManagingStructure;
+    private knockback:number;
 
     private movementType:'fluid' | 'precise' = 'precise'
 
@@ -52,7 +54,8 @@ export class Entity extends Controller {
         this.targetController = miscData.targetController
         this.targetHealth = miscData.targetHealth;
         this.attackDamage = miscData.attackDamage;
-        this.struct = struct
+        this.struct = struct;
+        this.knockback = miscData.knockback;
     }
     private getRandomPatrolPoint(): THREE.Vector3 {
         const currentPos = this.position.clone();
@@ -84,6 +87,7 @@ export class Entity extends Controller {
         if (!this.targetHealth) return;
         if (this.attackTimer >= this.attackCooldown) {
             this.targetHealth.takeDamage(this.attackDamage);
+            this.targetController?.knockbackCharacter(this.position,this.knockback)
             this.attackTimer = 0;
         }
     }
@@ -154,7 +158,7 @@ export class Entity extends Controller {
                 if (index !== -1) this.struct.entities.splice(index, 1);//remove it from the entity array to prevent its physics controller from updating,stop the player from possibly intersecting with it although unlikely since its removed from the scene and finally for garbae collection
                 if (this.characterRigidBody) {
                     physicsWorld.removeRigidBody(this.characterRigidBody);//remove its rigid body from the physics world
-                    this.characterRigidBody = null;
+                    this.characterRigidBody = null;//this is a critical step for it to work.nullify the ref to the rigid body after removal.
                 }
                 this.isRemoved = true;
             }
