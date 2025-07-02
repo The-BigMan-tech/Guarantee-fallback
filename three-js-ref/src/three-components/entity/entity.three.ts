@@ -2,6 +2,7 @@ import { Controller} from "../controller/controller.three";
 import type {FixedControllerData,DynamicControllerData } from "../controller/controller.three";
 import * as THREE from "three"
 import { Health } from "../health/health";
+import { physicsWorld } from "../physics-world.three";
 
 type Behaviour = 'chasing' | 'attack' | 'patrol'
 export interface EntityMiscData {
@@ -115,12 +116,19 @@ export class Entity extends Controller {
             this.state.behaviour = "chasing"
         }
     }
+    public disposeMixer() {
+        if (this.mixer) {
+            this.mixer.stopAllAction();
+            this.mixer.uncacheRoot(this.mixer.getRoot());
+            this.mixer = null; // Remove reference for GC
+        }
+    }
     private disposeHierarchy(object: THREE.Object3D) {
         object.traverse((child) => {
-            if ((child as THREE.Mesh).geometry) {
+            if ((child as THREE.Mesh).geometry) {//clean its geometry
                 (child as THREE.Mesh).geometry.dispose();
             }
-            if ((child as THREE.Mesh).material) {
+            if ((child as THREE.Mesh).material) {//clean its textures
                 const material = (child as THREE.Mesh).material;
                 if (Array.isArray(material)) {
                     material.forEach(mat => mat.dispose());
@@ -136,10 +144,12 @@ export class Entity extends Controller {
             this.cleanupTimer += this.clockDelta || 0;
             //play death animation here.
             if (this.cleanupTimer >= this.cleanupCooldown) {
-                this.points.clear();//clear the points marker
-                this.struct.group.remove(this.points)//remove it from the scene
-                this.struct.group.remove(this.controller);//remove it from the scene
+                this.points.clear();//clear the points array used for visual debugging
+                this.struct.group.remove(this.points)//remove them from the scene
+                this.struct.group.remove(this.controller);//remove the controller from the scene
+                physicsWorld.removeRigidBody(this.characterRigidBody);//remove its rigid body from the physics world
                 this.disposeHierarchy(this.controller);//remove the geometry data from the gpu
+                this.disposeMixer();//to prevent animation updates
                 const index = this.struct.entities.indexOf(this);
                 if (index !== -1) this.struct.entities.splice(index, 1);//remove it from the entity array to prevent its physics controller from updating,stop the player from possibly intersecting with it although unlikely since its removed from the scene and finally for garbae collection
                 this.isRemoved = true;

@@ -52,7 +52,7 @@ export abstract class Controller {
     private characterBody: RAPIER.RigidBodyDesc = RAPIER.RigidBodyDesc.dynamic();
     private characterPosition:RAPIER.Vector3
     private characterCollider: RAPIER.ColliderDesc
-    private characterRigidBody:RAPIER.RigidBody;
+    protected characterRigidBody:RAPIER.RigidBody;//im only exposing this for cleanup purposes
     private characterColliderHandle:number;
     private charLine: THREE.LineSegments;
 
@@ -75,7 +75,7 @@ export abstract class Controller {
 
     protected clock:THREE.Clock = new THREE.Clock();
     protected clockDelta:number | null = null;
-    private mixer: THREE.AnimationMixer | null = null;
+    protected mixer: THREE.AnimationMixer | null = null;//im only exposing this for cleanup purposes
     private currentAction: THREE.AnimationAction | null = null;
     private idleAction: THREE.AnimationAction | null = null;
     private walkAction: THREE.AnimationAction | null = null;
