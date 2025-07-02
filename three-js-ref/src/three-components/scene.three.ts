@@ -5,17 +5,14 @@ import { player } from './player/player.three';
 import { terrain } from './terrain.three';
 import { cube } from './terrain.three';
 import {cubesGroup } from './tall-cubes.three';
-import { Entity, entity } from './entity/entity.three';
+import { entityGroup } from './entity/entity-manager.three';
 
 export const scene = new THREE.Scene();
-export const entities:Entity[] = [];
-
-entities.push(entity);
 
 scene.add(directionalLight);
 scene.add(sky);
 scene.add(player.controller);
-scene.add(entity.controller);
+scene.add(entityGroup);
 scene.add(terrain);
 scene.add(cube)
 scene.add(cubesGroup)

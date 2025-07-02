@@ -1,19 +1,21 @@
 import { Controller} from "../controller/controller.three";
 import type {FixedControllerData,DynamicControllerData } from "../controller/controller.three";
-import * as RAPIER from "@dimforge/rapier3d"
 import * as THREE from "three"
-import { player } from "../player/player.three";
 import { Health } from "../health/health";
 
-interface EntityMiscData {
+type Behaviour = 'chasing' | 'attack' | 'patrol'
+export interface EntityMiscData {
     healthValue:number,
     targetController:Controller | null,
     targetHealth:Health | null,
     attackDamage:number
 }
-type Behaviour = 'chasing' | 'attack' | 'patrol'
 interface EntityStateMachine {
     behaviour:Behaviour
+}
+export interface ManagingStructure {
+    group:THREE.Group,
+    entities:Entity[]
 }
 export class Entity extends Controller {
     private targetController:Controller | null = null;
@@ -24,7 +26,7 @@ export class Entity extends Controller {
 
     private attackDamage:number;
 
-    private readonly attackCooldown = 1; // cooldown duration in seconds
+    private attackCooldown = 1; // cooldown duration in seconds
     private attackTimer = 0;    // timer accumulator
 
     private patrolRadius = 20; // max distance from current position to patrol
@@ -32,18 +34,24 @@ export class Entity extends Controller {
     private patrolCooldown = 3; // seconds between patrol target changes
     private patrolTimer = 0;
 
+    private cleanupTimer = 0;
+    private cleanupCooldown = 3;//to allow playing an animation before removal
+
+    private struct:ManagingStructure;
+
     private movementType:'fluid' | 'precise' = 'precise'
 
     private state:EntityStateMachine = {
         behaviour:'patrol'
     }
 
-    constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:EntityMiscData) {
+    constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:EntityMiscData,struct:ManagingStructure) {
         super(fixedData,dynamicData);
         this.health = new Health(miscData.healthValue);
         this.targetController = miscData.targetController
         this.targetHealth = miscData.targetHealth;
-        this.attackDamage = miscData.attackDamage
+        this.attackDamage = miscData.attackDamage;
+        this.struct = struct
     }
     private getRandomPatrolPoint(): THREE.Vector3 {
         const currentPos = this.position.clone();
@@ -107,6 +115,34 @@ export class Entity extends Controller {
             this.state.behaviour = "chasing"
         }
     }
+    private disposeHierarchy(object: THREE.Object3D) {
+        object.traverse((child) => {
+            if ((child as THREE.Mesh).geometry) {
+                (child as THREE.Mesh).geometry.dispose();
+            }
+            if ((child as THREE.Mesh).material) {
+                const material = (child as THREE.Mesh).material;
+                if (Array.isArray(material)) {
+                    material.forEach(mat => mat.dispose());
+                } else {
+                    material.dispose();
+                }
+            }
+        });
+    }
+    private isRemoved = false;//to ensure resources are cleaned only once per dead entity
+    public handleRemoval() {
+        if (this.health.isDead && !this.isRemoved) {
+            //play death animation here.
+            if (this.cleanupTimer >= this.cleanupCooldown) {
+                this.struct.group.remove(this.controller);//remove it from the scene
+                this.disposeHierarchy(this.controller);//remove the geometry data from the gpu
+                const index = this.struct.entities.indexOf(this);
+                if (index !== -1) this.struct.entities.splice(index, 1);//remove it from the entity array to prevent its physics controller from updating,stop the player from possibly intersecting with it although unlikely since its removed from the scene and finally for garbae collection
+                this.isRemoved = true;
+            }
+        }
+    }
     private onTargetReached() {//the behaviour when it reaches the target will be later tied to a state machine
         console.log("Agent has reached target");
         this.state.behaviour = 'attack'
@@ -114,32 +150,13 @@ export class Entity extends Controller {
     protected onLoop(): void {
         this.attackTimer += this.clockDelta || 0;
         this.patrolTimer += this.clockDelta || 0;
+        this.cleanupTimer += this.clockDelta || 0;
+        this.handleRemoval();
         this.respondToExternalState();
         this.respondToInternalState();
     }
+    get updateOnLoop() {
+        return this.onLoop;
+    }
 }
-//char height and width can break for arbritary values that havent been tested
-const entityFixedData:FixedControllerData = {
-    modelPath:'./silvermoon.glb',
-    spawnPoint: new RAPIER.Vector3(0,20,-10),
-    characterHeight:2,
-    characterWidth:1,
-    shape:'capsule',
-    mass:40,
-}
-const entityDynamicData:DynamicControllerData = {
-    horizontalVelocity:20,
-    jumpVelocity:27,
-    jumpResistance:6,
-    rotationDelta:0.05,
-    rotationSpeed:0.2,
-    maxStepUpHeight:2,
-    gravityScale:1
-}
-const entityMiscData:EntityMiscData = {
-    targetController:player,
-    targetHealth:player.health,
-    healthValue:10,
-    attackDamage:0
-}
-export const entity = new Entity(entityFixedData,entityDynamicData,entityMiscData)
+

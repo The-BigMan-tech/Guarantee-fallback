@@ -5,7 +5,7 @@ import * as RAPIER from "@dimforge/rapier3d"
 import * as THREE from "three"
 import { Health } from "../health/health";
 import { Entity } from "../entity/entity.three";
-import { entities } from "../scene.three";
+import { entities } from "../entity/entity-manager.three";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
