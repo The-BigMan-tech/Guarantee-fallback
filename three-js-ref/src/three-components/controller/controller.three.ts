@@ -71,6 +71,7 @@ export abstract class Controller {
     private playLandSound: boolean = true;
     private walkSound: THREE.PositionalAudio = new THREE.PositionalAudio(this.listener);;//the inheriting class can only access this sound through exposed methods
     private landSound: THREE.PositionalAudio = new THREE.PositionalAudio(this.listener);;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
+    private punchSound: THREE.PositionalAudio = new THREE.PositionalAudio(this.listener)
 
     protected clock:THREE.Clock = new THREE.Clock();
     protected clockDelta:number | null = null;
@@ -185,6 +186,10 @@ export abstract class Controller {
         audioLoader.load('landing.mp3',(buffer)=> {
             this.landSound.setBuffer(buffer);
             this.landSound.setVolume(30);
+        });
+        audioLoader.load('punch.mp3',(buffer)=> {
+            this.punchSound.setBuffer(buffer);
+            this.punchSound.setVolume(30);
         });
     }
     private fadeToAnimation(newAction: THREE.AnimationAction):void {
@@ -700,7 +705,7 @@ export abstract class Controller {
     private applyKnockback() {
         if (this.isKnockedBack && !this.appliedKnockbackImpulse) {
             this.characterRigidBody.applyImpulse(this.impulse,true);
-            this.appliedKnockbackImpulse = true
+            this.appliedKnockbackImpulse = true;
         }
         if (this.knockbackTimer > this.knockbackCooldown) {//i cant reset it to false immediately under the same frame so it needs to reflect this change so i used a cooldown
             this.isKnockedBack = false;
@@ -786,6 +791,7 @@ export abstract class Controller {
         );
         this.impulse.copy(impulse);
         this.isKnockedBack = true;
+        this.playPunchSound();
     }
 
 
@@ -883,11 +889,19 @@ export abstract class Controller {
     protected playIdleAnimation():void {
         if (this.mixer && this.idleAction) this.fadeToAnimation(this.idleAction);
     }
+
+
     protected playWalkSound():void {
         if (!this.walkSound.isPlaying) this.walkSound.play();
     }
+    protected playPunchSound():void {
+        if (!this.punchSound.isPlaying) this.punchSound.play();
+    }
     protected stopWalkSound():void {
-        this.walkSound.stop()
+        this.walkSound.stop();
+    }
+    protected stopPunchSound():void {
+        this.punchSound.stop();
     }
 
     
