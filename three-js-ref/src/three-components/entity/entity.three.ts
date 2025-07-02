@@ -8,8 +8,15 @@ class Entity extends Controller {
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         super(fixedData,dynamicData);
     }
+    private attack() {
+        
+    }
     protected onLoop(): void {
-        this.navToTarget(player.position)
+        const atTarget = this.navToTarget(player.position);
+        if (atTarget) {
+            console.log("Agent has reached target");
+            this.attack()
+        }
     }
 }
 //char height and width can break for arbritary values that havent been tested

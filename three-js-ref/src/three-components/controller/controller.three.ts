@@ -39,6 +39,7 @@ export interface CollisionMap {
     points:string[]
 }
 type degrees = number;
+type seconds = number;
 //*The ground position calculation may break for an arbritary charcter height.a stable and tested height is 2. 1,3 and 4 have been played tested and are smooth but the ground check jitters a little between false and true cuz jumping from the ground at times at these values feels uresponsive
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
@@ -546,7 +547,7 @@ export abstract class Controller {
 
     private useClockwiseScan:boolean = true;
     private timeSinceLastFlipCheck: number = 0;
-    private flipCheckInterval: number = 1.0; // seconds, adjust as needed
+    private flipCheckInterval:seconds = 0.5; // Minimum time interval between perimeter scan flip checks.Note: The flip check runs only when certain navigation conditions are met,so actual flips happen discretely, not strictly every interval.fine tune as needed to control the interval of flip checks
     private minProgressThreshold: number = -2; // allow small backward movement
     private distSinceLastDelta: number | null = null;
 
