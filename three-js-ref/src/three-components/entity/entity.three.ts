@@ -27,10 +27,12 @@ class Entity extends Controller {
     private readonly attackCooldown = 1; // cooldown duration in seconds
     private attackTimer = 0;    // timer accumulator
 
-    private patrolRadius = 15; // max distance from current position to patrol
+    private patrolRadius = 20; // max distance from current position to patrol
     private patrolTarget: THREE.Vector3 | null = null;
     private patrolCooldown = 3; // seconds between patrol target changes
     private patrolTimer = 0;
+
+    private movementType:'fluid' | 'precise' = 'precise'
 
     private state:EntityStateMachine = {
         behaviour:'patrol'
@@ -55,12 +57,14 @@ class Entity extends Controller {
             this.navPosition = this.patrolTarget;
             this.patrolTimer = 0;
         }
+        this.movementType = "fluid";
         this.state.behaviour = 'chasing';
         this.respondToInternalState();
     }  
     private chase() {
         if (this.navPosition) {
-            const atTarget = this.navToTarget(this.navPosition);
+            const rotateAndMove = (this.movementType == "precise") ? false : true;
+            const atTarget = this.navToTarget(this.navPosition,rotateAndMove);
             if (atTarget) {
                 this.onTargetReached();
                 this.respondToInternalState();//any state change from the above hook will be caught and responded to in the same frame
@@ -99,6 +103,7 @@ class Entity extends Controller {
         }
         if (!this.targetHealth.isDead) {//we want to continuously chase the target constantly every frame its not dead because navToTArget as used in chase doesnt remember the target position by design choice.you have to pass it to it every frame to progress it towards that target.
             this.navPosition = this.targetController.position;
+            this.movementType = "precise"
             this.state.behaviour = "chasing"
         }
     }

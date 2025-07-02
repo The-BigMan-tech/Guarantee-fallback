@@ -574,7 +574,7 @@ export abstract class Controller {
             this.autoMoveForward(finalDestY);
         }
     }
-    protected navToTarget(originalPath:THREE.Vector3):boolean {//targetpos is the player for example
+    protected navToTarget(originalPath:THREE.Vector3,rotateAndMove:boolean):boolean {//targetpos is the player for example
         this.timeSinceLastFlipCheck += this.clockDelta || 0;
         const characterPos = this.character.position;
         const distToOriginalPath = characterPos.distanceTo(originalPath);
@@ -648,6 +648,12 @@ export abstract class Controller {
         }
         this.isFinalDestClose = distToFinalDest < distToFinalDestThresh;
 
+        if (rotateAndMove) {
+            if (finalDir !== null) this.rotateCharacterX(finalDir);
+            this.moveAgent(finalPath.y);
+            return false
+        }
+
         if (shouldWalkAroundObstacle) {//if should walk aroud an obstacle,i want it to move and rotate at the same time for a fluid walk around the obstacle's perimeter
             if (finalDir !== null) this.rotateCharacterX(finalDir);
             this.moveAgent(finalPath.y);
@@ -707,12 +713,14 @@ export abstract class Controller {
         this.character.quaternion.slerp(this.targetQuaternion,this.dynamicData.rotationSpeed);
         this.characterRigidBody.setRotation(this.targetQuaternion,true);
     }
-
+    protected respawn() {
+        this.characterRigidBody.setTranslation(this.fixedData.spawnPoint,true);
+        this.characterPosition = this.characterRigidBody.translation();
+        this.character.position.set(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
+    }
     private respawnIfOutOfBounds():void {
         if (this.characterPosition.y <= outOfBoundsY) {
-            this.characterRigidBody.setTranslation(this.fixedData.spawnPoint,true);
-            this.characterPosition = this.characterRigidBody.translation();
-            this.character.position.set(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
+            this.respawn()
         }
     }
 

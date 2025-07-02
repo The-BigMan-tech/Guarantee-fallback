@@ -885,3 +885,36 @@ You want to keep a reference to the target’s Controller for position, movement
 But damage application requires a reference to the target’s Health component (if it exists).
 
 Keep currentTarget: Controller | null in your Entity, for navigation and general info.
+
+*Entity behaviour system
+1. External State Responders
+Purpose: Continuously observe and react to external factors (e.g., target health, environment).
+
+Behavior: Always update the internal state to reflect the current external reality.
+
+No debouncing: They must not skip updates based on current internal state, ensuring the entity’s behavior stays consistent with the world.
+
+2. Internal State Responders
+Purpose: Execute behavior corresponding to the current internal state.
+
+Behavior: Exactly one behavior per internal state is executed per frame.
+
+State transitions inside behaviors: If a behavior requires invoking another behavior (like patrol calling chase), it updates the internal state and calls respondToInternalState() recursively to reflect the change immediately.
+
+3. Hooks
+Purpose: Act as observers or event handlers triggered by specific internal state events (e.g., reaching a target).
+
+Behavior: Can update internal state but don’t follow the ladder or switch pattern.
+
+Example: onTargetReached() transitions the entity to the 'attack' state and triggers an immediate internal state response.
+
+
+*three types of behaviour--external conditions,internal conditions,and hooks.
+
+so before,my entity could just navigate,now i added a state machine for behaviour.so an entity is composed of a navigation system as provided by the controller and a behaviour system provided by itself.
+
+an entity is composed of navigation and behaviour
+
+i wanted the entity to roatet and move when patrolling to look smooth and less robotic but when its chasing a player,it will be better if it will rotate then move but not in the same frame.this is more robotic but more precise that it will reach the target not overshoot it and when the player moves and thus the entity actively chases him,the movement while chasing will rub off the rotation but this wont be rubbed off when its n patrol cuz t isnt actively chasing something which is why i did the design i said in the first place
+
+When chasing a moving target, the heading difference each frame is small, so the entity’s rotation steps are subtle and continuous so it appears to be smooth to the eye.this is also because the patrol point is passed at intervals while the chasing point is passed continuously every frame.i believe.in other words,patrol points are static while chasing points constantly update
