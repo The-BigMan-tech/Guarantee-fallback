@@ -74,7 +74,7 @@ export abstract class Controller {
     private landSound: THREE.PositionalAudio = new THREE.PositionalAudio(this.listener);;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
 
     protected clock:THREE.Clock = new THREE.Clock();
-    private clockDelta:number | null = null;
+    protected clockDelta:number | null = null;
     private mixer: THREE.AnimationMixer | null = null;
     private currentAction: THREE.AnimationAction | null = null;
     private idleAction: THREE.AnimationAction | null = null;
@@ -840,7 +840,7 @@ export abstract class Controller {
             this.characterRigidBody.sleep();
         } 
     }
-   
+
     protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
      //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateCharacter():void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only

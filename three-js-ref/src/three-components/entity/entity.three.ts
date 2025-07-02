@@ -20,6 +20,11 @@ class Entity extends Controller {
 
     private attackDamage:number;
 
+    private readonly attackCooldown = 1; // cooldown duration in seconds
+    private attackTimer = 0;    // timer accumulator
+
+    private targetDeathPosition:THREE.Vector3 | null = null;
+
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:EntityMiscData) {
         super(fixedData,dynamicData);
         this.health = new Health(miscData.healthValue);
@@ -27,23 +32,32 @@ class Entity extends Controller {
         this.targetHealth = miscData.targetHealth;
         this.attackDamage = miscData.attackDamage
     }
+    private displayHealth() {
+        console.log("Health. Entity: ",this.health.value);
+    }
     private attack() {
         if (!this.targetHealth) return;
         this.targetHealth.takeDamage(this.attackDamage)
     }
-    private displayHealth() {
-        console.log("Health. Entity: ",this.health.value);
-    }
     private act() {//the behaviour when it reaches the target will be later tied to a state machine
         console.log("Agent has reached target");
-        this.attack()
+        if (this.attackTimer >= this.attackCooldown) {
+            this.attack();
+            this.attackTimer = 0
+        }
     }
     private updateNavPosition() {//the navPosition is updated internally by the entity.ill later tie it to a behaviour state machine
-        this.navPosition = this.targetController?.position || null
+        if (!this.targetController || !this.targetHealth) return;
+        if (this.targetHealth.isDead) {
+            this.targetDeathPosition = this.targetController.position.clone()
+        }
+        this.targetDeathPosition = null
+        }
     }
     protected onLoop(): void {
+        this.attackTimer += this.clockDelta || 0;
         this.displayHealth();
-        this.updateNavPosition()
+        this.updateNavPosition();
         if (this.navPosition) {
             const atTarget = this.navToTarget(this.navPosition);
             if (atTarget) {
