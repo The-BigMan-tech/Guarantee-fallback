@@ -551,12 +551,8 @@ export abstract class Controller {
     private minProgressThreshold: number = -2; // allow small backward movement
     private distSinceLastDelta: number | null = null;
 
-    protected decidePerimeterScanDirection(distToOriginalPath:number) {
-        if (this.distSinceLastDelta === null) {
-            this.distSinceLastDelta = distToOriginalPath;
-            return;
-        }
-        const progress = this.distSinceLastDelta - distToOriginalPath;
+    protected decidePerimeterScanDirection(distToOriginalPath:number,distSinceLastDelta:number) {
+        const progress = distSinceLastDelta - distToOriginalPath;
         console.log('Perimeter. Progress:', progress);
         if (progress < this.minProgressThreshold) {
             this.useClockwiseScan = !this.useClockwiseScan;
@@ -607,9 +603,12 @@ export abstract class Controller {
 
             if (hasReachedBranch || rebranchToOriginalPath) {
                 this.terminateBranch();
+                if (this.distSinceLastDelta === null) {
+                    this.distSinceLastDelta = distToOriginalPath;
+                }
                 if (this.timeSinceLastFlipCheck >= this.flipCheckInterval) {
                     this.timeSinceLastFlipCheck = 0;
-                    this.decidePerimeterScanDirection(distToOriginalPath);
+                    this.decidePerimeterScanDirection(distToOriginalPath,this.distSinceLastDelta);
                 }
             }
         }else {
