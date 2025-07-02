@@ -91,7 +91,7 @@ class Player extends Controller {
             const targetHealth = this.lookedAtEntity.health;
             if (targetHealth && !targetHealth.isDead) {
                 targetHealth.takeDamage(this.attackDamage);
-                this.lookedAtEntity.knockbackCharacter(this.knockback);
+                this.lookedAtEntity.knockbackCharacter(this.position,this.knockback);
                 this.attackTimer = 0;
             }
         }

@@ -771,27 +771,27 @@ export abstract class Controller {
         this.velocity.add(backward);
         this.forceCharacterDown();
     }
+
+
     private impulse:THREE.Vector3 = new THREE.Vector3();
     private isKnockedBack:boolean = false;
 
     private knockbackTimer:number = 0;
     private knockbackCooldown:seconds = 3;
 
-    public knockbackCharacter(knockbackVelocity:number):void {
+    public knockbackCharacter(sourcePosition: THREE.Vector3,knockbackImpulse:number):void {
         this.wakeUpBody();
-        const backward = new THREE.Vector3(0, 0, 1); // +Z is usually forward in Three.js, adjust if needed
-        backward.applyQuaternion(this.character.quaternion); // rotate to character's facing
-        backward.normalize();
-    
-        // Convert to Rapier vector and scale by knockbackVelocity
+        const direction = new THREE.Vector3().subVectors(this.position, sourcePosition).normalize();
         const impulse = new RAPIER.Vector3(
-            backward.x * knockbackVelocity,
-            backward.y * knockbackVelocity,
-            backward.z * knockbackVelocity
+            direction.x * knockbackImpulse,
+            direction.y * knockbackImpulse,
+            direction.z * knockbackImpulse
         );
         this.impulse.copy(impulse);
-        this.isKnockedBack = true
+        this.isKnockedBack = true;
     }
+
+    
     protected moveCharacterLeft():void {
         this.wakeUpBody()
         const left = new THREE.Vector3(-this.dynamicData.horizontalVelocity,0,0);
