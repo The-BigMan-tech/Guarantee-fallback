@@ -74,11 +74,13 @@ class Player extends Controller {
     }
     private bindKeysToControls() {
         if (this.camModeNum == CameraMode.SecondPerson) {//inverted controls for second person
-            if (Player.keysPressed['KeyA']) {
-                this.moveCharacterRight();
-            }
-            if (Player.keysPressed['KeyD']) {
-                this.moveCharacterLeft();
+            if (!this.health.isDead) {
+                if (Player.keysPressed['KeyA']) {
+                    this.moveCharacterRight();
+                }
+                if (Player.keysPressed['KeyD']) {
+                    this.moveCharacterLeft();
+                }
             }
             if (Player.keysPressed['ArrowUp']) {
                 this.camera.rotateCameraDown(this.cameraClampAngle)
@@ -86,12 +88,14 @@ class Player extends Controller {
             if (Player.keysPressed['ArrowDown']) {
                 this.camera.rotateCameraUp(this.cameraClampAngle)
             };
-        }else {//Normal WASD controls      
-            if (Player.keysPressed['KeyA']) {
-                this.moveCharacterLeft();
-            }
-            if (Player.keysPressed['KeyD']) {
-                this.moveCharacterRight();
+        }else {//Normal WASD controls   
+            if (!this.health.isDead) { 
+                if (Player.keysPressed['KeyA']) {
+                    this.moveCharacterLeft();
+                }
+                if (Player.keysPressed['KeyD']) {
+                    this.moveCharacterRight();
+                }
             }
             if (Player.keysPressed['ArrowUp']) {
                 this.camera.rotateCameraUp(this.cameraClampAngle)
@@ -100,26 +104,28 @@ class Player extends Controller {
                 this.camera.rotateCameraDown(this.cameraClampAngle)
             };
         }
-        if (Player.keysPressed['KeyW']) {
-            if (Player.keysPressed['ShiftLeft']) this.dynamicData.horizontalVelocity += 10;
-            this.moveCharacterForward()
+        if (!this.health.isDead) {
+            if (Player.keysPressed['KeyW']) {
+                if (Player.keysPressed['ShiftLeft']) this.dynamicData.horizontalVelocity += 10;
+                this.moveCharacterForward()
+            }
+            if (Player.keysPressed['KeyS']) {
+                this.moveCharacterBackward();
+            }
+            if (Player.keysPressed['KeyP']) {
+                console.log = ()=>{};
+            }
+            if (Player.keysPressed['Space']) {
+                this.moveCharacterUp()
+            }
+            if (Player.keysPressed['ArrowLeft'])  {
+                this.rotateCharacterX('left')
+            };  
+            if (Player.keysPressed['ArrowRight']) {
+                this.rotateCharacterX('right')
+            };
         }
-        if (Player.keysPressed['KeyS']) {
-            this.moveCharacterBackward();
-        }
-        if (Player.keysPressed['KeyP']) {
-            console.log = ()=>{};
-        }
-        if (Player.keysPressed['Space']) {
-            this.moveCharacterUp()
-        }
-        if (Player.keysPressed['ArrowLeft'])  {
-            this.rotateCharacterX('left')
-        };  
-        if (Player.keysPressed['ArrowRight']) {
-            this.rotateCharacterX('right')
-        };
-        if (Player.keysPressed['KeyT']) {
+        if (Player.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
             if ((this.lastToggleTime + this.toggleCooldown) <= this.clock.elapsedTime) { //this is a debouncing mechanism
                 this.camModeNum = ((this.camModeNum<3)?this.camModeNum + 1:1) as 1 | 2 | 3;//this is to increase the camMode,when its 3rd person,reset it back to 1st person and repeat 
                 this.lastToggleTime = this.clock.elapsedTime
