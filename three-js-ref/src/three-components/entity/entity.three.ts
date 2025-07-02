@@ -25,14 +25,20 @@ class Entity extends Controller {
     private displayHealth() {
         console.log("Health. Entity: ",this.health.value);
     }
+    private act() {
+        console.log("Agent has reached target");
+        this.attack()
+    }
+    private updateNavPosition() {
+        this.navPosition = this.currentTarget?.position || null
+    }
     protected onLoop(): void {
         this.displayHealth();
-        this.navPosition = this.currentTarget?.position || null
+        this.updateNavPosition()
         if (this.navPosition) {
             const atTarget = this.navToTarget(this.navPosition);
             if (atTarget) {
-                console.log("Agent has reached target");
-                this.attack()
+                this.act()
             }
         }
     }
