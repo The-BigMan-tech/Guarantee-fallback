@@ -11,6 +11,9 @@ interface EntityMiscData {
     targetHealth:Health | null,
     attackDamage:number
 }
+interface EntityStateMachine {
+    behaviour:'idle' | 'chasing'
+}
 class Entity extends Controller {
     private targetController:Controller | null = null;
     private navPosition:THREE.Vector3 | null = null;//strictly for position in case where the entity might not have a target ref but it still wants to go navigate somewhere
@@ -23,8 +26,9 @@ class Entity extends Controller {
     private readonly attackCooldown = 1; // cooldown duration in seconds
     private attackTimer = 0;    // timer accumulator
 
-    private targetDeathPosition:THREE.Vector3 | null = null;
-
+    private state:EntityStateMachine = {
+        behaviour:'idle'
+    }
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:EntityMiscData) {
         super(fixedData,dynamicData);
         this.health = new Health(miscData.healthValue);
@@ -37,21 +41,26 @@ class Entity extends Controller {
     }
     private attack() {
         if (!this.targetHealth) return;
-        this.targetHealth.takeDamage(this.attackDamage)
+        if (this.attackTimer >= this.attackCooldown) {
+            this.targetHealth.takeDamage(this.attackDamage);
+            this.attackTimer = 0;
+        }
     }
     private act() {//the behaviour when it reaches the target will be later tied to a state machine
         console.log("Agent has reached target");
-        if (this.attackTimer >= this.attackCooldown) {
-            this.attack();
-            this.attackTimer = 0
-        }
+        this.attack();
     }
+
     private updateNavPosition() {//the navPosition is updated internally by the entity.ill later tie it to a behaviour state machine
         if (!this.targetController || !this.targetHealth) return;
         if (this.targetHealth.isDead) {
-            this.targetDeathPosition = this.targetController.position.clone()
+            this.navPosition = null;
+            this.state.behaviour = 'idle'
         }
-        this.targetDeathPosition = null
+        if (!this.targetHealth.isDead) {
+            console.log('Chasing target');
+            this.navPosition = this.targetController.position;
+            this.state.behaviour = 'chasing'
         }
     }
     protected onLoop(): void {
