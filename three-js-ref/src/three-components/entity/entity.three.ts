@@ -55,12 +55,13 @@ class Entity extends Controller {
             this.navPosition = this.patrolTarget;
             this.patrolTimer = 0;
         }
-        this.chase(false);//we want to chase the patrol point but we want to retain the state as patrol so that it can be called in every frame we are supposed to be patrolling
+        this.state.behaviour = 'chasing';
+        this.respondToInternalState();
     }  
-    private chase(callHook:boolean) {
+    private chase() {
         if (this.navPosition) {
             const atTarget = this.navToTarget(this.navPosition);
-            if (atTarget && callHook) {
+            if (atTarget) {
                 this.onTargetReached();
                 this.respondToInternalState();//any state change from the above hook will be caught and responded to in the same frame
             }
@@ -81,7 +82,7 @@ class Entity extends Controller {
                 break;
             }
             case 'chasing': {
-                this.chase(true);
+                this.chase();
                 break;
             }
             case 'attack': {
