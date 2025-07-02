@@ -695,6 +695,20 @@ export abstract class Controller {
             console.log("Can walk forward| boolean: ",this.canWalkForward);
         }
     }
+
+
+
+    private applyKnockback() {
+        if (this.isKnockedBack && !this.appliedKnockbackImpulse) {
+            this.characterRigidBody.applyImpulse(this.impulse,true);
+            this.appliedKnockbackImpulse = true
+        }
+        if (this.knockbackTimer > this.knockbackCooldown) {//i cant reset it to false immediately under the same frame so it needs to reflect this change so i used a cooldown
+            this.isKnockedBack = false;
+            this.appliedKnockbackImpulse = false
+            this.knockbackTimer = 0;
+        }
+    }
     private applyVelocity():void {  //i locked setting linvel under the isgrounded check so that it doesnt affect natural forces from acting on the body when jumping
         const prevCharPosition = new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
         console.log('Character| prevCharPosition:', prevCharPosition);
@@ -702,15 +716,11 @@ export abstract class Controller {
             this.characterRigidBody.setLinvel(this.velocity,true);
             this.checkIfCanWalkForward(prevCharPosition)
         };
-        if (this.isKnockedBack) {
-            this.characterRigidBody.applyImpulse(this.impulse,true);
-        }
-        if (this.knockbackTimer > this.knockbackCooldown) {//i cant reset it to false immediately under the same frame so it needs to reflect this change so i used a cooldown
-            this.isKnockedBack = false;
-            this.knockbackTimer = 0;
-        }
+        this.applyKnockback();
         this.characterPosition = this.characterRigidBody.translation();//its important to do this after the if statement
     }
+
+
     //todo:Find a good place reset obstacle height.im not sure if it will work here
     private resetSomeVariables():void {
         this.velocity.set(0,0,0);//to prevent accumulaion over time
@@ -761,6 +771,7 @@ export abstract class Controller {
     
     private impulse:THREE.Vector3 = new THREE.Vector3();
     private isKnockedBack:boolean = false;
+    private appliedKnockbackImpulse:boolean = false;
 
     private knockbackTimer:number = 0;
     private knockbackCooldown:seconds = 3;

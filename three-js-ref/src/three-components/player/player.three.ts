@@ -293,7 +293,7 @@ const playerDynamicData:DynamicControllerData = {
 const playerMiscData:PlayerMiscData = {
     healthValue:10,
     attackDamage:1,
-    knockback:10,
+    knockback:5,
     camArgs: {
         FOV:75,
         nearPoint:0.1,
