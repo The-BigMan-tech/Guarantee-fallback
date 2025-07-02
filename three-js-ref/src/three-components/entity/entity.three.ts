@@ -1,21 +1,39 @@
 import { Controller} from "../controller/controller.three";
 import type {FixedControllerData,DynamicControllerData } from "../controller/controller.three";
 import * as RAPIER from "@dimforge/rapier3d"
+import * as THREE from "three"
 import { player } from "../player/player.three";
+import { Health } from "../health/health";
 
-
+interface EntityMiscData {
+    healthValue:number,
+    currentTarget:Controller | null
+}
 class Entity extends Controller {
-    constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
+    private health:Health;
+    private currentTarget:Controller | null = null;
+    private navPosition:THREE.Vector3 | null = null;//strictly for position in case where the entity might not have a target ref but it still wants to go navigate somewhere
+
+    constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:EntityMiscData) {
         super(fixedData,dynamicData);
+        this.health = new Health(miscData.healthValue);
+        this.currentTarget = miscData.currentTarget
     }
     private attack() {
         
     }
+    private displayHealth() {
+        console.log("Health. Entity: ",this.health.value);
+    }
     protected onLoop(): void {
-        const atTarget = this.navToTarget(player.position);
-        if (atTarget) {
-            console.log("Agent has reached target");
-            this.attack()
+        this.displayHealth();
+        this.navPosition = this.currentTarget?.position || null
+        if (this.navPosition) {
+            const atTarget = this.navToTarget(this.navPosition);
+            if (atTarget) {
+                console.log("Agent has reached target");
+                this.attack()
+            }
         }
     }
 }
@@ -37,4 +55,8 @@ const entityDynamicData:DynamicControllerData = {
     maxStepUpHeight:2,
     gravityScale:1
 }
-export const entity = new Entity(entityFixedData,entityDynamicData)
+const entityMiscData:EntityMiscData = {
+    healthValue:10,
+    currentTarget:player
+}
+export const entity = new Entity(entityFixedData,entityDynamicData,entityMiscData)

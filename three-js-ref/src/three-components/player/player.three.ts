@@ -3,18 +3,22 @@ import { Controller } from "../controller/controller.three";
 import type { FixedControllerData,DynamicControllerData } from "../controller/controller.three";
 import * as RAPIER from "@dimforge/rapier3d"
 import * as THREE from "three"
+import { Health } from "../health/health";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
     cameraRotationSpeed:number;
     offsetY:number | 'auto';
 }
+interface PlayerMiscData {
+    camArgs:PlayerCamData
+    healthValue:number
+}
 enum CameraMode {
     FirstPerson = 1,
     SecondPerson = 2,
     ThirdPerson = 3
 }
-
 class Player extends Controller {
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
     private firstPersonClamp = 75;
@@ -22,7 +26,9 @@ class Player extends Controller {
     private thirdPersonClamp = 10;
     private cameraClampAngle:number =  this.firstPersonClamp;
 
+    private health:Health;
     public  camera:Camera;
+
     private camModeNum:1 | 2 | 3 = 1;//this corresponds to first,second and third person views
 
     private camRotationSpeed:number;
@@ -35,15 +41,19 @@ class Player extends Controller {
     private toggleCooldown: number = 0.3; // Cooldown in seconds.this value in particular works the best
     private lastToggleTime: number = 0;
 
-    constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,camArgs:PlayerCamData) {
+    constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:PlayerMiscData) {
         super(fixedData,dynamicData);
-        this.offsetY = (camArgs.offsetY=='auto')?fixedData.characterHeight+2:camArgs.offsetY;
+        this.offsetY = (miscData.camArgs.offsetY=='auto')?fixedData.characterHeight+2:miscData.camArgs.offsetY;
         this.targetY = this.offsetY;
-        this.camRotationSpeed = camArgs.cameraRotationSpeed;
-        this.originalCamRotSpeed = camArgs.cameraRotationSpeed;
-        this.camera = new Camera(camArgs)
+        this.camRotationSpeed = miscData.camArgs.cameraRotationSpeed;
+        this.originalCamRotSpeed = miscData.camArgs.cameraRotationSpeed;
+        this.camera = new Camera(miscData.camArgs)
         this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
-        Player.addEventListeners()
+        Player.addEventListeners();
+        this.health = new Health(miscData.healthValue);
+    }
+    private displayHealth() {
+        console.log('Health. Player: ',this.health.value);
     }
     private static addEventListeners() {
         document.addEventListener('keydown',Player.onKeyDown);
@@ -162,6 +172,7 @@ class Player extends Controller {
         this.camera.translateCamera(newCamPosition,0.2);
     }
     protected onLoop() {//this is where all character updates to this instance happens.
+        this.displayHealth()
         this.bindKeysToControls();
         this.bindKeysToAnimations();
         this.toggleCamPerspective();
@@ -169,14 +180,7 @@ class Player extends Controller {
         this.camera.updateCamera(this.camRotationSpeed);
     }
 }
-const PlayerCamArgs:PlayerCamData = {
-    FOV:75,
-    nearPoint:0.1,
-    farPoint:1000,
-    cameraRotationDelta:1,//in degrees
-    cameraRotationSpeed:0.5,
-    offsetY:'auto'
-}
+
 const playerFixedData:FixedControllerData = {
     modelPath:'./silvermoon.glb',
     spawnPoint: new RAPIER.Vector3(0,20,0),
@@ -194,4 +198,15 @@ const playerDynamicData:DynamicControllerData = {
     maxStepUpHeight:2,
     gravityScale:1
 }
-export const player = new Player(playerFixedData,playerDynamicData,PlayerCamArgs)
+const playerMiscData:PlayerMiscData = {
+    healthValue:10,
+    camArgs: {
+        FOV:75,
+        nearPoint:0.1,
+        farPoint:1000,
+        cameraRotationDelta:1,//in degrees
+        cameraRotationSpeed:0.5,
+        offsetY:'auto'
+    }
+}
+export const player = new Player(playerFixedData,playerDynamicData,playerMiscData)
