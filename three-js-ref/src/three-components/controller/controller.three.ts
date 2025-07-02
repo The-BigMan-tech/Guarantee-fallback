@@ -689,7 +689,11 @@ export abstract class Controller {
             this.checkIfCanWalkForward(prevCharPosition)
         };
         if (this.isKnockedBack) {
-            this.characterRigidBody.applyImpulse(this.impulse,true)
+            this.characterRigidBody.applyImpulse(this.impulse,true);
+        }
+        if (this.knockbackTimer > this.knockbackCooldown) {
+            this.isKnockedBack = false;
+            this.knockbackTimer = 0;
         }
         this.characterPosition = this.characterRigidBody.translation();//its important to do this after the if statement
     }
@@ -705,6 +709,7 @@ export abstract class Controller {
     private updateClockDelta() {
         const delta = this.clock.getDelta();
         this.clockDelta = delta;
+        this.knockbackTimer += this.clockDelta || 0;
     }
     private updateCharacterAnimations():void {
         if (this.mixer) this.mixer.update(this.clockDelta || 0);
@@ -767,7 +772,10 @@ export abstract class Controller {
         this.forceCharacterDown();
     }
     private impulse:THREE.Vector3 = new THREE.Vector3();
-    public isKnockedBack:boolean = false;
+    private isKnockedBack:boolean = false;
+
+    private knockbackTimer:number = 0;
+    private knockbackCooldown:seconds = 3;
 
     public knockbackCharacter(knockbackVelocity:number):void {
         this.wakeUpBody();
@@ -782,6 +790,7 @@ export abstract class Controller {
             backward.z * knockbackVelocity
         );
         this.impulse.copy(impulse);
+        this.isKnockedBack = true
     }
     protected moveCharacterLeft():void {
         this.wakeUpBody()
