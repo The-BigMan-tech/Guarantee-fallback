@@ -2,7 +2,7 @@ import { Controller} from "../controller/controller.three";
 import type {FixedControllerData,DynamicControllerData } from "../controller/controller.three";
 import * as THREE from "three"
 import { Health } from "../health/health";
-import { physicsWorld } from "../physics-world.three";
+import { combatCooldown, physicsWorld } from "../physics-world.three";
 
 type Behaviour = 'chasing' | 'attack' | 'patrol' | 'death'
 export interface EntityMiscData {
@@ -28,7 +28,7 @@ export class Entity extends Controller {
 
     private attackDamage:number;
 
-    private attackCooldown = 0.8; // cooldown duration in seconds
+    private attackCooldown = combatCooldown; // cooldown duration in seconds
     private attackTimer = 0;    // timer accumulator
 
     private patrolRadius = 20; // max distance from current position to patrol

@@ -6,6 +6,7 @@ import * as THREE from "three"
 import { Health } from "../health/health";
 import { Entity } from "../entity/entity.three";
 import { entities } from "../entity/entity.three";
+import { combatCooldown } from "../physics-world.three";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -55,7 +56,7 @@ class Player extends Controller {
     private raycaster = new THREE.Raycaster();
     private lookDirection = new THREE.Vector2(0, 0); // center of screen for forward raycast
 
-    private attackCooldown = 0.8; // half a second cooldown
+    private attackCooldown = combatCooldown; // half a second cooldown
     private attackTimer = 0;
 
     private knockback:number;

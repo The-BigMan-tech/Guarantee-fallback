@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
-import { physicsWorld,gravityY,outOfBoundsY} from "../physics-world.three";
+import { physicsWorld,gravityY,outOfBoundsY, combatCooldown} from "../physics-world.three";
 
 function createCapsuleLine(radius:number,halfHeight:number) {
     const charGeometry = new THREE.CapsuleGeometry(radius,halfHeight*2);
@@ -793,7 +793,7 @@ export abstract class Controller {
     private appliedKnockbackImpulse:boolean = false;//to debounce the knockback
 
     private knockbackTimer:number = 0;
-    private knockbackCooldown:seconds = 0.8;//to give the physics engine time to reflect the knockback
+    private knockbackCooldown:seconds = combatCooldown;//to give the physics engine time to reflect the knockback
 
     public knockbackCharacter(direction:'forward'| 'backwards',knockbackImpulse:number,scalar?:number):void {
         this.wakeUpBody();
