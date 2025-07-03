@@ -9,10 +9,7 @@ export const playerHealthAtom = atom<HealthState>({
     currentValue: 100,
     maxValue: 100,
 });
-export const entityHealthAtom = atom<HealthState | null>({
-    currentValue: 100,
-    maxValue: 100,
-});
+export const entityHealthAtom = atom<HealthState | null>(null);
 
 //These are for registration
 let setHealthExternal: ((value:HealthState) => void) | null = null;

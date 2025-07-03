@@ -35,10 +35,10 @@ export function RingHealthBar() {
         if (containerRef2.current) {
             circleRef2.current = new Circle(containerRef2.current, {
                 duration: 0,
-                strokeWidth:7,
+                strokeWidth:4,
                 easing: 'easeInOut',
-                color: '#189a9f', // Tailwind red-500
-                trailColor: '#b8ebec', // Tailwind red-300
+                color: '#c00e0e', // Tailwind red-500
+                trailColor: '#efaeae', // Tailwind red-300
                 trailWidth: 4,
                 svgStyle: { width: '4rem', height: '4rem' },
             });
@@ -64,7 +64,7 @@ export function RingHealthBar() {
     return (
         <>
             <div ref={containerRef} className="fixed top-[75%] left-[47.5%] mb-4 w-0 h-0 z-50 pointer-events-none overflow-visible"/>
-            <div ref={containerRef2} className={`fixed top-[10%] left-[10%] mb-4 w-0 h-0 z-50 pointer-events-none overflow-visible ${ entityHealthState ? 'opacity-100' : 'opacity-0 '}`}/>
+            <div ref={containerRef2} className={`fixed top-[10%] left-[4%] mb-4 w-0 h-0 z-50 pointer-events-none overflow-visible ${ entityHealthState ? 'opacity-100' : 'opacity-0 '}`}/>
         </>
     );
 }
