@@ -4,7 +4,7 @@ import * as THREE from "three"
 import { Health } from "../health/health";
 import { physicsWorld } from "../physics-world.three";
 
-type Behaviour = 'chasing' | 'attack' | 'patrol'
+type Behaviour = 'chasing' | 'attack' | 'patrol' | 'death'
 export interface EntityMiscData {
     healthValue:number,
     targetController:Controller | null,
@@ -38,6 +38,7 @@ export class Entity extends Controller {
 
     private cleanupTimer = 0;
     private cleanupCooldown = 7;//to allow playing an animation before removal
+    private isRemoved = false;//to ensure resources are cleaned only once per dead entity
 
     private struct:ManagingStructure;
     private knockback:number;
@@ -71,7 +72,7 @@ export class Entity extends Controller {
         }
         this.movementType = "fluid";
         this.state.behaviour = 'chasing';
-        this.respondToInternalState();
+        this.respondToStateMachine();
     }  
     private chase() {
         if (this.navPosition) {
@@ -79,7 +80,7 @@ export class Entity extends Controller {
             const atTarget = this.navToTarget(this.navPosition,rotateAndMove);
             if (atTarget) {
                 this.onTargetReached();
-                this.respondToInternalState();//any state change from the above hook will be caught and responded to in the same frame
+                this.respondToStateMachine();//any state change from the above hook will be caught and responded to in the same frame
             }
         }
     }
@@ -92,11 +93,18 @@ export class Entity extends Controller {
             this.attackTimer = 0;
         }
     }
+    public death() {
+        if (this.health.isDead && !this.isRemoved) {
+            this.cleanUpResources();
+        }
+    }
     private onTargetReached() {//the behaviour when it reaches the target will be later tied to a state machine
         console.log("Agent has reached target");
         this.state.behaviour = 'attack'
     }
-    private respondToInternalState() {
+
+    
+    private respondToStateMachine() {
         switch (this.state.behaviour) {
             case 'patrol': {
                 this.patrol();
@@ -108,6 +116,10 @@ export class Entity extends Controller {
             }
             case 'attack': {
                 this.attack();
+                break;
+            }
+            case 'death': {
+                this.death();
                 break;
             }
         }
@@ -123,8 +135,11 @@ export class Entity extends Controller {
             this.movementType = "precise"
             this.state.behaviour = "chasing"
         }
+        if (this.health.isDead) {
+            this.state.behaviour = "death"
+        }
     }
-    public disposeMixer() {
+    private disposeMixer() {
         if (this.mixer) {
             this.mixer.stopAllAction();
             this.mixer.uncacheRoot(this.mixer.getRoot());
@@ -146,37 +161,29 @@ export class Entity extends Controller {
             }
         });
     }
-    private isRemoved = false;//to ensure resources are cleaned only once per dead entity
-    public handleRemoval() {
-        if (this.health.isDead && !this.isRemoved) {
-            this.cleanupTimer += this.clockDelta || 0;
-            //play death animation here.
-            if (this.cleanupTimer >= this.cleanupCooldown) {
-                this.points.clear();//clear the points array used for visual debugging
-                this.struct.group.remove(this.points)//remove them from the scene
-                this.struct.group.remove(this.controller);//remove the controller from the scene
-                console.log("Rigid body: ",this.characterRigidBody);
-                this.disposeHierarchy(this.controller);//remove the geometry data from the gpu
-                this.disposeMixer();//to prevent animation updates
-                const index = this.struct.entities.indexOf(this);
-                if (index !== -1) this.struct.entities.splice(index, 1);//remove it from the entity array to prevent its physics controller from updating,stop the player from possibly intersecting with it although unlikely since its removed from the scene and finally for garbae collection
-                if (this.characterRigidBody) {
-                    physicsWorld.removeRigidBody(this.characterRigidBody);//remove its rigid body from the physics world
-                    this.characterRigidBody = null;//this is a critical step for it to work.nullify the ref to the rigid body after removal.
-                }
-                this.isRemoved = true;
+    private cleanUpResources() {
+        this.cleanupTimer += this.clockDelta || 0;
+        if (this.cleanupTimer >= this.cleanupCooldown) {
+            this.points.clear();//clear the points array used for visual debugging
+            this.struct.group.remove(this.points)//remove them from the scene
+            this.struct.group.remove(this.controller);//remove the controller from the scene
+            this.disposeHierarchy(this.controller);//remove the geometry data from the gpu
+            this.disposeMixer();//to prevent animation updates
+            const index = this.struct.entities.indexOf(this);
+            if (index !== -1) this.struct.entities.splice(index, 1);//remove it from the entity array to prevent its physics controller from updating,stop the player from possibly intersecting with it although unlikely since its removed from the scene and finally for garbae collection
+            if (this.characterRigidBody) {
+                physicsWorld.removeRigidBody(this.characterRigidBody);//remove its rigid body from the physics world
+                this.characterRigidBody = null;//this is a critical step for it to work.nullify the ref to the rigid body after removal.
             }
+            this.isRemoved = true;
         }
     }
     protected onLoop(): void {
         this.attackTimer += this.clockDelta || 0;
         this.patrolTimer += this.clockDelta || 0;
-        if (this.isAirBorne()) {
-            this.playJumpAnimation();
-        }
+        if (this.isAirBorne()) this.playJumpAnimation();
         this.respondToExternalState();
-        this.respondToInternalState();
-        this.handleRemoval();
+        this.respondToStateMachine();
     }
 }
 export const entities:Entity[] = [];

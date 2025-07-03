@@ -13,6 +13,7 @@ class EntityManager {
 
     private spawnTimer:number = 0;
     private spawnCooldown:number = 3;
+    private spawnCount:number = 1;
 
     private constructor() {};
     
@@ -22,7 +23,7 @@ class EntityManager {
     }
 
     private spawnEntities() {
-        for (let i = 0;i < 1;i++) {
+        for (let i = 0;i < this.spawnCount;i++) {
             const entityFixedData:FixedControllerData = {
                 modelPath:'./silvermoon.glb',
                 spawnPoint: new RAPIER.Vector3(0,20,-10),
