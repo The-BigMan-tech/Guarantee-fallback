@@ -7,7 +7,7 @@ import { Health } from "../health/health";
 import { Entity } from "../entity/entity.three";
 import { entities } from "../entity/entity.three";
 import { combatCooldown } from "../physics-world.three";
-import { setPlayerHealth } from "../health/health-state";
+import { setEntityHealth, setPlayerHealth } from "../health/health-state";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -103,7 +103,12 @@ class Player extends Controller {
     }
     private updateHealthGUI() {
         console.log('Health. Player: ',this.health.value);
-        setPlayerHealth({currentValue:this.health.value,maxValue:this.health.maxHealth})
+        this.lookedAtEntity = this.getTheLookedAtEntity(entities, 10);
+        setPlayerHealth({currentValue:this.health.value,maxValue:this.health.maxHealth});
+        if (this.lookedAtEntity) {
+            const entityHealth = this.lookedAtEntity.health
+            setEntityHealth({currentValue:entityHealth.value,maxValue:entityHealth.maxHealth})
+        }
     }
     private static addEventListeners() {
         document.addEventListener('keydown',Player.onKeyDown);
@@ -168,7 +173,7 @@ class Player extends Controller {
                 this.rotateCharacterX('right')
             };
             if (Player.keysPressed['KeyQ']) {
-                this.attack(entities);
+                this.attack();
             }
         }
         if (Player.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
@@ -232,9 +237,8 @@ class Player extends Controller {
     }
 
 
-    private attack(entities: Entity[]) {
+    private attack() {
         if (this.attackTimer < this.attackCooldown) return;
-        this.lookedAtEntity = this.getTheLookedAtEntity(entities, 10);
         if (this.lookedAtEntity) {
             const targetHealth = this.lookedAtEntity.health;
             if (targetHealth && !targetHealth.isDead) {
