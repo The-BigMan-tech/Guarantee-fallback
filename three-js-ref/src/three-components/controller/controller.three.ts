@@ -510,9 +510,6 @@ export abstract class Controller {
         console.log('.*jump proactively. greaterOrSameYLevel: ',greaterOrSameYLevel);
 
         if (this.isNearOriginalPath) {
-            const backwardDir = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion);
-            this.knockbackCharacter(backwardDir,150);
-            this.knockbackCooldown = 0.5
             return
         }
         this.knockbackCooldown = 2
@@ -598,6 +595,9 @@ export abstract class Controller {
         }
     }
     private isNearOriginalPath:boolean = false;
+    private spaceCooldown = 1; // cooldown duration in seconds
+    private spaceTimer = 0;
+
     protected navToTarget(originalPath:THREE.Vector3,rotateAndMove:boolean):boolean {//targetpos is the player for example
         this.timeSinceLastFlipCheck += this.clockDelta || 0;
         const characterPos = this.character.position;
@@ -605,12 +605,15 @@ export abstract class Controller {
 
         const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));
         const onSameYLevel = YDifference < 2.5;
-        const targetReachedDistance = 5//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
+        const targetReachedDistance = 3//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
         const hasReachedOriginalPath =  (onSameYLevel) && (distToOriginalPath < targetReachedDistance);
-        
-        this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 10);
 
-        if (hasReachedOriginalPath) {
+        if (hasReachedOriginalPath || this.isNearOriginalPath) {
+            this.spaceTimer += this.clockDelta || 0;
+            if (this.spaceTimer > this.spaceCooldown) {
+                this.isNearOriginalPath = false
+                this.spaceTimer = 0
+            }
             this.terminateBranch();
             this.playIdleAnimation();
             this.stopWalkSound();
@@ -672,7 +675,9 @@ export abstract class Controller {
         if (currentPath.distanceTo(finalPath) > epsilon) {//means they are different
             distToFinalDestThresh = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
         }
+
         this.isFinalDestClose = distToFinalDest < distToFinalDestThresh;
+        this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 6);
 
         if (rotateAndMove) {
             if (finalDir !== null) this.rotateCharacterX(finalDir);
@@ -790,13 +795,15 @@ export abstract class Controller {
     private knockbackTimer:number = 0;
     private knockbackCooldown:seconds = 2;//to give the physics engine time to reflect the knockback
 
-    public knockbackCharacter(direction: THREE.Vector3,knockbackImpulse:number):void {
+    public knockbackCharacter(direction:'forward'| 'backwards',knockbackImpulse:number,scalar?:number):void {
         this.wakeUpBody();
         const upwardScalar = 3
+        const dir = new THREE.Vector3(0,0,(direction=='forward')?-1:1);
+        const knockbackDir = dir.applyQuaternion(this.controller.quaternion)
         const impulse = new RAPIER.Vector3(
-            direction.x * knockbackImpulse,
-            knockbackImpulse * upwardScalar,
-            direction.z * knockbackImpulse
+            knockbackDir.x * knockbackImpulse,
+            knockbackImpulse * (scalar || upwardScalar),
+            knockbackDir.z * knockbackImpulse
         );
         this.impulse.copy(impulse);
         this.isKnockedBack = true;
