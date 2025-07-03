@@ -601,14 +601,14 @@ export abstract class Controller {
     protected navToTarget(originalPath:THREE.Vector3,rotateAndMove:boolean):boolean {//targetpos is the player for example
         this.timeSinceLastFlipCheck += this.clockDelta || 0;
         const characterPos = this.character.position;
-        const distToOriginalPath = characterPos.distanceTo(originalPath);
+        const distToOriginalPath = characterPos.distanceTo(originalPath);//im using hypot dist here cuz i need the distance to reflect all the comp before deciding that its close to it cuz this is where it terminates the navigation but its not the sole factor used to determine that.i also included in the y level diff check
 
         const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));
         const onSameYLevel = YDifference < 2.5;
         const targetReachedDistance = 3//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
         const hasReachedOriginalPath =  (onSameYLevel) && (distToOriginalPath < targetReachedDistance);
 
-        if (hasReachedOriginalPath || this.isNearOriginalPath) {
+        if (hasReachedOriginalPath || this.isNearOriginalPath) {//the current value of isNearOriginalPath will come in the next frame before using it to make its decision.cuz its needed for automoveforward to know it should stop moving the entity.if i use it to return from here,that opportunity wont happen and the entity wont preserve any space between it and the target
             this.spaceTimer += this.clockDelta || 0;
             if (this.spaceTimer > this.spaceCooldown) {
                 this.isNearOriginalPath = false
@@ -668,7 +668,7 @@ export abstract class Controller {
         }
 
         const finalDir = this.getSteeringDirection(finalPath)
-        const distToFinalDest = this.distanceXZ(characterPos,finalPath)
+        const distToFinalDest = this.distanceXZ(characterPos,finalPath)//the reason why i used xz dist instead of hypot distance is so that it ignores the y component cuz if not,it will walk directly under me when i jump making me to always land on it when i jump which isnt the desired behaviour.because i didnt take into account the y comp,i made the threshold tighter down to 3 instead of 5.i did this on the final dest not the original path cuz its this that affects how it moves.which is why i kept the dit to original path as hypot distance
         const epsilon = 0.01;
         let distToFinalDestThresh = 2;//this is to tell the algorithm how close to the target the character should be to be considered its close to the target or far from the target.
 
