@@ -64,7 +64,7 @@ class Player extends Controller {
     private lookedAtEntity:Entity | null = null;
 
     private showEntityHealthTimer:number = 0;
-    private showEntityHealthCooldown:number = 5;
+    private showEntityHealthCooldown:number = 3;
 
     private isDescendantOf(child: THREE.Object3D, parent: THREE.Object3D): boolean {
         let current = child;
@@ -113,7 +113,8 @@ class Player extends Controller {
             console.log('entityHealth:', entityHealth);
             setEntityHealth({currentValue:entityHealth.value,maxValue:entityHealth.maxHealth})
         }else if (this.showEntityHealthTimer > this.showEntityHealthCooldown) {
-            setEntityHealth(null)
+            setEntityHealth(null);
+            this.showEntityHealthTimer = 0;
         }
     }
     private static addEventListeners() {

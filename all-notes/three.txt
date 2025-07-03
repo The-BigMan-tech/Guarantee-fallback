@@ -950,3 +950,17 @@ so to implement the singleton pattern in ts which is easier than in js,i have to
 indexOf finds primitives by value but objects by ref not deep equality
 
 so two things.tge method tat updates the internal state should not have a fallthrough if ladder cuz mutiple states can conflict.having an elif ladder is better cuz it ensures only one state is excuted at a time but and if ladder with  breaks in between each branch is the best to ensure predictability in which state is executing and the order of the ladder shows the priority of state updates
+
+The key reason it didn’t work before is that when you conditionally rendered the entity health circle only when entityHealthState was truthy, React would mount and unmount the entire progress bar component each time the state changed. This caused the Circle instance from progressbar.js to be destroyed and recreated repeatedly, leading to timing and rendering issues.
+
+By always mounting the circle's container div and controlling its visibility via opacity, you:
+
+Keep the Circle instance alive and stable throughout the app lifecycle.
+
+Avoid costly mount/unmount cycles.
+
+Allow smooth, immediate updates to the circle’s progress.
+
+Simply toggle visibility, which React and the browser handle very efficiently.
+
+This pattern—mount once, show/hide via CSS—is a common and effective React approach when dealing with third-party libraries that manage their own DOM or state internally (like progressbar.js).
