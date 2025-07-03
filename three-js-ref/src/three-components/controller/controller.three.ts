@@ -159,9 +159,14 @@ export abstract class Controller {
         const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
         const walkClip = THREE.AnimationClip.findByName(gltf.animations, 'sprinting'); 
         const jumpClip = THREE.AnimationClip.findByName(gltf.animations, 'jumping'); 
+        const attackClip = THREE.AnimationClip.findByName(gltf.animations, 'attack'); 
+        const deathClip = THREE.AnimationClip.findByName(gltf.animations, 'death'); 
     
         if (walkClip) this.walkAction = this.mixer.clipAction(walkClip);
         if (jumpClip) this.jumpAction = this.mixer.clipAction(jumpClip);
+        if (attackClip) this.attackAction = this.mixer.clipAction(attackClip);
+        if (deathClip) this.deathAction = this.mixer.clipAction(deathClip);
+
         if (idleClip) {
             this.idleAction = this.mixer.clipAction(idleClip);
             this.idleAction.play();
@@ -905,6 +910,12 @@ export abstract class Controller {
     }
     protected playIdleAnimation():void {
         if (this.mixer && this.idleAction) this.fadeToAnimation(this.idleAction);
+    }
+    protected playAttackAnimation():void {
+        if (this.mixer && this.attackAction) this.fadeToAnimation(this.attackAction);
+    }
+    protected playDeathAnimation():void {
+        if (this.mixer && this.deathAction) this.fadeToAnimation(this.deathAction);
     }
 
 

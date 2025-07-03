@@ -89,12 +89,13 @@ export class Entity extends Controller {
         if (this.attackTimer >= this.attackCooldown) {
             this.targetHealth.takeDamage(this.attackDamage);
             this.targetController?.knockbackCharacter('backwards',this.knockback);
-            this.playIdleAnimation();
+            this.playAttackAnimation();
             this.attackTimer = 0;
         }
     }
     public death() {
         if (this.health.isDead && !this.isRemoved) {
+            this.playDeathAnimation();
             this.fadeOut(this.clockDelta || 0);
             this.cleanUpResources();
         }

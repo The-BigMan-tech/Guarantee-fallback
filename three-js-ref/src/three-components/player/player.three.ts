@@ -238,6 +238,7 @@ class Player extends Controller {
             if (targetHealth && !targetHealth.isDead) {
                 targetHealth.takeDamage(this.attackDamage);
                 this.lookedAtEntity.knockbackCharacter('backwards',this.knockback);
+                this.playAttackAnimation();
                 this.attackTimer = 0;
             }
         }
@@ -259,6 +260,7 @@ class Player extends Controller {
     private updateCameraHeightBasedOnHealth() {
         if (this.health.isDead) {
             this.targetY = this.offsetY - this.playerHeight;
+            this.playDeathAnimation();
         } else {
             this.targetY = this.offsetY;
         }
