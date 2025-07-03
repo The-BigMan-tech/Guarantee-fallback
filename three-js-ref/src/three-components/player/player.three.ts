@@ -7,6 +7,7 @@ import { Health } from "../health/health";
 import { Entity } from "../entity/entity.three";
 import { entities } from "../entity/entity.three";
 import { combatCooldown } from "../physics-world.three";
+import { setPlayerHealth } from "../health/health-state";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -100,8 +101,9 @@ class Player extends Controller {
         this.attackDamage = miscData.attackDamage;
         this.knockback = miscData.knockback;
     }
-    private displayHealth() {
+    private updateHealthGUI() {
         console.log('Health. Player: ',this.health.value);
+        setPlayerHealth({currentValue:this.health.value,maxValue:this.health.maxHealth})
     }
     private static addEventListeners() {
         document.addEventListener('keydown',Player.onKeyDown);
@@ -269,7 +271,7 @@ class Player extends Controller {
     protected onLoop() {//this is where all character updates to this instance happens.
         this.attackTimer += this.clockDelta || 0;
         this.toggleTimer += this.clockDelta || 0;
-        this.displayHealth();
+        this.updateHealthGUI();
         this.bindKeysToControls();
         this.bindKeysToAnimations();
         this.toggleCamPerspective();

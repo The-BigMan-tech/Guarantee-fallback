@@ -3,6 +3,8 @@ import { player } from './three-components/player/player.three';
 import './App.css'
 import { useEffect, useRef } from 'react';
 import { Crosshair } from './crosshair';
+import { HealthBar } from './three-components/health/health-bar';
+import { HealthSetterRegistrar } from './three-components/health/health-register';
 
 
 function App() {
@@ -26,12 +28,14 @@ function App() {
     
     return (
         <div className='h-full w-full flex'>
+            <Crosshair/>
+            <HealthBar/>
+            <HealthSetterRegistrar/>
             <div 
                 ref={containerRef} 
                 tabIndex={0}  
                 className='w-full h-full z-0'>
             </div>
-            <Crosshair/>
         </div>
     )
 }
