@@ -64,10 +64,7 @@ export function RingHealthBar() {
     return (
         <>
             <div ref={containerRef} className="fixed top-[75%] left-[47.5%] mb-4 w-0 h-0 z-50 pointer-events-none overflow-visible"/>
-            {(entityHealthState)
-                ?<div ref={containerRef2} className="fixed top-[10%] left-[10%] mb-4 w-0 h-0 z-50 pointer-events-none overflow-visible"/>
-                :null
-            }
+            <div ref={containerRef2} className={`fixed top-[10%] left-[10%] mb-4 w-0 h-0 z-50 pointer-events-none overflow-visible ${ entityHealthState ? 'opacity-100' : 'opacity-0 '}`}/>
         </>
     );
 }

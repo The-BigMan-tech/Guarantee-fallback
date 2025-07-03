@@ -63,6 +63,9 @@ class Player extends Controller {
     private knockback:number;
     private lookedAtEntity:Entity | null = null;
 
+    private showEntityHealthTimer:number = 0;
+    private showEntityHealthCooldown:number = 5;
+
     private isDescendantOf(child: THREE.Object3D, parent: THREE.Object3D): boolean {
         let current = child;
         while (current) {
@@ -106,8 +109,11 @@ class Player extends Controller {
         this.lookedAtEntity = this.getTheLookedAtEntity(entities, 10);
         setPlayerHealth({currentValue:this.health.value,maxValue:this.health.maxHealth});
         if (this.lookedAtEntity) {
-            const entityHealth = this.lookedAtEntity.health
+            const entityHealth = this.lookedAtEntity.health;
+            console.log('entityHealth:', entityHealth);
             setEntityHealth({currentValue:entityHealth.value,maxValue:entityHealth.maxHealth})
+        }else if (this.showEntityHealthTimer > this.showEntityHealthCooldown) {
+            setEntityHealth(null)
         }
     }
     private static addEventListeners() {
@@ -275,6 +281,7 @@ class Player extends Controller {
     protected onLoop() {//this is where all character updates to this instance happens.
         this.attackTimer += this.clockDelta || 0;
         this.toggleTimer += this.clockDelta || 0;
+        this.showEntityHealthTimer += this.clockDelta || 0;
         this.updateHealthGUI();
         this.bindKeysToControls();
         this.bindKeysToAnimations();
