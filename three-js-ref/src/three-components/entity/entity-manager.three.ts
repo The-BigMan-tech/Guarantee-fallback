@@ -11,6 +11,9 @@ class EntityManager {
     private static manager: EntityManager;
     public entityGroup:THREE.Group = new THREE.Group();
 
+    private spawnTimer:number = 0;
+    private spawnCooldown:number = 3;
+
     private constructor() {};
     
     static get instance(): EntityManager {
@@ -57,8 +60,15 @@ class EntityManager {
     public updateAllEntities(deltaTime:number) {
         entities.forEach(entity => entity.updateController(deltaTime));
         if (entities.length == 0) {
-            this.spawnEntities()
+            this.spawnTimer += deltaTime;//incresing the timer only when there are no entities ensures that new entities are only spawned after all other entities are dead.
+            if (this.spawnTimer > this.spawnCooldown) {
+                this.spawnEntities()
+                this.spawnTimer = 0;
+            }
+        }else {
+            this.spawnTimer = 0; // Reset spawn timer if entities exist to prevent accumulation when entities still exist
         }
+        
     }
 }
 export const entityManager:Singleton<EntityManager> = EntityManager.instance;
