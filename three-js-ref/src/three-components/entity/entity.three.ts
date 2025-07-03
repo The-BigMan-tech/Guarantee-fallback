@@ -128,16 +128,23 @@ export class Entity extends Controller {
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
         console.log("Health. Entity: ",this.health.value);
-        if (!this.targetController || !this.targetHealth) return;
-
-        if (this.targetHealth.isDead) {
-            this.state.behaviour = "patrol";
-        }else if (!this.targetHealth.isDead) {//we want to continuously chase the target constantly every frame its not dead because navToTArget as used in chase doesnt remember the target position by design choice.you have to pass it to it every frame to progress it towards that target.
-            this.navPosition = this.targetController.position;
-            this.movementType = "precise"
-            this.state.behaviour = "chasing"
-        }else if (this.health.isDead) {
-            this.state.behaviour = "death"
+        switch(true) {//the order of the branches show update priority
+            case this.health.isDead: {
+                this.state.behaviour = 'death';
+                break;
+            }
+            case (this.targetHealth && this.targetHealth.isDead): {
+                this.state.behaviour = 'patrol';
+                break;
+            }
+            case (this.targetHealth && !this.targetHealth.isDead): {
+                if (this.targetController) {
+                    this.navPosition = this.targetController.position.clone();
+                    this.movementType = 'precise';
+                    this.state.behaviour = 'chasing';
+                    break;
+                }
+            }
         }
     }
     private disposeMixer() {
