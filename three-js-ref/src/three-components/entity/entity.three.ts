@@ -171,6 +171,9 @@ export class Entity extends Controller {
     protected onLoop(): void {
         this.attackTimer += this.clockDelta || 0;
         this.patrolTimer += this.clockDelta || 0;
+        if (this.isAirBorne()) {
+            this.playJumpAnimation();
+        }
         this.respondToExternalState();
         this.respondToInternalState();
         this.handleRemoval();

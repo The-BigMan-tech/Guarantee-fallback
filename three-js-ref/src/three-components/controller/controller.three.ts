@@ -791,7 +791,7 @@ export abstract class Controller {
     private appliedKnockbackImpulse:boolean = false;//to debounce the knockback
 
     private knockbackTimer:number = 0;
-    private knockbackCooldown:seconds = 2;//to give the physics engine time to reflect the knockback
+    private knockbackCooldown:seconds = 1.5;//to give the physics engine time to reflect the knockback
 
     public knockbackCharacter(direction:'forward'| 'backwards',knockbackImpulse:number,scalar?:number):void {
         this.wakeUpBody();
