@@ -95,6 +95,7 @@ export class Entity extends Controller {
     }
     public death() {
         if (this.health.isDead && !this.isRemoved) {
+            this.fadeOut(this.clockDelta || 0);
             this.cleanUpResources();
         }
     }
@@ -146,6 +147,31 @@ export class Entity extends Controller {
                 }
             }
         }
+    }
+    private fadeDuration = 2; // seconds
+    private elapsed = 0;
+    
+    private fadeOut(deltaTime:number) {
+        this.elapsed += deltaTime;
+        const progress = Math.min(this.elapsed / this.fadeDuration, 1);
+        const opacity = 1 - progress;
+    
+        this.controller.traverse((child) => {
+            const mesh = child as THREE.Mesh;
+            if (mesh && mesh.material) {
+                if (Array.isArray(mesh.material)) {
+                    mesh.material.forEach((mat) => {
+                        mat.transparent = true;
+                        mat.opacity = opacity;
+                        mat.depthWrite = false; // helps with rendering transparent objects
+                    });
+                } else {
+                    mesh.material.transparent = true;
+                    mesh.material.opacity = opacity;
+                    mesh.material.depthWrite = false;
+                }
+            }
+        });
     }
     private disposeMixer() {
         if (this.mixer) {
