@@ -30,7 +30,7 @@ function spawnEntities() {
             targetController:player,
             targetHealth:player.health,
             healthValue:1,
-            knockback:500,
+            knockback:400,
             attackDamage:0
         }
         const managingStruct:ManagingStructure = {
@@ -43,6 +43,7 @@ function spawnEntities() {
         entityGroup.add(entity.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created)
     }
 }
+
 export function updateAllEntities() {
     entities.forEach(entity => entity.updateController());
     if (entities.length == 0) {

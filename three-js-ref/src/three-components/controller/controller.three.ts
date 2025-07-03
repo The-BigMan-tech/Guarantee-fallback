@@ -600,7 +600,7 @@ export abstract class Controller {
         const onSameYLevel = YDifference < 2.5;
         const targetReachedDistance = 5//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
         const hasReachedOriginalPath =  (onSameYLevel) && (distToOriginalPath < targetReachedDistance);
-
+        
         if (hasReachedOriginalPath) {
             this.terminateBranch();
             this.playIdleAnimation();
@@ -656,9 +656,9 @@ export abstract class Controller {
         }
 
         const finalDir = this.getSteeringDirection(finalPath)
-        const distToFinalDest = characterPos.distanceTo(finalPath)
+        const distToFinalDest = this.distanceXZ(characterPos,finalPath)
         const epsilon = 0.01;
-        let distToFinalDestThresh = 5;//this is to tell the algorithm how close to the target the character should be to be considered its close to the target or far from the target.
+        let distToFinalDestThresh = 2;//this is to tell the algorithm how close to the target the character should be to be considered its close to the target or far from the target.
 
         if (currentPath.distanceTo(finalPath) > epsilon) {//means they are different
             distToFinalDestThresh = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
@@ -838,9 +838,9 @@ export abstract class Controller {
         if (this.shouldStepUp) this.moveOverObstacle();
         else this.moveForward(this.dynamicData.horizontalVelocity);
     }
-    protected moveCharacterBackward(velocityDelta?:number):void {
+    protected moveCharacterBackward():void {
         this.wakeUpBody()
-        const backward = new THREE.Vector3(0,0,velocityDelta || this.dynamicData.horizontalVelocity);
+        const backward = new THREE.Vector3(0,0,this.dynamicData.horizontalVelocity);
         backward.applyQuaternion(this.character.quaternion);
         this.velocity.add(backward);
         this.forceCharacterDown();
