@@ -55,7 +55,7 @@ class Player extends Controller {
     private raycaster = new THREE.Raycaster();
     private lookDirection = new THREE.Vector2(0, 0); // center of screen for forward raycast
 
-    private attackCooldown = 0.5; // half a second cooldown
+    private attackCooldown = 0.8; // half a second cooldown
     private attackTimer = 0;
 
     private knockback:number;
