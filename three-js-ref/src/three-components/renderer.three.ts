@@ -4,7 +4,7 @@ import { loadEnv } from './env.three';
 import { updateSun } from './sun.three';
 import { physicsWorld } from './physics-world.three';
 import { player } from './player/player.three';
-import { updateAllEntities } from './entity/entity-manager.three';
+import { entityManager } from './entity/entity-manager.three';
 
 
 export const renderer = new THREE.WebGLRenderer({antialias:true});//play with this
@@ -19,7 +19,7 @@ renderer.setAnimationLoop(()=>{
     physicsWorld.step()//a must to be called first
     const deltaTime = clock.getDelta()
     player.updateController(deltaTime);
-    updateAllEntities(deltaTime);
+    entityManager.updateAllEntities(deltaTime);
     updateSun();
     renderer.render( scene,player.camera.cam);//a must to be called last
 });

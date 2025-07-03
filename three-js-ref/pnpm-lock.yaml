@@ -47,6 +47,9 @@ importers:
       poisson-disk-sampling:
         specifier: ^2.3.1
         version: 2.3.1
+      progressbar.js:
+        specifier: ^1.1.1
+        version: 1.1.1
       react:
         specifier: ^19.1.0
         version: 19.1.0
@@ -1965,6 +1968,9 @@ packages:
     resolution: {integrity: sha512-Qb1gy5OrP5+zDf2Bvnzdl3jsTf1qXVMazbvCoKhtKqVs4/YK4ozX4gKQJJVyNe+cajNPn0KoC0MC3FUmaHWEmQ==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
 
+  progressbar.js@1.1.1:
+    resolution: {integrity: sha512-FBsw3BKsUbb+hNeYfiP3xzvAAQrPi4DnGDw66bCmfuRCDLcslxyxv2GyYUdBSKFGSIBa73CUP5WMcl6F8AAXlw==}
+
   prompts@2.4.2:
     resolution: {integrity: sha512-NxNv/kLguCA7p3jE8oL2aEBsrJWgAakBpgmgK6lpPWV+WuOmY6r2/zbAVnP+T8bQlA0nzHXSJSJW0Hq7ylaD2Q==}
     engines: {node: '>= 6'}
@@ -2066,6 +2072,9 @@ packages:
   shebang-regex@3.0.0:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
+
+  shifty@2.20.4:
+    resolution: {integrity: sha512-4Y0qRkg8ME5XN8yGNAwmFOmsIURGFKT9UQfNL6DDJQErYtN5HsjyoBuJn41ZQfTkuu2rIbRMn9qazjKsDpO2TA==}
 
   siginfo@2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
@@ -4117,6 +4126,11 @@ snapshots:
       ansi-styles: 5.2.0
       react-is: 17.0.2
 
+  progressbar.js@1.1.1:
+    dependencies:
+      lodash.merge: 4.6.2
+      shifty: 2.20.4
+
   prompts@2.4.2:
     dependencies:
       kleur: 3.0.3
@@ -4233,6 +4247,10 @@ snapshots:
       shebang-regex: 3.0.0
 
   shebang-regex@3.0.0: {}
+
+  shifty@2.20.4:
+    optionalDependencies:
+      fsevents: 2.3.3
 
   siginfo@2.0.0: {}
 

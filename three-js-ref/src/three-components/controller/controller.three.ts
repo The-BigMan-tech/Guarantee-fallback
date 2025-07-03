@@ -79,6 +79,8 @@ export abstract class Controller {
     private idleAction: THREE.AnimationAction | null = null;
     private walkAction: THREE.AnimationAction | null = null;
     private jumpAction:THREE.AnimationAction | null = null;
+    private attackAction:THREE.AnimationAction | null = null;
+    private deathAction:THREE.AnimationAction | null = null;
 
     private shouldStepUp: boolean = false;
     private shouldPlayJumpAnimation: boolean = false;

@@ -944,3 +944,5 @@ so i use lin vel for direct horizontal movement,i still use lin vel for the init
 *private-first encapsulation
 
 knockback,time to respawn,entity manager
+
+so to implement the singleton pattern in ts which is easier than in js,i have to make the contructor private and only allow access to the instance through a getter that initializes the instance once.and optionally a type annotation for clarity
