@@ -1,6 +1,6 @@
 import { useAtom } from 'jotai';
 import { playerHealthAtom } from './health-state';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 //@ts-expect-error There is no current type declaration for this package in the repo
 import { Circle } from 'progressbar.js';
 
@@ -8,6 +8,7 @@ export function RingHealthBar() {
     const [healthState] = useAtom(playerHealthAtom);
     const containerRef = useRef<HTMLDivElement>(null);
     const circleRef = useRef<Circle | null>(null);
+    const [text,setText] = useState<string>()
 
     // Initialize the Circle progress bar once
     useEffect(() => {
@@ -20,12 +21,6 @@ export function RingHealthBar() {
                 trailColor: '#b8ebec', // Tailwind red-300
                 trailWidth: 4,
                 svgStyle: { width: '4rem', height: '4rem' },
-                text: {
-                    value: '', // empty string removes text
-                    style: {
-                        
-                    },
-                }
             });
         }
         return () => {
@@ -38,13 +33,12 @@ export function RingHealthBar() {
         if (!circleRef.current || !healthState) return;
         const progress = healthState.currentValue / healthState.maxValue;
         circleRef.current.set(progress); // Animate progress (0 to 1)
-        circleRef.current.setText(`${healthState.currentValue} / ${healthState.maxValue}`);
+        setText(healthState.currentValue.toString())
     }, [healthState]);
 
     return (
-        <div
-            ref={containerRef}
-            className="absolute bottom-0 left-1/2 transform -translate-x-1/2 mb-4 w-0 h-0 z-50 pointer-events-none overflow-visible"
-        />
+        <div ref={containerRef} className="fixed top-[70%] left-[47.5%] mb-4 w-0 h-0 z-50 pointer-events-none overflow-visible">
+            <h1 className='fixed top-[73.5%] left-[49.5%] text-[#189a9f] font-bold'>{text}</h1>
+        </div>
     );
 }
