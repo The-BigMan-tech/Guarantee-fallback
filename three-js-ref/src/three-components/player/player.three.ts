@@ -122,7 +122,7 @@ class Player extends Controller {
                 if (Player.keysPressed['KeyD']) {
                     this.moveCharacterLeft();
                 }
-            }
+            };
             if (Player.keysPressed['ArrowUp']) {
                 this.camera.rotateCameraDown(this.cameraClampAngle)
             };  
@@ -192,9 +192,9 @@ class Player extends Controller {
             this.playWalkSound()
         }else if (Player.keysPressed['KeyD']) {
             this.playWalkSound()
-        }else {
-            this.stopWalkSound()
-            this.playIdleAnimation()
+        }else if (!this.health.isDead) {
+            this.stopWalkSound();
+            this.playIdleAnimation();
         }
     }
     private toggleCamPerspective() {
@@ -238,7 +238,6 @@ class Player extends Controller {
             if (targetHealth && !targetHealth.isDead) {
                 targetHealth.takeDamage(this.attackDamage);
                 this.lookedAtEntity.knockbackCharacter('backwards',this.knockback);
-                this.playAttackAnimation();
                 this.attackTimer = 0;
             }
         }

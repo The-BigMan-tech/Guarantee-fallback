@@ -165,8 +165,11 @@ export abstract class Controller {
         if (walkClip) this.walkAction = this.mixer.clipAction(walkClip);
         if (jumpClip) this.jumpAction = this.mixer.clipAction(jumpClip);
         if (attackClip) this.attackAction = this.mixer.clipAction(attackClip);
-        if (deathClip) this.deathAction = this.mixer.clipAction(deathClip);
-
+        if (deathClip) {
+            this.deathAction = this.mixer.clipAction(deathClip);
+            this.deathAction.setLoop(THREE.LoopOnce, 1);
+            this.deathAction.clampWhenFinished = true;
+        }
         if (idleClip) {
             this.idleAction = this.mixer.clipAction(idleClip);
             this.idleAction.play();
@@ -915,7 +918,12 @@ export abstract class Controller {
         if (this.mixer && this.attackAction) this.fadeToAnimation(this.attackAction);
     }
     protected playDeathAnimation():void {
-        if (this.mixer && this.deathAction) this.fadeToAnimation(this.deathAction);
+        if (this.mixer && this.deathAction) {
+            this.fadeToAnimation(this.deathAction);
+            if (!this.deathAction.isRunning()) {
+                this.fadeToAnimation(this.deathAction);
+            }
+        }
     }
 
 
