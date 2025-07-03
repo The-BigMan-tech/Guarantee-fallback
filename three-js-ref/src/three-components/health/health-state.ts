@@ -4,8 +4,11 @@ interface HealthState {
     currentValue:number,
     maxValue:number
 }
-//This is for my react component to render
-export const playerHealthAtom = atom<HealthState>();
+//This is for my react component to render.im using an intial value to ensure that it always reflects a valid state
+export const playerHealthAtom = atom<HealthState>({
+    currentValue: 100,
+    maxValue: 100,
+});
 
 
 //These are for registration
