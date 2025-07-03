@@ -30,7 +30,7 @@ function spawnEntities() {
             targetController:player,
             targetHealth:player.health,
             healthValue:10,
-            knockback:400,
+            knockback:120,
             attackDamage:0
         }
         const managingStruct:ManagingStructure = {

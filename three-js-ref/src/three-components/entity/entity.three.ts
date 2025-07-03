@@ -87,7 +87,7 @@ export class Entity extends Controller {
         if (!this.targetHealth) return;
         if (this.attackTimer >= this.attackCooldown) {
             this.targetHealth.takeDamage(this.attackDamage);
-            // this.targetController?.knockbackCharacter(this.position,this.knockback)
+            this.targetController?.knockbackCharacter(this.position,this.knockback)
             this.attackTimer = 0;
         }
     }

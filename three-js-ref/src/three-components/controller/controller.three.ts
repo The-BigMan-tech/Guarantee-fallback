@@ -509,9 +509,16 @@ export abstract class Controller {
         console.log('.*jump proactively. groundIsNotPresentForward: ',!this.groundIsPresentForward);
         console.log('.*jump proactively. greaterOrSameYLevel: ',greaterOrSameYLevel);
 
+        if (this.isNearOriginalPath) {
+            const backwardDir = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion);
+            this.knockbackCharacter(backwardDir,150);
+            this.knockbackCooldown = 0.5
+            return
+        }
+        this.knockbackCooldown = 2
         if (onGround) {
             console.log("Entity is walking");
-            this.playWalkAnimation()
+            this.playWalkAnimation();
             this.playWalkSound();
         }
         if ((jumpProactively || this.canJumpOntoObstacle()) && !this.shouldStepUp && onGround) {
@@ -590,6 +597,7 @@ export abstract class Controller {
             this.autoMoveForward(finalDestY);
         }
     }
+    private isNearOriginalPath:boolean = false;
     protected navToTarget(originalPath:THREE.Vector3,rotateAndMove:boolean):boolean {//targetpos is the player for example
         this.timeSinceLastFlipCheck += this.clockDelta || 0;
         const characterPos = this.character.position;
@@ -600,6 +608,8 @@ export abstract class Controller {
         const targetReachedDistance = 5//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
         const hasReachedOriginalPath =  (onSameYLevel) && (distToOriginalPath < targetReachedDistance);
         
+        this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 10);
+
         if (hasReachedOriginalPath) {
             this.terminateBranch();
             this.playIdleAnimation();
@@ -669,7 +679,6 @@ export abstract class Controller {
             this.moveAgent(finalPath.y);
             return false
         }
-
         if (shouldWalkAroundObstacle) {//if should walk aroud an obstacle,i want it to move and rotate at the same time for a fluid walk around the obstacle's perimeter
             if (finalDir !== null) this.rotateCharacterX(finalDir);
             this.moveAgent(finalPath.y);
@@ -781,10 +790,9 @@ export abstract class Controller {
     private knockbackTimer:number = 0;
     private knockbackCooldown:seconds = 2;//to give the physics engine time to reflect the knockback
 
-    public knockbackCharacter(sourcePosition: THREE.Vector3,knockbackImpulse:number):void {
+    public knockbackCharacter(direction: THREE.Vector3,knockbackImpulse:number):void {
         this.wakeUpBody();
         const upwardScalar = 3
-        const direction = new THREE.Vector3().subVectors(this.position, sourcePosition).normalize();
         const impulse = new RAPIER.Vector3(
             direction.x * knockbackImpulse,
             knockbackImpulse * upwardScalar,
