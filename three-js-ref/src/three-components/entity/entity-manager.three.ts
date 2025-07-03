@@ -46,7 +46,7 @@ class EntityManager {
                 targetHealth:player.health,
                 healthValue:10,
                 knockback:150,
-                attackDamage:0
+                attackDamage:1
             }
             const managingStruct:ManagingStructure = {
                 group:this.entityGroup,
