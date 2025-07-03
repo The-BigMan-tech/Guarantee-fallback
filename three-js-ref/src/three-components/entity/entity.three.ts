@@ -43,6 +43,8 @@ export class Entity extends Controller {
     private struct:ManagingStructure;
     private knockback:number;
 
+    private lockState:boolean = false;//prevents the next frame from overriding the state set by a state method
+
     private movementType:'fluid' | 'precise' = 'precise'
 
     private state:EntityStateMachine = {
@@ -72,7 +74,7 @@ export class Entity extends Controller {
         }
         this.movementType = "fluid";
         this.state.behaviour = 'chasing';
-        this.respondToStateMachine();
+        this.lockState = true;
     }  
     private chase() {
         if (this.navPosition) {
@@ -80,7 +82,6 @@ export class Entity extends Controller {
             const atTarget = this.navToTarget(this.navPosition,rotateAndMove);
             if (atTarget) {
                 this.onTargetReached();
-                this.respondToStateMachine();//any state change from the above hook will be caught and responded to in the same frame
             }
         }
     }
@@ -103,7 +104,8 @@ export class Entity extends Controller {
     private onTargetReached() {//the behaviour when it reaches the target will be later tied to a state machine
         console.log("Agent has reached target");
         if (this.targetHealth && !this.targetHealth.isDead) {
-            this.state.behaviour = 'attack'
+            this.state.behaviour = 'attack';
+            this.lockState = true;
         }
     }
 
@@ -130,6 +132,7 @@ export class Entity extends Controller {
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
         console.log("Health. Entity: ",this.health.value);
+        if (this.lockState) return;//respect the state changes from state methods from the previous frame
         switch(true) {//the order of the branches show update priority
             case this.health.isDead: {
                 this.state.behaviour = 'death';
@@ -217,8 +220,9 @@ export class Entity extends Controller {
         this.attackTimer += this.clockDelta || 0;
         this.patrolTimer += this.clockDelta || 0;
         if (this.isAirBorne()) this.playJumpAnimation();
-        this.updateInternalState();
-        this.respondToStateMachine();
+        this.updateInternalState(); // respects lock, skips if locked
+        this.lockState = false; // Unlock AFTER updateInternalState
+        this.respondToStateMachine(); // acts on the locked/respected state
     }
 }
 export const entities:Entity[] = [];

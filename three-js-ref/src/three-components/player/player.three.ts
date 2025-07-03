@@ -271,13 +271,13 @@ class Player extends Controller {
         this.attackTimer += this.clockDelta || 0;
         this.toggleTimer += this.clockDelta || 0;
         this.displayHealth();
-        this.updateCameraHeightBasedOnHealth();
-        this.handleRespawn();
         this.bindKeysToControls();
         this.bindKeysToAnimations();
         this.toggleCamPerspective();
         this.updateCamPosition();
         this.camera.updateCamera(this.camRotationSpeed);
+        this.updateCameraHeightBasedOnHealth();
+        this.handleRespawn();
     }
 }
 
