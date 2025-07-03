@@ -43,7 +43,7 @@ class Player extends Controller {
     private targetY:number = 0;
 
     private toggleCooldown: number = 0.3; // Cooldown in seconds.this value in particular works the best
-    private lastToggleTime: number = 0;
+    private toggleTimer: number = 0;
 
     private isRespawning: boolean = false;
     private respawnDelay: number = 7; // seconds
@@ -169,10 +169,10 @@ class Player extends Controller {
             }
         }
         if (Player.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
-            if ((this.lastToggleTime + this.toggleCooldown) <= this.clock.elapsedTime) { //this is a debouncing mechanism
+            if (this.toggleTimer > this.toggleCooldown) { //this is a debouncing mechanism
                 this.camModeNum = ((this.camModeNum<3)?this.camModeNum + 1:1) as 1 | 2 | 3;//this is to increase the camMode,when its 3rd person,reset it back to 1st person and repeat 
-                this.lastToggleTime = this.clock.elapsedTime
-            }
+                this.toggleTimer = 0
+            }            
         }
     }
     private bindKeysToAnimations() {
@@ -266,6 +266,7 @@ class Player extends Controller {
 
     protected onLoop() {//this is where all character updates to this instance happens.
         this.attackTimer += this.clockDelta || 0;
+        this.toggleTimer += this.clockDelta || 0;
         this.displayHealth();
         this.updateCameraHeightBasedOnHealth();
         this.handleRespawn();

@@ -9,7 +9,7 @@ import { updateAllEntities } from './entity/entity-manager.three';
 
 export const renderer = new THREE.WebGLRenderer({antialias:true});//play with this
 export const canvas = renderer.domElement;
-
+const clock = new THREE.Clock();
 loadEnv(scene,renderer)
 
 renderer.shadowMap.enabled = true
@@ -17,8 +17,9 @@ renderer.setPixelRatio(window.devicePixelRatio)
 
 renderer.setAnimationLoop(()=>{   
     physicsWorld.step()//a must to be called first
-    player.updateController();
-    updateAllEntities();
+    const deltaTime = clock.getDelta()
+    player.updateController(deltaTime);
+    updateAllEntities(deltaTime);
     updateSun();
     renderer.render( scene,player.camera.cam);//a must to be called last
 });

@@ -29,7 +29,7 @@ function spawnEntities() {
         const entityMiscData:EntityMiscData = {
             targetController:player,
             targetHealth:player.health,
-            healthValue:1,
+            healthValue:10,
             knockback:400,
             attackDamage:0
         }
@@ -43,9 +43,8 @@ function spawnEntities() {
         entityGroup.add(entity.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created)
     }
 }
-
-export function updateAllEntities() {
-    entities.forEach(entity => entity.updateController());
+export function updateAllEntities(deltaTime:number) {
+    entities.forEach(entity => entity.updateController(deltaTime));
     if (entities.length == 0) {
         spawnEntities()
     }

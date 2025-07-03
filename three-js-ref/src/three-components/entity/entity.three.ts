@@ -37,7 +37,7 @@ export class Entity extends Controller {
     private patrolTimer = 0;
 
     private cleanupTimer = 0;
-    private cleanupCooldown = 5;//to allow playing an animation before removal
+    private cleanupCooldown = 7;//to allow playing an animation before removal
 
     private struct:ManagingStructure;
     private knockback:number;
@@ -87,7 +87,7 @@ export class Entity extends Controller {
         if (!this.targetHealth) return;
         if (this.attackTimer >= this.attackCooldown) {
             this.targetHealth.takeDamage(this.attackDamage);
-            this.targetController?.knockbackCharacter(this.position,this.knockback)
+            // this.targetController?.knockbackCharacter(this.position,this.knockback)
             this.attackTimer = 0;
         }
     }
