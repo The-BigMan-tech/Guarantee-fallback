@@ -38,7 +38,7 @@ export function RingHealthBar() {
 
     return (
         <div ref={containerRef} className="fixed top-[70%] left-[47.5%] mb-4 w-0 h-0 z-50 pointer-events-none overflow-visible">
-            <h1 className='fixed top-[73.5%] left-[49.5%] text-[#189a9f] font-bold'>{text}</h1>
+      
         </div>
     );
 }
