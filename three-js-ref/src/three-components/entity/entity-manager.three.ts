@@ -57,9 +57,8 @@ class EntityManager {
             this.entityGroup.add(entity.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created)
         }
     }
-    public updateAllEntities(deltaTime:number) {
-        entities.forEach(entity => entity.updateController(deltaTime));
-        if (entities.length == 0) {
+    public spawnNewEntitiesWithCooldown(deltaTime:number) {
+        if (entities.length === 0) {
             this.spawnTimer += deltaTime;//incresing the timer only when there are no entities ensures that new entities are only spawned after all other entities are dead.
             if (this.spawnTimer > this.spawnCooldown) {
                 this.spawnEntities()
@@ -68,7 +67,10 @@ class EntityManager {
         }else {
             this.spawnTimer = 0; // Reset spawn timer if entities exist to prevent accumulation when entities still exist
         }
-        
+    }
+    public updateAllEntities(deltaTime:number) {
+        entities.forEach(entity => entity.updateController(deltaTime));
+        this.spawnNewEntitiesWithCooldown(deltaTime)
     }
 }
 export const entityManager:Singleton<EntityManager> = EntityManager.instance;
