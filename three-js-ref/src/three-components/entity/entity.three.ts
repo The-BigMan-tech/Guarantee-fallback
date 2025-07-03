@@ -87,11 +87,15 @@ export class Entity extends Controller {
         if (!this.targetHealth) return;
         if (this.attackTimer >= this.attackCooldown) {
             this.targetHealth.takeDamage(this.attackDamage);
-            this.targetController?.knockbackCharacter('backwards',this.knockback)
+            this.targetController?.knockbackCharacter('backwards',this.knockback);
+            this.playIdleAnimation();
             this.attackTimer = 0;
         }
     }
-
+    private onTargetReached() {//the behaviour when it reaches the target will be later tied to a state machine
+        console.log("Agent has reached target");
+        this.state.behaviour = 'attack'
+    }
     private respondToInternalState() {
         switch (this.state.behaviour) {
             case 'patrol': {
@@ -163,10 +167,6 @@ export class Entity extends Controller {
                 this.isRemoved = true;
             }
         }
-    }
-    private onTargetReached() {//the behaviour when it reaches the target will be later tied to a state machine
-        console.log("Agent has reached target");
-        this.state.behaviour = 'attack'
     }
     protected onLoop(): void {
         this.attackTimer += this.clockDelta || 0;

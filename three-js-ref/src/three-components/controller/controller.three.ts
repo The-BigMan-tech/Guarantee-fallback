@@ -509,10 +509,9 @@ export abstract class Controller {
         console.log('.*jump proactively. groundIsNotPresentForward: ',!this.groundIsPresentForward);
         console.log('.*jump proactively. greaterOrSameYLevel: ',greaterOrSameYLevel);
 
-        if (this.isNearOriginalPath) {
+        if (this.isNearOriginalPath) {//this is for it to retain spacing between the entity and the target so that it doesnt jitter between moving and staying idle because of unstable small positional diff between it and the target like moving forward while knockinng back the entity
             return
         }
-        this.knockbackCooldown = 2
         if (onGround) {
             console.log("Entity is walking");
             this.playWalkAnimation();
@@ -529,7 +528,11 @@ export abstract class Controller {
         console.log("Entity Obstacle distance: ",this.obstacleDistance);
         console.log('Entity should step up: ',this.shouldStepUp);
     }
-
+    private moveAgent(finalDestY:number) {
+        if (!this.isFinalDestClose) {
+            this.autoMoveForward(finalDestY);
+        }
+    }
 
 
     // Helper method to get horizontal forward direction
@@ -589,13 +592,9 @@ export abstract class Controller {
         this.branchedPath = null;
         console.log('.:Cleared this branch');
     }
-    private moveAgent(finalDestY:number) {
-        if (!this.isFinalDestClose) {
-            this.autoMoveForward(finalDestY);
-        }
-    }
+
     private isNearOriginalPath:boolean = false;
-    private spaceCooldown = 1; // cooldown duration in seconds
+    private spaceCooldown = 0.8; // cooldown duration in seconds
     private spaceTimer = 0;
 
     protected navToTarget(originalPath:THREE.Vector3,rotateAndMove:boolean):boolean {//targetpos is the player for example
@@ -610,12 +609,11 @@ export abstract class Controller {
 
         if (hasReachedOriginalPath || this.isNearOriginalPath) {//the current value of isNearOriginalPath will come in the next frame before using it to make its decision.cuz its needed for automoveforward to know it should stop moving the entity.if i use it to return from here,that opportunity wont happen and the entity wont preserve any space between it and the target
             this.spaceTimer += this.clockDelta || 0;
-            if (this.spaceTimer > this.spaceCooldown) {
+            if (this.spaceTimer > this.spaceCooldown) {//i used a cooldown to retain this space for some time or else,it will just go straight to the target again
                 this.isNearOriginalPath = false
                 this.spaceTimer = 0
             }
             this.terminateBranch();
-            this.playIdleAnimation();
             this.stopWalkSound();
             console.log('.:Reached original path');
             return true
@@ -668,7 +666,7 @@ export abstract class Controller {
         }
 
         const finalDir = this.getSteeringDirection(finalPath)
-        const distToFinalDest = this.distanceXZ(characterPos,finalPath)//the reason why i used xz dist instead of hypot distance is so that it ignores the y component cuz if not,it will walk directly under me when i jump making me to always land on it when i jump which isnt the desired behaviour.because i didnt take into account the y comp,i made the threshold tighter down to 3 instead of 5.i did this on the final dest not the original path cuz its this that affects how it moves.which is why i kept the dit to original path as hypot distance
+        const distToFinalDest = this.distanceXZ(characterPos,finalPath)//the reason why i used xz dist instead of hypot distance is so that it ignores the y component cuz if not,it will walk directly under me when i jump making me to always land on it when i jump which isnt the desired behaviour.because i didnt take into account the y comp,i made the threshold tighter down to 2 instead of 5.i did this on the final dest not the original path cuz its this that affects how it moves.which is why i kept the dit to original path as hypot distance
         const epsilon = 0.01;
         let distToFinalDestThresh = 2;//this is to tell the algorithm how close to the target the character should be to be considered its close to the target or far from the target.
 
@@ -677,7 +675,7 @@ export abstract class Controller {
         }
 
         this.isFinalDestClose = distToFinalDest < distToFinalDestThresh;
-        this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 6);
+        this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 6);//this is used to control spacing between the entity and the target to prevent jitter when it knocks me back while coming at me
 
         if (rotateAndMove) {
             if (finalDir !== null) this.rotateCharacterX(finalDir);
