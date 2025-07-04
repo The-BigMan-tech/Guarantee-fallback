@@ -975,3 +975,14 @@ You should despawn far-away entities before spawning new ones. This approach ens
 so looping and mutating an array is only safe backwards cuz removal of elements at index i doenst cause a memory shift to those less than i but its not the same for forward.so y cleanup is safe as long as i take the precuation of backward iteration.Backward iteration is also often faster because the loop condition is simpler (i >= 0) and does not repeatedly access the array length (source 1).Forward iteration can be made safe if you adjust the index after removal or use other techniques like filtering or creating a new array.
 
 so physics queries are preserved for core mechanics handled by the controller but for other use cases,there are simpler options
+
+Exactly! Since you’re using composition instead of inheritance, you no longer need to duplicate the constructor signature or call super().
+
+With composition, you don’t have to do constructor forwarding or call super() repeatedly, which simplifies scaling and reduces boilerplate as your behavior layers grow.
+
+However, it’s perfectly fine—and common—to have a base class like your Controller that implements core mechanics and is extended one level down, especially because it encapsulates fundamental, shared functionality that naturally fits an inheritance model.
+
+Use inheritance for core, low-level systems (like Controller and its immediate subclasses) where behavior is tightly coupled and shared.
+
+Use composition for higher-level, flexible behaviors (like EnemyBehaviour, AllyBehaviour) that wrap or extend entities without deep inheritance chains.
+
