@@ -87,7 +87,7 @@ export class Entity extends Controller {
     }
     private attack() {
         if (!this.targetHealth) return;
-        if (this.attackTimer >= this.attackCooldown) {
+        if (this.attackTimer > this.attackCooldown) {
             this.playAttackAnimation();
             this.targetController?.knockbackCharacter('backwards',this.knockback);
             this.targetHealth.takeDamage(this.attackDamage);

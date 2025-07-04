@@ -247,7 +247,9 @@ class Player extends Controller {
 
 
     private attack() {
-        if (this.attackTimer < this.attackCooldown) return;
+        if (this.attackTimer < this.attackCooldown) {
+            return;
+        }
         if (this.lookedAtEntity) {
             const targetHealth = this.lookedAtEntity.health;
             if (targetHealth && !targetHealth.isDead) {
@@ -283,9 +285,9 @@ class Player extends Controller {
 
 
     protected onLoop() {//this is where all character updates to this instance happens.
-        this.attackTimer += this.clockDelta || 0;
         this.toggleTimer += this.clockDelta || 0;
         this.showEntityHealthTimer += this.clockDelta || 0;
+        this.attackTimer += this.clockDelta || 0;
         this.updateHealthGUI();
         this.bindKeysToControls();
         this.bindKeysToAnimations();

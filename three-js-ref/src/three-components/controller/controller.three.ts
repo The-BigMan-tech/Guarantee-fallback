@@ -923,7 +923,11 @@ export abstract class Controller {
         };
     }
     protected playAttackAnimation():void {
-        if (this.mixer && this.attackAction) this.fadeToAnimation(this.attackAction);
+        if (this.mixer && this.attackAction && this.deathAction){
+            if (!this.deathAction.isRunning()) {
+                this.fadeToAnimation(this.attackAction);
+            }
+        }
     }
     protected playDeathAnimation():void {
         if (this.mixer && this.deathAction) {
