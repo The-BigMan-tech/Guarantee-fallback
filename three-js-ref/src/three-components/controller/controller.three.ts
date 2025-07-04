@@ -586,7 +586,7 @@ export abstract class Controller {
     private useClockwiseScan:boolean = true;
     private timeSinceLastFlipCheck: number = 0;
     private flipCheckInterval:seconds = 1; // Minimum time interval between perimeter scan flip checks.Note: The flip check runs only when certain navigation conditions are met,so actual flips happen discretely, not strictly every interval.fine tune as needed to control the interval of flip checks
-    private minProgressThreshold: number = -2; // allow some declination in progress
+    private minProgressThreshold: number = 1; //im making it 1 to prevent situations where they get stuck
     private distSinceLastDelta: number | null = null;
     private static readonly ZERO_VECTOR = new THREE.Vector3(0,0,0);
 

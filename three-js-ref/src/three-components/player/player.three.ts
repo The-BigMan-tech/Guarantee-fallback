@@ -224,7 +224,7 @@ class Player extends Controller {
                     break;
                 }
                 case CameraMode.SecondPerson: {
-                    this.targetZ = -35;
+                    this.targetZ = -4;
                     this.camRotationSpeed = 1;
                     this.cameraClampAngle = this.secondPersonClamp
                     this.camera.setCameraRotationX(0,1);
