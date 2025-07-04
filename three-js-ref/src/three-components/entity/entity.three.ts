@@ -216,10 +216,13 @@ export class Entity extends Controller {
             this.isRemoved = true;
         }
     }
+    get cleanUp() {
+        return this.cleanUpResources;
+    }
     protected onLoop(): void {
         this.attackTimer += this.clockDelta || 0;
         this.patrolTimer += this.clockDelta || 0;
-        if (this.isAirBorne()) this.playJumpAnimation();
+        if (this.isAirBorne() && (!this.health.isDead)) this.playJumpAnimation();
         this.updateInternalState(); // respects lock, skips if locked
         this.lockState = false; // Unlock AFTER updateInternalState
         this.respondToStateMachine(); // acts on the locked/respected state

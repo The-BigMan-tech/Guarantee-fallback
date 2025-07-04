@@ -966,6 +966,9 @@ Simply toggle visibility, which React and the browser handle very efficiently.
 This pattern—mount once, show/hide via CSS—is a common and effective React approach when dealing with third-party libraries that manage their own DOM or state internally (like progressbar.js).
 
 *todo
-entity variation
 entity-entity relationships
 proximity entity management
+
+You should despawn far-away entities before spawning new ones. This approach ensures that you free up resources and maintain a consistent entity count before adding new entities, which helps avoid overcrowding and performance spikes.
+
+so looping and mutating an array is only safe backwards cuz removal of elements at index i doenst cause a memory shift to those less than i but its not the same for forward.so y cleanup is safe as long as i take the precuation of backward iteration.Backward iteration is also often faster because the loop condition is simpler (i >= 0) and does not repeatedly access the array length (source 1).Forward iteration can be made safe if you adjust the index after removal or use other techniques like filtering or creating a new array.

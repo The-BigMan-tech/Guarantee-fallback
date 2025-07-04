@@ -15,6 +15,7 @@ class EntityManager {
 
     private spawnTimer:number = 0;
     private spawnCooldown:number = 3;
+    private despawnRadius: number = 100;
 
     private raycaster = new THREE.Raycaster();
     private down = new THREE.Vector3(0, -1, 0);
@@ -39,6 +40,17 @@ class EntityManager {
         const intersects = this.raycaster.intersectObjects(cubesGroup.children, true);
         if (intersects.length > 0) return intersects[0].point.y;
         return 20  // Default ground height if no intersection
+    }
+    private despawnFarEntities() {
+        const playerPos = player.controller.position;
+        for (let i = entities.length - 1; i >= 0; i--) {
+            const entity = entities[i];
+            const entityPos = entity.controller.position; // Assuming THREE.Vector3
+            const distance = playerPos.distanceTo(entityPos);
+            if (distance > this.despawnRadius) {
+                entity.cleanUp()
+            }
+        }
     }
     private spawnEntities() {
         const spawnRadius = 7; // or smaller if you want
@@ -105,6 +117,7 @@ class EntityManager {
     }
     public updateAllEntities(deltaTime:number) {
         entities.forEach(entity => entity.updateController(deltaTime));
+        this.despawnFarEntities();
         this.spawnNewEntitiesWithCooldown(deltaTime)
     }
 }
