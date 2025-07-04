@@ -26,6 +26,12 @@ class EntityManager {
         if (!EntityManager.manager) EntityManager.manager = new EntityManager();
         return EntityManager.manager;
     }
+    private randomIntBetween(min: number, max: number): number {
+        return Math.floor((Math.random() * (max - min + 1)) + min);
+    }
+    private randomFloatBetween(min: number, max: number): number {
+        return Math.random() * (max - min) + min;
+    }
     private getHeightAtPosition(x: number, z: number): number {
         const maxHeightAboveTerrain = 100;
         const origin = new THREE.Vector3(x, maxHeightAboveTerrain, z);
@@ -35,7 +41,7 @@ class EntityManager {
         return 20  // Default ground height if no intersection
     }
     private spawnEntities() {
-        const spawnRadius = 15; // or smaller if you want
+        const spawnRadius = 7; // or smaller if you want
         const minSpawnDistance = 5; // adjust as needed
 
         const pds = new PoissonDiskSampling({
@@ -61,9 +67,9 @@ class EntityManager {
                 mass:40,
             }
             const entityDynamicData:DynamicControllerData = {
-                horizontalVelocity:20,
-                jumpVelocity:27,
-                jumpResistance:6,
+                horizontalVelocity:this.randomIntBetween(10,30),
+                jumpVelocity:this.randomIntBetween(27,35),
+                jumpResistance:this.randomIntBetween(6,10),
                 rotationDelta:0.05,
                 rotationSpeed:0.2,
                 maxStepUpHeight:2,
@@ -72,9 +78,9 @@ class EntityManager {
             const entityMiscData:EntityMiscData = {
                 targetController:player,
                 targetHealth:player.health,
-                healthValue:10,
-                knockback:150,
-                attackDamage:0.5
+                healthValue:this.randomIntBetween(4,10),
+                knockback:this.randomIntBetween(150,200),
+                attackDamage:this.randomFloatBetween(0.5,1)
             }
             const managingStruct:ManagingStructure = {
                 group:this.entityGroup,
