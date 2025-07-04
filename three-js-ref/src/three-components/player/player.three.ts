@@ -251,6 +251,7 @@ class Player extends Controller {
             if (targetHealth && !targetHealth.isDead) {
                 targetHealth.takeDamage(this.attackDamage);
                 this.lookedAtEntity.knockbackCharacter('backwards',this.knockback);
+                this.playAttackAnimation();
                 this.attackTimer = 0;
             }
         }
@@ -295,7 +296,7 @@ class Player extends Controller {
 }
 
 const playerFixedData:FixedControllerData = {
-    modelPath:'./silvermoon.glb',
+    modelPath:'./snowman-v3.glb',
     spawnPoint: new RAPIER.Vector3(0,20,0),
     characterHeight:2,
     characterWidth:1,
