@@ -32,7 +32,7 @@ class EntityManager {
         return Math.floor((Math.random() * (max - min + 1)) + min);
     }
     private randomFloatBetween(min: number, max: number): number {
-        return Math.random() * (max - min) + min;
+        return ((Math.random() * (max - min)) + min);
     }
     private getHeightAtPosition(x: number, z: number): number {
         const maxHeightAboveTerrain = 100;
@@ -54,7 +54,7 @@ class EntityManager {
         }
     }
     private spawnEntities() {
-        const spawnRadius = 7; // or smaller if you want
+        const spawnRadius = 10; // or smaller if you want
         const minSpawnDistance = 5; // adjust as needed
 
         const pds = new PoissonDiskSampling({
@@ -66,8 +66,8 @@ class EntityManager {
         const spawnPoints = pds.fill();
         for (const [x, z] of spawnPoints) {
             const playerPos = player.position;
-            const spawnX = playerPos.x + (x - (spawnRadius / 2));//offset from the player spawnpoint
-            const spawnZ = playerPos.z + (z - (spawnRadius / 2));
+            const spawnX = playerPos.x + (x - (spawnRadius / 2));//offset from the player spawnpoint by adding the player cords to it
+            const spawnZ = playerPos.z + (z - (spawnRadius / 2));//the reason why we are adding z-r/2 instead of z directly is so that its centered around that origin
             const spawnY = this.getHeightAtPosition(spawnX,spawnZ); // or sample terrain height at (spawnX, spawnZ)
             const spawnPoint = new RAPIER.Vector3(spawnX, spawnY, spawnZ);
 
@@ -93,7 +93,7 @@ class EntityManager {
                 targetHealth:player.health,
                 healthValue:this.randomIntBetween(4,10),
                 knockback:this.randomIntBetween(150,200),
-                attackDamage:this.randomFloatBetween(0.5,1)
+                attackDamage:0
             }
             const managingStruct:ManagingStructure = {
                 group:this.entityGroup,

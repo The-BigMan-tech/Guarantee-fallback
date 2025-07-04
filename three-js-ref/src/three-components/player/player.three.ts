@@ -217,7 +217,7 @@ class Player extends Controller {
         if ((Player.keysPressed['KeyT'])) {
             switch (this.camModeNum) {
                 case CameraMode.FirstPerson: {
-                    this.targetZ = 0;
+                    this.targetZ = -1;
                     this.camRotationSpeed = this.originalCamRotSpeed
                     this.cameraClampAngle = this.firstPersonClamp
                     this.camera.setCameraRotationX(0,0);
