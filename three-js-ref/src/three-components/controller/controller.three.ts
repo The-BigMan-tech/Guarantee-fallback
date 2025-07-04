@@ -164,7 +164,11 @@ export abstract class Controller {
     
         if (walkClip) this.walkAction = this.mixer.clipAction(walkClip);
         if (jumpClip) this.jumpAction = this.mixer.clipAction(jumpClip);
-        if (attackClip) this.attackAction = this.mixer.clipAction(attackClip);
+        if (attackClip) {
+            this.attackAction = this.mixer.clipAction(attackClip);
+            this.attackAction.setLoop(THREE.LoopOnce, 1);
+            this.attackAction.clampWhenFinished = true;
+        }
         if (deathClip) {
             this.deathAction = this.mixer.clipAction(deathClip);
             this.deathAction.setLoop(THREE.LoopOnce, 1);
@@ -912,7 +916,11 @@ export abstract class Controller {
         if (this.mixer && this.walkAction) this.fadeToAnimation(this.walkAction);
     }
     protected playIdleAnimation():void {
-        if (this.mixer && this.idleAction) this.fadeToAnimation(this.idleAction);
+        if (this.mixer && this.idleAction && this.attackAction) {
+            if (!this.attackAction.isRunning()) {
+                this.fadeToAnimation(this.idleAction);
+            }
+        };
     }
     protected playAttackAnimation():void {
         if (this.mixer && this.attackAction) this.fadeToAnimation(this.attackAction);
@@ -920,9 +928,6 @@ export abstract class Controller {
     protected playDeathAnimation():void {
         if (this.mixer && this.deathAction) {
             this.fadeToAnimation(this.deathAction);
-            if (!this.deathAction.isRunning()) {
-                this.fadeToAnimation(this.deathAction);
-            }
         }
     }
 

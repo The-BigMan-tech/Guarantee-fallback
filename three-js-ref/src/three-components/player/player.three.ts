@@ -206,6 +206,8 @@ class Player extends Controller {
             this.playWalkSound()
         }else if (Player.keysPressed['KeyD']) {
             this.playWalkSound()
+        }else if (Player.keysPressed['KeyQ']) {
+            this.playAttackAnimation();
         }else if (!this.health.isDead) {
             this.stopWalkSound();
             this.playIdleAnimation();

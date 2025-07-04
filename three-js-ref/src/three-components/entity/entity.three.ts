@@ -92,6 +92,8 @@ export class Entity extends Controller {
             this.targetController?.knockbackCharacter('backwards',this.knockback);
             this.targetHealth.takeDamage(this.attackDamage);
             this.attackTimer = 0;
+        }else {
+            this.playIdleAnimation()
         }
     }
     public death() {
