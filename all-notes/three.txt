@@ -964,3 +964,8 @@ Allow smooth, immediate updates to the circle’s progress.
 Simply toggle visibility, which React and the browser handle very efficiently.
 
 This pattern—mount once, show/hide via CSS—is a common and effective React approach when dealing with third-party libraries that manage their own DOM or state internally (like progressbar.js).
+
+*todo
+entity variation
+entity-entity relationships
+proximity entity management

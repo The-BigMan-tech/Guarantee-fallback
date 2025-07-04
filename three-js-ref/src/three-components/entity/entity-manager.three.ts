@@ -4,16 +4,21 @@ import type { EntityMiscData, ManagingStructure } from "./entity.three";
 import * as RAPIER from '@dimforge/rapier3d'
 import { player } from "../player/player.three";
 import { Entity,entities} from "./entity.three";
+import PoissonDiskSampling from 'poisson-disk-sampling';
+import { cubesGroup } from "../tall-cubes.three";
+
 
 type Singleton<T> = T;
-
 class EntityManager {
     private static manager: EntityManager;
     public entityGroup:THREE.Group = new THREE.Group();
 
     private spawnTimer:number = 0;
     private spawnCooldown:number = 3;
-    private spawnCount:number = 1;
+
+    private raycaster = new THREE.Raycaster();
+    private down = new THREE.Vector3(0, -1, 0);
+
 
     private constructor() {};
     
@@ -21,12 +26,35 @@ class EntityManager {
         if (!EntityManager.manager) EntityManager.manager = new EntityManager();
         return EntityManager.manager;
     }
-
+    private getHeightAtPosition(x: number, z: number): number {
+        const maxHeightAboveTerrain = 100;
+        const origin = new THREE.Vector3(x, maxHeightAboveTerrain, z);
+        this.raycaster.set(origin, this.down);
+        const intersects = this.raycaster.intersectObjects(cubesGroup.children, true);
+        if (intersects.length > 0) return intersects[0].point.y;
+        return 20  // Default ground height if no intersection
+    }
     private spawnEntities() {
-        for (let i = 0;i < this.spawnCount;i++) {
+        const spawnRadius = 15; // or smaller if you want
+        const minSpawnDistance = 5; // adjust as needed
+
+        const pds = new PoissonDiskSampling({
+            shape: [spawnRadius, spawnRadius],
+            minDistance: minSpawnDistance,
+            tries: 10
+        });
+
+        const spawnPoints = pds.fill();
+        for (const [x, z] of spawnPoints) {
+            const playerPos = player.controller.position;
+            const spawnX = playerPos.x + (x - (spawnRadius / 2));//offset from the player spawnpoint
+            const spawnZ = playerPos.z + (z - (spawnRadius / 2));
+            const spawnY = this.getHeightAtPosition(spawnX,spawnZ); // or sample terrain height at (spawnX, spawnZ)
+            const spawnPoint = new RAPIER.Vector3(spawnX, spawnY, spawnZ);
+
             const entityFixedData:FixedControllerData = {
                 modelPath:'./silvermoon.glb',
-                spawnPoint: new RAPIER.Vector3(0,20,-10),
+                spawnPoint:spawnPoint,
                 characterHeight:2,
                 characterWidth:1,
                 shape:'capsule',
@@ -46,7 +74,7 @@ class EntityManager {
                 targetHealth:player.health,
                 healthValue:10,
                 knockback:150,
-                attackDamage:1
+                attackDamage:0.5
             }
             const managingStruct:ManagingStructure = {
                 group:this.entityGroup,
