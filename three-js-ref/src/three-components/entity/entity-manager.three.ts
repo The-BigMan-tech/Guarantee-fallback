@@ -6,6 +6,7 @@ import { player } from "../player/player.three";
 import { Entity,entities} from "./entity.three";
 import PoissonDiskSampling from 'poisson-disk-sampling';
 import { cubesGroup } from "../tall-cubes.three";
+import { EnemyBehaviour } from "./enemy.three";
 
 
 type Singleton<T> = T;
@@ -45,10 +46,10 @@ class EntityManager {
         const playerPos = player.controller.position;
         for (let i = entities.length - 1; i >= 0; i--) {
             const entity = entities[i];
-            const entityPos = entity.controller.position; // Assuming THREE.Vector3
+            const entityPos = entity._entity.controller.position; // Assuming THREE.Vector3
             const distance = playerPos.distanceTo(entityPos);
             if (distance > this.despawnRadius) {
-                entity.cleanUp()
+                entity._entity.cleanUp()
             }
         }
     }
@@ -99,9 +100,10 @@ class EntityManager {
                 entities:entities
             }
             const entity = new Entity(entityFixedData,entityDynamicData,entityMiscData,managingStruct);
-            entities.push(entity);
-            this.entityGroup.add(entity.controller);
-            this.entityGroup.add(entity.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created)
+            const enemy = new EnemyBehaviour(entity)
+            entities.push(enemy);
+            this.entityGroup.add(enemy._entity.controller);
+            this.entityGroup.add(enemy._entity.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created)
         }
     }
     public spawnNewEntitiesWithCooldown(deltaTime:number) {
@@ -116,7 +118,7 @@ class EntityManager {
         }
     }
     public updateAllEntities(deltaTime:number) {
-        entities.forEach(entity => entity.updateController(deltaTime));
+        entities.forEach(entity => entity._entity.updateController(deltaTime));
         this.despawnFarEntities();
         this.spawnNewEntitiesWithCooldown(deltaTime)
     }

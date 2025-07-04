@@ -15,9 +15,13 @@ export interface EntityMiscData {
 interface EntityStateMachine {
     behaviour:Behaviour
 }
+export interface EntityContract {
+    _entity:Entity
+}
+
 export interface ManagingStructure {
     group:THREE.Group,
-    entities:Entity[]
+    entities:EntityContract[],
 }
 export class Entity extends Controller {
     private targetController:Controller | null = null;
@@ -43,6 +47,9 @@ export class Entity extends Controller {
     private struct:ManagingStructure;
     private knockback:number;
 
+    private fadeDuration = 2; // seconds
+    private elapsed = 0;
+
     private lockState:boolean = false;//prevents the next frame from overriding the state set by a state method
 
     private movementType:'fluid' | 'precise' = 'precise'
@@ -66,7 +73,7 @@ export class Entity extends Controller {
         const randomOffset = new THREE.Vector3(randomPoint,0,randomPoint);
         return currentPos.add(randomOffset);
     }
-    private patrol() {
+    private patrol():void {
         if (this.patrolTimer >= this.patrolCooldown) {
             this.patrolTarget = this.getRandomPatrolPoint();
             this.navPosition = this.patrolTarget;
@@ -76,16 +83,18 @@ export class Entity extends Controller {
         this.state.behaviour = 'chasing';
         this.lockState = true;
     }  
-    private chase() {
+    private chase():void {
         if (this.navPosition) {
+            console.log(' :88 => chase => ..navPosition:', this.navPosition);
             const rotateAndMove = (this.movementType == "precise") ? false : true;
             const atTarget = this.navToTarget(this.navPosition,rotateAndMove);
             if (atTarget) {
-                this.onTargetReached();
+                if (this.onTargetReached) this.onTargetReached();
             }
         }
     }
-    private attack() {
+    private attack():void {
+        console.log("Called attack");
         if (!this.targetHealth) return;
         if (this.attackTimer > this.attackCooldown) {
             this.playAttackAnimation();
@@ -96,24 +105,19 @@ export class Entity extends Controller {
             this.playIdleAnimation()
         }
     }
-    public death() {
+    public death():void {
         if (this.health.isDead && !this.isRemoved) {
             this.playDeathAnimation();
             this.fadeOut(this.clockDelta || 0);
             this.cleanUpResources();
         }
     }
-    private onTargetReached() {//the behaviour when it reaches the target will be later tied to a state machine
-        console.log("Agent has reached target");
-        if (this.targetHealth && !this.targetHealth.isDead) {
-            this.state.behaviour = 'attack';
-            this.playIdleAnimation()
-            this.lockState = true;
-        }
-    }
 
+    public onTargetReached?: () => void;
+    public updateInternalState?:()=>void;
 
-    private respondToStateMachine() {
+    private respondToStateMachine():void {
+        console.log("State: ",this.state.behaviour);
         switch (this.state.behaviour) {
             case 'patrol': {
                 this.patrol();
@@ -132,33 +136,8 @@ export class Entity extends Controller {
                 break;
             }
         }
-    }
-    private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
-        console.log("Health. Entity: ",this.health.value);
-        if (this.lockState) return;//respect the state changes from state methods from the previous frame
-        switch(true) {//the order of the branches show update priority
-            case this.health.isDead: {
-                this.state.behaviour = 'death';
-                break;
-            }
-            case (this.targetHealth && this.targetHealth.isDead): {
-                this.state.behaviour = 'patrol';
-                break;
-            }
-            case (this.targetHealth && !this.targetHealth.isDead): {
-                if (this.targetController) {
-                    this.navPosition = this.targetController.position.clone();
-                    this.movementType = 'precise';
-                    this.state.behaviour = 'chasing';
-                    break;
-                }
-            }
-        }
-    }
-    private fadeDuration = 2; // seconds
-    private elapsed = 0;
-    
-    private fadeOut(deltaTime:number) {
+    } 
+    private fadeOut(deltaTime:number):void {
         this.elapsed += deltaTime;
         const progress = Math.min(this.elapsed / this.fadeDuration, 1);
         const opacity = 1 - progress;
@@ -180,14 +159,14 @@ export class Entity extends Controller {
             }
         });
     }
-    private disposeMixer() {
+    private disposeMixer():void {
         if (this.mixer) {
             this.mixer.stopAllAction();
             this.mixer.uncacheRoot(this.mixer.getRoot());
             this.mixer = null; // Remove reference for GC
         }
     }
-    private disposeHierarchy(object: THREE.Object3D) {
+    private disposeHierarchy(object: THREE.Object3D):void {
         object.traverse((child) => {
             if ((child as THREE.Mesh).geometry) {//clean its geometry
                 (child as THREE.Mesh).geometry.dispose();
@@ -202,7 +181,7 @@ export class Entity extends Controller {
             }
         });
     }
-    private cleanUpResources() {
+    private cleanUpResources():void {
         this.cleanupTimer += this.clockDelta || 0;
         if (this.cleanupTimer >= this.cleanupCooldown) {
             this.points.clear();//clear the points array used for visual debugging
@@ -210,8 +189,10 @@ export class Entity extends Controller {
             this.struct.group.remove(this.controller);//remove the controller from the scene
             this.disposeHierarchy(this.controller);//remove the geometry data from the gpu
             this.disposeMixer();//to prevent animation updates
-            const index = this.struct.entities.indexOf(this);
+            const index = this.struct.entities.findIndex(wrapper => wrapper._entity === this);
             if (index !== -1) this.struct.entities.splice(index, 1);//remove it from the entity array to prevent its physics controller from updating,stop the player from possibly intersecting with it although unlikely since its removed from the scene and finally for garbae collection
+            this.onTargetReached = undefined;//clear hook bindings
+            this.updateInternalState = undefined;
             if (this.characterRigidBody) {
                 physicsWorld.removeRigidBody(this.characterRigidBody);//remove its rigid body from the physics world
                 this.characterRigidBody = null;//this is a critical step for it to work.nullify the ref to the rigid body after removal.
@@ -219,17 +200,47 @@ export class Entity extends Controller {
             this.isRemoved = true;
         }
     }
-    get cleanUp() {
+    get cleanUp():() => void {
         return this.cleanUpResources;
     }
+    get _targetHealth():Health | null {
+        return this.targetHealth;
+    }
+    get _state():EntityStateMachine {
+        return this.state
+    }
+    get _lockState():boolean {
+        return this.lockState
+    }
+    get _health():Health {
+        return this.health;
+    }
+    get _targetController():Controller | null {
+        return this.targetController;
+    }
+    get _navPosition(): THREE.Vector3 | null {
+        return this.navPosition;
+    }
+    set _navPosition(newPosition:THREE.Vector3 | null) {
+        this.navPosition = newPosition
+    }
+    set _movementType(moveType:'fluid' | 'precise') {
+        this.movementType = moveType
+    }
+    public _lockTheState() {
+        this.lockState = true
+    }
+    
     protected onLoop(): void {
         this.attackTimer += this.clockDelta || 0;
         this.patrolTimer += this.clockDelta || 0;
         if (this.isAirBorne() && (!this.health.isDead)) this.playJumpAnimation();
-        this.updateInternalState(); // respects lock, skips if locked
+        if (this.updateInternalState && !this.lockState) {
+            console.log("Called update internal state");
+            this.updateInternalState(); // respects lock, skips if locked
+        }
         this.lockState = false; // Unlock AFTER updateInternalState
         this.respondToStateMachine(); // acts on the locked/respected state
     }
 }
-export const entities:Entity[] = [];
-
+export const entities:EntityContract[] = [];

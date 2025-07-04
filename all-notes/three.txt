@@ -986,3 +986,20 @@ Use inheritance for core, low-level systems (like Controller and its immediate s
 
 Use composition for higher-level, flexible behaviors (like EnemyBehaviour, AllyBehaviour) that wrap or extend entities without deep inheritance chains.
 
+use getters or setters for props that should be kept encapsulated but still available to the codebase
+
+Your composed classes like EnemyBehaviour do not have their own onLoop or update method inside the entity class itself.
+
+Instead, they plug into hooks or callbacks exposed by the composed Entity, such as onTargetReached.
+
+When you call enemy.entity.onLoop() (or updateController() if that calls onLoop internally), the entity runs its internal logic and invokes these hooks.
+
+The hooked behavior methods in EnemyBehaviour or other behavior classes then execute their custom logic, effectively extending the entity’s behavior without inheritance.
+
+Using .bind(this) ensures that when Entity calls onTargetReached() or updateInternalState(), the this inside those methods points to the EnemyBehaviour instance.
+
+control flow bug/Returning early inside the main update loop (or any critical recurring function) can unintentionally prevent important code from running later in that loop.
+
+This can cause your update cycle to freeze or stall, because essential steps like unlocking states, updating animations, or processing state machines never happen.
+
+The problem is especially subtle when the early return is conditional (e.g., based on a lock flag), making the bug intermittent or hard to spot.

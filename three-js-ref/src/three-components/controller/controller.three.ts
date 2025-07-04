@@ -915,7 +915,7 @@ export abstract class Controller {
     protected playWalkAnimation():void {
         if (this.mixer && this.walkAction) this.fadeToAnimation(this.walkAction);
     }
-    protected playIdleAnimation():void {
+    public playIdleAnimation():void {
         if (this.mixer && this.idleAction && this.attackAction) {
             if (!this.attackAction.isRunning()) {
                 this.fadeToAnimation(this.idleAction);

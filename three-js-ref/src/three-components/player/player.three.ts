@@ -4,7 +4,7 @@ import type { FixedControllerData,DynamicControllerData } from "../controller/co
 import * as RAPIER from "@dimforge/rapier3d"
 import * as THREE from "three"
 import { Health } from "../health/health";
-import { Entity } from "../entity/entity.three";
+import { type EntityContract } from "../entity/entity.three";
 import { entities } from "../entity/entity.three";
 import { combatCooldown } from "../physics-world.three";
 import { setEntityHealth, setPlayerHealth } from "../health/health-state";
@@ -61,7 +61,7 @@ class Player extends Controller {
     private attackTimer = 0;
 
     private knockback:number;
-    private lookedAtEntity:Entity | null = null;
+    private lookedAtEntity:EntityContract | null = null;
 
     private showEntityHealthTimer:number = 0;
     private showEntityHealthCooldown:number = 3;
@@ -74,15 +74,15 @@ class Player extends Controller {
         }
         return false;
     }
-    public getTheLookedAtEntity(entities:Entity[], maxDistance = 10):Entity | null {
+    public getTheLookedAtEntity(entities:EntityContract[], maxDistance = 10):EntityContract | null {
         this.raycaster.setFromCamera(this.lookDirection, this.camera.perspectiveCamera);
-        const objectsToTest = entities.map(e => e.controller); // implement getRootObject() to return THREE.Object3D of entity
+        const objectsToTest = entities.map(e => e._entity.controller); // implement getRootObject() to return THREE.Object3D of entity
         const intersects = this.raycaster.intersectObjects(objectsToTest, true);
         
         if (intersects.length > 0 && intersects[0].distance <= maxDistance) {
             const intersectedObject = intersects[0].object;// Find which entity corresponds to the intersected object
             for (const entity of entities) {
-                if (this.isDescendantOf(intersectedObject, entity.controller)) {
+                if (this.isDescendantOf(intersectedObject, entity._entity.controller)) {
                     return entity;
                 }
             }
@@ -109,7 +109,7 @@ class Player extends Controller {
         this.lookedAtEntity = this.getTheLookedAtEntity(entities, 10);
         setPlayerHealth({currentValue:this.health.value,maxValue:this.health.maxHealth});
         if (this.lookedAtEntity) {
-            const entityHealth = this.lookedAtEntity.health;
+            const entityHealth = this.lookedAtEntity._entity.health;
             console.log('entityHealth:', entityHealth);
             setEntityHealth({currentValue:entityHealth.value,maxValue:entityHealth.maxHealth})
         }else if (this.showEntityHealthTimer > this.showEntityHealthCooldown) {
@@ -251,10 +251,10 @@ class Player extends Controller {
             return;
         }
         if (this.lookedAtEntity) {
-            const targetHealth = this.lookedAtEntity.health;
+            const targetHealth = this.lookedAtEntity._entity.health;
             if (targetHealth && !targetHealth.isDead) {
                 targetHealth.takeDamage(this.attackDamage);
-                this.lookedAtEntity.knockbackCharacter('backwards',this.knockback);
+                this.lookedAtEntity._entity.knockbackCharacter('backwards',this.knockback);
                 this.playAttackAnimation();
                 this.attackTimer = 0;
             }
