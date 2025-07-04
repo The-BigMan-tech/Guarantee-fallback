@@ -689,7 +689,7 @@ export abstract class Controller {
         }
 
         this.isFinalDestClose = distToFinalDest < distToFinalDestThresh;
-        this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 6);//this is used to control spacing between the entity and the target to prevent jitter when it knocks me back while coming at me
+        this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 4);//this is used to control spacing between the entity and the target to prevent jitter when it knocks me back while coming at me
 
         if (rotateAndMove) {
             if (finalDir !== null) this.rotateCharacterX(finalDir);

@@ -107,6 +107,7 @@ export class Entity extends Controller {
         console.log("Agent has reached target");
         if (this.targetHealth && !this.targetHealth.isDead) {
             this.state.behaviour = 'attack';
+            this.playIdleAnimation()
             this.lockState = true;
         }
     }
