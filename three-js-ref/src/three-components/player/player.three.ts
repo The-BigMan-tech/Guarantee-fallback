@@ -74,7 +74,7 @@ class Player extends Controller {
         }
         return false;
     }
-    public getTheLookedAtEntity(entities:EntityContract[], maxDistance = 10):EntityContract | null {
+    private getTheLookedAtEntity(entities:EntityContract[], maxDistance = 10):EntityContract | null {
         this.raycaster.setFromCamera(this.lookDirection, this.camera.perspectiveCamera);
         const objectsToTest = entities.map(e => e._entity.controller); // implement getRootObject() to return THREE.Object3D of entity
         const intersects = this.raycaster.intersectObjects(objectsToTest, true);

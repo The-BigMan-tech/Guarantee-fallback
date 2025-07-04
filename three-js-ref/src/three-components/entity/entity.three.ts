@@ -189,9 +189,9 @@ export class Entity extends Controller {
             this.struct.group.remove(this.controller);//remove the controller from the scene
             this.disposeHierarchy(this.controller);//remove the geometry data from the gpu
             this.disposeMixer();//to prevent animation updates
-            const index = this.struct.entities.findIndex(wrapper => wrapper._entity === this);
+            const index = this.struct.entities.findIndex(entityWrapper => entityWrapper._entity === this);
             if (index !== -1) this.struct.entities.splice(index, 1);//remove it from the entity array to prevent its physics controller from updating,stop the player from possibly intersecting with it although unlikely since its removed from the scene and finally for garbae collection
-            this.onTargetReached = undefined;//clear hook bindings
+            this.onTargetReached = undefined;//clear hook bindings to prevent ref to the entity from existing which will prevent garbage collection
             this.updateInternalState = undefined;
             if (this.characterRigidBody) {
                 physicsWorld.removeRigidBody(this.characterRigidBody);//remove its rigid body from the physics world

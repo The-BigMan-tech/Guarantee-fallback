@@ -45,11 +45,11 @@ class EntityManager {
     private despawnFarEntities() {
         const playerPos = player.controller.position;
         for (let i = entities.length - 1; i >= 0; i--) {
-            const entity = entities[i];
-            const entityPos = entity._entity.controller.position; // Assuming THREE.Vector3
+            const entityWrapper = entities[i];
+            const entityPos = entityWrapper._entity.controller.position; // Assuming THREE.Vector3
             const distance = playerPos.distanceTo(entityPos);
             if (distance > this.despawnRadius) {
-                entity._entity.cleanUp()
+                entityWrapper._entity.cleanUp()
             }
         }
     }
@@ -65,7 +65,7 @@ class EntityManager {
 
         const spawnPoints = pds.fill();
         for (const [x, z] of spawnPoints) {
-            const playerPos = player.controller.position;
+            const playerPos = player.position;
             const spawnX = playerPos.x + (x - (spawnRadius / 2));//offset from the player spawnpoint
             const spawnZ = playerPos.z + (z - (spawnRadius / 2));
             const spawnY = this.getHeightAtPosition(spawnX,spawnZ); // or sample terrain height at (spawnX, spawnZ)
@@ -118,7 +118,7 @@ class EntityManager {
         }
     }
     public updateAllEntities(deltaTime:number) {
-        entities.forEach(entity => entity._entity.updateController(deltaTime));
+        entities.forEach(entityWrapper => entityWrapper._entity.updateController(deltaTime));
         this.despawnFarEntities();
         this.spawnNewEntitiesWithCooldown(deltaTime)
     }

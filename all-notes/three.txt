@@ -1003,3 +1003,5 @@ control flow bug/Returning early inside the main update loop (or any critical re
 This can cause your update cycle to freeze or stall, because essential steps like unlocking states, updating animations, or processing state machines never happen.
 
 The problem is especially subtle when the early return is conditional (e.g., based on a lock flag), making the bug intermittent or hard to spot.
+
+interface array,T[],unknown[]
