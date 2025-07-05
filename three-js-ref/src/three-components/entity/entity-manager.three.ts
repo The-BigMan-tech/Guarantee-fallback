@@ -120,7 +120,7 @@ class EntityManager {
     public updateAllEntities(deltaTime:number) {
         entities.forEach(entityWrapper => entityWrapper._entity.updateController(deltaTime));
         this.despawnFarEntities();
-        this.spawnNewEntitiesWithCooldown(deltaTime)
+        // this.spawnNewEntitiesWithCooldown(deltaTime)
     }
 }
 export const entityManager:Singleton<EntityManager> = EntityManager.instance;

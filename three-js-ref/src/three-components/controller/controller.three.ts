@@ -979,7 +979,21 @@ export abstract class Controller {
             this.characterRigidBody.sleep();
         } 
     }
+    private velocitiesY:number[] = []
+    protected velBeforeHittingGround:number = 0;
 
+    private updateVelJustAboveGround() {
+        if (!this.characterRigidBody) return;
+        this.velBeforeHittingGround = 0;//the reset happens in the next frame so that the data can be used by subclasses
+        if (this.velocitiesY.length >= 2) this.velocitiesY.shift();
+        const verticalVel = Math.round(this.characterRigidBody.linvel().y);
+        this.velocitiesY.push(verticalVel);
+        const firstVel = this.velocitiesY[0];
+        const secondVel = this.velocitiesY[1];
+        if ((Math.sign(firstVel) == -1) && (secondVel == 0)) {
+            this.velBeforeHittingGround = Math.abs(firstVel)
+        }
+    }
 
      //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateCharacter(deltaTime:number):void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
@@ -987,6 +1001,7 @@ export abstract class Controller {
         this.clockDelta = deltaTime;
         this.forceSleepIfIdle();
         this.updateKnockbackCooldown();
+        this.updateVelJustAboveGround();
         this.onLoop();
         this.updateCharacterAnimations();//im updating the animation before the early return so that it stops naturally 
         if (this.characterRigidBody && this.characterRigidBody.isSleeping()) {
