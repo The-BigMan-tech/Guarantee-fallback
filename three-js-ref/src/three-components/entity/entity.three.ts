@@ -53,6 +53,7 @@ export class Entity extends Controller {
     private lockState:boolean = false;//prevents the next frame from overriding the state set by a state method
 
     private movementType:'fluid' | 'precise' = 'precise'
+    private spaceTarget:boolean = true;
 
     private state:EntityStateMachine = {
         behaviour:'patrol'
@@ -81,13 +82,14 @@ export class Entity extends Controller {
         }
         this.movementType = "fluid";
         this.state.behaviour = 'chasing';
+        this.spaceTarget = false
         this.lockState = true;
     }  
     private chase():void {
         if (this.navPosition) {
             console.log(' :88 => chase => ..navPosition:', this.navPosition);
             const rotateAndMove = (this.movementType == "precise") ? false : true;
-            const atTarget = this.navToTarget(this.navPosition,rotateAndMove);
+            const atTarget = this.navToTarget(this.navPosition,rotateAndMove,this.spaceTarget);
             if (atTarget) {
                 if (this.onTargetReached) this.onTargetReached();
                 this.playIdleAnimation()//this is where it remains idle--when it has reached the target
@@ -238,6 +240,9 @@ export class Entity extends Controller {
     }
     set _movementType(moveType:'fluid' | 'precise') {
         this.movementType = moveType
+    }
+    set _spaceTarget(shouldSpace:boolean) {
+        this.spaceTarget = shouldSpace
     }
     public _lockTheState() {
         this.lockState = true

@@ -108,7 +108,7 @@ class EntityManager {
         }
     }
     private spawnNewEntitiesWithCooldown(deltaTime:number) {
-        if (entities.length <= 3) {
+        if (entities.length === 0) {
             this.spawnTimer += deltaTime;//incresing the timer only when there are no entities ensures that new entities are only spawned after all other entities are dead.
             if (this.spawnTimer > this.spawnCooldown) {
                 this.spawnEntities()

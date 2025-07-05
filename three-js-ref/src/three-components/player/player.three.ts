@@ -139,6 +139,9 @@ class Player extends Controller {
         Player.keysPressed[event.code] = false
     }
     private bindKeysToControls() {
+        if (Player.keysPressed['KeyP']) {
+            console.log = ()=>{};
+        }
         if (this.camModeNum == CameraMode.SecondPerson) {//inverted controls for second person
             if (!this.health.isDead) {
                 if (Player.keysPressed['KeyA']) {
@@ -178,22 +181,19 @@ class Player extends Controller {
             if (Player.keysPressed['KeyS']) {
                 this.moveCharacterBackward();
             }
-            if (Player.keysPressed['KeyP']) {
-                console.log = ()=>{};
-            }
             if (Player.keysPressed['Space']) {
                 this.moveCharacterUp()
             }
-            if (Player.keysPressed['ArrowLeft'])  {
-                this.rotateCharacterX('left')
-            };  
-            if (Player.keysPressed['ArrowRight']) {
-                this.rotateCharacterX('right')
-            };
             if (Player.keysPressed['KeyQ']) {
                 this.attack();
             }
         }
+        if (Player.keysPressed['ArrowLeft'])  {
+            this.rotateCharacterX('left')
+        };  
+        if (Player.keysPressed['ArrowRight']) {
+            this.rotateCharacterX('right')
+        };
         if (Player.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
             if (this.toggleTimer > this.toggleCooldown) { //this is a debouncing mechanism
                 this.camModeNum = ((this.camModeNum<3)?this.camModeNum + 1:1) as 1 | 2 | 3;//this is to increase the camMode,when its 3rd person,reset it back to 1st person and repeat 

@@ -12,6 +12,7 @@ export class Enemy implements EntityContract  {
         console.log("Agent has reached target");
         if (this.entity._targetHealth && !this.entity._targetHealth.isDead) {
             this.entity._state.behaviour = 'attack';
+            this.entity._spaceTarget = true;
             this.entity._lockTheState();
         }
     }

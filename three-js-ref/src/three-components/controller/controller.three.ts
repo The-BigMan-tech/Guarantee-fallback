@@ -611,7 +611,7 @@ export abstract class Controller {
     private spaceCooldown = 0.8; // cooldown duration in seconds
     private spaceTimer = 0;
 
-    protected navToTarget(originalPath:THREE.Vector3,rotateAndMove:boolean):boolean {//targetpos is the player for example
+    protected navToTarget(originalPath:THREE.Vector3,rotateAndMove:boolean,spaceTarget:boolean):boolean {//targetpos is the player for example
         this.timeSinceLastFlipCheck += this.clockDelta || 0;
         const characterPos = this.character.position;
         const distToOriginalPath = characterPos.distanceTo(originalPath);//im using hypot dist here cuz i need the distance to reflect all the comp before deciding that its close to it cuz this is where it terminates the navigation but its not the sole factor used to determine that.i also included in the y level diff check
@@ -689,8 +689,9 @@ export abstract class Controller {
         }
 
         this.isFinalDestClose = distToFinalDest < distToFinalDestThresh;
-        this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 4);//this is used to control spacing between the entity and the target to prevent jitter when it knocks me back while coming at me
-
+        if (spaceTarget) {
+            this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 4);//this is used to control spacing between the entity and the target to prevent jitter when it knocks me back while coming at me
+        }
         if (rotateAndMove) {
             if (finalDir !== null) this.rotateCharacterX(finalDir);
             this.moveAgent(finalPath.y);
