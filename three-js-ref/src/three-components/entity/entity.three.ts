@@ -4,7 +4,7 @@ import * as THREE from "three"
 import { Health } from "../health/health";
 import { combatCooldown, physicsWorld } from "../physics-world.three";
 
-type Behaviour = 'chasing' | 'attack' | 'patrol' | 'death'
+type Behaviour = 'idle' | 'chasing' | 'attack' | 'patrol' | 'death'
 export interface EntityMiscData {
     healthValue:number,
     targetController:Controller | null,
@@ -56,7 +56,7 @@ export class Entity extends Controller {
     private spaceTarget:boolean = true;
 
     private state:EntityStateMachine = {
-        behaviour:'patrol'
+        behaviour:'idle'
     }
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:EntityMiscData,struct:ManagingStructure) {
@@ -122,6 +122,9 @@ export class Entity extends Controller {
     private respondToStateMachine():void {
         console.log("State: ",this.state.behaviour);
         switch (this.state.behaviour) {
+            case 'idle': {//idle is just an empty behaviour
+                break;
+            }
             case 'patrol': {
                 this.patrol();
                 break;
