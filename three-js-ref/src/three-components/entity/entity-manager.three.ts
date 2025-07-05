@@ -55,7 +55,7 @@ class EntityManager {
     }
     private spawnEntities() {
         console.log("Called spawn entities");
-        const spawnRadius = 15; // or smaller if you want
+        const spawnRadius = 5; // or smaller if you want
         const minSpawnDistance = 5; // adjust as needed
 
         const pds = new PoissonDiskSampling({

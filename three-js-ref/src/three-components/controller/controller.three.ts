@@ -611,25 +611,25 @@ export abstract class Controller {
     private spaceCooldown = 0.8; // cooldown duration in seconds
     private spaceTimer = 0;
 
-    protected navToTarget(originalPath:THREE.Vector3,rotateAndMove:boolean,spaceTarget:boolean):boolean {//targetpos is the player for example
+    protected navToTarget(originalPath:THREE.Vector3,rotateAndMove:boolean):boolean {//targetpos is the player for example
         this.timeSinceLastFlipCheck += this.clockDelta || 0;
         const characterPos = this.character.position;
         const distToOriginalPath = characterPos.distanceTo(originalPath);//im using hypot dist here cuz i need the distance to reflect all the comp before deciding that its close to it cuz this is where it terminates the navigation but its not the sole factor used to determine that.i also included in the y level diff check
 
         const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));
         const onSameYLevel = YDifference < 2.5;
-        const targetReachedDistance = 3//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
+        const targetReachedDistance = 4//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
         const hasReachedOriginalPath =  (onSameYLevel) && (distToOriginalPath < targetReachedDistance);
 
         if (hasReachedOriginalPath || this.isNearOriginalPath) {//the current value of isNearOriginalPath will come in the next frame before using it to make its decision.cuz its needed for automoveforward to know it should stop moving the entity.if i use it to return from here,that opportunity wont happen and the entity wont preserve any space between it and the target
             this.spaceTimer += this.clockDelta || 0;
+            this.terminateBranch();
+            this.stopWalkSound();
+            console.log('.:Reached original path');
             if (this.spaceTimer > this.spaceCooldown) {//i used a cooldown to retain this space for some time or else,it will just go straight to the target again
                 this.isNearOriginalPath = false
                 this.spaceTimer = 0
             }
-            this.terminateBranch();
-            this.stopWalkSound();
-            console.log('.:Reached original path');
             return true
         } 
 
@@ -689,9 +689,8 @@ export abstract class Controller {
         }
 
         this.isFinalDestClose = distToFinalDest < distToFinalDestThresh;
-        if (spaceTarget) {
-            this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 4);//this is used to control spacing between the entity and the target to prevent jitter when it knocks me back while coming at me
-        }
+        this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 6);//this is used to control spacing between the entity and the target to prevent jitter when it knocks me back while coming at me
+        
         if (rotateAndMove) {
             if (finalDir !== null) this.rotateCharacterX(finalDir);
             this.moveAgent(finalPath.y);

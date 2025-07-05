@@ -5,5 +5,5 @@ export const groundLevelY:Readonly<number>  = -1;//if it stands on -1,then all t
 export const startingLevelY:Readonly<number>  = 0;
 export const outOfBoundsY:Readonly<number>  = -60
 export const physicsWorld = new RAPIER.World({x:0,y:-gravityY,z:0});
-export const combatCooldown = 0.3//sync attack and knockback cooldowns
+export const combatCooldown = 0.7//sync attack and knockback cooldowns
 physicsWorld.numSolverIterations = 10;  // default is 4, increase as needed

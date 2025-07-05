@@ -4,7 +4,8 @@ import * as THREE from "three"
 import { Health } from "../health/health";
 import { combatCooldown, physicsWorld } from "../physics-world.three";
 
-type Behaviour = 'idle' | 'chasing' | 'attack' | 'patrol' | 'death'
+type Behaviour = 'idle' | 'patrol' | 'chase' | 'attack' | 'death';
+
 export interface EntityMiscData {
     healthValue:number,
     targetController:Controller | null,
@@ -36,7 +37,6 @@ export class Entity extends Controller {
     private attackTimer = 0;    // timer accumulator
 
     private patrolRadius = 20; // max distance from current position to patrol
-    private patrolTarget: THREE.Vector3 | null = null;
     private patrolCooldown = 3; // seconds between patrol target changes
     private patrolTimer = 0;
 
@@ -50,10 +50,7 @@ export class Entity extends Controller {
     private fadeDuration = 2; // seconds
     private elapsed = 0;
 
-    private lockState:boolean = false;//prevents the next frame from overriding the state set by a state method
-
     private movementType:'fluid' | 'precise' = 'precise'
-    private spaceTarget:boolean = true;
 
     private state:EntityStateMachine = {
         behaviour:'idle'
@@ -74,39 +71,39 @@ export class Entity extends Controller {
         const randomOffset = new THREE.Vector3(randomPoint,0,randomPoint);
         return currentPos.add(randomOffset);
     }
+
+    private idle():void {
+        this.playIdleAnimation()
+    }
     private patrol():void {
         if (this.patrolTimer >= this.patrolCooldown) {
-            this.patrolTarget = this.getRandomPatrolPoint();
-            this.navPosition = this.patrolTarget;
+            this.navPosition = this.getRandomPatrolPoint();
+            this.movementType = "fluid";
             this.patrolTimer = 0;
         }
-        this.movementType = "fluid";
-        this.state.behaviour = 'chasing';
-        this.spaceTarget = false
-        this.lockState = true;
+        this.chase();//navigate towards the patrol point
     }  
     private chase():void {
         if (this.navPosition) {
-            console.log(' :88 => chase => ..navPosition:', this.navPosition);
             const rotateAndMove = (this.movementType == "precise") ? false : true;
-            const atTarget = this.navToTarget(this.navPosition,rotateAndMove,this.spaceTarget);
-            if (atTarget) {
-                if (this.onTargetReached) this.onTargetReached();
-                this.playIdleAnimation()//this is where it remains idle--when it has reached the target
+            const atTarget = this.navToTarget(this.navPosition,rotateAndMove);
+            if (atTarget && this.onTargetReached) {
+                const behaviour = this.onTargetReached();
+                if (behaviour === 'idle') this.idle();
+                else if (behaviour === 'attack') this.attack();
             }
         }
     }
     private attack():void {
-        console.log("Called attack");
+        this.attackTimer += this.clockDelta || 0;
         if (!this.targetHealth) return;
         if (this.attackTimer > this.attackCooldown) {
             this.playAttackAnimation();
             this.targetController?.knockbackCharacter('backwards',this.knockback);
             this.targetHealth.takeDamage(this.attackDamage);
             this.attackTimer = 0;
-        }else {
-            this.playIdleAnimation()
         }
+        else this.idle();
     }
     public death():void {
         if (this.health.isDead && !this.isRemoved) {
@@ -116,20 +113,21 @@ export class Entity extends Controller {
         }
     }
 
-    public onTargetReached?: () => void;
+    public onTargetReached?: () => 'attack' | 'idle';
     public updateInternalState?:()=>void;
 
     private respondToStateMachine():void {
         console.log("State: ",this.state.behaviour);
         switch (this.state.behaviour) {
-            case 'idle': {//idle is just an empty behaviour
+            case 'idle': {
+                this.idle()
                 break;
             }
             case 'patrol': {
                 this.patrol();
                 break;
             }
-            case 'chasing': {
+            case 'chase': {
                 this.chase();
                 break;
             }
@@ -226,9 +224,6 @@ export class Entity extends Controller {
     get _state():EntityStateMachine {
         return this.state
     }
-    get _lockState():boolean {
-        return this.lockState
-    }
     get _health():Health {
         return this.health;
     }
@@ -244,24 +239,13 @@ export class Entity extends Controller {
     set _movementType(moveType:'fluid' | 'precise') {
         this.movementType = moveType
     }
-    set _spaceTarget(shouldSpace:boolean) {
-        this.spaceTarget = shouldSpace
-    }
-    public _lockTheState() {
-        this.lockState = true
-    }
     
     protected onLoop(): void {
-        this.attackTimer += this.clockDelta || 0;
         this.patrolTimer += this.clockDelta || 0;
         this.checkGroundDamage();
         if (this.isAirBorne() && (!this.health.isDead)) this.playJumpAnimation();
-        if (this.updateInternalState && !this.lockState) {
-            console.log("Called update internal state");
-            this.updateInternalState(); // respects lock, skips if locked
-        }
-        this.lockState = false; // Unlock AFTER updateInternalState
-        this.respondToStateMachine(); // acts on the locked/respected state
+        if (this.updateInternalState) this.updateInternalState(); 
+        this.respondToStateMachine();
     }
 }
 export const entities:EntityContract[] = [];
