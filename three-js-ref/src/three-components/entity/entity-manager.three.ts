@@ -93,7 +93,7 @@ class EntityManager {
                 targetController:player,
                 targetHealth:player.health,
                 healthValue:this.randomIntBetween(4,25),
-                knockback:this.randomIntBetween(50,150),
+                knockback:this.randomIntBetween(100,150),
                 attackDamage:this.randomFloatBetween(0.5,1)//variate this one
             }
             const managingStruct:ManagingStructure = {

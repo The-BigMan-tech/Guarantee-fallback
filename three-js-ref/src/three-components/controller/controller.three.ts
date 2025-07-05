@@ -608,7 +608,7 @@ export abstract class Controller {
     }
 
     private isNearOriginalPath:boolean = false;
-    private spaceCooldown = 0.8; // cooldown duration in seconds
+    private spaceCooldown = combatCooldown; // cooldown duration in seconds
     private spaceTimer = 0;
 
     protected navToTarget(originalPath:THREE.Vector3,rotateAndMove:boolean):boolean {//targetpos is the player for example
@@ -618,7 +618,7 @@ export abstract class Controller {
 
         const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));
         const onSameYLevel = YDifference < 2.5;
-        const targetReachedDistance = 4//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
+        const targetReachedDistance = 3//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
         const hasReachedOriginalPath =  (onSameYLevel) && (distToOriginalPath < targetReachedDistance);
 
         if (hasReachedOriginalPath || this.isNearOriginalPath) {//the current value of isNearOriginalPath will come in the next frame before using it to make its decision.cuz its needed for automoveforward to know it should stop moving the entity.if i use it to return from here,that opportunity wont happen and the entity wont preserve any space between it and the target
@@ -913,7 +913,9 @@ export abstract class Controller {
         if (this.mixer && this.jumpAction) this.fadeToAnimation(this.jumpAction);
     }
     protected playWalkAnimation():void {
-        if (this.mixer && this.walkAction) this.fadeToAnimation(this.walkAction);
+        if (this.mixer && this.walkAction && this.attackAction && !this.attackAction.isRunning()) {
+            this.fadeToAnimation(this.walkAction);
+        }
     }
     public playIdleAnimation():void {//i made it public for use by classes composed by the entity
         if (this.mixer && this.idleAction && this.attackAction) {

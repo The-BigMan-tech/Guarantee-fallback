@@ -97,8 +97,10 @@ export class Entity extends Controller {
     private attack():void {
         this.attackTimer += this.clockDelta || 0;
         if (!this.targetHealth) return;
-        if (this.attackTimer > this.attackCooldown) {
+        if (this.attackTimer > (this.attackCooldown -0.4)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
             this.playAttackAnimation();
+        }
+        if (this.attackTimer > this.attackCooldown) {
             this.targetController?.knockbackCharacter('backwards',this.knockback);
             this.targetHealth.takeDamage(this.attackDamage);
             this.attackTimer = 0;
