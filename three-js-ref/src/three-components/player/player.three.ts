@@ -258,14 +258,17 @@ class Player extends Controller {
 
 
     private attack() {
-        if (this.attackTimer < this.attackCooldown) return;
-        if (this.lookedAtEntity) {
-            const targetHealth = this.lookedAtEntity._entity.health;
-            if (targetHealth && !targetHealth.isDead) {
-                targetHealth.takeDamage(this.attackDamage);
-                this.lookedAtEntity._entity.knockbackCharacter('backwards',this.knockback);
-                this.playAttackAnimation();
-                this.attackTimer = 0;
+        if (this.attackTimer > (this.attackCooldown -0.4)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
+            this.playAttackAnimation();
+        }
+        if (this.attackTimer > this.attackCooldown) { 
+            if (this.lookedAtEntity) {
+                const targetHealth = this.lookedAtEntity._entity.health;
+                if (targetHealth && !targetHealth.isDead) {
+                    targetHealth.takeDamage(this.attackDamage);
+                    this.lookedAtEntity._entity.knockbackCharacter('backwards',this.knockback);
+                    this.attackTimer = 0;
+                }
             }
         }
     }
@@ -329,7 +332,7 @@ const playerDynamicData:DynamicControllerData = {
 const playerMiscData:PlayerMiscData = {
     healthValue:40,
     attackDamage:1,
-    knockback:200,
+    knockback:1000,
     camArgs: {
         FOV:75,
         nearPoint:0.1,
