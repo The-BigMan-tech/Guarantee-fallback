@@ -6,7 +6,7 @@ import { player } from "../player/player.three";
 import { Entity,entities} from "./entity.three";
 import PoissonDiskSampling from 'poisson-disk-sampling';
 import { cubesGroup } from "../tall-cubes.three";
-import { EnemyBehaviour } from "./enemy.three";
+import { Enemy } from "./enemy.three";
 
 
 type Singleton<T> = T;
@@ -16,7 +16,7 @@ class EntityManager {
 
     private spawnTimer:number = 0;
     private spawnCooldown:number = 3;
-    private despawnRadius: number = 100;
+    private despawnRadius: number = 1000;
 
     private raycaster = new THREE.Raycaster();
     private down = new THREE.Vector3(0, -1, 0);
@@ -92,15 +92,15 @@ class EntityManager {
                 targetController:player,
                 targetHealth:player.health,
                 healthValue:this.randomIntBetween(4,10),
-                knockback:this.randomIntBetween(150,200),
-                attackDamage:0
+                knockback:this.randomIntBetween(150,180),
+                attackDamage:this.randomFloatBetween(0.5,1)//variate this one
             }
             const managingStruct:ManagingStructure = {
                 group:this.entityGroup,
                 entities:entities
             }
             const entity = new Entity(entityFixedData,entityDynamicData,entityMiscData,managingStruct);
-            const enemy = new EnemyBehaviour(entity)
+            const enemy = new Enemy(entity)
             entities.push(enemy);
             this.entityGroup.add(enemy._entity.controller);
             this.entityGroup.add(enemy._entity.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created)

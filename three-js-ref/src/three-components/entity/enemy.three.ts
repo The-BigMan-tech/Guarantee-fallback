@@ -1,6 +1,6 @@
 import { Entity, type EntityContract } from "./entity.three";
 
-export class EnemyBehaviour implements EntityContract  {
+export class Enemy implements EntityContract  {
     private entity:Entity;
 
     constructor(entity:Entity) {
@@ -12,7 +12,6 @@ export class EnemyBehaviour implements EntityContract  {
         console.log("Agent has reached target");
         if (this.entity._targetHealth && !this.entity._targetHealth.isDead) {
             this.entity._state.behaviour = 'attack';
-            this.entity.playIdleAnimation()
             this.entity._lockTheState();
         }
     }

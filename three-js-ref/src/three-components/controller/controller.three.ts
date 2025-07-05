@@ -909,13 +909,13 @@ export abstract class Controller {
         console.log("Airborne| on ground: ",onGround);
         return !onGround && this.shouldPlayJumpAnimation && !this.shouldStepUp
     }
-    protected playJumpAnimation():void {
+    public playJumpAnimation():void {
         if (this.mixer && this.jumpAction) this.fadeToAnimation(this.jumpAction);
     }
     protected playWalkAnimation():void {
         if (this.mixer && this.walkAction) this.fadeToAnimation(this.walkAction);
     }
-    public playIdleAnimation():void {
+    public playIdleAnimation():void {//i made it public for use by classes composed by the entity
         if (this.mixer && this.idleAction && this.attackAction) {
             if (!this.attackAction.isRunning()) {
                 this.fadeToAnimation(this.idleAction);

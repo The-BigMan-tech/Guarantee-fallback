@@ -41,7 +41,7 @@ class Player extends Controller {
     private originalCamRotSpeed:number
 
     private offsetY:number;
-    private targetZ:number = 0;//the 0 is just for initialization sake so ts wont complain but it will be changed correctly during the render loop
+    private targetZ:number = -0.6;//this is used to offset the cam either forward or backward.i made it -0.6 initially cuz it starts as first person and ill want the cam to shift a little away from the model to clear the view
     private targetY:number = 0;
 
     private toggleCooldown: number = 0.3; // Cooldown in seconds.this value in particular works the best
@@ -247,9 +247,7 @@ class Player extends Controller {
 
 
     private attack() {
-        if (this.attackTimer < this.attackCooldown) {
-            return;
-        }
+        if (this.attackTimer < this.attackCooldown) return;
         if (this.lookedAtEntity) {
             const targetHealth = this.lookedAtEntity._entity.health;
             if (targetHealth && !targetHealth.isDead) {
@@ -317,7 +315,7 @@ const playerDynamicData:DynamicControllerData = {
     gravityScale:1
 }
 const playerMiscData:PlayerMiscData = {
-    healthValue:10,
+    healthValue:30,
     attackDamage:1,
     knockback:200,
     camArgs: {

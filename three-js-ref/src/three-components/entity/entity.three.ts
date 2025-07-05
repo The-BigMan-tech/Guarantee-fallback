@@ -90,6 +90,7 @@ export class Entity extends Controller {
             const atTarget = this.navToTarget(this.navPosition,rotateAndMove);
             if (atTarget) {
                 if (this.onTargetReached) this.onTargetReached();
+                this.playIdleAnimation()//this is where it remains idle--when it has reached the target
             }
         }
     }
@@ -183,7 +184,7 @@ export class Entity extends Controller {
     }
     private cleanUpResources():void {
         this.cleanupTimer += this.clockDelta || 0;
-        if (this.cleanupTimer >= this.cleanupCooldown) {
+        if (this.cleanupTimer >= this.cleanupCooldown) {//the cooldown is here to allow playing of death animations or ending effects
             this.points.clear();//clear the points array used for visual debugging
             this.struct.group.remove(this.points)//remove them from the scene
             this.struct.group.remove(this.controller);//remove the controller from the scene
