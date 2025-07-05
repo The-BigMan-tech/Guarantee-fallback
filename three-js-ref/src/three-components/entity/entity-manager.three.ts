@@ -24,7 +24,7 @@ class EntityManager {
 
     private constructor() {};
     
-    static get instance(): EntityManager {
+    public static get instance(): EntityManager {
         if (!EntityManager.manager) EntityManager.manager = new EntityManager();
         return EntityManager.manager;
     }
@@ -54,7 +54,8 @@ class EntityManager {
         }
     }
     private spawnEntities() {
-        const spawnRadius = 10; // or smaller if you want
+        console.log("Called spawn entities");
+        const spawnRadius = 15; // or smaller if you want
         const minSpawnDistance = 5; // adjust as needed
 
         const pds = new PoissonDiskSampling({
@@ -81,7 +82,7 @@ class EntityManager {
             }
             const entityDynamicData:DynamicControllerData = {
                 horizontalVelocity:this.randomIntBetween(10,30),
-                jumpVelocity:this.randomIntBetween(27,35),
+                jumpVelocity:this.randomIntBetween(10,25),
                 jumpResistance:this.randomIntBetween(6,10),
                 rotationDelta:0.05,
                 rotationSpeed:0.2,
@@ -91,8 +92,8 @@ class EntityManager {
             const entityMiscData:EntityMiscData = {
                 targetController:player,
                 targetHealth:player.health,
-                healthValue:this.randomIntBetween(4,10),
-                knockback:this.randomIntBetween(150,180),
+                healthValue:this.randomIntBetween(4,25),
+                knockback:this.randomIntBetween(50,150),
                 attackDamage:this.randomFloatBetween(0.5,1)//variate this one
             }
             const managingStruct:ManagingStructure = {
@@ -106,8 +107,8 @@ class EntityManager {
             this.entityGroup.add(enemy._entity.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created)
         }
     }
-    public spawnNewEntitiesWithCooldown(deltaTime:number) {
-        if (entities.length === 0) {
+    private spawnNewEntitiesWithCooldown(deltaTime:number) {
+        if (entities.length <= 3) {
             this.spawnTimer += deltaTime;//incresing the timer only when there are no entities ensures that new entities are only spawned after all other entities are dead.
             if (this.spawnTimer > this.spawnCooldown) {
                 this.spawnEntities()
@@ -120,7 +121,7 @@ class EntityManager {
     public updateAllEntities(deltaTime:number) {
         entities.forEach(entityWrapper => entityWrapper._entity.updateController(deltaTime));
         this.despawnFarEntities();
-        // this.spawnNewEntitiesWithCooldown(deltaTime)
+        this.spawnNewEntitiesWithCooldown(deltaTime);
     }
 }
 export const entityManager:Singleton<EntityManager> = EntityManager.instance;

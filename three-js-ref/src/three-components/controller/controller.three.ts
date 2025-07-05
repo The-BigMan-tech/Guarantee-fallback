@@ -979,6 +979,7 @@ export abstract class Controller {
             this.characterRigidBody.sleep();
         } 
     }
+
     private velocitiesY:number[] = []
     protected velBeforeHittingGround:number = 0;
 
