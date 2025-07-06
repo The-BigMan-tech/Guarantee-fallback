@@ -11,6 +11,7 @@ import { NPC } from "./npc.three";
 import { randInt,randFloat} from "three/src/math/MathUtils.js";
 import { choices } from "./choices";
 import {v4 as uniqueID} from "uuid";
+import type { Health } from "../health/health";
 
 
 interface EntityMetadata {
@@ -23,6 +24,10 @@ interface FullEntityData {
     miscData:EntityMiscData
     managingStruct:ManagingStructure
 }
+interface attackMapData {
+    targetPosition:THREE.Vector3 | null,
+    targetHealth:Health | null
+}
 
 
 type Singleton<T> = T;
@@ -30,13 +35,14 @@ class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
             entityID:uniqueID(),
-            spawnWeight:10
+            spawnWeight:0
         },
         NPC: {
             entityID:uniqueID(),
-            spawnWeight:0
+            spawnWeight:10
         }
     }
+    private attackMap:Map<string,attackMapData> = new Map();
     private static manager: EntityManager;
     public entityGroup:THREE.Group = new THREE.Group();
 
@@ -92,7 +98,7 @@ class EntityManager {
         const dynamicData = entityData.dynamicData;
         const miscData = entityData.miscData
         fixedData.modelPath = NPC.modelPath;
-        dynamicData.horizontalVelocity = randInt(10,30);
+        dynamicData.horizontalVelocity = randInt(10,20);
         dynamicData.jumpVelocity = randInt(10,25);
         dynamicData.jumpResistance = randInt(6,10);
         miscData.healthValue = randInt(4,25);
