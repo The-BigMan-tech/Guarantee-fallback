@@ -10,10 +10,11 @@ import { Enemy } from "./enemy.three";
 import { NPC } from "./npc.three";
 import { randInt,randFloat} from "three/src/math/MathUtils.js";
 import { choices } from "./choices";
+import {v4 as uniqueID} from "uuid";
 
 
 interface EntityMetadata {
-    kindID:number,
+    entityID:string,
     spawnWeight:number
 }
 interface FullEntityData {
@@ -26,14 +27,14 @@ interface FullEntityData {
 
 type Singleton<T> = T;
 class EntityManager {
-    private entityMapping:Record<string,EntityMetadata> = {
+    private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
-            kindID:1,
-            spawnWeight:10
+            entityID:uniqueID(),
+            spawnWeight:0
         },
         NPC: {
-            kindID:2,
-            spawnWeight:0
+            entityID:uniqueID(),
+            spawnWeight:5
         }
     }
     private static manager: EntityManager;
@@ -42,15 +43,15 @@ class EntityManager {
     private spawnTimer:number = 0;
     private spawnCooldown:number = 3;
 
-    private spawnRadius = 5;
-    private despawnRadius: number = 1000;
+    private spawnRadius = 10;
     private minSpawnDistance = 5; // adjust as needed
+    private despawnRadius: number = 1000;
 
     private raycaster = new THREE.Raycaster();
     private down = new THREE.Vector3(0, -1, 0);
 
-    private entityKinds:number[] = Object.keys(this.entityMapping).map(key=>this.entityMapping[key].kindID);
-    private entitySpawnWeights = Object.keys(this.entityMapping).map(key=>this.entityMapping[key].spawnWeight);
+    private entityKinds:string[] = Object.values(EntityManager.entityMapping).map(value=>value.entityID);
+    private entitySpawnWeights:number[] = Object.values(EntityManager.entityMapping).map(value=>value.spawnWeight);
 
 
     private constructor() {};
@@ -84,6 +85,7 @@ class EntityManager {
         this.saveEntityToGame(enemy);
     }
     private spawnNPC(entityData:FullEntityData) {
+        entityData.fixedData.modelPath = NPC.modelPath;
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         const npc = new NPC(entity);
         this.saveEntityToGame(npc);
@@ -139,15 +141,13 @@ class EntityManager {
                 miscData:entityMiscData,
                 managingStruct:entityManagingStruct
             };
-            const entityKind:number = choices(this.entityKinds,this.entitySpawnWeights,1)[0]//get the first element
-            console.log('Meta. entityKinds:', this.entityKinds);
-            console.log('Meta. entitySpawnWeights:',this.entitySpawnWeights);
+            const entityKind:string = choices<string>(this.entityKinds,this.entitySpawnWeights,1)[0]//get the first element
             switch (entityKind) {
-                case (this.entityMapping['Enemy'].kindID): {
+                case (EntityManager.entityMapping['Enemy'].entityID): {
                     this.spawnEnemy(entityData);
                     break;
                 }
-                case (this.entityMapping['NPC'].kindID): {
+                case (EntityManager.entityMapping['NPC'].entityID): {
                     this.spawnNPC(entityData);
                     break;
                 }

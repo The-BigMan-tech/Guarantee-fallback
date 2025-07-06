@@ -1005,3 +1005,9 @@ This can cause your update cycle to freeze or stall, because essential steps lik
 The problem is especially subtle when the early return is conditional (e.g., based on a lock flag), making the bug intermittent or hard to spot.
 
 interface array,T[],unknown[]
+
+*Spawning
+Pure random spawning
+Counter-based spawnin
+Single weighted choice spawning
+Multi weighted choice spawning
