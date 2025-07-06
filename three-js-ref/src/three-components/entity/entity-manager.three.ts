@@ -9,7 +9,10 @@ import { cubesGroup } from "../tall-cubes.three";
 import { Enemy } from "./enemy.three";
 import { NPC } from "./npc.three";
 
-
+enum EntityMapping {
+    Enemy = 1,
+    NPC = 2,
+}
 interface FullEntityData {
     fixedData:FixedControllerData,
     dynamicData:DynamicControllerData,
@@ -23,6 +26,8 @@ class EntityManager {
 
     private spawnTimer:number = 0;
     private spawnCooldown:number = 3;
+
+    private spawnRadius = 5; // or smaller if you want
     private despawnRadius: number = 1000;
 
     private raycaster = new THREE.Raycaster();
@@ -66,24 +71,26 @@ class EntityManager {
         const enemy = new Enemy(entity);
         this.saveEntityToGame(enemy);
     }
+    private spawnNPC(entityData:FullEntityData) {
+        const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
+        const npc = new NPC(entity);
+        this.saveEntityToGame(npc);
+    }
 
-    
+
     private spawnEntities() {
-        console.log("Called spawn entities");
-        const spawnRadius = 5; // or smaller if you want
         const minSpawnDistance = 5; // adjust as needed
-
         const pds = new PoissonDiskSampling({
-            shape: [spawnRadius, spawnRadius],
+            shape: [this.spawnRadius, this.spawnRadius],
             minDistance: minSpawnDistance,
             tries: 10
         });
-
         const spawnPoints = pds.fill();
+
         for (const [x, z] of spawnPoints) {
             const playerPos = player.position;
-            const spawnX = playerPos.x + (x - (spawnRadius / 2));//offset from the player spawnpoint by adding the player cords to it
-            const spawnZ = playerPos.z + (z - (spawnRadius / 2));//the reason why we are adding z-r/2 instead of z directly is so that its centered around that origin
+            const spawnX = playerPos.x + (x - (this.spawnRadius / 2));//offset from the player spawnpoint by adding the player cords to it
+            const spawnZ = playerPos.z + (z - (this.spawnRadius / 2));//the reason why we are adding z-r/2 instead of z directly is so that its centered around that origin
             const spawnY = this.getHeightAtPosition(spawnX,spawnZ); // or sample terrain height at (spawnX, spawnZ)
             const spawnPoint = new RAPIER.Vector3(spawnX, spawnY, spawnZ);
 
@@ -121,8 +128,19 @@ class EntityManager {
                 dynamicData:entityDynamicData,
                 miscData:entityMiscData,
                 managingStruct:entityManagingStruct
+            };
+
+            const entityKind:number = this.randomIntBetween(1,1);
+            switch (entityKind) {
+                case (EntityMapping.Enemy): {
+                    this.spawnEnemy(entityData);
+                    break;
+                }
+                case (EntityMapping.NPC): {
+                    this.spawnNPC(entityData);
+                    break;
+                }
             }
-            this.spawnEnemy(entityData);
         }
     }
 

@@ -735,6 +735,7 @@ export abstract class Controller {
         if (this.isKnockedBack && !this.appliedKnockbackImpulse) {
             this.characterRigidBody.applyImpulse(this.impulse,true);
             this.appliedKnockbackImpulse = true;
+            this.shouldPlayJumpAnimation = true;
         }
         if (this.knockbackTimer > this.knockbackCooldown) {//i cant reset it to false immediately under the same frame so it needs to reflect this change so i used a cooldown
             this.isKnockedBack = false;
