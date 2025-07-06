@@ -8,6 +8,7 @@ import PoissonDiskSampling from 'poisson-disk-sampling';
 import { cubesGroup } from "../tall-cubes.three";
 import { Enemy } from "./enemy.three";
 import { NPC } from "./npc.three";
+import { randInt,randFloat} from "three/src/math/MathUtils.js";
 
 enum EntityMapping {
     Enemy = 1,
@@ -41,12 +42,6 @@ class EntityManager {
         return EntityManager.manager;
     }
 
-    private randomIntBetween(min: number, max: number): number {
-        return Math.floor((Math.random() * (max - min + 1)) + min);
-    }
-    private randomFloatBetween(min: number, max: number): number {
-        return ((Math.random() * (max - min)) + min);
-    }
 
     private getHeightAtPosition(x: number, z: number): number {
         const maxHeightAboveTerrain = 100;
@@ -59,14 +54,14 @@ class EntityManager {
 
     private spawnEnemy(entityData:FullEntityData) {
         entityData.fixedData.modelPath = "./silvermoon.glb"
-        entityData.dynamicData.horizontalVelocity = this.randomIntBetween(10,30);
-        entityData.dynamicData.jumpVelocity = this.randomIntBetween(10,25);
-        entityData.dynamicData.jumpResistance = this.randomIntBetween(6,10);
+        entityData.dynamicData.horizontalVelocity = randInt(10,30);
+        entityData.dynamicData.jumpVelocity = randInt(10,25);
+        entityData.dynamicData.jumpResistance = randInt(6,10);
         entityData.miscData.targetController = player;
         entityData.miscData.targetHealth = player.health;
-        entityData.miscData.healthValue = this.randomIntBetween(4,25);
-        entityData.miscData.knockback = this.randomIntBetween(100,150);
-        entityData.miscData.attackDamage = this.randomFloatBetween(0.5,1);
+        entityData.miscData.healthValue = randInt(4,25);
+        entityData.miscData.knockback = randInt(100,150);
+        entityData.miscData.attackDamage = randFloat(0.5,1);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         const enemy = new Enemy(entity);
         this.saveEntityToGame(enemy);
@@ -130,7 +125,7 @@ class EntityManager {
                 managingStruct:entityManagingStruct
             };
 
-            const entityKind:number = this.randomIntBetween(1,1);
+            const entityKind:number = randInt(1,1);
             switch (entityKind) {
                 case (EntityMapping.Enemy): {
                     this.spawnEnemy(entityData);

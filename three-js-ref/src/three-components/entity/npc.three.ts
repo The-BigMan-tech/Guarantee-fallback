@@ -12,7 +12,7 @@ export class NPC  {
         return 'idle'
     }
     private updateInternalState() {
-
+        
     }
     get _entity() {
         return this.entity
