@@ -234,10 +234,10 @@ export class Entity extends Controller {
     set _movementType(moveType:'fluid' | 'precise') {
         this.movementType = moveType
     }
-    set _targetHealth(health:Health) {
+    set _targetHealth(health:Health | null) {
         this.targetHealth = health
     }
-    set _targetController(controller:Controller) {
+    set _targetController(controller:Controller | null) {
         this.targetController = controller
     }
     

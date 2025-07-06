@@ -29,7 +29,7 @@ class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
             entityID:uniqueID(),
-            spawnWeight:8
+            spawnWeight:10
         },
         NPC: {
             entityID:uniqueID(),
@@ -81,7 +81,7 @@ class EntityManager {
         dynamicData.horizontalVelocity = randInt(10,30);
         dynamicData.jumpVelocity = randInt(10,25);
         dynamicData.jumpResistance = randInt(6,10);
-        miscData.healthValue = randInt(4,25);
+        miscData.healthValue = randInt(20,25);
         miscData.knockback = randInt(100,150);
         miscData.attackDamage = randFloat(0.5,1);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
@@ -96,7 +96,7 @@ class EntityManager {
         dynamicData.horizontalVelocity = randInt(10,20);
         dynamicData.jumpVelocity = randInt(10,25);
         dynamicData.jumpResistance = randInt(6,10);
-        miscData.healthValue = randInt(4,25);
+        miscData.healthValue = randInt(10,15);
         miscData.knockback = randInt(100,150);
         miscData.attackDamage = randFloat(1,3);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
