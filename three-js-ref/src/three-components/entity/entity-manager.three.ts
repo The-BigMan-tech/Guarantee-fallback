@@ -30,11 +30,11 @@ class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
             entityID:uniqueID(),
-            spawnWeight:0
+            spawnWeight:10
         },
         NPC: {
             entityID:uniqueID(),
-            spawnWeight:5
+            spawnWeight:0
         }
     }
     private static manager: EntityManager;
@@ -71,21 +71,33 @@ class EntityManager {
     }
 
     private spawnEnemy(entityData:FullEntityData) {
-        entityData.fixedData.modelPath = Enemy.modelPath;
-        entityData.miscData.targetController = player;
-        entityData.miscData.targetHealth = player.health;
-        entityData.dynamicData.horizontalVelocity = randInt(10,30);
-        entityData.dynamicData.jumpVelocity = randInt(10,25);
-        entityData.dynamicData.jumpResistance = randInt(6,10);
-        entityData.miscData.healthValue = randInt(4,25);
-        entityData.miscData.knockback = randInt(100,150);
-        entityData.miscData.attackDamage = randFloat(0.5,1);
+        const fixedData = entityData.fixedData;
+        const dynamicData = entityData.dynamicData;
+        const miscData = entityData.miscData;//i did this to make the code neater and it will work since it references the same object
+        fixedData.modelPath = Enemy.modelPath;
+        miscData.targetController = player;
+        miscData.targetHealth = player.health;
+        dynamicData.horizontalVelocity = randInt(10,30);
+        dynamicData.jumpVelocity = randInt(10,25);
+        dynamicData.jumpResistance = randInt(6,10);
+        miscData.healthValue = randInt(4,25);
+        miscData.knockback = randInt(100,150);
+        miscData.attackDamage = randFloat(0.5,1);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         const enemy = new Enemy(entity);
         this.saveEntityToGame(enemy);
     }
     private spawnNPC(entityData:FullEntityData) {
-        entityData.fixedData.modelPath = NPC.modelPath;
+        const fixedData = entityData.fixedData;
+        const dynamicData = entityData.dynamicData;
+        const miscData = entityData.miscData
+        fixedData.modelPath = NPC.modelPath;
+        dynamicData.horizontalVelocity = randInt(10,30);
+        dynamicData.jumpVelocity = randInt(10,25);
+        dynamicData.jumpResistance = randInt(6,10);
+        miscData.healthValue = randInt(4,25);
+        miscData.knockback = randInt(100,150);
+        miscData.attackDamage = randFloat(1,3);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         const npc = new NPC(entity);
         this.saveEntityToGame(npc);
