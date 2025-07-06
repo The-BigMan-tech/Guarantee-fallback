@@ -70,7 +70,7 @@ class EntityManager {
     }
 
     private spawnEnemy(entityData:FullEntityData) {
-        entityData.fixedData.modelPath = "./silvermoon.glb"
+        entityData.fixedData.modelPath = Enemy.modelPath;
         entityData.miscData.targetController = player;
         entityData.miscData.targetHealth = player.health;
         entityData.dynamicData.horizontalVelocity = randInt(10,30);
@@ -143,7 +143,6 @@ class EntityManager {
             console.log('Meta. entityKinds:', this.entityKinds);
             console.log('Meta. entitySpawnWeights:',this.entitySpawnWeights);
             switch (entityKind) {
-
                 case (this.entityMapping['Enemy'].kindID): {
                     this.spawnEnemy(entityData);
                     break;

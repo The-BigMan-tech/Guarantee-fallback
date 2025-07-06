@@ -2,6 +2,7 @@ import { Entity, type EntityContract } from "./entity.three";
 
 export class Enemy implements EntityContract  {
     private entity:Entity;
+    public static modelPath:string = "./silvermoon.glb";
 
     constructor(entity:Entity) {
         this.entity = entity;
