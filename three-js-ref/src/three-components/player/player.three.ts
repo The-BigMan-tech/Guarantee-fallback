@@ -117,17 +117,6 @@ class Player extends Controller {
             this.showEntityHealthTimer = 0;
         }
     }
-    private checkGroundDamage() {
-        if (this.velBeforeHittingGround !== 0) {
-            console.log("Fell. ",this.velBeforeHittingGround);
-            const minVelBeforeDamage = 20
-            if (this.velBeforeHittingGround > minVelBeforeDamage) {
-                const percentDamage = 3;//how much percent of the velocity is accounted for damage
-                const fallDamage = (percentDamage/100) * this.velBeforeHittingGround;
-                this.health.takeDamage(fallDamage);
-            }
-        }
-    }
     private static addEventListeners() {
         document.addEventListener('keydown',Player.onKeyDown);
         document.addEventListener('keyup', Player.onKeyUp);
@@ -301,7 +290,7 @@ class Player extends Controller {
         this.showEntityHealthTimer += this.clockDelta || 0;
         this.attackTimer += this.clockDelta || 0;
         this.updateHealthGUI();
-        this.checkGroundDamage();
+        this.health.checkGroundDamage(this.velBeforeHittingGround);
         this.bindKeysToControls();
         this.bindKeysToAnimations();
         this.toggleCamPerspective();

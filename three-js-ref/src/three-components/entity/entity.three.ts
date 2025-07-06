@@ -143,17 +143,6 @@ export class Entity extends Controller {
             }
         }
     } 
-    private checkGroundDamage() {
-        if (this.velBeforeHittingGround !== 0) {
-            console.log("Fell. ",this.velBeforeHittingGround);
-            const minVelBeforeDamage = 20
-            if (this.velBeforeHittingGround > minVelBeforeDamage) {
-                const percentDamage = 3;//how much percent of the velocity is accounted for damage
-                const fallDamage = (percentDamage/100) * this.velBeforeHittingGround;
-                this.health.takeDamage(fallDamage);
-            }
-        }
-    }
     private fadeOut(deltaTime:number):void {
         this.elapsed += deltaTime;
         const progress = Math.min(this.elapsed / this.fadeDuration, 1);
@@ -244,7 +233,7 @@ export class Entity extends Controller {
     
     protected onLoop(): void {
         this.patrolTimer += this.clockDelta || 0;
-        this.checkGroundDamage();
+        this.health.checkGroundDamage(this.velBeforeHittingGround);
         if (this.isAirBorne() && (!this.health.isDead)) this.playJumpAnimation();
         if (this.updateInternalState) this.updateInternalState(); 
         this.respondToStateMachine();
