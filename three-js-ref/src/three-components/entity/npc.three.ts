@@ -21,8 +21,11 @@ export class NPC  {
             this.entity._state.behaviour = 'death';
             return;
         }
-        else if (this.entity._targetHealth) {
-            if (!this.entity._targetHealth.isDead && this.entity._targetController) {
+        const target = this._entity._struct.attackMap.get('player');
+        if (target) {
+            this.entity._targetController = target
+            this.entity._targetHealth = target.health;
+            if (!this.entity._targetHealth.isDead) {
                 this.entity._navPosition = this.entity._targetController.position;
                 this.entity._movementType = 'precise';
                 this.entity._state.behaviour = 'chase';

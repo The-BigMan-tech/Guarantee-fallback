@@ -11,6 +11,7 @@ export class Enemy implements EntityContract  {
     }
     private onTargetReached():'attack' | 'idle' {//the behaviour when it reaches the target will be later tied to a state machine
         if (this.entity._targetHealth && !this.entity._targetHealth.isDead) {
+            this.entity._struct.attackMap.set('player',this._entity);
             return 'attack';
         }
         return 'idle'

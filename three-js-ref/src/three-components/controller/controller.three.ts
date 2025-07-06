@@ -812,7 +812,7 @@ export abstract class Controller {
         this.wakeUpBody();
         const upwardScalar = 3
         const dir = new THREE.Vector3(0,0,(direction=='forward')?-1:1);
-        const knockbackDir = dir.applyQuaternion(this.controller.quaternion)
+        const knockbackDir = dir.applyQuaternion(this.character.quaternion)
         const impulse = new RAPIER.Vector3(
             knockbackDir.x * knockbackImpulse,
             knockbackImpulse * (scalar || upwardScalar),
@@ -966,7 +966,7 @@ export abstract class Controller {
     get updateController():(deltaTime:number) => void {
         return this.updateCharacter
     }
-    get controller():THREE.Group {
+    get char():THREE.Group {
         return this.character
     }
     get position():THREE.Vector3 {

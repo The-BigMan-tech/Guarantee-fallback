@@ -23,6 +23,7 @@ export interface EntityContract {
 export interface ManagingStructure {
     group:THREE.Group,
     entities:EntityContract[],
+    attackMap:Map<string,Entity>
 }
 export class Entity extends Controller {
     private targetController:Controller | null = null;
@@ -148,7 +149,7 @@ export class Entity extends Controller {
         const progress = Math.min(this.elapsed / this.fadeDuration, 1);
         const opacity = 1 - progress;
     
-        this.controller.traverse((child) => {
+        this.char.traverse((child) => {
             const mesh = child as THREE.Mesh;
             if (mesh && mesh.material) {
                 if (Array.isArray(mesh.material)) {
@@ -192,8 +193,8 @@ export class Entity extends Controller {
         if (this.cleanupTimer >= this.cleanupCooldown) {//the cooldown is here to allow playing of death animations or ending effects
             this.points.clear();//clear the points array used for visual debugging
             this.struct.group.remove(this.points)//remove them from the scene
-            this.struct.group.remove(this.controller);//remove the controller from the scene
-            this.disposeHierarchy(this.controller);//remove the geometry data from the gpu
+            this.struct.group.remove(this.char);//remove the controller from the scene
+            this.disposeHierarchy(this.char);//remove the geometry data from the gpu
             this.disposeMixer();//to prevent animation updates
             const index = this.struct.entities.findIndex(entityWrapper => entityWrapper._entity === this);
             if (index !== -1) this.struct.entities.splice(index, 1);//remove it from the entity array to prevent its physics controller from updating,stop the player from possibly intersecting with it although unlikely since its removed from the scene and finally for garbae collection
@@ -224,11 +225,20 @@ export class Entity extends Controller {
     get _navPosition(): THREE.Vector3 | null {
         return this.navPosition;
     }
+    get _struct():ManagingStructure {
+        return this.struct
+    }
     set _navPosition(newPosition:THREE.Vector3 | null) {
         this.navPosition = newPosition
     }
     set _movementType(moveType:'fluid' | 'precise') {
         this.movementType = moveType
+    }
+    set _targetHealth(health:Health) {
+        this.targetHealth = health
+    }
+    set _targetController(controller:Controller) {
+        this.targetController = controller
     }
     
     protected onLoop(): void {

@@ -11,7 +11,6 @@ import { NPC } from "./npc.three";
 import { randInt,randFloat} from "three/src/math/MathUtils.js";
 import { choices } from "./choices";
 import {v4 as uniqueID} from "uuid";
-import type { Health } from "../health/health";
 
 
 interface EntityMetadata {
@@ -24,25 +23,21 @@ interface FullEntityData {
     miscData:EntityMiscData
     managingStruct:ManagingStructure
 }
-interface attackMapData {
-    targetPosition:THREE.Vector3 | null,
-    targetHealth:Health | null
-}
-
 
 type Singleton<T> = T;
 class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
             entityID:uniqueID(),
-            spawnWeight:0
+            spawnWeight:8
         },
         NPC: {
             entityID:uniqueID(),
             spawnWeight:10
         }
     }
-    private attackMap:Map<string,attackMapData> = new Map();
+    private attackMap:Map<string,Entity> = new Map();
+
     private static manager: EntityManager;
     public entityGroup:THREE.Group = new THREE.Group();
 
@@ -151,7 +146,8 @@ class EntityManager {
             }
             const entityManagingStruct:ManagingStructure = {//these are data structures passed to the individual entities so that they can use it for clean up
                 group:this.entityGroup,
-                entities:entities
+                entities:entities,
+                attackMap:this.attackMap
             }
             const entityData:FullEntityData = {//this is the full structure composed of the other data above
                 fixedData:entityFixedData,
@@ -176,10 +172,10 @@ class EntityManager {
 
 
     private despawnFarEntities() {
-        const playerPos = player.controller.position;
+        const playerPos = player.char.position;
         for (let i = entities.length - 1; i >= 0; i--) {
             const entityWrapper = entities[i];
-            const entityPos = entityWrapper._entity.controller.position; // Assuming THREE.Vector3
+            const entityPos = entityWrapper._entity.char.position; // Assuming THREE.Vector3
             const distance = playerPos.distanceTo(entityPos);
             if (distance > this.despawnRadius) {
                 entityWrapper._entity.cleanUp()
@@ -199,7 +195,7 @@ class EntityManager {
     }
     private saveEntityToGame(entityKind:EntityContract) {
         entities.push(entityKind);
-        this.entityGroup.add(entityKind._entity.controller);
+        this.entityGroup.add(entityKind._entity.char);
         this.entityGroup.add(entityKind._entity.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created)
     }
 
