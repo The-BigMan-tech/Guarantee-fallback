@@ -11,6 +11,7 @@ import { NPC } from "./npc.three";
 import { randInt,randFloat} from "three/src/math/MathUtils.js";
 import { choices } from "./choices";
 
+
 interface EntityMetadata {
     kindID:number,
     spawnWeight:number
@@ -142,7 +143,7 @@ class EntityManager {
             console.log('Meta. entityKinds:', this.entityKinds);
             console.log('Meta. entitySpawnWeights:',this.entitySpawnWeights);
             switch (entityKind) {
-                
+
                 case (this.entityMapping['Enemy'].kindID): {
                     this.spawnEnemy(entityData);
                     break;

@@ -9,7 +9,10 @@ export class Enemy implements EntityContract  {
         this.entity.updateInternalState = this.updateInternalState.bind(this);
     }
     private onTargetReached():'attack' | 'idle' {//the behaviour when it reaches the target will be later tied to a state machine
-        return 'attack';
+        if (this.entity._targetHealth && !this.entity._targetHealth.isDead) {
+            return 'attack';
+        }
+        return 'idle'
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
         if (this.entity._health.isDead) {//the order of the branches show update priority
