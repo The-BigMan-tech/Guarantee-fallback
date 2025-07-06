@@ -34,6 +34,6 @@ def choices(population:list[int], weights:list[int],k:int=1):
         final.append(num2)
     return final
 
-x:list[int] = [1,2,3]
+x:list[int] = [4,2,3]
 y = choices(x,[15,7,10],2)
 print(y)

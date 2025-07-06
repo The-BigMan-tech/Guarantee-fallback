@@ -15,44 +15,44 @@ interface EntityMetadata {
     kindID:number,
     spawnWeight:number
 }
-const entityMapping:Record<string,EntityMetadata> = {
-    Enemy:{
-        kindID:1,
-        spawnWeight:10
-    },
-    NPC: {
-        kindID:2,
-        spawnWeight:0
-    }
-}
-const entityKinds:number[] = Object.keys(entityMapping).map(key=>entityMapping[key].kindID);
-const entitySpawnWeights = Object.keys(entityMapping).map(key=>entityMapping[key].spawnWeight);
-console.log('Meta. entityKinds:', entityKinds);
-console.log('Meta. entitySpanwWeights:', entitySpawnWeights);
-
 interface FullEntityData {
     fixedData:FixedControllerData,
     dynamicData:DynamicControllerData,
     miscData:EntityMiscData
     managingStruct:ManagingStructure
 }
+
+
 type Singleton<T> = T;
 class EntityManager {
+    private entityMapping:Record<string,EntityMetadata> = {
+        Enemy:{
+            kindID:1,
+            spawnWeight:10
+        },
+        NPC: {
+            kindID:2,
+            spawnWeight:0
+        }
+    }
     private static manager: EntityManager;
     public entityGroup:THREE.Group = new THREE.Group();
 
     private spawnTimer:number = 0;
     private spawnCooldown:number = 3;
 
-    private spawnRadius = 5; // or smaller if you want
+    private spawnRadius = 5;
     private despawnRadius: number = 1000;
+    private minSpawnDistance = 5; // adjust as needed
 
     private raycaster = new THREE.Raycaster();
     private down = new THREE.Vector3(0, -1, 0);
 
+    private entityKinds:number[] = Object.keys(this.entityMapping).map(key=>this.entityMapping[key].kindID);
+    private entitySpawnWeights = Object.keys(this.entityMapping).map(key=>this.entityMapping[key].spawnWeight);
+
 
     private constructor() {};
-    
     public static get instance(): EntityManager {
         if (!EntityManager.manager) EntityManager.manager = new EntityManager();
         return EntityManager.manager;
@@ -70,11 +70,11 @@ class EntityManager {
 
     private spawnEnemy(entityData:FullEntityData) {
         entityData.fixedData.modelPath = "./silvermoon.glb"
+        entityData.miscData.targetController = player;
+        entityData.miscData.targetHealth = player.health;
         entityData.dynamicData.horizontalVelocity = randInt(10,30);
         entityData.dynamicData.jumpVelocity = randInt(10,25);
         entityData.dynamicData.jumpResistance = randInt(6,10);
-        entityData.miscData.targetController = player;
-        entityData.miscData.targetHealth = player.health;
         entityData.miscData.healthValue = randInt(4,25);
         entityData.miscData.knockback = randInt(100,150);
         entityData.miscData.attackDamage = randFloat(0.5,1);
@@ -90,14 +90,12 @@ class EntityManager {
 
 
     private spawnEntities() {
-        const minSpawnDistance = 5; // adjust as needed
         const pds = new PoissonDiskSampling({
             shape: [this.spawnRadius, this.spawnRadius],
-            minDistance: minSpawnDistance,
+            minDistance:this.minSpawnDistance,
             tries: 10
         });
         const spawnPoints = pds.fill();
-
         for (const [x, z] of spawnPoints) {
             const playerPos = player.position;
             const spawnX = playerPos.x + (x - (this.spawnRadius / 2));//offset from the player spawnpoint by adding the player cords to it
@@ -140,13 +138,16 @@ class EntityManager {
                 miscData:entityMiscData,
                 managingStruct:entityManagingStruct
             };
-            const entityKind:number = choices(entityKinds,entitySpawnWeights,1)[0]//get the first element
+            const entityKind:number = choices(this.entityKinds,this.entitySpawnWeights,1)[0]//get the first element
+            console.log('Meta. entityKinds:', this.entityKinds);
+            console.log('Meta. entitySpawnWeights:',this.entitySpawnWeights);
             switch (entityKind) {
-                case (entityMapping['Enemy'].kindID): {
+                
+                case (this.entityMapping['Enemy'].kindID): {
                     this.spawnEnemy(entityData);
                     break;
                 }
-                case (entityMapping['NPC'].kindID): {
+                case (this.entityMapping['NPC'].kindID): {
                     this.spawnNPC(entityData);
                     break;
                 }
