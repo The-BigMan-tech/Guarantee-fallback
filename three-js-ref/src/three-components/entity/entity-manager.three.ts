@@ -9,11 +9,27 @@ import { cubesGroup } from "../tall-cubes.three";
 import { Enemy } from "./enemy.three";
 import { NPC } from "./npc.three";
 import { randInt,randFloat} from "three/src/math/MathUtils.js";
+import { choices } from "./choices";
 
-enum EntityMapping {
-    Enemy = 1,
-    NPC = 2,
+interface EntityMetadata {
+    kindID:number,
+    spawnWeight:number
 }
+const entityMapping:Record<string,EntityMetadata> = {
+    Enemy:{
+        kindID:1,
+        spawnWeight:10
+    },
+    NPC: {
+        kindID:2,
+        spawnWeight:0
+    }
+}
+const entityKinds:number[] = Object.keys(entityMapping).map(key=>entityMapping[key].kindID);
+const entitySpawnWeights = Object.keys(entityMapping).map(key=>entityMapping[key].spawnWeight);
+console.log('Meta. entityKinds:', entityKinds);
+console.log('Meta. entitySpanwWeights:', entitySpawnWeights);
+
 interface FullEntityData {
     fixedData:FixedControllerData,
     dynamicData:DynamicControllerData,
@@ -124,14 +140,13 @@ class EntityManager {
                 miscData:entityMiscData,
                 managingStruct:entityManagingStruct
             };
-
-            const entityKind:number = randInt(1,1);
+            const entityKind:number = choices(entityKinds,entitySpawnWeights,1)[0]//get the first element
             switch (entityKind) {
-                case (EntityMapping.Enemy): {
+                case (entityMapping['Enemy'].kindID): {
                     this.spawnEnemy(entityData);
                     break;
                 }
-                case (EntityMapping.NPC): {
+                case (entityMapping['NPC'].kindID): {
                     this.spawnNPC(entityData);
                     break;
                 }
