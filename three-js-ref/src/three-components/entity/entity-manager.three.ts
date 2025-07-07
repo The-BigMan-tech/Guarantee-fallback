@@ -14,7 +14,7 @@ import {v4 as uniqueID} from "uuid";
 
 
 interface EntityMetadata {
-    variantID:string,
+    groupID:string,
     spawnWeight:number
 }
 interface FullEntityData {
@@ -29,11 +29,11 @@ type Singleton<T> = T;
 class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
-            variantID:uniqueID(),
+            groupID:uniqueID(),//i called it groupID cuz its not per isntance but per entity type or kind
             spawnWeight:8
         },
         NPC: {
-            variantID:uniqueID(),
+            groupID:uniqueID(),
             spawnWeight:10
         }
     }
@@ -51,7 +51,7 @@ class EntityManager {
     private raycaster = new THREE.Raycaster();
     private down = new THREE.Vector3(0, -1, 0);
 
-    private variantIDs:string[] = [];
+    private groupIDs:string[] = [];
     private entitySpawnWeights:number[] = [];
     private multiChoiceCount = 2;
 
@@ -61,7 +61,7 @@ class EntityManager {
         if (!EntityManager.manager)  {
             EntityManager.manager = new EntityManager();
             Object.values(EntityManager.entityMapping).forEach(value=>{
-                EntityManager.manager.variantIDs.push(value.variantID);
+                EntityManager.manager.groupIDs.push(value.groupID);
                 EntityManager.manager.entitySpawnWeights.push(value.spawnWeight);
             })
         }
@@ -114,7 +114,7 @@ class EntityManager {
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         return {_entity:entity}
     }
-    private createEntity(variantID:string,spawnPoint:THREE.Vector3Like):EntityContract {
+    private createEntity(groupID:string,spawnPoint:THREE.Vector3Like):EntityContract {
          //these are just basic props for any entity type.it can be passed to methods that spawn specific entity types to configure any of these parameters before creating an entity of their preferred type
         const entityFixedData:FixedControllerData = {//this is for controller data thats not supposed to be changed after creation
             modelPath:'',
@@ -149,11 +149,11 @@ class EntityManager {
             miscData:entityMiscData,
             managingStruct:entityManagingStruct
         };
-        switch (variantID) {
-            case (EntityManager.entityMapping['Enemy'].variantID): {
+        switch (groupID) {
+            case (EntityManager.entityMapping['Enemy'].groupID): {
                 return this.createEnemy(entityData);
             }
-            case (EntityManager.entityMapping['NPC'].variantID): {
+            case (EntityManager.entityMapping['NPC'].groupID): {
                 return this.createNPC(entityData);
             }
             default: {
@@ -175,10 +175,10 @@ class EntityManager {
             const spawnZ = playerPos.z + (z - (this.spawnRadius / 2));//the reason why we are adding z-r/2 instead of z directly is so that its centered around that origin
             const spawnY = this.getHeightAtPosition(spawnX,spawnZ); // or sample terrain height at (spawnX, spawnZ)
             const spawnPoint = new RAPIER.Vector3(spawnX, spawnY, spawnZ);
-            const chosenVariantIDs:string[] = choices<string>(this.variantIDs,this.entitySpawnWeights,this.multiChoiceCount)//get the first element
+            const chosenGroupIDs:string[] = choices<string>(this.groupIDs,this.entitySpawnWeights,this.multiChoiceCount)//get the first element
             
-            for (const variantID of chosenVariantIDs) {
-                const finalEntity = this.createEntity(variantID,spawnPoint)
+            for (const groupID of chosenGroupIDs) {
+                const finalEntity = this.createEntity(groupID,spawnPoint)
                 this.saveEntityToGame(finalEntity)
             }
         }

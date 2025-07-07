@@ -8,7 +8,8 @@ export interface EntityLike extends Controller {
 export interface RelationshipTree {
     attack:{
         attackedPlayer:EntityLike | null,
-        attackedEnemy:EntityLike  | null
+        attackedEnemy:EntityLike  | null,
+        attackedNPC:EntityLike | null
     }
 }
 
@@ -18,7 +19,8 @@ export class RelationshipManager {
     private relationships:RelationshipTree = {
         attack: {
             attackedPlayer:null,
-            attackedEnemy:null
+            attackedEnemy:null,
+            attackedNPC:null
         }
     }
 

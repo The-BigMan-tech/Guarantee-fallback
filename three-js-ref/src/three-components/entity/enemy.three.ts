@@ -1,10 +1,11 @@
 import { Entity, type EntityContract } from "./entity.three";
-import { relationshipManager, type EntityLike } from "./relationship-manager.three";
+import { relationshipManager, type EntityLike } from "./relationships.three";
 
 export class Enemy implements EntityContract  {
     private entity:Entity;
     public static modelPath:string = "./silvermoon.glb";
 
+    private temporaryTarget:EntityLike | null = null;
     private endTargetEntity:EntityLike | null;
 
     constructor(entity:Entity) {
@@ -27,9 +28,9 @@ export class Enemy implements EntityContract  {
             return;
         }
 
-        const target = relationshipManager.attackRelationship.attackedEnemy
-        if (target) {
-            this.entity._targetEntity = target
+        this.temporaryTarget = relationshipManager.attackRelationship.attackedEnemy
+        if (this.temporaryTarget) {
+            this.entity._targetEntity = this.temporaryTarget
         }else {
             this.entity._targetEntity = this.endTargetEntity
         }

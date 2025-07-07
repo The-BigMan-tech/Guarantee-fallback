@@ -1,6 +1,6 @@
 import { Entity } from "./entity.three";
-import { relationshipManager } from "./relationship-manager.three";
-import type { EntityLike } from "./relationship-manager.three";
+import { relationshipManager } from "./relationships.three";
+import type { EntityLike } from "./relationships.three";
 
 export class NPC  {
     public static modelPath:string = './snowman-v3.glb';

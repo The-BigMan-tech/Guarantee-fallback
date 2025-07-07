@@ -3,7 +3,7 @@ import type {FixedControllerData,DynamicControllerData } from "../controller/con
 import * as THREE from "three"
 import { Health } from "../health/health";
 import { combatCooldown, physicsWorld } from "../physics-world.three";
-import type { EntityLike } from "./relationship-manager.three";
+import type { EntityLike } from "./relationships.three";
 
 type Behaviour = 'idle' | 'patrol' | 'chase' | 'attack' | 'death';
 
