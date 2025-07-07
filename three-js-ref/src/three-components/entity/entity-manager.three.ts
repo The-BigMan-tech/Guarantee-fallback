@@ -14,7 +14,7 @@ import {v4 as uniqueID} from "uuid";
 
 
 interface EntityMetadata {
-    entityID:string,
+    variantID:string,
     spawnWeight:number
 }
 interface FullEntityData {
@@ -29,11 +29,11 @@ type Singleton<T> = T;
 class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
-            entityID:uniqueID(),
+            variantID:uniqueID(),
             spawnWeight:8
         },
         NPC: {
-            entityID:uniqueID(),
+            variantID:uniqueID(),
             spawnWeight:10
         }
     }
@@ -51,7 +51,7 @@ class EntityManager {
     private raycaster = new THREE.Raycaster();
     private down = new THREE.Vector3(0, -1, 0);
 
-    private entityIDs:string[] = [];
+    private variantIDs:string[] = [];
     private entitySpawnWeights:number[] = [];
     private multiChoiceCount = 2;
 
@@ -61,7 +61,7 @@ class EntityManager {
         if (!EntityManager.manager)  {
             EntityManager.manager = new EntityManager();
             Object.values(EntityManager.entityMapping).forEach(value=>{
-                EntityManager.manager.entityIDs.push(value.entityID);
+                EntityManager.manager.variantIDs.push(value.variantID);
                 EntityManager.manager.entitySpawnWeights.push(value.spawnWeight);
             })
         }
@@ -84,9 +84,8 @@ class EntityManager {
         const dynamicData = entityData.dynamicData;
         const miscData = entityData.miscData;//i did this to make the code neater and it will work since it references the same object
         fixedData.modelPath = Enemy.modelPath;
-        miscData.targetController = player;
-        miscData.targetHealth = player.health;
-        dynamicData.horizontalVelocity = randInt(10,30);
+        miscData.targetEntity = player;
+        dynamicData.horizontalVelocity = randInt(5,10);
         dynamicData.jumpVelocity = randInt(10,25);
         dynamicData.jumpResistance = randInt(6,10);
         miscData.healthValue = randInt(20,25);
@@ -101,7 +100,7 @@ class EntityManager {
         const dynamicData = entityData.dynamicData;
         const miscData = entityData.miscData
         fixedData.modelPath = NPC.modelPath;
-        dynamicData.horizontalVelocity = randInt(10,20);
+        dynamicData.horizontalVelocity = randInt(10,30);
         dynamicData.jumpVelocity = randInt(10,25);
         dynamicData.jumpResistance = randInt(6,10);
         miscData.healthValue = randInt(10,15);
@@ -135,8 +134,7 @@ class EntityManager {
             gravityScale:1
         }
         const entityMiscData:EntityMiscData = {//this is for entity specific data decoupled from their controller
-            targetController:null,
-            targetHealth:null,
+            targetEntity:null,
             healthValue:0,
             knockback:0,
             attackDamage:0
@@ -152,10 +150,10 @@ class EntityManager {
             managingStruct:entityManagingStruct
         };
         switch (entityID) {
-            case (EntityManager.entityMapping['Enemy'].entityID): {
+            case (EntityManager.entityMapping['Enemy'].variantID): {
                 return this.createEnemy(entityData);
             }
-            case (EntityManager.entityMapping['NPC'].entityID): {
+            case (EntityManager.entityMapping['NPC'].variantID): {
                 return this.createNPC(entityData);
             }
             default: {
@@ -177,10 +175,10 @@ class EntityManager {
             const spawnZ = playerPos.z + (z - (this.spawnRadius / 2));//the reason why we are adding z-r/2 instead of z directly is so that its centered around that origin
             const spawnY = this.getHeightAtPosition(spawnX,spawnZ); // or sample terrain height at (spawnX, spawnZ)
             const spawnPoint = new RAPIER.Vector3(spawnX, spawnY, spawnZ);
-            const chosenEntityIDs:string[] = choices<string>(this.entityIDs,this.entitySpawnWeights,this.multiChoiceCount)//get the first element
+            const chosenVariantIDs:string[] = choices<string>(this.variantIDs,this.entitySpawnWeights,this.multiChoiceCount)//get the first element
             
-            for (const entityID of chosenEntityIDs) {
-                const finalEntity = this.createEntity(entityID,spawnPoint)
+            for (const variantID of chosenVariantIDs) {
+                const finalEntity = this.createEntity(variantID,spawnPoint)
                 this.saveEntityToGame(finalEntity)
             }
         }

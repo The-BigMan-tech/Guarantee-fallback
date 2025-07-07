@@ -3,13 +3,13 @@ import type {FixedControllerData,DynamicControllerData } from "../controller/con
 import * as THREE from "three"
 import { Health } from "../health/health";
 import { combatCooldown, physicsWorld } from "../physics-world.three";
+import type { RelationshipContract } from "./relationship-manager.three";
 
 type Behaviour = 'idle' | 'patrol' | 'chase' | 'attack' | 'death';
 
 export interface EntityMiscData {
+    targetEntity:RelationshipContract | null,
     healthValue:number,
-    targetController:Controller | null,
-    targetHealth:Health | null,
     attackDamage:number,
     knockback:number
 }
@@ -25,12 +25,11 @@ export interface ManagingStructure {
     entities:EntityContract[],
 }
 export class Entity extends Controller {
-    private targetController:Controller | null = null;
+    private targetEntity:RelationshipContract | null = null;
+
     private navPosition:THREE.Vector3 | null = null;//strictly for position in case where the entity might not have a target ref but it still wants to go navigate somewhere
 
     public health:Health;
-    private targetHealth:Health | null = null;
-
     private attackDamage:number;
 
     private attackCooldown = combatCooldown; // cooldown duration in seconds
@@ -59,8 +58,7 @@ export class Entity extends Controller {
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:EntityMiscData,struct:ManagingStructure) {
         super(fixedData,dynamicData);
         this.health = new Health(miscData.healthValue);
-        this.targetController = miscData.targetController
-        this.targetHealth = miscData.targetHealth;
+        this.targetEntity = miscData.targetEntity
         this.attackDamage = miscData.attackDamage;
         this.struct = struct;
         this.knockback = miscData.knockback;
@@ -96,13 +94,13 @@ export class Entity extends Controller {
     }
     private attack():void {
         this.attackTimer += this.clockDelta || 0;
-        if (!this.targetHealth) return;
+        if (!this.targetEntity?.health) return;
         if (this.attackTimer > (this.attackCooldown -0.4)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
             this.playAttackAnimation();
         }
         if (this.attackTimer > this.attackCooldown) {
-            this.targetController?.knockbackCharacter('backwards',this.knockback);
-            this.targetHealth.takeDamage(this.attackDamage);
+            this.targetEntity.knockbackCharacter('backwards',this.knockback);
+            this.targetEntity.health.takeDamage(this.attackDamage);
             this.attackTimer = 0;
         }
         else this.idle();
@@ -209,17 +207,14 @@ export class Entity extends Controller {
     get cleanUp():() => void {
         return this.cleanUpResources;
     }
-    get _targetHealth():Health | null {
-        return this.targetHealth;
-    }
     get _state():EntityStateMachine {
         return this.state
     }
     get _health():Health {
         return this.health;
     }
-    get _targetController():Controller | null {
-        return this.targetController;
+    get _targetEntity():RelationshipContract | null {
+        return this.targetEntity;
     }
     get _navPosition(): THREE.Vector3 | null {
         return this.navPosition;
@@ -234,11 +229,8 @@ export class Entity extends Controller {
     set _movementType(moveType:'fluid' | 'precise') {
         this.movementType = moveType
     }
-    set _targetHealth(health:Health | null) {
-        this.targetHealth = health
-    }
-    set _targetController(controller:Controller | null) {
-        this.targetController = controller
+    set _targetEntity(targetEntity:RelationshipContract | null) {
+        this.targetEntity = targetEntity
     }
     
     protected onLoop(): void {

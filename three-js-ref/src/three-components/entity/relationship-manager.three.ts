@@ -2,7 +2,7 @@ import { Controller } from "../controller/controller.three";
 import type { Health } from "../health/health";
 
 
-interface RelationshipContract extends Controller {
+export interface RelationshipContract extends Controller {
     health:Health
 }
 export interface RelationshipTree {
