@@ -51,7 +51,7 @@ class EntityManager {
     private raycaster = new THREE.Raycaster();
     private down = new THREE.Vector3(0, -1, 0);
 
-    private entityKinds:string[] = Object.values(EntityManager.entityMapping).map(value=>value.entityID);
+    private entityIDs:string[] = Object.values(EntityManager.entityMapping).map(value=>value.entityID);
     private entitySpawnWeights:number[] = Object.values(EntityManager.entityMapping).map(value=>value.spawnWeight);
     private multiChoiceCount = 2;
 
@@ -71,7 +71,7 @@ class EntityManager {
         return 20  // Default ground height if no intersection
     }
 
-    private spawnEnemy(entityData:FullEntityData) {
+    private createEnemy(entityData:FullEntityData):EntityContract {
         const fixedData = entityData.fixedData;
         const dynamicData = entityData.dynamicData;
         const miscData = entityData.miscData;//i did this to make the code neater and it will work since it references the same object
@@ -86,9 +86,9 @@ class EntityManager {
         miscData.attackDamage = randFloat(0.5,1);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         const enemy = new Enemy(entity);
-        this.saveEntityToGame(enemy);
+        return enemy
     }
-    private spawnNPC(entityData:FullEntityData) {
+    private createNPC(entityData:FullEntityData):EntityContract {
         const fixedData = entityData.fixedData;
         const dynamicData = entityData.dynamicData;
         const miscData = entityData.miscData
@@ -101,9 +101,61 @@ class EntityManager {
         miscData.attackDamage = randFloat(1,3);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         const npc = new NPC(entity);
-        this.saveEntityToGame(npc);
+        return npc
     }
-
+    private createDefault(entityData:FullEntityData):EntityContract {
+        const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
+        return {_entity:entity}
+    }
+    private createEntity(entityID:string,spawnPoint:THREE.Vector3Like):EntityContract {
+         //these are just basic props for any entity type.it can be passed to methods that spawn specific entity types to configure any of these parameters before creating an entity of their preferred type
+        const entityFixedData:FixedControllerData = {//this is for controller data thats not supposed to be changed after creation
+            modelPath:'',
+            spawnPoint:spawnPoint,
+            characterHeight:2,
+            characterWidth:1,
+            shape:'capsule',
+            mass:40,
+        }
+        const entityDynamicData:DynamicControllerData = {//this is for controller data that can be changed after creation
+            horizontalVelocity:0,
+            jumpVelocity:0,
+            jumpResistance:0,
+            rotationDelta:0.05,
+            rotationSpeed:0.2,
+            maxStepUpHeight:2,
+            gravityScale:1
+        }
+        const entityMiscData:EntityMiscData = {//this is for entity specific data decoupled from their controller
+            targetController:null,
+            targetHealth:null,
+            healthValue:0,
+            knockback:0,
+            attackDamage:0
+        }
+        const entityManagingStruct:ManagingStructure = {//these are data structures passed to the individual entities so that they can use it for clean up
+            group:this.entityGroup,
+            entities:entities,
+            attackMap:this.attackMap
+        }
+        const entityData:FullEntityData = {//this is the full structure composed of the other data above
+            fixedData:entityFixedData,
+            dynamicData:entityDynamicData,
+            miscData:entityMiscData,
+            managingStruct:entityManagingStruct
+        };
+        switch (entityID) {
+            case (EntityManager.entityMapping['Enemy'].entityID): {
+                return this.createEnemy(entityData);
+            }
+            case (EntityManager.entityMapping['NPC'].entityID): {
+                return this.createNPC(entityData);
+            }
+            default: {
+                return this.createDefault(entityData)
+            }
+        }
+    }
 
     private spawnEntities() {
         const pds = new PoissonDiskSampling({
@@ -118,55 +170,11 @@ class EntityManager {
             const spawnZ = playerPos.z + (z - (this.spawnRadius / 2));//the reason why we are adding z-r/2 instead of z directly is so that its centered around that origin
             const spawnY = this.getHeightAtPosition(spawnX,spawnZ); // or sample terrain height at (spawnX, spawnZ)
             const spawnPoint = new RAPIER.Vector3(spawnX, spawnY, spawnZ);
-            const entityKinds:string[] = choices<string>(this.entityKinds,this.entitySpawnWeights,this.multiChoiceCount)//get the first element
+            const entityIDs:string[] = choices<string>(this.entityIDs,this.entitySpawnWeights,this.multiChoiceCount)//get the first element
             
-            for (const entityKind of entityKinds) {
-                //these are just basic props for any entity type.it can be passed to methods that spawn specific entity types to configure any of these parameters before creating an entity of their preferred type
-                const entityFixedData:FixedControllerData = {//this is for controller data thats not supposed to be changed after creation
-                    modelPath:'',
-                    spawnPoint:spawnPoint,
-                    characterHeight:2,
-                    characterWidth:1,
-                    shape:'capsule',
-                    mass:40,
-                }
-                const entityDynamicData:DynamicControllerData = {//this is for controller data that can be changed after creation
-                    horizontalVelocity:0,
-                    jumpVelocity:0,
-                    jumpResistance:0,
-                    rotationDelta:0.05,
-                    rotationSpeed:0.2,
-                    maxStepUpHeight:2,
-                    gravityScale:1
-                }
-                const entityMiscData:EntityMiscData = {//this is for entity specific data decoupled from their controller
-                    targetController:null,
-                    targetHealth:null,
-                    healthValue:0,
-                    knockback:0,
-                    attackDamage:0
-                }
-                const entityManagingStruct:ManagingStructure = {//these are data structures passed to the individual entities so that they can use it for clean up
-                    group:this.entityGroup,
-                    entities:entities,
-                    attackMap:this.attackMap
-                }
-                const entityData:FullEntityData = {//this is the full structure composed of the other data above
-                    fixedData:entityFixedData,
-                    dynamicData:entityDynamicData,
-                    miscData:entityMiscData,
-                    managingStruct:entityManagingStruct
-                };
-                switch (entityKind) {
-                    case (EntityManager.entityMapping['Enemy'].entityID): {
-                        this.spawnEnemy(entityData);
-                        break;
-                    }
-                    case (EntityManager.entityMapping['NPC'].entityID): {
-                        this.spawnNPC(entityData);
-                        break;
-                    }
-                }
+            for (const entityID of entityIDs) {
+                const finalEntity = this.createEntity(entityID,spawnPoint)
+                this.saveEntityToGame(finalEntity)
             }
         }
     }
