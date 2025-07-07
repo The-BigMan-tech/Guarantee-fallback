@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type {FixedControllerData,DynamicControllerData} from "../controller/controller.three";
-import type { EntityContract, EntityMiscData, ManagingStructure } from "./entity.three";
+import type { EntityContract, EntityMiscData, ManagingStructure, RelationshipTree } from "./entity.three";
 import * as RAPIER from '@dimforge/rapier3d'
 import { player } from "../player/player.three";
 import { Entity,entities} from "./entity.three";
@@ -24,6 +24,7 @@ interface FullEntityData {
     managingStruct:ManagingStructure
 }
 
+
 type Singleton<T> = T;
 class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
@@ -36,7 +37,9 @@ class EntityManager {
             spawnWeight:10
         }
     }
-    private attackMap:Map<string,Entity> = new Map();
+    private relationships:RelationshipTree = {
+        attacked:new Map()
+    };
 
     private static manager: EntityManager;
     public entityGroup:THREE.Group = new THREE.Group();
@@ -54,6 +57,7 @@ class EntityManager {
     private entityIDs:string[] = [];
     private entitySpawnWeights:number[] = [];
     private multiChoiceCount = 2;
+
 
     private constructor() {};
     public static get instance(): EntityManager {
@@ -91,7 +95,7 @@ class EntityManager {
         miscData.knockback = randInt(100,150);
         miscData.attackDamage = randFloat(0.5,1);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
-        const enemy = new Enemy(entity);
+        const enemy = new Enemy(entity,this.relationships);
         return enemy
     }
     private createNPC(entityData:FullEntityData):EntityContract {
@@ -106,7 +110,7 @@ class EntityManager {
         miscData.knockback = randInt(100,150);
         miscData.attackDamage = randFloat(1,3);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
-        const npc = new NPC(entity);
+        const npc = new NPC(entity,this.relationships);
         return npc
     }
     private createDefault(entityData:FullEntityData):EntityContract {
@@ -142,7 +146,6 @@ class EntityManager {
         const entityManagingStruct:ManagingStructure = {//these are data structures passed to the individual entities so that they can use it for clean up
             group:this.entityGroup,
             entities:entities,
-            attackMap:this.attackMap
         }
         const entityData:FullEntityData = {//this is the full structure composed of the other data above
             fixedData:entityFixedData,

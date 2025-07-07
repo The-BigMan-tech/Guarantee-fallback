@@ -23,7 +23,6 @@ export interface EntityContract {
 export interface ManagingStructure {
     group:THREE.Group,
     entities:EntityContract[],
-    attackMap:Map<string,Entity>
 }
 export class Entity extends Controller {
     private targetController:Controller | null = null;
@@ -119,7 +118,7 @@ export class Entity extends Controller {
     public onTargetReached?: () => 'attack' | 'idle';
     public updateInternalState?:()=>void;
 
-    private respondToStateMachine():void {
+    private reactToStateMachine():void {
         console.log("State: ",this.state.behaviour);
         switch (this.state.behaviour) {
             case 'idle': {
@@ -246,7 +245,10 @@ export class Entity extends Controller {
         this.health.checkGroundDamage(this.velBeforeHittingGround);
         if (this.isAirBorne() && (!this.health.isDead)) this.playJumpAnimation();
         if (this.updateInternalState) this.updateInternalState(); 
-        this.respondToStateMachine();
+        this.reactToStateMachine();
     }
 }
 export const entities:EntityContract[] = [];
+export interface RelationshipTree {
+    attacked:Map<string,Entity>
+}
