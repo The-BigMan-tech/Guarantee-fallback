@@ -1,3 +1,4 @@
+import { player } from "../player/player.three";
 import { Entity } from "./entity.three";
 import { relationshipManager } from "./relationships.three";
 import type { EntityLike } from "./relationships.three";
@@ -23,7 +24,9 @@ export class NPC  {
         return 'idle'
     }
     private updateInternalState() {
+        this.entity.basePatrolPoint = player.position.clone();
         this.entity._state.behaviour = 'patrol';
+
         if (this.entity._health.isDead) {//the order of the branches show update priority
             this.entity._state.behaviour = 'death';
             relationshipManager._attacked[groupIDs.enemy] = null;

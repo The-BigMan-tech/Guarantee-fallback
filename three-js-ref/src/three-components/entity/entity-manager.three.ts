@@ -30,7 +30,7 @@ class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
             groupID:groupIDs.enemy,//i called it groupID cuz its not per isntance but per entity type or kind
-            spawnWeight:8
+            spawnWeight:6
         },
         NPC: {
             groupID:groupIDs.npc,
@@ -44,8 +44,8 @@ class EntityManager {
     private spawnTimer:number = 0;
     private spawnCooldown:number = 3;
 
-    private spawnRadius = 10;
-    private minSpawnDistance = 5; // adjust as needed
+    private spawnRadius = 25;
+    private minSpawnDistance = 10; // adjust as needed
     private despawnRadius: number = 1000;
 
     private raycaster = new THREE.Raycaster();
@@ -101,7 +101,7 @@ class EntityManager {
         const miscData = entityData.miscData
         fixedData.modelPath = NPC.modelPath;
         dynamicData.horizontalVelocity = randInt(10,30);
-        dynamicData.jumpVelocity = randInt(10,25);
+        dynamicData.jumpVelocity = randInt(25,32);
         dynamicData.jumpResistance = randInt(6,10);
         miscData.healthValue = randInt(10,15);
         miscData.knockback = randInt(100,150);
@@ -166,7 +166,7 @@ class EntityManager {
         const pds = new PoissonDiskSampling({
             shape: [this.spawnRadius, this.spawnRadius],
             minDistance:this.minSpawnDistance,
-            tries: 10
+            tries:10
         });
         const spawnPoints = pds.fill();
         for (const [x, z] of spawnPoints) {

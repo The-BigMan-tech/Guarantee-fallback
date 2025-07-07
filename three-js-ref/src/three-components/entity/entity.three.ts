@@ -35,9 +35,10 @@ export class Entity extends Controller {
     private attackCooldown = combatCooldown; // cooldown duration in seconds
     private attackTimer = 0;    // timer accumulator
 
-    private patrolRadius = 20; // max distance from current position to patrol
+    private patrolRadius = 15; // max distance from current position to patrol
     private patrolCooldown = 3; // seconds between patrol target changes
     private patrolTimer = 0;
+    public basePatrolPoint:THREE.Vector3 | null = null;//this is meant to be hook where a concrete entity changes where the patrolling is centred around by changing this value.by default its null.so if null,it uses the characterPos as the patrol point else,it uses the provided one.
 
     private cleanupTimer = 0;
     private cleanupCooldown = 7;//to allow playing an animation before removal
@@ -50,6 +51,7 @@ export class Entity extends Controller {
     private elapsed = 0;
 
     private movementType:'fluid' | 'precise' = 'precise'
+
 
     private state:EntityStateMachine = {
         behaviour:'idle'
@@ -64,10 +66,12 @@ export class Entity extends Controller {
         this.knockback = miscData.knockback;
     }
     private getRandomPatrolPoint(): THREE.Vector3 {
-        const currentPos = this.position.clone();
+        this.basePatrolPoint ||= this.position.clone();//use char position as base patrol point if none is provided
         const randomPoint = (Math.random() - 0.5) * 2 * this.patrolRadius
         const randomOffset = new THREE.Vector3(randomPoint,0,randomPoint);
-        return currentPos.add(randomOffset);
+        const patrolPoint = this.basePatrolPoint.add(randomOffset);
+        this.basePatrolPoint = null;//reset it to null after use to allow it to be hooked,else it wont accept the hooked value in the next frame cuz it will no longer be null by then.
+        return patrolPoint;
     }
 
     private idle():void {
