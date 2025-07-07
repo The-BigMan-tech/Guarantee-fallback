@@ -1015,3 +1015,5 @@ Multi weighted choice spawning
 so because the instance getter is a static method enforcing singleton,i cant use the this there but only through the static manager prop.if i used the constructor,i could use the this but this will break the singleton pattern
 
 you can definitely use this in the instance methods of your EntityManager class. Since those methods are called on the singleton instance, using this will refer to that single instance. This approach improves readability and makes the code easier to write.Using this in your instance methods is not only allowed but also a best practice for clarity and maintainability. Just make sure that you only use it in non-static methods where the context is guaranteed to be the singleton instance
+
+camelCase,PascalCase,snake_case,UPPER_SNAKE_CASE

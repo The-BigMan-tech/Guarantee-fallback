@@ -273,7 +273,7 @@ export abstract class Controller {
     }
 
     private orientPoint(distance:number,directionVector:THREE.Vector3):THREE.Vector3 {
-        if (!this.characterRigidBody) return Controller.ZERO_VECTOR;
+        if (!this.characterRigidBody) return Controller.zeroVector;
         const rotation = this.characterRigidBody.rotation();
         const quat = new THREE.Quaternion(rotation.x, rotation.y, rotation.z, rotation.w);
         const dir = directionVector.clone().applyQuaternion(quat).normalize();
@@ -588,7 +588,7 @@ export abstract class Controller {
     private flipCheckInterval:seconds = 1; // Minimum time interval between perimeter scan flip checks.Note: The flip check runs only when certain navigation conditions are met,so actual flips happen discretely, not strictly every interval.fine tune as needed to control the interval of flip checks
     private minProgressThreshold: number = -1; //i can make it 1 to prevent situations where they get stuck.but this may be strict if some declination in progress like -1 is required to make progress but allowing that can get it stuck in a place.so its a tradeoff
     private distSinceLastDelta: number | null = null;
-    private static readonly ZERO_VECTOR = new THREE.Vector3(0,0,0);
+    private static readonly zeroVector = new THREE.Vector3(0,0,0);
 
 
     protected decidePerimeterScanDirection(distToOriginalPath:number,distSinceLastDelta:number) {
@@ -602,7 +602,7 @@ export abstract class Controller {
     }
 
     private terminateBranch() {
-        this.obstacleClearancePoint.copy(Controller.ZERO_VECTOR);//removing any possible clearance point and terminating the branch
+        this.obstacleClearancePoint.copy(Controller.zeroVector);//removing any possible clearance point and terminating the branch
         this.branchedPath = null;
         console.log('.:Cleared this branch');
     }
@@ -673,7 +673,7 @@ export abstract class Controller {
 
         const currentPath = this.branchedPath || originalPath;
         const finalPath = currentPath.clone();
-        if (shouldWalkAroundObstacle && !(this.obstacleClearancePoint.equals(Controller.ZERO_VECTOR)) ) { 
+        if (shouldWalkAroundObstacle && !(this.obstacleClearancePoint.equals(Controller.zeroVector)) ) { 
             finalPath.copy(this.obstacleClearancePoint);
             this.branchedPath = finalPath;
             console.log('Entity path| finalPath:',finalPath);
@@ -988,7 +988,7 @@ export abstract class Controller {
 
     private updateVelJustAboveGround() {
         if (!this.characterRigidBody) return;
-        this.velBeforeHittingGround = 0;//the reset happens in the next frame so that the data can be used by subclasses
+        this.velBeforeHittingGround = 0;//the effect of this reset is in the next frame not in the current one since i didnt clear it after setting it
         if (this.velocitiesY.length >= 2) this.velocitiesY.shift();
         const verticalVel = Math.round(this.characterRigidBody.linvel().y);
         this.velocitiesY.push(verticalVel);

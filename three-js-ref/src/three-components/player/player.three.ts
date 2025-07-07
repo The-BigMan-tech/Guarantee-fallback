@@ -8,6 +8,7 @@ import { type EntityContract } from "../entity/entity.three";
 import { entities } from "../entity/entity.three";
 import { combatCooldown } from "../physics-world.three";
 import { setEntityHealth, setPlayerHealth } from "../health/health-state";
+import {v4 as uniqueID} from 'uuid'
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -27,6 +28,8 @@ enum CameraMode {
 }
 class Player extends Controller {
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
+    private readonly relationshipID = uniqueID();
+    
     private firstPersonClamp = 75;
     private secondPersonClamp = 70;
     private thirdPersonClamp = 10;
@@ -283,8 +286,9 @@ class Player extends Controller {
             this.targetY = this.offsetY;
         }
     }
-
-
+    get _relationshipID():string {
+        return this.relationshipID
+    }
     protected onLoop() {//this is where all character updates to this instance happens.
         this.toggleTimer += this.clockDelta || 0;
         this.showEntityHealthTimer += this.clockDelta || 0;

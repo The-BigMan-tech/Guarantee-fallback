@@ -78,6 +78,7 @@ class EntityManager {
         this.raycaster.set(origin, this.down);
         const intersects = this.raycaster.intersectObjects(cubesGroup.children, true);
         if (intersects.length > 0) return intersects[0].point.y;
+        console.log("Used default height");
         return 20  // Default ground height if no intersection
     }
 
