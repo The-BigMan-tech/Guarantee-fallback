@@ -29,7 +29,7 @@ class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
             entityID:uniqueID(),
-            spawnWeight:10
+            spawnWeight:4
         },
         NPC: {
             entityID:uniqueID(),
@@ -53,7 +53,7 @@ class EntityManager {
 
     private entityKinds:string[] = Object.values(EntityManager.entityMapping).map(value=>value.entityID);
     private entitySpawnWeights:number[] = Object.values(EntityManager.entityMapping).map(value=>value.spawnWeight);
-
+    private multiChoiceCount = 2;
 
     private constructor() {};
     public static get instance(): EntityManager {
@@ -118,52 +118,54 @@ class EntityManager {
             const spawnZ = playerPos.z + (z - (this.spawnRadius / 2));//the reason why we are adding z-r/2 instead of z directly is so that its centered around that origin
             const spawnY = this.getHeightAtPosition(spawnX,spawnZ); // or sample terrain height at (spawnX, spawnZ)
             const spawnPoint = new RAPIER.Vector3(spawnX, spawnY, spawnZ);
-
-            //these are just basic props for any entity type.it can be passed to methods that spawn specific entity types to configure any of these parameters before creating an entity of their preferred type
-            const entityFixedData:FixedControllerData = {//this is for controller data thats not supposed to be changed after creation
-                modelPath:'',
-                spawnPoint:spawnPoint,
-                characterHeight:2,
-                characterWidth:1,
-                shape:'capsule',
-                mass:40,
-            }
-            const entityDynamicData:DynamicControllerData = {//this is for controller data that can be changed after creation
-                horizontalVelocity:0,
-                jumpVelocity:0,
-                jumpResistance:0,
-                rotationDelta:0.05,
-                rotationSpeed:0.2,
-                maxStepUpHeight:2,
-                gravityScale:1
-            }
-            const entityMiscData:EntityMiscData = {//this is for entity specific data decoupled from their controller
-                targetController:null,
-                targetHealth:null,
-                healthValue:0,
-                knockback:0,
-                attackDamage:0
-            }
-            const entityManagingStruct:ManagingStructure = {//these are data structures passed to the individual entities so that they can use it for clean up
-                group:this.entityGroup,
-                entities:entities,
-                attackMap:this.attackMap
-            }
-            const entityData:FullEntityData = {//this is the full structure composed of the other data above
-                fixedData:entityFixedData,
-                dynamicData:entityDynamicData,
-                miscData:entityMiscData,
-                managingStruct:entityManagingStruct
-            };
-            const entityKind:string = choices<string>(this.entityKinds,this.entitySpawnWeights,1)[0]//get the first element
-            switch (entityKind) {
-                case (EntityManager.entityMapping['Enemy'].entityID): {
-                    this.spawnEnemy(entityData);
-                    break;
+            const entityKinds:string[] = choices<string>(this.entityKinds,this.entitySpawnWeights,this.multiChoiceCount)//get the first element
+            
+            for (const entityKind of entityKinds) {
+                //these are just basic props for any entity type.it can be passed to methods that spawn specific entity types to configure any of these parameters before creating an entity of their preferred type
+                const entityFixedData:FixedControllerData = {//this is for controller data thats not supposed to be changed after creation
+                    modelPath:'',
+                    spawnPoint:spawnPoint,
+                    characterHeight:2,
+                    characterWidth:1,
+                    shape:'capsule',
+                    mass:40,
                 }
-                case (EntityManager.entityMapping['NPC'].entityID): {
-                    this.spawnNPC(entityData);
-                    break;
+                const entityDynamicData:DynamicControllerData = {//this is for controller data that can be changed after creation
+                    horizontalVelocity:0,
+                    jumpVelocity:0,
+                    jumpResistance:0,
+                    rotationDelta:0.05,
+                    rotationSpeed:0.2,
+                    maxStepUpHeight:2,
+                    gravityScale:1
+                }
+                const entityMiscData:EntityMiscData = {//this is for entity specific data decoupled from their controller
+                    targetController:null,
+                    targetHealth:null,
+                    healthValue:0,
+                    knockback:0,
+                    attackDamage:0
+                }
+                const entityManagingStruct:ManagingStructure = {//these are data structures passed to the individual entities so that they can use it for clean up
+                    group:this.entityGroup,
+                    entities:entities,
+                    attackMap:this.attackMap
+                }
+                const entityData:FullEntityData = {//this is the full structure composed of the other data above
+                    fixedData:entityFixedData,
+                    dynamicData:entityDynamicData,
+                    miscData:entityMiscData,
+                    managingStruct:entityManagingStruct
+                };
+                switch (entityKind) {
+                    case (EntityManager.entityMapping['Enemy'].entityID): {
+                        this.spawnEnemy(entityData);
+                        break;
+                    }
+                    case (EntityManager.entityMapping['NPC'].entityID): {
+                        this.spawnNPC(entityData);
+                        break;
+                    }
                 }
             }
         }
@@ -198,7 +200,6 @@ class EntityManager {
         this.entityGroup.add(entityKind._entity.char);
         this.entityGroup.add(entityKind._entity.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created)
     }
-
 
 
     public updateAllEntities(deltaTime:number) {
