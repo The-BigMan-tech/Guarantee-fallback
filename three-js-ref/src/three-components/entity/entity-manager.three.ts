@@ -29,7 +29,7 @@ class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
             entityID:uniqueID(),
-            spawnWeight:4
+            spawnWeight:8
         },
         NPC: {
             entityID:uniqueID(),
@@ -51,13 +51,19 @@ class EntityManager {
     private raycaster = new THREE.Raycaster();
     private down = new THREE.Vector3(0, -1, 0);
 
-    private entityIDs:string[] = Object.values(EntityManager.entityMapping).map(value=>value.entityID);
-    private entitySpawnWeights:number[] = Object.values(EntityManager.entityMapping).map(value=>value.spawnWeight);
+    private entityIDs:string[] = [];
+    private entitySpawnWeights:number[] = [];
     private multiChoiceCount = 2;
 
     private constructor() {};
     public static get instance(): EntityManager {
-        if (!EntityManager.manager) EntityManager.manager = new EntityManager();
+        if (!EntityManager.manager)  {
+            EntityManager.manager = new EntityManager();
+            Object.values(EntityManager.entityMapping).forEach(value=>{
+                EntityManager.manager.entityIDs.push(value.entityID);
+                EntityManager.manager.entitySpawnWeights.push(value.spawnWeight);
+            })
+        }
         return EntityManager.manager;
     }
 
@@ -170,9 +176,9 @@ class EntityManager {
             const spawnZ = playerPos.z + (z - (this.spawnRadius / 2));//the reason why we are adding z-r/2 instead of z directly is so that its centered around that origin
             const spawnY = this.getHeightAtPosition(spawnX,spawnZ); // or sample terrain height at (spawnX, spawnZ)
             const spawnPoint = new RAPIER.Vector3(spawnX, spawnY, spawnZ);
-            const entityIDs:string[] = choices<string>(this.entityIDs,this.entitySpawnWeights,this.multiChoiceCount)//get the first element
+            const chosenEntityIDs:string[] = choices<string>(this.entityIDs,this.entitySpawnWeights,this.multiChoiceCount)//get the first element
             
-            for (const entityID of entityIDs) {
+            for (const entityID of chosenEntityIDs) {
                 const finalEntity = this.createEntity(entityID,spawnPoint)
                 this.saveEntityToGame(finalEntity)
             }
