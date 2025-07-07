@@ -3,12 +3,12 @@ import type {FixedControllerData,DynamicControllerData } from "../controller/con
 import * as THREE from "three"
 import { Health } from "../health/health";
 import { combatCooldown, physicsWorld } from "../physics-world.three";
-import type { RelationshipContract } from "./relationship-manager.three";
+import type { EntityLike } from "./relationship-manager.three";
 
 type Behaviour = 'idle' | 'patrol' | 'chase' | 'attack' | 'death';
 
 export interface EntityMiscData {
-    targetEntity:RelationshipContract | null,
+    targetEntity:EntityLike | null,
     healthValue:number,
     attackDamage:number,
     knockback:number
@@ -25,7 +25,7 @@ export interface ManagingStructure {
     entities:EntityContract[],
 }
 export class Entity extends Controller {
-    private targetEntity:RelationshipContract | null = null;
+    private targetEntity:EntityLike | null = null;
 
     private navPosition:THREE.Vector3 | null = null;//strictly for position in case where the entity might not have a target ref but it still wants to go navigate somewhere
 
@@ -213,7 +213,7 @@ export class Entity extends Controller {
     get _health():Health {
         return this.health;
     }
-    get _targetEntity():RelationshipContract | null {
+    get _targetEntity():EntityLike | null {
         return this.targetEntity;
     }
     get _navPosition(): THREE.Vector3 | null {
@@ -229,7 +229,7 @@ export class Entity extends Controller {
     set _movementType(moveType:'fluid' | 'precise') {
         this.movementType = moveType
     }
-    set _targetEntity(targetEntity:RelationshipContract | null) {
+    set _targetEntity(targetEntity:EntityLike | null) {
         this.targetEntity = targetEntity
     }
     

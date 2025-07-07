@@ -1,11 +1,11 @@
 import { Entity, type EntityContract } from "./entity.three";
-import { relationshipManager, type RelationshipContract } from "./relationship-manager.three";
+import { relationshipManager, type EntityLike } from "./relationship-manager.three";
 
 export class Enemy implements EntityContract  {
     private entity:Entity;
     public static modelPath:string = "./silvermoon.glb";
 
-    private endTargetEntity:RelationshipContract | null;
+    private endTargetEntity:EntityLike | null;
 
     constructor(entity:Entity) {
         this.entity = entity;

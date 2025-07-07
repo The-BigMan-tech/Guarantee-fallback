@@ -2,13 +2,13 @@ import { Controller } from "../controller/controller.three";
 import type { Health } from "../health/health";
 
 
-export interface RelationshipContract extends Controller {
+export interface EntityLike extends Controller {
     health:Health
 }
 export interface RelationshipTree {
     attack:{
-        attackedPlayer:RelationshipContract | null,
-        attackedEnemy:RelationshipContract  | null
+        attackedPlayer:EntityLike | null,
+        attackedEnemy:EntityLike  | null
     }
 }
 

@@ -1,12 +1,12 @@
 import { Entity } from "./entity.three";
 import { relationshipManager } from "./relationship-manager.three";
-import type { RelationshipContract } from "./relationship-manager.three";
+import type { EntityLike } from "./relationship-manager.three";
 
 export class NPC  {
     public static modelPath:string = './snowman-v3.glb';
     private entity:Entity;
 
-    private endTargetEntity:RelationshipContract | null;
+    private endTargetEntity:EntityLike | null;
     
     constructor(entity:Entity) {
         this.entity = entity;

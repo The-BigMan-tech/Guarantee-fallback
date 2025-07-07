@@ -114,7 +114,7 @@ class EntityManager {
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         return {_entity:entity}
     }
-    private createEntity(entityID:string,spawnPoint:THREE.Vector3Like):EntityContract {
+    private createEntity(variantID:string,spawnPoint:THREE.Vector3Like):EntityContract {
          //these are just basic props for any entity type.it can be passed to methods that spawn specific entity types to configure any of these parameters before creating an entity of their preferred type
         const entityFixedData:FixedControllerData = {//this is for controller data thats not supposed to be changed after creation
             modelPath:'',
@@ -149,7 +149,7 @@ class EntityManager {
             miscData:entityMiscData,
             managingStruct:entityManagingStruct
         };
-        switch (entityID) {
+        switch (variantID) {
             case (EntityManager.entityMapping['Enemy'].variantID): {
                 return this.createEnemy(entityData);
             }
