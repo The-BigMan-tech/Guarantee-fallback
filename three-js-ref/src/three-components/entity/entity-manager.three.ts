@@ -10,6 +10,7 @@ import { Enemy } from "./enemy.three";
 import { NPC } from "./npc.three";
 import { randInt,randFloat} from "three/src/math/MathUtils.js";
 import { choices } from "./choices";
+import { groupIDs } from "./relationships.three";
 
 
 interface EntityMetadata {
@@ -28,11 +29,11 @@ type Singleton<T> = T;
 class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
-            groupID:Enemy.groupID,//i called it groupID cuz its not per isntance but per entity type or kind
+            groupID:groupIDs.enemy,//i called it groupID cuz its not per isntance but per entity type or kind
             spawnWeight:8
         },
         NPC: {
-            groupID:NPC.groupID,
+            groupID:groupIDs.npc,
             spawnWeight:10
         }
     }
