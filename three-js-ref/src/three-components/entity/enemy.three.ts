@@ -10,6 +10,7 @@ export class Enemy implements EntityContract  {
     private endTargetHealth:Health | null;
 
     private relationships:RelationshipTree;
+    private readonly relationshipID = uniqueID();
 
     constructor(entity:Entity,relationships:RelationshipTree) {
         this.entity = entity;
@@ -54,6 +55,9 @@ export class Enemy implements EntityContract  {
                 return;
             }
         }
+    }
+    get _relationshipID():string {
+        return this.relationshipID
     }
     get _entity() {
         return this.entity

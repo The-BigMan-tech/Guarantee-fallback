@@ -1,6 +1,7 @@
 import type { Controller } from "../controller/controller.three";
 import type { Health } from "../health/health";
 import { Entity, type RelationshipTree } from "./entity.three";
+import {v4 as uniqueID} from "uuid"
 
 export class NPC  {
     public static modelPath:string = './snowman-v3.glb';
@@ -10,6 +11,7 @@ export class NPC  {
     private endTargetHealth:Health | null;
 
     private relationships:RelationshipTree;
+    private readonly relationshipID = uniqueID();
 
     constructor(entity:Entity,relationships:RelationshipTree) {
         this.entity = entity;
@@ -49,6 +51,9 @@ export class NPC  {
             this.entity._state.behaviour = 'chase';
             return;
         }
+    }
+    get _relationshipID():string {
+        return this.relationshipID
     }
     get _entity() {
         return this.entity

@@ -3,7 +3,6 @@ import type {FixedControllerData,DynamicControllerData } from "../controller/con
 import * as THREE from "three"
 import { Health } from "../health/health";
 import { combatCooldown, physicsWorld } from "../physics-world.three";
-import {v4 as uniqueID} from "uuid"
 
 type Behaviour = 'idle' | 'patrol' | 'chase' | 'attack' | 'death';
 
@@ -26,8 +25,6 @@ export interface ManagingStructure {
     entities:EntityContract[],
 }
 export class Entity extends Controller {
-    private readonly relationshipID = uniqueID();
-
     private targetController:Controller | null = null;
     private navPosition:THREE.Vector3 | null = null;//strictly for position in case where the entity might not have a target ref but it still wants to go navigate somewhere
 
@@ -229,9 +226,6 @@ export class Entity extends Controller {
     }
     get _struct():ManagingStructure {
         return this.struct
-    }
-    get _relationshipID():string {
-        return this.relationshipID
     }
 
     set _navPosition(newPosition:THREE.Vector3 | null) {
