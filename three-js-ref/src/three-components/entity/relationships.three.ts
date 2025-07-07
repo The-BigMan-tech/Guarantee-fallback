@@ -29,7 +29,7 @@ export class RelationshipManager {
         return RelationshipManager.manager;
     }
 
-    get attackRelationship() {
+    get _attacked() {
         return this.relationships.attack
     }
 }

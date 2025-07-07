@@ -8,6 +8,7 @@ import { type EntityContract } from "../entity/entity.three";
 import { entities } from "../entity/entity.three";
 import { combatCooldown } from "../physics-world.three";
 import { setEntityHealth, setPlayerHealth } from "../health/health-state";
+import { groupIDs, relationshipManager } from "../entity/relationships.three";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -251,14 +252,13 @@ class Player extends Controller {
         if (this.attackTimer > (this.attackCooldown -0.4)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
             this.playAttackAnimation();
         }
-        if (this.attackTimer > this.attackCooldown) { 
-            if (this.lookedAtEntity) {
-                const targetHealth = this.lookedAtEntity._entity.health;
-                if (targetHealth && !targetHealth.isDead) {
-                    targetHealth.takeDamage(this.attackDamage);
-                    this.lookedAtEntity._entity.knockbackCharacter('backwards',this.knockback);
-                    this.attackTimer = 0;
-                }
+        if ((this.attackTimer > this.attackCooldown) && (this.lookedAtEntity)) { 
+            const targetHealth = this.lookedAtEntity._entity.health;
+            if (targetHealth && !targetHealth.isDead) {
+                targetHealth.takeDamage(this.attackDamage);
+                this.lookedAtEntity._entity.knockbackCharacter('backwards',this.knockback);
+                relationshipManager._attacked[groupIDs.player] = this.lookedAtEntity._entity
+                this.attackTimer = 0;
             }
         }
     }
@@ -320,7 +320,7 @@ const playerDynamicData:DynamicControllerData = {
 const playerMiscData:PlayerMiscData = {
     healthValue:40,
     attackDamage:1,
-    knockback:1000,
+    knockback:150,
     camArgs: {
         FOV:75,
         nearPoint:0.1,

@@ -17,7 +17,7 @@ export class NPC  {
     }
     private onTargetReached():'attack' | 'idle' {
         if (this.entity._targetEntity && !this.entity._targetEntity.health.isDead) {
-            relationshipManager.attackRelationship[groupIDs.enemy] = this.entity
+            relationshipManager._attacked[groupIDs.enemy] = this.entity
             return 'attack';
         }
         return 'idle'
@@ -26,11 +26,11 @@ export class NPC  {
         this.entity._state.behaviour = 'patrol';
         if (this.entity._health.isDead) {//the order of the branches show update priority
             this.entity._state.behaviour = 'death';
-            relationshipManager.attackRelationship[groupIDs.enemy] = null;
+            relationshipManager._attacked[groupIDs.enemy] = null;
             return;
         }
 
-        const target = relationshipManager.attackRelationship[groupIDs.player];
+        const target = relationshipManager._attacked[groupIDs.player];
         if (target) {
             this.entity._targetEntity = target;
         }else {

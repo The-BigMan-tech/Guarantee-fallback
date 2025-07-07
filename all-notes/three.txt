@@ -1017,5 +1017,3 @@ so because the instance getter is a static method enforcing singleton,i cant use
 you can definitely use this in the instance methods of your EntityManager class. Since those methods are called on the singleton instance, using this will refer to that single instance. This approach improves readability and makes the code easier to write.Using this in your instance methods is not only allowed but also a best practice for clarity and maintainability. Just make sure that you only use it in non-static methods where the context is guaranteed to be the singleton instance
 
 camelCase,PascalCase,snake_case,UPPER_SNAKE_CASE
-
-because of memory and of course,a simpler design choice,im only creating relationships between entities as a group not individually by using group id as keys not individual instance ids like their collider handles.but despite this,the group id maps to exactly one entity instance at a time.this means that even if relationships are keyed by groups,its specific entities that caused the relationship to happen.they will be the target for that relationship.i can use an array per group id and then randomly pick a target from the sequence but nah.
