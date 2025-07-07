@@ -9,6 +9,7 @@ export interface RelationshipTree {
     attack:Record<string,EntityLike | null>
 }
 
+
 type Singleton<T> = T;
 export class RelationshipManager {
     private static manager:RelationshipManager;

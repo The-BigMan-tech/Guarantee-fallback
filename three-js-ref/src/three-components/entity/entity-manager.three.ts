@@ -50,7 +50,7 @@ class EntityManager {
     private raycaster = new THREE.Raycaster();
     private down = new THREE.Vector3(0, -1, 0);
 
-    private groupIDs:string[] = [];
+    private groupIDList:string[] = [];
     private entitySpawnWeights:number[] = [];
     private multiChoiceCount = 2;
 
@@ -60,7 +60,7 @@ class EntityManager {
         if (!EntityManager.manager)  {
             EntityManager.manager = new EntityManager();
             Object.values(EntityManager.entityMapping).forEach(value=>{
-                EntityManager.manager.groupIDs.push(value.groupID);
+                EntityManager.manager.groupIDList.push(value.groupID);
                 EntityManager.manager.entitySpawnWeights.push(value.spawnWeight);
             })
         }
@@ -174,7 +174,7 @@ class EntityManager {
             const spawnZ = playerPos.z + (z - (this.spawnRadius / 2));//the reason why we are adding z-r/2 instead of z directly is so that its centered around that origin
             const spawnY = this.getHeightAtPosition(spawnX,spawnZ); // or sample terrain height at (spawnX, spawnZ)
             const spawnPoint = new RAPIER.Vector3(spawnX, spawnY, spawnZ);
-            const chosenGroupIDs:string[] = choices<string>(this.groupIDs,this.entitySpawnWeights,this.multiChoiceCount)//get the first element
+            const chosenGroupIDs:string[] = choices<string>(this.groupIDList,this.entitySpawnWeights,this.multiChoiceCount)//get the first element
             
             for (const groupID of chosenGroupIDs) {
                 const finalEntity = this.createEntity(groupID,spawnPoint)
