@@ -8,6 +8,7 @@ import { type EntityContract } from "../entity/entity.three";
 import { entities } from "../entity/entity.three";
 import { combatCooldown } from "../physics-world.three";
 import { setEntityHealth, setPlayerHealth } from "../health/health-state";
+import {v4 as uniqueID} from "uuid";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -25,9 +26,10 @@ enum CameraMode {
     SecondPerson = 2,
     ThirdPerson = 3
 }
-class Player extends Controller {
+export class Player extends Controller {
+    public static playerID = uniqueID();
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
-    
+
     private firstPersonClamp = 75;
     private secondPersonClamp = 70;
     private thirdPersonClamp = 10;

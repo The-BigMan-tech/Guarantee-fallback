@@ -6,22 +6,14 @@ export interface EntityLike extends Controller {
     health:Health
 }
 export interface RelationshipTree {
-    attack:{
-        attackedPlayer:EntityLike | null,
-        attackedEnemy:EntityLike  | null,
-        attackedNPC:EntityLike | null
-    }
+    attack:Record<string,EntityLike | null>
 }
 
 type Singleton<T> = T;
 export class RelationshipManager {
     private static manager:RelationshipManager;
     private relationships:RelationshipTree = {
-        attack: {
-            attackedPlayer:null,
-            attackedEnemy:null,
-            attackedNPC:null
-        }
+        attack: {}
     }
 
     private constructor() {};

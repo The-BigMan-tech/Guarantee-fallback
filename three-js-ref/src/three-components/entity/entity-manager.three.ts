@@ -10,7 +10,6 @@ import { Enemy } from "./enemy.three";
 import { NPC } from "./npc.three";
 import { randInt,randFloat} from "three/src/math/MathUtils.js";
 import { choices } from "./choices";
-import {v4 as uniqueID} from "uuid";
 
 
 interface EntityMetadata {
@@ -29,11 +28,11 @@ type Singleton<T> = T;
 class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
-            groupID:uniqueID(),//i called it groupID cuz its not per isntance but per entity type or kind
+            groupID:Enemy.groupID,//i called it groupID cuz its not per isntance but per entity type or kind
             spawnWeight:8
         },
         NPC: {
-            groupID:uniqueID(),
+            groupID:NPC.groupID,
             spawnWeight:10
         }
     }
@@ -85,7 +84,7 @@ class EntityManager {
         const miscData = entityData.miscData;//i did this to make the code neater and it will work since it references the same object
         fixedData.modelPath = Enemy.modelPath;
         miscData.targetEntity = player;
-        dynamicData.horizontalVelocity = randInt(5,10);
+        dynamicData.horizontalVelocity = randInt(10,20);
         dynamicData.jumpVelocity = randInt(10,25);
         dynamicData.jumpResistance = randInt(6,10);
         miscData.healthValue = randInt(20,25);
