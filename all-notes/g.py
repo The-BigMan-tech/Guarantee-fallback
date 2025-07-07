@@ -1,5 +1,6 @@
 import random as Random
 from math import floor
+from random import choice
 
 
 def accum(weights:list[int]) -> list[int]:
@@ -37,3 +38,7 @@ def choices(population:list[int], weights:list[int],k:int=1):
 x:list[int] = [4,2,3]
 y = choices(x,[15,7,10],2)
 print(y)
+
+
+z = choice([1,2,3])
+print(z)

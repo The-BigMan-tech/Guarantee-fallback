@@ -1,6 +1,7 @@
 import type { Controller } from "../controller/controller.three";
 import type { Health } from "../health/health";
-import { Entity, type EntityContract, type RelationshipTree } from "./entity.three";
+import { Entity, type EntityContract } from "./entity.three";
+import { relationshipManager } from "./relationship-manager.three";
 
 export class Enemy implements EntityContract  {
     private entity:Entity;
@@ -9,39 +10,36 @@ export class Enemy implements EntityContract  {
     private endTargetController:Controller | null;
     private endTargetHealth:Health | null;
 
-    private relationships:RelationshipTree;
-    private readonly relationshipID = uniqueID();
-
-    constructor(entity:Entity,relationships:RelationshipTree) {
+    constructor(entity:Entity) {
         this.entity = entity;
         this.entity.onTargetReached = this.onTargetReached.bind(this);
         this.entity.updateInternalState = this.updateInternalState.bind(this);
         this.endTargetController = this.entity._targetController;
         this.endTargetHealth = this.entity._targetHealth;
-        this.relationships = relationships
     }
     private onTargetReached():'attack' | 'idle' {//the behaviour when it reaches the target will be later tied to a state machine
         if (this.entity._targetHealth && !this.entity._targetHealth.isDead) {
-            this.relationships.attacked.set('player',this._entity);
+            relationshipManager.attackRelationship.attackedPlayer = this.entity;
             return 'attack';
         }
-        return 'idle'
+        return 'idle';
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
         if (this.entity._health.isDead) {//the order of the branches show update priority
             this.entity._state.behaviour = 'death';
-            this.relationships.attacked.delete('player')
+            relationshipManager.attackRelationship.attackedPlayer = null;
             return;
         }
 
-        const target = this.relationships.attacked.get('enemy');
+        const target = relationshipManager.attackRelationship.attackedEnemy
         if (target) {
-            this.entity._targetController = target
+            this.entity._targetController = target;
             this.entity._targetHealth = target.health;
         }else {
             this.entity._targetController = this.endTargetController;
             this.entity._targetHealth = this.endTargetHealth;
         }
+
 
         if (this.entity._targetHealth) {
             if (this.entity._targetHealth.isDead) {
@@ -55,9 +53,6 @@ export class Enemy implements EntityContract  {
                 return;
             }
         }
-    }
-    get _relationshipID():string {
-        return this.relationshipID
     }
     get _entity() {
         return this.entity

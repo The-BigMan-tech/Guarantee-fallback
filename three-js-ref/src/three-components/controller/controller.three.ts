@@ -53,7 +53,7 @@ export abstract class Controller {
     private characterPosition:RAPIER.Vector3
     private characterCollider: RAPIER.ColliderDesc
     protected characterRigidBody:RAPIER.RigidBody | null;//im only exposing this for cleanup purposes
-    private characterColliderHandle:number;
+    private readonly characterColliderHandle:number;
     private charLine: THREE.LineSegments;
 
     private modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera
@@ -972,7 +972,6 @@ export abstract class Controller {
     get position():THREE.Vector3 {
         return new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z)
     }
-
 
 
     protected abstract onLoop():void//this is a hook where the entity must be controlled before updating

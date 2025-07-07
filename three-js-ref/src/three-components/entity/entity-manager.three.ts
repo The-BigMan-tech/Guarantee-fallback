@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type {FixedControllerData,DynamicControllerData} from "../controller/controller.three";
-import type { EntityContract, EntityMiscData, ManagingStructure, RelationshipTree } from "./entity.three";
+import type { EntityContract, EntityMiscData, ManagingStructure } from "./entity.three";
 import * as RAPIER from '@dimforge/rapier3d'
 import { player } from "../player/player.three";
 import { Entity,entities} from "./entity.three";
@@ -37,9 +37,6 @@ class EntityManager {
             spawnWeight:10
         }
     }
-    private relationships:RelationshipTree = {
-        attacked:new Map()
-    };
 
     private static manager: EntityManager;
     public entityGroup:THREE.Group = new THREE.Group();
@@ -96,7 +93,7 @@ class EntityManager {
         miscData.knockback = randInt(100,150);
         miscData.attackDamage = randFloat(0.5,1);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
-        const enemy = new Enemy(entity,this.relationships);
+        const enemy = new Enemy(entity);
         return enemy
     }
     private createNPC(entityData:FullEntityData):EntityContract {
@@ -111,7 +108,7 @@ class EntityManager {
         miscData.knockback = randInt(100,150);
         miscData.attackDamage = randFloat(1,3);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
-        const npc = new NPC(entity,this.relationships);
+        const npc = new NPC(entity);
         return npc
     }
     private createDefault(entityData:FullEntityData):EntityContract {

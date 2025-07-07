@@ -250,6 +250,3 @@ export class Entity extends Controller {
     }
 }
 export const entities:EntityContract[] = [];
-export interface RelationshipTree {
-    attacked:Map<string,Entity>
-}

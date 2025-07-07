@@ -29,6 +29,16 @@ export function choices<T>(population:T[],weights:number[],numOfResults:number):
     }
     return results;
 }
+export function choice<T>(population:T[]):T | null {
+    if (population.length === 0) return null;
+    const weights = new Array(population.length).fill(1);
+    const singleChoice = choices(population,weights,1)[0]
+    return singleChoice;
+}
+
 const x = [1,2,3]
 const y = choices(x,[1,8,10],2)
 console.log("y: ",y);
+
+const z = choice([])
+console.log(' :42 => z:', z);
