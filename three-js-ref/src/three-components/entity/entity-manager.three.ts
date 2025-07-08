@@ -44,7 +44,7 @@ class EntityManager {
     private spawnTimer:number = 0;
     private spawnCooldown:number = 3;
 
-    private spawnRadius = 20;
+    private spawnRadius = 25;
     private minSpawnDistance = 10; // adjust as needed
     private despawnRadius: number = 1000;
 

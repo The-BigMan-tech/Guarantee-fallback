@@ -30,10 +30,10 @@ export class CommonBehaviour {
         }
         return false;
     }
-    public attackBehaviour(attackRelatioshipID:string):'attack' | false {
+    public attackBehaviour(attackRelatioshipID:string):boolean {
         if (this.entity._targetEntity && !this.entity._targetEntity.health.isDead) {
             relationshipManager.attackersOf[attackRelatioshipID]!.add(this.entity)
-            return 'attack';
+            return true;
         }
         return false;
     }
