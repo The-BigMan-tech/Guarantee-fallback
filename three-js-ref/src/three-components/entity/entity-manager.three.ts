@@ -27,11 +27,16 @@ interface FullEntityData {
 type Singleton<T> = T;
 
 class EntityManager {
+    private static manager: EntityManager;
+
     private entityCounts:Record<EntityWrapper,EntityCountData> = {
         Enemy:{currentCount:0,minCount:0},
         NPC:{currentCount:0,minCount:0},
     }
-    private static entityMapping:Record<EntityWrapper,EntityMetadata> = {
+    private entityWrappers:EntityWrapper[] = [];
+
+
+    private entityMapping:Record<EntityWrapper,EntityMetadata> = {
         Enemy:{
             groupID:groupIDs.enemy,//i called it groupID cuz its not per isntance but per entity type or kind
             spawnWeight:0
@@ -45,8 +50,6 @@ class EntityManager {
     private entitySpawnWeights:number[] = [];
     private multiChoicePercent = 100;
 
-    
-    private static manager: EntityManager;
     public entityGroup:THREE.Group = new THREE.Group();
 
     private spawnTimer:number = 0;
@@ -64,7 +67,8 @@ class EntityManager {
     public static get instance(): EntityManager {
         if (!EntityManager.manager)  {
             EntityManager.manager = new EntityManager();
-            Object.values(EntityManager.entityMapping).forEach(value=>{
+            EntityManager.manager.entityWrappers = Object.keys(EntityManager.manager.entityCounts) as EntityWrapper[]
+            Object.values(EntityManager.manager.entityMapping).forEach(value=>{
                 EntityManager.manager.groupIDList.push(value.groupID);
                 EntityManager.manager.entitySpawnWeights.push(value.spawnWeight);
             })
@@ -153,12 +157,12 @@ class EntityManager {
             managingStruct:entityManagingStruct
         };
         switch (groupID) {
-            case (EntityManager.entityMapping['Enemy'].groupID): {
+            case (this.entityMapping['Enemy'].groupID): {
                 const enemy = this.createEnemy(entityData);
                 enemy._entity.incEntityCount('Enemy');
                 return enemy
             }
-            case (EntityManager.entityMapping['NPC'].groupID): {
+            case (this.entityMapping['NPC'].groupID): {
                 const npc = this.createNPC(entityData);
                 npc._entity.incEntityCount('NPC');
                 return npc;
@@ -208,8 +212,8 @@ class EntityManager {
         }
     }
     private spawnNewEntitiesWithCooldown(deltaTime:number) {
-        console.log("Entity count: ",this.entityCounts.NPC.currentCount);
-        
+        console.log("Entity count: ",this.entityCounts);
+        console.log("Entity wrappers: ",this.entityWrappers);
         if (entities.length === 0) {
             this.spawnTimer += deltaTime;//incresing the timer only when there are no entities ensures that new entities are only spawned after all other entities are dead.
             if (this.spawnTimer > this.spawnCooldown) {

@@ -257,7 +257,7 @@ class Player extends Controller {
             if (targetHealth && !targetHealth.isDead) {
                 targetHealth.takeDamage(this.attackDamage);
                 this.lookedAtEntity._entity.knockbackCharacter('backwards',this.knockback);
-                relationshipManager.attackersOf[groupIDs.player]?.add(this.lookedAtEntity._entity);
+                relationshipManager.attackersOf[groupIDs.player]!.add(this.lookedAtEntity._entity);
                 this.attackTimer = 0;
             }
         }

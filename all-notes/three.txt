@@ -1072,3 +1072,5 @@ By using multi-choice percent, you can control how many different types of entit
 Spawn weights allow you to influence the likelihood of specific entities appearing, making it easier to balance gameplay. This can be particularly useful for ensuring that certain entities are rarer or more common based on gameplay needs.
 
 *development journal vs comment vs documentaion vs readme
+
+heavy data structures shouldnt be created at every frame cuz of perf but only once or if it must be done at every frame,it must be batched or locked behind conditions to ensure this only happens when necessary
