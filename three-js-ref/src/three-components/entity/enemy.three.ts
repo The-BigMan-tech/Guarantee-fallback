@@ -31,7 +31,7 @@ export class Enemy implements EntityContract  {
         }
 
         const targets  = relationshipManager.attackersOf[groupIDs.enemy];
-        const lastTarget = targets?.last() || null;
+        const lastTarget = targets!.last();
         console.log('attack. enemy:', targets?.length);
 
         if (lastTarget) {

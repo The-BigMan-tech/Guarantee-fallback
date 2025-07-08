@@ -37,8 +37,8 @@ export class UniqueList<T> {
     }
 
     // Access the last element
-    public last(): T | undefined{//returns the last element from the set at O(1) access
-        return this.array[this.array.length - 1];
+    public last(): T | null{//returns the last element from the set at O(1) access
+        return this.array[this.array.length - 1] || null;
     }
     get length() {
         return this.array.length

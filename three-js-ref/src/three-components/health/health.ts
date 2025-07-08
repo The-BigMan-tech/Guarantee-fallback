@@ -1,3 +1,5 @@
+import * as THREE from "three";
+
 export class Health {
     private maximumHealth: number;
     private currentHealth: number;

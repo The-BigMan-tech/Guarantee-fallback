@@ -35,9 +35,9 @@ export class NPC implements EntityContract {
         }
 
         const targets = relationshipManager.attackersOf[groupIDs.player]
-        const lastTarget = targets?.last() || null;
+        const lastTarget = targets!.last();
         console.log('attack. npc:', targets?.length);
-
+        
         if (lastTarget) {
             this.entity._targetEntity = lastTarget;
         }else {
