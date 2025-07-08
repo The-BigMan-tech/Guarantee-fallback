@@ -1074,3 +1074,9 @@ Spawn weights allow you to influence the likelihood of specific entities appeari
 *development journal vs comment vs documentaion vs readme
 
 heavy data structures shouldnt be created at every frame cuz of perf but only once or if it must be done at every frame,it must be batched or locked behind conditions to ensure this only happens when necessary
+
+an index map can do an o1 index access.
+
+*const,readonly access modifier,Readonly type annotation
+
+*so the purpose of min threshold is to ensure that the manager doesnt just wait to spawn entities when all entities are dead but when there is a need to supply entities of a specifc type.weighting is the primary factor of spawn prioritization

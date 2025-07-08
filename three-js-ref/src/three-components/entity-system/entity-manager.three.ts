@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type {FixedControllerData,DynamicControllerData} from "../controller/controller.three";
-import type { EntityContract, EntityCountData, EntityMiscData, EntityWrapper, ManagingStructure } from "./entity.three";
+import type { EntityContract, EntityCount, EntityMiscData, EntityWrapper, ManagingStructure } from "./entity.three";
 import * as RAPIER from '@dimforge/rapier3d'
 import { player } from "../player/player.three";
 import { Entity,entities} from "./entity.three";
@@ -14,8 +14,8 @@ import { groupIDs } from "./relationships.three";
 
 
 interface EntityMetadata {
-    groupID:string,
-    spawnWeight:number
+    groupID:Readonly<string>,
+    spawnWeight:Readonly<number>
 }
 interface FullEntityData {
     fixedData:FixedControllerData,
@@ -23,18 +23,19 @@ interface FullEntityData {
     miscData:EntityMiscData
     managingStruct:ManagingStructure
 }
-
 type Singleton<T> = T;
 
 class EntityManager {
     private static manager: EntityManager;
 
-    private entityCounts:Record<EntityWrapper,EntityCountData> = {
-        Enemy:{currentCount:0,minCount:1},
-        NPC:{currentCount:0,minCount:1},
+    private entityCounts:EntityCount = {
+        totalCount:0,
+        individualCounts: {
+            Enemy:{currentCount:0,minCount:1},
+            NPC:{currentCount:0,minCount:1},
+        }
     }
     private entityWrappers:EntityWrapper[] = [];
-
 
     private entityMapping:Record<EntityWrapper,EntityMetadata> = {
         Enemy:{
@@ -48,9 +49,12 @@ class EntityManager {
     }
     private groupIDList:string[] = [];
     private entitySpawnWeights:number[] = [];
-    private multiChoicePercent = 100;
 
-    public entityGroup:THREE.Group = new THREE.Group();
+    private multiChoicePercent = 100;
+    private readonly originalChoicePercent:number = this.multiChoicePercent;
+    private readonly maxChoicePercent:number = 100;
+
+    private readonly maxEntitiesToStopSpawningMore = 15;
 
     private spawnTimer:number = 0;
     private spawnCooldown:number = 3;
@@ -59,6 +63,7 @@ class EntityManager {
     private minSpawnDistance = 10; // adjust as needed
     private despawnRadius: number = 1000;
 
+    public entityGroup:THREE.Group = new THREE.Group();
     private raycaster = new THREE.Raycaster();
     private down = new THREE.Vector3(0, -1, 0);
 
@@ -67,7 +72,7 @@ class EntityManager {
     public static get instance(): EntityManager {
         if (!EntityManager.manager)  {
             EntityManager.manager = new EntityManager();
-            EntityManager.manager.entityWrappers = Object.keys(EntityManager.manager.entityCounts) as EntityWrapper[]
+            EntityManager.manager.entityWrappers = Object.keys(EntityManager.manager.entityCounts.individualCounts) as EntityWrapper[]
             Object.values(EntityManager.manager.entityMapping).forEach(value=>{
                 EntityManager.manager.groupIDList.push(value.groupID);
                 EntityManager.manager.entitySpawnWeights.push(value.spawnWeight);
@@ -148,7 +153,7 @@ class EntityManager {
         const entityManagingStruct:ManagingStructure = {//these are data structures passed to the individual entities so that they can use it for clean up
             group:this.entityGroup,
             entities:entities,
-            entityCounts:this.entityCounts
+            entityCounts:this.entityCounts,
         }
         const entityData:FullEntityData = {//this is the full structure composed of the other data above
             fixedData:entityFixedData,
@@ -213,24 +218,27 @@ class EntityManager {
     }
     private spawnNewEntitiesWithCooldown(deltaTime:number) {
         console.log("Entity count: ",this.entityCounts);
-        console.log("Entity wrappers: ",this.entityWrappers);
-        let canSpawnEntities:boolean = false
-        for (const wrapper of this.entityWrappers) {
-            const countData = this.entityCounts[wrapper];
-            if (countData.currentCount < countData.minCount) {
-                canSpawnEntities = true;
+        let canSpawnEntities:boolean = false;
+        if (this.entityCounts.totalCount < this.maxEntitiesToStopSpawningMore) {
+            for (const wrapper of this.entityWrappers) {
+                console.log('wrapper:', wrapper);
+                const countData = this.entityCounts.individualCounts[wrapper];
+                if (countData.currentCount < countData.minCount) {
+                    this.multiChoicePercent = this.maxChoicePercent;
+                    canSpawnEntities = true;
+                    break;//to prevent unnecessary computation since it has already been decided that it can spawn
+                }
             }
         }
         console.log('canSpawnEntities:', canSpawnEntities);
         if (canSpawnEntities) {
             this.spawnTimer += deltaTime;//incresing the timer only when there are no entities ensures that new entities are only spawned after all other entities are dead.
             if (this.spawnTimer > this.spawnCooldown) {
-                this.spawnEntities()
+                this.spawnEntities();
                 this.spawnTimer = 0;
+                this.multiChoicePercent = this.originalChoicePercent
             }
-        }else {
-            this.spawnTimer = 0; // Reset spawn timer if entities exist to prevent accumulation when entities still exist
-        }
+        }else this.spawnTimer = 0; // Reset spawn timer if entities exist to prevent accumulation when entities still exist
     }
     private saveEntityToGame(entityKind:EntityContract) {
         entities.push(entityKind);

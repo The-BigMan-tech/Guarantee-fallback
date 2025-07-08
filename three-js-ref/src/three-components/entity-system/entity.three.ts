@@ -23,7 +23,7 @@ export interface EntityContract {
 export interface ManagingStructure {
     group:THREE.Group,
     entities:EntityContract[],
-    entityCounts:Record<EntityWrapper,EntityCountData>
+    entityCounts:EntityCount
 }
 export class Entity extends Controller {
     private targetEntity:EntityLike | null = null;
@@ -194,10 +194,15 @@ export class Entity extends Controller {
         return name === 'Enemy' || name === 'NPC';
     }
     public incEntityCount(wrapperName:EntityWrapper) {
-        this.struct.entityCounts[wrapperName].currentCount += 1;
+        this.struct.entityCounts.totalCount += 1;
+        this.struct.entityCounts.individualCounts[wrapperName].currentCount += 1;
     }
     private decEntityCount(wrapperName:EntityWrapper) {
-        this.struct.entityCounts[wrapperName].currentCount -= 1;
+        this.struct.entityCounts.totalCount -= 1;
+        this.struct.entityCounts.individualCounts[wrapperName].currentCount -= 1;
+        if (Math.sign(this.struct.entityCounts.individualCounts[wrapperName].currentCount) == -1) {
+            throw new Error("Unexpected behaviour: The count for this entity is negative");//to prevent silent failures even though it will cause runtime crash
+        }
     }
     private cleanUpResources():void {
         this.cleanupTimer += this.clockDelta || 0;
@@ -214,7 +219,7 @@ export class Entity extends Controller {
             if (this.isEntityWrapper(wrapperName)) {//this operation must be done before deletion of the entry
                 this.decEntityCount(wrapperName);
             }
-
+            //this is O(n) which is costly but its efficient and simple here since its only done once in an entity's lifetime.
             if (index !== -1) this.struct.entities.splice(index, 1);//remove it from the entity array to prevent its physics controller from updating,stop the player from possibly intersecting with it although unlikely since its removed from the scene and finally for garbae collection
             this.onTargetReached = undefined;//clear hook bindings to prevent ref to the entity from existing which will prevent garbage collection
             this.updateInternalState = undefined;
@@ -264,8 +269,12 @@ export class Entity extends Controller {
 }
 export const entities:EntityContract[] = [];
 
-export interface EntityCountData {
+interface CountData {
     currentCount:number,
     minCount:number
+}
+export interface EntityCount {
+    totalCount:number,
+    individualCounts:Record<EntityWrapper,CountData>
 }
 export type EntityWrapper = 'Enemy' | 'NPC'
