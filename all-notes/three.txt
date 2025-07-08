@@ -1019,3 +1019,18 @@ you can definitely use this in the instance methods of your EntityManager class.
 camelCase,PascalCase,snake_case,UPPER_SNAKE_CASE
 
 so the swap and pop deletion method is an indirect form of deletion that retains the array from having gaps that causes shifting in the first place
+
+so if i do attackers[playerID].add(entity).the relationship is read backwards cuz im creating this relationships by object not by subject cuz if i were to do it the other way around,a record of just one element can have 5000 entries cuz each entry is attacking the player and it will take O(n) to get all entities that attacked the player than by doing it by object where one player fiel has all the entities that attacked it
+
+By creating relationships from the perspective of the attacked entity, you achieve O(1) access for querying all related entities. This is especially beneficial in scenarios with high volumes of interactions.
+This approach minimizes redundancy and the need for complex traversals, which can slow down performance. Instead of each entity needing to maintain a list of what it attacks, only the attacked entity holds this information.
+
+so i can use a graph,an adjacent matrix or stick with my inverse relationship.my inverse relationship can store complex relationships but the underlying structure is linear not interconnected like a graph.is this correct
+
+so im going to have more relationships like attackedEnemy or attackedNPC.since im using group ids which is per entity group not per instance like for example all enemy types attack those that attacked the enemy without knowing the specifc enmey that was attacked.this is perf on top of the perf of an inverse relationship that uses a unique list making this like a generic inverse relationship if that term is correct.but im sure that relationships in this light is queried more from one side
+
+and its more complx than a genric one-one relationship where i only have one player attacker at a time which i only did because array and set hada thing i needed from them but neither could satisfy the perf or the uniqueness i wanted
+
+Yes, naming your method attackersOf is a great choice! It makes the relationship more intuitive, even if it represents an inverted structure. Here’s how it enhances readability.Even though the relationship is inverted, the method name provides context that helps clarify what the data structure represents. It suggests that you’re looking for attackers associated with a specific entity.
+
+That sounds like a solid plan! By keeping the underlying field as attackers and exposing it through a method named attackersOf, you achieve a balance between clarity and convenience.You avoid extra characters (like an underscore) in your method names while still maintaining a clear distinction between internal and external representations.The method name attackersOf conveys the purpose clearly, making your code easier to read and understand.

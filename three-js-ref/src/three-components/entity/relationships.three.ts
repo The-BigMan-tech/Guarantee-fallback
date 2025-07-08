@@ -1,12 +1,13 @@
 import { Controller } from "../controller/controller.three";
 import type { Health } from "../health/health";
 import {v4 as uniqueID} from "uuid";
+import { UniqueList } from "./unique-list";
 
 export interface EntityLike extends Controller {
     health:Health
 }
 export interface RelationshipTree {
-    attack:Record<string,EntityLike | null>
+    attack:Record<string,UniqueList<EntityLike>| null>
 }
 type Singleton<T> = T;
 
@@ -17,7 +18,7 @@ export const groupIDs = {
 }
 export class RelationshipManager {
     private static manager:RelationshipManager;
-    private relationships:RelationshipTree = {
+    private static relationships:RelationshipTree = {
         attack: {}
     }
 
@@ -25,12 +26,15 @@ export class RelationshipManager {
     public static get instance():RelationshipManager {
         if (!RelationshipManager.manager)  {
             RelationshipManager.manager = new RelationshipManager();
+            Object.values(groupIDs).forEach(value=>{
+                RelationshipManager.relationships.attack[value] = new UniqueList()
+            })
         }
         return RelationshipManager.manager;
     }
 
-    get _attacked() {
-        return this.relationships.attack
+    get attackersOf() {
+        return RelationshipManager.relationships.attack
     }
 }
 export const relationshipManager:Singleton<RelationshipManager> = RelationshipManager.instance;

@@ -6,7 +6,6 @@ export class Enemy implements EntityContract  {
     public static modelPath:string = "./silvermoon.glb";
 
     private entity:Entity;
-    private temporaryTarget:EntityLike | null = null;
     private endTargetEntity:EntityLike | null;
 
     constructor(entity:Entity) {
@@ -17,7 +16,7 @@ export class Enemy implements EntityContract  {
     }
     private onTargetReached():'attack' | 'idle' {//the behaviour when it reaches the target will be later tied to a state machine
         if (this.entity._targetEntity && !this.entity._targetEntity.health.isDead) {
-            relationshipManager._attacked[groupIDs.player] = this.entity;
+            relationshipManager.attackersOf[groupIDs.player]!.add(this.entity);//the relationship was poperly intialized by the manager when it was created so this is safe and if its not intialized,i will like an error than a silent failure that would have happened if i used optional chaining
             return 'attack';
         }
         return 'idle';
@@ -25,13 +24,16 @@ export class Enemy implements EntityContract  {
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
         if (this.entity._health.isDead) {//the order of the branches show update priority
             this.entity._state.behaviour = 'death';
-            relationshipManager._attacked[groupIDs.player] = null;
+            relationshipManager.attackersOf[groupIDs.player]!.delete(this.entity)
             return;
         }
 
-        this.temporaryTarget = relationshipManager._attacked[groupIDs.enemy]
-        if (this.temporaryTarget) {
-            this.entity._targetEntity = this.temporaryTarget
+        const targets  = relationshipManager.attackersOf[groupIDs.enemy];
+        const lastTarget = targets?.last() || null;
+        console.log('attack. enemy:', targets?.length);
+
+        if (lastTarget) {
+            this.entity._targetEntity = lastTarget
         }else {
             this.entity._targetEntity = this.endTargetEntity
         }

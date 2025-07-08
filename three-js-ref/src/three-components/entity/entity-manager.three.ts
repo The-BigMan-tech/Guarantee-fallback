@@ -30,7 +30,7 @@ class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
             groupID:groupIDs.enemy,//i called it groupID cuz its not per isntance but per entity type or kind
-            spawnWeight:5
+            spawnWeight:8
         },
         NPC: {
             groupID:groupIDs.npc,
@@ -44,7 +44,7 @@ class EntityManager {
     private spawnTimer:number = 0;
     private spawnCooldown:number = 3;
 
-    private spawnRadius = 25;
+    private spawnRadius = 20;
     private minSpawnDistance = 10; // adjust as needed
     private despawnRadius: number = 1000;
 

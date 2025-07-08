@@ -14,7 +14,7 @@ export class UniqueList<T> {
         if (!this.set.has(element)) {
             this.set.add(element);
             this.array.push(element);
-            this.indexMap.set(element, this.array.length);
+            this.indexMap.set(element, this.array.length-1);
             return true; // Element was added
         }
         return false; // Element already exists
@@ -40,4 +40,12 @@ export class UniqueList<T> {
     public last(): T | undefined{//returns the last element from the set at O(1) access
         return this.array[this.array.length - 1];
     }
+    get length() {
+        return this.array.length
+    }
 }
+const x = new UniqueList()
+x.add(1)
+x.delete(1);
+
+console.log(x);

@@ -1,10 +1,11 @@
 import { player } from "../player/player.three";
-import { Entity } from "./entity.three";
+import { Entity, type EntityContract } from "./entity.three";
 import { relationshipManager } from "./relationships.three";
 import type { EntityLike } from "./relationships.three";
 import { groupIDs } from "./relationships.three";
 
-export class NPC  {
+
+export class NPC implements EntityContract {
     public static modelPath:string = './snowman-v3.glb';
     private entity:Entity;
 
@@ -18,7 +19,7 @@ export class NPC  {
     }
     private onTargetReached():'attack' | 'idle' {
         if (this.entity._targetEntity && !this.entity._targetEntity.health.isDead) {
-            relationshipManager._attacked[groupIDs.enemy] = this.entity
+            relationshipManager.attackersOf[groupIDs.enemy]!.add(this.entity)
             return 'attack';
         }
         return 'idle'
@@ -29,13 +30,16 @@ export class NPC  {
 
         if (this.entity._health.isDead) {//the order of the branches show update priority
             this.entity._state.behaviour = 'death';
-            relationshipManager._attacked[groupIDs.enemy] = null;
+            relationshipManager.attackersOf[groupIDs.enemy]!.delete(this.entity)
             return;
         }
 
-        const target = relationshipManager._attacked[groupIDs.player];
-        if (target) {
-            this.entity._targetEntity = target;
+        const targets = relationshipManager.attackersOf[groupIDs.player]
+        const lastTarget = targets?.last() || null;
+        console.log('attack. npc:', targets?.length);
+
+        if (lastTarget) {
+            this.entity._targetEntity = lastTarget;
         }else {
             this.entity._targetEntity = this.endTargetEntity;
         }
