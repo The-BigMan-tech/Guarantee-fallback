@@ -37,7 +37,11 @@ class EntityManager {
             spawnWeight:10
         }
     }
+    private groupIDList:string[] = [];
+    private entitySpawnWeights:number[] = [];
+    private multiChoicePercent = 50;
 
+    
     private static manager: EntityManager;
     public entityGroup:THREE.Group = new THREE.Group();
 
@@ -50,10 +54,6 @@ class EntityManager {
 
     private raycaster = new THREE.Raycaster();
     private down = new THREE.Vector3(0, -1, 0);
-
-    private groupIDList:string[] = [];
-    private entitySpawnWeights:number[] = [];
-    private multiChoiceCount = 2;
 
 
     private constructor() {};
@@ -100,7 +100,7 @@ class EntityManager {
         const dynamicData = entityData.dynamicData;
         const miscData = entityData.miscData
         fixedData.modelPath = NPC.modelPath;
-        dynamicData.horizontalVelocity = randInt(30,40);
+        dynamicData.horizontalVelocity = randInt(15,30);
         dynamicData.jumpVelocity = randInt(25,32);
         dynamicData.jumpResistance = randInt(6,10);
         miscData.healthValue = randInt(10,15);
@@ -175,7 +175,10 @@ class EntityManager {
             const spawnZ = playerPos.z + (z - (this.spawnRadius / 2));//the reason why we are adding z-r/2 instead of z directly is so that its centered around that origin
             const spawnY = this.getHeightAtPosition(spawnX,spawnZ); // or sample terrain height at (spawnX, spawnZ)
             const spawnPoint = new RAPIER.Vector3(spawnX, spawnY, spawnZ);
-            const chosenGroupIDs:string[] = choices<string>(this.groupIDList,this.entitySpawnWeights,this.multiChoiceCount)//get the first element
+            
+            //used ceiling to prevent fractional selection which isnt possible and it often produces the expected number of choices than rounding or flooring
+            const multiChoiceCount = Math.ceil((this.multiChoicePercent / 100) * this.groupIDList.length);
+            const chosenGroupIDs:string[] = choices<string>(this.groupIDList,this.entitySpawnWeights,multiChoiceCount)//get the first element
             
             for (const groupID of chosenGroupIDs) {
                 const finalEntity = this.createEntity(groupID,spawnPoint)
