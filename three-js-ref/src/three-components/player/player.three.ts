@@ -4,11 +4,11 @@ import type { FixedControllerData,DynamicControllerData } from "../controller/co
 import * as RAPIER from "@dimforge/rapier3d"
 import * as THREE from "three"
 import { Health } from "../health/health";
-import { type EntityContract } from "../entity/entity.three";
-import { entities } from "../entity/entity.three";
+import { type EntityContract } from "../entity-system/entity.three";
+import { entities } from "../entity-system/entity.three";
 import { combatCooldown } from "../physics-world.three";
 import { setEntityHealth, setPlayerHealth } from "../health/health-state";
-import { groupIDs, relationshipManager } from "../entity/relationships.three";
+import { groupIDs, relationshipManager } from "../entity-system/relationships.three";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {

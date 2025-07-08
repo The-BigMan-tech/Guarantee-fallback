@@ -5,7 +5,7 @@ import { player } from './player/player.three';
 import { terrain } from './terrain.three';
 import { cube } from './terrain.three';
 import {cubesGroup } from './tall-cubes.three';
-import { entityManager } from './entity/entity-manager.three';
+import { entityManager } from './entity-system/entity-manager.three';
 
 export const scene = new THREE.Scene();
 

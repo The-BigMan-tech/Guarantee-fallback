@@ -30,8 +30,8 @@ class EntityManager {
     private static manager: EntityManager;
 
     private entityCounts:Record<EntityWrapper,EntityCountData> = {
-        Enemy:{currentCount:0,minCount:0},
-        NPC:{currentCount:0,minCount:0},
+        Enemy:{currentCount:0,minCount:1},
+        NPC:{currentCount:0,minCount:1},
     }
     private entityWrappers:EntityWrapper[] = [];
 
@@ -39,7 +39,7 @@ class EntityManager {
     private entityMapping:Record<EntityWrapper,EntityMetadata> = {
         Enemy:{
             groupID:groupIDs.enemy,//i called it groupID cuz its not per isntance but per entity type or kind
-            spawnWeight:0
+            spawnWeight:3
         },
         NPC: {
             groupID:groupIDs.npc,
@@ -214,7 +214,15 @@ class EntityManager {
     private spawnNewEntitiesWithCooldown(deltaTime:number) {
         console.log("Entity count: ",this.entityCounts);
         console.log("Entity wrappers: ",this.entityWrappers);
-        if (entities.length === 0) {
+        let canSpawnEntities:boolean = false
+        for (const wrapper of this.entityWrappers) {
+            const countData = this.entityCounts[wrapper];
+            if (countData.currentCount < countData.minCount) {
+                canSpawnEntities = true;
+            }
+        }
+        console.log('canSpawnEntities:', canSpawnEntities);
+        if (canSpawnEntities) {
             this.spawnTimer += deltaTime;//incresing the timer only when there are no entities ensures that new entities are only spawned after all other entities are dead.
             if (this.spawnTimer > this.spawnCooldown) {
                 this.spawnEntities()

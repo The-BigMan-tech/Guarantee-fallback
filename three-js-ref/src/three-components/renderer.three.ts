@@ -4,7 +4,7 @@ import { loadEnv } from './env.three';
 import { updateSun } from './sun.three';
 import { physicsWorld } from './physics-world.three';
 import { player } from './player/player.three';
-import { entityManager } from './entity/entity-manager.three';
+import { entityManager } from './entity-system/entity-manager.three';
 
 
 export const renderer = new THREE.WebGLRenderer({antialias:true});//play with this
