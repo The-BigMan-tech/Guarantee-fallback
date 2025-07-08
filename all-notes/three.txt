@@ -1080,3 +1080,21 @@ an index map can do an o1 index access.
 *const,readonly access modifier,Readonly type annotation
 
 *so the purpose of min threshold is to ensure that the manager doesnt just wait to spawn entities when all entities are dead but when there is a need to supply entities of a specifc type.weighting is the primary factor of spawn prioritization
+
+*it worked cuz i changed mutiple coice percent to 0 eaning that no entities will be selected for spawning but because of min threhsold,it spawned more entities to accomodate this meaning that the manager now spawns entities based o fairness but still respects the weights meaning that if i really dont want an entity to spawn,i should change their weight to 0 and if i dont want any entity to spawn,i either change all heir weights to 0 or change the choice prercent to 0 as well as their min thresholds
+
+*so now i have four things to tune to control spawning-the weights,min threshold and multichoice percent
+Weights:Determine the likelihood of each entity being selected for spawning.
+
+Min threshold:Ensure that the manager attempts to spawn entities when their current count falls below a specified minimum.
+
+Multi-choice percent: Control the overall chance of entities being selected for spawning.Tuning: Setting this to 0 prevents any entities from being spawned. Conversely, setting it to 100 maximizes the chance of all eligible entities being considered based on their weights.
+
+Max entity cap:It contols how many entities should exist before stopping spawning
+
+*so because i want to preserve the meaning of weights in general,the manager wont by any means affect the weights.it will do trial and error until it reaches the peak of spawned entities and it increases multichoice to the  max to increase the chance of an entity being spawned since a higher choice count means more selections at a time.
+
+*I used the max entity cap in two places for defense
+The check in spawnNewEntitiesWithCooldown provides immediate feedback on whether spawning should even be attempted, preventing unnecessary calculations if the cap is already reached.
+
+The check within spawnEntities ensures that multiple selection and other factors during spawning like poisson sampling over a given area doesnt exceed the cap

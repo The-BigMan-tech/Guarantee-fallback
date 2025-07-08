@@ -40,7 +40,7 @@ class EntityManager {
     private entityMapping:Record<EntityWrapper,EntityMetadata> = {
         Enemy:{
             groupID:groupIDs.enemy,//i called it groupID cuz its not per isntance but per entity type or kind
-            spawnWeight:3
+            spawnWeight:6
         },
         NPC: {
             groupID:groupIDs.npc,
@@ -50,11 +50,11 @@ class EntityManager {
     private groupIDList:string[] = [];
     private entitySpawnWeights:number[] = [];
 
-    private multiChoicePercent = 100;
+    private multiChoicePercent = 50;
     private readonly originalChoicePercent:number = this.multiChoicePercent;
     private readonly maxChoicePercent:number = 100;
 
-    private readonly maxEntitiesToStopSpawningMore = 15;
+    private readonly maxEntityCap = 15;
 
     private spawnTimer:number = 0;
     private spawnCooldown:number = 3;
@@ -197,6 +197,11 @@ class EntityManager {
             const chosenGroupIDs:string[] = choices<string>(this.groupIDList,this.entitySpawnWeights,multiChoiceCount)//get the first element
             
             for (const groupID of chosenGroupIDs) {
+                console.log('count. totalCount:', this.entityCounts.totalCount);
+                if (this.entityCounts.totalCount > this.maxEntityCap) {
+                    console.log('count. reached cap limit');
+                    return;
+                }
                 const finalEntity = this.createEntity(groupID,spawnPoint)
                 this.saveEntityToGame(finalEntity)
             }
@@ -219,7 +224,7 @@ class EntityManager {
     private spawnNewEntitiesWithCooldown(deltaTime:number) {
         console.log("Entity count: ",this.entityCounts);
         let canSpawnEntities:boolean = false;
-        if (this.entityCounts.totalCount < this.maxEntitiesToStopSpawningMore) {
+        if (this.entityCounts.totalCount < this.maxEntityCap) {
             for (const wrapper of this.entityWrappers) {
                 console.log('wrapper:', wrapper);
                 const countData = this.entityCounts.individualCounts[wrapper];
