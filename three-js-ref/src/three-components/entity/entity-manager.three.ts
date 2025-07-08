@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import type {FixedControllerData,DynamicControllerData} from "../controller/controller.three";
-import type { EntityContract, EntityMiscData, ManagingStructure } from "./entity.three";
+import type { EntityContract, EntityCountData, EntityMiscData, EntityWrapper, ManagingStructure } from "./entity.three";
 import * as RAPIER from '@dimforge/rapier3d'
 import { player } from "../player/player.three";
 import { Entity,entities} from "./entity.three";
@@ -24,13 +24,17 @@ interface FullEntityData {
     managingStruct:ManagingStructure
 }
 
-
 type Singleton<T> = T;
+
 class EntityManager {
-    private static entityMapping:Record<string,EntityMetadata> = {
+    private entityCounts:Record<EntityWrapper,EntityCountData> = {
+        Enemy:{currentCount:0,minCount:0},
+        NPC:{currentCount:0,minCount:0},
+    }
+    private static entityMapping:Record<EntityWrapper,EntityMetadata> = {
         Enemy:{
             groupID:groupIDs.enemy,//i called it groupID cuz its not per isntance but per entity type or kind
-            spawnWeight:6
+            spawnWeight:0
         },
         NPC: {
             groupID:groupIDs.npc,
@@ -39,7 +43,7 @@ class EntityManager {
     }
     private groupIDList:string[] = [];
     private entitySpawnWeights:number[] = [];
-    private multiChoicePercent = 50;
+    private multiChoicePercent = 100;
 
     
     private static manager: EntityManager;
@@ -92,8 +96,7 @@ class EntityManager {
         miscData.knockback = randInt(100,150);
         miscData.attackDamage = randFloat(0.5,1);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
-        const enemy = new Enemy(entity);
-        return enemy
+        return new Enemy(entity);
     }
     private createNPC(entityData:FullEntityData):EntityContract {
         const fixedData = entityData.fixedData;
@@ -107,8 +110,7 @@ class EntityManager {
         miscData.knockback = randInt(100,150);
         miscData.attackDamage = randFloat(1,3);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
-        const npc = new NPC(entity);
-        return npc
+        return new NPC(entity);
     }
     private createDefault(entityData:FullEntityData):EntityContract {
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
@@ -142,6 +144,7 @@ class EntityManager {
         const entityManagingStruct:ManagingStructure = {//these are data structures passed to the individual entities so that they can use it for clean up
             group:this.entityGroup,
             entities:entities,
+            entityCounts:this.entityCounts
         }
         const entityData:FullEntityData = {//this is the full structure composed of the other data above
             fixedData:entityFixedData,
@@ -151,10 +154,14 @@ class EntityManager {
         };
         switch (groupID) {
             case (EntityManager.entityMapping['Enemy'].groupID): {
-                return this.createEnemy(entityData);
+                const enemy = this.createEnemy(entityData);
+                enemy._entity.incEntityCount('Enemy');
+                return enemy
             }
             case (EntityManager.entityMapping['NPC'].groupID): {
-                return this.createNPC(entityData);
+                const npc = this.createNPC(entityData);
+                npc._entity.incEntityCount('NPC');
+                return npc;
             }
             default: {
                 return this.createDefault(entityData)
@@ -201,6 +208,8 @@ class EntityManager {
         }
     }
     private spawnNewEntitiesWithCooldown(deltaTime:number) {
+        console.log("Entity count: ",this.entityCounts.NPC.currentCount);
+        
         if (entities.length === 0) {
             this.spawnTimer += deltaTime;//incresing the timer only when there are no entities ensures that new entities are only spawned after all other entities are dead.
             if (this.spawnTimer > this.spawnCooldown) {

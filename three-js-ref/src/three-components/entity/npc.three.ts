@@ -10,7 +10,7 @@ export class NPC implements EntityContract {
     public static modelPath:string = './snowman-v3.glb';
     private entity:Entity;
     private endTargetEntity:EntityLike | null;
-
+    
     private commonBehaviour:CommonBehaviour
     
     constructor(entity:Entity) {

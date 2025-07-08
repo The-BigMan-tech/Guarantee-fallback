@@ -23,6 +23,7 @@ export interface EntityContract {
 export interface ManagingStructure {
     group:THREE.Group,
     entities:EntityContract[],
+    entityCounts:Record<EntityWrapper,EntityCountData>
 }
 export class Entity extends Controller {
     private targetEntity:EntityLike | null = null;
@@ -189,6 +190,15 @@ export class Entity extends Controller {
             }
         });
     }
+    private isEntityWrapper(name: string): name is EntityWrapper {
+        return name === 'Enemy' || name === 'NPC';
+    }
+    public incEntityCount(wrapperName:EntityWrapper) {
+        this.struct.entityCounts[wrapperName].currentCount += 1;
+    }
+    private decEntityCount(wrapperName:EntityWrapper) {
+        this.struct.entityCounts[wrapperName].currentCount -= 1;
+    }
     private cleanUpResources():void {
         this.cleanupTimer += this.clockDelta || 0;
         if (this.cleanupTimer >= this.cleanupCooldown) {//the cooldown is here to allow playing of death animations or ending effects
@@ -198,6 +208,13 @@ export class Entity extends Controller {
             this.disposeHierarchy(this.char);//remove the geometry data from the gpu
             this.disposeMixer();//to prevent animation updates
             const index = this.struct.entities.findIndex(entityWrapper => entityWrapper._entity === this);
+
+            const entityWrapper:EntityContract = entities[index];
+            const wrapperName:string = entityWrapper.constructor.name
+            if (this.isEntityWrapper(wrapperName)) {//this operation must be done before deletion of the entry
+                this.decEntityCount(wrapperName);
+            }
+
             if (index !== -1) this.struct.entities.splice(index, 1);//remove it from the entity array to prevent its physics controller from updating,stop the player from possibly intersecting with it although unlikely since its removed from the scene and finally for garbae collection
             this.onTargetReached = undefined;//clear hook bindings to prevent ref to the entity from existing which will prevent garbage collection
             this.updateInternalState = undefined;
@@ -246,3 +263,9 @@ export class Entity extends Controller {
     }
 }
 export const entities:EntityContract[] = [];
+
+export interface EntityCountData {
+    currentCount:number,
+    minCount:number
+}
+export type EntityWrapper = 'Enemy' | 'NPC'
