@@ -44,7 +44,7 @@ export class NPC implements EntityContract {
             this.entity._targetEntity = this.endTargetEntity;
         }
 
-        if (this.entity._targetEntity) {
+        if (this.entity._targetEntity && !this.entity._targetEntity.health.isDead) {
             this.entity._navPosition = this.entity._targetEntity.position;
             this.entity._movementType = 'precise';
             this.entity._state.behaviour = 'chase';

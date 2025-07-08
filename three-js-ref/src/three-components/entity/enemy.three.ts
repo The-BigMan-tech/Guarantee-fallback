@@ -22,6 +22,8 @@ export class Enemy implements EntityContract  {
         return 'idle';
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
+        this.entity._state.behaviour = 'patrol';
+
         if (this.entity._health.isDead) {//the order of the branches show update priority
             this.entity._state.behaviour = 'death';
             relationshipManager.attackersOf[groupIDs.player]!.delete(this.entity)
@@ -38,17 +40,11 @@ export class Enemy implements EntityContract  {
             this.entity._targetEntity = this.endTargetEntity
         }
 
-        if (this.entity._targetEntity && this.entity._targetEntity.health) {
-            if (this.entity._targetEntity.health.isDead) {
-                this.entity._state.behaviour = 'patrol';
-                return;
-            }
-            else if (!this.entity._targetEntity.health.isDead) {
-                this.entity._navPosition = this.entity._targetEntity.position
-                this.entity._movementType = 'precise';
-                this.entity._state.behaviour = 'chase';
-                return;
-            }
+        if (this.entity._targetEntity && !this.entity._targetEntity.health.isDead) {
+            this.entity._navPosition = this.entity._targetEntity.position
+            this.entity._movementType = 'precise';
+            this.entity._state.behaviour = 'chase';
+            return;
         }
     }
     get _entity() {
