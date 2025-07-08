@@ -30,7 +30,7 @@ class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
             groupID:groupIDs.enemy,//i called it groupID cuz its not per isntance but per entity type or kind
-            spawnWeight:6
+            spawnWeight:5
         },
         NPC: {
             groupID:groupIDs.npc,

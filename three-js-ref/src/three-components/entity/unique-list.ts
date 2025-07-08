@@ -1,4 +1,4 @@
-class UniqueStack<T> {
+export class UniqueList<T> {
     private set: Set<T>; // Hash Set for uniqueness
     private array: T[];   // Dynamic Array to access last element
     private indexMap: Map<T, number>;//a map to keep track of indexes for efficient deleteion

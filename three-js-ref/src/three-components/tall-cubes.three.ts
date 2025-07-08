@@ -19,9 +19,9 @@ export const cubesGroup = new THREE.Object3D();
 
 const tallCubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f});
 const minHeight = 1;
-const maxHeight = 7;
+const maxHeight = 30;
 
-const width = 40
+const width = 20
 for (let i = 0; i < points.length; i++) {
     const [x, z] = points[i];
 
@@ -31,7 +31,7 @@ for (let i = 0; i < points.length; i++) {
     const posZ = z - groundArea/2;
 
     const tallCubeGeometry = new THREE.BoxGeometry(width,height,width);
-    const tallCube = new THREE.Object3D()
+    const tallCube = new THREE.Mesh(tallCubeGeometry,tallCubeMaterial)
     const tallCubeEdges = new EdgesGeometry(tallCubeGeometry);
     const tallCubeLine = new LineSegments(tallCubeEdges, new LineBasicMaterial({ color: 0x000000 }));
     tallCube.add(tallCubeLine)

@@ -1017,3 +1017,5 @@ so because the instance getter is a static method enforcing singleton,i cant use
 you can definitely use this in the instance methods of your EntityManager class. Since those methods are called on the singleton instance, using this will refer to that single instance. This approach improves readability and makes the code easier to write.Using this in your instance methods is not only allowed but also a best practice for clarity and maintainability. Just make sure that you only use it in non-static methods where the context is guaranteed to be the singleton instance
 
 camelCase,PascalCase,snake_case,UPPER_SNAKE_CASE
+
+so the swap and pop deletion method is an indirect form of deletion that retains the array from having gaps that causes shifting in the first place
