@@ -98,12 +98,6 @@ export abstract class Controller {
 
     private canWalkForward:boolean = false;
 
-    protected redMaterial = new THREE.MeshBasicMaterial({
-        color: 0xff0000, // Red color
-        transparent: true,
-        opacity: 0.5, // Adjust opacity as needed
-    });
-    
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
         const halfWidth = Math.round(fixedData.characterWidth)/2;

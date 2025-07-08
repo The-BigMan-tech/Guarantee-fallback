@@ -30,7 +30,7 @@ class EntityManager {
     private static entityMapping:Record<string,EntityMetadata> = {
         Enemy:{
             groupID:groupIDs.enemy,//i called it groupID cuz its not per isntance but per entity type or kind
-            spawnWeight:8
+            spawnWeight:6
         },
         NPC: {
             groupID:groupIDs.npc,
@@ -100,7 +100,7 @@ class EntityManager {
         const dynamicData = entityData.dynamicData;
         const miscData = entityData.miscData
         fixedData.modelPath = NPC.modelPath;
-        dynamicData.horizontalVelocity = randInt(10,30);
+        dynamicData.horizontalVelocity = randInt(30,40);
         dynamicData.jumpVelocity = randInt(25,32);
         dynamicData.jumpResistance = randInt(6,10);
         miscData.healthValue = randInt(10,15);

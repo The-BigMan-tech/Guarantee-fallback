@@ -36,7 +36,7 @@ export class Entity extends Controller {
     private attackTimer = 0;    // timer accumulator
 
     private patrolRadius = 15; // max distance from current position to patrol
-    private patrolCooldown = 3; // seconds between patrol target changes
+    private patrolCooldown = 7; // seconds between patrol target changes
     private patrolTimer = 0;
     public basePatrolPoint:THREE.Vector3 | null = null;//this is meant to be hook where a concrete entity changes where the patrolling is centred around by changing this value.by default its null.so if null,it uses the characterPos as the patrol point else,it uses the provided one.
 
