@@ -20,6 +20,7 @@ export class Floor {
         this.floorContent = floorContent;
         this.floorModel = new THREE.Group();
         this.parent = floorData.parent;
+        this.parent.add(this.floorModel);
         const {cords,volume,gridDivisions} = floorData;
         
         const floorHeight = volume.y;

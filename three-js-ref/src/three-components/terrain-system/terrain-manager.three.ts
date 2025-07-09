@@ -41,7 +41,6 @@ class TerrainManager {
         };
         const floorContent = new FloorContent(floorContentData,chunkCords);
         const floor = new Floor(floorData,floorContent);
-        if (floor.floorModel) this.floorGroup.add(floor.floorModel);
         return floor;
     }
 
