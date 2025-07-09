@@ -20,7 +20,7 @@ renderer.setAnimationLoop(()=>{
     physicsWorld.step()//a must to be called first
     const deltaTime = clock.getDelta()
     player.updateController(deltaTime);
-    terrainManager.updateTerrain()
+    terrainManager.updateTerrain();
     entityManager.updateAllEntities(deltaTime);
     updateSun();
     renderer.render( scene,player.camera.cam);//a must to be called last

@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import { directionalLight } from './lights.three';
 import { sky } from './sun.three';
 import { player } from './player/player.three';
-import { cube } from './terrain.three';
 import { entityManager } from './entity-system/entity-manager.three';
 import { terrainManager } from './terrain-system/terrain-manager.three';
 
@@ -13,5 +12,5 @@ scene.add(sky);
 scene.add(player.char);
 scene.add(entityManager.entityGroup);
 scene.add(terrainManager.floorGroup);
-scene.add(cube)
+scene.add(terrainManager.blockGroup);
 scene.fog = new THREE.Fog(0xa5a5a5,30,100)
