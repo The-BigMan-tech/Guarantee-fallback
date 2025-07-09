@@ -1,10 +1,7 @@
 import * as THREE from "three"
 import * as RAPIER from '@dimforge/rapier3d'
-import { physicsWorld,groundLevelY, startingLevelY } from "./physics-world.three";
+import { physicsWorld,startingLevelY } from "./physics-world.three";
 import { EdgesGeometry, LineSegments, LineBasicMaterial } from 'three';
-
-
-
 
 
 //A cuboid

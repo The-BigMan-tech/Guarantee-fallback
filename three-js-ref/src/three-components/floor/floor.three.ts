@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import * as RAPIER from "@dimforge/rapier3d";
 import { physicsWorld } from "../physics-world.three";
+import { disposeHierarchy } from "../disposer/disposer.three";
 
 interface FloorData {
     cords:THREE.Vector3
@@ -9,7 +10,7 @@ interface FloorData {
     parent:THREE.Group
 }
 export class Floor {
-    public floor:THREE.Mesh;
+    public floor:THREE.Mesh | null;
     public floorRigidBody:RAPIER.RigidBody | null
     private parent:THREE.Group;//this will be the group of floors held by the terrain manager
 
@@ -36,27 +37,18 @@ export class Floor {
         this.floorRigidBody.setTranslation({x:cords.x,y:floorPosY,z:cords.z},true);
         this.floor.position.copy(this.floorRigidBody.translation());
         gridHelper.position.y +=  floorHeight / 2 + 0.01;// slightly above floor surface
-    }
+    }    
     public cleanUp():void {
-        this.floor.traverse((child) => {
-            if ((child as THREE.Mesh).geometry) {
-                (child as THREE.Mesh).geometry.dispose();
-            }
-            if ((child as THREE.Mesh).material) {
-                const material = (child as THREE.Mesh).material;
-                if (Array.isArray(material)) {
-                    material.forEach((m) => m.dispose());
-                } else {
-                    material.dispose();
-                }
-            }
-        });
-        if (this.parent) {
-            this.parent.remove(this.floor);
-        }
         if (this.floorRigidBody) {
             physicsWorld.removeRigidBody(this.floorRigidBody);
             this.floorRigidBody = null;
+        }
+        if (this.floor) {
+            disposeHierarchy(this.floor);
+            if (this.parent) {
+                this.parent.remove(this.floor);
+            }
+            this.floor = null;
         }
     }
 }
