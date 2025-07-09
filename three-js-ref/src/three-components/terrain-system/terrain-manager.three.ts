@@ -1,11 +1,19 @@
 import * as THREE from "three"
 import { Floor, type FloorData } from "./floor.three";
 import { groundLevelY } from "../physics-world.three";
+import { player } from "../player/player.three";
+
+type ChunkKey = string;
 type Singleton<T> = T;
 
 class TerrainManager {
     private static manager:TerrainManager;
     public floorGroup:THREE.Group = new THREE.Group();
+
+    private loadedFloors: Map<ChunkKey, Floor> = new Map();
+    private chunkSize = 10;  // size of each floor chunk
+    private loadRadius = 1;    // how many chunks away to load (1 means 3x3 grid)
+
 
     private constructor() {};
     public static get instance():TerrainManager {
@@ -14,19 +22,51 @@ class TerrainManager {
         }
         return TerrainManager.manager;
     }
-
-    private generateFloor() {
-        const floorData:FloorData = {
-            cords:new THREE.Vector3(0,groundLevelY,0),
-            volume:new THREE.Vector3(1000,1,1000),
-            gridDivisions:50,
-            parent:this.floorGroup
-        }
-        const floor = new Floor(floorData)
+    private createFloorAtChunk(x: number, z: number): Floor {
+        const floorData: FloorData = {
+            cords: new THREE.Vector3(x * this.chunkSize, groundLevelY, z * this.chunkSize),
+            volume: new THREE.Vector3(this.chunkSize, 1, this.chunkSize),
+            gridDivisions:this.chunkSize/20,
+            parent: this.floorGroup,
+        };
+        const floor = new Floor(floorData);
         if (floor.floorMesh) this.floorGroup.add(floor.floorMesh);
+        return floor;
+    }
+
+
+    private getChunkCoords(position: THREE.Vector3): { x: number; z: number } {
+        return {
+            x: Math.floor(position.x / this.chunkSize),
+            z: Math.floor(position.z / this.chunkSize),
+        };
+    }
+    private chunkKey(x: number, z: number): ChunkKey {
+        return `${x}_${z}`;
     }
     public updateTerrain() {
+        const playerChunk = this.getChunkCoords(player.position);
+        const chunksToKeep = new Set<ChunkKey>();
 
+        for (let dx = -this.loadRadius; dx <= this.loadRadius; dx++) {
+            for (let dz = -this.loadRadius; dz <= this.loadRadius; dz++) {
+                const chunkX = playerChunk.x + dx;
+                const chunkZ = playerChunk.z + dz;
+                const key = this.chunkKey(chunkX, chunkZ);
+                chunksToKeep.add(key);
+                if (!this.loadedFloors.has(key)) {// Load new floor chunk
+                    const floor = this.createFloorAtChunk(chunkX, chunkZ);
+                    this.loadedFloors.set(key, floor);
+                }
+            }
+        }
+        // Unload floors out of range
+        for (const [key, floor] of this.loadedFloors.entries()) {
+            if (!chunksToKeep.has(key)) {
+                floor.cleanUp();
+                this.loadedFloors.delete(key);
+            }
+        }
     }
 }
 export const terrainManager:Singleton<TerrainManager> = TerrainManager.instance;

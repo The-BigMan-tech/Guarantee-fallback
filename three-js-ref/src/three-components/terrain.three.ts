@@ -3,7 +3,6 @@ import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,startingLevelY } from "./physics-world.three";
 import { EdgesGeometry, LineSegments, LineBasicMaterial } from 'three';
 
-
 //A cuboid
 const cubeHeight = 2;
 const cubePosY = cubeHeight/2 + startingLevelY;
