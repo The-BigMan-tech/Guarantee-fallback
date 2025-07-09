@@ -30,9 +30,10 @@ export class FloorContent {
         
             const height = minHeight + (Math.random() * (maxHeight - minHeight));
             const posY = height / 2 + startingLevelY;//to make it stand on the startinglevl not that half of it is above and another half above
-            const localX = x 
-            const localZ = z ;//these are absolute positions from the world's origin not the current chunk position.
-        
+            
+            const localX = x - floorContentData.groundArea / 2;
+            const localZ = z - floorContentData.groundArea / 2;
+            
             const tallCubeGeometry = new THREE.BoxGeometry(width,height,width);
             const tallCube = new THREE.Mesh(tallCubeGeometry,tallCubeMaterial)
             const tallCubeEdges = new EdgesGeometry(tallCubeGeometry);

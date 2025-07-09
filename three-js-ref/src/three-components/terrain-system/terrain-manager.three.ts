@@ -24,7 +24,7 @@ class TerrainManager {
         return TerrainManager.manager;
     }
     private createFloorAtChunk(x: number, z: number): Floor {
-        const chunkCords = new THREE.Vector3(
+        const chunkCords = new THREE.Vector3(//Multiplying by chunkSize gives the corner position of the chunk.Adding (chunkSize / 2) shifts this to the center of the chunk.
             (x * this.chunkSize) + (this.chunkSize / 2),
             groundLevelY,
             (z * this.chunkSize) + (this.chunkSize / 2)
@@ -46,7 +46,7 @@ class TerrainManager {
     }
 
     private getChunkCoords(position: THREE.Vector3): { x: number; z: number } {//to ensure that the chunk surrounds the player at the center
-        return {
+        return {//these are chunk grid cords.to get the world cords,you multiply it by the chunk size and optionally center them
             x: Math.floor(position.x / this.chunkSize),
             z: Math.floor(position.z / this.chunkSize),
         };
