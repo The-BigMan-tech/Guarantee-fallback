@@ -6,6 +6,7 @@ import type { EntityContract } from "./entity.three";
 import type { FullEntityData } from "./entity.three";
 import { player } from "../player/player.three";
 
+type Singleton<T> = T;
 export class EntityFactory {
     private static factory:EntityFactory;
 
@@ -50,3 +51,4 @@ export class EntityFactory {
         return {_entity:entity}
     }
 }
+export const entityFactory:Singleton<EntityFactory> = EntityFactory.instance;

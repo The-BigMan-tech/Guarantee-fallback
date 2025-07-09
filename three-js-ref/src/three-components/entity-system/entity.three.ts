@@ -203,6 +203,11 @@ export class Entity extends Controller {
             throw new Error("Unexpected behaviour: The count for this entity is negative");//to prevent silent failures even though it will cause runtime crash
         }
     }
+    private checkIfOutOfBounds() {
+        if (this.isOutOfBounds) {
+            this.health.takeDamage(this.health.value);
+        }
+    }
     private cleanUpResources():void {
         this.cleanupTimer += this.clockDelta || 0;
         if (this.cleanupTimer >= this.cleanupCooldown) {//the cooldown is here to allow playing of death animations or ending effects
@@ -270,6 +275,7 @@ export class Entity extends Controller {
     
     protected onLoop(): void {
         this.patrolTimer += this.clockDelta || 0;
+        this.checkIfOutOfBounds();
         this.health.checkGroundDamage(this.velBeforeHittingGround);
         if (this.isAirBorne() && (!this.health.isDead)) this.playJumpAnimation();
         if (this.updateInternalState) this.updateInternalState(); 

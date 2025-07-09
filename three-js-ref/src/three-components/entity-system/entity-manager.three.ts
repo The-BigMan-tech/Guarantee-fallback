@@ -8,8 +8,9 @@ import PoissonDiskSampling from 'poisson-disk-sampling';
 import { cubesGroup } from "../tall-cubes.three";
 import { choices } from "./choices";
 import { groupIDs } from "./relationships.three";
-import { EntityFactory } from "./factory.three";
+import { entityFactory } from "./factory.three";
 import type { FullEntityData } from "./entity.three";
+import type { EntityFactory } from "./factory.three";
 
 interface EntitySpawnData {
     groupID:Readonly<string>,
@@ -19,7 +20,7 @@ type Singleton<T> = T;
 
 class EntityManager {
     private static manager: EntityManager;
-    private factory:Singleton<EntityFactory> = EntityFactory.instance;
+    private factory:Singleton<EntityFactory> = entityFactory;
 
     private entityCounts:EntityCount = {
         totalCount:0,

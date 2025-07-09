@@ -49,9 +49,6 @@ class Player extends Controller {
     private readonly toggleCooldown: number = 0.3; // Cooldown in seconds.this value in particular works the best
     private toggleTimer: number = 0;
 
-    private isRespawning: boolean = false;
-    private respawnDelay: number = 7; // seconds
-    private respawnTimer: number = 0;
 
     private playerHeight:number;
 
@@ -105,19 +102,6 @@ class Player extends Controller {
         this.playerHeight = fixedData.characterHeight;
         this.attackDamage = miscData.attackDamage;
         this.knockback = miscData.knockback;
-    }
-    private updateHealthGUI() {
-        console.log('Health. Player: ',this.health.value);
-        this.lookedAtEntity = this.getTheLookedAtEntity(entities, 10);
-        setPlayerHealth({currentValue:this.health.value,maxValue:this.health.maxHealth});
-        if (this.lookedAtEntity) {
-            const entityHealth = this.lookedAtEntity._entity.health;
-            console.log('entityHealth:', entityHealth);
-            setEntityHealth({currentValue:entityHealth.value,maxValue:entityHealth.maxHealth})
-        }else if (this.showEntityHealthTimer > this.showEntityHealthCooldown) {
-            setEntityHealth(null);
-            this.showEntityHealthTimer = 0;
-        }
     }
     private static addEventListeners() {
         document.addEventListener('keydown',Player.onKeyDown);
@@ -248,6 +232,19 @@ class Player extends Controller {
     }
 
 
+
+    private updateHealthGUI() {
+        console.log('Health. Player: ',this.health.value);
+        this.lookedAtEntity = this.getTheLookedAtEntity(entities, 10);
+        setPlayerHealth({currentValue:this.health.value,maxValue:this.health.maxHealth});
+        if (this.lookedAtEntity) {
+            const entityHealth = this.lookedAtEntity._entity.health;
+            setEntityHealth({currentValue:entityHealth.value,maxValue:entityHealth.maxHealth})
+        }else if (this.showEntityHealthTimer > this.showEntityHealthCooldown) {
+            setEntityHealth(null);
+            this.showEntityHealthTimer = 0;
+        }
+    }
     private attack() {
         if (this.attackTimer > (this.attackCooldown -0.4)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
             this.playAttackAnimation();
@@ -262,18 +259,15 @@ class Player extends Controller {
             }
         }
     }
-    private handleRespawn() {
-        if (this.health.isDead && !this.isRespawning) {
-            this.isRespawning = true;
-            this.respawnTimer = 0;
+    private checkIfOutOfBounds() {
+        if (this.isOutOfBounds) {
+            this.health.takeDamage(this.health.value);//kill the player
         }
-        if (this.isRespawning) {
-            this.respawnTimer += this.clockDelta || 0;
-            if (this.respawnTimer >= this.respawnDelay) {
-                this.respawn();
-                this.health.revive();
-                this.isRespawning = false;
-            }
+    }
+    private handleRespawn() {
+        if (this.health.isDead) {
+            this.respawn();
+            this.health.revive();
         }
     }
     private updateCameraHeightBasedOnHealth() {
@@ -288,6 +282,7 @@ class Player extends Controller {
         this.toggleTimer += this.clockDelta || 0;
         this.showEntityHealthTimer += this.clockDelta || 0;
         this.attackTimer += this.clockDelta || 0;
+        this.checkIfOutOfBounds();
         this.updateHealthGUI();
         this.health.checkGroundDamage(this.velBeforeHittingGround);
         this.bindKeysToControls();

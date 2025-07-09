@@ -97,6 +97,7 @@ export abstract class Controller {
     private branchedPath:THREE.Vector3 | null = null;
 
     private canWalkForward:boolean = false;
+    protected isOutOfBounds:boolean = false;
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
@@ -785,8 +786,7 @@ export abstract class Controller {
         this.characterRigidBody.setRotation(this.targetQuaternion,true);
     }
 
-
-
+    
     protected respawn() {
         if (!this.characterRigidBody) return;
         this.characterRigidBody.setTranslation(this.fixedData.spawnPoint,true);
@@ -794,8 +794,9 @@ export abstract class Controller {
         this.character.position.set(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
     }
     private respawnIfOutOfBounds():void {
+        this.isOutOfBounds = false
         if (this.characterPosition.y <= outOfBoundsY) {
-            this.respawn()
+            this.isOutOfBounds = true
         }
     }
 
