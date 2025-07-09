@@ -975,13 +975,7 @@ export abstract class Controller {
     }
 
 
-    protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
-    private forceSleepIfIdle() {
-        if (!this.characterRigidBody) return;
-        if (this.isGrounded() && !this.characterRigidBody.isSleeping() && !this.isKnockedBack) {// im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
-            this.characterRigidBody.sleep();
-        } 
-    }
+   
 
     private velocitiesY:number[] = []
     protected velBeforeHittingGround:number = 0;
@@ -999,6 +993,14 @@ export abstract class Controller {
         }
     }
 
+    protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
+    private forceSleepIfIdle() {
+        if (!this.characterRigidBody) return;
+        if (this.isGrounded() && !this.characterRigidBody.isSleeping() && !this.isKnockedBack) {// im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
+            this.characterRigidBody.sleep();
+        } 
+    }
+    
      //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateCharacter(deltaTime:number):void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         if (!this.characterRigidBody) return;
