@@ -36,8 +36,8 @@ class TerrainManager {
             parent: this.floorGroup,
         };
         const floorContentData = {
-            groundArea: this.chunkSize,
-            minDistance:30, // or any spacing you want
+            groundArea:this.chunkSize,
+            minDistance:40, // or any spacing you want
         };
         const floorContent = new FloorContent(floorContentData,chunkCords);
         const floor = new Floor(floorData,floorContent);
