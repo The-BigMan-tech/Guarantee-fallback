@@ -11,7 +11,7 @@ class TerrainManager {
     public floorGroup:THREE.Group = new THREE.Group();
 
     private loadedFloors: Map<ChunkKey, Floor> = new Map();
-    private chunkSize = 10;  // size of each floor chunk
+    private chunkSize = 100;  // size of each floor chunk
     private loadRadius = 1;    // how many chunks away to load (1 means 3x3 grid)
 
 
@@ -34,14 +34,13 @@ class TerrainManager {
         return floor;
     }
 
-
-    private getChunkCoords(position: THREE.Vector3): { x: number; z: number } {
+    private getChunkCoords(position: THREE.Vector3): { x: number; z: number } {//to ensure that the chunk surrounds the player at the center
         return {
             x: Math.floor(position.x / this.chunkSize),
             z: Math.floor(position.z / this.chunkSize),
         };
     }
-    private chunkKey(x: number, z: number): ChunkKey {
+    private chunkKey(x: number, z: number): ChunkKey {//we are using string keys cuz we want to check for chunks by coordinates not reference identity as it will be be if we used vectors directly as the keys
         return `${x}_${z}`;
     }
     public updateTerrain() {

@@ -1115,3 +1115,59 @@ xo for immutable primitives,i use readonly modifier but for immutable structures
 *for utiltites like disposer-use a script composed of fucntions
 
 so unlike the player which is the only persistent object throughout the game,the rest of the game content have temporary liftetimes.
+
+so because for chunks,im using the key for comparison,i cant use ref keys but for entities,since im only using the ref keys to  query exactly that entity,its safe in that context cuz im not using it at all for comparison.
+You cannot reliably use object references (like THREE.Vector3) as keys because each time you create a new vector with the same coordinates, it’s a different object in memory.
+Since you need to compare chunk keys by value (e.g., chunk at (2, 3) is the same chunk everywhere), you use string keys like "2_3" to uniquely identify chunks.
+This ensures that different instances representing the same chunk coordinate map to the same key, enabling consistent lookup and comparison.
+
+You use the exact object reference (the entity instance) as the key in your map.
+Since you always use the same reference to query, add, or delete, this is safe and works perfectly.
+You are not comparing entities by value, just by identity (reference equality), which is exactly how JavaScript Maps handle object keys.
+So, using references as keys for entities is appropriate because you want to track specific instances, not values.
+
+*so i can still use a ref key to query for identity cuz its by memory address not by the content of the entity.so i can usetheir keys to check if the entity exist but i cant use it to compare the contents of the entity as a whole directly like is entityA == entityB unless i check on specifc props like entityA.health == entityB.health but for chunks since im querying for value not identity because of cords,i should use string keys
+
+chunks are partitioned in a range from -loadRadius to +loadRadius relative to the player’s current chunk coordinate.this means that a load radius of one loads a 3 by 3 grid because 1 will do -1,0,1 on both the x and z-axis
+
+so it means that the chunk size is used to detemine the chunk space.so even if i have a load radius of one,if i use a chunk size of 1000,it will still be a 3 * 3 chunk space but each square space is huge.
+Yes, exactly — the chunk size determines the physical size of each chunk in world units, and the load radius determines how many chunks around the player are loaded.So the number of chunks loaded depends only on the load radius, but the actual world area covered depends on chunk size.
+
+so the reason why we used string keys for chunk identity cuz it naturally checks for unbounded chunks.thats why we can safely recreate chunks to keep at every frame cuz a new chuks and an old chunk are considered the same if their cords are the same not if they were stored somehwere and they are the same
+
+Chunks are identified by their coordinates (x, z), which can be any integer, positive or negative, unbounded in theory.
+Using a string key like "x_z" uniquely identifies a chunk by its coordinates.
+This means any chunk at coordinates (2,3) will always have the key "2_3", regardless of when or where you create the key.
+So when you recreate the chunksToKeep set each frame with newly constructed keys, keys with the same coordinates will match, allowing you to correctly identify which chunks to keep or unload.
+This avoids issues with object identity or reference equality that would occur if you used objects or vectors as keys.
+
+so the floor ref in the map is for cleanup not whats actually need for the chunk algorithm to work
+
+The Floor object (the value in your loadedFloors Map) is absolutely essential for cleanup and for rendering/physics (since it contains the THREE.Mesh and RAPIER.RigidBody).
+
+However, the chunk loading algorithm itself (determining which chunks should be loaded) primarily operates on the keys (the x_z string coordinates).
+
+This entire phase relies only on coordinate math and string key generation. It doesn't need to know anything about the Floor objects themselves, only their conceptual existence as a coordinate.
+
+so is the chunk to keep set just a filter so that the algorithm removes all the loaded floors except those within chunk to keeep and chunk to keep resets every frame unlike the loaded chunks cuz it reflects the latest player position at any given point in time.its not supposed to be persistent but a form of quick knowledge.The persistent map keeps track of actual loaded resources and their lifecycle.
+
+and the reason why we use a nested loop because each chunk is identified by a x,z cord.dx,dz are steps or offsets from the current chunk position.so using dx,dz on the player chunk position naturally creates a square from that point.programmatically,its offsetting it forward and left/right but visually,it creates a square
+
+
+This method maps the player’s world position to the discrete chunk coordinates by dividing by chunkSize and flooring.
+
+The result is the chunk index (x, z) that contains the player’s position.
+
+This effectively places the player inside a specific chunk, treating that chunk as the "center" for loading nearby chunks.
+
+If you used the raw player position as the base for loading chunks, your loading grid would start at the player’s exact position, which could be anywhere inside a chunk.
+
+This would cause the loaded chunk grid to be offset or adjacent to the player, not centered on the chunk the player is in.
+
+By mapping to chunk coordinates, you ensure the player is always inside the chunk at (x, z), and then you load chunks around that chunk.
+
+This results in a square grid of chunks centered on the player’s current chunk, not just adjacent to their position.
+
+so we want to create the square from a point that will surround the player not the player's exact position.
+
+so before where i used 1000 as the size of the plane.it was 1000 by 1000 units cuz i didnt use chunking just direct rendering but now i have used chunking,teh same 1000 with a load radius of 1 which will give 3x3 will give me a 3000 by 3000 world because of 3 chunks,1000 units wide each
