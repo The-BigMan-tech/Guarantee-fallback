@@ -67,11 +67,11 @@ export abstract class Controller {
     private targetQuaternion:THREE.Quaternion = new THREE.Quaternion();
 
 
-    private listener: THREE.AudioListener = new THREE.AudioListener();;
+    private static listener: THREE.AudioListener = new THREE.AudioListener();;
     private playLandSound: boolean = true;
-    private walkSound: THREE.PositionalAudio = new THREE.PositionalAudio(this.listener);;//the inheriting class can only access this sound through exposed methods
-    private landSound: THREE.PositionalAudio = new THREE.PositionalAudio(this.listener);;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
-    private punchSound: THREE.PositionalAudio = new THREE.PositionalAudio(this.listener)
+    private walkSound: THREE.PositionalAudio = new THREE.PositionalAudio(Controller.listener);;//the inheriting class can only access this sound through exposed methods
+    private landSound: THREE.PositionalAudio = new THREE.PositionalAudio(Controller.listener);;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
+    private punchSound: THREE.PositionalAudio = new THREE.PositionalAudio(Controller.listener)
 
     protected clockDelta:number | null = null;
     protected mixer: THREE.AnimationMixer | null = null;//im only exposing this for cleanup purposes
@@ -146,7 +146,7 @@ export abstract class Controller {
                 const characterModel = gltf.scene
                 characterModel.position.z = this.modelZOffset
                 this.character.add(characterModel);
-                this.character.add(this.listener)
+                this.character.add(Controller.listener)
                 this.mixer = new AnimationMixer(characterModel);
                 this.loadCharacterAnimations(gltf);
                 this.loadCharacterSounds();

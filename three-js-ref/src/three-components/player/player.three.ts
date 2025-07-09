@@ -62,6 +62,9 @@ class Player extends Controller {
     private knockback:number;
     private lookedAtEntity:EntityContract | null = null;
 
+    private respawnDelay: number = 7; // seconds
+    private respawnTimer: number = 0;
+
     private showEntityHealthTimer:number = 0;
     private readonly showEntityHealthCooldown:number = 3;
 
@@ -266,8 +269,12 @@ class Player extends Controller {
     }
     private handleRespawn() {
         if (this.health.isDead) {
-            this.respawn();
-            this.health.revive();
+            this.respawnTimer += this.clockDelta || 0;
+            if (this.respawnTimer >= this.respawnDelay) {
+                this.respawn();
+                this.health.revive();
+                this.respawnTimer = 0;
+            }
         }
     }
     private updateCameraHeightBasedOnHealth() {
@@ -313,7 +320,7 @@ const playerDynamicData:DynamicControllerData = {
     gravityScale:1
 }
 const playerMiscData:PlayerMiscData = {
-    healthValue:40,
+    healthValue:1000,
     attackDamage:1,
     knockback:150,
     camArgs: {
