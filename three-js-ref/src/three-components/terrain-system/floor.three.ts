@@ -52,12 +52,6 @@ export class Floor {
         }
         if (this.floorContent) {//this has to be done before clearing the hieararchy of the floor model
             this.floorContent.cleanUpPhysics();
-            // if (this.floorModel && this.floorContent.content) {
-            //     this.floorModel.remove(this.floorContent.content);
-            //     disposeHierarchy(this.floorContent.content);
-            //     this.floorContent.content = new THREE.Group(); // reset to empty group
-            // }
-            // this.floorContent = null;
         }
         if (this.floorModel) {
             disposeHierarchy(this.floorModel);

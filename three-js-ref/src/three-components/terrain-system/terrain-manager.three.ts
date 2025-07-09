@@ -24,7 +24,11 @@ class TerrainManager {
         return TerrainManager.manager;
     }
     private createFloorAtChunk(x: number, z: number): Floor {
-        const chunkCords =  new THREE.Vector3(x * this.chunkSize, groundLevelY, z * this.chunkSize)
+        const chunkCords = new THREE.Vector3(
+            (x * this.chunkSize) + (this.chunkSize / 2),
+            groundLevelY,
+            (z * this.chunkSize) + (this.chunkSize / 2)
+        );
         const floorData: FloorData = {
             cords:chunkCords,
             volume: new THREE.Vector3(this.chunkSize, 1, this.chunkSize),
