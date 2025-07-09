@@ -1113,3 +1113,5 @@ xo for immutable primitives,i use readonly modifier but for immutable structures
 
 *for game logic code--use classes
 *for utiltites like disposer-use a script composed of fucntions
+
+so unlike the player which is the only persistent object throughout the game,the rest of the game content have temporary liftetimes.

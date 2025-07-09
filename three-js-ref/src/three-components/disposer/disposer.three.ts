@@ -28,7 +28,6 @@ function disposeMaterial(material: THREE.Material) {
         disposeTexture(material.displacementMap);
         disposeTexture(material.emissiveMap);
         disposeTexture(material.lightMap);
-        disposeTexture(material.lightMap);
         disposeTexture(material.normalMap);
         if (material instanceof THREE.MeshPhongMaterial) {
             disposeTexture(material.specularMap);  // specularMap exists here
@@ -51,7 +50,7 @@ export function disposeMixer(mixer:THREE.AnimationMixer | null):null {
     }
     return null
 }
-export function disposeHierarchy(object:THREE.Mesh | THREE.Group) {
+export function disposeHierarchy(object: THREE.Object3D) {
     object.traverse((child) => {
         if ((child as THREE.Mesh).geometry) {
             (child as THREE.Mesh).geometry.dispose();

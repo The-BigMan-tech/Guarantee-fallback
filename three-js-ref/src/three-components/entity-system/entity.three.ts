@@ -4,6 +4,7 @@ import * as THREE from "three"
 import { Health } from "../health/health";
 import { combatCooldown, physicsWorld } from "../physics-world.three";
 import type { EntityLike } from "./relationships.three";
+import { disposeHierarchy, disposeMixer } from "../disposer/disposer.three";
 
 type Behaviour = 'idle' | 'patrol' | 'chase' | 'attack' | 'death';
 
@@ -188,28 +189,6 @@ export class Entity extends Controller {
             }
         });
     }
-    private disposeMixer():void {
-        if (this.mixer) {
-            this.mixer.stopAllAction();
-            this.mixer.uncacheRoot(this.mixer.getRoot());
-            this.mixer = null; // Remove reference for GC
-        }
-    }
-    private disposeHierarchy(object: THREE.Object3D):void {
-        object.traverse((child) => {
-            if ((child as THREE.Mesh).geometry) {//clean its geometry
-                (child as THREE.Mesh).geometry.dispose();
-            }
-            if ((child as THREE.Mesh).material) {//clean its textures
-                const material = (child as THREE.Mesh).material;
-                if (Array.isArray(material)) {
-                    material.forEach(mat => mat.dispose());
-                } else {
-                    material.dispose();
-                }
-            }
-        });
-    }
     private isEntityWrapper(name: string): name is EntityWrapper {
         return name === 'Enemy' || name === 'NPC';
     }
@@ -230,8 +209,8 @@ export class Entity extends Controller {
             this.points.clear();//clear the points array used for visual debugging
             this.struct.group.remove(this.points)//remove them from the scene
             this.struct.group.remove(this.char);//remove the controller from the scene
-            this.disposeHierarchy(this.char);//remove the geometry data from the gpu
-            this.disposeMixer();//to prevent animation updates
+            disposeHierarchy(this.char);//remove the geometry data from the gpu
+            this.mixer = disposeMixer(this.mixer);//to prevent animation updates
             const index = this.struct.entityIndexMap.get(this)!;
             
             const entityWrapper:EntityContract = this.struct.entities[index];
@@ -239,8 +218,7 @@ export class Entity extends Controller {
             if (this.isEntityWrapper(wrapperName)) {//this operation must be done before deletion of the entry
                 this.decEntityCount(wrapperName);
             }
-
-            
+            //O(1) deletion from the entities array
             if (index < (this.struct.entities.length - 1)) { // Swap with the last entity if not the last one
                 const lastEntity = this.struct.entities[this.struct.entities.length - 1];
                 this.struct.entities[index] = lastEntity; // Move last entity to the index of the one being removed
