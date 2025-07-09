@@ -25,6 +25,25 @@ export interface ManagingStructure {
     entities:EntityContract[],
     entityCounts:EntityCount
 }
+
+interface CountData {
+    currentCount:number,
+    minCount:number
+}
+export interface EntityCount {
+    totalCount:number,
+    individualCounts:Record<EntityWrapper,CountData>
+}
+export type EntityWrapper = 'Enemy' | 'NPC'
+
+export interface FullEntityData {
+    fixedData:FixedControllerData,
+    dynamicData:DynamicControllerData,
+    miscData:EntityMiscData
+    managingStruct:ManagingStructure
+}
+
+
 export class Entity extends Controller {
     private targetEntity:EntityLike | null = null;
 
@@ -268,13 +287,3 @@ export class Entity extends Controller {
     }
 }
 export const entities:EntityContract[] = [];
-
-interface CountData {
-    currentCount:number,
-    minCount:number
-}
-export interface EntityCount {
-    totalCount:number,
-    individualCounts:Record<EntityWrapper,CountData>
-}
-export type EntityWrapper = 'Enemy' | 'NPC'

@@ -3,30 +3,24 @@ import type {FixedControllerData,DynamicControllerData} from "../controller/cont
 import type { EntityContract, EntityCount, EntityMiscData, EntityWrapper, ManagingStructure } from "./entity.three";
 import * as RAPIER from '@dimforge/rapier3d'
 import { player } from "../player/player.three";
-import { Entity,entities} from "./entity.three";
+import { entities} from "./entity.three";
 import PoissonDiskSampling from 'poisson-disk-sampling';
 import { cubesGroup } from "../tall-cubes.three";
-import { Enemy } from "./enemy.three";
-import { NPC } from "./npc.three";
-import { randInt,randFloat} from "three/src/math/MathUtils.js";
 import { choices } from "./choices";
 import { groupIDs } from "./relationships.three";
+import { EntityFactory } from "./factory.three";
+import type { FullEntityData } from "./entity.three";
 
 
-interface EntityMetadata {
+interface EntitySpawnData {
     groupID:Readonly<string>,
     spawnWeight:Readonly<number>
-}
-interface FullEntityData {
-    fixedData:FixedControllerData,
-    dynamicData:DynamicControllerData,
-    miscData:EntityMiscData
-    managingStruct:ManagingStructure
 }
 type Singleton<T> = T;
 
 class EntityManager {
     private static manager: EntityManager;
+    private factory:Singleton<EntityFactory> = EntityFactory.instance;
 
     private entityCounts:EntityCount = {
         totalCount:0,
@@ -37,7 +31,7 @@ class EntityManager {
     }
     private entityWrappers:EntityWrapper[] = [];
 
-    private entityMapping:Record<EntityWrapper,EntityMetadata> = {
+    private entityMapping:Record<EntityWrapper,EntitySpawnData> = {
         Enemy:{
             groupID:groupIDs.enemy,//i called it groupID cuz its not per isntance but per entity type or kind
             spawnWeight:6
@@ -80,8 +74,6 @@ class EntityManager {
         }
         return EntityManager.manager;
     }
-
-
     private getHeightAtPosition(x: number, z: number): number {
         const maxHeightAboveTerrain = 100;
         const origin = new THREE.Vector3(x, maxHeightAboveTerrain, z);
@@ -90,40 +82,6 @@ class EntityManager {
         if (intersects.length > 0) return intersects[0].point.y;
         console.log("Used default height");
         return 20  // Default ground height if no intersection
-    }
-
-    private createEnemy(entityData:FullEntityData):EntityContract {
-        const fixedData = entityData.fixedData;
-        const dynamicData = entityData.dynamicData;
-        const miscData = entityData.miscData;//i did this to make the code neater and it will work since it references the same object
-        fixedData.modelPath = Enemy.modelPath;
-        miscData.targetEntity = player;
-        dynamicData.horizontalVelocity = randInt(10,20);
-        dynamicData.jumpVelocity = randInt(10,25);
-        dynamicData.jumpResistance = randInt(6,10);
-        miscData.healthValue = randInt(20,25);
-        miscData.knockback = randInt(100,150);
-        miscData.attackDamage = randFloat(0.5,1);
-        const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
-        return new Enemy(entity);
-    }
-    private createNPC(entityData:FullEntityData):EntityContract {
-        const fixedData = entityData.fixedData;
-        const dynamicData = entityData.dynamicData;
-        const miscData = entityData.miscData
-        fixedData.modelPath = NPC.modelPath;
-        dynamicData.horizontalVelocity = randInt(15,30);
-        dynamicData.jumpVelocity = randInt(25,32);
-        dynamicData.jumpResistance = randInt(6,10);
-        miscData.healthValue = randInt(10,15);
-        miscData.knockback = randInt(100,150);
-        miscData.attackDamage = randFloat(1,3);
-        const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
-        return new NPC(entity);
-    }
-    private createDefault(entityData:FullEntityData):EntityContract {
-        const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
-        return {_entity:entity}
     }
     private createEntity(groupID:string,spawnPoint:THREE.Vector3Like):EntityContract {
          //these are just basic props for any entity type.it can be passed to methods that spawn specific entity types to configure any of these parameters before creating an entity of their preferred type
@@ -163,17 +121,17 @@ class EntityManager {
         };
         switch (groupID) {
             case (this.entityMapping['Enemy'].groupID): {
-                const enemy = this.createEnemy(entityData);
+                const enemy = this.factory.createEnemy(entityData);
                 enemy._entity.incEntityCount('Enemy');
                 return enemy
             }
             case (this.entityMapping['NPC'].groupID): {
-                const npc = this.createNPC(entityData);
+                const npc = this.factory.createNPC(entityData);
                 npc._entity.incEntityCount('NPC');
                 return npc;
             }
             default: {
-                return this.createDefault(entityData)
+                return this.factory.createDefault(entityData)
             }
         }
     }
