@@ -42,8 +42,8 @@ type seconds = number;
 //*The ground position calculation may break for an arbritary charcter height.a stable and tested height is 2. 1,3 and 4 have been played tested and are smooth but the ground check jitters a little between false and true cuz jumping from the ground at times at these values feels uresponsive
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
-    private static showHitBoxes = false;//the hitboxes are a bit broken
-    private static showPoints = false;
+    private static readonly showHitBoxes = false;//the hitboxes are a bit broken
+    private static readonly showPoints = false;
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
@@ -56,7 +56,7 @@ export abstract class Controller {
     private readonly characterColliderHandle:number;
     private charLine: THREE.LineSegments;
 
-    private modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera
+    private readonly modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera
 
     private obstacleHeight: number = 0;//0 means there is no obstacle infront of the player,a nmber above this means there is an obstacle but the character can walk over it,infinty means that tere is an obstacle and the character cant walk over it
     private obstacleDetectionDistance:number = 0;
@@ -87,7 +87,7 @@ export abstract class Controller {
 
     private originalHorizontalVel:number
     public points:THREE.Object3D = new THREE.Object3D();
-    private pointDensity = 1.5;
+    private readonly pointDensity = 1.5;
 
     private obstacleDistance:number = 0;//unlike obstacledetection distance which is a fixed unit telling the contoller how far to detect obstacles ahead of time,this one actually tells the realtime distance of an obstacle form the controller
     private widthDebuf:number

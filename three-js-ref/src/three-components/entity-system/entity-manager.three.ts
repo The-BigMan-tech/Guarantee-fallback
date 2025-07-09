@@ -50,11 +50,11 @@ class EntityManager {
     private readonly maxEntityCap = 7;
 
     private spawnTimer:number = 0;
-    private spawnCooldown:number = 3;
+    private readonly spawnCooldown:number = 3;
 
-    private spawnRadius = 50;
-    private minSpawnDistance = 10; // adjust as needed
-    private despawnRadius: number = 1000;
+    private readonly spawnRadius = 50;
+    private readonly minSpawnDistance = 10; // adjust as needed
+    private readonly despawnRadius: number = 1000;
 
     public entityGroup:THREE.Group = new THREE.Group();
     private raycaster = new THREE.Raycaster();

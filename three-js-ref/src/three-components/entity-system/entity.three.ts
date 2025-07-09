@@ -53,16 +53,16 @@ export class Entity extends Controller {
     public health:Health;
     private attackDamage:number;
 
-    private attackCooldown = combatCooldown; // cooldown duration in seconds
+    private readonly attackCooldown = combatCooldown; // cooldown duration in seconds
     private attackTimer = 0;    // timer accumulator
 
-    private patrolRadius = 15; // max distance from current position to patrol
-    private patrolCooldown = 7; // seconds between patrol target changes
+    private readonly patrolRadius = 15; // max distance from current position to patrol
+    private readonly patrolCooldown = 7; // seconds between patrol target changes
     private patrolTimer = 0;
     public basePatrolPoint:THREE.Vector3 | null = null;//this is meant to be hook where a concrete entity changes where the patrolling is centred around by changing this value.by default its null.so if null,it uses the characterPos as the patrol point else,it uses the provided one.
 
     private cleanupTimer = 0;
-    private cleanupCooldown = 7;//to allow playing an animation before removal
+    private readonly cleanupCooldown = 7;//to allow playing an animation before removal
     private isRemoved = false;//to ensure resources are cleaned only once per dead entity
 
     private struct:ManagingStructure;

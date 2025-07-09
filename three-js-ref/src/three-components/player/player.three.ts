@@ -29,9 +29,9 @@ enum CameraMode {
 class Player extends Controller {
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
 
-    private firstPersonClamp = 75;
-    private secondPersonClamp = 70;
-    private thirdPersonClamp = 10;
+    private readonly firstPersonClamp = 75;
+    private readonly secondPersonClamp = 70;
+    private readonly thirdPersonClamp = 10;
     private cameraClampAngle:number =  this.firstPersonClamp;
 
     public  health:Health;
@@ -46,7 +46,7 @@ class Player extends Controller {
     private targetZ:number = -0.6;//this is used to offset the cam either forward or backward.i made it -0.6 initially cuz it starts as first person and ill want the cam to shift a little away from the model to clear the view
     private targetY:number = 0;
 
-    private toggleCooldown: number = 0.3; // Cooldown in seconds.this value in particular works the best
+    private readonly toggleCooldown: number = 0.3; // Cooldown in seconds.this value in particular works the best
     private toggleTimer: number = 0;
 
     private isRespawning: boolean = false;
@@ -66,7 +66,7 @@ class Player extends Controller {
     private lookedAtEntity:EntityContract | null = null;
 
     private showEntityHealthTimer:number = 0;
-    private showEntityHealthCooldown:number = 3;
+    private readonly showEntityHealthCooldown:number = 3;
 
     private isDescendantOf(child: THREE.Object3D, parent: THREE.Object3D): boolean {
         let current = child;
