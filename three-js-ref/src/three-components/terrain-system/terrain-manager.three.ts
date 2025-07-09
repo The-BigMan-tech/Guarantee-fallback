@@ -2,6 +2,7 @@ import * as THREE from "three"
 import { Floor, type FloorData } from "./floor.three";
 import { groundLevelY } from "../physics-world.three";
 import { player } from "../player/player.three";
+import { FloorContent } from "./floor-content.three";
 
 type ChunkKey = string;
 type Singleton<T> = T;
@@ -23,14 +24,20 @@ class TerrainManager {
         return TerrainManager.manager;
     }
     private createFloorAtChunk(x: number, z: number): Floor {
+        const chunkCords =  new THREE.Vector3(x * this.chunkSize, groundLevelY, z * this.chunkSize)
         const floorData: FloorData = {
-            cords: new THREE.Vector3(x * this.chunkSize, groundLevelY, z * this.chunkSize),
+            cords:chunkCords,
             volume: new THREE.Vector3(this.chunkSize, 1, this.chunkSize),
             gridDivisions:this.chunkSize/20,
             parent: this.floorGroup,
         };
-        const floor = new Floor(floorData);
-        if (floor.floorMesh) this.floorGroup.add(floor.floorMesh);
+        const floorContentData = {
+            groundArea: this.chunkSize,
+            minDistance:40, // or any spacing you want
+        };
+        const floorContent = new FloorContent(floorContentData,chunkCords);
+        const floor = new Floor(floorData,floorContent);
+        if (floor.floorModel) this.floorGroup.add(floor.floorModel);
         return floor;
     }
 
