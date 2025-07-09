@@ -23,7 +23,8 @@ export interface EntityContract {
 export interface ManagingStructure {
     group:THREE.Group,
     entities:EntityContract[],
-    entityCounts:EntityCount
+    entityCounts:EntityCount,
+    entityIndexMap:Map<Entity,number>
 }
 
 interface CountData {
@@ -231,15 +232,26 @@ export class Entity extends Controller {
             this.struct.group.remove(this.char);//remove the controller from the scene
             this.disposeHierarchy(this.char);//remove the geometry data from the gpu
             this.disposeMixer();//to prevent animation updates
-            const index = this.struct.entities.findIndex(entityWrapper => entityWrapper._entity === this);
-
-            const entityWrapper:EntityContract = entities[index];
+            const index = this.struct.entityIndexMap.get(this)!;
+            
+            const entityWrapper:EntityContract = this.struct.entities[index];
             const wrapperName:string = entityWrapper.constructor.name
             if (this.isEntityWrapper(wrapperName)) {//this operation must be done before deletion of the entry
                 this.decEntityCount(wrapperName);
             }
-            //this is O(n) which is costly but its efficient and simple here since its only done once in an entity's lifetime.
-            if (index !== -1) this.struct.entities.splice(index, 1);//remove it from the entity array to prevent its physics controller from updating,stop the player from possibly intersecting with it although unlikely since its removed from the scene and finally for garbae collection
+
+            
+            if (index < (this.struct.entities.length - 1)) { // Swap with the last entity if not the last one
+                const lastEntity = this.struct.entities[this.struct.entities.length - 1];
+                this.struct.entities[index] = lastEntity; // Move last entity to the index of the one being removed
+                this.struct.entityIndexMap.set(lastEntity._entity, index); // Update the index map for the moved entity
+            }
+            this.struct.entities.pop(); // Remove the last element
+            this.struct.entityIndexMap.delete(this);// Remove from the index map
+
+            console.log('cleanUp. entities:',this.struct.entities);
+            console.log('cleanUp. entityIndexMap:',this.struct.entityIndexMap);
+
             this.onTargetReached = undefined;//clear hook bindings to prevent ref to the entity from existing which will prevent garbage collection
             this.updateInternalState = undefined;
             if (this.characterRigidBody) {
@@ -287,3 +299,4 @@ export class Entity extends Controller {
     }
 }
 export const entities:EntityContract[] = [];
+export const entityIndexMap:Map<Entity,number> = new Map();

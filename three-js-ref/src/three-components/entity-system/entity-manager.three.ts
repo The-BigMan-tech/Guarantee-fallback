@@ -3,14 +3,13 @@ import type {FixedControllerData,DynamicControllerData} from "../controller/cont
 import type { EntityContract, EntityCount, EntityMiscData, EntityWrapper, ManagingStructure } from "./entity.three";
 import * as RAPIER from '@dimforge/rapier3d'
 import { player } from "../player/player.three";
-import { entities} from "./entity.three";
+import { entities, entityIndexMap} from "./entity.three";
 import PoissonDiskSampling from 'poisson-disk-sampling';
 import { cubesGroup } from "../tall-cubes.three";
 import { choices } from "./choices";
 import { groupIDs } from "./relationships.three";
 import { EntityFactory } from "./factory.three";
 import type { FullEntityData } from "./entity.three";
-
 
 interface EntitySpawnData {
     groupID:Readonly<string>,
@@ -48,12 +47,12 @@ class EntityManager {
     private readonly originalChoicePercent:number = this.multiChoicePercent;
     private readonly maxChoicePercent:number = 100;
 
-    private readonly maxEntityCap = 15;
+    private readonly maxEntityCap = 7;
 
     private spawnTimer:number = 0;
     private spawnCooldown:number = 3;
 
-    private spawnRadius = 25;
+    private spawnRadius = 50;
     private minSpawnDistance = 10; // adjust as needed
     private despawnRadius: number = 1000;
 
@@ -112,6 +111,7 @@ class EntityManager {
             group:this.entityGroup,
             entities:entities,
             entityCounts:this.entityCounts,
+            entityIndexMap:entityIndexMap
         }
         const entityData:FullEntityData = {//this is the full structure composed of the other data above
             fixedData:entityFixedData,
@@ -205,6 +205,7 @@ class EntityManager {
     }
     private saveEntityToGame(entityKind:EntityContract) {
         entities.push(entityKind);
+        entityIndexMap.set(entityKind._entity,entities.length-1);
         this.entityGroup.add(entityKind._entity.char);
         this.entityGroup.add(entityKind._entity.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created)
     }
