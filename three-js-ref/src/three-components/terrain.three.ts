@@ -2,29 +2,9 @@ import * as THREE from "three"
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,groundLevelY, startingLevelY } from "./physics-world.three";
 import { EdgesGeometry, LineSegments, LineBasicMaterial } from 'three';
- 
 
-//Flat-terrain with grid
-const groundHeight = 1
-const groundPosY = groundHeight/2 + groundLevelY;//to fix the situation where half of it is above and half is below the specfied ground level
 
-const gridSize = 1000
-const gridHelper = new THREE.GridHelper(gridSize,50,0x000000,0x000000);
 
-const terrainGeometry = new THREE.BoxGeometry(1000,groundHeight,1000);
-const terrainMaterial = new THREE.MeshPhysicalMaterial({ color:0x2b2a33 });
-export const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
-terrain.receiveShadow = true;
-terrain.add(gridHelper)
-
-const groundCollider = RAPIER.ColliderDesc.cuboid(500,groundHeight/2,500);
-const groundBody = RAPIER.RigidBodyDesc.fixed();
-const groundRigidBody = physicsWorld.createRigidBody(groundBody);
-physicsWorld.createCollider(groundCollider,groundRigidBody);
-
-groundRigidBody.setTranslation({x:0,y:groundPosY,z:0},true);
-terrain.position.set(groundRigidBody.translation().x,groundRigidBody.translation().y,groundRigidBody.translation().z)
-gridHelper.position.y += 0.5
 
 
 //A cuboid
