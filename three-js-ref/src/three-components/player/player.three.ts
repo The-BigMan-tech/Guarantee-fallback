@@ -69,6 +69,9 @@ class Player extends Controller {
     private showEntityHealthTimer:number = 0;
     private readonly showEntityHealthCooldown:number = 3;
 
+    private readonly zoomDelta:number = 1;
+    private readonly zoomClamp = 15
+
     private isDescendantOf(child: THREE.Object3D, parent: THREE.Object3D): boolean {
         let current = child;
         while (current) {
@@ -174,6 +177,12 @@ class Player extends Controller {
         if (Player.keysPressed['ArrowRight']) {
             this.rotateCharacterX('right')
         };
+        if (Player.keysPressed['Equal']) {//this corresponds to +
+            this.targetZ = Math.max(-this.zoomClamp,this.targetZ - this.zoomDelta);  //used minus on the zoom delta cuz thats my forward axis and as such,i had to also use -clamp to clamp it at that direction.i also had to invert the function i used for clamping to be max instead of min since its in the negative direction
+        }
+        if (Player.keysPressed['Minus']) {
+            this.targetZ = Math.min(this.zoomClamp,this.targetZ + this.zoomDelta)
+        }
         if (Player.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
             if (this.toggleTimer > this.toggleCooldown) { //this is a debouncing mechanism
                 this.camModeNum = ((this.camModeNum<3)?this.camModeNum + 1:1) as 1 | 2 | 3;//this is to increase the camMode,when its 3rd person,reset it back to 1st person and repeat 
@@ -185,9 +194,6 @@ class Player extends Controller {
         if (this.isAirBorne()) {
             this.stopWalkSound()
             this.playJumpAnimation()
-            switch (this.camModeNum) {
-                case CameraMode.FirstPerson: this.targetZ = -0.6;
-            }
         }else if (Player.keysPressed['KeyW']) {//each key will have its own animation
             this.playWalkSound()
             this.playWalkAnimation()

@@ -24,7 +24,7 @@ export class EntityFactory {
         fixedData.modelPath = Enemy.modelPath;
         miscData.targetEntity = player;
         dynamicData.horizontalVelocity = randInt(10,20);
-        dynamicData.jumpVelocity = randInt(10,25);
+        dynamicData.jumpVelocity = randInt(20,30);
         dynamicData.jumpResistance = randInt(6,10);
         miscData.healthValue = randInt(20,25);
         miscData.knockback = randInt(100,150);
