@@ -11,7 +11,7 @@ export interface FloorData {
     parent:THREE.Group
 }
 export class Floor {
-    public floorModel:THREE.Group | null;
+    private floorModel:THREE.Group | null;
     private floorRigidBody:RAPIER.RigidBody | null;
     private floorContent:FloorContent | null;
     private parent:THREE.Group;//this will be the group of floors held by the terrain manager

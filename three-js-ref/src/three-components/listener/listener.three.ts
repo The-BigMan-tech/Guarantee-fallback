@@ -8,13 +8,13 @@ export const punchSound: THREE.PositionalAudio = new THREE.PositionalAudio(liste
 const audioLoader = new THREE.AudioLoader();
 audioLoader.load('walking.mp3',(buffer)=> {
     walkSound.setBuffer(buffer);
-    walkSound.setVolume(40);
+    walkSound.setVolume(10);
 });
 audioLoader.load('landing.mp3',(buffer)=> {
     landSound.setBuffer(buffer);
-    landSound.setVolume(30);
+    landSound.setVolume(10);
 });
 audioLoader.load('punch.mp3',(buffer)=> {
     punchSound.setBuffer(buffer);
-    punchSound.setVolume(30);
+    punchSound.setVolume(10);
 })

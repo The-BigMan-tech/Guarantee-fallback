@@ -113,7 +113,10 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
     // console.log(`Match Score metrics:Distance: ${fullDistanceScore}| Window: ${Math.max(0,maxSliceScore)}| Subsequence: ${scaledSubsequenceScore}`);
     return score;
 }
+//Note:the leniency level doesnt change the underlying truth of similarity so you shouldnt expect a high leniency to gove an artificial high score for a query just because its leniency is high.if the strings arent similar at all or hardly similar,even a high leniency value will still give a low score
 //0-8 very high leniency
 //10-30 moderately lenient
 //40 point of strictness
 //100 is absolutely strict
+
+console.log(getMatchScore('hello','h4lo',50));
