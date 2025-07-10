@@ -3,7 +3,7 @@ import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY, combatCooldown} from "../physics-world.three";
-import { listener } from "../listener/listener.three";
+import { walkSound,punchSound,landSound } from "../listener/listener.three";
 
 function createCapsuleLine(radius:number,halfHeight:number) {
     const charGeometry = new THREE.CapsuleGeometry(radius,halfHeight*2);
@@ -69,10 +69,7 @@ export abstract class Controller {
 
 
     private playLandSound: boolean = true;
-    private walkSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener);;//the inheriting class can only access this sound through exposed methods
-    private landSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener);;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
-    private punchSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener)
-
+    
     protected clockDelta:number | null = null;
     protected mixer: THREE.AnimationMixer | null = null;//im only exposing this for cleanup purposes
     private currentAction: THREE.AnimationAction | null = null;
@@ -148,7 +145,6 @@ export abstract class Controller {
                 this.character.add(characterModel);
                 this.mixer = new AnimationMixer(characterModel);
                 this.loadCharacterAnimations(gltf);
-                this.loadCharacterSounds();
                 this.applyMaterialToModel(characterModel)
             },undefined, 
             error =>console.error( error ),
@@ -190,21 +186,6 @@ export abstract class Controller {
             }
         });
     }
-    private loadCharacterSounds():void {    
-        const audioLoader = new THREE.AudioLoader();
-        audioLoader.load('walking.mp3',(buffer)=> {
-            this.walkSound.setBuffer(buffer);
-            this.walkSound.setVolume(40);
-        });
-        audioLoader.load('landing.mp3',(buffer)=> {
-            this.landSound.setBuffer(buffer);
-            this.landSound.setVolume(30);
-        });
-        audioLoader.load('punch.mp3',(buffer)=> {
-            this.punchSound.setBuffer(buffer);
-            this.punchSound.setVolume(30);
-        });
-    }
     private fadeToAnimation(newAction: THREE.AnimationAction):void {
         if (newAction !== this.currentAction) {
             newAction.reset();
@@ -213,8 +194,6 @@ export abstract class Controller {
             this.currentAction = newAction;
         }
     }
-
-
     private calculateUpwardVelocity():number {
         const destinationHeight = this.obstacleHeight; // no need to round here
         const upwardVelocity = Math.sqrt(2 * gravityY * destinationHeight);
@@ -261,7 +240,7 @@ export abstract class Controller {
             console.log('Ground Collider shape:', shape);
 
             if (this.playLandSound) {
-                this.landSound.play();
+                landSound.play();
                 this.playLandSound = false
             }
             onGround = true
@@ -940,16 +919,16 @@ export abstract class Controller {
 
 
     protected playWalkSound():void {
-        if (!this.walkSound.isPlaying) this.walkSound.play();
+        if (!walkSound.isPlaying) walkSound.play();
     }
     protected playPunchSound():void {
-        if (!this.punchSound.isPlaying) this.punchSound.play();
+        if (!punchSound.isPlaying) punchSound.play();
     }
     protected stopWalkSound():void {
-        this.walkSound.stop();
+        walkSound.stop();
     }
     protected stopPunchSound():void {
-        this.punchSound.stop();
+        punchSound.stop();
     }
 
     

@@ -1287,3 +1287,13 @@ Edge Positioning: You will be toward the edge of the chunk but not at the corner
 *when using positions directly as a point of location, it often simplifies the process, but it can lead to unintended consequences if you're not careful.
 
 *Using direct positions for simple entity navigation from point A to B is indeed effective and often the best approach.for me,when an entity isnt in a chunk,it gets cleaned up from the world so i wont ever have to encounter a situation where im managing navigation in terms of chunk cords
+
+array
+set
+hash map
+binary heap
+queue
+double ended queue
+stack
+tree
+graph
