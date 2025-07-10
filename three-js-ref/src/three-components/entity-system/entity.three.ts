@@ -282,5 +282,6 @@ export class Entity extends Controller {
         this.reactToStateMachine();
     }
 }
+//i intened to define these variables as public variables of the entity manager but because of their wide use in the codebase,it was impossible to do that without causing circular imports where the manager imports a variable that also depends on this variable
 export const entities:EntityContract[] = [];
 export const entityIndexMap:Map<Entity,number> = new Map();
