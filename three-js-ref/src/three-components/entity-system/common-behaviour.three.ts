@@ -16,7 +16,7 @@ export class CommonBehaviour {
     public deathBehaviour(whoWasAttacked:string):boolean {
         if (this.entity._health.isDead) {//the order of the branches show update priority
             this.entity._state.behaviour = 'death';
-            relationshipManager.attackersOf[whoWasAttacked]!.delete(this.entity)
+            relationshipManager.attackersOf[whoWasAttacked]!.remove(this.entity)
             return true;
         }
         return false;
@@ -32,7 +32,11 @@ export class CommonBehaviour {
     }
     public attackBehaviour(whoToAttack:string):boolean {
         if (this.entity._targetEntity && !this.entity._targetEntity.health.isDead) {
-            relationshipManager.attackersOf[whoToAttack]!.add(this.entity)
+            const heap = relationshipManager.attackersOf[whoToAttack]!;
+            if (!heap.contains(this.entity)) {
+                console.log("added to relationship");
+                heap!.add(this.entity);
+            }
             return true;
         }
         return false;

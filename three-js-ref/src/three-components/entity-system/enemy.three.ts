@@ -31,8 +31,8 @@ export class Enemy implements EntityContract  {
         shouldReturn = this.commonBehaviour.deathBehaviour(groupIDs.player);
         if (shouldReturn) return;
 
-        const targets = relationshipManager.attackersOf[groupIDs.enemy];
-        this.entity._targetEntity = targets!.last() || this.endTargetEntity;
+        const targets = relationshipManager.attackersOf[groupIDs.enemy]!;
+        this.entity._targetEntity = targets.top()[0] || this.endTargetEntity;
 
         shouldReturn = this.commonBehaviour.chaseBehaviour();
         if (shouldReturn) return;

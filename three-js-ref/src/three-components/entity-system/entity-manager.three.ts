@@ -34,7 +34,7 @@ class EntityManager {
     private entityMapping:Record<EntityWrapper,EntitySpawnData> = {
         Enemy:{
             groupID:groupIDs.enemy,//i called it groupID cuz its not per isntance but per entity type or kind
-            spawnWeight:6
+            spawnWeight:10//an important thing to note is that when the weight is 0 but at least one of the others is non-zero,then this entity will never have the chance to be pciked but if all the other entities are non-zero,its the same thing as all of them having 10 or 100 cuz the weights are equal.thats the thing about weighted random.is the probabliliy of picking one relative to the probability of others not absolute probability.so to totally remove entities,set entity cap to 0.
         },
         NPC: {
             groupID:groupIDs.npc,
@@ -48,12 +48,12 @@ class EntityManager {
     private readonly originalChoicePercent:number = this.multiChoicePercent;
     private readonly maxChoicePercent:number = 100;
 
-    private readonly maxEntityCap = 7;
+    private readonly maxEntityCap = 5;//the max number of entities in the world before it stops spawning
 
     private spawnTimer:number = 0;
     private readonly spawnCooldown:number = 3;
 
-    private readonly spawnRadius = 50;
+    private readonly spawnRadius = 50;//the radius from the player where spawning begins.the higher the spawn radius,the more the entities that will spawn at a given time and vice versa but its capped to the max entity cap.i believe that increasing the radius is better because not only does it supply spacing but it also means that the manger will spawn entities lesser to reach the cap such that all the entities that will ever be needed in the world are saved in one go preventing calls to spawn from happening again in the next frame.i believe that this preserves performance
     private readonly minSpawnDistance = 10; // adjust as needed
     private readonly despawnRadius: number = 1000;
 
@@ -76,13 +76,13 @@ class EntityManager {
     }
     private getHeightAtPosition(x: number, z: number): number {
         //this eary return is temporrary till i fix the prob
+        return 20  // Default ground height if no intersection
         const maxHeightAboveTerrain = 100;
         const origin = new THREE.Vector3(x, maxHeightAboveTerrain, z);
         this.raycaster.set(origin, this.down);
         const intersects = this.raycaster.intersectObjects(terrainManager.floorGroup.children, true);
         if (intersects.length > 0) return intersects[0].point.y;
         console.log("Used default height");
-        return 20  // Default ground height if no intersection
     }
     private createEntity(groupID:string,spawnPoint:THREE.Vector3Like):EntityContract {
          //these are just basic props for any entity type.it can be passed to methods that spawn specific entity types to configure any of these parameters before creating an entity of their preferred type

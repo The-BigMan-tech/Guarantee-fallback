@@ -1,12 +1,17 @@
+import {Heap} from "heap-js";
+import type { EntityLike } from "./relationships.three";
+
 export class UniqueList<T> {
     private set: Set<T>; // Hash Set for uniqueness
     private array: T[];   // Dynamic Array to access last element
     private indexMap: Map<T, number>;//a map to keep track of indexes for efficient deleteion
+    private heap:Heap<EntityLike> = new Heap((a,b)=>b.health.value - a.health.value);
 
     constructor() {
         this.set = new Set();
         this.array = [];
-        this.indexMap = new Map()
+        this.indexMap = new Map();
+        this.heap.top()
     }
 
     // Add an element
@@ -44,8 +49,12 @@ export class UniqueList<T> {
         return this.array.length
     }
 }
-const x = new UniqueList()
-x.add(1)
-x.delete(1);
+const heap:Heap<{health:number}> = new Heap((a,b)=>b.health - a.health);
+const x = {health:10}
+heap.push(x);
+if (!heap.contains(x)) heap.push(x);
 
-console.log(x);
+const top = heap.top()[0];
+
+console.log(heap.heapArray);
+console.log(top);

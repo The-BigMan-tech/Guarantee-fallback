@@ -33,8 +33,9 @@ export class NPC implements EntityContract {
         shouldReturn = this.commonBehaviour.deathBehaviour(groupIDs.enemy);
         if (shouldReturn) return;
 
-        const targets = relationshipManager.attackersOf[groupIDs.player];
-        this.entity._targetEntity = targets!.last() || this.endTargetEntity;
+        const targets = relationshipManager.attackersOf[groupIDs.player]!;
+        this.entity._targetEntity = targets.top()[0] || this.endTargetEntity;
+        console.log('Enemy\'s health: ',this.entity._targetEntity?.health.value);
 
         shouldReturn = this.commonBehaviour.chaseBehaviour();
         if (shouldReturn) return;

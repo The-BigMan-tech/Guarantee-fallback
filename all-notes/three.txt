@@ -1297,3 +1297,4 @@ double ended queue
 stack
 tree
 graph
+Unique list

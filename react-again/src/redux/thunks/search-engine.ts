@@ -391,7 +391,7 @@ function sortSearchResults(quickSearch:boolean):AppThunk {
             const sortedResults:SearchResult[] = [];
             const heapCopy = new Heap(searchHeap.compare);//to prevent directly consuming the heap and losing previous search results
             heapCopy.init([...searchHeap.toArray()]); // clone current elements
-            for (const result of heapCopy) {//This moves the deferred folders to main queue for processing
+            for (const result of heapCopy) {
                 sortedResults.push(result)
             }
             dispatch(setSearchResults(sortedResults));
