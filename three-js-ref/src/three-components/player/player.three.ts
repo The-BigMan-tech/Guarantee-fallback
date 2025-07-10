@@ -9,6 +9,7 @@ import { entities } from "../entity-system/entity.three";
 import { combatCooldown } from "../physics-world.three";
 import { setEntityHealth, setPlayerHealth } from "../health/health-state";
 import { groupIDs, relationshipManager } from "../entity-system/relationships.three";
+import { listener } from "../listener/listener.three";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -100,6 +101,7 @@ class Player extends Controller {
         this.originalCamRotSpeed = miscData.camArgs.cameraRotationSpeed;
         this.camera = new Camera(miscData.camArgs)
         this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
+        this.addObject(listener);
         Player.addEventListeners();
         this.health = new Health(miscData.healthValue);
         this.playerHeight = fixedData.characterHeight;
@@ -322,7 +324,7 @@ const playerDynamicData:DynamicControllerData = {
 const playerMiscData:PlayerMiscData = {
     healthValue:1000,
     attackDamage:1,
-    knockback:150,
+    knockback:1000,
     camArgs: {
         FOV:75,
         nearPoint:0.1,

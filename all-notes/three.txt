@@ -1224,3 +1224,5 @@ For the individual cubes, which are smaller and more numerous, using GLTF models
 so it means that my world uses a native three js box for the static indestrucible ground for the base terrain and dynamic physics bodies that uses gltf block models and leverage my controller for physiscs inetractions
 
 *My controller model is sleep by default.and it also removes the time to integrate native geometries into the controller.
+
+my entity-like and entity-contract types are a way of impl polymorphism
