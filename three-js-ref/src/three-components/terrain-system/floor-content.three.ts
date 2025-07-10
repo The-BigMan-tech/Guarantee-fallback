@@ -50,7 +50,7 @@ export class FloorContent {
             const worldZ = chunkPos.z + localZ;
 
             tallCubeRigidBody.setTranslation({x:worldX,y:posY,z:worldZ},true)
-            tallCube.position.set(localX, posY - chunkPos.y, localZ);
+            tallCube.position.set(localX,posY, localZ);
 
             this.content.add(tallCube);
             this.contentRigidBodies.push(tallCubeRigidBody);

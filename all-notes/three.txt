@@ -1226,3 +1226,64 @@ so it means that my world uses a native three js box for the static indestrucibl
 *My controller model is sleep by default.and it also removes the time to integrate native geometries into the controller.
 
 my entity-like and entity-contract types are a way of impl polymorphism
+
+*Updating terrain first ensures that any changes are reflected in the entities immediately afterward, preventing visual glitches or inconsistencies.
+
+^Positioning--center,edge,corner,local and world positioning,ref points used-local,world
+*Rotation--Euler,Quaternion
+
+startingLevelY represents a consistent ground level across your scene where objects should rest. It's a fixed reference point for the base of your terrain.
+chunkPos.y may vary depending on the specific chunk's height or position, which can lead to inconsistencies if chunks are at different heights or if their Y values are not aligned with your ground level.
+Aligning with Ground Level:
+
+When you want objects (like your cubes) to stand on the ground, you want their bases to align with a specific ground level. Using startingLevelY ensures that all objects are placed uniformly on the same ground level, regardless of their chunk's Y position.
+
+*so the x and z positioning must use the correct position based on the components ivolved.meshes should use local and rigid body should use world but the y positions remain the same
+
+*this means that corner positioning on the x-z axis makes the src point at the corner while x-z centering makes the src point at the center while corner y positioning makes the comp to sit on the point while center y positiong makes the comp to sit in between the point.so for x-z ill want center,but for y ,ill want corner positionin
+
+*so on the x-z axis,the default is corner positioning where points from that starting points are sampled outwards not around it.so to center it,ill subtarct it from area/2 but for y-axis by default,is centered on that point.so to elevate it or do y-corner which on the y-axis will cause it to sit above the y-axis,i add it to y/2
+
+*so is the reason why we use sub to center the x-z axis is so that it extends in both directions but we use add to corner the y-axis so that it sits on top of that point.if we want it to sit below that point,we will then use sub to corner the y
+
+*so in summary,position management is about understanding how center and corner positions affect the x-z and y cords and how world or local positions affect meshes and rigid bodies
+
+*Chunk coordinates represent subdivisions of your overall world. Each chunk is a section of the world, and dividing the world coordinates by the chunk size helps you determine which chunk a specific point belongs to.
+
+so this is edge positioning.so on the y-axis,that assing makes it sit above and sub makes it sit below,are they both still corner positions on the y axis but just in diff directions but for the x-z axis,adding and sub gives center and edge positioning resp
+
+*so we have three types of positioning;corner,edge and center.the x-z axis by default are cornered.if you add half the area,you are positioning it at the border line of the area.if you sub instead,you will position it at the center.but the y-axis by default is centered.when you add half the height,you are sitting it above that point and usbtracting makes it sit below that point creating corner positioning but corner positioning on the y axis affects whether it stands below or above the ref point as the corner from teh y axis extends up or down not forward or backward as it is on the x-z axis
+
+For Chunk Coordinates:
+Adding half the size centers the chunk because you start from the corner.
+For Local Coordinates:
+Subtracting half the size centers the object because you are moving it back from its position to align with the midpoint.
+
+Edge Positioning: The object will be at the border line, touching it but not necessarily centered.
+
+*so how corner positioning works is that if im on 0,0,it will extend to 1,1 2,2 etc but when i subtract from it,a few of those positions will go opposite like 1,1 2,2 3,3 will now be negative because what i used to subtract them is bigger than them but 4,4 5,5 6,6 will remain in tehir direction because they are bigger than the value i used to subtract but they will come closer to the src and the ones that got flipped will still remain close to the src but in the opposite direction creating the center
+
+poisson samples uses world cords
+
+*so the poisson sampling is using the world ref but because i added the group that holds these cubes to the floor chunk,the position of this group now becomes that of the floor even though the cubes were first generated around the world origin before being moved
+
+edge positioning is in the same direction as corner positioning but the ref point is moved forward
+
+poisson sampling 
+
+*so poisson sampling uses the world origin as the ref point to create objects centered at that origin and when i moved those cubes from the world origin to my floor,they were generated around me.but chunk gen uses a chunk ref point which is my position but offset away from me so that it creates the chunk from that ref point towards my position in load radius steps both forward and left/right creating a chunk where im in but not at the center.so adding chunksize/2 then centers this cords around me
+
+Using the player’s position directly (without dividing by chunkSize) will place you at the corner of the chunk
+
+Division: Dividing by chunkSize ensures that you are in the correct chunk in the grid.
+Edge Positioning: You will be toward the edge of the chunk but not at the corner, especially if your player's position is not aligned exactly with the chunk boundaries.
+
+*its actually my speed.when i reduced it to 10 from 25,i dont jolt back on hitting the wall at intrevals
+
+*so the last thing about position management that still confusing is why cnetering around the world cord in poisson sample is - but the chunk cord is +.is it because chunk cord is a local cord
+
+*so when creating these algorithms,i should be aware of the ref point im using-either absolute or local,be aware of the positioning types--center,corner and edge and how adding offsets result in different position types based on the ref point used and the axis thats being considered.and when syncing the rigid body with the mesh,i should be aware of the positions that the mesh and rigid body expect
+
+*when using positions directly as a point of location, it often simplifies the process, but it can lead to unintended consequences if you're not careful.
+
+*Using direct positions for simple entity navigation from point A to B is indeed effective and often the best approach.for me,when an entity isnt in a chunk,it gets cleaned up from the world so i wont ever have to encounter a situation where im managing navigation in terms of chunk cords
