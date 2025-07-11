@@ -1,14 +1,14 @@
 import { Controller } from "../controller/controller.three";
 import type { Health } from "../health/health";
 import {v4 as uniqueID} from "uuid";
-import Heap from "heap-js";
+import { UniqueHeap } from "./unique-heap";
 
 
 export interface EntityLike extends Controller {
     health:Health
 }
 export interface RelationshipTree {
-    attack:Record<string,Heap<EntityLike>| null>
+    attack:Record<string,UniqueHeap<EntityLike>| null>
 }
 type Singleton<T> = T;
 
@@ -28,7 +28,7 @@ export class RelationshipManager {
         if (!RelationshipManager.manager)  {
             RelationshipManager.manager = new RelationshipManager();
             Object.values(groupIDs).forEach(value=>{
-                RelationshipManager.relationships.attack[value] = new Heap((a,b)=>b.health.value - a.health.value)
+                RelationshipManager.relationships.attack[value] = new UniqueHeap((a,b)=>b.health.value - a.health.value)
             })
         }
         return RelationshipManager.manager;

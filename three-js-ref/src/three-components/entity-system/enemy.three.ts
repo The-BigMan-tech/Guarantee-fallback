@@ -32,7 +32,7 @@ export class Enemy implements EntityContract  {
         if (shouldReturn) return;
 
         const targets = relationshipManager.attackersOf[groupIDs.enemy]!;
-        this.entity._targetEntity = targets.top()[0] || this.endTargetEntity;
+        this.entity._targetEntity = targets.top() || this.endTargetEntity;
 
         shouldReturn = this.commonBehaviour.chaseBehaviour();
         if (shouldReturn) return;

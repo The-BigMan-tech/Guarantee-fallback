@@ -32,11 +32,7 @@ export class CommonBehaviour {
     }
     public attackBehaviour(whoToAttack:string):boolean {
         if (this.entity._targetEntity && !this.entity._targetEntity.health.isDead) {
-            const heap = relationshipManager.attackersOf[whoToAttack]!;
-            if (!heap.contains(this.entity)) {
-                console.log("added to relationship");
-                heap!.add(this.entity);
-            }
+            relationshipManager.attackersOf[whoToAttack]!.add(this.entity);
             return true;
         }
         return false;
