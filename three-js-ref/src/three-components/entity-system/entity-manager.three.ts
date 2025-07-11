@@ -30,33 +30,27 @@ class EntityManager {
             NPC:{currentCount:0,minCount:1},
         }
     }
-    private entityWrappers:EntityWrapper[] = [];
-
     private entityMapping:Record<EntityWrapper,EntitySpawnData> = {
         Enemy:{
             groupID:groupIDs.enemy,//i called it groupID cuz its not per isntance but per entity type or kind
-            spawnWeight:10//an important thing to note is that when the weight is 0 but at least one of the others is non-zero,then this entity will never have the chance to be pciked but if all the other entities are non-zero,its the same thing as all of them having 10 or 100 cuz the weights are equal.thats the thing about weighted random.is the probabliliy of picking one relative to the probability of others not absolute probability.so to totally remove entities,set entity cap to 0.
+            spawnWeight:8//an important thing to note is that when the weight is 0 but at least one of the others is non-zero,then this entity will never have the chance to be pciked but if all the other entities are non-zero,its the same thing as all of them having 10 or 100 cuz the weights are equal.thats the thing about weighted random.is the probabliliy of picking one relative to the probability of others not absolute probability.so to totally remove entities,set entity cap to 0.
         },
         NPC: {
             groupID:groupIDs.npc,
             spawnWeight:10
         }
     }
-    private groupIDList:string[] = [];
-    private entitySpawnWeights:number[] = [];
 
-    private multiChoicePercent = 50;
-    private readonly originalChoicePercent:number = this.multiChoicePercent;
-    private readonly maxChoicePercent:number = 100;
-
+    private readonly multiChoicePercent = 50;
     private readonly maxEntityCap = 5;//the max number of entities in the world before it stops spawning
-
-    private spawnTimer:number = 0;
     private readonly spawnCooldown:number = 3;
-
     private readonly spawnRadius = 50;//the radius from the player where spawning begins.the higher the spawn radius,the more the entities that will spawn at a given time and vice versa but it stops at the max entity cap or when all min thresholds are satisfied.i believe that increasing the radius is better because not only does it supply spacing but it also means that the manager will spawn entities lesser to reach the cap or satisfy the thresh such that all the entities that will ever be needed in the world are saved in one go preventing calls to spawn from happening again in the next frame.i believe that this preserves performance
     private readonly minSpawnDistance = 10; // adjust as needed
     private readonly despawnRadius: number = 1000;
+    
+    private entityWrappers:EntityWrapper[] = [];
+    private groupIDList:string[] = [];
+    private entitySpawnWeights:number[] = [];
 
     public entityGroup:THREE.Group = new THREE.Group();
     private raycaster = new THREE.Raycaster();
@@ -64,6 +58,8 @@ class EntityManager {
 
     //the reason why im using a queue is for two reasons.one is to prevent confusion from the entities array that holds all the entities to be used to update and cleanup each indiviudual entity.another reason is also because i will only be using the refs in this array once which is upon saving an entity to the game not persistently.so i have to consume it as im iterating over it but if i went with the simple option of looping over an array and then deleting the element on iteration,it can lead to unexpected behaviour.i could have used a set but im sure that creating an iterable in every frame where i need to create an entity will lag perf.i can just use a while loop over an array while popping off the elements but i want to use a different type api to distinquish them and also,i get the perk of saving entities to the game in the order they were created at O(1) time unlike an array which can have its use cases if order is a priority and i can easily siwtch it to a pop with little code changes.
     private createdEntitiesBatch:Denque<EntityContract> = new Denque();
+    private spawnTimer:number = 0;
+
 
     private constructor() {};
     public static get instance(): EntityManager {
@@ -82,9 +78,10 @@ class EntityManager {
         const origin = new THREE.Vector3(x, maxHeightAboveTerrain, z);
         this.raycaster.set(origin, this.down);
         const intersects = this.raycaster.intersectObjects(terrainManager.floorGroup.children, true);
+        const heightBoost = 5;//to prevent situations where they will be spawned in between the ground
         if (intersects.length > 0) {
             console.log("Used height calc");
-            return intersects[0].point.y;
+            return intersects[0].point.y + heightBoost;
         }else {
             console.log("Used height default");
             return 20;
@@ -195,7 +192,6 @@ class EntityManager {
                 console.log('wrapper:', wrapper);
                 const countData = this.entityCounts.individualCounts[wrapper];
                 if (countData.currentCount < countData.minCount) {
-                    this.multiChoicePercent = this.maxChoicePercent;
                     canSpawnEntities = true;
                     break;//to prevent unnecessary computation since it has already been decided that it can spawn
                 }
@@ -207,7 +203,6 @@ class EntityManager {
             if (this.spawnTimer > this.spawnCooldown) {
                 this.spawnEntities();
                 this.spawnTimer = 0;
-                this.multiChoicePercent = this.originalChoicePercent
             }
         }else this.spawnTimer = 0; // Reset spawn timer if entities exist to prevent accumulation when entities still exist
     }
