@@ -1229,7 +1229,7 @@ my entity-like and entity-contract types are a way of impl polymorphism
 
 *Updating terrain first ensures that any changes are reflected in the entities immediately afterward, preventing visual glitches or inconsistencies.
 
-^Positioning--center,edge,corner,local and world positioning,ref points used-local,world
+^Positioning--center,edge,corner,local and world origin
 *Rotation--Euler,Quaternion
 
 startingLevelY represents a consistent ground level across your scene where objects should rest. It's a fixed reference point for the base of your terrain.

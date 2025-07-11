@@ -25,7 +25,7 @@ export class EntityFactory {
         miscData.targetEntity = player;
         dynamicData.horizontalVelocity = randInt(10,20);
         dynamicData.jumpVelocity = randInt(20,30);
-        dynamicData.jumpResistance = randInt(6,10);
+        dynamicData.jumpResistance = Math.min(randInt(6,10),dynamicData.horizontalVelocity-5);//i capped it to be smaller than horizontal velocity cuz if not and it happens to be bigger than the horizontal vel,the entity wont be able to jump because its jump resistance is equal or bigger
         miscData.healthValue = randInt(20,25);
         miscData.knockback = randInt(100,150);
         miscData.attackDamage = randFloat(0.5,1);
@@ -39,7 +39,7 @@ export class EntityFactory {
         fixedData.modelPath = NPC.modelPath;
         dynamicData.horizontalVelocity = randInt(15,30);
         dynamicData.jumpVelocity = randInt(25,32);
-        dynamicData.jumpResistance = randInt(6,10);
+        dynamicData.jumpResistance = Math.min(randInt(6,10),dynamicData.horizontalVelocity-5);
         miscData.healthValue = randInt(10,15);
         miscData.knockback = randInt(100,150);
         miscData.attackDamage = randFloat(1,3);

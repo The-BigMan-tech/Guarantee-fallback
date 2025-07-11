@@ -33,7 +33,6 @@ export class RelationshipManager {
         }
         return RelationshipManager.manager;
     }
-
     get attackersOf() {
         return RelationshipManager.relationships.attack
     }

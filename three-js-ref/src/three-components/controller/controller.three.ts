@@ -44,7 +44,7 @@ type seconds = number;
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
     private static readonly showHitBoxes = false;//the hitboxes are a bit broken
-    private static readonly showPoints = false;
+    private static readonly showPoints = true;
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
@@ -180,7 +180,7 @@ export abstract class Controller {
         playerModel.traverse((obj) => {//apply a metallic material
             if (!(obj instanceof THREE.Mesh)) return
             if (obj.material && obj.material.isMeshStandardMaterial) {
-                obj.material.metalness = 0.5; 
+                obj.material.metalness = 0; 
                 obj.material.roughness = 0.6;   
                 obj.material.needsUpdate = true;
             }
@@ -322,21 +322,20 @@ export abstract class Controller {
     }
     private prioritizeBranch:boolean = false;
 
-    private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay',stoppedWidthRef:[number]) {
+    private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay') {
         const horizontalForward = this.getHorizontalForward();
         const maxWidthToCheck = 40;
         const reachedPreviousClearance = this.obstacleClearancePoint.equals({x:0,y:0,z:0})//it only clears when the entity has reached the previous branch
         
         console.log('reachedPreviousClearance:', reachedPreviousClearance);
         
-        if (purpose == 'sideRay') {//only the side or foremost ray can be called at a time per call.but the side ray is guaranteed to be called before the foremist ray becuase the detcetion loop starts from the first point to the foremost one
+        if ((purpose == 'sideRay') && reachedPreviousClearance) {//only the side or foremost ray can be called at a time per call.but the side ray is guaranteed to be called before the foremist ray becuase the detcetion loop starts from the first point to the foremost one
             const straightLinePos = point.clone();//i termed this straight line cuz it penetrates through blocks to get a clearance point
             let finalPos: THREE.Vector3 | null = null;
             for (let i=0;i <= maxWidthToCheck;i++) {
                 let straightClearance = true
                 this.colorPoint(straightLinePos,0x033e2b)
                 straightLinePos.add(horizontalForward);
-                stoppedWidthRef[0] = i//the purpose of stopped width is for the foremost ray to only scan between the char current position and where the side ray said that there was clearance. 
 
                 physicsWorld.intersectionsWithPoint(straightLinePos,(colliderObject)=>{
                     const shape = physicsWorld.getCollider(colliderObject.handle).shape
@@ -346,7 +345,7 @@ export abstract class Controller {
                     return true
                 })
                 if (straightClearance) {
-                    finalPos = straightLinePos.clone().add(horizontalForward.clone().multiplyScalar(5));
+                    finalPos = straightLinePos.clone().add(horizontalForward.clone().multiplyScalar(6));
                     this.obstacleClearancePoint = finalPos;
                     this.prioritizeBranch = false
                     this.colorPoint(finalPos,0x34053e);
@@ -393,7 +392,6 @@ export abstract class Controller {
         const left = right.clone().negate();
 
         let hasCollidedForward = false;
-        const stoppedWidthRef:[number] = [0];//the type annotation is more explicit this way that its a mutable container
 
         for (let i = 1; i <= steps; i++) {
             const distance = (maxDistance / steps) * i;
@@ -435,7 +433,7 @@ export abstract class Controller {
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
                 }else {
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
-                    if ((i == foremostPoint) || (i == firstPoint)) this.calcClearanceForAgent(offsetPoint,purpose,stoppedWidthRef);
+                    if ((i == foremostPoint) || (i == firstPoint)) this.calcClearanceForAgent(offsetPoint,purpose);
                 }
                 return true
             });    
@@ -474,10 +472,10 @@ export abstract class Controller {
         const totalTime = 2 * timeUp;
 
         const horizontalDistance = ((this.dynamicData.horizontalVelocity/reductionX)-(this.dynamicData.jumpResistance/reductionX)) * totalTime;
-        const distanceX = Number(horizontalDistance.toFixed(2))
+        const distanceX = Math.ceil(horizontalDistance);//i used ceiling to get a single integer and to make it considerate enough than using decimal places or rounding.but dont artificially inflate this or it will lead to false positive where it thinks it can jump but it cant and it will just get stuck in a loop trying to
 
         const maxJumpHeight = ((this.dynamicData.jumpVelocity * timeUp) - (0.5 * realisticGravity * Math.pow(timeUp, 2)))/reductionY;
-        const distanceY = Number(maxJumpHeight.toFixed(2))
+        const distanceY = Math.ceil(maxJumpHeight);
 
         const canJumpDistanceX = (distanceX >= this.obstacleDistance);
         const canJumpDistanceY = (distanceY >= this.obstacleHeight);

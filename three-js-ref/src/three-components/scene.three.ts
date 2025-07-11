@@ -9,7 +9,7 @@ export const scene = new THREE.Scene();
 
 scene.add(directionalLight);
 scene.add(sky);
-scene.add(player.char);
+scene.add(player.char,player.points);
 scene.add(entityManager.entityGroup);
 scene.add(terrainManager.floorGroup);
 scene.fog = new THREE.Fog(0xa5a5a5,30,100)

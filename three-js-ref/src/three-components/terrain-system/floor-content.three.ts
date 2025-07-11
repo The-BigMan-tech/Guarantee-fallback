@@ -21,8 +21,8 @@ export class FloorContent {
         });
         const points = pds.fill(); // array of [x, z] points
         const tallCubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f});
-        const minHeight = 2;//im not exposing these as part of the interface cuz the cubes are just placeholders for content like trees,structures but not blocks for terrain cuz that one will use a different algorithm for placement.so the interface shouldnt be tied to speciic content till i make sub or behaviour classes
-        const maxHeight = 30;
+        const minHeight = 3;//im not exposing these as part of the interface cuz the cubes are just placeholders for content like trees,structures but not blocks for terrain cuz that one will use a different algorithm for placement.so the interface shouldnt be tied to speciic content till i make sub or behaviour classes
+        const maxHeight = 4;
         const width = 20;
 
         for (let i = 0; i < points.length; i++) {
@@ -35,7 +35,7 @@ export class FloorContent {
             const localZ = z - floorContentData.groundArea / 2;
 
             const tallCubeGeometry = new THREE.BoxGeometry(width,height,width);
-            const tallCube = new THREE.Mesh(tallCubeGeometry,tallCubeMaterial)
+            const tallCube = new THREE.Mesh(undefined,undefined)
             const tallCubeEdges = new EdgesGeometry(tallCubeGeometry);
             const tallCubeLine = new LineSegments(tallCubeEdges, new LineBasicMaterial({ color: 0x000000 }));
             tallCube.add(tallCubeLine)
