@@ -259,7 +259,7 @@ export abstract class Controller {
     
         const point = new THREE.Vector3(
             this.characterPosition.x + (dir.x * distance),
-            Math.max(0,this.calculateGroundPosition())+1,//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative.The +1 is a required inflation to prevent the point from sinking to the ground
+            this.calculateGroundPosition() + 1,//The +1 is a required inflation to prevent the point from sinking to the ground as shown in my visual debugger
             this.characterPosition.z + (dir.z * distance)
         );
         return point
@@ -280,15 +280,15 @@ export abstract class Controller {
         return steps
     }
 
-    private calcHeightTopDown(stepOverPos:THREE.Vector3,groundPosY:number) {
+    private calcHeightTopDown(stepOverPos:THREE.Vector3) {
         const downwardCheckPos = stepOverPos.clone();//i cloned it to prevent subtle bugs if i reuse stepoverpos later
-        const increment = 0.1//the reason why i used a float this precise for the increment is to improve its robustness.this is because the blocks i generated in my world had random heights between x-y but not in whole integers but in floats.so when i used 1 here as the increment,it led to a subtle bug where the height was calculated as 2 but in reality,it was actually 2.2.
-        for (let i=increment;i <= this.dynamicData.maxStepUpHeight;i+=increment) {
+        const increment = 0.1//the reason why i used a float this precise for the increment is to improve its robustness.this is because the blocks i generated in my world had random heights between x to y but not in whole integers but in floats.so when i used 1 here as the increment,it led to a subtle bug where the height was calculated as 2 but in reality,it was actually 2.2 leading to false positives that made the controller to attempt to step over the obstacle using a calculated upward and forward velocity that wasnt the actucal required velocity to overcome the obstacle and it wasnt suppose to walk over it in te first place which also led to a bug where calc clearance for agent was never called so my entity got stuck
+        for (let i=0;i <= this.dynamicData.maxStepUpHeight;i+=increment) {
             let downwardClearance = true
-            downwardCheckPos.sub(new THREE.Vector3(0,0.1,0));
+            downwardCheckPos.sub(new THREE.Vector3(0,increment,0));
 
             physicsWorld.intersectionsWithPoint(downwardCheckPos,()=>{
-                const relativeHeight = Number((downwardCheckPos.y - groundPosY + 1).toFixed(2));//i fixed it to 2dp to make the result more concise.the +1 is an artificial inflation for accuracy
+                const relativeHeight = Number(downwardCheckPos.y.toFixed(2));//i fixed it to 2dp to make the result more concise.the +1 is an artificial inflation for accuracy
                 this.obstacleHeight = relativeHeight
                 downwardClearance = false
                 console.log("Relative height checked down: ",relativeHeight);
@@ -419,9 +419,12 @@ export abstract class Controller {
                 hasCollidedForward = true;
 
                 const groundPosY = offsetPoint.y;
+                console.log('relative groundPosY:', groundPosY);
                 const stepOverPosY = groundPosY + this.dynamicData.maxStepUpHeight//logically,to check for if i can step over an obstacle of a given height using clearance check,then i should raise this point by +1 so that it doesnt give false negatives that i cant step over it but that +1 has already been added when i called orient point.check why i added the +1 there through the comments for that method
                 const stepOverPos = new THREE.Vector3(offsetPoint.x,stepOverPosY,offsetPoint.z)
                 
+                this.colorPoint(stepOverPos,0x022131);
+
                 this.obstacleDistance = distance
                 console.log('this obstacleDistance:', this.obstacleDistance);
 
@@ -431,7 +434,7 @@ export abstract class Controller {
                     return false
                 })
                 if (clearance) {
-                    this.calcHeightTopDown(stepOverPos,groundPosY)            
+                    this.calcHeightTopDown(stepOverPos)            
                 }else {//we want to get the clearance point for the agent only when it cant step over it which occurs when it has to check for the obstacle height bottom up rather than top down
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
                     if ((i == foremostPoint) || (i == firstPoint)) this.calcClearanceForAgent(offsetPoint,purpose);
