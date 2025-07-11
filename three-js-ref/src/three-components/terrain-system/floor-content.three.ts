@@ -22,14 +22,14 @@ export class FloorContent {
         });
         const points = pds.fill(); // array of [x, z] points
         const tallCubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f});
-        const minHeight = 2.3;//im not exposing these as part of the interface cuz the cubes are just placeholders for content like trees,structures but not blocks for terrain cuz that one will use a different algorithm for placement.so the interface shouldnt be tied to speciic content till i make sub or behaviour classes
+        const minHeight = 2.3//im not exposing these as part of the interface cuz the cubes are just placeholders for content like trees,structures but not blocks for terrain cuz that one will use a different algorithm for placement.so the interface shouldnt be tied to speciic content till i make sub or behaviour classes
         const maxHeight = 2.3;
         const width = 40;
 
         for (let i = 0; i < points.length; i++) {
             const [x, z] = points[i];
         
-            const height = randFloat(minHeight,maxHeight);
+            const height = randInt(minHeight,maxHeight);
             const posY = height / 2 + startingLevelY;//to make it stand on the startinglevl not that half of it is above and another half above
             
             const localX = x - floorContentData.groundArea / 2;

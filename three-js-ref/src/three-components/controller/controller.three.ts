@@ -317,7 +317,7 @@ export abstract class Controller {
                 return true
             })
             if (upwardClearance) {
-                const relativeHeight = Number((upwardCheckPos.y - groundPosY).toFixed(2))-0.1;//the relative height here is actually 0.1 more than its actually supposed to be.since its a minor precision error,i can ignore it.i dont think its possible to get exact precision.i can add a decrement of 0.1 here but it will decrease clarity and increase the number of precision parts of the code i have to track.
+                const relativeHeight = Number((upwardCheckPos.y - groundPosY - 0.1).toFixed(2));//the relative height here is actually 0.1 more than its actually supposed to be.since its a minor precision error,i can ignore it.i dont think its possible to get exact precision.i can add a decrement of 0.1 here but it will decrease clarity and increase the number of precision parts of the code i have to track.
                 console.log('relative upwardCheckPos.y:', upwardCheckPos.y);
                 this.obstacleHeight = relativeHeight
                 console.log("Relative height checked up: ",relativeHeight);
