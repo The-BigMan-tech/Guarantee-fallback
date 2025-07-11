@@ -8,7 +8,6 @@ import { type EntityContract } from "../entity-system/entity.three";
 import { entities } from "../entity-system/entity.three";
 import { combatCooldown } from "../physics-world.three";
 import { setEntityHealth, setPlayerHealth } from "../health/health-state";
-import { groupIDs, relationshipManager } from "../entity-system/relationships.three";
 import { listener } from "../listener/listener.three";
 
 // console.log = ()=>{};
@@ -265,7 +264,6 @@ class Player extends Controller {
             if (targetHealth && !targetHealth.isDead) {
                 targetHealth.takeDamage(this.attackDamage);
                 this.lookedAtEntity._entity.knockbackCharacter('backwards',this.knockback);
-                relationshipManager.isAnAttackerOf[groupIDs.player].byHealth.add(this.lookedAtEntity._entity);
                 this.attackTimer = 0;
             }
         }

@@ -9,11 +9,14 @@ export interface EntityLike extends Controller {
     _attackDamage:number,
     _knockback:number
 }
-interface SubBranches {
+export interface SubBranches {
     byHealth:UniqueHeap<EntityLike>,
     byAttackDamage:UniqueHeap<EntityLike>,
     byKnockback:UniqueHeap<EntityLike>
 }
+type SubBranch = 'byHealth' | 'byAttackDamage' | 'byKnockback';
+
+
 export interface RelationshipTree {
     attack:Record<string,SubBranches>
 }
@@ -34,8 +37,8 @@ export class RelationshipManager {
     public static get instance():RelationshipManager {
         if (!RelationshipManager.manager)  {
             RelationshipManager.manager = new RelationshipManager();
-            Object.values(groupIDs).forEach(value=>{
-                RelationshipManager.relationships.attack[value] = {
+            Object.values(groupIDs).forEach(groupID=>{
+                RelationshipManager.relationships.attack[groupID] = {
                     byHealth:new UniqueHeap((a,b)=>b.health.value - a.health.value),
                     byAttackDamage:new UniqueHeap((a,b)=>b._attackDamage - a._attackDamage),
                     byKnockback:new UniqueHeap((a,b)=>b._knockback - a._knockback)
@@ -46,6 +49,16 @@ export class RelationshipManager {
     }
     get isAnAttackerOf() {
         return RelationshipManager.relationships.attack
+    }
+    public addRelationship(entityLike:EntityLike,subBranches:SubBranches) {
+        (Object.keys(subBranches) as SubBranch[]).forEach(branch=>{
+            subBranches[branch].add(entityLike);
+        })
+    }
+    public removeRelationship(entityLike:EntityLike,subBranches:SubBranches) {
+        (Object.keys(subBranches) as SubBranch[]).forEach(branch=>{
+            subBranches[branch].remove(entityLike);
+        })
     }
 }
 export const relationshipManager:Singleton<RelationshipManager> = RelationshipManager.instance;

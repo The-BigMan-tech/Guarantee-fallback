@@ -4,7 +4,7 @@ import { Entity, type EntityContract } from "./entity.three";
 import { relationshipManager } from "./relationships.three";
 import type { EntityLike } from "./relationships.three";
 import { groupIDs } from "./relationships.three";
-import type { UniqueHeap } from "./unique-heap";
+import type { SubBranches } from "./relationships.three";
 
 
 export class NPC implements EntityContract {
@@ -13,9 +13,12 @@ export class NPC implements EntityContract {
     private endTargetEntity:EntityLike | null;
     
     private commonBehaviour:CommonBehaviour;
-    private selfToEnemyRelationship:UniqueHeap<EntityLike> | null = null;//i used null here to prevent ts from complaining that i didnt initialize this in the constructor and i wanted to avoid code duplication but im sure that it cant be null and thats why i used null assertion in property access
 
+    private selfToEnemyRelationship:SubBranches | null = null;//i used null here to prevent ts from complaining that i didnt initialize this in the constructor and i wanted to avoid code duplication but im sure that it cant be null and thats why i used null assertion in property access
     private isAnAttackerOf = relationshipManager.isAnAttackerOf;
+
+    private addRelationship = relationshipManager.addRelationship;
+    private removeRelationship = relationshipManager.removeRelationship;
 
     constructor(entity:Entity) {
         this.entity = entity;
@@ -26,20 +29,20 @@ export class NPC implements EntityContract {
     }
     private onTargetReached():'attack' | 'idle' {
         if (this.commonBehaviour.attackBehaviour()) {
-            this.selfToEnemyRelationship!.add(this.entity);
+            this.addRelationship(this.entity,this.selfToEnemyRelationship!)
             return 'attack'
         };
         return 'idle';
     }
     private updateInternalState() {
-        this.selfToEnemyRelationship = this.isAnAttackerOf[groupIDs.enemy].byHealth;
+        this.selfToEnemyRelationship = this.isAnAttackerOf[groupIDs.enemy];
         
         if (this.commonBehaviour.patrolBehaviour(player.position.clone())) {
             return;
         }
 
         if (this.commonBehaviour.deathBehaviour()) {
-            this.selfToEnemyRelationship.remove(this.entity)
+            this.removeRelationship(this.entity,this.selfToEnemyRelationship!)
             return
         }
 
