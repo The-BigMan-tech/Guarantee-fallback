@@ -78,14 +78,17 @@ class EntityManager {
         return EntityManager.manager;
     }
     private getHeightAtPosition(x: number, z: number): number {
-        //this eary return is temporrary till i fix the prob
-        return 20  // Default ground height if no intersection
         const maxHeightAboveTerrain = 100;
         const origin = new THREE.Vector3(x, maxHeightAboveTerrain, z);
         this.raycaster.set(origin, this.down);
         const intersects = this.raycaster.intersectObjects(terrainManager.floorGroup.children, true);
-        if (intersects.length > 0) return intersects[0].point.y;
-        console.log("Used default height");
+        if (intersects.length > 0) {
+            console.log("Used height calc");
+            return intersects[0].point.y;
+        }else {
+            console.log("Used height default");
+            return 20;
+        }
     }
     private createEntity(groupID:string,spawnPoint:THREE.Vector3Like):EntityContract {
          //these are just basic props for any entity type.it can be passed to methods that spawn specific entity types to configure any of these parameters before creating an entity of their preferred type
