@@ -211,13 +211,18 @@ export class Entity extends Controller {
     private cleanUpResources():void {
         this.cleanupTimer += this.clockDelta || 0;
         if (this.cleanupTimer >= this.cleanupCooldown) {//the cooldown is here to allow playing of death animations or ending effects
+            //Remove the entity from the scene
             this.points.clear();//clear the points array used for visual debugging
             this.struct.group.remove(this.points)//remove them from the scene
             this.struct.group.remove(this.char);//remove the controller from the scene
+            
+            //Remove the entity from gpu resources
             disposeHierarchy(this.char);//remove the geometry data from the gpu
             this.mixer = disposeMixer(this.mixer);//to prevent animation updates
-            const index = this.struct.entityIndexMap.get(this)!;
             
+
+            //Remove the entity from internal data structures
+            const index = this.struct.entityIndexMap.get(this)!;
             const entityWrapper:EntityContract = this.struct.entities[index];
             const wrapperName:string = entityWrapper.constructor.name
             if (this.isEntityWrapper(wrapperName)) {//this operation must be done before deletion of the entry
@@ -235,6 +240,7 @@ export class Entity extends Controller {
             console.log('cleanUp. entities:',this.struct.entities);
             console.log('cleanUp. entityIndexMap:',this.struct.entityIndexMap);
 
+            //Remove hooks and physics body
             this.onTargetReached = undefined;//clear hook bindings to prevent ref to the entity from existing which will prevent garbage collection
             this.updateInternalState = undefined;
             if (this.characterRigidBody) {

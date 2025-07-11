@@ -22,7 +22,7 @@ export interface RelationshipTree {
 }
 type Singleton<T> = T;
 
-export const groupIDs = {
+export const groupIDs = {//i intended to define this in the entity manager but i couldnt do so without running into cyclic imports
     player:uniqueID(),
     enemy:uniqueID(),
     npc:uniqueID()
@@ -48,9 +48,6 @@ export class RelationshipManager {
         }
         return RelationshipManager.manager;
     }
-    get attackerOf() {
-        return RelationshipManager.relationships.attack
-    }
     public addRelationship(entityLike:EntityLike,subBranches:SubBranches) {//adding and removing items to and from the heap is O(logn) and since im doing this for each branch,it means that adding relatioships in my code is O(nlogn).The same for removing relationships.it means that the cost to add or remove a relationship increases as the number of branches grow.
         (Object.keys(subBranches) as SubBranch[]).forEach(branch=>{
             subBranches[branch].add(entityLike);
@@ -60,6 +57,9 @@ export class RelationshipManager {
         (Object.keys(subBranches) as SubBranch[]).forEach(branch=>{
             subBranches[branch].remove(entityLike);
         })
+    }
+    get attackerOf() {
+        return RelationshipManager.relationships.attack
     }
 }
 export const relationshipManager:Singleton<RelationshipManager> = RelationshipManager.instance;

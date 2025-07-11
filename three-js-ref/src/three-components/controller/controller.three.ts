@@ -794,6 +794,7 @@ export abstract class Controller {
     private knockbackTimer:number = 0;
     private knockbackCooldown:seconds = combatCooldown;//to give the physics engine time to reflect the knockback
 
+    //this method applies an impulse to the character.so i can use it for other things besides knockback but take into account that velocity is the main method used to control characters
     public knockbackCharacter(direction:'forward'| 'backwards',knockbackImpulse:number,scalar?:number):void {
         this.wakeUpBody();
         const upwardScalar = 3
