@@ -282,7 +282,7 @@ export abstract class Controller {
 
     private calcHeightTopDown(stepOverPos:THREE.Vector3,groundPosY:number) {
         const downwardCheckPos = stepOverPos.clone();//i cloned it to prevent subtle bugs if i reuse stepoverpos later
-        const increment = 0.1;//the reason why i used a float this precise for the increment is to improve its robustness.this is because the blocks i generated in my world had random heights between x to y but not in whole integers but in floats.so when i used 1 here as the increment,it led to a subtle bug where the height was calculated as 2 but in reality,it was actually 2.2 leading to false positives that made the controller to attempt to step over the obstacle using a calculated upward and forward velocity that wasnt the actucal required velocity to overcome the obstacle and it wasnt suppose to walk over it in te first place which also led to a bug where calc clearance for agent was never called so my entity got stuck
+        const increment = 0.1;//the reason why i used a float this precise for the increment is to improve its robustness.this is because the blocks i generated in my world had random heights between x to y but not in whole integers but in floats.so when i used 1 here as the increment,it led to a subtle bug where the height was calculated as 2 but in reality,it was actually 2.2 leading to false positives that made the controller to attempt to step over the obstacle using a calculated upward and forward velocity that wasnt the actucal required velocity to overcome the obstacle and it wasnt suppose to walk over it in te first place which also led to a bug where calc clearance for agent was never called so my entity got stuck.but using smaller increments takes more runtime than big steps but this negligible for the gains in precision.
         for (let i=0;i <= this.dynamicData.maxStepUpHeight;i+=increment) {
             let downwardClearance = true
             downwardCheckPos.sub(new THREE.Vector3(0,increment,0));
@@ -422,15 +422,15 @@ export abstract class Controller {
                 console.log('PointY Obstacle: ', offsetPoint.y);
                 hasCollidedForward = true;
 
-                const groundPosY = Math.floor(offsetPoint.y);
-                console.log('relative groundPosY:', groundPosY);
-                const stepOverPosY = (groundPosY + this.dynamicData.maxStepUpHeight)+0.1//logically,to check for if i can step over an obstacle of a given height using a clearance check,then i should raise this point by at least +1 so that it doesnt give false negatives that i cant step over it but that +1 has already been added when i called orient point.check why i added the +1 there through the comments for that method.and why i later did -0.5 was because of precision.leaving the value as it is can make the point higher in precision that it actually should be.after testing with blocks generated with float heights.i realized that this float deduction was necessary to appropriately know if the character can step over the obstacle or not
-                console.log('relative stepOverPosY:', stepOverPosY);
+                const groundPosY = Math.floor(offsetPoint.y);//i floored it to clarify the ref point so that rather than 0.7 or 0.1,its 0.why floor specifically?i can instead use round or ceil.but the reason why i made this decision was because of feedback from game testing and the logs.i tested this in an env where i knew the exact height of the obstacles i was testing against but i needed the algo to know that.so after iteratively playing with precision,floor was the best choice.for something like ground ref,flooring it is better cuz it provides a stable ref point across all floats of a particular number.its more stable than round which is biased to higher floats and its better than ceil thats too generous to lower floats
+                const stepOverPosY = (groundPosY + this.dynamicData.maxStepUpHeight)+0.1//so what we want to do here is to check for the point at the height just above what the character can step over before taking clearance checks from there to get the exact height.we could have used 1 but it misses on float heights so 0.1 is more precise.it catches the height more accurately
                 const stepOverPos = new THREE.Vector3(offsetPoint.x,stepOverPosY,offsetPoint.z)
-                
-                this.colorPoint(stepOverPos,0x022131);
+
 
                 this.obstacleDistance = distance
+
+                console.log('relative stepOverPosY:', stepOverPosY);
+                console.log('relative groundPosY:', groundPosY);
                 console.log('this obstacleDistance:', this.obstacleDistance);
 
                 let clearance = true;
@@ -473,7 +473,7 @@ export abstract class Controller {
     //the calculations used in this function was derived from real physics rules since the whole of this is built on a physics engine
     //tune the reduction scale as needed
     private canJumpOntoObstacle() {//checks if the entity can jump on it based on the horizontal distance covered
-        const reductionX = 15//im adding reduction scales to prevent inflation from high values.They are carefully tuned according to play feedback
+        const reductionX = 12//im adding reduction scales to prevent inflation from high values.They are carefully tuned according to play feedback
         const reductionY = 6;
 
         const realisticGravity = 10
@@ -571,7 +571,7 @@ export abstract class Controller {
 
     private useClockwiseScan:boolean = true;
     private timeSinceLastFlipCheck: number = 0;
-    private flipCheckInterval:seconds = 1; // Minimum time interval between perimeter scan flip checks.Note: The flip check runs only when certain navigation conditions are met,so actual flips happen discretely, not strictly every interval.fine tune as needed to control the interval of flip checks
+    private flipCheckInterval:seconds = 2; // Minimum time interval between perimeter scan flip checks.Note: The flip check runs only when certain navigation conditions are met,so actual flips happen discretely, not strictly every interval.fine tune as needed to control the interval of flip checks
     private minProgressThreshold: number = -1; //i can make it 1 to prevent situations where they get stuck.but this may be strict if some declination in progress like -1 is required to make progress but allowing that can get it stuck in a place.so its a tradeoff
     private distSinceLastDelta: number | null = null;
     private static readonly zeroVector = new THREE.Vector3(0,0,0);
