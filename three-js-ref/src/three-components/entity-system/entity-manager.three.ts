@@ -165,8 +165,8 @@ class EntityManager {
                     console.log('count. reached cap limit');
                     return;
                 }
-                const finalEntity = this.createEntity(groupID,spawnPoint);
-                this.createdEntitiesBatch.push(finalEntity);
+                const createdEntity = this.createEntity(groupID,spawnPoint);
+                this.createdEntitiesBatch.push(createdEntity);
             }
         }
     }
@@ -209,7 +209,7 @@ class EntityManager {
         }else this.spawnTimer = 0; // Reset spawn timer if entities exist to prevent accumulation when entities still exist
     }
 
-    private saveEntitiesToGame() {
+    private saveCreatedEntities() {
         while (this.createdEntitiesBatch.length > 0) {
             const createdEntity = this.createdEntitiesBatch.shift()!;
             entities.push(createdEntity);
@@ -221,8 +221,10 @@ class EntityManager {
 
 
     public updateAllEntities(deltaTime:number) {
-        this.saveEntitiesToGame();//the reason why i moved the saving of entities to the game to the next frame is to reduce the amount of time when entities spawn visually and when they actually move cuz if not,the entities will be saved to the game,true, but they will appear frozen till the player and the terrain updates which can spoil experience.so what i now did was to batch them in the same frame but make them available in game in the same frame they will be updated and its better than prioritizing entity updates first
-        entities.forEach(entityWrapper => entityWrapper._entity.updateController(deltaTime));
+        this.saveCreatedEntities();//the reason why i moved the saving of entities to the game to the next frame is to reduce the amount of time when entities spawn visually and when they actually move cuz if not,the entities will be saved to the game,true, but they will appear frozen till the player and the terrain updates which can spoil experience.so what i now did was to batch them in the same frame but make them available in game in the same frame they will be updated and its better than prioritizing entity updates first
+        for (const createdEntity of entities) {
+            createdEntity._entity.updateController(deltaTime)
+        }
         this.despawnFarEntities();
         this.spawnNewEntitiesWithCooldown(deltaTime);
     }
