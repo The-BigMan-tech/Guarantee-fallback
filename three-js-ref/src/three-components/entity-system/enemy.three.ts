@@ -11,7 +11,7 @@ export class Enemy implements EntityContract  {
     private commonBehaviour:CommonBehaviour;
 
     private selfToPlayerRelationship:SubBranches | null = null;
-    private isAnAttackerOf = relationshipManager.isAnAttackerOf;
+    private attackerOf = relationshipManager.attackerOf;
 
     private addRelationship = relationshipManager.addRelationship;
     private removeRelationship = relationshipManager.removeRelationship;
@@ -31,7 +31,7 @@ export class Enemy implements EntityContract  {
         }else return 'idle';
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
-        this.selfToPlayerRelationship = this.isAnAttackerOf[groupIDs.player];
+        this.selfToPlayerRelationship = this.attackerOf[groupIDs.player];
 
         if (this.commonBehaviour.patrolBehaviour(null)) {
             return
@@ -40,7 +40,7 @@ export class Enemy implements EntityContract  {
             this.removeRelationship(this.entity,this.selfToPlayerRelationship)
             return
         }
-        const target = this.isAnAttackerOf[groupIDs.enemy].byHealth.bottom();
+        const target = this.attackerOf[groupIDs.enemy].byAttackDamage.bottom();//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage
         this.entity._targetEntity = target  || this.endTargetEntity;
         if (this.commonBehaviour.chaseBehaviour()) {
             return

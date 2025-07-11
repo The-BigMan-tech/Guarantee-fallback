@@ -15,7 +15,7 @@ export class NPC implements EntityContract {
     private commonBehaviour:CommonBehaviour;
 
     private selfToEnemyRelationship:SubBranches | null = null;//i used null here to prevent ts from complaining that i didnt initialize this in the constructor and i wanted to avoid code duplication but im sure that it cant be null and thats why i used null assertion in property access
-    private isAnAttackerOf = relationshipManager.isAnAttackerOf;
+    private attackerOf = relationshipManager.attackerOf;
 
     private addRelationship = relationshipManager.addRelationship;
     private removeRelationship = relationshipManager.removeRelationship;
@@ -35,7 +35,7 @@ export class NPC implements EntityContract {
         return 'idle';
     }
     private updateInternalState() {
-        this.selfToEnemyRelationship = this.isAnAttackerOf[groupIDs.enemy];
+        this.selfToEnemyRelationship = this.attackerOf[groupIDs.enemy];
         
         if (this.commonBehaviour.patrolBehaviour(player.position.clone())) {
             return;
@@ -46,7 +46,7 @@ export class NPC implements EntityContract {
             return
         }
 
-        const target = this.isAnAttackerOf[groupIDs.player].byHealth.bottom();
+        const target = this.attackerOf[groupIDs.player].byHealth.bottom();
         this.entity._targetEntity = target || this.endTargetEntity;
         if (this.commonBehaviour.chaseBehaviour()) {
             return;
