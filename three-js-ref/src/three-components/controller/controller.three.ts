@@ -259,7 +259,7 @@ export abstract class Controller {
     
         const point = new THREE.Vector3(
             this.characterPosition.x + (dir.x * distance),
-            this.calculateGroundPosition() + 1,//The +1 is a required inflation to prevent the point from sinking to the ground as shown in my visual debugger
+            this.calculateGroundPosition() + 1,//The +1 is a required inflation to prevent the point from sinking to the ground as shown in my visual debugger.if it sinks,it will make a point query every frame which will severly lag the game.the actual place where this +1 came from is because calc ground position sinks the point by doing -1 which is for precision concerning checking for the ground but not in the context of detecting obstacles.
             this.characterPosition.z + (dir.z * distance)
         );
         return point
@@ -420,7 +420,7 @@ export abstract class Controller {
 
                 const groundPosY = offsetPoint.y;
                 console.log('relative groundPosY:', groundPosY);
-                const stepOverPosY = groundPosY + this.dynamicData.maxStepUpHeight//logically,to check for if i can step over an obstacle of a given height using clearance check,then i should raise this point by +1 so that it doesnt give false negatives that i cant step over it but that +1 has already been added when i called orient point.check why i added the +1 there through the comments for that method
+                const stepOverPosY = (groundPosY + this.dynamicData.maxStepUpHeight)-0.5//logically,to check for if i can step over an obstacle of a given height using a clearance check,then i should raise this point by at least +1 so that it doesnt give false negatives that i cant step over it but that +1 has already been added when i called orient point.check why i added the +1 there through the comments for that method.and why i later did -0.5 was because of precision.leaving the value as it is can make the point higher in precision that it actually should be.after testing with blocks generated with float heights.i realized that this float deduction was necessary to appropriately know if the character can step over the obstacle or not
                 const stepOverPos = new THREE.Vector3(offsetPoint.x,stepOverPosY,offsetPoint.z)
                 
                 this.colorPoint(stepOverPos,0x022131);
