@@ -1,7 +1,7 @@
 import { CommonBehaviour } from "./common-behaviour.three";
 import { Entity, type EntityContract } from "./entity.three";
 import { groupIDs, relationshipManager, type EntityLike } from "./relationships.three";
-
+import { UniqueHeap } from "./unique-heap";
 
 export class Enemy implements EntityContract  {
     public static modelPath:string = "./silvermoon.glb";
@@ -9,6 +9,9 @@ export class Enemy implements EntityContract  {
     private entity:Entity;
     private endTargetEntity:EntityLike | null;
     private commonBehaviour:CommonBehaviour;
+
+    private selfToPlayerRelationship:UniqueHeap<EntityLike> | null = null
+    private isAnAttackerOf = relationshipManager.isAnAttackerOf;
 
     constructor(entity:Entity) {
         this.entity = entity;
@@ -18,24 +21,28 @@ export class Enemy implements EntityContract  {
         this.commonBehaviour = new CommonBehaviour(entity)
     }
     private onTargetReached():'attack' | 'idle' {//the behaviour when it reaches the target will be later tied to a state machine
-        const shouldAttack = this.commonBehaviour.attackBehaviour(groupIDs.player);
-        if (shouldAttack) return 'attack';
-        return 'idle';
+        if (this.commonBehaviour.attackBehaviour()) {
+            this.selfToPlayerRelationship!.add(this.entity);
+            return 'attack'
+        }else return 'idle';
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
-        let shouldReturn:boolean = false;
+        this.selfToPlayerRelationship = this.isAnAttackerOf[groupIDs.player].byHealth;
 
-        shouldReturn = this.commonBehaviour.patrolBehaviour(null);
-        if (shouldReturn) return;
+        if (this.commonBehaviour.patrolBehaviour(null)) {
+            return
+        }
 
-        shouldReturn = this.commonBehaviour.deathBehaviour(groupIDs.player);
-        if (shouldReturn) return;
+        if (this.commonBehaviour.deathBehaviour()) {
+            this.selfToPlayerRelationship.remove(this.entity)
+            return
+        }
 
-        const targets = relationshipManager.attackersOf[groupIDs.enemy]!;
-        this.entity._targetEntity = targets.top() || this.endTargetEntity;
-
-        shouldReturn = this.commonBehaviour.chaseBehaviour();
-        if (shouldReturn) return;
+        const target = this.isAnAttackerOf[groupIDs.enemy].byHealth.bottom();
+        this.entity._targetEntity = target  || this.endTargetEntity;
+        if (this.commonBehaviour.chaseBehaviour()) {
+            return
+        }
     }
     get _entity() {
         return this.entity

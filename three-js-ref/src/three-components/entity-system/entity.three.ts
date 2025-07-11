@@ -263,6 +263,13 @@ export class Entity extends Controller {
         return this.struct
     }
 
+    get _attackDamage():number {
+        return this.attackDamage
+    }
+    get _knockback():number {
+        return this.knockback
+    }
+    
     set _navPosition(newPosition:THREE.Vector3 | null) {
         this.navPosition = newPosition
     }

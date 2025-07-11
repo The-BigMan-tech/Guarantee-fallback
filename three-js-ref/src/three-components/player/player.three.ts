@@ -265,7 +265,7 @@ class Player extends Controller {
             if (targetHealth && !targetHealth.isDead) {
                 targetHealth.takeDamage(this.attackDamage);
                 this.lookedAtEntity._entity.knockbackCharacter('backwards',this.knockback);
-                relationshipManager.attackersOf[groupIDs.player]!.add(this.lookedAtEntity._entity);
+                relationshipManager.isAnAttackerOf[groupIDs.player].byHealth.add(this.lookedAtEntity._entity);
                 this.attackTimer = 0;
             }
         }
@@ -292,6 +292,12 @@ class Player extends Controller {
         } else {
             this.targetY = this.offsetY;
         }
+    }
+    get _attackDamage():number {
+        return this.attackDamage
+    }
+    get _knockback():number {
+        return this.knockback
     }
     protected onLoop() {//this is where all character updates to this instance happens.
         this.toggleTimer += this.clockDelta || 0;

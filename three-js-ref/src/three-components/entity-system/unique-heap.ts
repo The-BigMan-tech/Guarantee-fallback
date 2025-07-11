@@ -22,6 +22,9 @@ export class UniqueHeap<T> {
         }
     }
     public top():T {//this is O(1)
-        return this.heap.top()[0]
+        return this.heap.top()[0];
+    }
+    public bottom():T {
+        return this.heap.bottom()[0];
     }
 }

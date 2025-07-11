@@ -1,5 +1,4 @@
 import type { Entity } from "./entity.three";
-import { relationshipManager } from "./relationships.three";
 import * as THREE from "three"
 
 export class CommonBehaviour {
@@ -13,10 +12,9 @@ export class CommonBehaviour {
         this.entity._state.behaviour = 'patrol';
         return false;
     }
-    public deathBehaviour(whoWasAttacked:string):boolean {
+    public deathBehaviour():boolean {
         if (this.entity._health.isDead) {//the order of the branches show update priority
             this.entity._state.behaviour = 'death';
-            relationshipManager.attackersOf[whoWasAttacked]!.remove(this.entity)
             return true;
         }
         return false;
@@ -30,9 +28,8 @@ export class CommonBehaviour {
         }
         return false;
     }
-    public attackBehaviour(whoToAttack:string):boolean {
+    public attackBehaviour():boolean {
         if (this.entity._targetEntity && !this.entity._targetEntity.health.isDead) {
-            relationshipManager.attackersOf[whoToAttack]!.add(this.entity);
             return true;
         }
         return false;

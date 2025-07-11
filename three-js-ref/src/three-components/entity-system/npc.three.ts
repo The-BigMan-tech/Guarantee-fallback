@@ -4,6 +4,7 @@ import { Entity, type EntityContract } from "./entity.three";
 import { relationshipManager } from "./relationships.three";
 import type { EntityLike } from "./relationships.three";
 import { groupIDs } from "./relationships.three";
+import type { UniqueHeap } from "./unique-heap";
 
 
 export class NPC implements EntityContract {
@@ -11,8 +12,11 @@ export class NPC implements EntityContract {
     private entity:Entity;
     private endTargetEntity:EntityLike | null;
     
-    private commonBehaviour:CommonBehaviour
-    
+    private commonBehaviour:CommonBehaviour;
+    private selfToEnemyRelationship:UniqueHeap<EntityLike> | null = null;//i used null here to prevent ts from complaining that i didnt initialize this in the constructor and i wanted to avoid code duplication but im sure that it cant be null and thats why i used null assertion in property access
+
+    private isAnAttackerOf = relationshipManager.isAnAttackerOf;
+
     constructor(entity:Entity) {
         this.entity = entity;
         this.entity.onTargetReached = this.onTargetReached.bind(this);
@@ -21,24 +25,29 @@ export class NPC implements EntityContract {
         this.commonBehaviour = new CommonBehaviour(entity)
     }
     private onTargetReached():'attack' | 'idle' {
-        const shouldAttack = this.commonBehaviour.attackBehaviour(groupIDs.enemy);
-        if (shouldAttack) return 'attack';
+        if (this.commonBehaviour.attackBehaviour()) {
+            this.selfToEnemyRelationship!.add(this.entity);
+            return 'attack'
+        };
         return 'idle';
     }
     private updateInternalState() {
-        let shouldReturn:boolean = false;
-        shouldReturn = this.commonBehaviour.patrolBehaviour(player.position.clone());
-        if (shouldReturn) return;
+        this.selfToEnemyRelationship = this.isAnAttackerOf[groupIDs.enemy].byHealth;
+        
+        if (this.commonBehaviour.patrolBehaviour(player.position.clone())) {
+            return;
+        }
 
-        shouldReturn = this.commonBehaviour.deathBehaviour(groupIDs.enemy);
-        if (shouldReturn) return;
+        if (this.commonBehaviour.deathBehaviour()) {
+            this.selfToEnemyRelationship.remove(this.entity)
+            return
+        }
 
-        const targets = relationshipManager.attackersOf[groupIDs.player]!;
-        this.entity._targetEntity = targets.top() || this.endTargetEntity;
-        console.log('Enemy\'s health: ',this.entity._targetEntity?.health.value);
-
-        shouldReturn = this.commonBehaviour.chaseBehaviour();
-        if (shouldReturn) return;
+        const target = this.isAnAttackerOf[groupIDs.player].byHealth.bottom();
+        this.entity._targetEntity = target || this.endTargetEntity;
+        if (this.commonBehaviour.chaseBehaviour()) {
+            return;
+        }
     }
     get _entity() {
         return this.entity

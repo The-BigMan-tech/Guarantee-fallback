@@ -44,7 +44,7 @@ type seconds = number;
 //i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
 export abstract class Controller {
     private static readonly showHitBoxes = false;//the hitboxes are a bit broken
-    private static readonly showPoints = true;
+    private static readonly showPoints = false;
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
     private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
@@ -180,8 +180,8 @@ export abstract class Controller {
         playerModel.traverse((obj) => {//apply a metallic material
             if (!(obj instanceof THREE.Mesh)) return
             if (obj.material && obj.material.isMeshStandardMaterial) {
-                obj.material.metalness = 0; 
-                obj.material.roughness = 0.6;   
+                obj.material.metalness = 0.2; 
+                obj.material.roughness = 0.4;   
                 obj.material.needsUpdate = true;
             }
         });
