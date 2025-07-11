@@ -26,7 +26,7 @@ class EntityManager {
     private entityCounts:EntityCount = {
         totalCount:0,
         individualCounts: {
-            Enemy:{currentCount:0,minCount:1},
+            Enemy:{currentCount:0,minCount:1},//the min count influences how many entities of this kind should be in the world before the manager is satisfied to stop spawning more entities.a higher number means that it will attempt to spawn new entities more and more until this thresh is satisfied but its capped at max entity cap for perf to prevent too many attempts
             NPC:{currentCount:0,minCount:1},
         }
     }
@@ -41,18 +41,18 @@ class EntityManager {
         }
     }
 
-    private readonly multiChoicePercent = 50;
+    private readonly multiChoicePercent = 50;//it controls the percentage of entity types from the provided entity mapping struct that will be chosen at a time for every spawn point thats generated.Increasing this number will increase the probability of an entity of a given kind to spawn because the manager doesnt just choose one entity per point but rather,it can make two choices or three at a time with the choices influenced by the weight.Even at a low value,theres still a chance for an entity of a given kind to spawn as long as the weiht is considerable enough but this will increase that prob and a higher number will also slightly improve perf because it will spawn more at a time which reduces the time to reach the entity cap and number of times it has to run the weighted choice function.Tune as needed
     private readonly maxEntityCap = 5;//the max number of entities in the world before it stops spawning
-    private readonly spawnCooldown:number = 3;
+    private readonly spawnCooldown:number = 3;//after deciding to spawn entities,this controls the time in seconds it waits before it actually spawns them.this is to improve exp as it gives the player some space before entities are spawned and it also improves perf on startup by only spawning entities afterw when the player has been spawned first not simultaneously
     private readonly spawnRadius = 50;//the radius from the player where spawning begins.the higher the spawn radius,the more the entities that will spawn at a given time and vice versa but it stops at the max entity cap or when all min thresholds are satisfied.i believe that increasing the radius is better because not only does it supply spacing but it also means that the manager will spawn entities lesser to reach the cap or satisfy the thresh such that all the entities that will ever be needed in the world are saved in one go preventing calls to spawn from happening again in the next frame.i believe that this preserves performance
-    private readonly minSpawnDistance = 10; // adjust as needed
-    private readonly despawnRadius: number = 1000;
+    private readonly minSpawnDistance = 10; //the minimum distance between each entity that gets spawned within the spawn radius
+    private readonly despawnRadius: number = 1000;//its the opposite of spawn radius.it states the distance from the player proximity that entities will be despawned.it improves perf by only rendering entities that are actually meaningful to the gameplay
     
     private entityWrappers:EntityWrapper[] = [];
     private groupIDList:string[] = [];
     private entitySpawnWeights:number[] = [];
 
-    public entityGroup:THREE.Group = new THREE.Group();
+    public entityGroup:THREE.Group = new THREE.Group();//this is the group that contains all the entity meshes to be added to the scene
     private raycaster = new THREE.Raycaster();
     private down = new THREE.Vector3(0, -1, 0);
 
@@ -177,7 +177,7 @@ class EntityManager {
         const playerPos = player.char.position;
         for (let i = entities.length - 1; i >= 0; i--) {
             const entityWrapper = entities[i];
-            const entityPos = entityWrapper._entity.char.position; // Assuming THREE.Vector3
+            const entityPos = entityWrapper._entity.char.position;
             const distance = playerPos.distanceTo(entityPos);
             if (distance > this.despawnRadius) {
                 entityWrapper._entity.cleanUp()
@@ -199,7 +199,7 @@ class EntityManager {
         }
         console.log('canSpawnEntities:', canSpawnEntities);
         if (canSpawnEntities) {
-            this.spawnTimer += deltaTime;//incresing the timer only when there are no entities ensures that new entities are only spawned after all other entities are dead.
+            this.spawnTimer += deltaTime;//incresing the timer only when there are no entities ensures that new entities are only spawned when needed not every frame
             if (this.spawnTimer > this.spawnCooldown) {
                 this.spawnEntities();
                 this.spawnTimer = 0;
