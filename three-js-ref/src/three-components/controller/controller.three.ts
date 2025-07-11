@@ -131,7 +131,7 @@ export abstract class Controller {
         this.loadCharacterModel();
     }
     private calculateGroundPosition() {
-        const initGroundPosY = Number((this.characterPosition.y - this.groundDetectionDistance).toFixed(2)) - 1;
+        const initGroundPosY = Number((this.characterPosition.y - this.groundDetectionDistance).toFixed(2)) - 1;//the choice of to fixed(2) and -1 decrement was gotten from observations where i used a ground position point that worked at a particular place as a ref point and used that to correct my calculation through an iterative process of performing the right arithmetic
         const finalGroundPosY = Number((initGroundPosY - this.widthDebuf).toFixed(1))
         console.log('groundPosY:',finalGroundPosY);
         return finalGroundPosY
@@ -196,13 +196,13 @@ export abstract class Controller {
     }
     private calculateUpwardVelocity():number {
         const destinationHeight = this.obstacleHeight; // no need to round here
-        const upwardVelocity = Math.sqrt(2 * gravityY * destinationHeight);
+        const upwardVelocity = Math.ceil(Math.sqrt(2 * gravityY * destinationHeight));//i used ceiling here for that extra velocity boost to be sure enough that it can be used to overcome the obstacle
         console.log("Final upward velocity: ",upwardVelocity);
         return upwardVelocity
     }
     private calculateForwardVelocity(upwardVelocity:number):number {
         const totalAirTime = (2 * upwardVelocity) / gravityY;
-        const forwardVelocity = Math.ceil(this.obstacleDetectionDistance / totalAirTime);
+        const forwardVelocity = Math.ceil(this.obstacleDetectionDistance / totalAirTime);//i used ceil here for the same reason why i used it it for upward velocity
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
@@ -259,7 +259,7 @@ export abstract class Controller {
     
         const point = new THREE.Vector3(
             this.characterPosition.x + (dir.x * distance),
-            Math.max(0,this.calculateGroundPosition()) + 1,//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative.The +1 is a required inflation.trust me,it will crash if you remove it.
+            Math.max(0,this.calculateGroundPosition())+1,//to clamp negative ground pos to 0 to prevent the relative height from being higher than the actual cube height when negative.The +1 is a required inflation to prevent the point from sinking to the ground
             this.characterPosition.z + (dir.z * distance)
         );
         return point
@@ -291,7 +291,7 @@ export abstract class Controller {
                 this.obstacleHeight = relativeHeight
                 downwardClearance = false
                 console.log("Relative height checked down: ",relativeHeight);
-                if (relativeHeight <= this.dynamicData.maxStepUpHeight) {
+                if (relativeHeight <= this.dynamicData.maxStepUpHeight) {//despite that this method should be guaranteed to only be called if there is clearance at the point step over pos,i still added this because of a scenario where it was falsely called so ever since,its safer to have this here as a defensive check
                     console.log("STEPPING UP");
                     this.shouldStepUp = true;
                 }
@@ -418,7 +418,7 @@ export abstract class Controller {
                 hasCollidedForward = true;
 
                 const groundPosY = offsetPoint.y
-                const stepOverPosY = (groundPosY+this.dynamicData.maxStepUpHeight) + 1//the +1 checks for the point just above this.is it possible to step over
+                const stepOverPosY = groundPosY+this.dynamicData.maxStepUpHeight//logically,to check for if i can step over an obstacle of a given height using clearance check,then i should raise this point by +1 so that it doesnt give false negatives that i cant step over it but that +1 has already been added when i called orient point.check why i added the +1 there through the comments for that method
                 const stepOverPos = new THREE.Vector3(offsetPoint.x,stepOverPosY,offsetPoint.z)
                 
                 this.obstacleDistance = distance
@@ -951,7 +951,6 @@ export abstract class Controller {
     }
 
 
-   
 
     private velocitiesY:number[] = []
     protected velBeforeHittingGround:number = 0;
