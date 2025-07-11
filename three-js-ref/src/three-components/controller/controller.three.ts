@@ -437,7 +437,7 @@ export abstract class Controller {
                 })
                 if (clearance) {
                     this.calcHeightTopDown(stepOverPos)            
-                }else {//we want to get the clearance point for the agent only when it cant step over it which occurs when it has to check for the obstacle height bottom up rather than top down
+                }else {//we want to get the clearance point for the agent only when it cant step over it which occurs when it has to check for the obstacle height bottom up rather than top down cuz it will lead to unnecessar calc and cost perf if we do this in every frame even when we dont need it
                     this.calcHeightBottomUp(stepOverPos);
                     if ((i == foremostPoint) || (i == firstPoint)) this.calcClearanceForAgent(offsetPoint,purpose);
                 }
