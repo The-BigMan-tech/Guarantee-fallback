@@ -6,6 +6,7 @@ import { groupIDs } from "./groupIDs";
 
 type Singleton<T> = T;
 type SubBranch = 'byHealth' | 'byAttackDamage' | 'byKnockback';
+type Relationship = 'attack';//add more relationships here
 
 export interface EntityLike extends Controller {//this type is the common properties of both the player and entity classes to allow polymorphism
     _groupID:string | null,
@@ -34,12 +35,15 @@ export class RelationshipManager {
     public static get instance():RelationshipManager {
         if (!RelationshipManager.manager)  {
             RelationshipManager.manager = new RelationshipManager();
-            Object.values(groupIDs).forEach(groupID=>{//this sets up all the relationships.setting up the data structures at creation time saves performance for the rest of the gameplay
-                RelationshipManager.relationships.attack[groupID] = {
-                    byHealth:new Heap((a,b)=>b.health.value - a.health.value),
-                    byAttackDamage:new Heap((a,b)=>b._attackDamage - a._attackDamage),
-                    byKnockback:new Heap((a,b)=>b._knockback - a._knockback)
-                }
+            //this automates the creation of the relationship structure for each sub branch for each groupID for each relationship.The reason why i didnt automate the subranches but made it more explicit is because each sub branch uses a dofferent property to build the heap
+            (Object.keys(RelationshipManager.relationships) as Relationship[]).forEach(relationship=>{
+                Object.values(groupIDs).forEach(groupID=>{//this sets up all the relationships.setting up the data structures at creation time saves performance for the rest of the gameplay
+                    RelationshipManager.relationships[relationship][groupID] = {
+                        byHealth:new Heap((a,b)=>b.health.value - a.health.value),
+                        byAttackDamage:new Heap((a,b)=>b._attackDamage - a._attackDamage),
+                        byKnockback:new Heap((a,b)=>b._knockback - a._knockback)
+                    }
+                })
             })
         }
         return RelationshipManager.manager;
