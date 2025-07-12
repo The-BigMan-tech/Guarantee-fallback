@@ -127,11 +127,13 @@ class EntityManager {
         switch (groupID) {
             case (this.entityMapping['Enemy'].groupID): {
                 const enemy = this.factory.createEnemy(entityData);
+                enemy._entity._groupID = groupIDs.enemy;
                 enemy._entity.incEntityCount('Enemy');
                 return enemy
             }
             case (this.entityMapping['NPC'].groupID): {
                 const npc = this.factory.createNPC(entityData);
+                npc._entity._groupID = groupIDs.npc;
                 npc._entity.incEntityCount('NPC');
                 return npc;
             }

@@ -48,6 +48,7 @@ export class RelationshipManager {
     public addRelationship(entityLike:EntityLike,subBranches:SubBranches) {
         const set = RelationshipManager.set;
         if (!set.has(entityLike)) {
+            console.log('added a relationship');
             set.add(entityLike);
             (Object.keys(subBranches) as SubBranch[]).forEach(branch=>{
                 subBranches[branch].add(entityLike);
@@ -58,6 +59,7 @@ export class RelationshipManager {
     public removeRelationship(entityLike:EntityLike,subBranches:SubBranches) {
         const set = RelationshipManager.set;
         if (set.has(entityLike)) {
+            console.log('removed a relationship');
             set.delete(entityLike);
             (Object.keys(subBranches) as SubBranch[]).forEach(branch=>{
                 subBranches[branch].remove(entityLike);

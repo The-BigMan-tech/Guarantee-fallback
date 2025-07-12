@@ -32,11 +32,10 @@ enum CameraMode {
 }
 class Player extends Controller implements EntityLike {
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
-    private readonly groupID = groupIDs.player;
+    private readonly groupID = groupIDs.player;//the player's group id unlike the entities is readonly because its a fixed one not changed dynamically
 
     private enemyToSelfRelationship:SubBranches = relationshipManager.attackerOf[groupIDs.player];//i used null here to prevent ts from complaining that i didnt initialize this in the constructor and i wanted to avoid code duplication but im sure that it cant be null and thats why i used null assertion in property access
     private addRelationship = relationshipManager.addRelationship;
-    private removeRelationship = relationshipManager.removeRelationship;
 
     private readonly firstPersonClamp = 75;
     private readonly secondPersonClamp = 70;
@@ -269,10 +268,14 @@ class Player extends Controller implements EntityLike {
             this.playAttackAnimation();
         }
         if ((this.attackTimer > this.attackCooldown) && (this.lookedAtEntity)) { 
-            const targetHealth = this.lookedAtEntity._entity.health;
+            const entity = this.lookedAtEntity._entity;
+            const targetHealth = entity.health;
             if (targetHealth && !targetHealth.isDead) {
                 targetHealth.takeDamage(this.attackDamage);
-                this.lookedAtEntity._entity.knockbackCharacter('backwards',this.knockback);
+                entity.knockbackCharacter('backwards',this.knockback);
+                if (entity._groupID !== groupIDs.npc) {
+                    this.addRelationship(entity,this.enemyToSelfRelationship)
+                }
                 this.attackTimer = 0;
             }
         }
@@ -346,7 +349,7 @@ const playerDynamicData:DynamicControllerData = {
 const playerMiscData:PlayerMiscData = {
     healthValue:1000,
     attackDamage:1,
-    knockback:1000,
+    knockback:150,
     camArgs: {
         FOV:75,
         nearPoint:0.1,
