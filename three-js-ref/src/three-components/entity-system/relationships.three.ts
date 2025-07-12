@@ -3,6 +3,7 @@ import type { Health } from "../health/health";
 import Heap from "heap-js";
 import { groupIDs } from "./groupIDs";
 
+//im not going to explain the structure or how it works cuz its evident from the code.the more important question which is why i chose to use a reference tree instead of a graph is because linear data flow is easier to preduct than a bidirectional one as seen in a graph
 
 type Singleton<T> = T;
 type SubQuery = 'byHealth' | 'byAttackDamage' | 'byKnockback';
@@ -62,7 +63,7 @@ export class RelationshipManager {
         }
         return RelationshipManager.manager;
     }
-    //adding and removing items to and from the heap is O(logn) and since im doing this for each branch,it means that adding relatioships in my code is O(nlogn).The same for removing relationships.but since im using a set to prevent duplicate entries through an O(1) membership test,then adding and removing a particular relationship is done only once per entity.making it O(nlogn) only twice per relationship but after that,querying for complex relationships is O(1) 
+    //this operation is O(logn) given that the number of sub queries are manageable
     public addRelationship(entityLike:EntityLike,data:RelationshipData) {
         const set = data.set;
         if (!set.has(entityLike)) {
@@ -74,6 +75,8 @@ export class RelationshipManager {
             })
         }
     }
+    //This is pure O(1)
+
     //entities must remove their relationships upon death to prevent unexpected behaviour from the entities and to prevent memory leaks
     public removeFromRelationship(entityLike:EntityLike,data:RelationshipData) {
         const set = data.set;
@@ -83,6 +86,8 @@ export class RelationshipManager {
             RelationshipManager.clearOnZeroMembers(data);
         }
     }
+    //This is O(1) as long as the number of sub queries are manageable.
+
     //not only does this prevent memory leaks like eager removal but it also saves perf by batching deletes till when all entities in a relationship have died.it doesnt delete eagerly this time but rather,it clears everything in one go.
     private static clearOnZeroMembers(data:RelationshipData) {//i have to make this static because the remove rel references i created in the concretes dont have the this context to call it.
         const set = data.set;

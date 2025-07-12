@@ -1300,3 +1300,16 @@ graph
 Unique list
 
 Polymorphism can allow for situations where you code an object that seamlessly integrates with others objects without explicit support.like making a furnace for a metal and it works for any metal even those from other mods
+
+*Decision making system--fsm,hsm,behaviour tree
+*Relationship system--hardcoded,structure
+
+before,i used to make removal of relationships eager by removing the element from both the local set and each heap but since removal of an element from th eheap is O(logn) and i did it for each heap,then it means that eagerly removing relationships was O(nlogn) but since this operation is only done once in an entity's lifecycle which is on death,its not that costly but it can over time if the entity amount increases.so by using a counter,i ensure that removing relationships from the tree is O(1) nearly instant because it just decrements a counter and when the member count hits zero,it clears the set and heap which is O(1) allowing for garbage collection of cleaning of expired relationships.so it means that my relationship tree only uses O(n2) on startup just to build the strcutures for each relationship which is done when the game is loading but after the game loads,querying and removing relationships is O(1) and its only adding a relationship thats O(logn).
+
+The caller explicitly supplies the RelationshipData for a specific group, so adding a relationship only affects that single group’s data structures.
+The complexity does not grow with the total number of groups in your system because you are not iterating over or updating all groups—only the targeted one.
+Within that group, you add the entity to multiple subqueries (heaps), but since the number of subqueries is small and fixed (e.g., byHealth, byAttackDamage), this is effectively a constant factor.
+
+so the nuber of groups only affects load time making it O(n2) because its group number * relationships but using grouped records is very packed making it highly manageable to negligible if the groups are of considerable size and using groups unlike per instance means that i can construct the heaps at start up and after that,it doesnt even affect perf throughout the game making adding,querying and removal highly efficient regardless of the number of groups cuz per instance records means that the number of instances will directly affect the perf of other operations cuz their structures will need to be built dynamically for each instance on the fly
+
+so grouped records are more efficient,dont affect runtime beyond startup and they still provide some form of precise tracking on the subject side and its more practical than getting precise tracing on instances with temporary lifetimes that can spawn or despawn in bunch with little to no benefit

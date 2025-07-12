@@ -5,6 +5,7 @@ import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY, combatCooldown} from "../physics-world.three";
 import { walkSound,punchSound,landSound } from "../listener/listener.three";
 
+//these methods are to create line geometries for their respective shapes.they are used to visualize hitboxes for visual debugging
 function createCapsuleLine(radius:number,halfHeight:number) {
     const charGeometry = new THREE.CapsuleGeometry(radius,halfHeight*2);
     const charEdges = new THREE.EdgesGeometry(charGeometry);
@@ -15,7 +16,7 @@ function createBoxLine(halfWidth:number,halfHeight:number) {
     const charEdges = new THREE.EdgesGeometry(charGeometry);
     return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
 }
-
+//this is data fpr the controller that cant or should not be changed after creation
 export interface FixedControllerData {
     modelPath:string,
     spawnPoint: RAPIER.Vector3,
@@ -24,6 +25,7 @@ export interface FixedControllerData {
     shape:'capsule' | 'box'
     mass:number,
 }
+//this is data for the controller that can change dynamically after creation
 export interface DynamicControllerData {
     maxStepUpHeight:number,
     jumpVelocity:number,
@@ -33,44 +35,49 @@ export interface DynamicControllerData {
     rotationSpeed:number,
     gravityScale:number
 }
-export interface CollisionMap {
-    start:string,
-    target:string,
-    points:string[]
-}
+//these are just type aliases to improve clarity on the units used
 type degrees = number;
 type seconds = number;
-//*The ground position calculation may break for an arbritary charcter height.a stable and tested height is 2. 1,3 and 4 have been played tested and are smooth but the ground check jitters a little between false and true cuz jumping from the ground at times at these values feels uresponsive
-//i made it an abstract class to prevent it from being directly instantiated to hide internals,ensure that any entity made from this has some behaviour attatched to it not just movement code and to expose a simple innterface to update the character through a hook that cant be passed to the constrcutor because it uses the this binding context.another benefit of using the hook is that it creates a consistent interface for updating all characters since a common function calls these abstract hooks
-export abstract class Controller {
-    private static readonly showHitBoxes = false;//the hitboxes are a bit broken
-    private static readonly showPoints = false;
 
-    protected dynamicData:DynamicControllerData;//needs to be protected so that the class methods can change its parameters like speed dynamically but not public to ensure that there is a single source of truth for these updates
-    private fixedData:FixedControllerData;//this is private cuz the data here cant or shouldnt be changed after the time of creation for stability
-    
-    private character: THREE.Group<THREE.Object3DEventMap> = new THREE.Group();//made it private to prevent mutation but added a getter for it to be added to the scene
-    private characterBody: RAPIER.RigidBodyDesc = RAPIER.RigidBodyDesc.dynamic();
-    private characterPosition:RAPIER.Vector3
+//The controller class is a class to create and manage dynamic rigid bodis in the world with the ability to control these bodies with simple interfaces at runtime.it is used for players and entities.I encourage blocks to be made with a static physics body because of perf.so this class isnt meant for blocks.
+
+//i made it an abstract class to prevent it from being directly instantiated so that its internals remain hidden from instances for safety.This controller is meant to be extended to concrete types and there are two current classes that inherit from this that already covers majority of the uses of this controller-the player and entity class which itself can be used to create other entities with complex behaviour.the class exposes a hook thats called in every update loop at a point where its safe to add concrete specific behaviour in a way that it always correctly reflects the state of the controller.the concretes dont need to know how or at what point their hook is called but they do know that in the hook,they can define all the high level behaviour they want to dynamically control the controller.
+
+//through out the codebase,im using private-first encapsulation.This is to ensure data safety and to prevent accidental mutation to internals.most times when i want to reduce strictness,i use protected but only when absolutely necessary that i use public because there will always be some method that needs public access for the other parts of the codebase to use.
+export abstract class Controller {
+    private static readonly showHitBoxes = false;//this is used to toggle the hitboxes for visual debugging.i made it static to make it easy to tune this for all controller concretes
+    private static readonly showPoints = false;//this toggles explicitly colored points for visual debugging.if you are directly working on the internals of this controller,then you can color any point you want to visualize for debugging purposes using the color point method and just make sure that you add the point group to the scene along side the group containing the character which has already been done for the player and the entities.all you have to do is to call this on any vector representing a point and it will handle updating thse point every frame as well as clearing the ones from the previous frame.
+
+    protected dynamicData:DynamicControllerData;//needs to be protected so that concretes can change this dynamically at runtime but not public to ensure this data retains its integrity
+    private fixedData:FixedControllerData;
+    private character: THREE.Group<THREE.Object3DEventMap> = new THREE.Group();//this is the group that holds all the 3D objects for this controller.it should be added to the scene directly to render the controller in game
+    private characterBody: RAPIER.RigidBodyDesc = RAPIER.RigidBodyDesc.dynamic();//we are using a dynamic rigod body because thats what the controller is made for
+    private characterPosition:RAPIER.Vector3;//this variable is used to hold the position of the rigid body.its updated at every frame so it accurately reflects the position of the rigid body.i used this when i need to access the rigid body position throughout the codebase instead of rigidbody.translation directly cuz its easier to type,read and it follows the pattern where modifications arent done directly on the object but on a target variable before using that target variable to apply the desired modifiations on the body.
     private characterCollider: RAPIER.ColliderDesc
     protected characterRigidBody:RAPIER.RigidBody | null;//im only exposing this for cleanup purposes
-    private readonly characterColliderHandle:number;
-    private charLine: THREE.LineSegments;
+    private readonly characterColliderHandle:number;//im holding the handle of this character for identity checks like to prevent detecting the character's own body when making physics queries
+    private charLine: THREE.LineSegments;//this is the 3D object containing the edge geometry to create the hitboxes
 
-    private readonly modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera
+    private readonly modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera cuz relatively moving the camera can lead to misalignment cuz the camera position wont actually align with the characters center which is used as the pivot for rotation
 
-    private obstacleHeight: number = 0;//0 means there is no obstacle infront of the player,a nmber above this means there is an obstacle but the character can walk over it,infinty means that tere is an obstacle and the character cant walk over it
-    private obstacleDetectionDistance:number = 0;
-    private groundDetectionDistance:number;
+    private obstacleHeight: number = 0;//this tells the height of the immediate obstacle infront of the controller.0 means no obstacle height therefore no obstacles while any non-zero integer means that there is an obstacle ahead of a given height.
+    private obstacleDetectionDistance:number = 0;//this is the distance ahead of the controller where obstacles are queried/detected.it allows for more natural gameplay exp than detecting directly infront of the controller cuz it allows the controller to prepare ahead of time.for example,to smoothly step over an obstacle,the controller must know that before the player gets to collide with it to make it a natural walk.else,it will hit the obstacle,then go up producing a less natural feel.
+
+    private groundDetectionDistance:number;//this is a calcualted variable that is deducted from the character's y position to know which point below the character should a query for the ground be made.
     
-    private velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);
+    private velocity:THREE.Vector3 = new THREE.Vector3(0,0,0);//im using velocity to directly control the character movement cuz it leads to more controlled movements unlike impulse which can cause sliding and force which can pile up over time unless i manually reset the forces.
+
+    //these variables are already self explanatory
     private targetRotation:THREE.Euler = new THREE.Euler(0, 0, 0, 'YXZ');
     private targetQuaternion:THREE.Quaternion = new THREE.Quaternion();
 
-
-    private playLandSound: boolean = true;
+    //this is just a flag i use to control exactly when the landing sound is made cuz unlike the other sounds,this sound has to be played at the right time which is when the character makes an impact on the ground which cant be done in outside code.it has to be integrated directly into the internals which this already does on behalf of the concretes.
+    private playLandSound: boolean = true; 
     
+    //this stores the current time since the last delta.i have a global clock that i use to get the delta and i pass it to every controller to store here for easy access/
     protected clockDelta:number | null = null;
+
+    //these are animation specific variables
     protected mixer: THREE.AnimationMixer | null = null;//im only exposing this for cleanup purposes
     private currentAction: THREE.AnimationAction | null = null;
     private idleAction: THREE.AnimationAction | null = null;
@@ -79,21 +86,30 @@ export abstract class Controller {
     private attackAction:THREE.AnimationAction | null = null;
     private deathAction:THREE.AnimationAction | null = null;
 
+    //this is a flag used to control whether the controller should step over an obstacle or not
     private shouldStepUp: boolean = false;
+    //this is a flag used to state whether the controller is allowed to play the jump animation or not.
     private shouldPlayJumpAnimation: boolean = false;
 
+    //this stores the original horizontal velocity in order to revert back to it after dynamic modification to the horizontal velocity.i made this especially for sprinting mechanics and which is why i didnt create variables to revert to for the other dynamic properties like jump velocity.
     private originalHorizontalVel:number
-    public points:THREE.Object3D = new THREE.Object3D();
-    private readonly pointDensity = 1.5;
 
-    private obstacleDistance:number = 0;//unlike obstacledetection distance which is a fixed unit telling the contoller how far to detect obstacles ahead of time,this one actually tells the realtime distance of an obstacle form the controller
-    private widthDebuf:number
-    private obstacleClearancePoint:THREE.Vector3 = new THREE.Vector3();
+    public points:THREE.Object3D = new THREE.Object3D();//this is the 3d group containing the points for visual debugging that are added to the scene
+    private readonly pointDensity = 1.5;//this is used to control the number of points per unit distance in teh obstacle detection distance.obstacle detection distance doesnt just check a fixed point ahead of the player but also other points in between that.this is used to detect obstacles that might just appear infront of the player and the point density is tied to this as already mentioned
 
-    private isFinalDestClose = false;
-    private branchedPath:THREE.Vector3 | null = null;
+    private obstacleDistance:number = 0;//unlike obstacledetection distance which is a fixed unit telling the contoller how far to detect obstacles ahead of time,this one actually tells the realtime distance between an approaching obstacle and the controller.its always smaller or equal to obstacle detection distance because obstacles arent detected beyond that distance to even update this variable in the first place
+    
+    private widthDebuf:number//this is a calculated variable used to deduct from the calculated ground position because my ground detection distance doesnt take into account the width of the controller.its confusing how width influences the accuracy of groud position calculation but it does as according to the playtest.so this fixes that allowing the controller to now work with arbritary widths and heights.but still test thoruoghly.
 
+    private obstacleClearancePoint:THREE.Vector3 = new THREE.Vector3();//this is used specifically to lead a navigator around an obstacle.a navigator is a controller that uses the navigation method to move like the entity instead of manual controls like the player.
+
+    private isFinalDestClose = false;//this is used by nav system to know how close the controller is to its final destination whether its the original path or a branch.
+    private branchedPath:THREE.Vector3 | null = null;//this holds the point to the branched path when navigatiing which is a temporary path that lead the entity away from an obstacle before resuming back to its original target.the controller only remebers one branch point at a time for predictability and memory.one branch is enough for it to branch multiple times because when it reaches a branch point,it can then set a new branch point from the point its already standing on essentially creating multiple branches around an obstacle while still only remembering one branch at a time.the only thing is that it cant backtrace its steps back to the target so after it has branched enough,it goes straight to the target and repeats the nav mechanism again to reach the goal without bactracing its steps from branch to branch.
+
+    //this variable is used to tell whether the controller is blocked by an obstacle or not by checking if it can walk forward.unlike obstacle dtectio which is proactive by using phsyics queries,this one is reactive by checking the velocity which captures non movement at any point of impact.it used as a backup for the nav system to catch possible errors where obstacle detection may be bugged.although this is unlikely as shown in checks,this is a good defensive mechanism
     private canWalkForward:boolean = false;
+
+    //this is used to inform concretes if they are out of bounds like out of the world.this is to ensure that they are eithe respawned in the case of the player or killed in the case of entities.since the world is procedurally genrated around the player,its highly unlikely that the player will fall out of bounds since the base floor is indestructibe but i still left that respawning when out of bounds cuz i made it at the time where the world was finite and besides,its a good defensive check where the player may glitch of the world unexpectedly in cases of high falling velocities or something like that.As for the entities,i use this especially as an easy way to clean entities that are off the chunk without explicitly limiting the despawn radius to the chunk distance.it allows me to decouple those variables improving overall clarity.
     protected isOutOfBounds:boolean = false;
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
@@ -121,7 +137,7 @@ export abstract class Controller {
         this.characterRigidBody.setTranslation(this.characterPosition,true);
 
         this.widthDebuf = fixedData.characterWidth - 1;
-        this.groundDetectionDistance = halfHeight + 0.5 + ((fixedData.characterHeight%2) * 0.5);//i didnt just guess this from my head.i made the formula after trying different values and recording the ones that correctly matched a given character height,saw a pattern and crafted a formula for it
+        this.groundDetectionDistance = halfHeight + 0.5 + ((fixedData.characterHeight%2) * 0.5);//this formula wasnt just decided,it was designed.i made the formula after trying different values that each worked for a given hardcoded heights,saw a pattern and crafted a formula for it
 
         this.originalHorizontalVel = dynamicData.horizontalVelocity;
 
@@ -131,8 +147,8 @@ export abstract class Controller {
         this.loadCharacterModel();
     }
     private calculateGroundPosition() {
-        const initGroundPosY = Number((this.characterPosition.y - this.groundDetectionDistance).toFixed(2)) - 1;//the choice of to fixed(2) and -1 decrement was gotten from observations where i used a ground position point that worked at a particular place as a ref point and used that to correct my calculation through an iterative process of performing the right arithmetic
-        const finalGroundPosY = Number((initGroundPosY - this.widthDebuf).toFixed(1))
+        const initGroundPosY = Number((this.characterPosition.y - this.groundDetectionDistance).toFixed(2)) - 1;//the -1 is required to sink the point a little into the ground to prevent the point from stopping just above the ground which will make the query ineffective for gettng the ground position.
+        const finalGroundPosY = Number((initGroundPosY - this.widthDebuf).toFixed(1))//we also want to consider the width debuf as said earlier
         console.log('groundPosY:',finalGroundPosY);
         return finalGroundPosY
     }
@@ -194,6 +210,7 @@ export abstract class Controller {
             this.currentAction = newAction;
         }
     }
+    //these velocity calc methods are used to calculate the effective upward and forward velocity required to walk over an osbtacle as detected ahead of the controller by a method
     private calculateUpwardVelocity():number {
         const destinationHeight = this.obstacleHeight; // no need to round here
         const upwardVelocity = Math.ceil(Math.sqrt(2 * gravityY * destinationHeight));//i used ceiling here for that extra velocity boost to be sure enough that it can be used to overcome the obstacle
@@ -206,6 +223,7 @@ export abstract class Controller {
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
+    //this is the method that colors any point for visual debugging
     protected colorPoint(position:THREE.Vector3, color:number) {
         if (!Controller.showPoints) return;
         const geometry = new THREE.SphereGeometry(0.06,8,8); // Small sphere
@@ -215,12 +233,13 @@ export abstract class Controller {
         point.position.y -= 0.5;
         this.points.add(point);
     }
+    //this is to color the ground point but im not currently using it cuz the ground point jitters about a fixed position because of float precision changes per frame or something like that
     private colorGroundPoint() {//i rounded the height cuz the point doesnt always exactly touch the ground
         const point:THREE.Vector3 = new THREE.Vector3(this.characterPosition.x,Math.round(this.calculateGroundPosition()),this.characterPosition.z);
         this.colorPoint(point,0xffffff)
     }
 
-
+   //this just uses the calculated ground point to query for the ground to know if the controller is grounded or not.i used it to determine which forces to apply on the controller to move its body like linear velocity for movement,impulse for knockback and no explicit velocity control when jumping to make jumping feel more natural.
     private isGrounded():boolean {
         if (!this.characterRigidBody) return false;
         if (this.characterRigidBody.isSleeping()) return true;//to prevent unnecessary queries when the update loop calls it to know whether to force sleep force sleep.
@@ -259,7 +278,7 @@ export abstract class Controller {
     
         const point = new THREE.Vector3(
             this.characterPosition.x + (dir.x * distance),
-            this.calculateGroundPosition() + 1,//The +1 is a required inflation to prevent the point from sinking to the ground as shown in my visual debugger.if it sinks,it will make a point query every frame which will severly lag the game.the actual place where this +1 came from is because calc ground position sinks the point by doing -1 which is for precision concerning checking for the ground but not in the context of detecting obstacles.
+            this.calculateGroundPosition() + 1,//The +1 is required to counter the sinking in the ground position calculation.the sinking has its purpose there but in the context of detecting obstacles,we dont want the sinking so that one,we can see the points in the visual debugger and two,to prevent a heavy lag because if we were to leave it sinking,the point always collides with an obstacle which is the ground which will make dozens of physics queries every frame which will severly lag the game.since this method is used specifically in obstacle detection,then we need to remove the sinking.
             this.characterPosition.z + (dir.z * distance)
         );
         return point
@@ -272,14 +291,14 @@ export abstract class Controller {
         this.obstacleDetectionDistance = (this.dynamicData.horizontalVelocity * delta) + margin
         console.log("Obstacle detection distance: ",this.obstacleDetectionDistance);
     }
-    private getSteps(maxDistance:number,density:number) {
+    private getSteps(maxDistance:number,density:number) {//this controls how many points exist from the controller's position and the point of obstacle detection.it uses point density to influence this and its capped for performance
         let steps = Math.floor(maxDistance * density);
         const minSteps = 3;
         const maxSteps = 10;
         steps = Math.min(Math.max(steps, minSteps), maxSteps);
         return steps
     }
-
+    //this calcukates the height of an obstacle by starting from a clearance point downwards till there is no clearance which is where an obstacle has been detected.we can then use this point to get the relative height of an obstacle
     private calcHeightTopDown(stepOverPos:THREE.Vector3,groundPosY:number) {
         const downwardCheckPos = stepOverPos.clone();//i cloned it to prevent subtle bugs if i reuse stepoverpos later
         const increment = 0.1;//the reason why i used a float this precise for the increment is to improve its robustness.this is because the blocks i generated in my world had random heights between x to y but not in whole integers but in floats.so when i used 1 here as the increment,it led to a subtle bug where the height was calculated as 2 but in reality,it was actually 2.2 leading to false positives that made the controller to attempt to step over the obstacle using a calculated upward and forward velocity that wasnt the actucal required velocity to overcome the obstacle and it wasnt suppose to walk over it in te first place which also led to a bug where calc clearance for agent was never called so my entity got stuck.but using smaller increments takes more runtime than big steps but this negligible for the gains in precision.
@@ -287,8 +306,8 @@ export abstract class Controller {
             let downwardClearance = true
             downwardCheckPos.sub(new THREE.Vector3(0,increment,0));
 
-            physicsWorld.intersectionsWithPoint(downwardCheckPos,()=>{//since stepOverPos is already calculated relative to the ground position,i dont have to involve it when calculating relative height
-                const relativeHeight = Number((downwardCheckPos.y - groundPosY).toFixed(2));//i fixed it to 2dp to make the result more concise.the +1 is an artificial inflation for accuracy
+            physicsWorld.intersectionsWithPoint(downwardCheckPos,()=>{
+                const relativeHeight = Number((downwardCheckPos.y - groundPosY).toFixed(2));//i fixed it to 2dp to make the result more concise.the obstacle height used here is a relative height not an absolute one.an absolute one is just directly uses the y pos without subtracting it from the ground pos and its effective enough for situations where the controller and all the obstacles are on the same ground level like a flat world with disperesed platforms but its not robust enough on terrains cuz blocks can be stacked on top of each other and you can be standing on a block next to the stacked block and its more important to know the height from where you are standing than wherever the obstacle stands on.so using relative height here is more robust
                 console.log('relative downwardCheckPos:', downwardCheckPos.y);
                 this.obstacleHeight = relativeHeight
                 downwardClearance = false
@@ -304,6 +323,7 @@ export abstract class Controller {
             }
         }   
     }
+    //this calcuates the height of an obstacle by starting from a given point and going upwards till there is clearance which infers that the point of clearance is where the osbtacle height stops which can be used for other calculations.
     private calcHeightBottomUp(stepOverPos:THREE.Vector3,groundPosY:number) {
         const upwardCheckPos = stepOverPos.clone();
         const maxHeightToCheck = 30;
@@ -317,7 +337,7 @@ export abstract class Controller {
                 return true
             })
             if (upwardClearance) {
-                const relativeHeight = Number((upwardCheckPos.y - groundPosY - 0.1).toFixed(2));//the relative height here is actually 0.1 more than its actually supposed to be.since its a minor precision error,i can ignore it.i dont think its possible to get exact precision.i can add a decrement of 0.1 here but it will decrease clarity and increase the number of precision parts of the code i have to track.
+                const relativeHeight = Number((upwardCheckPos.y - groundPosY - 0.1).toFixed(2));//the relative height here is actually 0.1 more than its actually supposed to be cuz i used hardcoded heights to test this and since it was the same precision error across many hardcoded heights,i just decided to subtract 0.1 from it to fix it.
                 console.log('relative upwardCheckPos.y:', upwardCheckPos.y);
                 this.obstacleHeight = relativeHeight
                 console.log("Relative height checked up: ",relativeHeight);
@@ -325,16 +345,19 @@ export abstract class Controller {
             }
         }   
     }
+    //this is used to prioritize branches created by the foremost and side ray
     private prioritizeBranch:boolean = false;
 
     private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay') {
         const horizontalForward = this.getHorizontalForward();
         const maxWidthToCheck = 40;
-        const reachedPreviousClearance = this.obstacleClearancePoint.equals({x:0,y:0,z:0})//it only clears when the entity has reached the previous branch
+        const reachedPreviousClearance = this.obstacleClearancePoint.equals({x:0,y:0,z:0})//this states whether the controller has reached the previous clearance point used to lead it away from an obstacle.i used a zero vector equality check cuz it only clears to 0 when the entity has reached the previous branch
         
         console.log('reachedPreviousClearance:', reachedPreviousClearance);
         
-        if ((purpose == 'sideRay') && reachedPreviousClearance) {//only the side or foremost ray can be called at a time per call.but the side ray is guaranteed to be called before the foremist ray becuase the detcetion loop starts from the first point to the foremost one
+        //the purpose of this point cast is to lead the agent along the wall of an obstacle by shooting forward till there is no obstacle ahead of it which means that it has sucessfully walked along the wall.youll understand this better if you see it yourself using the visual debugger.
+
+        if ((purpose == 'sideRay') && reachedPreviousClearance) {//only the side or foremost ray can be called at a time per call.
             const straightLinePos = point.clone();//i termed this straight line cuz it penetrates through blocks to get a clearance point
             let finalPos: THREE.Vector3 | null = null;
             for (let i=0;i <= maxWidthToCheck;i++) {
@@ -359,6 +382,8 @@ export abstract class Controller {
                 }
             }  
         }
+        //the purpose of this point cast is to create that initial turn against an obstacle wall by nudging the clearance point to the side.youll better understand it by using the visual debugger.
+
         if (purpose == "foremostRay") {
             const horizontalBackward = horizontalForward.clone().negate();
             const direction = this.useClockwiseScan ? horizontalForward : horizontalBackward;
@@ -408,7 +433,7 @@ export abstract class Controller {
             let offsetPoint:THREE.Vector3 = point.clone();
 
             let purpose:'foremostRay' | 'sideRay' = 'foremostRay'
-            if ((i == firstPoint)) {
+            if ((i == firstPoint)) {//the side ray is offset to the right or left depending on the perimater scan direction.this is because when an entity walks along a wall,a point has to offshoot from its side towards the wall to continuously dteect for a clearance point along the wall.it always shoots forward regardless of perimeter scan direction but it can offshoot either left or right.i made it the behind or first point so that the foremost ray takes precedence since the loop is from the back to the foremost ray.the foremost ray is more important cuz it causes that intial turn which prevents it from getting stuck on perpendicular adjacent blocks cuz the sideary alone,will tell it that it can still move forward along the wall without considering if there is already a wall blocking that path.the foremost ray doesnt get offset to the left or ight.it remains unshifted but its direction of point cast which is either forward or backward is influenced by the perimeter scan.this different behaviour to the same state is as a result of their differnt positioning and purpose.
                 const sideOffset = this.useClockwiseScan ? right : left
                 offsetPoint = offsetPoint.add(sideOffset.clone().multiplyScalar(3));
                 purpose = 'sideRay'
@@ -438,9 +463,9 @@ export abstract class Controller {
                     clearance = false
                     return false
                 })
-                if (clearance) {
+                if (clearance) {//so if there is clearance,we will want to check the height of the obstacle by moving the point down to the point of no clearance then we can take that point and subtract it from the ground position to know the relative height
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
-                }else {//we want to get the clearance point for the agent only when it cant step over it which occurs when it has to check for the obstacle height bottom up rather than top down cuz it will lead to unnecessar calc and cost perf if we do this in every frame even when we dont need it
+                }else {//Else,if there is no clearance,we will want to check for the height by moving the point up till there is clearance then use that point relative to our ground pos to get the relative height.We also want to get the clearance point for the agent only when it cant step over it which occurs when it has to check for the obstacle height bottom up rather than top down cuz it will lead to unnecessar calc and cost perf if we do this in every frame even when we dont need it
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
                     if ((i == foremostPoint) || (i == firstPoint)) this.calcClearanceForAgent(offsetPoint,purpose);
                 }
@@ -450,7 +475,7 @@ export abstract class Controller {
         if (!hasCollidedForward) {
             this.obstacleDistance = Infinity//infinity distance means there are no obstacles
         }
-        this.checkForGroundAhead(steps+1,forward)
+        this.checkForGroundAhead(steps+1,forward)//this is used for proactive jumping for the agent so that it can jump from block to block that have gaps between them not just when it has reached the wall of an obstacle.this allows for parkour like behaviour
     }
 
     private groundIsPresentForward:boolean = false;
@@ -472,7 +497,7 @@ export abstract class Controller {
 
     //the calculations used in this function was derived from real physics rules since the whole of this is built on a physics engine
     //tune the reduction scale as needed
-    private canJumpOntoObstacle() {//checks if the entity can jump on it based on the horizontal distance covered
+    private canJumpOntoObstacle() {//checks if the entity can jump on it based on the horizontal distance  on getting to the obstacle and the obstacle height againts its horizontal and jump velocity
         const reductionX = 12//im adding reduction scales to prevent inflation from high values.They are carefully tuned according to play feedback
         const reductionY = 6;
 
@@ -498,7 +523,7 @@ export abstract class Controller {
 
         return canJump
     }
-    private autoMoveForward(finalDestY:number) {
+    private autoMoveForward(finalDestY:number) {//this is used by the nav method to just move forward.thats its only job.it just moves forward and jump if the entity needs to jump.the high level overview of the nav logic is handled by the nav to target method
         this.stopWalkSound();
         const onGround = this.isGrounded();
 
@@ -540,6 +565,7 @@ export abstract class Controller {
         const charDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(this.character.quaternion);
         return new THREE.Vector3(charDirection.x, 0, charDirection.z).normalize();
     }
+    //helper method to get the distance between two poit vectors by their xz components alone
     private distanceXZ(a: THREE.Vector3, b: THREE.Vector3): number {
         const dx = a.x - b.x;
         const dz = a.z - b.z;
@@ -548,7 +574,7 @@ export abstract class Controller {
 
 
 
-
+    //helper to get the angular diff in degrees between a point and the character's position point.
     private getAngleDiff(path:THREE.Vector3):degrees {
         const direction = path.clone().sub(this.character.position);
         const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
@@ -557,6 +583,7 @@ export abstract class Controller {
         const normAngleInDegrees = Number((normAngle * (180/Math.PI)).toFixed(2));
         return normAngleInDegrees;
     }
+    //uses the angular diff from the helper to decide whether the entity should steer left or right
     private getSteeringDirection(path:THREE.Vector3):'right' | 'left' | null {
         const angle:degrees = this.getAngleDiff(path)
         const rotationThreshold = 10;//the magnitude of the rotation diff before it rotates to the target direction
@@ -568,7 +595,7 @@ export abstract class Controller {
 
 
 
-
+    //the flag used to control the perimeter scan diretion of the agent
     private useClockwiseScan:boolean = true;
     private timeSinceLastFlipCheck: number = 0;
     private flipCheckInterval:seconds = 2; // Minimum time interval between perimeter scan flip checks.Note: The flip check runs only when certain navigation conditions are met,so actual flips happen discretely, not strictly every interval.fine tune as needed to control the interval of flip checks
@@ -576,7 +603,7 @@ export abstract class Controller {
     private distSinceLastDelta: number | null = null;
     private static readonly zeroVector = new THREE.Vector3(0,0,0);
 
-
+    //this dynamically decides the perimeter scan direction if the entity has made any progress in distance to the target since the last delta time
     protected decidePerimeterScanDirection(distToOriginalPath:number,distSinceLastDelta:number) {
         const progress = distSinceLastDelta - distToOriginalPath;
         console.log('Perimeter. Progress:', progress);
@@ -586,7 +613,7 @@ export abstract class Controller {
         }
         this.distSinceLastDelta = distToOriginalPath;   
     }
-
+    //this clears the branch so that it can resume back on its normal path
     private terminateBranch() {
         this.obstacleClearancePoint.copy(Controller.zeroVector);//removing any possible clearance point and terminating the branch
         this.branchedPath = null;
@@ -596,7 +623,8 @@ export abstract class Controller {
     private isNearOriginalPath:boolean = false;
     private spaceCooldown = combatCooldown; // cooldown duration in seconds
     private spaceTimer = 0;
-
+    
+    //to break down the different types of paths i have,there are four types;the original path,the branched path,the current path and the final path.the original path is the original goal the entity needs to go.the branched path is the temporary point that the entity goes to in order to evade an obstacle that it cant overcome,the current path is the variable that reflects the path that the entity is taking at the moment which is either the original or branched path while the final path is the current path but it can be branched from there or not.the final path wont live long enough to properly lead the entity to the branch cuz its local and reset on every frame but it lives long enough to steer its facing direction to that branch so that in the next frame,the branched path can take it from there to lead it to the branched point.one may argue that i should cut down this variable and just leave it as 3 path types but having final path is important to properly get it steering to the branched point in the same frame.
     protected navToTarget(originalPath:THREE.Vector3,rotateAndMove:boolean):boolean {//targetpos is the player for example
         this.timeSinceLastFlipCheck += this.clockDelta || 0;
         const characterPos = this.character.position;

@@ -44,7 +44,7 @@ export class NPC implements EntityContract {
         }
         if (this.commonBehaviour.deathBehaviour()) {
             this.removeFromRelationship(this.entity,this.selfToEnemyRelationship);
-            this.removeFromRelationship(this.entity,this.attackersOfPlayer);//remove if there
+            this.removeFromRelationship(this.entity,this.attackersOfPlayer);
             return
         }
         if (this.commonBehaviour.chaseBehaviour(currentTarget || this.originalTargetEntity)) {
