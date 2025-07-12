@@ -1,7 +1,7 @@
 import { CommonBehaviour } from "./common-behaviour.three";
 import { Entity, type EntityContract } from "./entity.three";
 import { relationshipManager, type EntityLike } from "./relationships.three";
-import type { SubBranches } from "./relationships.three";
+import type { RelationshipData } from "./relationships.three";
 import { groupIDs } from "./groupIDs";
 
 export class Enemy implements EntityContract  {
@@ -11,7 +11,7 @@ export class Enemy implements EntityContract  {
     private originalTargetEntity:EntityLike | null;
     private commonBehaviour:CommonBehaviour;
 
-    private selfToPlayerRelationship:SubBranches = relationshipManager.attackerOf[groupIDs.player];
+    private selfToPlayerRelationship:RelationshipData = relationshipManager.attackerOf[groupIDs.player];
     private addRelationship = relationshipManager.addRelationship;
     private removeRelationship = relationshipManager.removeRelationship;
 
@@ -30,7 +30,7 @@ export class Enemy implements EntityContract  {
         }else return 'idle';
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
-        const currentTarget = relationshipManager.attackerOf[groupIDs.enemy].byAttackDamage.bottom().at(0);//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage
+        const currentTarget = relationshipManager.attackerOf[groupIDs.enemy].subQueries.byAttackDamage.bottom().at(0);//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage
         if (this.commonBehaviour.patrolBehaviour(null)) {
             return
         }

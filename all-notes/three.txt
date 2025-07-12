@@ -1298,3 +1298,5 @@ stack
 tree
 graph
 Unique list
+
+Polymorphism can allow for situations where you code an object that seamlessly integrates with others objects without explicit support.like making a furnace for a metal and it works for any metal even those from other mods
