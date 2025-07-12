@@ -30,6 +30,7 @@ export class Enemy implements EntityContract  {
         }else return 'idle';
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
+        const currentTarget = relationshipManager.attackerOf[groupIDs.enemy].byAttackDamage.bottom().at(0);//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage
         if (this.commonBehaviour.patrolBehaviour(null)) {
             return
         }
@@ -37,9 +38,7 @@ export class Enemy implements EntityContract  {
             this.removeRelationship(this.entity,this.selfToPlayerRelationship)
             return
         }
-        const target = relationshipManager.attackerOf[groupIDs.enemy].byAttackDamage.bottom().at(0);//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage
-        this.entity._targetEntity = target  || this.originalTargetEntity;
-        if (this.commonBehaviour.chaseBehaviour()) {
+        if (this.commonBehaviour.chaseBehaviour(currentTarget || this.originalTargetEntity)) {
             return
         }
     }

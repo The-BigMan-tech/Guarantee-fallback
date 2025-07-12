@@ -33,6 +33,7 @@ export class NPC implements EntityContract {
         return 'idle';
     }
     private updateInternalState() {        
+        const currentTarget = relationshipManager.attackerOf[groupIDs.player].byHealth.bottom().at(0);
         if (this.commonBehaviour.patrolBehaviour(player.position.clone())) {
             return;
         }
@@ -40,9 +41,7 @@ export class NPC implements EntityContract {
             this.removeRelationship(this.entity,this.selfToEnemyRelationship)
             return
         }
-        const target = relationshipManager.attackerOf[groupIDs.player].byHealth.bottom().at(0);
-        this.entity._targetEntity = target || this.originalTargetEntity;
-        if (this.commonBehaviour.chaseBehaviour()) {
+        if (this.commonBehaviour.chaseBehaviour(currentTarget || this.originalTargetEntity)) {
             return;
         }
     }

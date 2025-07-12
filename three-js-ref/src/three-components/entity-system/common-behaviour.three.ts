@@ -1,5 +1,6 @@
 import type { Entity } from "./entity.three";
 import * as THREE from "three"
+import type { EntityLike } from "./relationships.three";
 
 export class CommonBehaviour {
     private entity:Entity;
@@ -19,7 +20,8 @@ export class CommonBehaviour {
         }
         return false;
     }
-    public chaseBehaviour():boolean {
+    public chaseBehaviour(target:EntityLike | null):boolean {
+        this.entity._targetEntity = target;
         if (this.entity._targetEntity && !this.entity._targetEntity.health.isDead) {
             this.entity._navPosition = this.entity._targetEntity.position;
             this.entity._movementType = 'precise';
