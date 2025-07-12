@@ -13,7 +13,7 @@ export class Enemy implements EntityContract  {
 
     private selfToPlayerRelationship:RelationshipData = relationshipManager.attackerOf[groupIDs.player];
     private addRelationship = relationshipManager.addRelationship;
-    private removeRelationship = relationshipManager.removeRelationship;
+    private removeFromRelationship = relationshipManager.removeFromRelationship;
 
 
     constructor(entity:Entity) {
@@ -35,7 +35,7 @@ export class Enemy implements EntityContract  {
             return
         }
         if (this.commonBehaviour.deathBehaviour()) {
-            this.removeRelationship(this.entity,this.selfToPlayerRelationship)
+            this.removeFromRelationship(this.entity,this.selfToPlayerRelationship)
             return
         }
         if (this.commonBehaviour.chaseBehaviour(currentTarget || this.originalTargetEntity)) {

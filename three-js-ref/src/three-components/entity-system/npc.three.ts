@@ -15,8 +15,10 @@ export class NPC implements EntityContract {
     private commonBehaviour:CommonBehaviour;
 
     private selfToEnemyRelationship:RelationshipData = relationshipManager.attackerOf[groupIDs.enemy];//i used null here to prevent ts from complaining that i didnt initialize this in the constructor and i wanted to avoid code duplication but im sure that it cant be null and thats why i used null assertion in property access
+    private attackersOfPlayer = relationshipManager.attackerOf[groupIDs.player];
+
     private addRelationship = relationshipManager.addRelationship;
-    private removeRelationship = relationshipManager.removeRelationship;
+    private removeFromRelationship = relationshipManager.removeFromRelationship;
 
     constructor(entity:Entity) {
         this.entity = entity;
@@ -33,16 +35,16 @@ export class NPC implements EntityContract {
         return 'idle';
     }
     private updateInternalState() {        
-        let currentTarget:EntityLike | undefined = relationshipManager.attackerOf[groupIDs.player].subQueries.byHealth.bottom().at(0);
+        let currentTarget:EntityLike | undefined = this.attackersOfPlayer.subQueries.byHealth.bottom().at(0);
         if (currentTarget?._groupID === groupIDs.npc) {//this means that it should not target its own kind
-            this.removeRelationship(this.entity,relationshipManager.attackerOf[groupIDs.player])
             currentTarget = undefined
         }
         if (this.commonBehaviour.patrolBehaviour(player.position.clone())) {
             return;
         }
         if (this.commonBehaviour.deathBehaviour()) {
-            this.removeRelationship(this.entity,this.selfToEnemyRelationship)
+            this.removeFromRelationship(this.entity,this.selfToEnemyRelationship);
+            this.removeFromRelationship(this.entity,this.attackersOfPlayer);//remove if there
             return
         }
         if (this.commonBehaviour.chaseBehaviour(currentTarget || this.originalTargetEntity)) {

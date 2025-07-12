@@ -50,7 +50,7 @@ export class RelationshipManager {
                 Object.values(groupIDs).forEach(groupID=>{//this sets up all the relationships.setting up the data structures at creation time saves performance for the rest of the gameplay
                     relationship[groupID] = {
                         totalMembers:0,
-                        set:new Set(),
+                        set:new Set(),//its important to localize membership tests to per record cuz if i used a global set like before,an entity will be preented from having multiple relationships
                         subQueries: {
                             byHealth:new Heap((a,b)=>b.health.value - a.health.value),
                             byAttackDamage:new Heap((a,b)=>b._attackDamage - a._attackDamage),
@@ -75,15 +75,24 @@ export class RelationshipManager {
         }
     }
     //entities must remove their relationships upon death to prevent unexpected behaviour from the entities and to prevent memory leaks
-    public removeRelationship(entityLike:EntityLike,data:RelationshipData) {
+    public removeFromRelationship(entityLike:EntityLike,data:RelationshipData) {
         const set = data.set;
-        if (set.has(entityLike)) {
+        if (set.has(entityLike)) {//this is for safety
             console.log('removed a relationship');
-            set.delete(entityLike);
             data.totalMembers -= 1;
+            RelationshipManager.clearOnZeroMembers(data);
+        }
+    }
+    //not only does this prevent memory leaks like eager removal but it also saves perf by batching deletes till when all entities in a relationship have died.it doesnt delete eagerly this time but rather,it clears everything in one go.
+    private static clearOnZeroMembers(data:RelationshipData) {//i have to make this static because the remove rel references i created in the concretes dont have the this context to call it.
+        const set = data.set;
+        const totalMembers = data.totalMembers;
+        if (totalMembers == 0) {
+            set.clear();
             (Object.keys(data.subQueries) as SubQuery[]).forEach(query=>{
-                data.subQueries[query].remove(entityLike);
+                data.subQueries[query].clear();//clear each of the heaps to prevent memory leaks and unexpected entity behaviour in game
             })
+            console.log('cleared relationships');
         }
     }
     get attackerOf() {
