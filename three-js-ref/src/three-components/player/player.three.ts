@@ -9,6 +9,10 @@ import { entities } from "../entity-system/entity.three";
 import { combatCooldown } from "../physics-world.three";
 import { setEntityHealth, setPlayerHealth } from "../health/health-state";
 import { listener } from "../listener/listener.three";
+import type { EntityLike } from "../entity-system/relationships.three";
+import { groupIDs } from "../entity-system/groupIDs";
+import { relationshipManager } from "../entity-system/relationships.three";
+import type { SubBranches } from "../entity-system/relationships.three";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -26,8 +30,13 @@ enum CameraMode {
     SecondPerson = 2,
     ThirdPerson = 3
 }
-class Player extends Controller {
+class Player extends Controller implements EntityLike {
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
+    private readonly groupID = groupIDs.player;
+
+    private enemyToSelfRelationship:SubBranches = relationshipManager.attackerOf[groupIDs.player];//i used null here to prevent ts from complaining that i didnt initialize this in the constructor and i wanted to avoid code duplication but im sure that it cant be null and thats why i used null assertion in property access
+    private addRelationship = relationshipManager.addRelationship;
+    private removeRelationship = relationshipManager.removeRelationship;
 
     private readonly firstPersonClamp = 75;
     private readonly secondPersonClamp = 70;
@@ -290,6 +299,9 @@ class Player extends Controller {
         } else {
             this.targetY = this.offsetY;
         }
+    }
+    get _groupID():string {
+        return this.groupID;
     }
     get _attackDamage():number {
         return this.attackDamage

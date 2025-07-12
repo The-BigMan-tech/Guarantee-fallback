@@ -8,12 +8,10 @@ export class Enemy implements EntityContract  {
     public static modelPath:string = "./silvermoon.glb";
 
     private entity:Entity;
-    private endTargetEntity:EntityLike | null;
+    private originalTargetEntity:EntityLike | null;
     private commonBehaviour:CommonBehaviour;
 
-    private selfToPlayerRelationship:SubBranches | null = null;
-    private attackerOf = relationshipManager.attackerOf;
-
+    private selfToPlayerRelationship:SubBranches = relationshipManager.attackerOf[groupIDs.player];
     private addRelationship = relationshipManager.addRelationship;
     private removeRelationship = relationshipManager.removeRelationship;
 
@@ -22,18 +20,16 @@ export class Enemy implements EntityContract  {
         this.entity = entity;
         this.entity.onTargetReached = this.onTargetReached.bind(this);
         this.entity.updateInternalState = this.updateInternalState.bind(this);
-        this.endTargetEntity = this.entity._targetEntity;
+        this.originalTargetEntity = this.entity._targetEntity;
         this.commonBehaviour = new CommonBehaviour(entity)
     }
     private onTargetReached():'attack' | 'idle' {//the behaviour when it reaches the target will be later tied to a state machine
         if (this.commonBehaviour.attackBehaviour()) {
-            this.addRelationship(this.entity,this.selfToPlayerRelationship!)
+            this.addRelationship(this.entity,this.selfToPlayerRelationship)
             return 'attack'
         }else return 'idle';
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
-        this.selfToPlayerRelationship = this.attackerOf[groupIDs.player];
-
         if (this.commonBehaviour.patrolBehaviour(null)) {
             return
         }
@@ -41,8 +37,8 @@ export class Enemy implements EntityContract  {
             this.removeRelationship(this.entity,this.selfToPlayerRelationship)
             return
         }
-        const target = this.attackerOf[groupIDs.enemy].byAttackDamage.bottom().at(0);//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage
-        this.entity._targetEntity = target  || this.endTargetEntity;
+        const target = relationshipManager.attackerOf[groupIDs.enemy].byAttackDamage.bottom().at(0);//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage
+        this.entity._targetEntity = target  || this.originalTargetEntity;
         if (this.commonBehaviour.chaseBehaviour()) {
             return
         }

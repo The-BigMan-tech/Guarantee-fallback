@@ -3,8 +3,13 @@ import type { Health } from "../health/health";
 import Heap from "heap-js";
 import { groupIDs } from "./groupIDs";
 
+
+type Singleton<T> = T;
+type SubBranch = 'byHealth' | 'byAttackDamage' | 'byKnockback';
+
 export interface EntityLike extends Controller {//this type is the common properties of both the player and entity classes to allow polymorphism
-    health:Health,
+    _groupID:string | null,
+    health:Health,//the health here is public to allow mutations from other entities like giving it damage
     _attackDamage:number,
     _knockback:number
 }
@@ -13,13 +18,10 @@ export interface SubBranches {//i built individual heaps for each prop at creati
     byAttackDamage:Heap<EntityLike>,//this is query by attack damage
     byKnockback:Heap<EntityLike>//this is query by knockback
 }
-type SubBranch = 'byHealth' | 'byAttackDamage' | 'byKnockback';
-
-
-export interface RelationshipTree {
+interface RelationshipTree {
     attack:Record<string,SubBranches>
 }
-type Singleton<T> = T;
+
 
 export class RelationshipManager {
     private static manager:RelationshipManager;

@@ -46,8 +46,9 @@ export interface FullEntityData {
 }
 
 
-export class Entity extends Controller {
+export class Entity extends Controller implements EntityLike {
     private targetEntity:EntityLike | null = null;
+    private readonly groupID:string | null = null;//it states which group of entities does this particular entity belong to.its null intially cuz the group can only be decided at runtime when creating an entity
 
     private navPosition:THREE.Vector3 | null = null;//strictly for position in case where the entity might not have a target ref but it still wants to go navigate somewhere
 
@@ -274,6 +275,9 @@ export class Entity extends Controller {
     }
     get _knockback():number {
         return this.knockback
+    }
+    get _groupID():string | null {
+        return this.groupID;
     }
     
     set _navPosition(newPosition:THREE.Vector3 | null) {
