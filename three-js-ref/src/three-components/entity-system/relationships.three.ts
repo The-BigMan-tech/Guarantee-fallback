@@ -78,8 +78,8 @@ export class RelationshipManager {
     public removeFromRelationship(entityLike:EntityLike,data:RelationshipData) {
         const set = data.set;
         if (set.has(entityLike)) {//this is for safety
-            console.log('removed a relationship');
             data.totalMembers -= 1;
+            console.log('removed a relationship');
             RelationshipManager.clearOnZeroMembers(data);
         }
     }

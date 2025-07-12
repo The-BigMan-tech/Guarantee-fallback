@@ -127,7 +127,7 @@ class EntityManager {
         switch (groupID) {
             case (this.entityMapping['Enemy'].groupID): {
                 const enemy = this.factory.createEnemy(entityData);
-                enemy._entity._groupID = groupIDs.enemy;
+                enemy._entity._groupID = groupIDs.enemy;//this is important to distinguish entities in a relationship.for example,not all attackers of the player are from a particular class
                 enemy._entity.incEntityCount('Enemy');
                 return enemy
             }
