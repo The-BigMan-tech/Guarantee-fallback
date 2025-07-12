@@ -40,7 +40,7 @@ export class Enemy implements EntityContract  {
             this.removeRelationship(this.entity,this.selfToPlayerRelationship)
             return
         }
-        const target = this.attackerOf[groupIDs.enemy].byAttackDamage.bottom();//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage
+        const target = this.attackerOf[groupIDs.enemy].byAttackDamage.bottom().at(0);//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage
         this.entity._targetEntity = target  || this.endTargetEntity;
         if (this.commonBehaviour.chaseBehaviour()) {
             return

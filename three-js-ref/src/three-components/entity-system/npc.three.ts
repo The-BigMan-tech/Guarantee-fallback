@@ -46,7 +46,7 @@ export class NPC implements EntityContract {
             return
         }
 
-        const target = this.attackerOf[groupIDs.player].byHealth.bottom();
+        const target = this.attackerOf[groupIDs.player].byHealth.bottom().at(0);
         this.entity._targetEntity = target || this.endTargetEntity;
         if (this.commonBehaviour.chaseBehaviour()) {
             return;
