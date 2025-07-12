@@ -33,7 +33,11 @@ export class NPC implements EntityContract {
         return 'idle';
     }
     private updateInternalState() {        
-        const currentTarget = relationshipManager.attackerOf[groupIDs.player].byHealth.bottom().at(0);
+        let currentTarget:EntityLike | undefined = relationshipManager.attackerOf[groupIDs.player].byHealth.bottom().at(0);
+        if (currentTarget?._groupID === groupIDs.npc) {//this means that it should not target its own kind
+            this.removeRelationship(this.entity,relationshipManager.attackerOf[groupIDs.player])
+            currentTarget = undefined
+        }
         if (this.commonBehaviour.patrolBehaviour(player.position.clone())) {
             return;
         }

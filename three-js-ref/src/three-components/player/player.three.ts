@@ -273,9 +273,7 @@ class Player extends Controller implements EntityLike {
             if (targetHealth && !targetHealth.isDead) {
                 targetHealth.takeDamage(this.attackDamage);
                 entity.knockbackCharacter('backwards',this.knockback);
-                if (entity._groupID !== groupIDs.npc) {
-                    this.addRelationship(entity,this.enemyToSelfRelationship)
-                }
+                this.addRelationship(entity,this.enemyToSelfRelationship);
                 this.attackTimer = 0;
             }
         }
