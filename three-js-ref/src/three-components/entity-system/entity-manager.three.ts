@@ -6,7 +6,7 @@ import { player } from "../player/player.three";
 import { entities, entityIndexMap} from "./entity.three";
 import PoissonDiskSampling from 'poisson-disk-sampling';
 import { choices } from "./choices";
-import { groupIDs } from "./relationships.three";
+import { groupIDs } from "./groupIDs";
 import { entityFactory } from "./factory.three";
 import type { FullEntityData } from "./entity.three";
 import type { EntityFactory } from "./factory.three";

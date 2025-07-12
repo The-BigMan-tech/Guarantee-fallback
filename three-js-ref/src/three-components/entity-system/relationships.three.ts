@@ -1,9 +1,9 @@
 import { Controller } from "../controller/controller.three";
 import type { Health } from "../health/health";
-import {v4 as uniqueID} from "uuid";
 import Heap from "heap-js";
+import { groupIDs } from "./groupIDs";
 
-export interface EntityLike extends Controller {
+export interface EntityLike extends Controller {//this type is the common properties of both the player and entity classes to allow polymorphism
     health:Health,
     _attackDamage:number,
     _knockback:number
@@ -21,11 +21,6 @@ export interface RelationshipTree {
 }
 type Singleton<T> = T;
 
-export const groupIDs = {//i intended to define this in the entity manager but i couldnt do so without running into cyclic imports
-    player:uniqueID(),
-    enemy:uniqueID(),
-    npc:uniqueID()
-}
 export class RelationshipManager {
     private static manager:RelationshipManager;
     private static set:Set<EntityLike> = new Set();//i made this a static property to solve the error where the relationship manager methods where accessing the set but it threw an undefined variable error.this happened because i made the enemy and npc classes hold ref to the methods to prevent code redundancy but in doing that,i made them to loose the this context to properly access the set so i had to make it static.if those individual classes had their own set property which im grateful that i didnt add that,it would have led to a bug that not only escapes compile time but also runtime.it will lead to unexpected behaviour in the relationships cuz each entity will be using their own separate set and it will not even be obvious till later in development.so be careful about references.enssure they always point to the correct data
