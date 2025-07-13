@@ -105,5 +105,8 @@ export class RelationshipManager {
     get attackerOf() {
         return RelationshipManager.relationships.attack
     }
+    get enemyOf() {
+        return RelationshipManager.relationships.enemy
+    }
 }
 export const relationshipManager:Singleton<RelationshipManager> = RelationshipManager.instance;

@@ -56,6 +56,7 @@ export class HostileEntity implements EntityContract  {
             this.selfToTargetRelationship = this.getAttackRelationshipForGroup(currentTarget._groupID!);
             this.trackedRelationships.add(this.selfToTargetRelationship);
         }
+        console.log('relationship. hostile entity is attacking: ',currentTarget?._groupID);
 
         if (this.commonBehaviour.patrolBehaviour(null)) {
             return

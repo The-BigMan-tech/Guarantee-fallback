@@ -18,6 +18,7 @@ export class NPC implements EntityContract {
     private selfToTargetRelationship:RelationshipData | null = null;//i used null here to prevent ts from complaining that i didnt initialize this in the constructor and i wanted to avoid code duplication but im sure that it cant be null and thats why i used null assertion in property access
     
     private attackersOfPlayer = relationshipManager.attackerOf[groupIDs.player];
+    private enemiesOfPlayer = relationshipManager.enemyOf[groupIDs.player];
     private attackersOfEntityKind = relationshipManager.attackerOf[groupIDs.npc];
 
     private addRelationship = relationshipManager.addRelationship;
@@ -49,26 +50,30 @@ export class NPC implements EntityContract {
         return 'idle';
     }
     private updateInternalState() {
-        let currentTarget = 
+        let currentTarget:EntityLike | null = (
                 this.attackersOfPlayer.subQueries.byHealth.bottom().at(0) || 
                 this.attackersOfEntityKind.subQueries.byHealth.bottom().at(0) ||
-                null;
+                this.enemiesOfPlayer.subQueries.byHealth.bottom().at(0) || 
+                null
+        )
 
         if (currentTarget && !currentTarget.health.isDead) {//i added the health chech to fix that prob where the npc may be chasing a dead target beacuse of lazy relationship removal
             if (currentTarget._groupID === groupIDs.npc) {//this means that it should not target its own kind
+                console.log('relationship. npc nullified target');
+                console.log('relationship. npc is attacked by: ',this.attackersOfEntityKind.subQueries.byHealth.bottom().at(0)?._groupID);
                 currentTarget = null;
                 this.selfToTargetRelationship = null; // reset because no valid target
-                this.trackedRelationships.add(this.attackersOfPlayer)//we want to add this to the set for removal from the attacker of player relationship since its not meant to attack the player.im not adding the currentTarget.groupId cuz the npc shouldnt be an attacker of its own kind
+                this.trackedRelationships.add(this.enemiesOfPlayer)//we want to add this to the set for removal from the attacker of player relationship since its not meant to attack the player.im not adding the currentTarget.groupId cuz the npc shouldnt be an attacker of its own kind
             }else {
                 this.selfToTargetRelationship = this.getAttackRelationshipForGroup(currentTarget._groupID!);
                 this.trackedRelationships.add(this.selfToTargetRelationship)
             }
-        }else if (this.originalTargetEntity) {//this branch wont execute cuz the npc unlike the enemy doesnt get a target by default but its to remain consistent with the pattern i used for the enemy
+        }else if (this.originalTargetEntity) {//this branch wont execute cuz the npc unlike the enemy doesnt get a target by default but its to remain consistent with the pattern i used for the enemy and it has to respect that this property exists even if its null
             currentTarget = this.originalTargetEntity
             this.selfToTargetRelationship = this.getAttackRelationshipForGroup(currentTarget._groupID!);
             this.trackedRelationships.add(this.selfToTargetRelationship)
         }
-
+        console.log('relationship. Npc is attacking: ',currentTarget?._groupID);
 
         if (this.commonBehaviour.patrolBehaviour(player.position)) {
             return;
