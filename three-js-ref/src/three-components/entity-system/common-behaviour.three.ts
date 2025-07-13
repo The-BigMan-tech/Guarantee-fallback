@@ -12,7 +12,7 @@ export class CommonBehaviour {
     private removeFromRelationship = relationshipManager.removeFromRelationship;
 
     constructor(entity:Entity) {
-        const proxy = new Proxy(entity, {
+        const proxy = new Proxy(entity, {//used a proxy on the entity to update relevant heaps used in the relationships when its property changes
             set: (target: Entity, prop: EntityKeys, value: unknown) => {
                 const descriptor = Object.getOwnPropertyDescriptor(target, prop);
                 if (descriptor && !descriptor.writable && descriptor.get && !descriptor.set) {
@@ -87,7 +87,7 @@ export class CommonBehaviour {
         }
         return null;
     }
-    public updateSelfInRelationship(target:RelationshipData | null) {
+    public updateOrderInRelationship(target:RelationshipData | null) {
         this.targetRelationshipToUpdate = target;
     }
 }

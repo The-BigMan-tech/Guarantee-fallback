@@ -42,13 +42,13 @@ export class HostileEntity implements EntityContract  {
         if (currentTarget) {
             this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!]
             this.trackedRelationships.add(this.selfToTargetRelationship);
-            this.commonBehaviour.updateSelfInRelationship(this.selfToTargetRelationship);
+            this.commonBehaviour.updateOrderInRelationship(this.selfToTargetRelationship);
 
         }else if (this.originalTargetEntity) {
             currentTarget = this.originalTargetEntity
             this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!];
             this.trackedRelationships.add(this.selfToTargetRelationship);
-            this.commonBehaviour.updateSelfInRelationship(this.selfToTargetRelationship);
+            this.commonBehaviour.updateOrderInRelationship(this.selfToTargetRelationship);
         }
         console.log('relationship. hostile entity is attacking: ',currentTarget?._groupID);
 
