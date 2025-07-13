@@ -38,12 +38,12 @@ class EntityManager {
         },
         NPC: {
             groupID:groupIDs.npc,
-            spawnWeight:0
+            spawnWeight:10
         }
     }
 
     private readonly multiChoicePercent = 50;//it controls the percentage of entity types from the provided entity mapping struct that will be chosen at a time for every spawn point thats generated.Increasing this number will increase the probability of an entity of a given kind to spawn because the manager doesnt just choose one entity per point but rather,it can make two choices or three at a time with the choices influenced by the weight.Even at a low value,theres still a chance for an entity of a given kind to spawn as long as the weiht is considerable enough but this will increase that prob and a higher number will also slightly improve perf because it will spawn more at a time which reduces the time to reach the entity cap and number of times it has to run the weighted choice function.Tune as needed
-    private readonly maxEntityCap = 2;//the max number of entities in the world before it stops spawning
+    private readonly maxEntityCap = 4;//the max number of entities in the world before it stops spawning
     private readonly spawnCooldown:number = 5;//after deciding to spawn entities,this controls the time in seconds it waits before it actually spawns them.this is to improve exp as it gives the player some space before entities are spawned and it also improves perf on startup by only spawning entities afterw when the player has been spawned first not simultaneously
     private readonly spawnRadius = 50;//the radius from the player where spawning begins.the higher the spawn radius,the more the entities that will spawn at a given time and vice versa but it stops at the max entity cap or when all min thresholds are satisfied.i believe that increasing the radius is better because not only does it supply spacing but it also means that the manager will spawn entities lesser to reach the cap or satisfy the thresh such that all the entities that will ever be needed in the world are saved in one go preventing calls to spawn from happening again in the next frame.i believe that this preserves performance
     private readonly minSpawnDistance = 10; //the minimum distance between each entity that gets spawned within the spawn radius

@@ -25,7 +25,7 @@ export class NPC implements EntityContract {
 
     constructor(entity:Entity) {
         this.commonBehaviour = new CommonBehaviour(entity)
-        this.entity = this.commonBehaviour.entity;
+        this.entity = this.commonBehaviour.entity;//we want to use the entity from the common behaviour because its a proxy
         this.entity.onTargetReached = this.onTargetReached.bind(this);
         this.entity.updateInternalState = this.updateInternalState.bind(this);
         this.originalTargetEntity = this.entity._targetEntity;
@@ -40,25 +40,18 @@ export class NPC implements EntityContract {
         return 'idle';
     }
     private updateInternalState() {
-        let currentTarget:EntityLike | null = (
+        const currentTarget:EntityLike | null = (
             this.commonBehaviour.getValidHostileTarget(this.attackersOfEntityKind.subQueries.byThreat,'highest') ||
             this.commonBehaviour.getValidHostileTarget(this.attackersOfPlayer.subQueries.byThreat,'highest') ||
             this.commonBehaviour.getValidHostileTarget(this.enemiesOfPlayer.subQueries.byThreat,'highest') ||
-            null
+            this.originalTargetEntity
         )
         if (currentTarget) {//i added the health chech to fix that prob where the npc may be chasing a dead target beacuse of lazy relationship removal
             this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!];//i assert the craetion of group id because the entity manager always intializes this id before saving it to the game for updates
             this.trackedRelationships.add(this.selfToTargetRelationship);
-            this.commonBehaviour.updateOrderInRelationship(this.selfToTargetRelationship);
-        
-        }else if (this.originalTargetEntity) {//this branch wont execute cuz the npc unlike the enemy doesnt get a target by default but its to remain consistent with the pattern i used for the enemy and it has to respect that this property exists even if its null
-            currentTarget = this.originalTargetEntity
-            this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!];
-            this.trackedRelationships.add(this.selfToTargetRelationship);
-            this.commonBehaviour.updateOrderInRelationship(this.selfToTargetRelationship);
+            this.commonBehaviour.updateOrderInRelationship(this.selfToTargetRelationship); 
+            console.log('relationship. Npc is attacking: ',currentTarget?._groupID);
         }
-
-        console.log('relationship. Npc is attacking: ',currentTarget?._groupID);
 
         if (this.commonBehaviour.patrolBehaviour(player.position)) {
             return;

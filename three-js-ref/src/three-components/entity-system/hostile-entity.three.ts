@@ -20,7 +20,6 @@ export class HostileEntity implements EntityContract  {
 
     private addRelationship = relationshipManager.addRelationship;
 
-
     constructor(entity:Entity) {
         this.commonBehaviour = new CommonBehaviour(entity);//this creates a proxy to update its records in its respecive heaps
         this.entity = this.commonBehaviour.entity;//use the proxied entity
@@ -37,20 +36,16 @@ export class HostileEntity implements EntityContract  {
         }else return 'idle';
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
-        let currentTarget = this.commonBehaviour.getValidHostileTarget(this.attackersOfEntityKind.subQueries.byAttackDamage,'highest');//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage       
-        
+        const currentTarget = (
+            this.commonBehaviour.getValidHostileTarget(this.attackersOfEntityKind.subQueries.byAttackDamage,'highest') || 
+            this.originalTargetEntity
+        );
         if (currentTarget) {
             this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!]
             this.trackedRelationships.add(this.selfToTargetRelationship);
             this.commonBehaviour.updateOrderInRelationship(this.selfToTargetRelationship);
-
-        }else if (this.originalTargetEntity) {
-            currentTarget = this.originalTargetEntity
-            this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!];
-            this.trackedRelationships.add(this.selfToTargetRelationship);
-            this.commonBehaviour.updateOrderInRelationship(this.selfToTargetRelationship);
+            console.log('relationship. hostile entity is attacking: ',currentTarget?._groupID);
         }
-        console.log('relationship. hostile entity is attacking: ',currentTarget?._groupID);
 
         if (this.commonBehaviour.patrolBehaviour(null)) {
             return
