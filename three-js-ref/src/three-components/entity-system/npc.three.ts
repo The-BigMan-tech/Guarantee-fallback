@@ -4,6 +4,7 @@ import { Entity, type EntityContract } from "./entity.three";
 import { relationshipManager } from "./relationships.three";
 import type { EntityLike, RelationshipData } from "./relationships.three";
 import { groupIDs } from "./globals";
+import Heap from "heap-js";
 
 
 
@@ -40,6 +41,20 @@ export class NPC implements EntityContract {
         }
         this.trackedRelationships.clear();
     }
+    private getValidHostileTarget(heap:Heap<EntityLike>): EntityLike | null {
+        const bottom = heap.bottom();
+        for (let i = 0; i < bottom.length; i++) {
+            const candidate = bottom[i]; 
+            if (
+                (candidate !== this.entity) && //to prevent a loop where it targets itself
+                !(candidate.health.isDead) && //to prevent it from targetting dead entities that still linger in the heap because other members for that reationship still remain
+                (candidate._groupID !== groupIDs.npc)//to prevent it from targetting its own kind
+                ) {
+                return candidate;
+            }
+        }
+        return null;
+    }
     private onTargetReached():'attack' | 'idle' {
         if (this.commonBehaviour.attackBehaviour()) {
             if (this.selfToTargetRelationship) {
@@ -51,28 +66,21 @@ export class NPC implements EntityContract {
     }
     private updateInternalState() {
         let currentTarget:EntityLike | null = (
-                this.attackersOfPlayer.subQueries.byHealth.bottom().at(0) || 
-                this.attackersOfEntityKind.subQueries.byHealth.bottom().at(0) ||
-                this.enemiesOfPlayer.subQueries.byHealth.bottom().at(0) || 
-                null
+            this.getValidHostileTarget(this.attackersOfEntityKind.subQueries.byHealth) ||
+            this.getValidHostileTarget(this.attackersOfPlayer.subQueries.byHealth) ||
+            this.getValidHostileTarget(this.enemiesOfPlayer.subQueries.byHealth) ||
+            null
         )
 
-        if (currentTarget && !currentTarget.health.isDead) {//i added the health chech to fix that prob where the npc may be chasing a dead target beacuse of lazy relationship removal
-            if (currentTarget._groupID === groupIDs.npc) {//this means that it should not target its own kind
-                console.log('relationship. npc nullified target');
-                console.log('relationship. npc is attacked by: ',this.attackersOfEntityKind.subQueries.byHealth.bottom().at(0)?._groupID);
-                currentTarget = null;
-                this.selfToTargetRelationship = null; // reset because no valid target
-                this.trackedRelationships.add(this.enemiesOfPlayer)//we want to add this to the set for removal from the attacker of player relationship since its not meant to attack the player.im not adding the currentTarget.groupId cuz the npc shouldnt be an attacker of its own kind
-            }else {
-                this.selfToTargetRelationship = this.getAttackRelationshipForGroup(currentTarget._groupID!);
-                this.trackedRelationships.add(this.selfToTargetRelationship)
-            }
+        if (currentTarget) {//i added the health chech to fix that prob where the npc may be chasing a dead target beacuse of lazy relationship removal
+            this.selfToTargetRelationship = this.getAttackRelationshipForGroup(currentTarget._groupID!);
+            this.trackedRelationships.add(this.selfToTargetRelationship)   
         }else if (this.originalTargetEntity) {//this branch wont execute cuz the npc unlike the enemy doesnt get a target by default but its to remain consistent with the pattern i used for the enemy and it has to respect that this property exists even if its null
             currentTarget = this.originalTargetEntity
             this.selfToTargetRelationship = this.getAttackRelationshipForGroup(currentTarget._groupID!);
             this.trackedRelationships.add(this.selfToTargetRelationship)
         }
+
         console.log('relationship. Npc is attacking: ',currentTarget?._groupID);
 
         if (this.commonBehaviour.patrolBehaviour(player.position)) {

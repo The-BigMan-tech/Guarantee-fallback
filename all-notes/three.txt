@@ -1330,3 +1330,7 @@ and if i allowed granular removal,it means that it has to be eager removal not l
 so it means that i could have cleared the relationship on every target switch if i used eager removal which is granular but since im using lazy remmoval,its very unsafe to do this and i should do this only on death.the option depends on whether i want to save memory or performance
 
 so even if i only have two branches,i can have more than one relationship to clean if the group of the entity that attacks the enemy varies
+
+so i have to properly define priority order,exclude self from the checks and optionally avoid listening to multiple similar relationships on the same object
+
+connection loop
