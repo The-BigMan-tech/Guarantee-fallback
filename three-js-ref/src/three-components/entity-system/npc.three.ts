@@ -1,4 +1,3 @@
-import { player } from "../player/player.three";
 import { CommonBehaviour } from "./common-behaviour.three";
 import { Entity, type EntityContract } from "./entity.three";
 import { relationshipManager } from "./relationships.three";
@@ -20,6 +19,8 @@ export class NPC implements EntityContract {
     private attackersOfPlayer = relationshipManager.attackerOf[groupIDs.player];
     private attackersOfEntityKind = relationshipManager.attackerOf[groupIDs.npc];
     private enemiesOfPlayer = relationshipManager.enemyOf[groupIDs.player];
+
+    private followTarget:RelationshipData = relationshipManager.followTargetOf[groupIDs.npc]
 
     private addRelationship = relationshipManager.addRelationship;
 
@@ -52,8 +53,9 @@ export class NPC implements EntityContract {
             this.commonBehaviour.updateOrderInRelationship(this.selfToTargetRelationship); 
             console.log('relationship. Npc is attacking: ',currentTarget?._groupID);
         }
-
-        if (this.commonBehaviour.patrolBehaviour(player.position)) {
+        //unlike for hostile target,we dont need to validate for entity's own group or other stuff like that since its just following
+        const followTargetEntity = this.followTarget.subQueries.byHealth.top().at(0)
+        if (this.commonBehaviour.patrolBehaviour(followTargetEntity?.position || null)) {
             return;
         }
         if (this.commonBehaviour.deathBehaviour()) {

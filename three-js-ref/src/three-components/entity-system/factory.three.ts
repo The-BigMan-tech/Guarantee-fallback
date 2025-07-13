@@ -47,7 +47,9 @@ export class EntityFactory {
         miscData.knockback = randInt(100,150);
         miscData.attackDamage = randFloat(1,2);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
-        return new NPC(entity);
+        const npc =  new NPC(entity);
+        relationshipManager.addRelationship(player,relationshipManager.followTargetOf[groupIDs.npc]);
+        return npc
     }
     public createDefault(entityData:FullEntityData):EntityContract {
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);

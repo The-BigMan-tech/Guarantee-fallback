@@ -36,6 +36,7 @@ interface RelationshipTree {
     attack:Relationship,//to know which entity attacked who
     enemy:Relationship,//to know which entity is considered an emey of who
     hostilityTargets:Relationship//to know the default entities some etities are hostile to
+    followTargets:Relationship
 }
 type RelationshipNode = keyof RelationshipTree
 
@@ -45,7 +46,8 @@ export class RelationshipManager {
     private static relationships:RelationshipTree = {
         attack: {},
         enemy:{},
-        hostilityTargets:{}
+        hostilityTargets:{},
+        followTargets:{}
     }
 
     private constructor() {};
@@ -159,6 +161,9 @@ export class RelationshipManager {
         return RelationshipManager.relationships.enemy
     }
     get hostileTargetOf() {
+        return RelationshipManager.relationships.hostilityTargets
+    }
+    get followTargetOf() {
         return RelationshipManager.relationships.hostilityTargets
     }
 }
