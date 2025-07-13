@@ -54,6 +54,7 @@ export class NPC implements EntityContract {
             console.log('relationship. Npc is attacking: ',currentTarget?._groupID);
         }
         //unlike for hostile target,we dont need to validate for entity's own group or other stuff like that since its just following
+        //this is also an inverted or borrowed relationship where the class which is the npc isnt a member of the relationship but rather the key of the record.so it doesnt manage the removal of this relationship and leaves it to peridocial cleanup
         const followTargetEntity = this.followTarget.subQueries.byHealth.top().at(0)
         if (this.commonBehaviour.patrolBehaviour(followTargetEntity?.position || null)) {
             return;

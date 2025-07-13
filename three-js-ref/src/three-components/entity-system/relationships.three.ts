@@ -164,7 +164,7 @@ export class RelationshipManager {
         return RelationshipManager.relationships.hostilityTargets
     }
     get followTargetOf() {
-        return RelationshipManager.relationships.hostilityTargets
+        return RelationshipManager.relationships.followTargets
     }
 }
 export const relationshipManager:Singleton<RelationshipManager> = RelationshipManager.instance;
