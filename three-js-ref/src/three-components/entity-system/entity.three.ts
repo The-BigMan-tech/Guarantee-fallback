@@ -5,8 +5,12 @@ import { Health } from "../health/health";
 import { combatCooldown, physicsWorld } from "../physics-world.three";
 import type { EntityLike } from "./relationships.three";
 import { disposeHierarchy, disposeMixer } from "../disposer/disposer.three";
+import type { EntityCount,EntityWrapper} from "./globals";
 
 type Behaviour = 'idle' | 'patrol' | 'chase' | 'attack' | 'death';
+interface EntityStateMachine {
+    behaviour:Behaviour
+}
 
 export interface EntityMiscData {
     targetEntity:EntityLike | null,
@@ -14,30 +18,15 @@ export interface EntityMiscData {
     attackDamage:number,
     knockback:number
 }
-interface EntityStateMachine {
-    behaviour:Behaviour
-}
 export interface EntityContract {
     _entity:Entity
 }
-
 export interface ManagingStructure {
     group:THREE.Group,
     entities:EntityContract[],
     entityCounts:EntityCount,
     entityIndexMap:Map<Entity,number>
 }
-
-interface CountData {
-    currentCount:number,
-    minCount:number
-}
-export interface EntityCount {
-    totalCount:number,
-    individualCounts:Record<EntityWrapper,CountData>
-}
-export type EntityWrapper = 'Enemy' | 'NPC'
-
 export interface FullEntityData {
     fixedData:FixedControllerData,
     dynamicData:DynamicControllerData,

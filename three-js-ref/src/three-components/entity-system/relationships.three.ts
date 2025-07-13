@@ -1,13 +1,13 @@
 import { Controller } from "../controller/controller.three";
 import type { Health } from "../health/health";
 import Heap from "heap-js";
-import { groupIDs } from "./groupIDs";
+import { groupIDs } from "./globals";
 
 //im not going to explain the structure or how it works cuz its evident from the code.the more important question which is why i chose to use a reference tree instead of a graph is because linear data flow is easier to preduct than a bidirectional one as seen in a graph
 
 type Singleton<T> = T;
 type SubQuery = 'byHealth' | 'byAttackDamage' | 'byKnockback';
-type RelationshipNode = 'attack';//add more relationships here as a union
+type RelationshipNode = 'attack' | 'enemy';//add more relationships here as a union
 
 
 export interface EntityLike extends Controller {//this type is the common properties of both the player and entity classes to allow polymorphism
@@ -32,6 +32,7 @@ type Relationship = Record<RelationshipID,RelationshipData>
 
 interface RelationshipTree {
     attack:Relationship,
+    enemy:Relationship
 }
 
 
@@ -39,6 +40,7 @@ export class RelationshipManager {
     private static manager:RelationshipManager;
     private static relationships:RelationshipTree = {
         attack: {},
+        enemy:{}
     }
 
     private constructor() {};

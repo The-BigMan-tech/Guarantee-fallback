@@ -1,12 +1,13 @@
 import * as THREE from "three";
 import type {FixedControllerData,DynamicControllerData} from "../controller/controller.three";
-import type { EntityContract, EntityCount, EntityMiscData, EntityWrapper, ManagingStructure } from "./entity.three";
+import type { EntityContract,EntityMiscData,ManagingStructure } from "./entity.three";
+import type { EntityWrapper,EntityCount } from "./globals";
 import * as RAPIER from '@dimforge/rapier3d'
 import { player } from "../player/player.three";
 import { entities, entityIndexMap} from "./entity.three";
 import PoissonDiskSampling from 'poisson-disk-sampling';
 import { choices } from "./choices";
-import { groupIDs } from "./groupIDs";
+import { groupIDs } from "./globals";
 import { entityFactory } from "./factory.three";
 import type { FullEntityData } from "./entity.three";
 import type { EntityFactory } from "./factory.three";

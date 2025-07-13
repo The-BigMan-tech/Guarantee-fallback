@@ -5,3 +5,13 @@ export const groupIDs = {//i intended to define this in the entity manager but i
     enemy:uniqueID(),
     npc:uniqueID()
 }
+export type EntityWrapper = 'Enemy' | 'NPC'
+
+interface CountData {
+    currentCount:number,
+    minCount:number
+}
+export interface EntityCount {
+    totalCount:number,
+    individualCounts:Record<EntityWrapper,CountData>
+}

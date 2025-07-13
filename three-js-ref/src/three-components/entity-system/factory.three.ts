@@ -1,4 +1,4 @@
-import { Enemy } from "./enemy.three";
+import { Enemy } from "./hostile-entity.three";
 import { NPC } from "./npc.three";
 import { randInt,randFloat} from "three/src/math/MathUtils.js";
 import { Entity } from "./entity.three";

@@ -3,7 +3,7 @@ import { CommonBehaviour } from "./common-behaviour.three";
 import { Entity, type EntityContract } from "./entity.three";
 import { relationshipManager } from "./relationships.three";
 import type { EntityLike, RelationshipData } from "./relationships.three";
-import { groupIDs } from "./groupIDs";
+import { groupIDs } from "./globals";
 
 
 

@@ -2,7 +2,7 @@ import { CommonBehaviour } from "./common-behaviour.three";
 import { Entity, type EntityContract } from "./entity.three";
 import { relationshipManager, type EntityLike } from "./relationships.three";
 import type { RelationshipData } from "./relationships.three";
-import { groupIDs } from "./groupIDs";
+import { groupIDs } from "./globals";
 
 export class Enemy implements EntityContract  {
     public static modelPath:string = "./silvermoon.glb";
