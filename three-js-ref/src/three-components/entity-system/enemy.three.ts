@@ -46,6 +46,7 @@ export class Enemy implements EntityContract  {
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
         let currentTarget = this.attackersOfEnemy.subQueries.byAttackDamage.bottom().at(0) || null;//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage       
+        
         if (currentTarget && !currentTarget.health.isDead) {//i added the health chech to fix that prob where the npc may be chasing a dead target beacuse of lazy relationship removal 
             this.selfToTargetRelationship = this.getAttackRelationshipForGroup(currentTarget._groupID!)//i didn check for the enemy's own kind cuz the target of the enemy will never be the enemy
             this.trackedRelationships.add(this.selfToTargetRelationship);
