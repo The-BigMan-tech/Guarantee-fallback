@@ -11,7 +11,7 @@ export class Enemy implements EntityContract  {
     private originalTargetEntity:EntityLike | null;
     private commonBehaviour:CommonBehaviour;
 
-    private selfToPlayerRelationship:RelationshipData = relationshipManager.attackerOf[groupIDs.player];
+    private selfToTargetRelationship:RelationshipData | null = null
     private attackersOfEnemy:RelationshipData = relationshipManager.attackerOf[groupIDs.enemy];
 
     private addRelationship = relationshipManager.addRelationship;
@@ -25,22 +25,36 @@ export class Enemy implements EntityContract  {
         this.originalTargetEntity = this.entity._targetEntity;
         this.commonBehaviour = new CommonBehaviour(entity)
     }
+    private getAttackRelationshipForGroup(targetGroupID: string): RelationshipData {
+        return relationshipManager.attackerOf[targetGroupID];
+    }
     private onTargetReached():'attack' | 'idle' {//the behaviour when it reaches the target will be later tied to a state machine
         if (this.commonBehaviour.attackBehaviour()) {
-            this.addRelationship(this.entity,this.selfToPlayerRelationship)
+            if (this.selfToTargetRelationship) {
+                this.addRelationship(this.entity,this.selfToTargetRelationship);
+            }
             return 'attack'
         }else return 'idle';
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
-        const currentTarget = this.attackersOfEnemy.subQueries.byAttackDamage.bottom().at(0);//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage
+        let currentTarget = this.attackersOfEnemy.subQueries.byAttackDamage.bottom().at(0) || null;//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage
+        if (currentTarget && !currentTarget.health.isDead) {//i added the health chech to fix that prob where the npc may be chasing a dead target beacuse of lazy relationship removal 
+            this.selfToTargetRelationship = this.getAttackRelationshipForGroup(currentTarget._groupID!)//i didn check for the enemy's own kind cuz the target of the enemy will never be the enemy
+        }else if (this.originalTargetEntity) {
+            currentTarget = this.originalTargetEntity
+            this.selfToTargetRelationship = this.getAttackRelationshipForGroup(currentTarget._groupID!)
+        }
+
         if (this.commonBehaviour.patrolBehaviour(null)) {
             return
         }
         if (this.commonBehaviour.deathBehaviour()) {
-            this.removeFromRelationship(this.entity,this.selfToPlayerRelationship)
+            if (this.selfToTargetRelationship) {
+                this.removeFromRelationship(this.entity,this.selfToTargetRelationship)
+            }
             return
         }
-        if (this.commonBehaviour.chaseBehaviour(currentTarget || this.originalTargetEntity)) {
+        if (this.commonBehaviour.chaseBehaviour(currentTarget)) {
             return
         }
     }

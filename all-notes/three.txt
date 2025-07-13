@@ -1313,3 +1313,11 @@ Within that group, you add the entity to multiple subqueries (heaps), but since 
 so the nuber of groups only affects load time making it O(n2) because its group number * relationships but using grouped records is very packed making it highly manageable to negligible if the groups are of considerable size and using groups unlike per instance means that i can construct the heaps at start up and after that,it doesnt even affect perf throughout the game making adding,querying and removal highly efficient regardless of the number of groups cuz per instance records means that the number of instances will directly affect the perf of other operations cuz their structures will need to be built dynamically for each instance on the fly
 
 so grouped records are more efficient,dont affect runtime beyond startup and they still provide some form of precise tracking on the subject side and its more practical than getting precise tracing on instances with temporary lifetimes that can spawn or despawn in bunch with little to no benefit
+
+Your relationship manager acts as a centralized handler that maintains and manages the connections (relationships) between entities, while the individual entity classes control how they interpret and respond to those relationships based on their own logic and state.
+
+*Candidate querying
+*Narrowing queries
+
+By verifying currentTarget is not dead before assigning it as a valid target, you avoid chasing or attacking entities that are already dead but still lingering in the heap.
+Since lazy removal defers actual removal from data structures, this runtime validation ensures your NPC only acts on live targets.
