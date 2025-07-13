@@ -1321,3 +1321,12 @@ Your relationship manager acts as a centralized handler that maintains and manag
 
 By verifying currentTarget is not dead before assigning it as a valid target, you avoid chasing or attacking entities that are already dead but still lingering in the heap.
 Since lazy removal defers actual removal from data structures, this runtime validation ensures your NPC only acts on live targets.
+
+
+it also means that calling clear on every switch is O1 since the set always has one relatiosnhip at a time and removal in itself is also O1 since its lazy
+
+and if i allowed granular removal,it means that it has to be eager removal not lazy.cuz if i was still using eager removal which is more granular than lazy removal that clears the while thing at once,then ill call clear relationship on every target switch no probs but it wont be O1 anymore but it will be Ologn at the cost of minimaizng memory duing its lifetime but since i switched to lazy removal which uses o1 to clear in one go,its unsafe to call this on every switch and only call it on death.it saves perf far better by not even going through the overhead of clearing per swicth,it only clears once on death and the clearing itself is still O1.but at the cost of memory use tilll the entity dies.its a tradeoff and its the developer responsibility to pick one after considering the costs.and im going for the lazy one
+
+so it means that i could have cleared the relationship on every target switch if i used eager removal which is granular but since im using lazy remmoval,its very unsafe to do this and i should do this only on death.the option depends on whether i want to save memory or performance
+
+so even if i only have two branches,i can have more than one relationship to clean if the group of the entity that attacks the enemy varies
