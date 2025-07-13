@@ -1351,3 +1351,17 @@ this design pattern came as a bonus cuz the initial reason why i passed the targ
 The entity updates the heaps where it actively affects others, rather than where it is passively affected.
 
 so i now have an O(logn) update per relationship record and it only updates the heaps when the actual values change and it only updates the most relevant heap at the moment not all the records.that was the  biggest puzzle to solve when deciding how to update the heap when an entry was changed
+
+so because my relationsjips arent many cuz they are only abstract connections that dont define entity behaviour in themselves,ill oly need a hand few and the sepcifc heaps themselves arent much.it depends on how many props i want to chec against and a few already cover most of my needs;health,attack adamge,knockback,threat level,etc.so even if its O(n2) theoretically,its effectively neglibile and on top of that,its done onl peridocially
+
+periodic clearing of all relationships not only prevents memory leaks and improves robustness,but it also creates a natural behaviour where entities forget their relationships over time allowing entities to forget grudges they had againts other entities.
+
+*Why i used periodic cleanup of relationships
+Relationships Created by Other Entities (Player) Are External to NPC/HostileEntity
+The relationships like enemyOf[player] are created proactively by the player when it attacks other entities.
+NPCs and HostileEntities do not create or manage these relationships themselves.
+Therefore, these entities cannot reliably or efficiently remove themselves from these relationships because they don’t “own” them.
+Player manages relationships it creates, but due to longevity and complexity, relies on periodic global cleanup.
+
+
+so entities remove the relationships they own lazily when all the members of that relationship die but for proactive relationships that they didnt create like those from the player are removed at intervals by the player's update loop because of longevity and the lack of these entities to properly remove themselves from those relationships

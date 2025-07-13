@@ -305,11 +305,24 @@ class Player extends Controller implements EntityLike {
     get _groupID():string {
         return this.groupID;
     }
+    private readonly oneMinute = 60;
+    private readonly relationshipCleanupCooldown = 5 * this.oneMinute;
+    private relationshipCleanupTimer = 0
+
+    private periodicRelationshipCleanup() {
+        if (this.relationshipCleanupTimer > this.relationshipCleanupCooldown) {
+            console.log('Reset all relationships');
+            relationshipManager.clearAllRelationships();
+            this.relationshipCleanupTimer = 0;
+        }
+    }
     protected onLoop() {//this is where all character updates to this instance happens.
         this.toggleTimer += this.clockDelta || 0;
         this.showEntityHealthTimer += this.clockDelta || 0;
         this.attackTimer += this.clockDelta || 0;
+        this.relationshipCleanupTimer += this.clockDelta || 0;
         this.currentHealth = this.health.value;
+        this.periodicRelationshipCleanup();
         this.checkIfOutOfBounds();
         this.updateHealthGUI();
         this.health.checkGroundDamage(this.velBeforeHittingGround);

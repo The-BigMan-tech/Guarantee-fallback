@@ -42,7 +42,7 @@ export class EntityFactory {
         dynamicData.jumpResistance = Math.min(randInt(6,10),dynamicData.horizontalVelocity-5);
         miscData.healthValue = randInt(10,11);
         miscData.knockback = randInt(100,150);
-        miscData.attackDamage = randFloat(2,3);
+        miscData.attackDamage = randFloat(1,2);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         return new NPC(entity);
     }

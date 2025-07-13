@@ -122,6 +122,21 @@ export class RelationshipManager {
             console.log('cleared relationships');
         }
     }
+    //i only have a handful of relationships,groups and heaps and it only runs periodically so real game perf impact is extremly minimal
+    public clearAllRelationships() {
+        (Object.keys(RelationshipManager.relationships) as RelationshipNode[]).forEach(node => {
+            const relationship: Relationship = RelationshipManager.relationships[node];
+            Object.values(groupIDs).forEach(groupID => {
+                const record = relationship[groupID];
+                record.set.clear();
+                record.totalMembers = 0;
+                (Object.keys(record.subQueries)as SubQuery[]).forEach(query => {
+                    record.subQueries[query].clear();
+                });
+            });
+        });
+    }
+    
     private static computeThreat(entity: EntityLike): number {
         //balance these weights accordingly.they must sum to 1.
         const healthWeight = 0.5;
