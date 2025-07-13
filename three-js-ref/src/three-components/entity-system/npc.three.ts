@@ -48,12 +48,14 @@ export class NPC implements EntityContract {
         )
         if (currentTarget) {//i added the health chech to fix that prob where the npc may be chasing a dead target beacuse of lazy relationship removal
             this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!];//i assert the craetion of group id because the entity manager always intializes this id before saving it to the game for updates
-            this.trackedRelationships.add(this.selfToTargetRelationship)   
+            this.trackedRelationships.add(this.selfToTargetRelationship);
+            this.commonBehaviour.updateSelfInRelationship(this.selfToTargetRelationship);
         
         }else if (this.originalTargetEntity) {//this branch wont execute cuz the npc unlike the enemy doesnt get a target by default but its to remain consistent with the pattern i used for the enemy and it has to respect that this property exists even if its null
             currentTarget = this.originalTargetEntity
             this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!];
-            this.trackedRelationships.add(this.selfToTargetRelationship)
+            this.trackedRelationships.add(this.selfToTargetRelationship);
+            this.commonBehaviour.updateSelfInRelationship(this.selfToTargetRelationship);
         }
 
         console.log('relationship. Npc is attacking: ',currentTarget?._groupID);

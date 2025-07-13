@@ -4,6 +4,7 @@ import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY, combatCooldown} from "../physics-world.three";
 import { walkSound,punchSound,landSound } from "../listener/listener.three";
+import {v4 as uniqueID} from "uuid"
 
 //these methods are to create line geometries for their respective shapes.they are used to visualize hitboxes for visual debugging
 function createCapsuleLine(radius:number,halfHeight:number) {
@@ -986,6 +987,11 @@ export abstract class Controller {
     }
     get position():THREE.Vector3 {
         return new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z)
+    }
+
+    private controllerId = uniqueID();
+    get controllerID() {//this is for testing purposes to clarify different controllers from the logs
+        return this.controllerId
     }
 
 

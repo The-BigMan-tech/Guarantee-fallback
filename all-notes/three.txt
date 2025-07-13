@@ -1340,3 +1340,14 @@ When you assign an object or array to a variable, the variable holds a reference
 If you mutate the object in place (e.g., change a property, push to an array), all variables referencing that object see the change because they point to the same memory.
 However, when you assign a new object to a variable (e.g., targetRelationship = newRelationship), you are changing the reference itself — the variable now points to a new object in memory.
 Other variables that held the old reference do not see this change because their references still point to the original object.
+
+so the heap only builds the correc order when i add elements to it.it doesnt rebult it when the comparator changes or when the values used to order the heap changed.it has to be explicit.so this means that even though the current health value  was always reflected,the heap order didnt change making queries work on stale order even if the underlying refs were updated.The heap does not track property changes internally; it only maintains order based on the last known state at insertion/removal.therefore, mutating a property used in the comparator without reordering the heap leads to stale order.
+
+so what im doing now is that im not updating the heap in all relationship records where the entity may be found which can be very costly but im only updating the heap of the relationship record of the last known target relationshi
+
+so its a cross heap update.it updates the heap where it affects a third party not its own group's heap where third parties affect it
+
+this design pattern came as a bonus cuz the initial reason why i passed the target group is because its the only record amongst that and the class own group record that could represent any arbritary heap.so it made sense to use it because it will touch more heaps that way than the attackers of the class own group heap.This means the updates touch heaps that actually influence gameplay decisions (targets, threats, priorities).
+The entity updates the heaps where it actively affects others, rather than where it is passively affected.
+
+so i now have an O(logn) update per relationship record and it only updates the heaps when the actual values change and it only updates the most relevant heap at the moment not all the records.that was the  biggest puzzle to solve when deciding how to update the heap when an entry was changed

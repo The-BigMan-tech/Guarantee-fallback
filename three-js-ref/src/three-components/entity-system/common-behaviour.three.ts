@@ -28,7 +28,10 @@ export class CommonBehaviour {
                     console.log('Proxy called');
                     if (this.targetRelationshipToUpdate) {
                         console.log('Proxy called with good target');
+                        const topEntities = this.targetRelationshipToUpdate.subQueries.byHealth.top(3);    // top 3 entities
+                        console.log('heap top entities before:', topEntities.map(e =>e.controllerID));
                         relationshipManager.updateRelationship(proxy,this.targetRelationshipToUpdate);
+                        console.log('heap top entities after:', topEntities.map(e =>e.controllerID));
                     }
                 }
                 return true;
