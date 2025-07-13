@@ -41,6 +41,7 @@ class Player extends Controller implements EntityLike {
     private cameraClampAngle:number =  this.firstPersonClamp;
 
     public  health:Health;
+    public  currentHealth:number;
     public  camera:Camera;
 
     private camModeNum:1 | 2 | 3 = 1;//this corresponds to first,second and third person views
@@ -58,14 +59,14 @@ class Player extends Controller implements EntityLike {
 
     private playerHeight:number;
 
-    private attackDamage:number;
+    public attackDamage:number;
     private raycaster = new THREE.Raycaster();
     private lookDirection = new THREE.Vector2(0, 0); // center of screen for forward raycast
 
     private attackCooldown = combatCooldown; // half a second cooldown
     private attackTimer = 0;
 
-    private knockback:number;
+    public knockback:number;
     private lookedAtEntity:EntityContract | null = null;
 
     private respawnDelay: number = 7; // seconds
@@ -112,6 +113,7 @@ class Player extends Controller implements EntityLike {
         this.addObject(listener);
         Player.addEventListeners();
         this.health = new Health(miscData.healthValue);
+        this.currentHealth = miscData.healthValue;
         this.playerHeight = fixedData.characterHeight;
         this.attackDamage = miscData.attackDamage;
         this.knockback = miscData.knockback;
@@ -303,16 +305,11 @@ class Player extends Controller implements EntityLike {
     get _groupID():string {
         return this.groupID;
     }
-    get _attackDamage():number {
-        return this.attackDamage
-    }
-    get _knockback():number {
-        return this.knockback
-    }
     protected onLoop() {//this is where all character updates to this instance happens.
         this.toggleTimer += this.clockDelta || 0;
         this.showEntityHealthTimer += this.clockDelta || 0;
         this.attackTimer += this.clockDelta || 0;
+        this.currentHealth = this.health.value;
         this.checkIfOutOfBounds();
         this.updateHealthGUI();
         this.health.checkGroundDamage(this.velBeforeHittingGround);

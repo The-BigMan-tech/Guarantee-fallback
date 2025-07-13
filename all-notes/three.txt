@@ -1334,3 +1334,9 @@ so even if i only have two branches,i can have more than one relationship to cle
 so i have to properly define priority order,exclude self from the checks and optionally avoid listening to multiple similar relationships on the same object
 
 connection loop
+
+*assigning vs modifying a ref in place
+When you assign an object or array to a variable, the variable holds a reference (memory address) to that object, not the object itself.
+If you mutate the object in place (e.g., change a property, push to an array), all variables referencing that object see the change because they point to the same memory.
+However, when you assign a new object to a variable (e.g., targetRelationship = newRelationship), you are changing the reference itself — the variable now points to a new object in memory.
+Other variables that held the old reference do not see this change because their references still point to the original object.

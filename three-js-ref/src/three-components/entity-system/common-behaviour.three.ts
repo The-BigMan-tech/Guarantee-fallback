@@ -4,12 +4,37 @@ import type { EntityLike } from "./relationships.three";
 import { relationshipManager,type RelationshipData } from "./relationships.three";
 import Heap from "heap-js";
 
+type EntityKeys = keyof Entity
+
 export class CommonBehaviour {
-    private entity:Entity;
+    public entity:Entity;
+    private targetRelationshipToUpdate: RelationshipData | null = null;
     private removeFromRelationship = relationshipManager.removeFromRelationship;
 
     constructor(entity:Entity) {
-        this.entity = entity
+        const proxy = new Proxy(entity, {
+            set: (target: Entity, prop: EntityKeys, value: unknown) => {
+                const descriptor = Object.getOwnPropertyDescriptor(target, prop);
+                if (descriptor && !descriptor.writable && descriptor.get && !descriptor.set) {
+                    return true;// Property is getter-only, skip assignment
+                }
+                const oldValue = target[prop];
+                if (oldValue === value) {
+                    return true;
+                };
+                // @ts-expect-error The prop is guaranteed to be a writable property at runtime that ts cannot see
+                target[prop] = value;
+                if (prop === 'currentHealth' || prop === 'attackDamage' || prop === 'knockback') {
+                    console.log('Proxy called');
+                    if (this.targetRelationshipToUpdate) {
+                        console.log('Proxy called with good target');
+                        relationshipManager.updateRelationship(proxy,this.targetRelationshipToUpdate);
+                    }
+                }
+                return true;
+            }
+        })
+        this.entity = proxy;
     }
     public patrolBehaviour(basePatrolPoint:THREE.Vector3 | null):boolean {
         this.entity.basePatrolPoint = basePatrolPoint
@@ -58,5 +83,8 @@ export class CommonBehaviour {
             }
         }
         return null;
+    }
+    public updateSelfInRelationship(target:RelationshipData | null) {
+        this.targetRelationshipToUpdate = target;
     }
 }

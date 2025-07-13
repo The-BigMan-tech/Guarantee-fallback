@@ -42,8 +42,9 @@ export class Entity extends Controller implements EntityLike {
 
     private navPosition:THREE.Vector3 | null = null;//strictly for position in case where the entity might not have a target ref but it still wants to go navigate somewhere
 
-    public health:Health;
-    private attackDamage:number;
+    public health:Health;//the health here is public to allow mutations from other entities like giving it damage
+    public currentHealth:number;
+    public attackDamage:number;//i made this public for proxy access
 
     private readonly attackCooldown = combatCooldown; // cooldown duration in seconds
     private attackTimer = 0;    // timer accumulator
@@ -58,7 +59,7 @@ export class Entity extends Controller implements EntityLike {
     private isRemoved = false;//to ensure resources are cleaned only once per dead entity
 
     private struct:ManagingStructure;
-    private knockback:number;
+    public knockback:number;
 
     private fadeDuration = 2; // seconds
     private elapsed = 0;
@@ -73,6 +74,7 @@ export class Entity extends Controller implements EntityLike {
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:EntityMiscData,struct:ManagingStructure) {
         super(fixedData,dynamicData);
         this.health = new Health(miscData.healthValue);
+        this.currentHealth = miscData.healthValue;
         this.targetEntity = miscData.targetEntity
         this.attackDamage = miscData.attackDamage;
         this.struct = struct;
@@ -256,13 +258,6 @@ export class Entity extends Controller implements EntityLike {
     get _struct():ManagingStructure {
         return this.struct
     }
-
-    get _attackDamage():number {
-        return this.attackDamage
-    }
-    get _knockback():number {
-        return this.knockback
-    }
     get _groupID():string | null {
         return this.groupID;
     }
@@ -282,6 +277,7 @@ export class Entity extends Controller implements EntityLike {
     
     protected onLoop(): void {
         this.patrolTimer += this.clockDelta || 0;
+        this.currentHealth = this.health.value;
         this.checkIfOutOfBounds();
         this.health.checkGroundDamage(this.velBeforeHittingGround);
         if (this.isAirBorne() && (!this.health.isDead)) this.playJumpAnimation();

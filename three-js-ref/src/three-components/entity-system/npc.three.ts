@@ -24,11 +24,11 @@ export class NPC implements EntityContract {
     private addRelationship = relationshipManager.addRelationship;
 
     constructor(entity:Entity) {
-        this.entity = entity;
+        this.commonBehaviour = new CommonBehaviour(entity)
+        this.entity = this.commonBehaviour.entity;
         this.entity.onTargetReached = this.onTargetReached.bind(this);
         this.entity.updateInternalState = this.updateInternalState.bind(this);
         this.originalTargetEntity = this.entity._targetEntity;
-        this.commonBehaviour = new CommonBehaviour(entity)
     }
     private onTargetReached():'attack' | 'idle' {
         if (this.commonBehaviour.attackBehaviour()) {

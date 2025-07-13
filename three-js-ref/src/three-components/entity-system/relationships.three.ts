@@ -6,15 +6,14 @@ import { groupIDs } from "./globals";
 //im not going to explain the structure or how it works cuz its evident from the code.the more important question which is why i chose to use a reference tree instead of a graph is because linear data flow is easier to preduct than a bidirectional one as seen in a graph
 
 type Singleton<T> = T;
-type SubQuery = 'byHealth' | 'byAttackDamage' | 'byKnockback' | 'byThreat';
-type RelationshipNode = 'attack' | 'enemy';//add more relationships here as a union
 
 
 export interface EntityLike extends Controller {//this type is the common properties of both the player and entity classes to allow polymorphism
-    _groupID:string | null,
-    health:Health,//the health here is public to allow mutations from other entities like giving it damage
-    _attackDamage:number,
-    _knockback:number
+    _groupID:string | null,//group id is private but allowed through this getter.this is because not all entity like impl need their group ids exposed like the player which is already decided ahead of time.but each entity will have theirs decided dynamically at their time of creation 
+    health:Health,
+    currentHealth:number,//the purpose of this is to reflect the current health value so that i can notify proxies without creating nested ones
+    attackDamage:number,
+    knockback:number
 }
 export interface SubQueries {//i built individual heaps for each prop at creation time because changing the props dynamically at runtime involves rebuilding the heap which is very expensive especially when there are multiple entities in the world querying for all sorts of data
     byHealth:Heap<EntityLike>,//this queries for an entity by their health
@@ -22,8 +21,10 @@ export interface SubQueries {//i built individual heaps for each prop at creatio
     byKnockback:Heap<EntityLike>,//this is query by knockback
     byThreat:Heap<EntityLike>
 }
+type SubQuery = keyof SubQueries;
 
 type RelationshipID = string;
+
 export interface RelationshipData {
     totalMembers:number//used to keep track of all entities in a relationship for a specific key
     set:Set<EntityLike>//used to prevent duplicate entries ensuring that relationships for this key from any entity is only added once
@@ -35,6 +36,7 @@ interface RelationshipTree {
     attack:Relationship,
     enemy:Relationship
 }
+type RelationshipNode = keyof RelationshipTree
 
 
 export class RelationshipManager {
@@ -55,10 +57,11 @@ export class RelationshipManager {
                     relationship[groupID] = {
                         totalMembers:0,
                         set:new Set(),//its important to localize membership tests to per record cuz if i used a global set like before,an entity will be preented from having multiple relationships
+                        //querying the heaps is O(1) so its highly performant
                         subQueries: {//these heaps prioritize higher property values over lower ones.if one needs to query for the lowest value,they can pass an explicit parameter to a helper method defined in common behaviour that validates targets in the specified order--highest or lowest
                             byHealth:new Heap((a,b)=>b.health.value - a.health.value),
-                            byAttackDamage:new Heap((a,b)=>b._attackDamage - a._attackDamage),
-                            byKnockback:new Heap((a,b)=>b._knockback - a._knockback),
+                            byAttackDamage:new Heap((a,b)=>b.attackDamage - a.attackDamage),
+                            byKnockback:new Heap((a,b)=>b.knockback - a.knockback),
                             byThreat:new Heap((a,b)=>RelationshipManager.computeThreat(b)-RelationshipManager.computeThreat(a))
                         }
                     }
@@ -90,6 +93,21 @@ export class RelationshipManager {
             RelationshipManager.clearOnZeroMembers(data);
         }
     }
+    //this is O(logn)
+    public updateRelationship(entityLike: EntityLike, data: RelationshipData) {
+        console.log('updated relationship called');
+        const set = data.set;
+        if (set.has(entityLike)) {
+            // Remove and re-add entity to update its position in the heap without changing the membership count cuz its still a member
+            console.log('updated a relationship');
+            (Object.keys(data.subQueries) as SubQuery[]).forEach(query => {
+                const heap = data.subQueries[query];
+                heap.remove(entityLike);
+                heap.add(entityLike);
+            });
+        }
+    }
+
     //This is O(1) as long as the number of sub queries are manageable.
 
     //not only does this prevent memory leaks like eager removal but it also saves perf by batching deletes till when all entities in a relationship have died.it doesnt delete eagerly this time but rather,it clears everything in one go.
@@ -113,8 +131,8 @@ export class RelationshipManager {
         const healthThreat = 1 / (entity.health.value + 1);//we are making the health inversely proportional to the threat level
         return (
           (healthWeight * healthThreat) +
-          (attackDamageWeight * entity._attackDamage) +
-          (knockbackWeight * entity._knockback)
+          (attackDamageWeight * entity.attackDamage) +
+          (knockbackWeight * entity.knockback)
         );
     }
     get attackerOf() {

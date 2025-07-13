@@ -4,6 +4,8 @@ import { relationshipManager, type EntityLike } from "./relationships.three";
 import type { RelationshipData } from "./relationships.three";
 import { groupIDs } from "./globals";
 
+
+
 export class HostileEntity implements EntityContract  {
     public static modelPath:string = "./silvermoon.glb";
 
@@ -20,11 +22,11 @@ export class HostileEntity implements EntityContract  {
 
 
     constructor(entity:Entity) {
-        this.entity = entity;
+        this.commonBehaviour = new CommonBehaviour(entity);//this creates a proxy to update its records in its respecive heaps
+        this.entity = this.commonBehaviour.entity;//use the proxied entity
         this.entity.onTargetReached = this.onTargetReached.bind(this);
         this.entity.updateInternalState = this.updateInternalState.bind(this);
         this.originalTargetEntity = this.entity._targetEntity;
-        this.commonBehaviour = new CommonBehaviour(entity)
     }
     private onTargetReached():'attack' | 'idle' {//the behaviour when it reaches the target will be later tied to a state machine
         if (this.commonBehaviour.attackBehaviour()) {
@@ -40,11 +42,13 @@ export class HostileEntity implements EntityContract  {
         if (currentTarget) {
             this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!]
             this.trackedRelationships.add(this.selfToTargetRelationship);
+            this.commonBehaviour.updateSelfInRelationship(this.selfToTargetRelationship);
 
         }else if (this.originalTargetEntity) {
             currentTarget = this.originalTargetEntity
             this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!];
             this.trackedRelationships.add(this.selfToTargetRelationship);
+            this.commonBehaviour.updateSelfInRelationship(this.selfToTargetRelationship);
         }
         console.log('relationship. hostile entity is attacking: ',currentTarget?._groupID);
 
