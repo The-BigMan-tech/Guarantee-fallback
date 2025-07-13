@@ -33,8 +33,9 @@ export interface RelationshipData {
 type Relationship = Record<RelationshipID,RelationshipData>
 
 interface RelationshipTree {
-    attack:Relationship,
-    enemy:Relationship
+    attack:Relationship,//to know which entity attacked who
+    enemy:Relationship,//to know which entity is considered an emey of who
+    hostilityTargets:Relationship//to know the default entities some etities are hostile to
 }
 type RelationshipNode = keyof RelationshipTree
 
@@ -43,7 +44,8 @@ export class RelationshipManager {
     private static manager:RelationshipManager;
     private static relationships:RelationshipTree = {
         attack: {},
-        enemy:{}
+        enemy:{},
+        hostilityTargets:{}
     }
 
     private constructor() {};
@@ -155,6 +157,9 @@ export class RelationshipManager {
     }
     get enemyOf() {
         return RelationshipManager.relationships.enemy
+    }
+    get hostileTargetOf() {
+        return RelationshipManager.relationships.hostilityTargets
     }
 }
 export const relationshipManager:Singleton<RelationshipManager> = RelationshipManager.instance;

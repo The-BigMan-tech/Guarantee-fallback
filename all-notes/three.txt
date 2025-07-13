@@ -1365,3 +1365,14 @@ Player manages relationships it creates, but due to longevity and complexity, re
 
 
 so entities remove the relationships they own lazily when all the members of that relationship die but for proactive relationships that they didnt create like those from the player are removed at intervals by the player's update loop because of longevity and the lack of these entities to properly remove themselves from those relationships
+
+so it means that entities should only update and track relationship heaps they are a member of.those special cases where they are a member of a relationship but they dont own it like enemy of plyer relationship and this one where they arent even a member.so these kinds of relationships are cleaned on the periodic cleanup
+
+*so they are owned and borrowed relationships
+If the class’s own entity is not a member of a particular relationship (for example, when the player is the member but the hostile entity is not), then tracking that relationship inside the entity class won’t enable proper cleanup of that entity’s references. The entity cannot remove itself from a relationship it doesn’t belong to.Therefore:
+
+Entities should only track and clean up relationships where they are actual members.
+
+For relationships where the entity is not a member or only referenced indirectly (like enemyOf[player] or hostilityTargets where the player is the member), cleanup must be handled differently — typically via periodic global cleanup that clears stale relationships.
+
+In summary, tracking relationships inside an entity only works if the entity is a member of those relationships; otherwise, periodic or external cleanup is necessary.
