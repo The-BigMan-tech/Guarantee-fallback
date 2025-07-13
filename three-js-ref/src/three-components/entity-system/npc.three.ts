@@ -41,9 +41,9 @@ export class NPC implements EntityContract {
     }
     private updateInternalState() {
         let currentTarget:EntityLike | null = (
-            this.commonBehaviour.getValidHostileTarget(this.attackersOfEntityKind.subQueries.byHealth) ||
-            this.commonBehaviour.getValidHostileTarget(this.attackersOfPlayer.subQueries.byHealth) ||
-            this.commonBehaviour.getValidHostileTarget(this.enemiesOfPlayer.subQueries.byHealth) ||
+            this.commonBehaviour.getValidHostileTarget(this.attackersOfEntityKind.subQueries.byThreat,'highest') ||
+            this.commonBehaviour.getValidHostileTarget(this.attackersOfPlayer.subQueries.byThreat,'highest') ||
+            this.commonBehaviour.getValidHostileTarget(this.enemiesOfPlayer.subQueries.byThreat,'highest') ||
             null
         )
         if (currentTarget) {//i added the health chech to fix that prob where the npc may be chasing a dead target beacuse of lazy relationship removal

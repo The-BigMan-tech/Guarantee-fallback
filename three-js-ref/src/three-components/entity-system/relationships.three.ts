@@ -6,7 +6,7 @@ import { groupIDs } from "./globals";
 //im not going to explain the structure or how it works cuz its evident from the code.the more important question which is why i chose to use a reference tree instead of a graph is because linear data flow is easier to preduct than a bidirectional one as seen in a graph
 
 type Singleton<T> = T;
-type SubQuery = 'byHealth' | 'byAttackDamage' | 'byKnockback';
+type SubQuery = 'byHealth' | 'byAttackDamage' | 'byKnockback' | 'byThreat';
 type RelationshipNode = 'attack' | 'enemy';//add more relationships here as a union
 
 
@@ -19,7 +19,8 @@ export interface EntityLike extends Controller {//this type is the common proper
 export interface SubQueries {//i built individual heaps for each prop at creation time because changing the props dynamically at runtime involves rebuilding the heap which is very expensive especially when there are multiple entities in the world querying for all sorts of data
     byHealth:Heap<EntityLike>,//this queries for an entity by their health
     byAttackDamage:Heap<EntityLike>,//this is query by attack damage
-    byKnockback:Heap<EntityLike>//this is query by knockback
+    byKnockback:Heap<EntityLike>,//this is query by knockback
+    byThreat:Heap<EntityLike>
 }
 
 type RelationshipID = string;
@@ -54,10 +55,11 @@ export class RelationshipManager {
                     relationship[groupID] = {
                         totalMembers:0,
                         set:new Set(),//its important to localize membership tests to per record cuz if i used a global set like before,an entity will be preented from having multiple relationships
-                        subQueries: {
+                        subQueries: {//these heaps prioritize higher property values over lower ones.if one needs to query for the lowest value,they can pass an explicit parameter to a helper method defined in common behaviour that validates targets in the specified order--highest or lowest
                             byHealth:new Heap((a,b)=>b.health.value - a.health.value),
                             byAttackDamage:new Heap((a,b)=>b._attackDamage - a._attackDamage),
-                            byKnockback:new Heap((a,b)=>b._knockback - a._knockback)
+                            byKnockback:new Heap((a,b)=>b._knockback - a._knockback),
+                            byThreat:new Heap((a,b)=>RelationshipManager.computeThreat(b)-RelationshipManager.computeThreat(a))
                         }
                     }
                 })
@@ -101,6 +103,19 @@ export class RelationshipManager {
             })
             console.log('cleared relationships');
         }
+    }
+    private static computeThreat(entity: EntityLike): number {
+        //balance these weights accordingly.they must sum to 1.
+        const healthWeight = 0.5;
+        const attackDamageWeight = 0.3;
+        const knockbackWeight = 0.2;
+
+        const healthThreat = 1 / (entity.health.value + 1);//we are making the health inversely proportional to the threat level
+        return (
+          (healthWeight * healthThreat) +
+          (attackDamageWeight * entity._attackDamage) +
+          (knockbackWeight * entity._knockback)
+        );
     }
     get attackerOf() {
         return RelationshipManager.relationships.attack

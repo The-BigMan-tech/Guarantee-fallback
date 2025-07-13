@@ -45,10 +45,10 @@ export class CommonBehaviour {
         }
         trackedRelationships.clear();
     }
-    public getValidHostileTarget(heap:Heap<EntityLike>): EntityLike | null {
-        const bottom = heap.bottom();
-        for (let i = 0; i < bottom.length; i++) {
-            const candidate = bottom[i]; 
+    public getValidHostileTarget(heap:Heap<EntityLike>,order:'highest' | 'lowest'): EntityLike | null {
+        const candidates = order === 'highest' ? heap.top() : heap.bottom();
+        for (let i = 0; i < candidates.length; i++) {
+            const candidate = candidates[i]; 
             if (
                 (candidate !== this.entity) && //to prevent a loop where it targets itself
                 !(candidate.health.isDead) && //to prevent it from targetting dead entities that still linger in the heap because other members for that reationship still remain

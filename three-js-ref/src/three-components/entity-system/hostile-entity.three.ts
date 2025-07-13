@@ -35,7 +35,7 @@ export class HostileEntity implements EntityContract  {
         }else return 'idle';
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
-        let currentTarget = this.commonBehaviour.getValidHostileTarget(this.attackersOfEntityKind.subQueries.byAttackDamage);//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage       
+        let currentTarget = this.commonBehaviour.getValidHostileTarget(this.attackersOfEntityKind.subQueries.byAttackDamage,'highest');//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage       
         
         if (currentTarget) {
             this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!]
