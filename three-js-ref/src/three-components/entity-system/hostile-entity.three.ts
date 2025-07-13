@@ -4,7 +4,7 @@ import { relationshipManager, type EntityLike } from "./relationships.three";
 import type { RelationshipData } from "./relationships.three";
 import { groupIDs } from "./globals";
 
-export class Enemy implements EntityContract  {
+export class HostileEntity implements EntityContract  {
     public static modelPath:string = "./silvermoon.glb";
 
     private entity:Entity;
@@ -14,7 +14,7 @@ export class Enemy implements EntityContract  {
     private trackedRelationships:Set<RelationshipData> = new Set();
     private selfToTargetRelationship:RelationshipData | null = null
 
-    private attackersOfEnemy:RelationshipData = relationshipManager.attackerOf[groupIDs.enemy];
+    private attackersOfEntityKind:RelationshipData = relationshipManager.attackerOf[groupIDs.hostileEntity];
 
     private addRelationship = relationshipManager.addRelationship;
     private removeFromRelationship = relationshipManager.removeFromRelationship;
@@ -45,7 +45,7 @@ export class Enemy implements EntityContract  {
         }else return 'idle';
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
-        let currentTarget = this.attackersOfEnemy.subQueries.byAttackDamage.bottom().at(0) || null;//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage       
+        let currentTarget = this.attackersOfEntityKind.subQueries.byAttackDamage.bottom().at(0) || null;//this means that the enemy should attack the entity that attacked its kind with the weakest attack damage       
         
         if (currentTarget && !currentTarget.health.isDead) {//i added the health chech to fix that prob where the npc may be chasing a dead target beacuse of lazy relationship removal 
             this.selfToTargetRelationship = this.getAttackRelationshipForGroup(currentTarget._groupID!)//i didn check for the enemy's own kind cuz the target of the enemy will never be the enemy

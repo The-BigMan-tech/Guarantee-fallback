@@ -1,4 +1,4 @@
-import { Enemy } from "./hostile-entity.three";
+import { HostileEntity } from "./hostile-entity.three";
 import { NPC } from "./npc.three";
 import { randInt,randFloat} from "three/src/math/MathUtils.js";
 import { Entity } from "./entity.three";
@@ -17,11 +17,11 @@ export class EntityFactory {
         }
         return EntityFactory.factory;
     }
-    public createEnemy(entityData:FullEntityData):EntityContract {
+    public createHostileEntity(entityData:FullEntityData):EntityContract {
         const fixedData = entityData.fixedData;
         const dynamicData = entityData.dynamicData;
         const miscData = entityData.miscData;//i did this to make the code neater and it will work since it references the same object
-        fixedData.modelPath = Enemy.modelPath;
+        fixedData.modelPath = HostileEntity.modelPath;
         miscData.targetEntity = player;
         dynamicData.horizontalVelocity = randInt(10,20);
         dynamicData.jumpVelocity = randInt(20,30);
@@ -30,7 +30,7 @@ export class EntityFactory {
         miscData.knockback = randInt(100,150);
         miscData.attackDamage = randFloat(0.5,1);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
-        return new Enemy(entity);
+        return new HostileEntity(entity);
     }
     public createNPC(entityData:FullEntityData):EntityContract {
         const fixedData = entityData.fixedData;

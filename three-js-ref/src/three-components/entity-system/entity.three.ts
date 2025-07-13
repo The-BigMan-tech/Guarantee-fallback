@@ -6,6 +6,7 @@ import { combatCooldown, physicsWorld } from "../physics-world.three";
 import type { EntityLike } from "./relationships.three";
 import { disposeHierarchy, disposeMixer } from "../disposer/disposer.three";
 import type { EntityCount,EntityWrapper} from "./globals";
+import { isEntityWrapper } from "./globals";
 
 type Behaviour = 'idle' | 'patrol' | 'chase' | 'attack' | 'death';
 interface EntityStateMachine {
@@ -179,9 +180,6 @@ export class Entity extends Controller implements EntityLike {
             }
         });
     }
-    private isEntityWrapper(name: string): name is EntityWrapper {
-        return name === 'Enemy' || name === 'NPC';
-    }
     public incEntityCount(wrapperName:EntityWrapper) {
         this.struct.entityCounts.totalCount += 1;
         this.struct.entityCounts.individualCounts[wrapperName].currentCount += 1;
@@ -215,7 +213,7 @@ export class Entity extends Controller implements EntityLike {
             const index = this.struct.entityIndexMap.get(this)!;
             const entityWrapper:EntityContract = this.struct.entities[index];
             const wrapperName:string = entityWrapper.constructor.name
-            if (this.isEntityWrapper(wrapperName)) {//this operation must be done before deletion of the entry
+            if (isEntityWrapper(wrapperName)) {//this operation must be done before deletion of the entry
                 this.decEntityCount(wrapperName);
             }
             //O(1) deletion from the entities array

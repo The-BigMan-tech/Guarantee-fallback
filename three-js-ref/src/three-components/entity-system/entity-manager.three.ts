@@ -27,13 +27,13 @@ class EntityManager {
     private entityCounts:EntityCount = {
         totalCount:0,
         individualCounts: {
-            Enemy:{currentCount:0,minCount:1},//the min count influences how many entities of this kind should be in the world before the manager is satisfied to stop spawning more entities.a higher number means that it will attempt to spawn new entities more and more until this thresh is satisfied but its capped at max entity cap for perf to prevent too many attempts
+            HostileEntity:{currentCount:0,minCount:1},//the min count influences how many entities of this kind should be in the world before the manager is satisfied to stop spawning more entities.a higher number means that it will attempt to spawn new entities more and more until this thresh is satisfied but its capped at max entity cap for perf to prevent too many attempts
             NPC:{currentCount:0,minCount:1},
         }
     }
     private entityMapping:Record<EntityWrapper,EntitySpawnData> = {
-        Enemy:{
-            groupID:groupIDs.enemy,//i called it groupID cuz its not per isntance but per entity type or kind
+        HostileEntity:{
+            groupID:groupIDs.hostileEntity,//i called it groupID cuz its not per isntance but per entity type or kind
             spawnWeight:6//an important thing to note is that when the weight is 0 but at least one of the others is non-zero,then this entity will never have the chance to be pciked but if all the other entities are non-zero,its the same thing as all of them having 10 or 100 cuz the weights are equal.thats the thing about weighted random.is the probabliliy of picking one relative to the probability of others not absolute probability.so to totally remove entities,set entity cap to 0.
         },
         NPC: {
@@ -126,11 +126,11 @@ class EntityManager {
             managingStruct:entityManagingStruct
         };
         switch (groupID) {
-            case (this.entityMapping['Enemy'].groupID): {
-                const enemy = this.factory.createEnemy(entityData);
-                enemy._entity._groupID = groupIDs.enemy;//this is important to distinguish entities in a relationship.for example,not all attackers of the player are from a particular class
-                enemy._entity.incEntityCount('Enemy');
-                return enemy
+            case (this.entityMapping['HostileEntity'].groupID): {
+                const hostileEntity = this.factory.createHostileEntity(entityData);
+                hostileEntity._entity._groupID = groupIDs.hostileEntity;//this is important to distinguish entities in a relationship.for example,not all attackers of the player are from a particular class
+                hostileEntity._entity.incEntityCount('HostileEntity');
+                return hostileEntity
             }
             case (this.entityMapping['NPC'].groupID): {
                 const npc = this.factory.createNPC(entityData);

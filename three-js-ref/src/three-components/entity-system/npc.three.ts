@@ -18,7 +18,7 @@ export class NPC implements EntityContract {
     private selfToTargetRelationship:RelationshipData | null = null;//i used null here to prevent ts from complaining that i didnt initialize this in the constructor and i wanted to avoid code duplication but im sure that it cant be null and thats why i used null assertion in property access
     
     private attackersOfPlayer = relationshipManager.attackerOf[groupIDs.player];
-    private attackersOfNPC = relationshipManager.attackerOf[groupIDs.npc];
+    private attackersOfEntityKind = relationshipManager.attackerOf[groupIDs.npc];
 
     private addRelationship = relationshipManager.addRelationship;
     private removeFromRelationship = relationshipManager.removeFromRelationship;
@@ -51,7 +51,7 @@ export class NPC implements EntityContract {
     private updateInternalState() {
         let currentTarget = 
                 this.attackersOfPlayer.subQueries.byHealth.bottom().at(0) || 
-                this.attackersOfNPC.subQueries.byHealth.bottom().at(0) ||
+                this.attackersOfEntityKind.subQueries.byHealth.bottom().at(0) ||
                 null;
 
         if (currentTarget && !currentTarget.health.isDead) {//i added the health chech to fix that prob where the npc may be chasing a dead target beacuse of lazy relationship removal
