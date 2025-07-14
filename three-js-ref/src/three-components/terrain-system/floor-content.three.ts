@@ -29,13 +29,34 @@ export class FloorContent {
         this.generateTerrainWithNoise(gridSize,cubeSize,maxTerrainHeight);
         this.buildMergedColliders(gridSize, cubeSize);   
     }
+    //for face culling
+    private isVoxelExposed(x:number,y:number,z:number,gridSize:number,heightScale:number): boolean {
+        const neighbors = [
+            [x + 1, y, z],
+            [x - 1, y, z],
+            [x, y + 1, z],
+            [x, y - 1, z],
+            [x, y, z + 1],
+            [x, y, z - 1],
+        ];
+        for (const [nx, ny, nz] of neighbors) {
+            if (//if its on the edeg or it has no neighbours
+                nx < 0 || nx >= gridSize ||
+                ny < 0 || ny >= heightScale ||
+                nz < 0 || nz >= gridSize
+            ) {
+                return true; // At edge, so exposed
+            }else if (!this.voxelGrid[nx][ny][nz]) {
+              return true; // Neighbor empty, so exposed
+            }
+        }
+        return false; // Fully enclosed
+    }
     private voxelGrid: boolean[][][] = []; // 3D grid: x, y, z
     private generateTerrainWithNoise(gridSize: number, cubeSize: number, heightScale: number) {
         const halfArea = this.floorContentData.groundArea / 2;
         const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
         const cubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f}); // example color
-        const edgesGeometry = new THREE.EdgesGeometry(cubeGeometry);
-        const edgesMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
 
         this.voxelGrid = new Array(gridSize);
         for (let x = 0; x < gridSize; x++) {
@@ -44,6 +65,7 @@ export class FloorContent {
                 this.voxelGrid[x][y] = new Array(gridSize).fill(false)
             }
         }
+        const voxelPositions: THREE.Vector3[] = [];
 
         for (let x = 0; x < gridSize; x++) {
             for (let z = 0; z < gridSize; z++) {
@@ -59,15 +81,21 @@ export class FloorContent {
                     this.voxelGrid[x][y][z] = true;//voxel is occupied
                     const standingPointY = startingLevelY + (cubeSize / 2);
                     const localY =  (y * cubeSize) + standingPointY;
-
-                    const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-                    const cubeLine = new LineSegments(edgesGeometry,edgesMaterial);
-                    cube.add(cubeLine)
-                    cube.position.set(localX,localY, localZ);
-                    this.content.add(cube);
+                    if (this.isVoxelExposed(x,y,z,gridSize,heightScale)) {
+                        voxelPositions.push(new THREE.Vector3(localX, localY, localZ));
+                    }
                 }
             }
         }
+        const instancedMesh = new THREE.InstancedMesh(cubeGeometry, cubeMaterial, voxelPositions.length);
+        const dummy = new THREE.Object3D();
+        for (let i = 0; i < voxelPositions.length; i++) {
+            dummy.position.copy(voxelPositions[i]);
+            dummy.updateMatrix();
+            instancedMesh.setMatrixAt(i, dummy.matrix);
+        }
+        instancedMesh.instanceMatrix.needsUpdate = true;
+        this.content.add(instancedMesh);
     }
     private buildMergedColliders(gridSize: number, cubeSize: number) {
         // Example: merge vertically contiguous voxels per (x,z) column
@@ -88,24 +116,24 @@ export class FloorContent {
                         startY = y;
                     }else if ((!isOccupied || atTopLayer) && isTrackingBlock) {
                         const heightInVoxels = y - startY;
-                        this.createMergedCollider(
+                        this.createMergedCollider({
                             x,              // x index of block start
-                            startY,         // y index of block start
+                            y:startY,         // y index of block start
                             z,              // z index of block start
-                            1,              // width in voxels (1 for vertical merging)
-                            heightInVoxels, // height in voxels (length of vertical block)
-                            1,              // depth in voxels (1 for vertical merging)
+                            width:1,              // width in voxels (1 for vertical merging)
+                            height:heightInVoxels, // height in voxels (length of vertical block)
+                            depth:1,              // depth in voxels (1 for vertical merging)
                             cubeSize,       // size of one voxel cube
                             halfArea,       // half ground area for centering
                             standingPointY  // base Y offset
-                        );
+                    });
                         startY = -1;
                     }
                 }
             }
         }
     }
-    private createMergedCollider(
+    private createMergedCollider(args:{
         x: number,
         y: number,
         z: number,
@@ -115,7 +143,8 @@ export class FloorContent {
         cubeSize: number,
         halfArea: number,
         standingPointY: number
-    ) {
+    }) {
+        const {x,y,z,width,height,depth,cubeSize,halfArea,standingPointY} = args;
         const halfWidth = (width * cubeSize) / 2;
         const halfHeight = (height * cubeSize) / 2;
         const halfDepth = (depth * cubeSize) / 2;
