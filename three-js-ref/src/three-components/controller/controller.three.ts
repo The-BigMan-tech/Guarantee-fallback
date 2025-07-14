@@ -824,14 +824,14 @@ export abstract class Controller {
     private knockbackCooldown:seconds = combatCooldown;//to give the physics engine time to reflect the knockback
 
     //this method applies an impulse to the character.so i can use it for other things besides knockback but take into account that velocity is the main method used to control characters
-    public knockbackCharacter(direction:'forward'| 'backwards',knockbackImpulse:number,scalar?:number):void {
+    public knockbackCharacter(direction:'forward'| 'backwards',knockbackImpulse:number,scalarY?:number):void {
         this.wakeUpBody();
         const upwardScalar = 3
         const dir = new THREE.Vector3(0,0,(direction=='forward')?-1:1);
         const knockbackDir = dir.applyQuaternion(this.character.quaternion)
         const impulse = new RAPIER.Vector3(
             knockbackDir.x * knockbackImpulse,
-            knockbackImpulse * (scalar || upwardScalar),
+            knockbackImpulse * (scalarY || upwardScalar),
             knockbackDir.z * knockbackImpulse
         );
         this.impulse.copy(impulse);

@@ -21,3 +21,6 @@ export interface EntityCount {
     totalCount:number,
     individualCounts:Record<EntityWrapper,CountData>
 }
+export type seconds = number;
+export type minutes = number;
+export type degrees = number;

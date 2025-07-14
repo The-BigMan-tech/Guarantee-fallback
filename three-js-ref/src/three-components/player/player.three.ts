@@ -12,6 +12,7 @@ import { listener } from "../listener/listener.three";
 import type { EntityLike } from "../entity-system/relationships.three";
 import { groupIDs } from "../entity-system/globals";
 import { relationshipManager } from "../entity-system/relationships.three";
+import type { seconds } from "../entity-system/globals";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -29,6 +30,7 @@ enum CameraMode {
     SecondPerson = 2,
     ThirdPerson = 3
 }
+
 class Player extends Controller implements EntityLike {
     private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
     private readonly groupID = groupIDs.player;//the player's group id unlike the entities is readonly because its a fixed one not changed dynamically
@@ -53,8 +55,8 @@ class Player extends Controller implements EntityLike {
     private targetZ:number = -0.6;//this is used to offset the cam either forward or backward.i made it -0.6 initially cuz it starts as first person and ill want the cam to shift a little away from the model to clear the view
     private targetY:number = 0;
 
-    private readonly toggleCooldown: number = 0.3; // Cooldown in seconds.this value in particular works the best
-    private toggleTimer: number = 0;
+    private readonly toggleCooldown:seconds = 0.3; // Cooldown in seconds.this value in particular works the best
+    private toggleTimer:seconds = 0;
 
 
     private playerHeight:number;
@@ -63,17 +65,17 @@ class Player extends Controller implements EntityLike {
     private raycaster = new THREE.Raycaster();
     private lookDirection = new THREE.Vector2(0, 0); // center of screen for forward raycast
 
-    private attackCooldown = combatCooldown; // half a second cooldown
-    private attackTimer = 0;
+    private attackCooldown:seconds = combatCooldown; // half a second cooldown
+    private attackTimer:seconds = 0;
 
     public knockback:number;
     private lookedAtEntity:EntityContract | null = null;
 
-    private respawnDelay: number = 7; // seconds
-    private respawnTimer: number = 0;
+    private respawnDelay:seconds = 7; // seconds
+    private respawnTimer: seconds = 0;
 
-    private showEntityHealthTimer:number = 0;
-    private readonly showEntityHealthCooldown:number = 3;
+    private showEntityHealthTimer:seconds = 0;
+    private readonly showEntityHealthCooldown:seconds = 3;
 
     private readonly zoomDelta:number = 1;
     private readonly zoomClamp = 15
@@ -184,9 +186,11 @@ class Player extends Controller implements EntityLike {
         if (Player.keysPressed['ArrowRight']) {
             this.rotateCharacterX('right')
         };
+        //zoom in
         if (Player.keysPressed['Equal']) {//this corresponds to +
             this.targetZ = Math.max(-this.zoomClamp,this.targetZ - this.zoomDelta);  //used minus on the zoom delta cuz thats my forward axis and as such,i had to also use -clamp to clamp it at that direction.i also had to invert the function i used for clamping to be max instead of min since its in the negative direction
         }
+        //zoom out
         if (Player.keysPressed['Minus']) {
             this.targetZ = Math.min(this.zoomClamp,this.targetZ + this.zoomDelta)
         }
@@ -305,24 +309,11 @@ class Player extends Controller implements EntityLike {
     get _groupID():string {
         return this.groupID;
     }
-    private readonly oneMinute = 60;
-    private readonly relationshipCleanupCooldown = 5 * this.oneMinute;
-    private relationshipCleanupTimer = 0
-
-    private periodicRelationshipCleanup() {
-        if (this.relationshipCleanupTimer > this.relationshipCleanupCooldown) {
-            console.log('Reset all relationships');
-            relationshipManager.clearAllRelationships();
-            this.relationshipCleanupTimer = 0;
-        }
-    }
     protected onLoop() {//this is where all character updates to this instance happens.
         this.toggleTimer += this.clockDelta || 0;
         this.showEntityHealthTimer += this.clockDelta || 0;
         this.attackTimer += this.clockDelta || 0;
-        this.relationshipCleanupTimer += this.clockDelta || 0;
         this.currentHealth = this.health.value;
-        this.periodicRelationshipCleanup();
         this.checkIfOutOfBounds();
         this.updateHealthGUI();
         this.health.checkGroundDamage(this.velBeforeHittingGround);

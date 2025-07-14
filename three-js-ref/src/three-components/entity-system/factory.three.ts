@@ -4,9 +4,7 @@ import { randInt,randFloat} from "three/src/math/MathUtils.js";
 import { Entity } from "./entity.three";
 import type { EntityContract } from "./entity.three";
 import type { FullEntityData } from "./entity.three";
-import { relationshipManager } from "./relationships.three";
-import { groupIDs } from "./globals";
-import { player } from "../player/player.three";
+
 
 type Singleton<T> = T;
 export class EntityFactory {
@@ -32,7 +30,6 @@ export class EntityFactory {
         miscData.attackDamage = randFloat(0.5,1);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         const hostileEntity = new HostileEntity(entity);
-        relationshipManager.addRelationship(player,relationshipManager.hostileTargetOf[groupIDs.hostileEntity]);
         return hostileEntity;
     }
     public createNPC(entityData:FullEntityData):EntityContract {
@@ -48,7 +45,6 @@ export class EntityFactory {
         miscData.attackDamage = randFloat(1,2);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         const npc =  new NPC(entity);
-        relationshipManager.addRelationship(player,relationshipManager.followTargetOf[groupIDs.npc]);
         return npc
     }
     public createDefault(entityData:FullEntityData):EntityContract {

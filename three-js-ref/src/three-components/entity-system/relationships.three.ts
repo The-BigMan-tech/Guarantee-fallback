@@ -2,6 +2,7 @@ import { Controller } from "../controller/controller.three";
 import type { Health } from "../health/health";
 import Heap from "heap-js";
 import { groupIDs } from "./globals";
+import type { seconds,minutes } from "./globals";
 
 //im not going to explain the structure or how it works cuz its evident from the code.the more important question which is why i chose to use a reference tree instead of a graph is because linear data flow is easier to preduct than a bidirectional one as seen in a graph
 
@@ -114,6 +115,7 @@ export class RelationshipManager {
 
     //This is O(1) as long as the number of sub queries are manageable.
 
+    //i made its static because entity classes ref the remove reltionship without the usin the instance to provide the this context because its eaier to type and this method is a dependency of remove relationship.
     //not only does this prevent memory leaks like eager removal but it also saves perf by batching deletes till when all entities in a relationship have died.it doesnt delete eagerly this time but rather,it clears everything in one go.
     private static clearOnZeroMembers(data:RelationshipData) {//i have to make this static because the remove rel references i created in the concretes dont have the this context to call it.
         const set = data.set;
@@ -124,6 +126,18 @@ export class RelationshipManager {
                 data.subQueries[query].clear();//clear each of the heaps to prevent memory leaks and unexpected entity behaviour in game
             })
             console.log('cleared relationships');
+        }
+    }
+    private readonly oneMinute:seconds = 60;
+    private readonly relationshipCleanupCooldown:minutes = 5 * this.oneMinute//using seconds for now to test
+    private relationshipCleanupTimer:seconds = 0
+
+    public periodicRelationshipCleanup(deltaTime:number) {
+        this.relationshipCleanupTimer += deltaTime || 0;
+        if (this.relationshipCleanupTimer > this.relationshipCleanupCooldown) {
+            console.log('Reset all relationships');
+            this.clearAllRelationships();
+            this.relationshipCleanupTimer = 0;
         }
     }
     //i only have a handful of relationships,groups and heaps and it only runs periodically so real game perf impact is extremly minimal
@@ -140,7 +154,11 @@ export class RelationshipManager {
             });
         });
     }
-    
+    public refreshRelationships(player:EntityLike) {//im passing the player from the update loop instead of fdirectly importing it to prevent circular dependencies because the player already imports the relationship manaer
+        this.addRelationship(player,this.hostileTargetOf[groupIDs.hostileEntity]);
+        this.addRelationship(player,this.followTargetOf[groupIDs.npc]);
+    }
+    //i made this static because its used in the static method,instance.
     private static computeThreat(entity: EntityLike): number {
         //balance these weights accordingly.they must sum to 1.
         const healthWeight = 0.5;

@@ -1376,3 +1376,28 @@ Entities should only track and clean up relationships where they are actual memb
 For relationships where the entity is not a member or only referenced indirectly (like enemyOf[player] or hostilityTargets where the player is the member), cleanup must be handled differently — typically via periodic global cleanup that clears stale relationships.
 
 In summary, tracking relationships inside an entity only works if the entity is a member of those relationships; otherwise, periodic or external cleanup is necessary.
+
+*inverted vs intuitive relationships
+*the relationships are inverted
+relationships must be added continuously to survive cleanup
+
+if you noticed,all my relationships are inverted.i dont have member - the groups it attacked i have group--the members that attacked it.it condenses similar queries concerning attack information into a single query and it also allows me to access the relevant objects.it was a design decision that came from the block of accessing relevant objects if i defined relationships the normal way and it also makes it easier to remove members.for example,if i want to remove memebers from the entities that attacked the player,i can do it from one node.but if it was the other way around,ill fremove the player from each record entity that attacked the player.so even if the intuitive way of making relationships sounds better,computationally,inverted elationships are easier to implement and more performant.well at least for a tree,if it were a graph,it will take more intuitive relationships but a tree is easier to predict and maintain
+
+so tracked relatioships are removed when the last member dies.tracked relationships functions like ref counting.its O1 but it can only be called once per entity to prevent unexpected mutation of the shared counter idealy on death.even though entities validate for death before using a member,removing relationships is important to allw the entities in those relationships to be garbage collected
+
+*Tracked Relationships:
+These involve entities that are explicit members of the relationship. Membership is managed carefully—entities add themselves when relevant and remove themselves (typically on death). The system tracks the number of members (like reference counting), enabling efficient O(1) removal and cleanup when the last member leaves. This ensures accurate, up-to-date data and allows entities to be garbage collected properly.
+
+*Untracked Relationships:
+These reference entities that are not members of the relationship, often due to entity longevity (e.g., the player) or uncertainty about membership. Because these entities cannot reliably add or remove themselves, the system relies on periodic, aggressive cleanup to clear stale or orphaned
+
+i didnt have all of this before when i just used hardcoded relationships.before i had a relationshi tree but i hardcoded the records,so it didnt have any method at all.just one object.i hardcoded connections like making hostile entity attacker of player all the time when it attacks.but now,i have a robust system that for dynamically handling relationships.but i also had to factor in relationship lifecycles,proxy updates,periodic cleanup,refreshing,filtering candidates,etc. and now,i can use my relationships as abstract connections without always thinking of the underlying mechanics.adding a new relationship now is as easy as adding a new property and the rest will build itself at runtime.this means that the relationship manager logic in itself will remain stable and updates to relationships will be now be more on adding more heaps for subqueries or adding new nodes under the relationship tree
+
+i also no longer have to code every possible relationship case and start copying code up and down.i can test relationship lifecyles independent of the entities themselves.like i did when i spawned two entities just to check if the heap order was updatong.the entities are just the test subjects not critical blocks that script the relationships.i wont have had this benfit if i hardcoded relationships
+
+inverted relationship tree is a performant and maintainable design well-suited for hierarchical, acyclicinteractions and efficient querying.
+
+While less expressive than full graphs, your tree structure provides better predictability, simpler lifecycle management, and faster operations, making it a strong choice for many game AI needs.
+
+state machine is minimal
+relationships are used on top of it for intricate behaviour

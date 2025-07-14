@@ -5,7 +5,6 @@ import type { RelationshipData } from "./relationships.three";
 import { groupIDs } from "./globals";
 
 
-
 export class HostileEntity implements EntityContract  {
     public static modelPath:string = "./silvermoon.glb";
 
@@ -43,6 +42,7 @@ export class HostileEntity implements EntityContract  {
             this.originalTargetEntity
         );
         if (currentTarget) {
+            //this reads that this entity is an attacker of the target's group
             this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!]
             this.trackedRelationships.add(this.selfToTargetRelationship);
             this.commonBehaviour.updateOrderInRelationship(this.selfToTargetRelationship);

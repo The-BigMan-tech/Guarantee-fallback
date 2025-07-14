@@ -6,6 +6,7 @@ import { physicsWorld } from './physics-world.three';
 import { player } from './player/player.three';
 import { entityManager } from './entity-system/entity-manager.three';
 import { terrainManager } from './terrain-system/terrain-manager.three';
+import { relationshipManager } from './entity-system/relationships.three';
 
 
 export const renderer = new THREE.WebGLRenderer({antialias:true});//play with this
@@ -19,6 +20,8 @@ renderer.setPixelRatio(window.devicePixelRatio)
 renderer.setAnimationLoop(()=>{   
     physicsWorld.step()//a must to be called first
     const deltaTime = clock.getDelta()
+    relationshipManager.periodicRelationshipCleanup(deltaTime);
+    relationshipManager.refreshRelationships(player);
     player.updateController(deltaTime);
     terrainManager.updateTerrain();
     entityManager.updateAllEntities(deltaTime);
