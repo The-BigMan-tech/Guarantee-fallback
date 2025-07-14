@@ -27,7 +27,6 @@ export class CommonBehaviour {
                 if (prop === 'currentHealth' || prop === 'attackDamage' || prop === 'knockback') {
                     console.log('Proxy called');
                     if (this.targetRelationshipToUpdate) {
-                        console.log('Proxy called with good target');
                         const topEntities = this.targetRelationshipToUpdate.subQueries.byHealth.top(3);    // top 3 entities
                         console.log('heap top entities before:', topEntities.map(e =>e.controllerID));
                         relationshipManager.updateRelationship(proxy,this.targetRelationshipToUpdate);
@@ -82,6 +81,16 @@ export class CommonBehaviour {
                 !(candidate.health.isDead) && //to prevent it from targetting dead entities that still linger in the heap because other members for that reationship still remain
                 (candidate._groupID !== this.entity._groupID)//to prevent it from targetting its own kind
                 ) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+    public getValidFollowTarget(heap:Heap<EntityLike>,order:'highest' | 'lowest'): EntityLike | null {
+        const candidates = order === 'highest' ? heap.top() : heap.bottom();
+        for (let i = 0; i < candidates.length; i++) {
+            const candidate = candidates[i]; 
+            if ((candidate !== this.entity) && !(candidate.health.isDead)) {
                 return candidate;
             }
         }

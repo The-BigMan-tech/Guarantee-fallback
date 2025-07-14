@@ -51,11 +51,9 @@ export class NPC implements EntityContract {
             this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!];//i assert the craetion of group id because the entity manager always intializes this id before saving it to the game for updates
             this.trackedRelationships.add(this.selfToTargetRelationship);
             this.commonBehaviour.updateOrderInRelationship(this.selfToTargetRelationship); 
-            console.log('relationship. Npc is attacking: ',currentTarget?._groupID);
         }
-        //unlike for hostile target,we dont need to validate for entity's own group or other stuff like that since its just following
-        //this is also an inverted or borrowed relationship where the class which is the npc isnt a member of the relationship but rather the key of the record.so it doesnt manage the removal of this relationship and leaves it to peridocial cleanup
-        const followTargetEntity = this.followTarget.subQueries.byHealth.top().at(0)
+        //this is also an untracked relationship where the class which is the npc isnt a member of the relationship but rather the key of the record.so it doesnt manage the removal of this relationship and leaves it to peridocial cleanup
+        const followTargetEntity = this.commonBehaviour.getValidFollowTarget(this.followTarget.subQueries.byHealth,'highest')
         if (this.commonBehaviour.patrolBehaviour(followTargetEntity?.position || null)) {
             return;
         }

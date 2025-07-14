@@ -22,32 +22,49 @@ export class FloorContent {
     constructor(floorContentData:FloorContentData,chunkPos:THREE.Vector3) {
         this.floorContentData = floorContentData;
         this.chunkPos = chunkPos;
-        // this.generateScatteredContent();
-        this.generateTerrainWithNoise(15,2,10);
+        this.generateScatteredContent();
+        const cubeSize = 5;
+        const gridSize = this.floorContentData.groundArea/cubeSize;
+        const maxTerrainHeight = 10
+        // this.generateTerrainWithNoise(gridSize,cubeSize,maxTerrainHeight);
     }
     private generateTerrainWithNoise(gridSize: number, cubeSize: number, heightScale: number) {
         const halfArea = this.floorContentData.groundArea / 2;
+
+        const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+        const cubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f}); // example color
+        const edgesGeometry = new THREE.EdgesGeometry(cubeGeometry);
+        const edgesMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+
+        const colliderDesc = RAPIER.ColliderDesc.cuboid(cubeSize / 2, cubeSize / 2, cubeSize / 2);
+        const rigidBodyDesc = RAPIER.RigidBodyDesc.fixed();
+        colliderDesc.setFriction(0.5);
+
         for (let x = 0; x < gridSize; x++) {
             for (let z = 0; z < gridSize; z++) {
                 const localX = (x * cubeSize) - halfArea;
                 const localZ = (z * cubeSize) - halfArea;
-                const noiseValue = this.noise2D(x / 10, z / 10);
-                const height = Math.floor((noiseValue + 1) / 2 * heightScale);
 
-                // Stack cubes vertically based on height
+                const worldX = localX + this.chunkPos.x;
+                const worldZ = localZ + this.chunkPos.z;
+
+                const noiseSmoothness = 10;
+                const noiseValue = this.noise2D(x /noiseSmoothness, z /noiseSmoothness);
+                const unsignedNoiseWeight = (noiseValue + 1) / 2;
+                const height = Math.floor(unsignedNoiseWeight * heightScale);
+
                 for (let y = 0; y < height; y++) {
-                    const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-                    const cubeMaterial = new THREE.MeshPhysicalMaterial({ color: 0x556b2f }); // example color
-                    const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+                    const standingPointY = startingLevelY + (cubeSize / 2);
+                    const localY =  (y * cubeSize) + standingPointY;
 
-                    // Position cube
-                    cube.position.set(localX, (y * cubeSize) + cubeSize / 2 + startingLevelY, localZ);
-                    const colliderDesc = RAPIER.ColliderDesc.cuboid(cubeSize / 2, cubeSize / 2, cubeSize / 2);
-                    colliderDesc.setFriction(0.5);
-                    const rigidBodyDesc = RAPIER.RigidBodyDesc.fixed();
+                    const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+                    const cubeLine = new LineSegments(edgesGeometry,edgesMaterial);
+                    cube.add(cubeLine)
+
                     const rigidBody = physicsWorld.createRigidBody(rigidBodyDesc);
+                    cube.position.set(localX,localY, localZ);
                     physicsWorld.createCollider(colliderDesc, rigidBody);
-                    rigidBody.setTranslation({ x: cube.position.x + this.chunkPos.x, y: cube.position.y, z: cube.position.z + this.chunkPos.z }, true);
+                    rigidBody.setTranslation({x:worldX, y:localY, z:worldZ}, true);
 
                     this.content.add(cube);
                     this.contentRigidBodies.push(rigidBody);
