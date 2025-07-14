@@ -27,26 +27,28 @@ export class FloorContent {
         const gridSize = this.floorContentData.groundArea/cubeSize;
         const maxTerrainHeight = 10
         this.generateTerrainWithNoise(gridSize,cubeSize,maxTerrainHeight);
+        this.buildMergedColliders(gridSize, cubeSize);   
     }
+    private voxelGrid: boolean[][][] = []; // 3D grid: x, y, z
     private generateTerrainWithNoise(gridSize: number, cubeSize: number, heightScale: number) {
         const halfArea = this.floorContentData.groundArea / 2;
-
         const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
         const cubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f}); // example color
         const edgesGeometry = new THREE.EdgesGeometry(cubeGeometry);
         const edgesMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
 
-        const colliderDesc = RAPIER.ColliderDesc.cuboid(cubeSize / 2, cubeSize / 2, cubeSize / 2);
-        const rigidBodyDesc = RAPIER.RigidBodyDesc.fixed();
-        colliderDesc.setFriction(0.5);
+        this.voxelGrid = new Array(gridSize);
+        for (let x = 0; x < gridSize; x++) {
+            this.voxelGrid[x] = new Array(heightScale)
+            for (let y = 0; y < heightScale; y++) {
+                this.voxelGrid[x][y] = new Array(gridSize).fill(false)
+            }
+        }
 
         for (let x = 0; x < gridSize; x++) {
             for (let z = 0; z < gridSize; z++) {
                 const localX = (x * cubeSize) - halfArea;
                 const localZ = (z * cubeSize) - halfArea;
-
-                const worldX = localX + this.chunkPos.x;
-                const worldZ = localZ + this.chunkPos.z;
 
                 const noiseSmoothness = 20;
                 const noiseValue = this.noise2D(x /noiseSmoothness, z /noiseSmoothness);
@@ -54,20 +56,41 @@ export class FloorContent {
                 const height = Math.floor(unsignedNoiseWeight * heightScale);
 
                 for (let y = 0; y < height; y++) {
+                    this.voxelGrid[x][y][z] = true;//voxel is occupied
                     const standingPointY = startingLevelY + (cubeSize / 2);
                     const localY =  (y * cubeSize) + standingPointY;
 
                     const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
                     const cubeLine = new LineSegments(edgesGeometry,edgesMaterial);
                     cube.add(cubeLine)
-
-                    const rigidBody = physicsWorld.createRigidBody(rigidBodyDesc);
                     cube.position.set(localX,localY, localZ);
-                    physicsWorld.createCollider(colliderDesc, rigidBody);
-                    rigidBody.setTranslation({x:worldX, y:localY, z:worldZ}, true);
-
                     this.content.add(cube);
-                    this.contentRigidBodies.push(rigidBody);
+                }
+            }
+        }
+    }
+    private buildMergedColliders(gridSize: number, cubeSize: number) {
+        // Example: merge vertically contiguous voxels per (x,z) column
+        const halfArea = this.floorContentData.groundArea / 2;
+        const standingPointY = startingLevelY + (cubeSize / 2);
+    
+        for (let x = 0; x < gridSize; x++) {
+            for (let z = 0; z < gridSize; z++) {
+                let startY = -1;//-1 indicates no block is currently being tracked.
+                const topLayerY = this.voxelGrid[0].length;//you can use any index since all the x slices have the same y layers
+                const overTopLayerY = topLayerY+1
+                
+                for (let y = 0; y < overTopLayerY; y++) {
+                    const isTrackingBlock = (startY !== -1);
+                    const isOccupied = (y < topLayerY) && this.voxelGrid[x][y][z];
+                    const atTopLayer = (y === topLayerY);
+                    if (isOccupied && !isTrackingBlock) {
+                        startY = y;
+                    }else if ((!isOccupied || atTopLayer) && isTrackingBlock) {
+                        const heightInVoxels = y - startY;
+                        //call create merge collider
+                        startY = -1;
+                    }
                 }
             }
         }
