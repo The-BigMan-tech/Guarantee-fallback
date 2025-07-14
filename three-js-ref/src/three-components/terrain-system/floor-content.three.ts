@@ -22,11 +22,11 @@ export class FloorContent {
     constructor(floorContentData:FloorContentData,chunkPos:THREE.Vector3) {
         this.floorContentData = floorContentData;
         this.chunkPos = chunkPos;
-        this.generateScatteredContent();
-        const cubeSize = 5;
+        // this.generateScatteredContent();
+        const cubeSize = 2;
         const gridSize = this.floorContentData.groundArea/cubeSize;
         const maxTerrainHeight = 10
-        // this.generateTerrainWithNoise(gridSize,cubeSize,maxTerrainHeight);
+        this.generateTerrainWithNoise(gridSize,cubeSize,maxTerrainHeight);
     }
     private generateTerrainWithNoise(gridSize: number, cubeSize: number, heightScale: number) {
         const halfArea = this.floorContentData.groundArea / 2;
@@ -48,7 +48,7 @@ export class FloorContent {
                 const worldX = localX + this.chunkPos.x;
                 const worldZ = localZ + this.chunkPos.z;
 
-                const noiseSmoothness = 10;
+                const noiseSmoothness = 20;
                 const noiseValue = this.noise2D(x /noiseSmoothness, z /noiseSmoothness);
                 const unsignedNoiseWeight = (noiseValue + 1) / 2;
                 const height = Math.floor(unsignedNoiseWeight * heightScale);
@@ -80,8 +80,8 @@ export class FloorContent {
         });
         const points = pds.fill(); // array of [x, z] points
         const tallCubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f});
-        const minHeight = 1//im not exposing these as part of the interface cuz the cubes are just placeholders for content like trees,structures but not blocks for terrain cuz that one will use a different algorithm for placement.so the interface shouldnt be tied to speciic content till i make sub or behaviour classes
-        const maxHeight = 30
+        const minHeight = 3//im not exposing these as part of the interface cuz the cubes are just placeholders for content like trees,structures but not blocks for terrain cuz that one will use a different algorithm for placement.so the interface shouldnt be tied to speciic content till i make sub or behaviour classes
+        const maxHeight = 3
         const width = 20;
 
         for (let i = 0; i < points.length; i++) {
