@@ -88,13 +88,59 @@ export class FloorContent {
                         startY = y;
                     }else if ((!isOccupied || atTopLayer) && isTrackingBlock) {
                         const heightInVoxels = y - startY;
-                        //call create merge collider
+                        this.createMergedCollider(
+                            x,              // x index of block start
+                            startY,         // y index of block start
+                            z,              // z index of block start
+                            1,              // width in voxels (1 for vertical merging)
+                            heightInVoxels, // height in voxels (length of vertical block)
+                            1,              // depth in voxels (1 for vertical merging)
+                            cubeSize,       // size of one voxel cube
+                            halfArea,       // half ground area for centering
+                            standingPointY  // base Y offset
+                        );
                         startY = -1;
                     }
                 }
             }
         }
     }
+    private createMergedCollider(
+        x: number,
+        y: number,
+        z: number,
+        width: number,
+        height: number,
+        depth: number,
+        cubeSize: number,
+        halfArea: number,
+        standingPointY: number
+    ) {
+        const halfWidth = (width * cubeSize) / 2;
+        const halfHeight = (height * cubeSize) / 2;
+        const halfDepth = (depth * cubeSize) / 2;
+    
+        const colliderDesc = RAPIER.ColliderDesc.cuboid(halfWidth, halfHeight, halfDepth);
+        colliderDesc.setFriction(0.5);
+    
+        const rigidBodyDesc = RAPIER.RigidBodyDesc.fixed();
+        const rigidBody = physicsWorld.createRigidBody(rigidBodyDesc);
+    
+        // Calculate center position in local chunk space
+        const localX = (x * cubeSize) - halfArea + halfWidth;
+        const localY = (y * cubeSize) + standingPointY + halfHeight;
+        const localZ = (z * cubeSize) - halfArea + halfDepth;
+    
+        // Translate to world coordinates
+        const worldX = localX + this.chunkPos.x;
+        const worldZ = localZ + this.chunkPos.z;
+    
+        // Set rigid body position
+        rigidBody.setTranslation({ x: worldX, y:localY, z: worldZ }, true);
+        physicsWorld.createCollider(colliderDesc, rigidBody);
+        this.contentRigidBodies.push(rigidBody);// Store rigid body for cleanup later
+    }
+    
     private generateScatteredContent() {
         const pds = new PoissonDiskSampling({
             shape: [this.floorContentData.groundArea,this.floorContentData.groundArea], // width and depth of sampling area

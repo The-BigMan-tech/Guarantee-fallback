@@ -14,7 +14,7 @@ class TerrainManager {
     private loadedFloors: Map<ChunkKey, Floor> = new Map();
 
     private chunkSize = 10;  // size of each floor chunk
-    private loadRadius = 2;    // how many chunks away to load (1 means 3x3 grid)
+    private loadRadius = 1;    // how many chunks away to load (1 means 3x3 grid)
 
     private constructor() {};
     public static get instance():TerrainManager {
