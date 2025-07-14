@@ -1,6 +1,6 @@
 import {v4 as uniqueID} from "uuid";
 
-const debug:boolean = true;
+const debug:boolean = false;
 
 export const groupIDs = {//i intended to define this in the entity manager but i couldnt do so without running into cyclic imports
     player:(debug)?'player':uniqueID(),

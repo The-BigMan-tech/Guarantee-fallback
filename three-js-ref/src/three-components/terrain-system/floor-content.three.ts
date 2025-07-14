@@ -5,6 +5,7 @@ import * as RAPIER from '@dimforge/rapier3d'
 import PoissonDiskSampling from 'poisson-disk-sampling';
 import { startingLevelY } from '../physics-world.three';
 import { randFloat } from 'three/src/math/MathUtils.js';
+import { createNoise2D } from 'simplex-noise';
 
 export interface FloorContentData {
     groundArea:number,
@@ -13,11 +14,51 @@ export interface FloorContentData {
 export class FloorContent {
     public content:THREE.Group = new THREE.Group();//the group that holds all of the content that will be placed on the floor.there should only be one fall content added to the floor at a time.so it means that any new content should be added here not to the floor directly
     private contentRigidBodies:RAPIER.RigidBody[] = [];//it holds the rigid boides for all the content for cleanup
+    private noise2D = createNoise2D();
+
+    private floorContentData:FloorContentData;
+    private chunkPos:THREE.Vector3;
 
     constructor(floorContentData:FloorContentData,chunkPos:THREE.Vector3) {
+        this.floorContentData = floorContentData;
+        this.chunkPos = chunkPos;
+        // this.generateScatteredContent();
+        this.generateTerrainWithNoise(15,2,10);
+    }
+    private generateTerrainWithNoise(gridSize: number, cubeSize: number, heightScale: number) {
+        const halfArea = this.floorContentData.groundArea / 2;
+        for (let x = 0; x < gridSize; x++) {
+            for (let z = 0; z < gridSize; z++) {
+                const localX = (x * cubeSize) - halfArea;
+                const localZ = (z * cubeSize) - halfArea;
+                const noiseValue = this.noise2D(x / 10, z / 10);
+                const height = Math.floor((noiseValue + 1) / 2 * heightScale);
+
+                // Stack cubes vertically based on height
+                for (let y = 0; y < height; y++) {
+                    const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+                    const cubeMaterial = new THREE.MeshPhysicalMaterial({ color: 0x556b2f }); // example color
+                    const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+
+                    // Position cube
+                    cube.position.set(localX, (y * cubeSize) + cubeSize / 2 + startingLevelY, localZ);
+                    const colliderDesc = RAPIER.ColliderDesc.cuboid(cubeSize / 2, cubeSize / 2, cubeSize / 2);
+                    colliderDesc.setFriction(0.5);
+                    const rigidBodyDesc = RAPIER.RigidBodyDesc.fixed();
+                    const rigidBody = physicsWorld.createRigidBody(rigidBodyDesc);
+                    physicsWorld.createCollider(colliderDesc, rigidBody);
+                    rigidBody.setTranslation({ x: cube.position.x + this.chunkPos.x, y: cube.position.y, z: cube.position.z + this.chunkPos.z }, true);
+
+                    this.content.add(cube);
+                    this.contentRigidBodies.push(rigidBody);
+                }
+            }
+        }
+    }
+    private generateScatteredContent() {
         const pds = new PoissonDiskSampling({
-            shape: [floorContentData.groundArea,floorContentData.groundArea], // width and depth of sampling area
-            minDistance:floorContentData.minDistance,
+            shape: [this.floorContentData.groundArea,this.floorContentData.groundArea], // width and depth of sampling area
+            minDistance:this.floorContentData.minDistance,
             tries: 10
         });
         const points = pds.fill(); // array of [x, z] points
@@ -32,8 +73,8 @@ export class FloorContent {
             const height = randFloat(minHeight,maxHeight);
             const posY = height / 2 + startingLevelY;//to make it stand on the startinglevl not that half of it is above and another half above
             
-            const localX = x - floorContentData.groundArea / 2;
-            const localZ = z - floorContentData.groundArea / 2;
+            const localX = x - this.floorContentData.groundArea / 2;
+            const localZ = z - this.floorContentData.groundArea / 2;
 
             const tallCubeGeometry = new THREE.BoxGeometry(width,height,width);
             const tallCube = new THREE.Mesh(tallCubeGeometry,tallCubeMaterial)
@@ -47,8 +88,8 @@ export class FloorContent {
             const tallCubeRigidBody = physicsWorld.createRigidBody(tallCubeBody);
             physicsWorld.createCollider(tallCubeCollider,tallCubeRigidBody);
             
-            const worldX = chunkPos.x + localX;
-            const worldZ = chunkPos.z + localZ;
+            const worldX = this.chunkPos.x + localX;
+            const worldZ = this.chunkPos.z + localZ;
 
             tallCubeRigidBody.setTranslation({x:worldX,y:posY,z:worldZ},true)
             tallCube.position.set(localX,posY, localZ);
