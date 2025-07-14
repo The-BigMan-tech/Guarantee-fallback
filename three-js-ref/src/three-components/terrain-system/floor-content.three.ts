@@ -25,38 +25,15 @@ export class FloorContent {
         // this.generateScatteredContent();
         const cubeSize = 2;
         const gridSize = this.floorContentData.groundArea/cubeSize;
-        const maxTerrainHeight = 10
+        const maxTerrainHeight = 30
         this.generateTerrainWithNoise(gridSize,cubeSize,maxTerrainHeight);
         this.buildMergedColliders(gridSize, cubeSize);   
-    }
-    //for face culling
-    private isVoxelExposed(x:number,y:number,z:number,gridSize:number,heightScale:number): boolean {
-        const neighbors = [
-            [x + 1, y, z],
-            [x - 1, y, z],
-            [x, y + 1, z],
-            [x, y - 1, z],
-            [x, y, z + 1],
-            [x, y, z - 1],
-        ];
-        for (const [nx, ny, nz] of neighbors) {
-            if (//if its on the edeg or it has no neighbours
-                nx < 0 || nx >= gridSize ||
-                ny < 0 || ny >= heightScale ||
-                nz < 0 || nz >= gridSize
-            ) {
-                return true; // At edge, so exposed
-            }else if (!this.voxelGrid[nx][ny][nz]) {
-              return true; // Neighbor empty, so exposed
-            }
-        }
-        return false; // Fully enclosed
     }
     private voxelGrid: boolean[][][] = []; // 3D grid: x, y, z
     private generateTerrainWithNoise(gridSize: number, cubeSize: number, heightScale: number) {
         const halfArea = this.floorContentData.groundArea / 2;
         const cubeGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-        const cubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f}); // example color
+        const cubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x2b2a33}); // example color
 
         this.voxelGrid = new Array(gridSize);
         for (let x = 0; x < gridSize; x++) {
@@ -81,9 +58,7 @@ export class FloorContent {
                     this.voxelGrid[x][y][z] = true;//voxel is occupied
                     const standingPointY = startingLevelY + (cubeSize / 2);
                     const localY =  (y * cubeSize) + standingPointY;
-                    if (this.isVoxelExposed(x,y,z,gridSize,heightScale)) {
-                        voxelPositions.push(new THREE.Vector3(localX, localY, localZ));
-                    }
+                    voxelPositions.push(new THREE.Vector3(localX, localY, localZ));
                 }
             }
         }
