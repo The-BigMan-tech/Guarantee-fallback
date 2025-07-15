@@ -1409,3 +1409,14 @@ so the player isnt always at the center of the chunk.it can anywher relative to 
 *Set your detection margin (the forward look-ahead distance) to a value that gives the controller enough time to react before hitting the obstacle.
 *Since your controller won't attempt to step if the obstacle height difference is greater than maxStepUpHeight, your margin only needs to be large enough relative to the player speed and frame time to detect obstacles within that step height early enough for a smooth step-up.
 *When you change the maxStepUpHeight, you should also tune the detection margin accordingly — higher step height usually means larger margin so the player can adjust velocity and position to climb smoothly.
+
+minecraft
+roblox
+lay of the lands
+teardown
+lego fortnite
+brickadia
+
+the sandbox game
+minecraft legends
+trove

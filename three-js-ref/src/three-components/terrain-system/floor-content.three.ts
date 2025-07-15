@@ -20,9 +20,10 @@ export class FloorContent {
     constructor(floorContentData:FloorContentData,chunkPos:THREE.Vector3) {
         this.floorContentData = floorContentData;
         this.chunkPos = chunkPos;
-        this.generateScatteredContent();
+        this.generateDistributions();
     }    
-    private generateScatteredContent() {
+    //ignoring this for this part of the development
+    private generateDistributions() {
         const pds = new PoissonDiskSampling({
             shape: [this.floorContentData.chunkSize,this.floorContentData.chunkSize], // width and depth of sampling area
             minDistance:this.floorContentData.minDistance,
@@ -30,8 +31,8 @@ export class FloorContent {
         });
         const points = pds.fill(); // array of [x, z] points
         const tallCubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f});
-        const minHeight = 2.5//im not exposing these as part of the interface cuz the cubes are just placeholders for content like trees,structures but not blocks for terrain cuz that one will use a different algorithm for placement.so the interface shouldnt be tied to speciic content till i make sub or behaviour classes
-        const maxHeight = 2.5
+        const minHeight = 1//im not exposing these as part of the interface cuz the cubes are just placeholders for content like trees,structures but not blocks for terrain cuz that one will use a different algorithm for placement.so the interface shouldnt be tied to speciic content till i make sub or behaviour classes
+        const maxHeight = 30
         const width = 20;
 
         for (let i = 0; i < points.length; i++) {
