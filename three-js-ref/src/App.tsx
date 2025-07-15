@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 import { Crosshair } from './crosshair';
 import { RingHealthBar } from './three-components/health/health-bar';
 import { HealthSetterRegistrar } from './three-components/health/health-register';
+import ItemGui from './three-components/item-system/item-gui';
 
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
             <Crosshair/>
             <RingHealthBar/>
             <HealthSetterRegistrar/>
+            <ItemGui/>
             <div 
                 ref={containerRef} 
                 tabIndex={0}  
