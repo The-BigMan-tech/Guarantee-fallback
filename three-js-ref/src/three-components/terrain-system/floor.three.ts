@@ -7,7 +7,6 @@ import { FloorContent } from "./floor-content.three";
 export interface FloorData {
     cords:THREE.Vector3
     volume:THREE.Vector3,
-    gridDivisions:number,
     parent:THREE.Group
 }
 export class Floor {
@@ -21,8 +20,8 @@ export class Floor {
         this.floorModel = new THREE.Group();
         this.parent = floorData.parent;
         this.parent.add(this.floorModel);
-        const {cords,volume,gridDivisions} = floorData;
-        
+        const {cords,volume} = floorData;
+
         const floorHeight = volume.y;
         const floorGeometry = new THREE.BoxGeometry(volume.x,floorHeight,volume.z);
         const floorMaterial = new THREE.MeshPhysicalMaterial({ color:0x2b2a33 });
@@ -35,6 +34,7 @@ export class Floor {
         this.floorRigidBody = physicsWorld.createRigidBody(floorBody);
         physicsWorld.createCollider(floorCollider,this.floorRigidBody);
         
+        const gridDivisions = volume.x/20;
         const gridSize = floorData.volume.x
         const gridHelper = new THREE.GridHelper(gridSize,gridDivisions,0x000000,0x000000);
         gridHelper.position.y +=  floorHeight / 2 + 0.01;// slightly above floor surface

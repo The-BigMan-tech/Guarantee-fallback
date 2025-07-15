@@ -13,7 +13,7 @@ class TerrainManager {
     public floorGroup:THREE.Group = new THREE.Group();
     private loadedFloors: Map<ChunkKey, Floor> = new Map();
 
-    private chunkSize = 70;  // size of each floor chunk
+    private chunkSize = 300;  // size of each floor chunk
     private loadRadius = 1;    // how many chunks away to load (1 means 3x3 grid)
 
     private constructor() {};
@@ -32,12 +32,11 @@ class TerrainManager {
         const floorData: FloorData = {
             cords:chunkCords,
             volume: new THREE.Vector3(this.chunkSize, 1, this.chunkSize),
-            gridDivisions:this.chunkSize/20,
             parent: this.floorGroup,
         };
         const floorContentData:FloorContentData = {
             groundArea:this.chunkSize,
-            minDistance:40, // or any spacing you want
+            minDistance:80, // or any spacing you want
         };
         const floorContent = new FloorContent(floorContentData,chunkCords);
         const floor = new Floor(floorData,floorContent);
@@ -75,6 +74,7 @@ class TerrainManager {
             if (!chunksToKeep.has(key)) {
                 floor.cleanUp();
                 this.loadedFloors.delete(key);
+                console.log('deleted a chunk');
             }
         }
     }

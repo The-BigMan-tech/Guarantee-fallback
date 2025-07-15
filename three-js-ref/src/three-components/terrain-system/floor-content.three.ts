@@ -22,12 +22,12 @@ export class FloorContent {
     constructor(floorContentData:FloorContentData,chunkPos:THREE.Vector3) {
         this.floorContentData = floorContentData;
         this.chunkPos = chunkPos;
-        // this.generateScatteredContent();
-        const cubeSize = 2;
-        const gridSize = this.floorContentData.groundArea/cubeSize;
-        const maxTerrainHeight = 30
-        this.generateTerrainWithNoise(gridSize,cubeSize,maxTerrainHeight);
-        this.buildMergedColliders(gridSize, cubeSize);   
+        this.generateScatteredContent();
+        // const cubeSize = 4;
+        // const gridSize = Math.floor(this.floorContentData.groundArea+70/cubeSize);
+        // const maxTerrainHeight = 30
+        // this.generateTerrainWithNoise(gridSize,cubeSize,maxTerrainHeight); //
+        // this.buildMergedColliders(gridSize, cubeSize);   
     }
     private voxelGrid: boolean[][][] = []; // 3D grid: x, y, z
     private generateTerrainWithNoise(gridSize: number, cubeSize: number, heightScale: number) {
@@ -46,8 +46,8 @@ export class FloorContent {
 
         for (let x = 0; x < gridSize; x++) {
             for (let z = 0; z < gridSize; z++) {
-                const localX = (x * cubeSize) - halfArea;
-                const localZ = (z * cubeSize) - halfArea;
+                const localX = (x * cubeSize) - halfArea - 70;
+                const localZ = (z * cubeSize) - halfArea - 70;
 
                 const noiseSmoothness = 20;
                 const noiseValue = this.noise2D(x /noiseSmoothness, z /noiseSmoothness);
