@@ -1401,3 +1401,5 @@ While less expressive than full graphs, your tree structure provides better pred
 
 state machine is minimal
 relationships are used on top of it for intricate behaviour
+
+so the player isnt always at the center of the chunk.it can anywher relative to the boundary.thats why it didnt seem i was at the center of the chunk visually even for corner chunk position that makes it seem im at the center on spawn till i moved

@@ -49,8 +49,8 @@ class TerrainManager {
     }
     public updateTerrain() {
         const playerChunk =  {//these are chunk grid cords.to get the world cords,you multiply it by the chunk size and optionally center them
-            x: Math.floor(player.position.x / this.chunkSize),
-            z: Math.floor(player.position.z / this.chunkSize),
+            x: Math.floor((player.position.x  + this.chunkSize / 2) / this.chunkSize),
+            z: Math.floor((player.position.z  +  this.chunkSize / 2) / this.chunkSize),
         };
         const chunksToKeep = new Set<ChunkKey>();
         for (let dx = -this.loadRadius; dx <= this.loadRadius; dx++) {
