@@ -104,7 +104,7 @@ class EntityManager {
             jumpResistance:0,
             rotationDelta:0.05,
             rotationSpeed:0.2,
-            maxStepUpHeight:2,
+            maxStepUpHeight:2.5,
             gravityScale:1
         }
         const entityMiscData:EntityMiscData = {//this is for entity specific data decoupled from their controller

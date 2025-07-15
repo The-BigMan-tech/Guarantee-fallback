@@ -1403,3 +1403,9 @@ state machine is minimal
 relationships are used on top of it for intricate behaviour
 
 so the player isnt always at the center of the chunk.it can anywher relative to the boundary.thats why it didnt seem i was at the center of the chunk visually even for corner chunk position that makes it seem im at the center on spawn till i moved
+
+
+*Use a consistent maxStepUpHeight across your player controller and obstacle detection logic to define the highest obstacle the player can step over.
+*Set your detection margin (the forward look-ahead distance) to a value that gives the controller enough time to react before hitting the obstacle.
+*Since your controller won't attempt to step if the obstacle height difference is greater than maxStepUpHeight, your margin only needs to be large enough relative to the player speed and frame time to detect obstacles within that step height early enough for a smooth step-up.
+*When you change the maxStepUpHeight, you should also tune the detection margin accordingly — higher step height usually means larger margin so the player can adjust velocity and position to climb smoothly.

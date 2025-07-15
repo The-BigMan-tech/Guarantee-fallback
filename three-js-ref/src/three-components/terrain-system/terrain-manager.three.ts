@@ -35,11 +35,11 @@ class TerrainManager {
             parent: this.floorGroup,
         };
         const floorContentData:FloorContentData = {
-            groundArea:this.chunkSize,
+            chunkSize:this.chunkSize,
             minDistance:50, // or any spacing you want
         };
-        // const floorContent = new FloorContent(floorContentData,chunkPos);
-        const floor = new Floor(floorData,null);
+        const floorContent = new FloorContent(floorContentData,chunkPos);
+        const floor = new Floor(floorData,floorContent);
         return floor;
     }
 

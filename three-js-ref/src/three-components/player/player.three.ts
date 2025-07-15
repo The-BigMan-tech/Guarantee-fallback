@@ -341,7 +341,7 @@ const playerDynamicData:DynamicControllerData = {
     jumpResistance:30,
     rotationDelta:0.04,//in radians
     rotationSpeed:0.4,
-    maxStepUpHeight:2,
+    maxStepUpHeight:2.5,
     gravityScale:1
 }
 const playerMiscData:PlayerMiscData = {
