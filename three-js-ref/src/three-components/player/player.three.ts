@@ -329,7 +329,7 @@ class Player extends Controller implements EntityLike {
 
 const playerFixedData:FixedControllerData = {
     modelPath:'./snowman-v3.glb',
-    spawnPoint: new RAPIER.Vector3(0,20,0),
+    spawnPoint: new RAPIER.Vector3(0,30,0),
     characterHeight:2,
     characterWidth:1,
     shape:'capsule',

@@ -13,7 +13,7 @@ class TerrainManager {
     public floorGroup:THREE.Group = new THREE.Group();
     private loadedFloors: Map<ChunkKey, Floor> = new Map();
 
-    private chunkSize = 300;  // size of each floor chunk
+    private chunkSize = 50;  // size of each floor chunk
     private loadRadius = 1;    // how many chunks away to load (1 means 3x3 grid)
 
     private constructor() {};
@@ -24,38 +24,35 @@ class TerrainManager {
         return TerrainManager.manager;
     }
     private createFloorAtChunk(x: number, z: number): Floor {
-        const chunkCords = new THREE.Vector3(//Multiplying by chunkSize gives the corner position of the chunk.Adding (chunkSize / 2) shifts this to the center of the chunk.
-            (x * this.chunkSize) + (this.chunkSize / 2),
+        const chunkPos = new THREE.Vector3(//Multiplying by chunkSize gives the corner position of the chunk.Adding (chunkSize / 2) shifts this to the center of the chunk.
+            (x * this.chunkSize) + this.chunkSize / 2,
             groundLevelY,
-            (z * this.chunkSize) + (this.chunkSize / 2)
+            (z * this.chunkSize) + this.chunkSize / 2
         );
         const floorData: FloorData = {
-            cords:chunkCords,
-            volume: new THREE.Vector3(this.chunkSize, 1, this.chunkSize),
+            chunkPos:chunkPos,
+            chunkSize:this.chunkSize,
             parent: this.floorGroup,
         };
         const floorContentData:FloorContentData = {
             groundArea:this.chunkSize,
-            minDistance:80, // or any spacing you want
+            minDistance:50, // or any spacing you want
         };
-        const floorContent = new FloorContent(floorContentData,chunkCords);
-        const floor = new Floor(floorData,floorContent);
+        // const floorContent = new FloorContent(floorContentData,chunkPos);
+        const floor = new Floor(floorData,null);
         return floor;
     }
 
-    private getChunkCoords(position: THREE.Vector3): { x: number; z: number } {
-        return {//these are chunk grid cords.to get the world cords,you multiply it by the chunk size and optionally center them
-            x: Math.floor(position.x / this.chunkSize),
-            z: Math.floor(position.z / this.chunkSize),
-        };
-    }
+
     private chunkKey(x: number, z: number): ChunkKey {//we are using string keys cuz we want to check for chunks by coordinates not reference identity as it will be be if we used vectors directly as the keys
         return `${x}_${z}`;
     }
     public updateTerrain() {
-        const playerChunk = this.getChunkCoords(player.position);
+        const playerChunk =  {//these are chunk grid cords.to get the world cords,you multiply it by the chunk size and optionally center them
+            x: Math.floor(player.position.x / this.chunkSize),
+            z: Math.floor(player.position.z / this.chunkSize),
+        };
         const chunksToKeep = new Set<ChunkKey>();
-
         for (let dx = -this.loadRadius; dx <= this.loadRadius; dx++) {
             for (let dz = -this.loadRadius; dz <= this.loadRadius; dz++) {
                 const chunkX = playerChunk.x + dx;

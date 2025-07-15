@@ -5,8 +5,8 @@ import { disposeHierarchy } from "../disposer/disposer.three";
 import { FloorContent } from "./floor-content.three";
 
 export interface FloorData {
-    cords:THREE.Vector3
-    volume:THREE.Vector3,
+    chunkPos:THREE.Vector3
+    chunkSize:number,
     parent:THREE.Group
 }
 export class Floor {
@@ -20,29 +20,31 @@ export class Floor {
         this.floorModel = new THREE.Group();
         this.parent = floorData.parent;
         this.parent.add(this.floorModel);
-        const {cords,volume} = floorData;
+        const {chunkPos,chunkSize} = floorData;
 
-        const floorHeight = volume.y;
-        const floorGeometry = new THREE.BoxGeometry(volume.x,floorHeight,volume.z);
+        const floorHeight = 1
+        const floorGeometry = new THREE.BoxGeometry(chunkSize,floorHeight,chunkSize);
         const floorMaterial = new THREE.MeshPhysicalMaterial({ color:0x2b2a33 });
         const floorMesh = new THREE.Mesh(floorGeometry,floorMaterial);
         this.floorModel.add(floorMesh);
         floorMesh.receiveShadow = true;
         
-        const floorCollider = RAPIER.ColliderDesc.cuboid(volume.x/2,floorHeight/2,volume.z/2);
+        const floorCollider = RAPIER.ColliderDesc.cuboid(chunkSize/2,floorHeight/2,chunkSize/2);
         const floorBody = RAPIER.RigidBodyDesc.fixed();
         this.floorRigidBody = physicsWorld.createRigidBody(floorBody);
         physicsWorld.createCollider(floorCollider,this.floorRigidBody);
         
-        const gridDivisions = volume.x/20;
-        const gridSize = floorData.volume.x
-        const gridHelper = new THREE.GridHelper(gridSize,gridDivisions,0x000000,0x000000);
+        
+        const cellSize = 20;     // desired size of each cell
+        let gridDivisions = Math.floor(chunkSize / cellSize);
+        if (gridDivisions % 2 !== 0) gridDivisions += 1;
+        const gridHelper = new THREE.GridHelper(chunkSize,gridDivisions,0x000000,0x000000);
         gridHelper.position.y +=  floorHeight / 2 + 0.01;// slightly above floor surface
         this.floorModel.add(gridHelper)
 
 
-        const floorPosY = floorHeight/2 + cords.y;//to fix the situation where half of it is above and half is below the specfied ground level
-        this.floorRigidBody.setTranslation({x:cords.x,y:floorPosY,z:cords.z},true);
+        const floorPosY = floorHeight/2 + chunkPos.y;//to fix the situation where half of it is above and half is below the specfied ground level
+        this.floorRigidBody.setTranslation({x:chunkPos.x,y:floorPosY,z:chunkPos.z},true);
         this.floorModel.position.copy(this.floorRigidBody.translation());
         if (floorContent) this.floorModel.add(floorContent.content);
     }    
