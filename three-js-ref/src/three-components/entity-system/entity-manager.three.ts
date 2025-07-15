@@ -34,7 +34,7 @@ class EntityManager {
     private entityMapping:Record<EntityWrapper,EntitySpawnData> = {
         HostileEntity:{
             groupID:groupIDs.hostileEntity,//i called it groupID cuz its not per isntance but per entity type or kind
-            spawnWeight:10//an important thing to note is that when the weight is 0 but at least one of the others is non-zero,then this entity will never have the chance to be pciked but if all the other entities are non-zero,its the same thing as all of them having 10 or 100 cuz the weights are equal.thats the thing about weighted random.is the probabliliy of picking one relative to the probability of others not absolute probability.so to totally remove entities,set entity cap to 0.
+            spawnWeight:0//an important thing to note is that when the weight is 0 but at least one of the others is non-zero,then this entity will never have the chance to be pciked but if all the other entities are non-zero,its the same thing as all of them having 10 or 100 cuz the weights are equal.thats the thing about weighted random.is the probabliliy of picking one relative to the probability of others not absolute probability.so to totally remove entities,set entity cap to 0.
         },
         NPC: {
             groupID:groupIDs.npc,
@@ -43,7 +43,8 @@ class EntityManager {
     }
 
     private readonly multiChoicePercent = 50;//it controls the percentage of entity types from the provided entity mapping struct that will be chosen at a time for every spawn point thats generated.Increasing this number will increase the probability of an entity of a given kind to spawn because the manager doesnt just choose one entity per point but rather,it can make two choices or three at a time with the choices influenced by the weight.Even at a low value,theres still a chance for an entity of a given kind to spawn as long as the weiht is considerable enough but this will increase that prob and a higher number will also slightly improve perf because it will spawn more at a time which reduces the time to reach the entity cap and number of times it has to run the weighted choice function.Tune as needed
-    private readonly maxEntityCap = 7;//the max number of entities in the world before it stops spawning
+    private readonly maxEntityCap = 3;//the max number of entities in the world before it stops spawning
+    private readonly maxSpawnedEntitiesPerFrame = 3;//controls how many entities from the entity batch are spawned under one frame.reducing this value spreads the workload over many frames reducing initial lag spikes.if its too long,it will prolong spawning unecessarily causing it to linger in many frames which can cause some overhead on subsequent frames but if i make it too large,they might pop in too fast causing an initial spike.so 2-5 is a good value
     private readonly spawnCooldown:number = 7;//after deciding to spawn entities,this controls the time in seconds it waits before it actually spawns them.this is to improve exp as it gives the player some space before entities are spawned and it also improves perf on startup by only spawning entities afterw when the player has been spawned first not simultaneously
     private readonly spawnRadius = 50;//the radius from the player where spawning begins.the higher the spawn radius,the more the entities that will spawn at a given time and vice versa but it stops at the max entity cap or when all min thresholds are satisfied.i believe that increasing the radius is better because not only does it supply spacing but it also means that the manager will spawn entities lesser to reach the cap or satisfy the thresh such that all the entities that will ever be needed in the world are saved in one go preventing calls to spawn from happening again in the next frame.i believe that this preserves performance
     private readonly minSpawnDistance = 15; //the minimum distance between each entity that gets spawned within the spawn radius
@@ -211,12 +212,14 @@ class EntityManager {
     }
 
     private saveCreatedEntities() {
-        while (this.createdEntitiesBatch.length > 0) {
+        let addedCount = 0;
+        while ((this.createdEntitiesBatch.length > 0) && (addedCount < this.maxSpawnedEntitiesPerFrame)) {
             const createdEntity = this.createdEntitiesBatch.shift()!;
             entities.push(createdEntity);
             entityIndexMap.set(createdEntity._entity,entities.length-1);
             this.entityGroup.add(createdEntity._entity.char);
             this.entityGroup.add(createdEntity._entity.points);//add the points to the scene when the controller is added to the scene which ensures that this is called after the scene has been created)
+            addedCount++;
         }
     }
 

@@ -161,15 +161,15 @@ export abstract class Controller {
     private loadSounds() {
         audioLoader.load('walking.mp3',(buffer)=> {
             this.walkSound.setBuffer(buffer);
-            this.walkSound.setVolume(0.5);//The volumes here are multiplers-DO NOT INCREASE MORE THAN ONE
+            this.walkSound.setVolume(1);//The volumes here are multiplers of the computer's current volume-DO NOT INCREASE MORE THAN ONE
         });
         audioLoader.load('landing.mp3',(buffer)=> {
             this.landSound.setBuffer(buffer);
-            this.landSound.setVolume(0.5);
+            this.landSound.setVolume(1);
         });
         audioLoader.load('punch.mp3',(buffer)=> {
             this.punchSound.setBuffer(buffer);
-            this.punchSound.setVolume(0.5);
+            this.punchSound.setVolume(1);
         });
         this.character.add(this.walkSound);
         this.character.add(this.punchSound);
