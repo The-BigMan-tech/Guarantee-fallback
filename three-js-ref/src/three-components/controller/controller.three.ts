@@ -3,7 +3,7 @@ import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY, combatCooldown} from "../physics-world.three";
-import { walkSound,punchSound,landSound } from "../listener/listener.three";
+import { listener, audioLoader } from "../listener/listener.three";
 import {v4 as uniqueID} from "uuid"
 
 //these methods are to create line geometries for their respective shapes.they are used to visualize hitboxes for visual debugging
@@ -47,7 +47,7 @@ type seconds = number;
 //through out the codebase,im using private-first encapsulation.This is to ensure data safety and to prevent accidental mutation to internals.most times when i want to reduce strictness,i use protected but only when absolutely necessary that i use public because there will always be some method that needs public access for the other parts of the codebase to use.
 export abstract class Controller {
     private static readonly showHitBoxes = false;//this is used to toggle the hitboxes for visual debugging.i made it static to make it easy to tune this for all controller concretes
-    private static readonly showPoints = true;//this toggles explicitly colored points for visual debugging.if you are directly working on the internals of this controller,then you can color any point you want to visualize for debugging purposes using the color point method and just make sure that you add the point group to the scene along side the group containing the character which has already been done for the player and the entities.all you have to do is to call this on any vector representing a point and it will handle updating thse point every frame as well as clearing the ones from the previous frame.
+    private static readonly showPoints = false;//this toggles explicitly colored points for visual debugging.if you are directly working on the internals of this controller,then you can color any point you want to visualize for debugging purposes using the color point method and just make sure that you add the point group to the scene along side the group containing the character which has already been done for the player and the entities.all you have to do is to call this on any vector representing a point and it will handle updating thse point every frame as well as clearing the ones from the previous frame.
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that concretes can change this dynamically at runtime but not public to ensure this data retains its integrity
     private fixedData:FixedControllerData;
@@ -113,6 +113,10 @@ export abstract class Controller {
     //this is used to inform concretes if they are out of bounds like out of the world.this is to ensure that they are eithe respawned in the case of the player or killed in the case of entities.since the world is procedurally genrated around the player,its highly unlikely that the player will fall out of bounds since the base floor is indestructibe but i still left that respawning when out of bounds cuz i made it at the time where the world was finite and besides,its a good defensive check where the player may glitch of the world unexpectedly in cases of high falling velocities or something like that.As for the entities,i use this especially as an easy way to clean entities that are off the chunk without explicitly limiting the despawn radius to the chunk distance.it allows me to decouple those variables improving overall clarity.
     protected isOutOfBounds:boolean = false;
 
+    private walkSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener);;//the inheriting class can only access this sound through exposed methods
+    private landSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener);;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
+    private punchSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener)
+    
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
         const halfWidth = Math.round(fixedData.characterWidth)/2;
@@ -146,12 +150,30 @@ export abstract class Controller {
         if (Controller.showHitBoxes) this.character.add(this.charLine);
 
         this.loadCharacterModel();
+        this.loadSounds();
     }
     private calculateGroundPosition() {
         const initGroundPosY = Number((this.characterPosition.y - this.groundDetectionDistance).toFixed(2)) - 1;//the -1 is required to sink the point a little into the ground to prevent the point from stopping just above the ground which will make the query ineffective for gettng the ground position.
         const finalGroundPosY = Number((initGroundPosY - this.widthDebuf).toFixed(1))//we also want to consider the width debuf as said earlier
         console.log('groundPosY:',finalGroundPosY);
         return finalGroundPosY
+    }
+    private loadSounds() {
+        audioLoader.load('walking.mp3',(buffer)=> {
+            this.walkSound.setBuffer(buffer);
+            this.walkSound.setVolume(0.5);//The volumes here are multiplers-DO NOT INCREASE MORE THAN ONE
+        });
+        audioLoader.load('landing.mp3',(buffer)=> {
+            this.landSound.setBuffer(buffer);
+            this.landSound.setVolume(0.5);
+        });
+        audioLoader.load('punch.mp3',(buffer)=> {
+            this.punchSound.setBuffer(buffer);
+            this.punchSound.setVolume(0.5);
+        });
+        this.character.add(this.walkSound);
+        this.character.add(this.punchSound);
+        this.character.add(this.landSound)
     }
     private loadCharacterModel():void {
         const loader:GLTFLoader = new GLTFLoader();
@@ -260,7 +282,7 @@ export abstract class Controller {
             console.log('Ground Collider shape:', shape);
 
             if (this.playLandSound) {
-                landSound.play();
+                this.landSound.play();
                 this.playLandSound = false
             }
             onGround = true
@@ -956,16 +978,16 @@ export abstract class Controller {
 
 
     protected playWalkSound():void {
-        if (!walkSound.isPlaying) walkSound.play();
+        if (!this.walkSound.isPlaying) this.walkSound.play();
     }
     protected playPunchSound():void {
-        if (!punchSound.isPlaying) punchSound.play();
+        if (!this.punchSound.isPlaying) this.punchSound.play();
     }
     protected stopWalkSound():void {
-        walkSound.stop();
+        this.walkSound.stop();
     }
     protected stopPunchSound():void {
-        punchSound.stop();
+        this.punchSound.stop();
     }
 
     

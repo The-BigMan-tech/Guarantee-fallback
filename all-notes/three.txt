@@ -1420,3 +1420,5 @@ brickadia
 the sandbox game
 minecraft legends
 trove
+
+*The volume values you set in Three.js are multipliers of the system (computer) volume, typically ranging from 0 (silent) to 1 (full original volume). Setting a volume like 20 would amplify the sound drastically, often causing distortion or clipping.
