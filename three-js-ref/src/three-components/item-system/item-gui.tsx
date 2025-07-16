@@ -3,7 +3,7 @@ import { motion,AnimatePresence,easeInOut} from "motion/react"
 import { isCellSelectedAtom, showItemGuiAtom } from "./item-state";
 import { useAtom } from "jotai";
 import { itemManager } from "./item-manager.three";
-import type { InventoryItem, Item } from "./item-manager.three";
+import type { InventoryItem, Item, ItemID } from "./item-manager.three";
 
 export default function ItemGui() {
     const [showItemGui] = useAtom(showItemGuiAtom);
@@ -15,13 +15,8 @@ export default function ItemGui() {
     const [cellNum,SetCellNum] = useState(tab === 'Items'?21:8);
     //used memo here to make it react to change in cell num.
 
-    const cellsArray = useMemo(()=>{
-        let cells:(Item | InventoryItem)[] = [];
-        if (tab === "Items") {
-            cells = Object.values(itemManager.items);
-        } else {
-            cells = Array.from(itemManager.inventoryItems.values());
-        }
+    const cellsArray:ItemID[] = useMemo(()=>{
+        let cells:ItemID[] = (tab === "Items")?Object.keys(itemManager.items):Array.from(itemManager.inventoryItems.keys());
         if (cells.length < cellNum) {// Pad the array with nulls until it reaches cellNum length
             cells = [...cells, ...new Array(cellNum - cells.length).fill(null)];
         }

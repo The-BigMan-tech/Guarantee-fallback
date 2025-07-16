@@ -1,4 +1,4 @@
-type ItemID = string;
+export type ItemID = string;
 
 export interface Item {
     readonly name: string;          // friendly name
