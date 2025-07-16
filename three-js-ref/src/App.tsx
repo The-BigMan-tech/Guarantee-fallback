@@ -4,9 +4,9 @@ import './App.css'
 import { useEffect, useRef } from 'react';
 import { Crosshair } from './crosshair';
 import { RingHealthBar } from './three-components/health/health-bar';
-import { HealthSetterRegistrar } from './three-components/health/health-register';
+import HealthStateRegistrar  from './three-components/health/health-state-register';
 import ItemGui from './three-components/item-system/item-gui';
-import { ItemSetterRegistrar } from './three-components/item-system/item-register';
+import ItemStateRegister from './three-components/item-system/item-state-register';
 
 
 function App() {
@@ -34,10 +34,10 @@ function App() {
     
     return (
         <div className='h-full w-full flex'>
+            <HealthStateRegistrar/>
+            <ItemStateRegister/>
             <Crosshair/>
             <RingHealthBar/>
-            <HealthSetterRegistrar/>
-            <ItemSetterRegistrar/>
             <ItemGui/>
             <div 
                 ref={containerRef} 

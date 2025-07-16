@@ -13,6 +13,7 @@ import type { EntityLike } from "../entity-system/relationships.three";
 import { groupIDs } from "../entity-system/globals";
 import { relationshipManager } from "../entity-system/relationships.three";
 import type { seconds } from "../entity-system/globals";
+import { toggleItemGui } from "../item-system/item-state";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -179,6 +180,9 @@ class Player extends Controller implements EntityLike {
             if (this.keysPressed['KeyQ']) {
                 this.attack();
             }
+        }
+        if (this.keysPressed['KeyE']) {
+            toggleItemGui()
         }
         if (this.keysPressed['ArrowLeft'])  {
             this.rotateCharacterX('left')

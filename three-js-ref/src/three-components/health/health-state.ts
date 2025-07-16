@@ -15,16 +15,6 @@ export const entityHealthAtom = atom<HealthState | null>(null);
 let setHealthExternal: ((value:HealthState) => void) | null = null;
 let setEntityHealthExternal: ((value:HealthState | null) => void) | null = null;
 
-export const playerHealthSetterAtom = atom(null,
-    (_, set, newHealth:HealthState) => {
-        set(playerHealthAtom, newHealth);
-    }
-);
-export const entityHealthSetterAtom = atom(null,
-    (_, set, newHealth:HealthState | null) => {
-        set(entityHealthAtom, newHealth);
-    }
-);
 
 export function registerHealthSetter(setter: (value:HealthState) => void) {
     setHealthExternal = setter;

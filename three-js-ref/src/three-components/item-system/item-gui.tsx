@@ -5,7 +5,6 @@ import { useAtom } from "jotai";
 
 export default function ItemGui() {
     const [showItemGui] = useAtom(showItemGuiAtom);
-
     const [tab,setTab] = useState<'Items' | 'Inventory'>('Items');
     const [gridCols,setGridCols] = useState<number>(tab === 'Items'?3:1);
     const [gridWidth, setGridWidth] = useState(tab === 'Items' ? 20 : 10);
@@ -27,6 +26,7 @@ export default function ItemGui() {
             return newTab
         })  
     }
+
     return <>
         {showItemGui
             ?<>
