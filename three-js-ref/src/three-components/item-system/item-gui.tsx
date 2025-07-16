@@ -28,6 +28,9 @@ export default function ItemGui() {
                 setGridWidth(10);
                 SetCellNum(8);
             }
+            //When toggling tabs, the new grid layout changes grid columns and cell count, so the current selectedCell might no longer be valid.so we reset the associated variables.
+            setSelectedCell(undefined);
+            setIsCellSelected(false);
             return newTab
         })  
     }
@@ -48,12 +51,30 @@ export default function ItemGui() {
                 setIsCellSelected(false);
                 return;
             }
-            if (selectedCell) {
+            if (selectedCell !== undefined) {//this is safer than directly checking for falsiness because 0 is also falsy but its a valid index
                 if (event.code == 'ArrowRight') {
                     setSelectedCell(prev=>{
-                        if (!prev) return prev;
+                        if (prev == undefined) return prev;
                         const next = prev + 1;
-                        return next < cellNum ? next : prev; // prevent overflow
+                        return (next >= cellNum) ? prev : next; // prevent overflow
+                    })
+                }else if (event.code == 'ArrowLeft') {
+                    setSelectedCell(prev=>{
+                        if (prev == undefined) return prev;
+                        const next = prev - 1;
+                        return (next < 0) ? prev : next;
+                    })
+                }else if (event.code == 'ArrowUp') {
+                    setSelectedCell(prev=>{
+                        if (prev == undefined) return prev;
+                        const next = prev - gridCols;
+                        return  (next < 0) ? prev : next
+                    })
+                }else if (event.code == 'ArrowDown') {
+                    setSelectedCell(prev=>{
+                        if (prev == undefined) return prev;
+                        const next = prev + gridCols;
+                        return  (next >= cellNum) ? prev : next
                     })
                 } 
             }
@@ -63,7 +84,7 @@ export default function ItemGui() {
             window.removeEventListener("keyup", handleKeyUp);
         };
         
-    },[selectedCell,cellNum,setIsCellSelected])
+    },[selectedCell,cellNum,setIsCellSelected,gridCols])
 
     //i wanted to use a sigle motion.div to animate the gui on exit and entry to prevent duplication but it didnt work.it is still neat the way it is and also,i can give them unique values in their animations
     return <>

@@ -328,7 +328,7 @@ class Player extends Controller implements EntityLike {
         this.checkIfOutOfBounds();
         this.updateHealthGUI();
         this.health.checkGroundDamage(this.velBeforeHittingGround);
-        if (!isCellSelected()) this.bindKeysToControls();
+        if (!isCellSelected()) this.bindKeysToControls();//this is to prevent the player's event listeners on his character from triggering when the player is actively traversing through the item grid to select an item
         console.log('isCellSelected:', isCellSelected());
         this.bindKeysToAnimations();
         this.toggleCamPerspective();
