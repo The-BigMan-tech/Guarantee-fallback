@@ -6,6 +6,7 @@ import { Crosshair } from './crosshair';
 import { RingHealthBar } from './three-components/health/health-bar';
 import { HealthSetterRegistrar } from './three-components/health/health-register';
 import ItemGui from './three-components/item-system/item-gui';
+import { ItemSetterRegistrar } from './three-components/item-system/item-register';
 
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
             <Crosshair/>
             <RingHealthBar/>
             <HealthSetterRegistrar/>
+            <ItemSetterRegistrar/>
             <ItemGui/>
             <div 
                 ref={containerRef} 
