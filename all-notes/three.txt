@@ -1455,3 +1455,5 @@ stable variables in a react component like state setters dont need to be depende
 
 logical operators return values not boolean
 equality operators return boolean
+
+*so when i need to reactively set or manage state from my react comp for outside code to listen and possibly other comps like should open gui or is cell selected in the gui,i should use jotai atoms but if the react comp only reads data and as long that data doesnt exist or is managed within a react comp and its exposed as getters from a single source,theres no need to set bolierplate between react and my regular ts files just to read that data

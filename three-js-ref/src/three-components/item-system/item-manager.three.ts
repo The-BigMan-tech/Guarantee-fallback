@@ -1,10 +1,10 @@
 type ItemID = string;
 
-interface Item {
+export interface Item {
     readonly name: string;          // friendly name
     readonly modelPath: string;     // path to model file
 }
-interface InventoryItem {
+export interface InventoryItem {
     count:number,
     item:Item
 }
