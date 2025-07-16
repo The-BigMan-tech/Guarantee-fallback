@@ -1,22 +1,25 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {motion } from "motion/react"
 
 export default function ItemGui() {
-    const numCells = 21;
-    const cellsArray:null[] = new Array(numCells).fill(null);
     const [tab,setTab] = useState<'Items' | 'Inventory'>('Items');
     const [gridCols,setGridCols] = useState<number>(tab === 'Items'?3:1);
     const [gridWidth, setGridWidth] = useState(tab === 'Items' ? 20 : 10);
+    const [cellNum,SetCellNum] = useState(tab === 'Items'?21:8);
+    const cellsArray:null[] = useMemo(()=>new Array(cellNum).fill(null),[cellNum])//used memo here to make it react to change in cell num.
 
+    
     function toggleTab() {
         setTab((prev)=>{
             const newTab =(prev=="Inventory")?'Items':"Inventory"
             if (newTab =="Items") {
                 setGridCols(3);
-                setGridWidth(20)
+                setGridWidth(20);
+                SetCellNum(21);
             }else {
                 setGridCols(1);
                 setGridWidth(10);
+                SetCellNum(8);
             }
             return newTab
         })  

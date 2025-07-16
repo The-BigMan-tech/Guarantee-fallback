@@ -16,14 +16,18 @@ function App() {
         if (!container) return;
         container.appendChild(canvas);
 
-        function resizeRendererToContainer(container: HTMLElement) {
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-            player.camera.cam.aspect = width / height;
-            player.camera.cam.updateProjectionMatrix();
-            renderer.setSize(width, height);
+        function resizeRendererToContainer() {
+            const container = containerRef.current;
+            if (container) {
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                player.camera.cam.aspect = width / height;
+                player.camera.cam.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            }
         }
-        resizeRendererToContainer(container);
+        resizeRendererToContainer();
+        return () => window.removeEventListener('resize', resizeRendererToContainer);
     },[])     
     
     
