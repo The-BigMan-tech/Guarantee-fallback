@@ -8,10 +8,7 @@ interface InventoryItem {
     count:number,
     item:Item
 }
-interface IdentityInventoryItem {
-    readonly id:ItemID,
-    readonly invItem:InventoryItem
-}
+
 function deepFreeze<T extends object>(obj: T): T {
     Object.getOwnPropertyNames(obj).forEach((prop) => {
         const value = obj[prop as keyof T];
@@ -27,7 +24,7 @@ class ItemManager {
     private static manager:ItemManager;
 
     private inventory:Map<ItemID,InventoryItem> = new Map();
-    private _items:Readonly<Record<ItemID,Item>> = deepFreeze({//items should be registered on startup and shouldn be mutated
+    private _items:Record<ItemID,Item> = deepFreeze({//items should be registered on startup and shouldn be mutated
         'block':{
             name:'Block',
             modelPath:'./block.glb'
@@ -40,9 +37,6 @@ class ItemManager {
             ItemManager.manager = new ItemManager();
         }
         return ItemManager.manager
-    }
-    public get items():Record<ItemID,Item> {
-        return this._items
     }
     private validateID(itemID:ItemID) {
         if (!this._items[itemID]) {
@@ -68,10 +62,11 @@ class ItemManager {
             }
         }
     }
-    public getInventoryItems():ReadonlyArray<IdentityInventoryItem> {
-        const entries = Array.from(this.inventory.entries());
-        return entries.map( ([id, invItem]) => deepFreeze({id,invItem}) )
+    public get inventoryItems():ReadonlyMap<ItemID,InventoryItem> {
+        return this.inventory;
     }
-    
+    public get items():Record<ItemID,Item> {
+        return this._items
+    }
 }
 export const itemManager:Singleton<ItemManager> = ItemManager.instance;

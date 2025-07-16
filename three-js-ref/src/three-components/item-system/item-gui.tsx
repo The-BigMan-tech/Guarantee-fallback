@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { motion,AnimatePresence } from "motion/react"
 import { isCellSelectedAtom, showItemGuiAtom } from "./item-state";
 import { useAtom } from "jotai";
+import { itemManager } from "./item-manager.three";
+
 
 export default function ItemGui() {
     const [showItemGui] = useAtom(showItemGuiAtom);
@@ -115,7 +117,9 @@ export default function ItemGui() {
                         transition={{ duration: 0.3, ease: "easeInOut" }}
                         className={`grid h-[90%] grid-cols-${gridCols} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`}>
                             {cellsArray.map((_,index) => (
-                                <button onClick={()=>selectCell(index)} key={index} className={`bg-[#2424246b] rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(index)}`}/>
+                                <button onClick={()=>selectCell(index)} key={index} className={`bg-[#2424246b] rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(index)}`}>
+                                    
+                                </button>
                             ))}
                     </motion.div>
                 </>
