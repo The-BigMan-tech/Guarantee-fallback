@@ -1444,3 +1444,9 @@ intiliaztions before the constructor are executed before the constructor
 keydown fires immediately when a key is pressed down and repeats continuously as the key is held. It does not debounce naturally. This means if you hold the key for a moment, multiple keydown events will be fired (auto-repeat behavior). [MDN]
 
 keyup fires once when the key is released. No repeats, so it can be considered more naturally "debounced" in the sense it only fires once per key press
+
+*because of the complexity of properly freeing up gpu resources,its safer to reload your three js tab not through hmr because it can lead to stale state and leaked resources
+
+*keyof vs typeof
+
+*the power of readonly modifier,Readonly type and deep freeze

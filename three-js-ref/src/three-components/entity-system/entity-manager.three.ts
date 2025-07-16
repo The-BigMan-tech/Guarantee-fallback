@@ -15,8 +15,8 @@ import { terrainManager } from "../terrain-system/terrain-manager.three";
 import Denque from "denque";
 
 interface EntitySpawnData {
-    groupID:Readonly<string>,
-    spawnWeight:Readonly<number>
+    readonly groupID:Readonly<string>,
+    readonly spawnWeight:Readonly<number>
 }
 type Singleton<T> = T;
 
