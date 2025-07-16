@@ -32,7 +32,7 @@ enum CameraMode {
 }
 
 class Player extends Controller implements EntityLike {
-    private static keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
+    private keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
     private readonly groupID = groupIDs.player;//the player's group id unlike the entities is readonly because its a fixed one not changed dynamically
 
     private addRelationship = relationshipManager.addRelationship;
@@ -110,91 +110,91 @@ class Player extends Controller implements EntityLike {
         this.targetY = this.offsetY;
         this.camRotationSpeed = miscData.camArgs.cameraRotationSpeed;
         this.originalCamRotSpeed = miscData.camArgs.cameraRotationSpeed;
-        this.camera = new Camera(miscData.camArgs)
+        this.camera = new Camera(miscData.camArgs);
         this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
         this.addObject(listener);
-        Player.addEventListeners();
+        this.addEventListeners();
         this.health = new Health(miscData.healthValue);
         this.currentHealth = miscData.healthValue;
         this.playerHeight = fixedData.characterHeight;
         this.attackDamage = miscData.attackDamage;
         this.knockback = miscData.knockback;
     }
-    private static addEventListeners() {
-        document.addEventListener('keydown',Player.onKeyDown);
-        document.addEventListener('keyup', Player.onKeyUp);
+    private addEventListeners() {
+        document.addEventListener('keydown',this.onPlayerKeyDown);
+        document.addEventListener('keyup', this.onPlayerKeyUp);
     }
-    private static onKeyDown(event:KeyboardEvent) {
-        Player.keysPressed[event.code] = true;
+    private onPlayerKeyDown = (event:KeyboardEvent)=> {//i used an arrow function here to bind the this context
+        this.keysPressed[event.code] = true;
     }
-    private static onKeyUp(event:KeyboardEvent) {
-        Player.keysPressed[event.code] = false
+    private onPlayerKeyUp = (event:KeyboardEvent)=> {
+        this.keysPressed[event.code] = false
     }
     private bindKeysToControls() {
-        if (Player.keysPressed['KeyP']) {
+        if (this.keysPressed['KeyP']) {
             console.log = ()=>{};
         }
         if (this.camModeNum == CameraMode.SecondPerson) {//inverted controls for second person
             if (!this.health.isDead) {
-                if (Player.keysPressed['KeyA']) {
+                if (this.keysPressed['KeyA']) {
                     this.moveCharacterRight();
                 }
-                if (Player.keysPressed['KeyD']) {
+                if (this.keysPressed['KeyD']) {
                     this.moveCharacterLeft();
                 }
             };
-            if (Player.keysPressed['ArrowUp']) {
+            if (this.keysPressed['ArrowUp']) {
                 this.camera.rotateCameraDown(this.cameraClampAngle)
             };  
-            if (Player.keysPressed['ArrowDown']) {
+            if (this.keysPressed['ArrowDown']) {
                 this.camera.rotateCameraUp(this.cameraClampAngle)
             };
         }else {//Normal WASD controls   
             if (!this.health.isDead) { 
-                if (Player.keysPressed['KeyA']) {
+                if (this.keysPressed['KeyA']) {
                     this.moveCharacterLeft();
                 }
-                if (Player.keysPressed['KeyD']) {
+                if (this.keysPressed['KeyD']) {
                     this.moveCharacterRight();
                 }
             }
-            if (Player.keysPressed['ArrowUp']) {
+            if (this.keysPressed['ArrowUp']) {
                 this.camera.rotateCameraUp(this.cameraClampAngle)
             };  
-            if (Player.keysPressed['ArrowDown']) {
+            if (this.keysPressed['ArrowDown']) {
                 this.camera.rotateCameraDown(this.cameraClampAngle)
             };
         }
         if (!this.health.isDead) {
-            if (Player.keysPressed['KeyW']) {
-                if (Player.keysPressed['ShiftLeft']) this.dynamicData.horizontalVelocity += 10;
+            if (this.keysPressed['KeyW']) {
+                if (this.keysPressed['ShiftLeft']) this.dynamicData.horizontalVelocity += 10;
                 this.moveCharacterForward()
             }
-            if (Player.keysPressed['KeyS']) {
+            if (this.keysPressed['KeyS']) {
                 this.moveCharacterBackward();
             }
-            if (Player.keysPressed['Space']) {
+            if (this.keysPressed['Space']) {
                 this.moveCharacterUp()
             }
-            if (Player.keysPressed['KeyQ']) {
+            if (this.keysPressed['KeyQ']) {
                 this.attack();
             }
         }
-        if (Player.keysPressed['ArrowLeft'])  {
+        if (this.keysPressed['ArrowLeft'])  {
             this.rotateCharacterX('left')
         };  
-        if (Player.keysPressed['ArrowRight']) {
+        if (this.keysPressed['ArrowRight']) {
             this.rotateCharacterX('right')
         };
         //zoom in
-        if (Player.keysPressed['Equal']) {//this corresponds to +
+        if (this.keysPressed['Equal']) {//this corresponds to +
             this.targetZ = Math.max(-this.zoomClamp,this.targetZ - this.zoomDelta);  //used minus on the zoom delta cuz thats my forward axis and as such,i had to also use -clamp to clamp it at that direction.i also had to invert the function i used for clamping to be max instead of min since its in the negative direction
         }
         //zoom out
-        if (Player.keysPressed['Minus']) {
+        if (this.keysPressed['Minus']) {
             this.targetZ = Math.min(this.zoomClamp,this.targetZ + this.zoomDelta)
         }
-        if (Player.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
+        if (this.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
             if (this.toggleTimer > this.toggleCooldown) { //this is a debouncing mechanism
                 this.camModeNum = ((this.camModeNum<3)?this.camModeNum + 1:1) as 1 | 2 | 3;//this is to increase the camMode,when its 3rd person,reset it back to 1st person and repeat 
                 this.toggleTimer = 0
@@ -205,16 +205,16 @@ class Player extends Controller implements EntityLike {
         if (this.isAirBorne()) {
             this.stopWalkSound()
             this.playJumpAnimation()
-        }else if (Player.keysPressed['KeyW']) {//each key will have its own animation
+        }else if (this.keysPressed['KeyW']) {//each key will have its own animation
             this.playWalkSound()
             this.playWalkAnimation()
-        }else if (Player.keysPressed['KeyA']) {
+        }else if (this.keysPressed['KeyA']) {
             this.playWalkSound()
-        }else if (Player.keysPressed['KeyS']) {
+        }else if (this.keysPressed['KeyS']) {
             this.playWalkSound()
-        }else if (Player.keysPressed['KeyD']) {
+        }else if (this.keysPressed['KeyD']) {
             this.playWalkSound()
-        }else if (Player.keysPressed['KeyQ']) {
+        }else if (this.keysPressed['KeyQ']) {
             this.playAttackAnimation();
         }else if (!this.health.isDead) {
             this.stopWalkSound();
@@ -222,7 +222,7 @@ class Player extends Controller implements EntityLike {
         }
     }
     private toggleCamPerspective() {
-        if ((Player.keysPressed['KeyT'])) {
+        if ((this.keysPressed['KeyT'])) {
             switch (this.camModeNum) {
                 case CameraMode.FirstPerson: {
                     this.targetZ = -1;

@@ -26,8 +26,8 @@ export default function ItemGui() {
     }
     return (
         <>
-            <div className="absolute z-20 top-[2%] left-[4%] flex items-center gap-[25%] font-[Consolas] font-bold text-[#fcfcfcef] ">
-                <button className="bg-[#2e2e2eb3] w-[9.5vw] py-[4%] shadow-sm cursor-pointer" onClick={toggleTab}>{tab}</button>
+            <div className="absolute z-20 top-[2%] left-[4%] flex items-center gap-[25%] font-[Consolas] font-bold text-[#000000b9] ">
+                <button className=" w-[9.5vw] py-[4%] shadow-sm cursor-pointer bg-[#ffffff28]" onClick={toggleTab}>{tab}</button>
             </div>
 
             <motion.div    

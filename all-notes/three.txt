@@ -1436,3 +1436,6 @@ so array constructor allows me to make a initialize the lenth of the array to re
 *useRef is a React hook used to:Hold mutable values that persist across renders without triggering re-renders when they change.in other words,mutable variables that dont trigger rerenders should be made with use ref while immutable variables can be defined as regular cosntants under the tsx component.
 
 *so at dev time,tailwind supplies my project with all the classes and react will choose between them at runtime when interpolating strings but in the final build,only classes i explicitly used are included by tailwind in the final bundle so dynamic classes wont be detected and added and as such,it wnt be available in the final build unless i explicitly add them so that react can choose between them at runtime
+
+arrow functions binds the this context automatically
+intiliaztions before the constructor are executed before the constructor
