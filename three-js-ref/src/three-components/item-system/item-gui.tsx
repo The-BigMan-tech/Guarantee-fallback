@@ -100,27 +100,25 @@ export default function ItemGui() {
         
     },[selectedCell,cellNum,setIsCellSelected,gridCols]);
 
-    function ANIMATION_CONFIG(gridWidth?:number) {
-        return {
-            buttonDiv: {
-                initial: { opacity: 0, y: -40 },
-                animate: { opacity: 1, y: 0 },
-                exit: { opacity: 0, y: 40 },
-                transition: { duration: 0.1, ease:easeInOut}
-            },
-            grid: {
-                initial: { opacity: 0, y: -40 },
-                animate: { opacity: 1, y: 0, width: `${gridWidth}%` },
-                exit: { opacity: 0, y: 40 },
-                transition: { duration: 0.3, ease:easeInOut}
-            },
-            button: {
-                onHoverStart:() => setHovered(true),
-                onHoverEnd:() => setHovered(false),
-                whileHover:{ scale: 1.1 }
-            }
+    const ANIMATION_CONFIG = useMemo(() => ({
+        buttonDiv: {
+            initial: { opacity: 0, y: -40 },
+            animate: { opacity: 1, y: 0 },
+            exit: { opacity: 0, y: 40 },
+            transition: { duration: 0.1, ease: easeInOut }
+        },
+        grid: {
+            initial: { opacity: 0, y: -40 },
+            animate: { opacity: 1, y: 0, width: `${gridWidth}%` },
+            exit: { opacity: 0, y: 40 },
+            transition: { duration: 0.3, ease: easeInOut }
+        },
+        button: {
+            onHoverStart: () => setHovered(true),
+            onHoverEnd: () => setHovered(false),
+            whileHover: { scale: 1.1 }
         }
-    };
+    }), [gridWidth]);
     
     //i wanted to use a sigle motion.div to animate the gui on exit and entry to prevent duplication but it didnt work.it is still neat the way it is and also,i can give them unique values in their animations
     //the key used for the motion divs helps React to identify the element for transition.they must be stable
@@ -128,13 +126,13 @@ export default function ItemGui() {
         <AnimatePresence>
             {showItemGui
                 ?<>
-                    <motion.div key="div1" className="absolute z-20 top-[2%] left-[4%]" {...ANIMATION_CONFIG().buttonDiv}>
-                        <motion.button className=" w-[9.5vw] py-[4%] shadow-sm cursor-pointer bg-[#5858588e] hover:bg-[#48372bb1] font-[Consolas] font-bold text-[#fffffffd] " onClick={toggleTab} {...ANIMATION_CONFIG().button}>
+                    <motion.div key="div1" className="absolute z-20 top-[2%] left-[4%]" {...ANIMATION_CONFIG.buttonDiv}>
+                        <motion.button className=" w-[9.5vw] py-[4%] shadow-sm cursor-pointer bg-[#5858588e] hover:bg-[#48372bb1] font-[Consolas] font-bold text-[#fffffffd] " onClick={toggleTab} {...ANIMATION_CONFIG.button}>
                             {hovered ? "Switch" : tab }
                         </motion.button>
                     </motion.div>
 
-                    <motion.div key="div2" className={`grid h-[90%] grid-cols-${gridCols} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG(gridWidth).grid}>
+                    <motion.div key="div2" className={`grid h-[90%] grid-cols-${gridCols} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
                         {cellsArray.map((value,index) => (
                             <button onClick={()=>selectCell(index)} key={index} className={`bg-[#2424246b] rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(index)}`}>
                                 
