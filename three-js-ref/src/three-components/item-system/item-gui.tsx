@@ -6,25 +6,29 @@ import { itemManager } from "./item-manager.three";
 import type { ItemID } from "./item-manager.three";
 
 export default function ItemGui() {
+    const inventorySize:number = 8;
+    const [hovered, setHovered] = useState(false);
+
     const [showItemGui] = useAtom(showItemGuiAtom);
-    const [,setIsCellSelected] = useAtom(isCellSelectedAtom)
+    const [,setIsCellSelected] = useAtom(isCellSelectedAtom)//this controls the freezing of the player's controls when navigating about the grid
 
     const [tab,setTab] = useState<'Items' | 'Inventory'>('Items');
+    
     const [gridCols,setGridCols] = useState<number>(tab === 'Items'?3:1);
     const [gridWidth, setGridWidth] = useState(tab === 'Items' ? 20 : 10);
-    const [cellNum,SetCellNum] = useState(tab === 'Items'?21:8);
-    //used memo here to make it react to change in cell num.
+    
+    const [cellNum,SetCellNum] = useState(tab === 'Items'?21:inventorySize);
+    //strings are for valid ids,null keys are for padding and undefined are for invalid ids meaning no id is selected
+    const [selectedCellID,setSelectedCellID] = useState<string | null | undefined>(undefined);
 
-    const cellsArray:ItemID[] = useMemo(()=>{
+    const cellsArray:(ItemID | null)[] = useMemo(()=>{ //used memo here to make it react to change in cell num.
         let cells:ItemID[] = (tab === "Items")?Object.keys(itemManager.items):Array.from(itemManager.inventoryItems.keys());
         if (cells.length < cellNum) {// Pad the array with nulls until it reaches cellNum length
-            cells = [...cells, ...new Array(cellNum - cells.length).fill(null)];
+            const padding = new Array(cellNum - cells.length).fill(null)
+            cells = [...cells, ...padding];
         }
         return cells;
     },[cellNum,tab]) 
-
-    const [hovered, setHovered] = useState(false);
-    const [selectedCell,setSelectedCell] = useState<number | undefined>(undefined);
 
     function toggleTab() {
         setTab((prev)=>{
@@ -36,56 +40,47 @@ export default function ItemGui() {
             }else {
                 setGridCols(1);
                 setGridWidth(10);
-                SetCellNum(8);
+                SetCellNum(inventorySize);
             }
-            //When toggling tabs, the new grid layout changes grid columns and cell count, so the current selectedCell might no longer be valid.so we reset the associated variables.
-            setSelectedCell(undefined);
+            //When toggling tabs, the new grids layout changes grid columns and cell count, so the current selectedCell might no longer be valid.so we reset the associated variables.
+            setSelectedCellID(undefined);
             setIsCellSelected(false);
             return newTab
         })  
     }
-    function selectCell(index:number) {
-        setSelectedCell(index);
+    function selectCell(itemID:ItemID | null) { 
+        setSelectedCellID(itemID);
         setIsCellSelected(true);
     }
-    function selectedCellStyle(index:number) {
-        if (selectedCell === index) {
+    function selectedCellStyle(itemID:ItemID | null) {
+        if (selectedCellID === itemID) {
             return 'border-4 border-[#ffffff]'
         }
     }
+
     useEffect(()=>{//i used key-up for natural debouncing
+        function getCellIndex(itemID:ItemID) {
+            return cellsArray.findIndex(id => id === itemID)
+        }
+        function moveSelection(offset: number) {
+            if (selectedCellID == undefined) return; // nothing selected
+            const newIndex = getCellIndex(selectedCellID) + offset;
+            if ((newIndex >= 0) && (newIndex < cellsArray.length)) {//only advance the selection when within bounds
+                const newID = cellsArray[newIndex];
+                setSelectedCellID(newID);
+                setIsCellSelected(true);
+            }
+        }
         function handleKeyUp(event:KeyboardEvent) {
             if (event.code == 'Escape') {
-                setSelectedCell(undefined);
+                setSelectedCellID(undefined);
                 setIsCellSelected(false);
-                return;
-            }
-            if (selectedCell !== undefined) {//this is safer than directly checking for falsiness because 0 is also falsy but its a valid index
-                if (event.code == 'ArrowRight') {
-                    setSelectedCell(prev=>{
-                        if (prev == undefined) return prev;
-                        const next = prev + 1;
-                        return (next >= cellNum) ? prev : next; // prevent overflow
-                    })
-                }else if (event.code == 'ArrowLeft') {
-                    setSelectedCell(prev=>{
-                        if (prev == undefined) return prev;
-                        const next = prev - 1;
-                        return (next < 0) ? prev : next;
-                    })
-                }else if (event.code == 'ArrowUp') {
-                    setSelectedCell(prev=>{
-                        if (prev == undefined) return prev;
-                        const next = prev - gridCols;
-                        return  (next < 0) ? prev : next
-                    })
-                }else if (event.code == 'ArrowDown') {
-                    setSelectedCell(prev=>{
-                        if (prev == undefined) return prev;
-                        const next = prev + gridCols;
-                        return  (next >= cellNum) ? prev : next
-                    })
-                } 
+            }else {
+                if (event.code == 'ArrowRight') moveSelection(1);
+                else if (event.code == 'ArrowLeft') moveSelection(-1);
+                else if (event.code == 'ArrowUp') moveSelection(-gridCols);
+                else if (event.code == 'ArrowDown') moveSelection(gridCols);
+                setIsCellSelected(true);  
             }
         }
         window.addEventListener('keyup',handleKeyUp);
@@ -93,7 +88,11 @@ export default function ItemGui() {
             window.removeEventListener("keyup", handleKeyUp);
         };
         
-    },[selectedCell,cellNum,setIsCellSelected,gridCols]);
+    },[setIsCellSelected,gridCols,cellsArray,selectedCellID]);
+
+    useEffect(()=>{
+        console.log('Selected cell id: ',selectedCellID);
+    },[selectedCellID])
 
     const ANIMATION_CONFIG = useMemo(() => ({
         buttonDiv: {
@@ -129,10 +128,10 @@ export default function ItemGui() {
 
                     <motion.div key="div2" className={`grid h-[90%] grid-cols-${gridCols} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
                         {cellsArray.map((itemID,index) => (
-                            <button onClick={()=>selectCell(index)} key={itemID ?? index} className={`bg-[#2424246b] rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(index)}`}>
+                            <button onClick={()=>selectCell(itemID)} key={itemID ?? index} className={`bg-[#2424246b] rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(itemID)}`}>
                                 {(tab == "Items")
-                                    ?<div>{itemManager.items[itemID]?.name}</div>
-                                    :<div>{itemManager.inventoryItems.get(itemID)?.item.name}</div>
+                                    ?<div>{itemID && itemManager.items[itemID]?.name}</div>
+                                    :<div>{itemID && itemManager.inventoryItems.get(itemID)?.item.name}</div>
                                 }
                             </button>
                         ))}
