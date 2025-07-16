@@ -19,12 +19,17 @@ export default function ItemGui() {
     
     const [cellNum,SetCellNum] = useState(tab === 'Items'?21:inventorySize);
     //strings are for valid ids,null keys are for padding and undefined are for invalid ids meaning no id is selected
-    const [selectedCellID,setSelectedCellID] = useState<string | null | undefined>(undefined);
+    const [selectedCellID,setSelectedCellID] = useState<string | undefined>(undefined);
 
-    const cellsArray:(ItemID | null)[] = useMemo(()=>{ //used memo here to make it react to change in cell num.
-        let cells:ItemID[] = (tab === "Items")?Object.keys(itemManager.items):Array.from(itemManager.inventoryItems.keys());
+    const cellsArray:string[] = useMemo(()=>{ //used memo here to make it react to change in cell num.
+        let cells:ItemID[] = (tab === "Items")
+            ?Object.keys(itemManager.items)
+            :Array.from(itemManager.inventoryItems.keys());
         if (cells.length < cellNum) {// Pad the array with nulls until it reaches cellNum length
-            const padding = new Array(cellNum - cells.length).fill(null)
+            const padding:string[] = [];
+            for (let i=0;i < (cellNum - cells.length);i++) {
+                padding.push(`pad-${i}`)
+            }
             cells = [...cells, ...padding];
         }
         return cells;
@@ -48,11 +53,11 @@ export default function ItemGui() {
             return newTab
         })  
     }
-    function selectCell(itemID:ItemID | null) { 
+    function selectCell(itemID:ItemID) { 
         setSelectedCellID(itemID);
         setIsCellSelected(true);
     }
-    function selectedCellStyle(itemID:ItemID | null) {
+    function selectedCellStyle(itemID:ItemID) {
         if (selectedCellID === itemID) {
             return 'border-4 border-[#ffffff]'
         }
@@ -63,8 +68,11 @@ export default function ItemGui() {
             return cellsArray.findIndex(id => id === itemID)
         }
         function moveSelection(offset: number) {
+            console.log('selected Cell id 2:', selectedCellID);
+
             if (selectedCellID == undefined) return; // nothing selected
             const newIndex = getCellIndex(selectedCellID) + offset;
+            console.log('selected cell id newIndex:', newIndex);
             if ((newIndex >= 0) && (newIndex < cellsArray.length)) {//only advance the selection when within bounds
                 const newID = cellsArray[newIndex];
                 setSelectedCellID(newID);
@@ -80,7 +88,6 @@ export default function ItemGui() {
                 else if (event.code == 'ArrowLeft') moveSelection(-1);
                 else if (event.code == 'ArrowUp') moveSelection(-gridCols);
                 else if (event.code == 'ArrowDown') moveSelection(gridCols);
-                setIsCellSelected(true);  
             }
         }
         window.addEventListener('keyup',handleKeyUp);
@@ -90,9 +97,6 @@ export default function ItemGui() {
         
     },[setIsCellSelected,gridCols,cellsArray,selectedCellID]);
 
-    useEffect(()=>{
-        console.log('Selected cell id: ',selectedCellID);
-    },[selectedCellID])
 
     const ANIMATION_CONFIG = useMemo(() => ({
         buttonDiv: {
@@ -127,11 +131,11 @@ export default function ItemGui() {
                     </motion.div>
 
                     <motion.div key="div2" className={`grid h-[90%] grid-cols-${gridCols} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
-                        {cellsArray.map((itemID,index) => (
-                            <button onClick={()=>selectCell(itemID)} key={itemID ?? index} className={`bg-[#2424246b] rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(itemID)}`}>
+                        {cellsArray.map((itemID) => (
+                            <button onClick={()=>selectCell(itemID)} key={itemID} className={`bg-[#2424246b] rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(itemID)}`}>
                                 {(tab == "Items")
-                                    ?<div>{itemID && itemManager.items[itemID]?.name}</div>
-                                    :<div>{itemID && itemManager.inventoryItems.get(itemID)?.item.name}</div>
+                                    ?<div>{itemManager.items[itemID]?.name}</div>
+                                    :<div>{itemManager.inventoryItems.get(itemID)?.item.name}</div>
                                 }
                             </button>
                         ))}
