@@ -3,7 +3,7 @@ import { motion,AnimatePresence,easeInOut} from "motion/react"
 import { isCellSelectedAtom, showItemGuiAtom } from "./item-state";
 import { useAtom } from "jotai";
 import { itemManager } from "./item-manager.three";
-import type { InventoryItem, Item, ItemID } from "./item-manager.three";
+import type { ItemID } from "./item-manager.three";
 
 export default function ItemGui() {
     const [showItemGui] = useAtom(showItemGuiAtom);
@@ -128,9 +128,12 @@ export default function ItemGui() {
                     </motion.div>
 
                     <motion.div key="div2" className={`grid h-[90%] grid-cols-${gridCols} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
-                        {cellsArray.map((value,index) => (
-                            <button onClick={()=>selectCell(index)} key={index} className={`bg-[#2424246b] rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(index)}`}>
-                                
+                        {cellsArray.map((itemID,index) => (
+                            <button onClick={()=>selectCell(index)} key={itemID ?? index} className={`bg-[#2424246b] rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(index)}`}>
+                                {(tab == "Items")
+                                    ?<div>{itemManager.items[itemID]?.name}</div>
+                                    :<div>{itemManager.inventoryItems.get(itemID)?.item.name}</div>
+                                }
                             </button>
                         ))}
                     </motion.div>
