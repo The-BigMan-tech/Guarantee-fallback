@@ -11,6 +11,8 @@ export default function ItemGui() {
     const [cellNum,SetCellNum] = useState(tab === 'Items'?21:8);
     const cellsArray:null[] = useMemo(()=>new Array(cellNum).fill(null),[cellNum])//used memo here to make it react to change in cell num.
 
+    const [hovered, setHovered] = useState(false);
+
     function toggleTab() {
         setTab((prev)=>{
             const newTab =(prev=="Inventory")?'Items':"Inventory"
@@ -26,7 +28,7 @@ export default function ItemGui() {
             return newTab
         })  
     }
-
+    //i wanted to use a sigle motion.div to animate the gui on exit and entry to prevent duplication but it didnt work.it is still neat the way it is and also,i can give them unique values in their animations
     return <>
         <AnimatePresence>
             {showItemGui
@@ -36,10 +38,17 @@ export default function ItemGui() {
                         initial={{ opacity: 0, y: -40 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 40 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="absolute z-20 top-[2%] left-[4%] flex items-center gap-[25%] font-[Consolas] font-bold text-[#000000b9] ">
-                            <button className=" w-[9.5vw] py-[4%] shadow-sm cursor-pointer bg-[#ce8e8e28]" onClick={toggleTab}>{tab}</button>
+                        transition={{ duration: 0.1, ease: "easeInOut" }}
+                        className="absolute z-20 top-[2%] left-[4%]">
+                            <motion.button 
+                                onHoverStart={() => setHovered(true)}
+                                onHoverEnd={() => setHovered(false)}
+                                whileHover={{ scale: 1.1 }}
+                                className=" w-[9.5vw] py-[4%] shadow-sm cursor-pointer bg-[#5858588e] hover:bg-[#48372bb1] font-[Consolas] font-bold text-[#fffffffd] " onClick={toggleTab}>
+                                    {hovered ? "Switch" : tab }
+                            </motion.button>
                     </motion.div>
+
                     <motion.div    
                         key="itemGui"//this helps React to identify the element for transition.
                         initial={{ opacity: 0, y: -40 }}

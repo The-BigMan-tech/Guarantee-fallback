@@ -59,7 +59,7 @@ class Player extends Controller implements EntityLike {
     private readonly toggleCooldown:seconds = 0.3; // Cooldown in seconds.this value in particular works the best
     private toggleTimer:seconds = 0;
 
-    private readonly toggleItemGuiCooldown:seconds = 0.3;
+    private readonly toggleItemGuiCooldown:seconds = 0.5;
     private toggleItemGuiTimer:seconds = 0;
 
 
