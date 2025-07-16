@@ -1450,3 +1450,5 @@ keyup fires once when the key is released. No repeats, so it can be considered m
 *keyof vs typeof
 
 *the power of readonly modifier,Readonly type and deep freeze
+
+stable variables in a react component like state setters dont need to be dependencies

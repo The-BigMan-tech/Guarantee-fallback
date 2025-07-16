@@ -13,7 +13,7 @@ import type { EntityLike } from "../entity-system/relationships.three";
 import { groupIDs } from "../entity-system/globals";
 import { relationshipManager } from "../entity-system/relationships.three";
 import type { seconds } from "../entity-system/globals";
-import { toggleItemGui } from "../item-system/item-state";
+import { toggleItemGui,isCellSelected } from "../item-system/item-state";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -134,7 +134,7 @@ class Player extends Controller implements EntityLike {
     private onPlayerKeyUp = (event:KeyboardEvent)=> {
         this.keysPressed[event.code] = false
     }
-    private bindKeysToControls() {
+    private bindKeysToControls() {//i used keydown here for instant feedback and debounced some of them
         if (this.keysPressed['KeyP']) {
             console.log = ()=>{};
         }
@@ -328,7 +328,8 @@ class Player extends Controller implements EntityLike {
         this.checkIfOutOfBounds();
         this.updateHealthGUI();
         this.health.checkGroundDamage(this.velBeforeHittingGround);
-        this.bindKeysToControls();
+        if (!isCellSelected()) this.bindKeysToControls();
+        console.log('isCellSelected:', isCellSelected());
         this.bindKeysToAnimations();
         this.toggleCamPerspective();
         this.updateCamPosition();
