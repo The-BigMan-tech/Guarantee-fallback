@@ -59,6 +59,9 @@ class Player extends Controller implements EntityLike {
     private readonly toggleCooldown:seconds = 0.3; // Cooldown in seconds.this value in particular works the best
     private toggleTimer:seconds = 0;
 
+    private readonly toggleItemGuiCooldown:seconds = 0.3;
+    private toggleItemGuiTimer:seconds = 0;
+
 
     private playerHeight:number;
 
@@ -182,7 +185,10 @@ class Player extends Controller implements EntityLike {
             }
         }
         if (this.keysPressed['KeyE']) {
-            toggleItemGui()
+            if (this.toggleItemGuiTimer > this.toggleItemGuiCooldown) {
+                toggleItemGui()
+                this.toggleItemGuiTimer = 0;
+            }
         }
         if (this.keysPressed['ArrowLeft'])  {
             this.rotateCharacterX('left')
@@ -315,6 +321,7 @@ class Player extends Controller implements EntityLike {
     }
     protected onLoop() {//this is where all character updates to this instance happens.
         this.toggleTimer += this.clockDelta || 0;
+        this.toggleItemGuiTimer += this.clockDelta || 0;
         this.showEntityHealthTimer += this.clockDelta || 0;
         this.attackTimer += this.clockDelta || 0;
         this.currentHealth = this.health.value;

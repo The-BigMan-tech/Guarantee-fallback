@@ -1439,3 +1439,8 @@ so array constructor allows me to make a initialize the lenth of the array to re
 
 arrow functions binds the this context automatically
 intiliaztions before the constructor are executed before the constructor
+
+*Keydown vs Keyup listeners
+keydown fires immediately when a key is pressed down and repeats continuously as the key is held. It does not debounce naturally. This means if you hold the key for a moment, multiple keydown events will be fired (auto-repeat behavior). [MDN]
+
+keyup fires once when the key is released. No repeats, so it can be considered more naturally "debounced" in the sense it only fires once per key press

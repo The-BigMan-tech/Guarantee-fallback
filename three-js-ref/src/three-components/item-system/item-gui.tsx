@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import {motion } from "motion/react"
+import { motion,AnimatePresence } from "motion/react"
 import { showItemGuiAtom } from "./item-state";
 import { useAtom } from "jotai";
 
@@ -28,21 +28,32 @@ export default function ItemGui() {
     }
 
     return <>
-        {showItemGui
-            ?<>
-                <div className="absolute z-20 top-[2%] left-[4%] flex items-center gap-[25%] font-[Consolas] font-bold text-[#000000b9] ">
-                    <button className=" w-[9.5vw] py-[4%] shadow-sm cursor-pointer bg-[#ffffff28]" onClick={toggleTab}>{tab}</button>
-                </div>
-
-                <motion.div    
-                    animate={{ width: `${gridWidth}%` }}
-                    className={`grid h-[90%] grid-cols-${gridCols} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`}>
-                        {cellsArray.map((_,index) => (
-                            <div key={index} className='bg-[#2424246b] rounded w-full aspect-square shadow-lg'/>
-                        ))}
-                </motion.div>
-            </>
-            :null
-        }
+        <AnimatePresence>
+            {showItemGui
+                ?<>
+                    <motion.div 
+                        key="itemGui2"//this helps React to identify the element for transition.
+                        initial={{ opacity: 0, y: -40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 40 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className="absolute z-20 top-[2%] left-[4%] flex items-center gap-[25%] font-[Consolas] font-bold text-[#000000b9] ">
+                            <button className=" w-[9.5vw] py-[4%] shadow-sm cursor-pointer bg-[#ce8e8e28]" onClick={toggleTab}>{tab}</button>
+                    </motion.div>
+                    <motion.div    
+                        key="itemGui"//this helps React to identify the element for transition.
+                        initial={{ opacity: 0, y: -40 }}
+                        animate={{ opacity: 1, y: 0, width: `${gridWidth}%` }}
+                        exit={{ opacity: 0, y: 40 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        className={`grid h-[90%] grid-cols-${gridCols} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`}>
+                            {cellsArray.map((_,index) => (
+                                <div key={index} className='bg-[#2424246b] rounded w-full aspect-square shadow-lg'/>
+                            ))}
+                    </motion.div>
+                </>
+                :null
+            }
+        </AnimatePresence>
     </>
 }
