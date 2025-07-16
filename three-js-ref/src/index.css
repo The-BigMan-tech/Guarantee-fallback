@@ -2,6 +2,28 @@
 
 @layer components {
     html, body, #root {
-        @apply h-full m-0 p-0
+        @apply h-full m-0 p-0 
+    }
+    .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: #222a #ffffff00; /* Thumb color and transparent track */
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+        background: transparent; /* Prevents 'white' strip */
+        border-radius: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #22222288;
+        border-radius: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-button {
+        display: none; /* Hides arrows/steppers */
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent; /* Or match bg-[#ffffff2d] */
+    }
+    .custom-scrollbar::-webkit-scrollbar-corner {
+        background: transparent;
     }
 }

@@ -5,8 +5,8 @@ interface ItemData {
 type ItemID = string;
 type Singleton<T> = T;
 
-class ItemRegistry {
-    private static registry:ItemRegistry;
+class ItemManager {
+    private static manager:ItemManager;
     private _items:Readonly<Record<ItemID,ItemData>> = Object.freeze({//items should be registered on startup and shouldn be mutated
         'block':{
             name:'Block',
@@ -16,14 +16,14 @@ class ItemRegistry {
 
     private constructor() {}
     public static get instance() {
-        if (!ItemRegistry.registry) {
-            ItemRegistry.registry = new ItemRegistry();
+        if (!ItemManager.manager) {
+            ItemManager.manager = new ItemManager();
         }
-        return ItemRegistry.registry
+        return ItemManager.manager
     }
 
     get items():Record<ItemID,ItemData> {
         return this._items
     }
 }
-export const itemRegistry:Singleton<ItemRegistry> = ItemRegistry.instance;
+export const itemManager:Singleton<ItemManager> = ItemManager.instance;
