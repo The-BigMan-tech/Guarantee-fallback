@@ -74,10 +74,9 @@ export default function ItemGui() {
     }
     function selectedCellStyle(itemID:ItemID) {
         if (selectedCellID === itemID) {
-            if (itemID.startsWith(nullCellIDPrefix)) {
-                return  'border-4 border-[#eb7979]'
-            }
-            return 'border-4 border-[#ffffff]'
+            return 'bg-[#2c2c2ca4] shadow-xl border-3 border-[#f3c980da]'
+        }else {
+            return 'bg-[#2424246b]'
         }
     }
 
@@ -181,17 +180,18 @@ export default function ItemGui() {
 
                     <motion.div key="div2" className={`grid h-[90%] grid-cols-${gridCols} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
                         {cellsArray.map((itemID) => (
-                            <button 
+                            <motion.button 
                                 onClick={()=>selectCell(itemID)} 
                                 key={itemID} 
-                                className={`bg-[#2424246b] rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(itemID)}`}
+                                className={`rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(itemID)}`}
                                 ref={el => { cellRefs.current[itemID] = el; }}
+                                animate={selectedCellID === itemID ? { scale: 1.11 } : { scale: 1 }}
                                 >
                                 {(tab == "Items")
                                     ?<div>{itemManager.items[itemID]?.name}</div>
                                     :<div>{itemManager.inventory.get(itemID)?.item.name}</div>
                                 }
-                            </button>
+                            </motion.button>
                         ))}
                     </motion.div>
                 </>
