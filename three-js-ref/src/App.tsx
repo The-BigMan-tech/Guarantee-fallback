@@ -7,7 +7,7 @@ import { RingHealthBar } from './three-components/health/health-bar';
 import HealthStateRegistrar  from './three-components/health/health-state-register';
 import ItemGui from './three-components/item-system/item-gui';
 import ItemStateRegister from './three-components/item-system/item-state-register';
-import { ToastContainer,Slide } from 'react-toastify';
+
 
 function App() {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -40,7 +40,6 @@ function App() {
             <Crosshair/>
             <RingHealthBar/>
             <ItemGui/>
-            <ToastContainer style={{ zIndex:100 }} newestOnTop={true} transition={Slide}/>
         </div>
     )
 }

@@ -4,30 +4,12 @@ import { isCellSelectedAtom, showItemGuiAtom, toggleItemGui } from "./item-state
 import { useAtom } from "jotai";
 import { itemManager } from "./item-manager.three";
 import type { ItemID } from "./item-manager.three";
-import {toast, type ToastOptions } from 'react-toastify';
-import { cssTransition } from 'react-toastify';
-
-const None = cssTransition({
-    enter: 'toast-instant',
-    exit: 'toast-instant',
-});
 
 type milliseconds = number;
 
 const inventorySize:number = itemManager.invSize;
 const nullCellIDPrefix = 'pad'//the prefix for ids of null/empty cells
 
-const toastConfig:ToastOptions = {
-    position: "top-center",
-    autoClose: 6,
-    hideProgressBar: true,
-    closeOnClick: false,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-    theme: "dark",
-    transition:None,//to prevent rapid toasts animations that will cuase a sense of nausea
-}
 
 export default function ItemGui() {
     const [,setItemGuiVersion] = useState(0)//this is a dummy state to force react to rerender.i dont need to read it which is why i only have a setter
@@ -39,6 +21,7 @@ export default function ItemGui() {
     const actionTimerRef = useRef<number>(0);
 
     const [hovered, setHovered] = useState(false);
+    const [cellHovered, setCellHovered] = useState<string>('');
 
     const [showItemGui] = useAtom(showItemGuiAtom);
     const [,setIsCellSelected] = useAtom(isCellSelectedAtom)//this controls the freezing of the player's controls when navigating about the grid
@@ -142,10 +125,6 @@ export default function ItemGui() {
                     if ((tab === 'Items' ) && (event.code === 'Enter') ) {
                         itemManager.addToInventory(selectedCellID);
                         setItemGuiVersion(prev=>prev+1);
-                        const item = itemManager.items[selectedCellID];
-                        const count = itemManager.inventory.get(selectedCellID)?.count ?? 0;
-                        toast.success(`You have (x${count}) ${item?.name}  in inventory`,toastConfig);
-                        toast.dismiss();
                     }
                     else if ((tab === 'Inventory' ) && (event.code === 'Backspace') ) {
                         itemManager.removeFromInventory(selectedCellID);
@@ -218,6 +197,7 @@ export default function ItemGui() {
                                 key={itemID} 
                                 className={`relative rounded w-full aspect-square shadow-lg cursor-pointer text-white ${selectedCellStyle(itemID)}`}
                                 ref={el => { cellRefs.current[itemID] = el; }}
+                                onHoverStart={() => setCellHovered(itemID)}
                                 animate= { // the reason why i didnt include this in the config as well is because i need to check a specifc property of a particular cell which can only be accessed withing the map rendering.
                                     selectedCellID === itemID
                                     ? { scale: 1.11, backgroundColor: "#2c2c2ca4" }
@@ -226,7 +206,10 @@ export default function ItemGui() {
                                 {...ANIMATION_CONFIG.cell}
                                 >
                                 {(tab == "Items")
-                                    ?<div>{itemManager.items[itemID]?.name}</div>
+                                    ?<div>
+                                        <div>{itemManager.items[itemID]?.name}</div>
+                                        <div className="absolute bottom-[3%] right-[8%]">{(selectedCellID==itemID) && (cellHovered==itemID) &&  `x ${itemManager.inventory.get(itemID)?.count || null}`}</div>
+                                    </div>
                                     :<div>
                                         <div>{itemManager.inventory.get(itemID)?.item.name}</div>
                                         <div className="absolute bottom-[3%] right-[8%]">{itemManager.inventory.get(itemID)?.count}</div>
