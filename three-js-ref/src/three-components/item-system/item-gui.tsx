@@ -4,11 +4,24 @@ import { isCellSelectedAtom, showItemGuiAtom, toggleItemGui } from "./item-state
 import { useAtom } from "jotai";
 import { itemManager } from "./item-manager.three";
 import type { ItemID } from "./item-manager.three";
+import { Flip, toast, type ToastOptions } from 'react-toastify';
 
 type milliseconds = number;
 
 const inventorySize:number = itemManager.invSize;
-const nullCellIDPrefix = 'pad'
+const nullCellIDPrefix = 'pad'//the prefix for ids of null/empty cells
+
+const toastConfig:ToastOptions = {
+    position: "top-center",
+    autoClose: 6,
+    hideProgressBar: true,
+    closeOnClick: false,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    theme: "dark",
+    transition: Flip,
+}
 
 export default function ItemGui() {
     const [,setItemGuiVersion] = useState(0)//this is a dummy state to force react to rerender.i dont need to read it which is why i only have a setter
@@ -49,6 +62,7 @@ export default function ItemGui() {
     },[cellNum,tab]) 
 
     const cellRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
+    const [gridColClass,setGridColClass] = useState<string>(tab === 'Items'?'grid-cols-3':'grid-cols-1');
 
     function toggleTab() {
         setTab((prev)=>{
@@ -57,10 +71,12 @@ export default function ItemGui() {
                 setGridCols(3);
                 setGridWidth(20);
                 SetCellNum(21);
+                setGridColClass('grid-cols-3');//i resorted to using a static class name instead of dynamic tem class names because it always caused issues when vite optimized my bundle which probbaly prurged unused styles and my dynamic ones werent included
             }else {
                 setGridCols(1);
                 setGridWidth(10);
                 SetCellNum(inventorySize);
+                setGridColClass('grid-cols-1');
             }
             //When toggling tabs, the new grids layout changes grid columns and cell count, so the current selectedCell might no longer be valid.so we reset the associated variables.
             setSelectedCellID(undefined);
@@ -120,6 +136,9 @@ export default function ItemGui() {
                     if ((tab === 'Items' ) && (event.code === 'Enter') ) {
                         itemManager.addToInventory(selectedCellID);
                         setItemGuiVersion(prev=>prev+1);
+                        const item = itemManager.items[selectedCellID];
+                        const count = itemManager.inventory.get(selectedCellID)?.count ?? 0;
+                        toast.success(`You have (x${count}) ${item?.name}  in inventory`,toastConfig);
                     }
                     else if ((tab === 'Inventory' ) && (event.code === 'Backspace') ) {
                         itemManager.removeFromInventory(selectedCellID);
@@ -185,7 +204,7 @@ export default function ItemGui() {
                         </motion.button>
                     </motion.div>
 
-                    <motion.div key="div2" className={`grid h-[90%] grid-cols-${gridCols} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
+                    <motion.div key="div2" className={`grid h-[90%] ${gridColClass} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
                         {cellsArray.map((itemID) => (
                             <motion.button 
                                 onClick={()=>selectCell(itemID)} 

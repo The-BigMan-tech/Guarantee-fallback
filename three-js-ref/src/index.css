@@ -5,13 +5,6 @@
     html, body, #root {
         @apply h-full m-0 p-0 
     }
-    /*These grid classes are to get tw to generate them for me in the final bundle cuz i use them dynamically but not explicitly.else,it wont be included in my final bundle and i wint see those styles in my code */
-    .grid-col-1 {
-        @apply grid-cols-1
-    }
-    .grid-col-3 {
-        @apply grid-cols-3 
-    }
     .custom-scrollbar {
         scrollbar-width: thin;
         scrollbar-color:transparent transparent
