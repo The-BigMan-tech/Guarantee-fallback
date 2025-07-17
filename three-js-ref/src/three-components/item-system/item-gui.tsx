@@ -74,9 +74,9 @@ export default function ItemGui() {
     }
     function selectedCellStyle(itemID:ItemID) {
         if (selectedCellID === itemID) {
-            return 'bg-[#2c2c2ca4] shadow-xl border-3 border-[#f3c980da]'
+            return 'shadow-xl border-3 border-[#00000020]'
         }else {
-            return 'bg-[#2424246b]'
+            return ''
         }
     }
 
@@ -192,7 +192,11 @@ export default function ItemGui() {
                                 key={itemID} 
                                 className={`relative rounded w-full aspect-square shadow-lg cursor-pointer text-white ${selectedCellStyle(itemID)}`}
                                 ref={el => { cellRefs.current[itemID] = el; }}
-                                animate={selectedCellID === itemID ? { scale: 1.11 } : { scale: 1 }}//the reason why i didnt include this in the config as well is because i need to check a specifc property of a particular cell which can only be accessed withing the map rendering.
+                                animate= { // the reason why i didnt include this in the config as well is because i need to check a specifc property of a particular cell which can only be accessed withing the map rendering.
+                                    selectedCellID === itemID
+                                    ? { scale: 1.11, backgroundColor: "#2c2c2ca4" }
+                                    : { scale: 1, backgroundColor: "#2424246b" }
+                                }
                                 {...ANIMATION_CONFIG.cell}
                                 >
                                 {(tab == "Items")
