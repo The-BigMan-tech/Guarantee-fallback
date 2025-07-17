@@ -184,7 +184,7 @@ export default function ItemGui() {
                             <motion.button 
                                 onClick={()=>selectCell(itemID)} 
                                 key={itemID} 
-                                className={`relative rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(itemID)}`}
+                                className={`relative rounded w-full aspect-square shadow-lg cursor-pointer text-white ${selectedCellStyle(itemID)}`}
                                 ref={el => { cellRefs.current[itemID] = el; }}
                                 animate={selectedCellID === itemID ? { scale: 1.11 } : { scale: 1 }}
                                 >
