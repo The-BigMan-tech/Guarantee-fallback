@@ -14,7 +14,7 @@
     }
     .custom-scrollbar {
         scrollbar-width: thin;
-        scrollbar-color: #222a #ffffff00; /* Thumb color and transparent track */
+        scrollbar-color:transparent transparent
     }
     .custom-scrollbar::-webkit-scrollbar {
         width: 8px;
@@ -22,7 +22,7 @@
         border-radius: 8px;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #22222288;
+        background: transparent;
         border-radius: 8px;
     }
     .custom-scrollbar::-webkit-scrollbar-button {

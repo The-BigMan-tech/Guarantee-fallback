@@ -34,16 +34,16 @@ function App() {
     
     return (
         <div className='h-full w-full flex'>
-            <HealthStateRegistrar/>
-            <ItemStateRegister/>
-            <Crosshair/>
-            <RingHealthBar/>
-            <ItemGui/>
             <div 
                 ref={containerRef} 
                 tabIndex={0}  
                 className='w-full h-full z-0'>
             </div>
+            <HealthStateRegistrar/>
+            <ItemStateRegister/>
+            <Crosshair/>
+            <RingHealthBar/>
+            <ItemGui/>
         </div>
     )
 }

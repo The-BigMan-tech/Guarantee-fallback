@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState ,useRef} from "react";
 import { motion,AnimatePresence,easeInOut} from "motion/react"
-import { isCellSelectedAtom, showItemGuiAtom } from "./item-state";
+import { isCellSelectedAtom, showItemGuiAtom, toggleItemGui } from "./item-state";
 import { useAtom } from "jotai";
 import { itemManager } from "./item-manager.three";
 import type { ItemID } from "./item-manager.three";
@@ -97,9 +97,10 @@ export default function ItemGui() {
             }
         }
         function navGrid(event:KeyboardEvent) {
-            if (event.code == 'KeyE') {
+            if (event.code == 'KeyE') {//i used the same key for both toggling off the item gui and deselecting a cell for good ux.
                 setSelectedCellID(undefined);
                 setIsCellSelected(false);
+                if (selectedCellID) toggleItemGui();//i did this to cancel out the effect of the E-key listener in the player class so that pressing E when a cell is selected,only deselects the cell and the gui will only close when E is pressed and there is no cell selected
             }else {
                 if (event.code == 'ArrowRight') moveSelection(1);
                 else if (event.code == 'ArrowLeft') moveSelection(-1);
@@ -183,13 +184,16 @@ export default function ItemGui() {
                             <motion.button 
                                 onClick={()=>selectCell(itemID)} 
                                 key={itemID} 
-                                className={`rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(itemID)}`}
+                                className={`relative rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(itemID)}`}
                                 ref={el => { cellRefs.current[itemID] = el; }}
                                 animate={selectedCellID === itemID ? { scale: 1.11 } : { scale: 1 }}
                                 >
                                 {(tab == "Items")
                                     ?<div>{itemManager.items[itemID]?.name}</div>
-                                    :<div>{itemManager.inventory.get(itemID)?.item.name}</div>
+                                    :<div>
+                                        <div>{itemManager.inventory.get(itemID)?.item.name}</div>
+                                        <div className="absolute bottom-[3%] right-[8%]">{itemManager.inventory.get(itemID)?.count}</div>
+                                    </div>
                                 }
                             </motion.button>
                         ))}

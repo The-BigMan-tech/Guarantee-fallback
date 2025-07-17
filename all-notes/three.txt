@@ -1506,3 +1506,7 @@ You’re just polishing the experience; the code will work fine even at lower va
 singleton is teh single source of truth for some form of data and as such,direct mutation on the singleton should be prevented
 
 so the complexity of separate grids is only reasonable if the game mechanics demand it not just because its flashy cuz ux is about delivery not flashiness
+
+*all components in react are rendered in the dom at the same time.In practice: the UI order in your React code should match their intended visual stacking (game first, then HUD/UI overlays), so overlays are always on top and event handling is easier.
+
+the order of dom rendering has no effect on event listeners.it only stops propagating when you explicitly call stop propagation.Your event "interference" fix works because you hooked the key logic yourself correctly, not because of DOM order—so moving <ItemGui/> up or down in the parent won’t affect this unless you move to on-element event listeners (instead of global).
