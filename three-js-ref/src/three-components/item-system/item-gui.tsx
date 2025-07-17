@@ -5,7 +5,7 @@ import { useAtom } from "jotai";
 import { itemManager } from "./item-manager.three";
 import type { ItemID } from "./item-manager.three";
 import Cell from "./cell";
-import type { seconds } from "../entity-system/globals";
+
 
 type milliseconds = number;
 
@@ -55,7 +55,7 @@ export default function ItemGui() {
     //i used progressive/incremental loading/rendering for perf and ux
     const visibleCellsIncrement:number = useMemo(()=>gridCols,[gridCols]);
     const [visibleCellCount, setVisibleCellCount] = useState(visibleCellsIncrement);
-    const incrementDelay:milliseconds = 100; 
+    const incrementDelay:milliseconds = 60; 
 
     useEffect(() => {
         if (visibleCellCount < cellsArray.length) {
