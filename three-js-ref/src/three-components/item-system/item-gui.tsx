@@ -52,9 +52,9 @@ export default function ItemGui() {
         return cells;
     },[cellNum,tab]) 
 
-    const firstVisibleCells:number = 30
+    const firstVisibleCells:number = 1
     const visibleCellsIncrement:number = 1;
-    const incrementDelay:milliseconds = 100; // ~1 frame, or adjust for effect
+    const incrementDelay:milliseconds = 50; // ~1 frame, or adjust for effect
     
     const [visibleCellCount, setVisibleCellCount] = useState(firstVisibleCells);
 
