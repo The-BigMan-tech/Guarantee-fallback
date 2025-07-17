@@ -11,6 +11,8 @@ const inventorySize:number = itemManager.invSize;
 const nullCellIDPrefix = 'pad'
 
 export default function ItemGui() {
+    const [,setItemGuiVersion] = useState(0)//this is a dummy state to force react to rerender.i dont need to read it which is why i only have a setter
+
     const navCooldown:milliseconds = 100; // Cooldown in seconds.this value in particular works the best
     const navTimerRef = useRef<number>(0);
 
@@ -116,10 +118,12 @@ export default function ItemGui() {
             if ((now - actionTimerRef.current) > actionCooldown) {
                 if (selectedCellID && !selectedCellID.startsWith(nullCellIDPrefix)) {//this is to prevent null pads from causing erros since their ids arent present in the actual item list
                     if ((tab === 'Items' ) && (event.code === 'Enter') ) {
-                        itemManager.addToInventory(selectedCellID)
+                        itemManager.addToInventory(selectedCellID);
+                        setItemGuiVersion(prev=>prev+1);
                     }
                     else if ((tab === 'Inventory' ) && (event.code === 'Backspace') ) {
-                        itemManager.removeFromInventory(selectedCellID)
+                        itemManager.removeFromInventory(selectedCellID);
+                        setItemGuiVersion(prev=>prev+1);
                     }
                 }
             }
