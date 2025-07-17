@@ -1528,3 +1528,17 @@ By making ownership and quantity information visible in the item grid itself, yo
 
 *a game cant go far as having 1000s of unique items.even minecraft has a few above hundred.so mine scales well and its easier to maintain a single container than routing between pages.pagination is like page routing.mine is just one hydratable container that swaps out the arrays at runtime.thats all
 *and no external assets or packages to manage for my gui.everything about my item gui is under a folder of modularized components.the way it looks is described inline at each jsx tag descriptively with utility classes.its easy to understand,extend and maintain.
+
+
+three js
+rapier
+jotai
+tauri
+react
+sampling algorithms
+progressbar js
+motion
+r3f
+
+screenshot my model
+remove.bg

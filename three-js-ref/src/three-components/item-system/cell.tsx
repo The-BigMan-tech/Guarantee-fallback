@@ -2,6 +2,8 @@ import {motion} from "motion/react"
 import { itemManager, type ItemID } from "./item-manager.three";
 import { useMemo,type RefObject } from "react";
 
+type style = string;
+
 interface Props {
     itemID:ItemID,
     selectedCellID:ItemID | undefined,
@@ -13,6 +15,9 @@ interface Props {
     setHoveredCell:(value:string)=>void
 }
 export default function Cell({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cellHovered,setHoveredCell,cellRefs}:Props) {
+    const multiplierStyle:style = "absolute top-[3%] right-[4%] font-semibold";
+    const itemCount = (itemManager.inventory.has(itemID) && `x ${itemManager.inventory.get(itemID)?.count}`) || ''
+    
     const ANIMATION_CONFIG = useMemo(() => ({
         cell: {
             whileHover:(!selectedCellID) ? { //only do hover animation only when a cell isnt selected to prevent two cells from being emphasized at the same time
@@ -36,18 +41,22 @@ export default function Cell({itemID,selectedCellID,selectCell,selectedCellStyle
             }
             {...ANIMATION_CONFIG.cell}
             >
+            <img
+                src={itemManager.items[itemID]?.imagePath}
+                className="w-[80%] relative left-[10%]"
+                draggable={false}
+            />
             {(tab == "Items")
-                ?<div>
+                ?<div className="text-sm">
                     <div>{itemManager.items[itemID]?.name}</div>
-                    <div className="absolute bottom-[3%] right-[8%] text-sm">{
+                    <div className={multiplierStyle}>{
                         ((selectedCellID==itemID) || (cellHovered==itemID)) &&  
-                        itemManager.inventory.has(itemID) &&
-                        `x ${itemManager.inventory.get(itemID)?.count}`
+                        `${itemCount}`
                     }</div>
                 </div>
                 :<div>
                     <div>{itemManager.inventory.get(itemID)?.item.name}</div>
-                    <div className="absolute bottom-[3%] right-[8%] text-sm">{itemManager.inventory.get(itemID)?.count}</div>
+                    <div className={multiplierStyle}>{`${itemCount}`}</div>
                 </div>
             }
         </motion.button>

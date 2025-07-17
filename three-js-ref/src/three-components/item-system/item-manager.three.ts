@@ -3,6 +3,7 @@ export type ItemID = string;
 export interface Item {
     readonly name: string;          // friendly name
     readonly modelPath: string;     // path to model file
+    readonly imagePath: string;     // path to model file
 }
 export interface InventoryItem {
     count:number,
@@ -30,7 +31,8 @@ class ItemManager {
     private _items:Record<ItemID,Item> = deepFreeze({//items should be registered on startup and shouldn be mutated
         'block':{
             name:'Block',
-            modelPath:'./block.glb'
+            modelPath:'./block.glb',
+            imagePath:'./block.png'
         }
     })
 
