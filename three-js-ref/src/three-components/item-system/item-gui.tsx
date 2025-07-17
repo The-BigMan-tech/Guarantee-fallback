@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState ,useRef} from "react";
 import { motion,AnimatePresence,easeInOut} from "motion/react"
 import { isCellSelectedAtom, showItemGuiAtom } from "./item-state";
 import { useAtom } from "jotai";
@@ -34,6 +34,8 @@ export default function ItemGui() {
         }
         return cells;
     },[cellNum,tab]) 
+
+    const cellRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
     function toggleTab() {
         setTab((prev)=>{
@@ -126,6 +128,13 @@ export default function ItemGui() {
         }
     }), [gridWidth]);
     
+    useEffect(() => {
+        if (!selectedCellID) return;
+        const el = cellRefs.current[selectedCellID];
+        if (el) {// Only scroll if the element exists
+            el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+    }, [selectedCellID]);
     //i wanted to use a sigle motion.div to animate the gui on exit and entry to prevent duplication but it didnt work.it is still neat the way it is and also,i can give them unique values in their animations
     //the key used for the motion divs helps React to identify the element for transition.they must be stable
     return <>
@@ -140,7 +149,12 @@ export default function ItemGui() {
 
                     <motion.div key="div2" className={`grid h-[90%] grid-cols-${gridCols} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
                         {cellsArray.map((itemID) => (
-                            <button onClick={()=>selectCell(itemID)} key={itemID} className={`bg-[#2424246b] rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(itemID)}`}>
+                            <button 
+                                onClick={()=>selectCell(itemID)} 
+                                key={itemID} 
+                                className={`bg-[#2424246b] rounded w-full aspect-square shadow-lg cursor-pointer ${selectedCellStyle(itemID)}`}
+                                ref={el => { cellRefs.current[itemID] = el; }}
+                                >
                                 {(tab == "Items")
                                     ?<div>{itemManager.items[itemID]?.name}</div>
                                     :<div>{itemManager.inventoryItems.get(itemID)?.item.name}</div>
