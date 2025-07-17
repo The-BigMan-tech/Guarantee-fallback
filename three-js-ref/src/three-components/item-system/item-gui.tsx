@@ -35,6 +35,7 @@ export default function ItemGui() {
     const [selectedCellID,setSelectedCellID] = useState<string | undefined>(undefined);
     const [,setIsCellSelected] = useAtom(isCellSelectedAtom)//this controls the freezing of the player's controls when navigating about the grid
 
+    const cellRefs = useRef<Record<string,HTMLButtonElement | null >>({});
     const cellsArray:string[] = useMemo(()=>{ //used memo here to make it react to change in cell num.
         let cells:ItemID[] = (tab === "Items")
             ?Object.keys(itemManager.items)
@@ -85,6 +86,14 @@ export default function ItemGui() {
         }
     }
 
+    useEffect(() => {//this is to scroll the grid to the view of the currently selected cell
+        if (!selectedCellID) return;
+        const el = cellRefs.current[selectedCellID];
+        if (el) {// Only scroll if the element exists
+            el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+    }, [selectedCellID]);
+
     useEffect(()=>{//i used key-up for natural debouncing
         function getCellIndex(itemID:ItemID) {
             return cellsArray.findIndex(id => id === itemID)
@@ -124,7 +133,7 @@ export default function ItemGui() {
                 if (selectedCellID && !selectedCellID.startsWith(nullCellIDPrefix)) {//this is to prevent null pads from causing erros since their ids arent present in the actual item list
                     if ((tab === 'Items' ) && (event.code === 'Enter') ) {
                         itemManager.addToInventory(selectedCellID);
-                        setItemGuiVersion(prev=>prev+1);
+                        setItemGuiVersion(prev=>prev+1);//to force react to rerender to imperative inventory update that exists outside of react's render loop
                     }
                     else if ((tab === 'Inventory' ) && (event.code === 'Backspace') ) {
                         itemManager.removeFromInventory(selectedCellID);
@@ -179,14 +188,15 @@ export default function ItemGui() {
 
                     <motion.div key="div2" className={`grid h-[90%] ${gridColClass} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
                         {cellsArray.map((itemID) => (
-                            <Cell {...{
+                            <Cell key={itemID} {...{
                                 itemID,
                                 selectedCellID,
                                 tab,
                                 cellHovered,
                                 setHoveredCell,
                                 selectedCellStyle,
-                                selectCell
+                                selectCell,
+                                cellRefs
                             }}/>
                         ))}
                     </motion.div>
