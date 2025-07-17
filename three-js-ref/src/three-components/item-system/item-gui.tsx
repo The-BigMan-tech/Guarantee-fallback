@@ -138,6 +138,7 @@ export default function ItemGui() {
                         setItemGuiVersion(prev=>prev+1);
                         const item = itemManager.items[selectedCellID];
                         const count = itemManager.inventory.get(selectedCellID)?.count ?? 0;
+                        toast.dismiss();
                         toast.success(`You have (x${count}) ${item?.name}  in inventory`,toastConfig);
                     }
                     else if ((tab === 'Inventory' ) && (event.code === 'Backspace') ) {
