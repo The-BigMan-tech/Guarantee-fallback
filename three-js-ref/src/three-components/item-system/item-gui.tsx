@@ -16,10 +16,10 @@ const nullCellIDPrefix = 'pad'//the prefix for ids of null/empty cells
 export default function ItemGui() {
     const [,setItemGuiVersion] = useState(0)//this is a dummy state to force react to rerender.i dont need to read it which is why i only have a setter
 
-    const navCooldown:milliseconds = 100; // Cooldown in seconds.this value in particular works the best
+    const navCooldown:milliseconds = 100; 
     const navTimerRef = useRef<number>(0);
 
-    const actionCooldown:milliseconds = 150; // Cooldown in seconds.this value in particular works the best
+    const actionCooldown:milliseconds = 150; 
     const actionTimerRef = useRef<number>(0);
 
     const [hovered, setHovered] = useState(false);

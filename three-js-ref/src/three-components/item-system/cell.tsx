@@ -1,7 +1,8 @@
 import {motion} from "motion/react"
 import { itemManager, type ItemID } from "./item-manager.three";
-import { useMemo,type RefObject } from "react";
+import { useEffect, useMemo,useRef,useState,type RefObject } from "react";
 
+type milliseconds = number;
 type style = string;
 
 interface Props {
@@ -28,6 +29,15 @@ export default function Cell({itemID,selectedCellID,selectCell,selectedCellStyle
     }), [selectedCellID]);
 
 
+    const [src, setSrc] = useState("");
+    useEffect(() => {//i delayed the loading of the img to prevent it from disturbing the mounting animation of the cell because of initial layout shift
+        const timer = setTimeout(() => {
+            setSrc(itemManager.items[itemID]?.imagePath);
+        }, 100);
+        return () => clearTimeout(timer);
+    }, [itemID]);
+
+
     return (
         <motion.button 
             onClick={()=>selectCell(itemID)} 
@@ -42,8 +52,8 @@ export default function Cell({itemID,selectedCellID,selectCell,selectedCellStyle
             {...ANIMATION_CONFIG.cell}
             >
             <img
-                src={itemManager.items[itemID]?.imagePath}
-                className="w-[80%] relative left-[10%]"
+                src={src}
+                className="w-[80%] relative left-[10%] "
                 draggable={false}
             />
             {(tab == "Items")
