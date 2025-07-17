@@ -208,11 +208,15 @@ export default function ItemGui() {
                                 {(tab == "Items")
                                     ?<div>
                                         <div>{itemManager.items[itemID]?.name}</div>
-                                        <div className="absolute bottom-[3%] right-[8%]">{(selectedCellID==itemID) && (cellHovered==itemID) &&  `x ${itemManager.inventory.get(itemID)?.count || null}`}</div>
+                                        <div className="absolute bottom-[3%] right-[8%] text-sm">{
+                                            ((selectedCellID==itemID) || (cellHovered==itemID)) &&  
+                                            itemManager.inventory.get(itemID) &&
+                                            `x ${itemManager.inventory.get(itemID)?.count}`
+                                        }</div>
                                     </div>
                                     :<div>
                                         <div>{itemManager.inventory.get(itemID)?.item.name}</div>
-                                        <div className="absolute bottom-[3%] right-[8%]">{itemManager.inventory.get(itemID)?.count}</div>
+                                        <div className="absolute bottom-[3%] right-[8%] text-sm">{itemManager.inventory.get(itemID)?.count}</div>
                                     </div>
                                 }
                             </motion.button>
