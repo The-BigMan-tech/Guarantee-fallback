@@ -5,8 +5,13 @@ import { useAtom } from "jotai";
 import { itemManager } from "./item-manager.three";
 import type { ItemID } from "./item-manager.three";
 
+type milliseconds = number;
+
 export default function ItemGui() {
     const inventorySize:number = 8;
+    const navCooldown:milliseconds = 100; // Cooldown in seconds.this value in particular works the best
+    const navTimerRef = useRef<number>(0);
+
     const [hovered, setHovered] = useState(false);
 
     const [showItemGui] = useAtom(showItemGuiAtom);
@@ -84,7 +89,7 @@ export default function ItemGui() {
                 setIsCellSelected(true);
             }
         }
-        function handleKeyUp(event:KeyboardEvent) {
+        function handleGridNav(event:KeyboardEvent) {
             if (event.code == 'KeyE') {
                 setSelectedCellID(undefined);
                 setIsCellSelected(false);
@@ -97,11 +102,15 @@ export default function ItemGui() {
         }
         function handleKeyDown(event:KeyboardEvent) {
             if (selectedCellID) event.preventDefault();
+            const now = performance.now();
+            if (now - navTimerRef.current > navCooldown) {
+                handleGridNav(event);
+                navTimerRef.current = now;
+            }
         }
-        window.addEventListener('keyup',handleKeyUp);
+
         window.addEventListener('keydown', handleKeyDown);
         return () => {
-            window.removeEventListener("keyup", handleKeyUp);
             window.removeEventListener('keydown', handleKeyDown);
         };
         
