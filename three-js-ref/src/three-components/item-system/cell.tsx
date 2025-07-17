@@ -1,8 +1,7 @@
 import {motion} from "motion/react"
 import { itemManager, type ItemID } from "./item-manager.three";
-import { useEffect, useMemo,useRef,useState,type RefObject } from "react";
+import { useEffect, useMemo,useState,type RefObject } from "react";
 
-type milliseconds = number;
 type style = string;
 
 interface Props {

@@ -1516,7 +1516,7 @@ i toggled on the item gui as soon it was toggled off by the player to prevent th
 so using OR considers both types of user pref for navigating the grid.since i already provided two options for selecting cells--mouse and keyboard,i should also repsonsibly handle how both info is displayed.teh inv though,unlike the item grid,always shows the counts cuz thats what its for.with my item grid ux deisgn,i dont need to show cursor follow numbers or noodle with toasts.all the info about an item remains in the grid even though it isnt in the inv and showing that count for one cell at a time in the item's inv ensures that its purpose remains--just to show the possible item while also showing how many items you have from that cell in ur inv
 
 By making ownership and quantity information visible in the item grid itself, you eliminate a classic friction point from Minecraft’s inventory system and set a new standard for intuitive, player-friendly inventory management
-
+ 
 
 *Incremental loading is a developer trick to achieve performance
 *Virtualization is the industry standard for rendering large lists
@@ -1540,5 +1540,8 @@ progressbar js
 motion
 r3f
 
+go to my blockbench model
 screenshot my model
 remove.bg
+
+*Avoiding over-engineering and choosing the workflow or pattern that’s “boring but bulletproof.”
