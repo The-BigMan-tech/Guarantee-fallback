@@ -5,6 +5,7 @@ import { useAtom } from "jotai";
 import { itemManager } from "./item-manager.three";
 import type { ItemID } from "./item-manager.three";
 import Cell from "./cell";
+import type { seconds } from "../entity-system/globals";
 
 type milliseconds = number;
 
@@ -50,6 +51,27 @@ export default function ItemGui() {
         }
         return cells;
     },[cellNum,tab]) 
+
+    const firstVisibleCells:number = 30
+    const visibleCellsIncrement:number = 1;
+    const incrementDelay:milliseconds = 100; // ~1 frame, or adjust for effect
+    
+    const [visibleCellCount, setVisibleCellCount] = useState(firstVisibleCells);
+
+    useEffect(() => {
+        if (visibleCellCount < cellsArray.length) {
+            const timeOut = setTimeout(() => {
+                setVisibleCellCount(count => Math.min(count + visibleCellsIncrement, cellsArray.length));//capped it to the cells array length to prevent out of bounds
+            },incrementDelay);
+            return () => clearTimeout(timeOut);
+        }
+    }, [visibleCellCount, cellsArray]);
+
+    useEffect(() => {//reset the visible cell count whenever the data source changes to prevent rendering the list all at once when the list changes cuz list change will cause a rerender
+        setVisibleCellCount(firstVisibleCells);
+    }, [cellsArray, tab]);
+
+    const visibleCells = useMemo(() => cellsArray.slice(0, visibleCellCount), [cellsArray, visibleCellCount]);
 
     function setHoveredCell(value:string) {//passed wrapper as prop to avoid unintended mutation by children
         setCellHovered(value)
@@ -187,7 +209,7 @@ export default function ItemGui() {
                     </motion.div>
 
                     <motion.div key="div2" className={`grid h-[90%] ${gridColClass} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
-                        {cellsArray.map((itemID) => (
+                        {visibleCells.map((itemID) => (
                             <Cell key={itemID} {...{
                                 itemID,
                                 selectedCellID,
