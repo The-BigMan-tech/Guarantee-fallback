@@ -4,6 +4,7 @@ import { isCellSelectedAtom, showItemGuiAtom, toggleItemGui } from "./item-state
 import { useAtom } from "jotai";
 import { itemManager } from "./item-manager.three";
 import type { ItemID } from "./item-manager.three";
+import Cell from "./cell";
 
 type milliseconds = number;
 
@@ -24,16 +25,15 @@ export default function ItemGui() {
     const [cellHovered, setCellHovered] = useState<string>('');
 
     const [showItemGui] = useAtom(showItemGuiAtom);
-    const [,setIsCellSelected] = useAtom(isCellSelectedAtom)//this controls the freezing of the player's controls when navigating about the grid
-
     const [tab,setTab] = useState<'Items' | 'Inventory'>('Items');
     
     const [gridCols,setGridCols] = useState<number>(tab === 'Items'?3:1);
     const [gridWidth, setGridWidth] = useState(tab === 'Items' ? 20 : 10);
+    const [gridColClass,setGridColClass] = useState<string>(tab === 'Items'?'grid-cols-3':'grid-cols-1');
     
     const [cellNum,SetCellNum] = useState(tab === 'Items'?21:inventorySize);
-    //strings are for valid ids,null keys are for padding and undefined are for invalid ids meaning no id is selected
     const [selectedCellID,setSelectedCellID] = useState<string | undefined>(undefined);
+    const [,setIsCellSelected] = useAtom(isCellSelectedAtom)//this controls the freezing of the player's controls when navigating about the grid
 
     const cellsArray:string[] = useMemo(()=>{ //used memo here to make it react to change in cell num.
         let cells:ItemID[] = (tab === "Items")
@@ -50,9 +50,9 @@ export default function ItemGui() {
         return cells;
     },[cellNum,tab]) 
 
-    const cellRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
-    const [gridColClass,setGridColClass] = useState<string>(tab === 'Items'?'grid-cols-3':'grid-cols-1');
-
+    function setHoveredCell(value:string) {//passed wrapper as prop to avoid unintended mutation by children
+        setCellHovered(value)
+    }
     function toggleTab() {
         setTab((prev)=>{
             const newTab =(prev=="Inventory")?'Items':"Inventory"
@@ -161,21 +161,8 @@ export default function ItemGui() {
             onHoverEnd: () => setHovered(false),
             whileHover: { scale: 1.1 }
         },
-        cell: {
-            whileHover:(!selectedCellID) ? { 
-                scale: 1.15,
-                backgroundColor:"#2c2c2ca4"
-            } : {}//only do hover animation only when a cell isnt selected to prevent two cells from being emphasized at the same time
-        }
-    }), [gridWidth,selectedCellID]);
+    }), [gridWidth]);
     
-    useEffect(() => {//this is to scroll the grid to the view of the currently selected cell
-        if (!selectedCellID) return;
-        const el = cellRefs.current[selectedCellID];
-        if (el) {// Only scroll if the element exists
-            el.scrollIntoView({ block: "nearest", behavior: "smooth" });
-        }
-    }, [selectedCellID]);
 
     
     //i wanted to use a sigle motion.div to animate the gui on exit and entry to prevent duplication but it didnt work.it is still neat the way it is and also,i can give them unique values in their animations
@@ -192,34 +179,15 @@ export default function ItemGui() {
 
                     <motion.div key="div2" className={`grid h-[90%] ${gridColClass} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
                         {cellsArray.map((itemID) => (
-                            <motion.button 
-                                onClick={()=>selectCell(itemID)} 
-                                key={itemID} 
-                                className={`relative rounded w-full aspect-square shadow-lg cursor-pointer text-white ${selectedCellStyle(itemID)}`}
-                                ref={el => { cellRefs.current[itemID] = el; }}
-                                onHoverStart={() => setCellHovered(itemID)}
-                                animate= { // the reason why i didnt include this in the config as well is because i need to check a specifc property of a particular cell which can only be accessed withing the map rendering.
-                                    selectedCellID === itemID
-                                    ? { scale: 1.11, backgroundColor: "#2c2c2ca4" }
-                                    : { scale: 1, backgroundColor: "#2424246b" }
-                                }
-                                {...ANIMATION_CONFIG.cell}
-                                >
-                                {(tab == "Items")
-                                    ?<div>
-                                        <div>{itemManager.items[itemID]?.name}</div>
-                                        <div className="absolute bottom-[3%] right-[8%] text-sm">{
-                                            ((selectedCellID==itemID) || (cellHovered==itemID)) &&  
-                                            itemManager.inventory.get(itemID) &&
-                                            `x ${itemManager.inventory.get(itemID)?.count}`
-                                        }</div>
-                                    </div>
-                                    :<div>
-                                        <div>{itemManager.inventory.get(itemID)?.item.name}</div>
-                                        <div className="absolute bottom-[3%] right-[8%] text-sm">{itemManager.inventory.get(itemID)?.count}</div>
-                                    </div>
-                                }
-                            </motion.button>
+                            <Cell {...{
+                                itemID,
+                                selectedCellID,
+                                tab,
+                                cellHovered,
+                                setHoveredCell,
+                                selectedCellStyle,
+                                selectCell
+                            }}/>
                         ))}
                     </motion.div>
                 </>
