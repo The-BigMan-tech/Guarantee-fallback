@@ -186,7 +186,12 @@ export default function ItemGui() {
                 ?<>
                     <motion.div key="div1" className="absolute z-20 top-[2%] left-[4%]" {...ANIMATION_CONFIG.buttonDiv}>
                         <motion.button className=" w-[9.5vw] py-[4%] shadow-sm cursor-pointer bg-[#5858588e] hover:bg-[#48372bb1] font-[Consolas] font-bold text-[#fffffffd] " onClick={toggleTab} {...ANIMATION_CONFIG.button}>
-                            {hovered ? "Switch" : tab }
+                            {hovered 
+                                ? "Switch" 
+                                :<>
+                                    {tab=="Items"?<img/>:<img/>}
+                                </>
+                            }
                         </motion.button>
                     </motion.div>
 
