@@ -155,8 +155,14 @@ export default function ItemGui() {
             onHoverStart: () => setHovered(true),
             onHoverEnd: () => setHovered(false),
             whileHover: { scale: 1.1 }
+        },
+        cell: {
+            whileHover:(!selectedCellID) ? { 
+                scale: 1.15,
+                backgroundColor:"#2c2c2ca4"
+            } : {}//only do hover animation only when a cell isnt selected to prevent two cells from being emphasized at the same time
         }
-    }), [gridWidth]);
+    }), [gridWidth,selectedCellID]);
     
     useEffect(() => {//this is to scroll the grid to the view of the currently selected cell
         if (!selectedCellID) return;
@@ -186,7 +192,8 @@ export default function ItemGui() {
                                 key={itemID} 
                                 className={`relative rounded w-full aspect-square shadow-lg cursor-pointer text-white ${selectedCellStyle(itemID)}`}
                                 ref={el => { cellRefs.current[itemID] = el; }}
-                                animate={selectedCellID === itemID ? { scale: 1.11 } : { scale: 1 }}
+                                animate={selectedCellID === itemID ? { scale: 1.11 } : { scale: 1 }}//the reason why i didnt include this in the config as well is because i need to check a specifc property of a particular cell which can only be accessed withing the map rendering.
+                                {...ANIMATION_CONFIG.cell}
                                 >
                                 {(tab == "Items")
                                     ?<div>{itemManager.items[itemID]?.name}</div>
