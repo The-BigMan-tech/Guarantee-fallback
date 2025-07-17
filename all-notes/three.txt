@@ -1521,3 +1521,5 @@ By making ownership and quantity information visible in the item grid itself, yo
 *Incremental loading is a developer trick to achieve performance
 *Virtualization is the industry standard for rendering large lists
 *Pagination
+
+*so one item inc loading is a wave effect but a row at a time is a ripple effect.to improve speed further while keeping that ux,ill use a row increment

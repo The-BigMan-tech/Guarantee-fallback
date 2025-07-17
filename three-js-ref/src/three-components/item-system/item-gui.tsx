@@ -52,11 +52,10 @@ export default function ItemGui() {
         return cells;
     },[cellNum,tab]) 
 
-    const firstVisibleCells:number = 1
-    const visibleCellsIncrement:number = 1;
-    const incrementDelay:milliseconds = 50; // ~1 frame, or adjust for effect
-    
-    const [visibleCellCount, setVisibleCellCount] = useState(firstVisibleCells);
+    //i used progressive/incremental loading/rendering for perf and ux
+    const visibleCellsIncrement:number = useMemo(()=>gridCols,[gridCols]);
+    const [visibleCellCount, setVisibleCellCount] = useState(visibleCellsIncrement);
+    const incrementDelay:milliseconds = 100; 
 
     useEffect(() => {
         if (visibleCellCount < cellsArray.length) {
@@ -65,11 +64,11 @@ export default function ItemGui() {
             },incrementDelay);
             return () => clearTimeout(timeOut);
         }
-    }, [visibleCellCount, cellsArray]);
+    }, [visibleCellCount, cellsArray,visibleCellsIncrement]);
 
     useEffect(() => {//reset the visible cell count whenever the data source changes to prevent rendering the list all at once when the list changes cuz list change will cause a rerender
-        setVisibleCellCount(firstVisibleCells);
-    }, [cellsArray, tab]);
+        setVisibleCellCount(visibleCellsIncrement);
+    }, [cellsArray, tab,visibleCellsIncrement]);
 
     const visibleCells = useMemo(() => cellsArray.slice(0, visibleCellCount), [cellsArray, visibleCellCount]);
 
