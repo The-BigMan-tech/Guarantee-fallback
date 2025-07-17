@@ -59,6 +59,9 @@ export default function ItemGui() {
     }
     function selectedCellStyle(itemID:ItemID) {
         if (selectedCellID === itemID) {
+            if (itemID.startsWith('pad')) {
+                return  'border-4 border-[#eb7979]'
+            }
             return 'border-4 border-[#ffffff]'
         }
     }
@@ -80,7 +83,7 @@ export default function ItemGui() {
             }
         }
         function handleKeyUp(event:KeyboardEvent) {
-            if (event.code == 'Escape') {
+            if (event.code == 'KeyE') {
                 setSelectedCellID(undefined);
                 setIsCellSelected(false);
             }else {
@@ -90,9 +93,14 @@ export default function ItemGui() {
                 else if (event.code == 'ArrowDown') moveSelection(gridCols);
             }
         }
+        function handleKeyDown(event:KeyboardEvent) {
+            if (selectedCellID) event.preventDefault();
+        }
         window.addEventListener('keyup',handleKeyUp);
+        window.addEventListener('keydown', handleKeyDown);
         return () => {
             window.removeEventListener("keyup", handleKeyUp);
+            window.removeEventListener('keydown', handleKeyDown);
         };
         
     },[setIsCellSelected,gridCols,cellsArray,selectedCellID]);
