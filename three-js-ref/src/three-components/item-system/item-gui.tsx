@@ -8,10 +8,14 @@ import type { ItemID } from "./item-manager.three";
 type milliseconds = number;
 
 const inventorySize:number = itemManager.invSize;
+const nullCellIDPrefix = 'pad'
 
 export default function ItemGui() {
     const navCooldown:milliseconds = 100; // Cooldown in seconds.this value in particular works the best
     const navTimerRef = useRef<number>(0);
+
+    const actionCooldown:milliseconds = 150; // Cooldown in seconds.this value in particular works the best
+    const actionTimerRef = useRef<number>(0);
 
     const [hovered, setHovered] = useState(false);
 
@@ -35,7 +39,7 @@ export default function ItemGui() {
         if (cells.length < cellNum) {// Pad the array with nulls until it reaches cellNum length
             const padding:string[] = [];
             for (let i=0;i < (cellNum - cells.length);i++) {
-                padding.push(`pad-${i}`)
+                padding.push(`${nullCellIDPrefix}${i}`)
             }
             cells = [...cells, ...padding];
         }
@@ -68,7 +72,7 @@ export default function ItemGui() {
     }
     function selectedCellStyle(itemID:ItemID) {
         if (selectedCellID === itemID) {
-            if (itemID.startsWith('pad')) {
+            if (itemID.startsWith(nullCellIDPrefix)) {
                 return  'border-4 border-[#eb7979]'
             }
             return 'border-4 border-[#ffffff]'
@@ -91,7 +95,7 @@ export default function ItemGui() {
                 setIsCellSelected(true);
             }
         }
-        function handleGridNav(event:KeyboardEvent) {
+        function navGrid(event:KeyboardEvent) {
             if (event.code == 'KeyE') {
                 setSelectedCellID(undefined);
                 setIsCellSelected(false);
@@ -102,12 +106,22 @@ export default function ItemGui() {
                 else if (event.code == 'ArrowDown') moveSelection(gridCols);
             }
         }
-        function handleKeyDown(event:KeyboardEvent) {
+        function handleKeyDown(event:KeyboardEvent) {//ised a single key listener to prevent conflict or eating up of events between multiple listeners
             if (selectedCellID) event.preventDefault();
             const now = performance.now();
-            if (now - navTimerRef.current > navCooldown) {
-                handleGridNav(event);
+            if ((now - navTimerRef.current) > navCooldown) {
+                navGrid(event);
                 navTimerRef.current = now;
+            }
+            if ((now - actionTimerRef.current) > actionCooldown) {
+                if (selectedCellID && !selectedCellID.startsWith(nullCellIDPrefix)) {//this is to prevent null pads from causing erros since their ids arent present in the actual item list
+                    if ((tab === 'Items' ) && (event.code === 'Enter') ) {
+                        itemManager.addToInventory(selectedCellID)
+                    }
+                    else if ((tab === 'Inventory' ) && (event.code === 'Backspace') ) {
+                        itemManager.removeFromInventory(selectedCellID)
+                    }
+                }
             }
         }
 
@@ -116,7 +130,8 @@ export default function ItemGui() {
             window.removeEventListener('keydown', handleKeyDown);
         };
         
-    },[setIsCellSelected,gridCols,cellsArray,selectedCellID]);
+    },[setIsCellSelected,gridCols,cellsArray,selectedCellID,tab]);
+
 
 
     const ANIMATION_CONFIG = useMemo(() => ({

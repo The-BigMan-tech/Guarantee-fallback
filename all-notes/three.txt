@@ -1504,3 +1504,5 @@ so teh cooldwon fpr my grid nav unlike for my player,can be as low as 100 ms.bec
 You’re just polishing the experience; the code will work fine even at lower values.
 
 singleton is teh single source of truth for some form of data and as such,direct mutation on the singleton should be prevented
+
+so the complexity of separate grids is only reasonable if the game mechanics demand it not just because its flashy cuz ux is about delivery not flashiness
