@@ -4,7 +4,13 @@ import { isCellSelectedAtom, showItemGuiAtom, toggleItemGui } from "./item-state
 import { useAtom } from "jotai";
 import { itemManager } from "./item-manager.three";
 import type { ItemID } from "./item-manager.three";
-import { Flip, toast, type ToastOptions } from 'react-toastify';
+import {toast, type ToastOptions } from 'react-toastify';
+import { cssTransition } from 'react-toastify';
+
+const None = cssTransition({
+    enter: 'toast-instant',
+    exit: 'toast-instant',
+});
 
 type milliseconds = number;
 
@@ -20,7 +26,7 @@ const toastConfig:ToastOptions = {
     draggable: true,
     progress: undefined,
     theme: "dark",
-    transition: Flip,
+    transition:None,//to prevent rapid toasts animations that will cuase a sense of nausea
 }
 
 export default function ItemGui() {
@@ -138,8 +144,8 @@ export default function ItemGui() {
                         setItemGuiVersion(prev=>prev+1);
                         const item = itemManager.items[selectedCellID];
                         const count = itemManager.inventory.get(selectedCellID)?.count ?? 0;
-                        toast.dismiss();
                         toast.success(`You have (x${count}) ${item?.name}  in inventory`,toastConfig);
+                        toast.dismiss();
                     }
                     else if ((tab === 'Inventory' ) && (event.code === 'Backspace') ) {
                         itemManager.removeFromInventory(selectedCellID);
