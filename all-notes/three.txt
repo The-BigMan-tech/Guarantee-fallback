@@ -1502,3 +1502,5 @@ Result:No natural repeat rate enforced; it's as fast as the machine can process.
 
 so teh cooldwon fpr my grid nav unlike for my player,can be as low as 100 ms.because its not for stability just to make it not go too fast.The only reason to use a cooldown (like 100ms) is to control the feel (make movement between cells neither instant nor sluggish).The OS/browser already limits how fast key events are fired, so a small additional cooldown smoothly dampens rapid cell changes—no risk of instability or unwanted repeat.
 You’re just polishing the experience; the code will work fine even at lower values.
+
+singleton is teh single source of truth for some form of data and as such,direct mutation on the singleton should be prevented

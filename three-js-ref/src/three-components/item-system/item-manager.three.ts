@@ -23,7 +23,10 @@ type Singleton<T> = T;
 class ItemManager {
     private static manager:ItemManager;
 
-    private inventory:Map<ItemID,InventoryItem> = new Map();
+    private _invSize:number = 8;
+    private maxStackSize:number = 50;
+
+    private _inventory:Map<ItemID,InventoryItem> = new Map();
     private _items:Record<ItemID,Item> = deepFreeze({//items should be registered on startup and shouldn be mutated
         'block':{
             name:'Block',
@@ -44,26 +47,29 @@ class ItemManager {
         }
     }
     public addToInventory(itemID:ItemID) {
-        this.validateID(itemID);
-        const item = this.inventory.get(itemID);
-        if (!item) {
-            this.inventory.set(itemID, {item:this._items[itemID],count:1 })
-        }else {
-            item.count ++//the counter is an internal increment.items are added one at a time not in stacks
+        if (this.inventory.size < this._invSize) {//only add items when there is space
+            this.validateID(itemID);
+            const item = this._inventory.get(itemID);
+            if (!item) {
+                this._inventory.set(itemID, {item:this._items[itemID],count:1 })
+            }else if (item.count < this.maxStackSize) {
+                item.count ++
+            }
         }
     }
     public removeFromInventory(itemID:ItemID) {
         this.validateID(itemID);
-        const item = this.inventory.get(itemID);
+        const item = this._inventory.get(itemID);
         if (item) {
             item.count --;
-            if (item.count <= 0) {
-                this.inventory.delete(itemID);
-            }
+            if (item.count <= 0) this._inventory.delete(itemID);
         }
     }
-    public get inventoryItems():ReadonlyMap<ItemID,InventoryItem> {
-        return this.inventory;
+    public get invSize():number {
+        return this._invSize
+    }
+    public get inventory():ReadonlyMap<ItemID,InventoryItem> {
+        return this._inventory;
     }
     public get items():Record<ItemID,Item> {
         return this._items

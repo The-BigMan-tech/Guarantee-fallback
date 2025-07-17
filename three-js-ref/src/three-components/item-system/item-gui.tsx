@@ -7,8 +7,9 @@ import type { ItemID } from "./item-manager.three";
 
 type milliseconds = number;
 
+const inventorySize:number = itemManager.invSize;
+
 export default function ItemGui() {
-    const inventorySize:number = 8;
     const navCooldown:milliseconds = 100; // Cooldown in seconds.this value in particular works the best
     const navTimerRef = useRef<number>(0);
 
@@ -29,7 +30,8 @@ export default function ItemGui() {
     const cellsArray:string[] = useMemo(()=>{ //used memo here to make it react to change in cell num.
         let cells:ItemID[] = (tab === "Items")
             ?Object.keys(itemManager.items)
-            :Array.from(itemManager.inventoryItems.keys());
+            :Array.from(itemManager.inventory.keys());
+
         if (cells.length < cellNum) {// Pad the array with nulls until it reaches cellNum length
             const padding:string[] = [];
             for (let i=0;i < (cellNum - cells.length);i++) {
@@ -137,13 +139,15 @@ export default function ItemGui() {
         }
     }), [gridWidth]);
     
-    useEffect(() => {
+    useEffect(() => {//this is to scroll the grid to the view of the currently selected cell
         if (!selectedCellID) return;
         const el = cellRefs.current[selectedCellID];
         if (el) {// Only scroll if the element exists
             el.scrollIntoView({ block: "nearest", behavior: "smooth" });
         }
     }, [selectedCellID]);
+
+    
     //i wanted to use a sigle motion.div to animate the gui on exit and entry to prevent duplication but it didnt work.it is still neat the way it is and also,i can give them unique values in their animations
     //the key used for the motion divs helps React to identify the element for transition.they must be stable
     return <>
@@ -166,7 +170,7 @@ export default function ItemGui() {
                                 >
                                 {(tab == "Items")
                                     ?<div>{itemManager.items[itemID]?.name}</div>
-                                    :<div>{itemManager.inventoryItems.get(itemID)?.item.name}</div>
+                                    :<div>{itemManager.inventory.get(itemID)?.item.name}</div>
                                 }
                             </button>
                         ))}
