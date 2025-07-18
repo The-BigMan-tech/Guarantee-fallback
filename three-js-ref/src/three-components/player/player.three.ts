@@ -202,22 +202,22 @@ class Player extends Controller implements EntityLike {
         const camPosToPlayer = this.camera.cam3D.position.clone().sub(this.position);
         const signedDist = camPosToPlayer.dot(camForward);
         
-            //zoom in
-            if (this.keysPressed['Equal']) {//this corresponds to +
-                console.log('signedDist:', signedDist);
-                const zoomIn = camForward.multiplyScalar(this.zoomDelta);
-                const zoomPosition = this.camera.cam3D.position.clone().add(zoomIn); // move forward
-                this.targetY = zoomPosition.y;
-                this.targetZ = zoomPosition.z
-            }
-            //zoom out
-            if (this.keysPressed['Minus']) {
-                console.log('signedDist:', signedDist);
-                const zoomOut = camForward.multiplyScalar(-this.zoomDelta);
-                const zoomPosition = this.camera.cam3D.position.clone().add(zoomOut); // move forward
-                this.targetY = zoomPosition.y;
-                this.targetZ = zoomPosition.z
-            }
+        if (this.keysPressed['Equal'] &&  (signedDist <= this.zoomClamp)) {//this corresponds to + key.zoom in
+            console.log('signedDist:', signedDist);
+            const zoomIn = camForward.multiplyScalar(this.zoomDelta);
+            const zoomPosition = this.camera.cam3D.position.clone().add(zoomIn); // move forward
+            this.targetY = zoomPosition.y;
+            this.targetZ = zoomPosition.z
+        }
+        if (this.keysPressed['Minus'] && (signedDist >= -this.zoomClamp)) {//zoom out
+            console.log('signedDist:', signedDist);
+            const zoomOut = camForward.multiplyScalar(-this.zoomDelta);
+            const zoomPosition = this.camera.cam3D.position.clone().add(zoomOut); // move forward
+            this.targetY = zoomPosition.y;
+            this.targetZ = zoomPosition.z
+        }
+        
+
         if (this.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
             if (this.toggleTimer > this.toggleCooldown) { //this is a debouncing mechanism
                 this.camModeNum = ((this.camModeNum<3)?this.camModeNum + 1:1) as 1 | 2 | 3;//this is to increase the camMode,when its 3rd person,reset it back to 1st person and repeat 
