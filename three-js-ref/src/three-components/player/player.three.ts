@@ -14,6 +14,7 @@ import { groupIDs } from "../entity-system/globals";
 import { relationshipManager } from "../entity-system/relationships.three";
 import type { seconds } from "../entity-system/globals";
 import { toggleItemGui,isCellSelected } from "../item-system/item-state";
+import { itemManager, type Item } from "../item-system/item-manager.three";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -330,12 +331,24 @@ class Player extends Controller implements EntityLike {
     get _groupID():string {
         return this.groupID;
     }
+
+    private isHoldingItem:boolean = false
+    private holdSelectedItem() {
+        const item:Item | null = itemManager.itemInHand;
+        if (item && !this.isHoldingItem) {
+            this.isHoldingItem = true
+        }else {
+            this.isHoldingItem = false
+        }
+    }
+    
     protected onLoop() {//this is where all character updates to this instance happens.
         this.toggleTimer += this.clockDelta || 0;
         this.toggleItemGuiTimer += this.clockDelta || 0;
         this.showEntityHealthTimer += this.clockDelta || 0;
         this.attackTimer += this.clockDelta || 0;
         this.currentHealth = this.health.value;
+        this.holdSelectedItem();
         this.checkIfOutOfBounds();
         this.updateHealthGUI();
         this.health.checkGroundDamage(this.velBeforeHittingGround);
