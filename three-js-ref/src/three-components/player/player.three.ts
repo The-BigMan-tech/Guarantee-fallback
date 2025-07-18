@@ -14,7 +14,9 @@ import { groupIDs } from "../entity-system/globals";
 import { relationshipManager } from "../entity-system/relationships.three";
 import type { seconds } from "../entity-system/globals";
 import { toggleItemGui,isCellSelected } from "../item-system/item-state";
-import { itemManager, type Item } from "../item-system/item-manager.three";
+import { itemManager } from "../item-system/item-manager.three";
+import { disposeHierarchy } from "../disposer/disposer.three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -119,6 +121,7 @@ class Player extends Controller implements EntityLike {
         this.camera = new Camera(miscData.camArgs);
         this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
         this.addObject(listener);
+        this.addObject(this.item3D);
         this.addEventListeners();
         this.health = new Health(miscData.healthValue);
         this.currentHealth = miscData.healthValue;
@@ -332,16 +335,42 @@ class Player extends Controller implements EntityLike {
         return this.groupID;
     }
 
-    private isHoldingItem:boolean = false
-    private holdSelectedItem() {
-        const item:Item | null = itemManager.itemInHand;
-        if (item && !this.isHoldingItem) {
-            this.isHoldingItem = true
-        }else {
-            this.isHoldingItem = false
+
+    private item3D:THREE.Group = new THREE.Group();
+    private currentHeldItemID: string | null = null;
+
+    private modelLoader:GLTFLoader = new GLTFLoader();
+
+    private disposeItem() {
+        while (this.item3D.children.length > 0) {
+            const child = this.item3D.children[0];
+            this.item3D.remove(child);
+            disposeHierarchy(child); // Dispose the removed child's geometry/materials/textures etc.
         }
     }
-    
+    private holdSelectedItem() {//called on loop
+        const item = itemManager.itemInHand;
+        const heldItemID = item ? item.name : null;
+        if (heldItemID !== this.currentHeldItemID) {
+            this.currentHeldItemID = heldItemID;
+            console.log('holding currentHeldItemID:',this.currentHeldItemID);
+            if (item) {
+                this.modelLoader.load(item.modelPath,
+                    gltf=>{
+                        // item.scene = gltf.scene
+                        console.log('holding the item in the scene');
+                        this.disposeItem(); // Remove previous model from item3D
+                        const clonedModel = gltf.scene.clone(true); // Clone before adding
+                        this.item3D.add(clonedModel);
+                    },undefined, 
+                    error =>console.error( error ),
+                );
+            } else {
+                this.disposeItem(); 
+            }
+        }
+    }
+
     protected onLoop() {//this is where all character updates to this instance happens.
         this.toggleTimer += this.clockDelta || 0;
         this.toggleItemGuiTimer += this.clockDelta || 0;

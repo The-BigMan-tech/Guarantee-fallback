@@ -1,9 +1,12 @@
+import * as THREE from "three";
+
 export type ItemID = string;
 
 export interface Item {
     readonly name: string;          // friendly name
     readonly modelPath: string;     // path to model file
     readonly imagePath: string;     // path to model file
+    scene:THREE.Group | null
 }
 export interface InventoryItem {
     count:number,
@@ -30,13 +33,14 @@ class ItemManager {
     private _itemInHand:Item | null = null;
     private _inventory:Map<ItemID,InventoryItem> = new Map();
 
-    private _items:Record<ItemID,Item> = deepFreeze({//items should be registered on startup and shouldn be mutated
+    private _items:Record<ItemID,Item> = {//items should be registered on startup and shouldn be mutated
         'block':{
             name:'Block',
             modelPath:'./block.glb',
-            imagePath:'./block.png'
+            imagePath:'./block.png',
+            scene:null
         }
-    })
+    }
 
     private constructor() {}
     public static get instance() {
@@ -76,7 +80,7 @@ class ItemManager {
         return this._inventory;
     }
     public get items():Record<ItemID,Item> {
-        return this._items
+        return deepFreeze(this._items)
     }
     public get itemInHand():Item | null {
         return this._itemInHand
