@@ -196,9 +196,16 @@ class Player extends Controller implements EntityLike {
         if (this.keysPressed['ArrowRight']) {
             this.rotateCharacterX('right')
         };
+        
+        const forwardVector = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion);
+        
         //zoom in
         if (this.keysPressed['Equal']) {//this corresponds to +
-            this.targetZ = Math.max(-this.zoomClamp,this.targetZ - this.zoomDelta);  //used minus on the zoom delta cuz thats my forward axis and as such,i had to also use -clamp to clamp it at that direction.i also had to invert the function i used for clamping to be max instead of min since its in the negative direction
+            const zoomIn = forwardVector.multiplyScalar(this.zoomDelta);
+            console.log('zoomIn:', zoomIn);
+            const zoom = this.camera.cam3D.position.clone().add(zoomIn); // move forward
+            this.targetY = zoom.y;
+            this.targetZ = zoom.z
         }
         //zoom out
         if (this.keysPressed['Minus']) {
@@ -207,7 +214,7 @@ class Player extends Controller implements EntityLike {
         if (this.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
             if (this.toggleTimer > this.toggleCooldown) { //this is a debouncing mechanism
                 this.camModeNum = ((this.camModeNum<3)?this.camModeNum + 1:1) as 1 | 2 | 3;//this is to increase the camMode,when its 3rd person,reset it back to 1st person and repeat 
-                this.toggleTimer = 0
+                this.toggleTimer = 0;
             }            
         }
     }
@@ -233,6 +240,7 @@ class Player extends Controller implements EntityLike {
     }
     private toggleCamPerspective() {
         if ((this.keysPressed['KeyT'])) {
+            this.targetY = this.offsetY;//reset the cam y position on toggling to cancel out the effect of zooming
             switch (this.camModeNum) {
                 case CameraMode.FirstPerson: {
                     this.targetZ = -1;
@@ -305,6 +313,7 @@ class Player extends Controller implements EntityLike {
                 this.respawn();
                 this.health.revive();
                 this.respawnTimer = 0;
+                this.targetY = this.offsetY;
             }
         }
     }
@@ -312,8 +321,6 @@ class Player extends Controller implements EntityLike {
         if (this.health.isDead) {
             this.targetY = this.offsetY - this.playerHeight;
             this.playDeathAnimation();
-        } else {
-            this.targetY = this.offsetY;
         }
     }
     get _groupID():string {
@@ -357,7 +364,7 @@ const playerDynamicData:DynamicControllerData = {
     gravityScale:1
 }
 const playerMiscData:PlayerMiscData = {
-    healthValue:1000,
+    healthValue:15,
     attackDamage:1,
     knockback:150,
     camArgs: {

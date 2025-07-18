@@ -13,7 +13,7 @@ export class Camera {
     private targetPosition:THREE.Vector3 = new THREE.Vector3(0,0,0);
     private translationSpeed:number = 0;
 
-    public perspectiveCamera:THREE.PerspectiveCamera;
+    public  perspectiveCamera:THREE.PerspectiveCamera;
     private FOV:number;
     private nearPoint:number;
     private farPoint:number;
