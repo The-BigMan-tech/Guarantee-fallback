@@ -13,16 +13,6 @@ export interface InventoryItem {
     item:Item
 }
 
-function deepFreeze<T extends object>(obj: T): T {
-    Object.getOwnPropertyNames(obj).forEach((prop) => {
-        const value = obj[prop as keyof T];
-        if (value && typeof value === "object" && !Object.isFrozen(value)) {
-            deepFreeze(value);
-        }
-    });
-    return Object.freeze(obj);
-}
-
 type Singleton<T> = T;
 class ItemManager {
     private static manager:ItemManager;
@@ -80,7 +70,7 @@ class ItemManager {
         return this._inventory;
     }
     public get items():Record<ItemID,Item> {
-        return deepFreeze(this._items)
+        return this._items
     }
     public get itemInHand():Item | null {
         return this._itemInHand
@@ -90,8 +80,8 @@ class ItemManager {
         return Boolean(item && (item.count == this.maxStackSize))
     }
     public holdItem(itemID:ItemID | null) {
-        if ((itemID !== null) && this.items[itemID]) {
-            this._itemInHand = this.items[itemID];
+        if ((itemID !== null) && this._items[itemID]) {
+            this._itemInHand = this._items[itemID];
         }else {
             this._itemInHand = null
         }

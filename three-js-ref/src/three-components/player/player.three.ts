@@ -355,10 +355,15 @@ class Player extends Controller implements EntityLike {
             this.currentHeldItemID = heldItemID;
             console.log('holding currentHeldItemID:',this.currentHeldItemID);
             if (item) {
+                if (item.scene) {
+                    this.disposeItem(); // Remove previous model from item3D
+                    const clonedModel = item.scene.clone(true); // Clone before adding
+                    this.item3D.add(clonedModel);
+                    return
+                }
                 this.modelLoader.load(item.modelPath,
                     gltf=>{
-                        // item.scene = gltf.scene
-                        console.log('holding the item in the scene');
+                        item.scene = gltf.scene;
                         this.disposeItem(); // Remove previous model from item3D
                         const clonedModel = gltf.scene.clone(true); // Clone before adding
                         this.item3D.add(clonedModel);
