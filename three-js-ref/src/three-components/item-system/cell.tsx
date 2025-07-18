@@ -1,10 +1,11 @@
 import {motion} from "motion/react"
 import { itemManager, type ItemID } from "./item-manager.three";
-import { useEffect, useMemo,useState,type RefObject } from "react";
+import { useEffect, useMemo,useState,memo,type RefObject } from "react";
 
 type style = string;
 
 interface Props {
+    itemGuiVersion:number
     itemID:ItemID,
     selectedCellID:ItemID | undefined,
     tab:'Items' | 'Inventory',
@@ -14,7 +15,17 @@ interface Props {
     selectedCellStyle:(itemID:ItemID)=>string,
     setHoveredCell:(value:string)=>void
 }
-export default function Cell({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cellHovered,setHoveredCell,cellRefs}:Props) {
+function areEqual(prev: Props, next: Props) {
+    return (//Dont rerender only if:
+        prev.itemGuiVersion == next.itemGuiVersion &&//no changes to external data that isnt managed by react but imperatively like the inventory data,were made.
+        prev.itemID === next.itemID &&//its the same cell at that index
+        prev.selectedCellID === next.selectedCellID &&//the selected cell remains the same
+        prev.cellHovered === next.cellHovered &&//the same cell is hovered over
+        prev.tab === next.tab//the gui tab is the same
+        //we can ignore cell refs because the refs to the cells always remains the same
+    );
+}
+const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cellHovered,setHoveredCell,cellRefs}:Props)=>{
     const multiplierStyle:style = "absolute top-[3%] right-[4%] font-semibold";
     const itemCount = (itemManager.inventory.has(itemID) && `x ${itemManager.inventory.get(itemID)?.count}`) || ''
     
@@ -74,4 +85,5 @@ export default function Cell({itemID,selectedCellID,selectCell,selectedCellStyle
             }
         </motion.button>
     )
-}
+},areEqual)
+export default Cell;

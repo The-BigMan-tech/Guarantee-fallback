@@ -244,6 +244,7 @@ export default function ItemGui() {
                                 onDragEnter={() => handleDragEnter(index)}
                                 onDragOver={e => e.preventDefault()}
                                 onDrop={handleDrop}
+                                className={dragOverItem.current == index?'border border-red-500':''}
                                 >
                                 <Cell  key={itemID} {...{
                                     itemID,
