@@ -166,8 +166,7 @@ export default function ItemGui() {
             console.log('selected cell id newIndex:', newIndex);
             if ((newIndex >= 0) && (newIndex < cellsArray.length)) {//only advance the selection when within bounds
                 const newID = cellsArray[newIndex];
-                setSelectedCellID(newID);
-                setIsCellSelected(true);
+                selectCell(newID);
             }
         }
         function navGrid(event:KeyboardEvent) {
@@ -202,9 +201,6 @@ export default function ItemGui() {
                     }
                 }
             }
-            if ((tab === 'Inventory' ) && (event.code === 'Enter') && selectedCellID) {
-                itemManager.holdItem(selectedCellID)
-            }
         }
 
         window.addEventListener('keydown', handleKeyDown);
@@ -212,9 +208,13 @@ export default function ItemGui() {
             window.removeEventListener('keydown', handleKeyDown);
         };
         
-    },[setIsCellSelected,gridCols,cellsArray,selectedCellID,tab]);
+    },[setIsCellSelected,gridCols,cellsArray,selectedCellID,tab,selectCell]);
 
-
+    useEffect(()=>{
+        if ((tab === 'Inventory' ) && selectedCellID) {
+            itemManager.holdItem(selectedCellID)
+        }
+    },[tab,selectedCellID])
 
     const ANIMATION_CONFIG = useMemo(() => ({
         buttonDiv: {

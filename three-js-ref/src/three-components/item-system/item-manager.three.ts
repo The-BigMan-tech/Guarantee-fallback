@@ -86,7 +86,7 @@ class ItemManager {
         return Boolean(item && (item.count == this.maxStackSize))
     }
     public holdItem(itemID:ItemID | null) {
-        if (itemID !== null) {
+        if ((itemID !== null) && this.items[itemID]) {
             this._itemInHand = this.items[itemID];
         }else {
             this._itemInHand = null
