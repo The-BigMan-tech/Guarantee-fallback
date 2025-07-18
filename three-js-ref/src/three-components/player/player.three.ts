@@ -217,7 +217,7 @@ class Player extends Controller implements EntityLike {
         }
     }
     private zoomCamera(zoomDelta:number,camForward:THREE.Vector3) {
-        const zoomDirection = camForward.multiplyScalar(zoomDelta);
+        const zoomDirection = camForward.clone().multiplyScalar(zoomDelta);
         const zoomPosition = this.camera.cam3D.position.clone().add(zoomDirection); // move forward
         this.targetY = zoomPosition.y;
         this.targetZ = zoomPosition.z
