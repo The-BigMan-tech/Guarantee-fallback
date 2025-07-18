@@ -27,7 +27,9 @@ class ItemManager {
     private _invSize:number = 8;
     private maxStackSize:number = 50;
 
+    private _itemInHand:Item | null = null;
     private _inventory:Map<ItemID,InventoryItem> = new Map();
+
     private _items:Record<ItemID,Item> = deepFreeze({//items should be registered on startup and shouldn be mutated
         'block':{
             name:'Block',
@@ -76,9 +78,20 @@ class ItemManager {
     public get items():Record<ItemID,Item> {
         return this._items
     }
+    public get itemInHand():Item | null {
+        return this._itemInHand
+    }
     public isStackFull(itemID:ItemID):boolean {
         const item = this.inventory.get(itemID)
         return Boolean(item && (item.count == this.maxStackSize))
+    }
+    public holdItem(itemID:ItemID | null) {
+        if (itemID !== null) {
+            this._itemInHand = this.items[itemID];
+        }else {
+            this._itemInHand = null
+        }
+        console.log('holding item: ',this._itemInHand);
     }
 }
 export const itemManager:Singleton<ItemManager> = ItemManager.instance;

@@ -1572,3 +1572,5 @@ vector distance is signed but in a vector form unless turned into a dot product
 *so my ui layer is error safe because its separate from my three js loop which updates my game.it exists in react's render loop.and since errors are isolated to their execution contexts,my ui error will never propagate to my game's loop even though the game's canvas is imported into react.
 
 *so not only is my ui non-blocking,but also error safe.this is bulletproof.the ui state can never affect the game because the ui on top of this only mutates the underlying data through safe getters and setters that they themselves handle all the mutation underneath.so i cant expect y ui as the reason why my game crash if it does.this can narrow down bug hunting later
+
+*so my js game will be fast because its lean on resource usage but c++ games despite using heavy runtimes if made with unreal,are fast because of heavy low level optimiations

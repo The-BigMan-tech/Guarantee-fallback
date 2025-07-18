@@ -174,6 +174,7 @@ export default function ItemGui() {
             if (event.code == 'KeyE') {//i used the same key for both toggling off the item gui and deselecting a cell for good ux.
                 setSelectedCellID(undefined);
                 setIsCellSelected(false);
+                itemManager.holdItem(null)//dont hold an item since its deselected
                 if (selectedCellID) toggleItemGui();//i did this to cancel out the effect of the E-key listener in the player class so that pressing E when a cell is selected,only deselects the cell and the gui will only close when E is pressed and there is no cell selected
             }else {
                 if (event.code == 'ArrowRight') moveSelection(1);
@@ -200,6 +201,9 @@ export default function ItemGui() {
                         setItemGuiVersion(prev=>prev+1);
                     }
                 }
+            }
+            if ((tab === 'Inventory' ) && (event.code === 'Enter') && selectedCellID) {
+                itemManager.holdItem(selectedCellID)
             }
         }
 
