@@ -49,7 +49,7 @@ export default function ItemGui() {
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
 
-  
+
     function toggleTab() {
         setTab((prev)=>{
             const newTab =(prev=="Inventory")?'Items':"Inventory"
@@ -84,29 +84,34 @@ export default function ItemGui() {
         return selectedCellID === itemID ? 'shadow-xl border-3 border-[#00000020]' : '';
     }, [selectedCellID]);
 
-    function handleDragStart(index:number) {
+    const handleDragStart = useCallback((index:number)=> {
         dragItem.current = index;
         console.log('Drag index 1:', index);
-    };
-    function handleDragEnter(index:number) {
+    },[]);
+
+    const handleDragEnter = useCallback((index:number)=> {
         dragOverItem.current = index;
         console.log('Drag index 2:', index);
-    };
-    function handleDrop(e:React.DragEvent<HTMLDivElement>) {
+    },[]);
+
+    const handleDrop = useCallback((e:React.DragEvent<HTMLDivElement>)=> {
+        console.log('Drag called handle drop');
         e.preventDefault();
         if ((dragItem.current == null) || (dragOverItem.current == null)) return;
         setCellsArray(prev => {//reinsert the dragged item
             const arr = [...prev];
             const [removed] = arr.splice(dragItem.current!, 1);
             arr.splice(dragOverItem.current!, 0, removed);
+            console.log('Drag Cells array updated:', arr);
             return arr;
         });
         dragItem.current = null;
         dragOverItem.current = null;
-    };
+    },[]);
 
 
     useEffect(()=>{ //used memo here to make it react to change in cell num.
+        console.log('created cells array');
         let cells:ItemID[] = (tab === "Items")
             ?Object.keys(itemManager.items)
             :Array.from(itemManager.inventory.keys());
@@ -238,28 +243,22 @@ export default function ItemGui() {
                     </motion.div>
 
                     <motion.div key="div2" className={`grid h-[90%] ${gridColClass} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
-                        {visibleCells.map((itemID,index) => (
-                            <div 
-                                key={itemID}
-                                draggable={tab == "Inventory"} 
-                                onDragStart={() => handleDragStart(index)} 
-                                onDragEnter={() => handleDragEnter(index)}
-                                onDragOver={e => e.preventDefault()}
-                                onDrop={handleDrop}
-                                className={dragOverItem.current == index?'border border-red-500':''}
-                                >
-                                <Cell {...{
-                                    itemGuiVersion,
-                                    itemID,
-                                    selectedCellID,
-                                    tab,
-                                    cellHovered,
-                                    setHoveredCell,
-                                    selectedCellStyle,
-                                    selectCell,
-                                    cellRefs
-                                }}/>
-                            </div>
+                        {cellsArray.map((itemID,index) => (     
+                            <Cell key={itemID} {...{
+                                itemGuiVersion,
+                                itemID,
+                                selectedCellID,
+                                tab,
+                                cellHovered,
+                                setHoveredCell,
+                                selectedCellStyle,
+                                selectCell,
+                                cellRefs,
+                                index,
+                                handleDragEnter,
+                                handleDragStart,
+                                handleDrop
+                            }}/>
                         ))}
                     </motion.div>
                 </>

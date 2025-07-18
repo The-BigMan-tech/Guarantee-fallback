@@ -11,9 +11,13 @@ interface Props {
     tab:'Items' | 'Inventory',
     cellHovered: string,
     cellRefs:RefObject<Record<string, HTMLButtonElement | null>>,
+    index:number,
     selectCell:(itemID:ItemID)=>void,
     selectedCellStyle:(itemID:ItemID)=>string,
-    setHoveredCell:(value:string)=>void
+    setHoveredCell:(value:string)=>void,
+    handleDragEnter: (index: number) => void,
+    handleDragStart: (index: number) => void,
+    handleDrop: (e: React.DragEvent<HTMLDivElement>) => void
 }
 function areEqual(prev: Props, next: Props) {
     return (//Dont rerender only if:
@@ -22,13 +26,20 @@ function areEqual(prev: Props, next: Props) {
         prev.selectedCellID === next.selectedCellID &&//the selected cell remains the same
         // prev.cellHovered === next.cellHovered &&//the same cell is hovered over
         prev.tab === next.tab &&//the gui tab is the same
+        
+        
         prev.selectCell === next.selectCell &&//the function refs are the same.even if the defintions remain stable,we still need to check for this to prevent subtle bugs when referencing an old closure
         prev.setHoveredCell === next.setHoveredCell &&
-        prev.selectedCellStyle === next.selectedCellStyle
+        prev.selectedCellStyle === next.selectedCellStyle &&
         //we can ignore cell refs because the refs to the cells always remains the same
+
+        prev.index === next.index &&
+        prev.handleDragStart === next.handleDragStart &&
+        prev.handleDragEnter === next.handleDragEnter &&
+        prev.handleDrop === next.handleDrop
     );
 }
-const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cellHovered,setHoveredCell,cellRefs}:Props)=>{
+const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cellHovered,setHoveredCell,cellRefs,handleDragEnter,handleDragStart,handleDrop,index}:Props)=>{
     console.log('Drag Rendering Cell for:',itemID);
     const multiplierStyle:style = "absolute top-[3%] right-[4%] font-semibold";
     const itemCount = (itemManager.inventory.has(itemID) && `x ${itemManager.inventory.get(itemID)?.count}`) || ''
@@ -53,41 +64,49 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
 
 
     return (
-        <motion.button 
-            onClick={()=>selectCell(itemID)} 
-            className={`relative rounded w-full aspect-square shadow-lg cursor-pointer text-white ${selectedCellStyle(itemID)}`}
-            ref={el => { cellRefs.current[itemID] = el; }}
-            onHoverStart={() => setHoveredCell(itemID)}
-            animate= { // the reason why i didnt include this in the config as well is because i need to check a specifc property of a particular cell which can only be accessed withing the map rendering.
-                selectedCellID === itemID
-                ? { scale: 1.11, backgroundColor: "#2c2c2ca4" }
-                : { scale: 1, backgroundColor: "#2424246b" }
-            }
-            {...ANIMATION_CONFIG.cell}
+        <div 
+            draggable={tab == "Inventory"} 
+            onDragStart={()=>handleDragStart(index)} 
+            onDragEnter={()=>handleDragEnter(index)}
+            onDragOver={e => e.preventDefault()}
+            onDrop={handleDrop}
             >
-            {/*only render the image if on the items tab or if we are in the inventory tab but the count is greater than 0.this is to avoid the image from lingering the inv */}
-            {(tab == "Items") || ((itemManager.inventory.get(itemID)?.count || 0) > 0) 
-                ?<img
-                    src={src}
-                    className="w-[80%] relative left-[10%] "
-                    draggable={false}
-                />
-                :null
-            }
-            {(tab == "Items")
-                ?<div className="text-sm">
-                    <div>{itemManager.items[itemID]?.name}</div>
-                    <div className={multiplierStyle}>{
-                        ((selectedCellID==itemID) || (cellHovered==itemID)) &&  
-                        `${itemCount}`
-                    }</div>
-                </div>
-                :<div>
-                    <div>{itemManager.inventory.get(itemID)?.item.name}</div>
-                    <div className={multiplierStyle}>{`${itemCount}`}</div>
-                </div>
-            }
-        </motion.button>
+            <motion.button 
+                onClick={()=>selectCell(itemID)} 
+                className={`relative rounded w-full aspect-square shadow-lg cursor-pointer text-white ${selectedCellStyle(itemID)}`}
+                ref={el => { cellRefs.current[itemID] = el; }}
+                onHoverStart={() => setHoveredCell(itemID)}
+                animate= { // the reason why i didnt include this in the config as well is because i need to check a specifc property of a particular cell which can only be accessed withing the map rendering.
+                    selectedCellID === itemID
+                    ? { scale: 1.11, backgroundColor: "#2c2c2ca4" }
+                    : { scale: 1, backgroundColor: "#2424246b" }
+                }
+                {...ANIMATION_CONFIG.cell}
+                >
+                {/*only render the image if on the items tab or if we are in the inventory tab but the count is greater than 0.this is to avoid the image from lingering the inv */}
+                {(tab == "Items") || ((itemManager.inventory.get(itemID)?.count || 0) > 0) 
+                    ?<img
+                        src={src}
+                        className="w-[80%] relative left-[10%] "
+                        draggable={false}
+                    />
+                    :null
+                }
+                {(tab == "Items")
+                    ?<div className="text-sm">
+                        <div>{itemManager.items[itemID]?.name}</div>
+                        <div className={multiplierStyle}>{
+                            ((selectedCellID==itemID) || (cellHovered==itemID)) &&  
+                            `${itemCount}`
+                        }</div>
+                    </div>
+                    :<div>
+                        <div>{itemManager.inventory.get(itemID)?.item.name}</div>
+                        <div className={multiplierStyle}>{`${itemCount}`}</div>
+                    </div>
+                }
+            </motion.button>
+        </div>
     )
 },areEqual)
 export default Cell;
