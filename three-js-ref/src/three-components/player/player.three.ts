@@ -350,7 +350,9 @@ class Player extends Controller implements EntityLike {
     }
     private loadItemModel(model:THREE.Group) {
         this.disposeItem(); // Remove previous model from item3D
-        this.item3D.add(model.clone(true));// Clone before adding
+        const clonedModel = model.clone(true); // Deep clone
+        clonedModel.scale.set(0.5, 0.5, 0.5); // Scale to 50% in all dimensions
+        this.item3D.add(clonedModel);// Clone before adding
     }
     private holdSelectedItem() {//called on loop
         const itemInHand = itemManager.itemInHand;

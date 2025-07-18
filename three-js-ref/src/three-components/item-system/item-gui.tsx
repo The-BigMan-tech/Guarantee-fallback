@@ -170,16 +170,17 @@ export default function ItemGui() {
             }
         }
         function navGrid(event:KeyboardEvent) {
-            if (event.code == 'KeyE') {//i used the same key for both toggling off the item gui and deselecting a cell for good ux.
+            const code = (tab=='Items')?'KeyE':'Enter';
+            if (event.code == code) {//i used the same key for both toggling off the item gui and deselecting a cell for good ux.
                 setSelectedCellID(undefined);
                 setIsCellSelected(false);
-                if (selectedCellID) toggleItemGui();//i did this to cancel out the effect of the E-key listener in the player class so that pressing E when a cell is selected,only deselects the cell and the gui will only close when E is pressed and there is no cell selected
-            }else {
-                if (event.code == 'ArrowRight') moveSelection(1);
-                else if (event.code == 'ArrowLeft') moveSelection(-1);
-                else if (event.code == 'ArrowUp') moveSelection(-gridCols);
-                else if (event.code == 'ArrowDown') moveSelection(gridCols);
+                if (selectedCellID && (tab=='Items')) toggleItemGui();//i did this to cancel out the effect of the E-key listener in the player class so that pressing E when a cell is selected,only deselects the cell and the gui will only close when E is pressed and there is no cell selected
+                return;
             }
+            if (event.code == 'ArrowRight') moveSelection(1);
+            else if (event.code == 'ArrowLeft') moveSelection(-1);
+            else if (event.code == 'ArrowUp') moveSelection(-gridCols);
+            else if (event.code == 'ArrowDown') moveSelection(gridCols);    
         }
         function handleKeyDown(event:KeyboardEvent) {//ised a single key listener to prevent conflict or eating up of events between multiple listeners
             if (selectedCellID) event.preventDefault();
