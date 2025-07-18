@@ -42,7 +42,7 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
     console.log('Drag Rendering Cell for:',itemID);
     const multiplierStyle:style = "absolute top-[3%] right-[4%] font-semibold text-[#e3fcd8]";
     const itemCount = (itemManager.inventory.has(itemID) && `x ${itemManager.inventory.get(itemID)?.count}`) || ''
-    const stackfullText:string | null = (itemManager.isStackFull(itemID)?'Full':null);//to indicate the inv is full
+    const stackfullText:string | null = (itemManager.isStackFull(itemID)?'Full':null);//to indicate the inv is full.i only used this indicator in the main item grid to signal it to playrs when adding items from it to their inv but the inv itself will always show the item count
 
     const ANIMATION_CONFIG = useMemo(() => ({
         cell: {
