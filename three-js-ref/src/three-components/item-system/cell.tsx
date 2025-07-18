@@ -28,7 +28,7 @@ export default function Cell({itemID,selectedCellID,selectCell,selectedCellStyle
     }), [selectedCellID]);
 
 
-    const [src, setSrc] = useState("");
+    const [src, setSrc] = useState<string | undefined>(undefined);//i used undefined here to prevent react from throwing errors that i cant use an empty string as the src even though my app didnt crash from it.
     useEffect(() => {//i delayed the loading of the img to prevent it from disturbing the mounting animation of the cell because of initial layout shift
         const timer = setTimeout(() => {
             setSrc(itemManager.items[itemID]?.imagePath);

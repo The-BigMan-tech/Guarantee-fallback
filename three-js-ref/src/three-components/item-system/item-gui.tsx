@@ -214,7 +214,7 @@ export default function ItemGui() {
     const handleDrop = (e:React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         if ((dragItem.current == null) || (dragOverItem.current == null)) return;
-        setCellOrder(prev => {
+        setCellOrder(prev => {//reinsert the dragged item
             const arr = [...prev];
             const [removed] = arr.splice(dragItem.current!, 1);
             arr.splice(dragOverItem.current!, 0, removed);
@@ -243,6 +243,7 @@ export default function ItemGui() {
                                 onDragEnter={() => handleDragEnter(index)}
                                 onDragOver={e => e.preventDefault()}
                                 onDrop={handleDrop}
+                                className={dragOverItem.current == index?'mt-16':''}
                                 >
                                 <Cell  key={itemID} {...{
                                     itemID,
