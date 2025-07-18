@@ -53,6 +53,7 @@ class Player extends Controller implements EntityLike {
     private originalCamRotSpeed:number
 
     private offsetY:number;
+    //use these target variables to manipulate the camera's position not directly through mutating the position of the camera directly.this is to ensure that different parts of the codebase modify the camera's position safely and predictably.trying to directly mutate its position in this code where the target variables are used will result in unexpected behaviour.i tried to diectly update the cam's position for zooming in and out where my code was relying on the target variables causing my effect to not apply properly
     private targetZ:number = -0.6;//this is used to offset the cam either forward or backward.i made it -0.6 initially cuz it starts as first person and ill want the cam to shift a little away from the model to clear the view
     private targetY:number = 0;
 
@@ -197,20 +198,26 @@ class Player extends Controller implements EntityLike {
             this.rotateCharacterX('right')
         };
         
-        const forwardVector = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion);
+        const camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion);
+        const camPosToPlayer = this.camera.cam3D.position.clone().sub(this.position);
+        const signedDist = camPosToPlayer.dot(camForward);
         
-        //zoom in
-        if (this.keysPressed['Equal']) {//this corresponds to +
-            const zoomIn = forwardVector.multiplyScalar(this.zoomDelta);
-            console.log('zoomIn:', zoomIn);
-            const zoom = this.camera.cam3D.position.clone().add(zoomIn); // move forward
-            this.targetY = zoom.y;
-            this.targetZ = zoom.z
-        }
-        //zoom out
-        if (this.keysPressed['Minus']) {
-            this.targetZ = Math.min(this.zoomClamp,this.targetZ + this.zoomDelta)
-        }
+            //zoom in
+            if (this.keysPressed['Equal']) {//this corresponds to +
+                console.log('signedDist:', signedDist);
+                const zoomIn = camForward.multiplyScalar(this.zoomDelta);
+                const zoomPosition = this.camera.cam3D.position.clone().add(zoomIn); // move forward
+                this.targetY = zoomPosition.y;
+                this.targetZ = zoomPosition.z
+            }
+            //zoom out
+            if (this.keysPressed['Minus']) {
+                console.log('signedDist:', signedDist);
+                const zoomOut = camForward.multiplyScalar(-this.zoomDelta);
+                const zoomPosition = this.camera.cam3D.position.clone().add(zoomOut); // move forward
+                this.targetY = zoomPosition.y;
+                this.targetZ = zoomPosition.z
+            }
         if (this.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
             if (this.toggleTimer > this.toggleCooldown) { //this is a debouncing mechanism
                 this.camModeNum = ((this.camModeNum<3)?this.camModeNum + 1:1) as 1 | 2 | 3;//this is to increase the camMode,when its 3rd person,reset it back to 1st person and repeat 

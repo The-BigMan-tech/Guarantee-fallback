@@ -1563,3 +1563,8 @@ This means your areEqual should check equality of function props like selectCell
 Do not memoize the children of an incremenatally loaded array because the array will always drop and readd elements to itself causing rerenders regardless of child memoizations.to solve this,switch to the original array when attempting to do an operation that requires memoization.i can choose to directly set the incremental array instead of the source to prevent dropping of elements but it will lead to a bug because it wont be consistent with the original data soource
 
 so it means that when doing incremental loading of a list,one must take caution to switch to the original data source when he wants to work with memoized data.so that the progressive arary is used for loading the list initially and performantly while the original data source is used in operations that require memoization for perf and the worry that rendering the cells array directly will cause lag when reordering can be ignored because im only using the cells array to reredner the changed items.the items that didnt change because they were already memoized from teh inc loading array,wont rerender.so rendering cells array directly here doesnt render the whole list like what would have happened if i rendered it for loading the grid.it's important to switch between these arrays inline in your render logic (not via memoized dependencies) or it will cause massive rerenders
+
+
+*Hypot distance vs Vector distance
+Hypot distance is unsigned and a single value
+vector distance is signed but in a vector form unless turned into a dot product
