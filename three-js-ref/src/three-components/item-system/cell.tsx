@@ -27,7 +27,7 @@ function areEqual(prev: Props, next: Props) {
         prev.tab === next.tab &&//the gui tab is the same
         prev.index === next.index &&
         prev.cellHovered == next.cellHovered &&
-        
+
         prev.selectCell === next.selectCell &&//the function refs are the same.even if the defintions remain stable,we still need to check for this to prevent subtle bugs when referencing an old closure
         prev.setHoveredCell === next.setHoveredCell &&
         prev.selectedCellStyle === next.selectedCellStyle &&
@@ -40,9 +40,10 @@ function areEqual(prev: Props, next: Props) {
 }
 const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cellHovered,setHoveredCell,cellRefs,handleDragEnter,handleDragStart,handleDrop,index}:Props)=>{
     console.log('Drag Rendering Cell for:',itemID);
-    const multiplierStyle:style = "absolute top-[3%] right-[4%] font-semibold";
+    const multiplierStyle:style = "absolute top-[3%] right-[4%] font-semibold text-[#e3fcd8]";
     const itemCount = (itemManager.inventory.has(itemID) && `x ${itemManager.inventory.get(itemID)?.count}`) || ''
-    
+    const stackfullText:string | null = (itemManager.isStackFull(itemID)?'Full':null);//to indicate the inv is full
+
     const ANIMATION_CONFIG = useMemo(() => ({
         cell: {
             whileHover:(!selectedCellID) ? { //only do hover animation only when a cell isnt selected to prevent two cells from being emphasized at the same time
@@ -94,10 +95,12 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
                 {(tab == "Items")
                     ?<div className="text-sm">
                         <div>{itemManager.items[itemID]?.name}</div>
-                        <div className={multiplierStyle}>{
-                            ((selectedCellID==itemID) || (cellHovered==itemID)) &&  
-                            `${itemCount}`
-                        }</div>
+                        {((selectedCellID==itemID) || (cellHovered==itemID))
+                            ?<>
+                                <div className={multiplierStyle}>{stackfullText || itemCount}</div>
+                            </>
+                            :null
+                        }
                     </div>
                     :<div>
                         <div>{itemManager.inventory.get(itemID)?.item.name}</div>

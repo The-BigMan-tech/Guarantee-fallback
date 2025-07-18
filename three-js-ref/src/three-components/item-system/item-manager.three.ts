@@ -76,5 +76,9 @@ class ItemManager {
     public get items():Record<ItemID,Item> {
         return this._items
     }
+    public isStackFull(itemID:ItemID):boolean {
+        const item = this.inventory.get(itemID)
+        return Boolean(item && (item.count == this.maxStackSize))
+    }
 }
 export const itemManager:Singleton<ItemManager> = ItemManager.instance;
