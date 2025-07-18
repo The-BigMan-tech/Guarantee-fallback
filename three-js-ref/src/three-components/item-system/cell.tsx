@@ -97,6 +97,7 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
                     ?<div className="text-sm">
                         <div>{itemManager.items[itemID]?.name}</div>
                         <div className={multiplierStyle}>{
+                            //we only want to show the count when either
                             (xor((selectedCellID==itemID),(cellHovered==itemID))) &&  
                             `${itemCount}`
                         }</div>
