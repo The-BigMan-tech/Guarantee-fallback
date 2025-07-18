@@ -222,11 +222,6 @@ export default function ItemGui() {
         }
     },[tab,selectedCellID])
 
-    useEffect(()=>{
-        if (itemManager.itemInHand && itemManager.itemInHand?.count <= 0) {
-            itemManager.holdItem(null)
-        }
-    },[itemGuiVersion])
 
     const ANIMATION_CONFIG = useMemo(() => ({
         buttonDiv: {

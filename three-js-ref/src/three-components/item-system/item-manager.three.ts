@@ -20,7 +20,7 @@ class ItemManager {
     private _invSize:number = 8;
     private maxStackSize:number = 50;
 
-    private _itemInHand:InventoryItem | null = null;//i used inv item to keep track of its count to clear it when it reaches zero(no longer in the inventory)
+    private _itemInHand:InventoryItem | null = null;//i used inv item type to keep track of its count to clear it when it reaches zero(no longer in the inventory)
     private _inventory:Map<ItemID,InventoryItem> = new Map();
 
     private _items:Record<ItemID,Item> = {//items should be registered on startup and shouldn be mutated
@@ -60,7 +60,12 @@ class ItemManager {
         const item = this._inventory.get(itemID);
         if (item) {
             item.count --;
-            if (item.count <= 0) this._inventory.delete(itemID);
+            if (item.count <= 0) {
+                this._inventory.delete(itemID);
+                if (this._itemInHand && this._itemInHand?.count <= 0) {
+                    this._itemInHand = null
+                }
+            }
         }
     }
     public get invSize():number {
