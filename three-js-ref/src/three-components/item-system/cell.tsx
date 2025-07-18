@@ -21,7 +21,10 @@ function areEqual(prev: Props, next: Props) {
         prev.itemID === next.itemID &&//its the same cell at that index
         prev.selectedCellID === next.selectedCellID &&//the selected cell remains the same
         prev.cellHovered === next.cellHovered &&//the same cell is hovered over
-        prev.tab === next.tab//the gui tab is the same
+        prev.tab === next.tab &&//the gui tab is the same
+        prev.selectCell === next.selectCell &&//the function refs are the same.even if the defintions remain stable,we still need to check for this to prevent subtle bugs when referencing an old closure
+        prev.setHoveredCell === next.setHoveredCell &&
+        prev.selectedCellStyle === next.selectedCellStyle
         //we can ignore cell refs because the refs to the cells always remains the same
     );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState ,useRef} from "react";
+import { useEffect, useMemo, useState ,useRef,useCallback} from "react";
 import { motion,AnimatePresence,easeInOut} from "motion/react"
 import { isCellSelectedAtom, showItemGuiAtom, toggleItemGui } from "./item-state";
 import { useAtom } from "jotai";
@@ -14,7 +14,7 @@ const nullCellIDPrefix = 'pad'//the prefix for ids of null/empty cells
 
 
 export default function ItemGui() {
-    const [,setItemGuiVersion] = useState(0)//this is a dummy state to force react to rerender.i dont need to read it which is why i only have a setter
+    const [itemGuiVersion,setItemGuiVersion] = useState(0)//this is a dummy state to force react to rerender.i dont need to read it which is why i only have a setter
 
     const navCooldown:milliseconds = 100; 
     const navTimerRef = useRef<number>(0);
@@ -49,9 +49,7 @@ export default function ItemGui() {
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
 
-    function setHoveredCell(value:string) {//passed wrapper as prop to avoid unintended mutation by children
-        setCellHovered(value)
-    }
+  
     function toggleTab() {
         setTab((prev)=>{
             const newTab =(prev=="Inventory")?'Items':"Inventory"
@@ -72,17 +70,20 @@ export default function ItemGui() {
             return newTab
         })  
     }
-    function selectCell(itemID:ItemID) { 
+
+    const setHoveredCell = useCallback((value:string)=>{//passed wrapper as prop to avoid unintended mutation by children
+        setCellHovered(value)
+    },[setCellHovered])
+
+    const selectCell = useCallback((itemID: ItemID) => {
         setSelectedCellID(itemID);
         setIsCellSelected(true);
-    }
-    function selectedCellStyle(itemID:ItemID) {
-        if (selectedCellID === itemID) {
-            return 'shadow-xl border-3 border-[#00000020]'
-        }else {
-            return ''
-        }
-    }
+    }, [setSelectedCellID, setIsCellSelected]);
+
+    const selectedCellStyle = useCallback((itemID: ItemID) => {
+        return selectedCellID === itemID ? 'shadow-xl border-3 border-[#00000020]' : '';
+    }, [selectedCellID]);
+
     function handleDragStart(index:number) {
         dragItem.current = index;
         console.log('Drag index 1:', index);
@@ -247,6 +248,7 @@ export default function ItemGui() {
                                 className={dragOverItem.current == index?'border border-red-500':''}
                                 >
                                 <Cell  key={itemID} {...{
+                                    itemGuiVersion,
                                     itemID,
                                     selectedCellID,
                                     tab,

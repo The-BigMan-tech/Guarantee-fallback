@@ -1550,4 +1550,10 @@ remove.bg
 
 
 *ths is concerning passing the dummy state to the cell to rerender it
-but since my item gui rerenders when the gui version changes,the cells may rerender if a new item is added to the inv without passing the gui version to the cells explicitly because the item id will be different but subsequent stacking will not rerender the cells when needed,so passing the dummy state is the best approach
+but since my item gui rerenders when the gui version changes,the cells may rerender if a new item is added to the inv without passing the gui version to the cells explicitly because the item id will be different but subsequent stacking will not rerender the cells when needed,so passing the dummy state is the best approach'
+
+so a closure function reference always changes on rerenders but using a use callback will stabilize the ref across rerenders until deps change.but use callback is only effective if those functions are dependencies of another hook like a use effect or as props to child components.else,if they are changed based in that function as a dependency,they will always rerender indefintely.useCallback wont have any effect if the function isnt a dependency for these two cases
+
+
+you should check in your areEqual function all props that affect rendering, including functions you pass asprops, to correctly memoize your component and avoid subtle bugs.If you skip comparing a function prop and itchanges, your component will keep referencing old closures, leading to bugs.
+This means your areEqual should check equality of function props like selectCell, setHoveredCell, and selectedCellStyle to return true only if those functions are referentially equal.
