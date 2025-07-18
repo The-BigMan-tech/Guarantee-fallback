@@ -19,9 +19,6 @@ interface Props {
     handleDragStart: (index: number) => void,
     handleDrop: (e: React.DragEvent<HTMLDivElement>) => void
 }
-function xor(a:boolean, b:boolean):boolean {
-    return (a || b) && !(a && b);
-}
 function areEqual(prev: Props, next: Props) {
     return (//Dont rerender only if:
         prev.itemGuiVersion == next.itemGuiVersion &&//no changes to external data that isnt managed by react but imperatively like the inventory data,were made.
@@ -29,6 +26,7 @@ function areEqual(prev: Props, next: Props) {
         prev.selectedCellID === next.selectedCellID &&//the selected cell remains the same
         prev.tab === next.tab &&//the gui tab is the same
         prev.index === next.index &&
+        prev.cellHovered == next.cellHovered &&
         
         prev.selectCell === next.selectCell &&//the function refs are the same.even if the defintions remain stable,we still need to check for this to prevent subtle bugs when referencing an old closure
         prev.setHoveredCell === next.setHoveredCell &&
@@ -97,8 +95,7 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
                     ?<div className="text-sm">
                         <div>{itemManager.items[itemID]?.name}</div>
                         <div className={multiplierStyle}>{
-                            //we only want to show the count when either
-                            (xor((selectedCellID==itemID),(cellHovered==itemID))) &&  
+                            ((selectedCellID==itemID) || (cellHovered==itemID)) &&  
                             `${itemCount}`
                         }</div>
                     </div>
