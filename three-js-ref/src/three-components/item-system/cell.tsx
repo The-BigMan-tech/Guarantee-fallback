@@ -85,11 +85,7 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
                 >
                 {/*only render the image if on the items tab or if we are in the inventory tab but the count is greater than 0.this is to avoid the image from lingering the inv */}
                 {(tab == "Items") || ((itemManager.inventory.get(itemID)?.count || 0) > 0) 
-                    ?<img
-                        src={src}
-                        className="w-[80%] relative left-[10%] "
-                        draggable={false}
-                    />
+                    ?<img src={src} className="w-[80%] relative left-[10%] " draggable={false}/>
                     :null
                 }
                 {(tab == "Items")
