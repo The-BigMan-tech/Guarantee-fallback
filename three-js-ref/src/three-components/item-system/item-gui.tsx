@@ -256,7 +256,7 @@ export default function ItemGui() {
                         </motion.button>
                     </motion.div>
 
-                    <motion.div key="div2" className={`grid h-[90%] ${gridColClass} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
+                    <motion.div key="div2" className={`grid h-[90%] ${gridColClass} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-hidden rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
                         {((loadProgressively)?visibleCells:cellsArray).map((itemID,index) => (     
                             <Cell key={itemID} {...{
                                 itemGuiVersion,
