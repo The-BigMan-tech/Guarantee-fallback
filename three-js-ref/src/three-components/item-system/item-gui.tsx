@@ -37,7 +37,9 @@ export default function ItemGui() {
     const [,setIsCellSelected] = useAtom(isCellSelectedAtom)//this controls the freezing of the player's controls when navigating about the grid
 
     const cellRefs = useRef<Record<string,HTMLButtonElement | null >>({});
-    const cellsArray:string[] = useMemo(()=>{ //used memo here to make it react to change in cell num.
+    const [cellsArray,setCellsArray] = useState<string[]>([]) 
+    
+    useEffect(()=>{ //used memo here to make it react to change in cell num.
         let cells:ItemID[] = (tab === "Items")
             ?Object.keys(itemManager.items)
             :Array.from(itemManager.inventory.keys());
@@ -49,7 +51,7 @@ export default function ItemGui() {
             }
             cells = [...cells, ...padding];
         }
-        return cells;
+        setCellsArray(cells)
     },[cellNum,tab]) 
 
     //this is a slice into the cells array used progressive/incremental loading for perf and ux
@@ -193,11 +195,7 @@ export default function ItemGui() {
         },
     }), [gridWidth]);
 
-    //this is a state over the visible cells to control reordering of elements dynamically for drag and drop.
-    const [cellOrder, setCellOrder] = useState<string[]>([]);
-    useEffect(() => {
-        setCellOrder(visibleCells);
-    }, [visibleCells]);
+
 
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
@@ -214,7 +212,7 @@ export default function ItemGui() {
     const handleDrop = (e:React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         if ((dragItem.current == null) || (dragOverItem.current == null)) return;
-        setCellOrder(prev => {//reinsert the dragged item
+        setCellsArray(prev => {//reinsert the dragged item
             const arr = [...prev];
             const [removed] = arr.splice(dragItem.current!, 1);
             arr.splice(dragOverItem.current!, 0, removed);
@@ -236,14 +234,13 @@ export default function ItemGui() {
                     </motion.div>
 
                     <motion.div key="div2" className={`grid h-[90%] ${gridColClass} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
-                        {cellOrder.map((itemID,index) => (
+                        {visibleCells.map((itemID,index) => (
                             <div 
                                 draggable={tab == "Inventory"} 
                                 onDragStart={() => handleDragStart(index)} 
                                 onDragEnter={() => handleDragEnter(index)}
                                 onDragOver={e => e.preventDefault()}
                                 onDrop={handleDrop}
-                                className={dragOverItem.current == index?'mt-16':''}
                                 >
                                 <Cell  key={itemID} {...{
                                     itemID,
