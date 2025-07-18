@@ -176,9 +176,9 @@ export default function ItemGui() {
             else if (event.code == 'ArrowUp') moveSelection(-gridCols);
             else if (event.code == 'ArrowDown') moveSelection(gridCols);    
             else {
-                const code = (tab=='Items')?'KeyE':'Enter';//i used E,the same key for toggling the ui in the first place,to deselect a selected cell so that users can use the same key to deselect and press it again to toggle off the ui.But for the inv grid,i used Enter because inv is for selecting items to hold on hand not browsing the grid for items.for this reason,pressing enter is more intuitive at east for me,when you have selected an item you want to hold than E
+                const deselectKey = (tab=='Items')?'KeyE':'Enter';//i used E,the same key for toggling the ui in the first place,to deselect a selected cell so that users can use the same key to deselect and press it again to toggle off the ui.But for the inv grid,i used Enter because inv is for selecting items to hold on hand not browsing the grid for items.for this reason,pressing enter is more intuitive at east for me,when you have selected an item you want to hold than E
                 const retoggleUi =  (selectedCellID && (tab=='Items'));//this is used to ensure that whatever they key pressed here,it only deselects the cell without toggling off the ui.since items uses E,i have to retoggle to cancel out conflict with the E key to toggle it off.for the inv,since it uses enter,i will not toggle again cuz it will just toggle it off
-                if (event.code == code) {//i used the same key for both toggling off the item gui and deselecting a cell for good ux.
+                if (event.code == deselectKey) {//i used the same key for both toggling off the item gui and deselecting a cell for good ux.
                     setSelectedCellID(undefined);
                     setIsCellSelected(false);
                     if (retoggleUi) toggleItemGui();//i did this to cancel out the effect of the E-key listener in the player class so that pressing E when a cell is selected,only deselects the cell and the gui will only close when E is pressed and there is no cell selected

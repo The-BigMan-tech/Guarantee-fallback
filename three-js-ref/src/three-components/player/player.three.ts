@@ -356,7 +356,7 @@ class Player extends Controller implements EntityLike {
     }
     private holdSelectedItem() {//called on loop
         const itemInHand = itemManager.itemInHand;
-        const heldItemID = itemInHand ? itemInHand.name : null;
+        const heldItemID = itemInHand ? itemInHand.item.name : null;
         if (heldItemID !== this.currentHeldItemID) {
             this.currentHeldItemID = heldItemID;
             console.log('holding currentHeldItemID:',this.currentHeldItemID);
@@ -364,15 +364,15 @@ class Player extends Controller implements EntityLike {
                 this.disposeItem();
                 return
             }
-            if (itemInHand.scene) {
+            if (itemInHand.item.scene) {
                 console.log('used item scene');
-                this.loadItemModel(itemInHand.scene)
+                this.loadItemModel(itemInHand.item.scene)
                 return
             }else {
-                this.modelLoader.load(itemInHand.modelPath,
+                this.modelLoader.load(itemInHand.item.modelPath,
                     gltf=>{
-                        itemInHand.scene = gltf.scene;
-                        this.loadItemModel(itemInHand.scene)
+                        itemInHand.item.scene = gltf.scene;
+                        this.loadItemModel(itemInHand.item.scene)
                     }
                 );
             }
