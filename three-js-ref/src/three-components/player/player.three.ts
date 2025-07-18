@@ -203,27 +203,25 @@ class Player extends Controller implements EntityLike {
         const signedDist = camPosToPlayer.dot(camForward);
         
         if (this.keysPressed['Equal'] &&  (signedDist <= this.zoomClamp)) {//this corresponds to + key.zoom in
-            console.log('signedDist:', signedDist);
-            const zoomIn = camForward.multiplyScalar(this.zoomDelta);
-            const zoomPosition = this.camera.cam3D.position.clone().add(zoomIn); // move forward
-            this.targetY = zoomPosition.y;
-            this.targetZ = zoomPosition.z
+            this.zoomCamera(this.zoomDelta);
         }
         if (this.keysPressed['Minus'] && (signedDist >= -this.zoomClamp)) {//zoom out
-            console.log('signedDist:', signedDist);
-            const zoomOut = camForward.multiplyScalar(-this.zoomDelta);
-            const zoomPosition = this.camera.cam3D.position.clone().add(zoomOut); // move forward
-            this.targetY = zoomPosition.y;
-            this.targetZ = zoomPosition.z
+            this.zoomCamera(-this.zoomDelta);
         }
         
-
         if (this.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
             if (this.toggleTimer > this.toggleCooldown) { //this is a debouncing mechanism
                 this.camModeNum = ((this.camModeNum<3)?this.camModeNum + 1:1) as 1 | 2 | 3;//this is to increase the camMode,when its 3rd person,reset it back to 1st person and repeat 
                 this.toggleTimer = 0;
             }            
         }
+    }
+    private zoomCamera(zoomDelta:number) {
+        const camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion);
+        const zoomDirection = camForward.multiplyScalar(zoomDelta);
+        const zoomPosition = this.camera.cam3D.position.clone().add(zoomDirection); // move forward
+        this.targetY = zoomPosition.y;
+        this.targetZ = zoomPosition.z
     }
     private bindKeysToAnimations() {
         if (this.isAirBorne()) {
