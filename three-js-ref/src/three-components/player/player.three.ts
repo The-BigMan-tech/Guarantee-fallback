@@ -348,30 +348,31 @@ class Player extends Controller implements EntityLike {
             disposeHierarchy(child); // Dispose the removed child's geometry/materials/textures etc.
         }
     }
+    private loadItemModel(model:THREE.Group) {
+        this.disposeItem(); // Remove previous model from item3D
+        this.item3D.add(model.clone(true));// Clone before adding
+    }
     private holdSelectedItem() {//called on loop
-        const item = itemManager.itemInHand;
-        const heldItemID = item ? item.name : null;
+        const itemInHand = itemManager.itemInHand;
+        const heldItemID = itemInHand ? itemInHand.name : null;
         if (heldItemID !== this.currentHeldItemID) {
             this.currentHeldItemID = heldItemID;
             console.log('holding currentHeldItemID:',this.currentHeldItemID);
-            if (item) {
-                if (item.scene) {
-                    this.disposeItem(); // Remove previous model from item3D
-                    const clonedModel = item.scene.clone(true); // Clone before adding
-                    this.item3D.add(clonedModel);
-                    return
-                }
-                this.modelLoader.load(item.modelPath,
+            if (!itemInHand) {
+                this.disposeItem();
+                return
+            }
+            if (itemInHand.scene) {
+                console.log('used item scene');
+                this.loadItemModel(itemInHand.scene)
+                return
+            }else {
+                this.modelLoader.load(itemInHand.modelPath,
                     gltf=>{
-                        item.scene = gltf.scene;
-                        this.disposeItem(); // Remove previous model from item3D
-                        const clonedModel = gltf.scene.clone(true); // Clone before adding
-                        this.item3D.add(clonedModel);
-                    },undefined, 
-                    error =>console.error( error ),
+                        itemInHand.scene = gltf.scene;
+                        this.loadItemModel(itemInHand.scene)
+                    }
                 );
-            } else {
-                this.disposeItem(); 
             }
         }
     }
