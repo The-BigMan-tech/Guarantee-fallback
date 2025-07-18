@@ -39,40 +39,15 @@ export default function ItemGui() {
     const cellRefs = useRef<Record<string,HTMLButtonElement | null >>({});
     const [cellsArray,setCellsArray] = useState<string[]>([]) 
     
-    useEffect(()=>{ //used memo here to make it react to change in cell num.
-        let cells:ItemID[] = (tab === "Items")
-            ?Object.keys(itemManager.items)
-            :Array.from(itemManager.inventory.keys());
-
-        if (cells.length < cellNum) {// Pad the array with nulls until it reaches cellNum length
-            const padding:string[] = [];
-            for (let i=0;i < (cellNum - cells.length);i++) {
-                padding.push(`${nullCellIDPrefix}${i}`)
-            }
-            cells = [...cells, ...padding];
-        }
-        setCellsArray(cells)
-    },[cellNum,tab]) 
-
     //this is a slice into the cells array used progressive/incremental loading for perf and ux
     const visibleCellsIncrement:number = useMemo(()=>gridCols,[gridCols]);
     const [visibleCellCount, setVisibleCellCount] = useState(visibleCellsIncrement);
     const incrementDelay:milliseconds = 60; 
 
-    useEffect(() => {
-        if (visibleCellCount < cellsArray.length) {
-            const timeOut = setTimeout(() => {
-                setVisibleCellCount(count => Math.min(count + visibleCellsIncrement, cellsArray.length));//capped it to the cells array length to prevent out of bounds
-            },incrementDelay);
-            return () => clearTimeout(timeOut);
-        }
-    }, [visibleCellCount, cellsArray,visibleCellsIncrement]);
-
-    useEffect(() => {//reset the visible cell count whenever the data source changes to prevent rendering the list all at once when the list changes cuz list change will cause a rerender
-        setVisibleCellCount(visibleCellsIncrement);
-    }, [cellsArray, tab,visibleCellsIncrement]);
-
     const visibleCells = useMemo(() => cellsArray.slice(0, visibleCellCount), [cellsArray, visibleCellCount]);
+    
+    const dragItem = useRef<number | null>(null);
+    const dragOverItem = useRef<number | null>(null);
 
     function setHoveredCell(value:string) {//passed wrapper as prop to avoid unintended mutation by children
         setCellHovered(value)
@@ -108,6 +83,58 @@ export default function ItemGui() {
             return ''
         }
     }
+    function handleDragStart(index:number) {
+        dragItem.current = index;
+        console.log('Drag index 1:', index);
+    };
+    function handleDragEnter(index:number) {
+        dragOverItem.current = index;
+        console.log('Drag index 2:', index);
+    };
+    function handleDrop(e:React.DragEvent<HTMLDivElement>) {
+        e.preventDefault();
+        if ((dragItem.current == null) || (dragOverItem.current == null)) return;
+        setCellsArray(prev => {//reinsert the dragged item
+            const arr = [...prev];
+            const [removed] = arr.splice(dragItem.current!, 1);
+            arr.splice(dragOverItem.current!, 0, removed);
+            return arr;
+        });
+        dragItem.current = null;
+        dragOverItem.current = null;
+    };
+
+
+    useEffect(()=>{ //used memo here to make it react to change in cell num.
+        let cells:ItemID[] = (tab === "Items")
+            ?Object.keys(itemManager.items)
+            :Array.from(itemManager.inventory.keys());
+
+        if (cells.length < cellNum) {// Pad the array with nulls until it reaches cellNum length
+            const padding:string[] = [];
+            for (let i=0;i < (cellNum - cells.length);i++) {
+                padding.push(`${nullCellIDPrefix}${i}`)
+            }
+            cells = [...cells, ...padding];
+        }
+        setCellsArray(cells)
+    },[cellNum,tab]) 
+
+
+    useEffect(() => {
+        if (visibleCellCount < cellsArray.length) {
+            const timeOut = setTimeout(() => {
+                setVisibleCellCount(count => Math.min(count + visibleCellsIncrement, cellsArray.length));//capped it to the cells array length to prevent out of bounds
+            },incrementDelay);
+            return () => clearTimeout(timeOut);
+        }
+    }, [visibleCellCount, cellsArray,visibleCellsIncrement]);
+
+
+    useEffect(() => {//reset the visible cell count whenever the data source changes to prevent rendering the list all at once when the list changes cuz list change will cause a rerender
+        setVisibleCellCount(visibleCellsIncrement);
+    }, [cellsArray, tab,visibleCellsIncrement]);
+
 
     useEffect(() => {//this is to scroll the grid to the view of the currently selected cell
         if (!selectedCellID) return;
@@ -117,6 +144,7 @@ export default function ItemGui() {
         }
     }, [selectedCellID]);
 
+    
     useEffect(()=>{//i used key-up for natural debouncing
         function getCellIndex(itemID:ItemID) {
             return cellsArray.findIndex(id => id === itemID)
@@ -196,31 +224,6 @@ export default function ItemGui() {
     }), [gridWidth]);
 
 
-
-    const dragItem = useRef<number | null>(null);
-    const dragOverItem = useRef<number | null>(null);
-
-
-    const handleDragStart = (index:number) => {
-        dragItem.current = index;
-        console.log('Drag index 1:', index);
-    };
-    const handleDragEnter = (index:number) => {
-        dragOverItem.current = index;
-        console.log('Drag index 2:', index);
-    };
-    const handleDrop = (e:React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        if ((dragItem.current == null) || (dragOverItem.current == null)) return;
-        setCellsArray(prev => {//reinsert the dragged item
-            const arr = [...prev];
-            const [removed] = arr.splice(dragItem.current!, 1);
-            arr.splice(dragOverItem.current!, 0, removed);
-            return arr;
-        });
-        dragItem.current = null;
-        dragOverItem.current = null;
-    };
     //i wanted to use a sigle motion.div to animate the gui on exit and entry to prevent duplication but it didnt work.it is still neat the way it is and also,i can give them unique values in their animations
     //the key used for the motion divs helps React to identify the element for transition.they must be stable
     return <>
