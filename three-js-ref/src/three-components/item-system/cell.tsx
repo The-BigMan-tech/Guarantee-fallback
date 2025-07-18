@@ -19,24 +19,25 @@ interface Props {
     handleDragStart: (index: number) => void,
     handleDrop: (e: React.DragEvent<HTMLDivElement>) => void
 }
+function xor(a:boolean, b:boolean):boolean {
+    return (a || b) && !(a && b);
+}
 function areEqual(prev: Props, next: Props) {
     return (//Dont rerender only if:
         prev.itemGuiVersion == next.itemGuiVersion &&//no changes to external data that isnt managed by react but imperatively like the inventory data,were made.
         prev.itemID === next.itemID &&//its the same cell at that index
         prev.selectedCellID === next.selectedCellID &&//the selected cell remains the same
-        // prev.cellHovered === next.cellHovered &&//the same cell is hovered over
         prev.tab === next.tab &&//the gui tab is the same
-        
+        prev.index === next.index &&
         
         prev.selectCell === next.selectCell &&//the function refs are the same.even if the defintions remain stable,we still need to check for this to prevent subtle bugs when referencing an old closure
         prev.setHoveredCell === next.setHoveredCell &&
         prev.selectedCellStyle === next.selectedCellStyle &&
-        //we can ignore cell refs because the refs to the cells always remains the same
 
-        prev.index === next.index &&
         prev.handleDragStart === next.handleDragStart &&
         prev.handleDragEnter === next.handleDragEnter &&
         prev.handleDrop === next.handleDrop
+         //we can ignore cell refs because the refs to the cells always remains the same
     );
 }
 const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cellHovered,setHoveredCell,cellRefs,handleDragEnter,handleDragStart,handleDrop,index}:Props)=>{
@@ -96,7 +97,7 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
                     ?<div className="text-sm">
                         <div>{itemManager.items[itemID]?.name}</div>
                         <div className={multiplierStyle}>{
-                            ((selectedCellID==itemID) || (cellHovered==itemID)) &&  
+                            (xor((selectedCellID==itemID),(cellHovered==itemID))) &&  
                             `${itemCount}`
                         }</div>
                     </div>

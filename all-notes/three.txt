@@ -1557,3 +1557,7 @@ so a closure function reference always changes on rerenders but using a use call
 
 you should check in your areEqual function all props that affect rendering, including functions you pass asprops, to correctly memoize your component and avoid subtle bugs.If you skip comparing a function prop and itchanges, your component will keep referencing old closures, leading to bugs.
 This means your areEqual should check equality of function props like selectCell, setHoveredCell, and selectedCellStyle to return true only if those functions are referentially equal.
+
+
+*Caution when using incremental loading
+Do not memoize the children of an incremenatally loaded array because the array will always drop and readd elements to itself causing rerenders regardless of child memoizations.to solve this,switch to the original array when attempting to do an operation that requires memoization.i can choose to directly set the incremental array instead of the source to prevent dropping of elements but it will lead to a bug because it wont be consistent with the original data soource

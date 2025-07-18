@@ -49,6 +49,7 @@ export default function ItemGui() {
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
 
+    const [loadProgressively,setLoadProgressively] = useState<boolean>(true);
 
     function toggleTab() {
         setTab((prev)=>{
@@ -107,6 +108,7 @@ export default function ItemGui() {
         });
         dragItem.current = null;
         dragOverItem.current = null;
+        setLoadProgressively(false)
     },[]);
 
 
@@ -123,6 +125,7 @@ export default function ItemGui() {
             }
             cells = [...cells, ...padding];
         }
+        setLoadProgressively(true)
         setCellsArray(cells)
     },[cellNum,tab]) 
 
