@@ -52,7 +52,7 @@ export default function ItemGui() {
         return cells;
     },[cellNum,tab]) 
 
-    //i used progressive/incremental loading/rendering for perf and ux
+    //this is a slice into the cells array used progressive/incremental loading for perf and ux
     const visibleCellsIncrement:number = useMemo(()=>gridCols,[gridCols]);
     const [visibleCellCount, setVisibleCellCount] = useState(visibleCellsIncrement);
     const incrementDelay:milliseconds = 60; 
@@ -193,6 +193,7 @@ export default function ItemGui() {
         },
     }), [gridWidth]);
 
+    //this is a state over the visible cells to control reordering of elements dynamically for drag and drop.
     const [cellOrder, setCellOrder] = useState<string[]>([]);
     useEffect(() => {
         setCellOrder(visibleCells);
@@ -237,7 +238,7 @@ export default function ItemGui() {
                     <motion.div key="div2" className={`grid h-[90%] ${gridColClass} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
                         {cellOrder.map((itemID,index) => (
                             <div 
-                                draggable 
+                                draggable={tab == "Inventory"} 
                                 onDragStart={() => handleDragStart(index)} 
                                 onDragEnter={() => handleDragEnter(index)}
                                 onDragOver={e => e.preventDefault()}
