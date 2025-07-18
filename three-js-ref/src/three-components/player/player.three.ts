@@ -203,10 +203,10 @@ class Player extends Controller implements EntityLike {
         const signedDist = camPosToPlayer.dot(camForward);
         
         if (this.keysPressed['Equal'] &&  (signedDist <= this.zoomClamp)) {//this corresponds to + key.zoom in
-            this.zoomCamera(this.zoomDelta);
+            this.zoomCamera(this.zoomDelta,camForward);
         }
         if (this.keysPressed['Minus'] && (signedDist >= -this.zoomClamp)) {//zoom out
-            this.zoomCamera(-this.zoomDelta);
+            this.zoomCamera(-this.zoomDelta,camForward);
         }
         
         if (this.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
@@ -216,8 +216,7 @@ class Player extends Controller implements EntityLike {
             }            
         }
     }
-    private zoomCamera(zoomDelta:number) {
-        const camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion);
+    private zoomCamera(zoomDelta:number,camForward:THREE.Vector3) {
         const zoomDirection = camForward.multiplyScalar(zoomDelta);
         const zoomPosition = this.camera.cam3D.position.clone().add(zoomDirection); // move forward
         this.targetY = zoomPosition.y;
