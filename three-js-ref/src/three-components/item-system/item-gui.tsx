@@ -192,9 +192,36 @@ export default function ItemGui() {
             whileHover: { scale: 1.1 }
         },
     }), [gridWidth]);
-    
 
-    
+    const [cellOrder, setCellOrder] = useState<string[]>([]);
+    useEffect(() => {
+        setCellOrder(visibleCells);
+    }, [visibleCells]);
+
+    const dragItem = useRef<number | null>(null);
+    const dragOverItem = useRef<number | null>(null);
+
+
+    const handleDragStart = (index:number) => {
+        dragItem.current = index;
+        console.log('Drag index 1:', index);
+    };
+    const handleDragEnter = (index:number) => {
+        dragOverItem.current = index;
+        console.log('Drag index 2:', index);
+    };
+    const handleDrop = (e:React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        if ((dragItem.current == null) || (dragOverItem.current == null)) return;
+        setCellOrder(prev => {
+            const arr = [...prev];
+            const [removed] = arr.splice(dragItem.current!, 1);
+            arr.splice(dragOverItem.current!, 0, removed);
+            return arr;
+        });
+        dragItem.current = null;
+        dragOverItem.current = null;
+    };
     //i wanted to use a sigle motion.div to animate the gui on exit and entry to prevent duplication but it didnt work.it is still neat the way it is and also,i can give them unique values in their animations
     //the key used for the motion divs helps React to identify the element for transition.they must be stable
     return <>
@@ -208,17 +235,25 @@ export default function ItemGui() {
                     </motion.div>
 
                     <motion.div key="div2" className={`grid h-[90%] ${gridColClass} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-scroll rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
-                        {visibleCells.map((itemID) => (
-                            <Cell key={itemID} {...{
-                                itemID,
-                                selectedCellID,
-                                tab,
-                                cellHovered,
-                                setHoveredCell,
-                                selectedCellStyle,
-                                selectCell,
-                                cellRefs
-                            }}/>
+                        {cellOrder.map((itemID,index) => (
+                            <div 
+                                draggable 
+                                onDragStart={() => handleDragStart(index)} 
+                                onDragEnter={() => handleDragEnter(index)}
+                                onDragOver={e => e.preventDefault()}
+                                onDrop={handleDrop}
+                                >
+                                <Cell  key={itemID} {...{
+                                    itemID,
+                                    selectedCellID,
+                                    tab,
+                                    cellHovered,
+                                    setHoveredCell,
+                                    selectedCellStyle,
+                                    selectCell,
+                                    cellRefs
+                                }}/>
+                            </div>
                         ))}
                     </motion.div>
                 </>
