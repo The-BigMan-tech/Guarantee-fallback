@@ -1545,3 +1545,5 @@ screenshot my model
 remove.bg
 
 *Avoiding over-engineering and choosing the workflow or pattern that’s “boring but bulletproof.”
+
+*so minecraft,roblox and other games have their uis embedded in the game loop meaning that its blocking and it can also be blocked.so since my game is written in js and i used react for the ui and three js for the game,it means that ive decoupled my game's entire ui from its render loop.this means that my ui unlike even professional grade games like minecraft and roblox is far more responsive because its fps independent.it wont lag if the  game lags and the ui will certainly never cause the game to lag.this is a perf gain
