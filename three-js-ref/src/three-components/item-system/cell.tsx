@@ -20,7 +20,7 @@ function areEqual(prev: Props, next: Props) {
         prev.itemGuiVersion == next.itemGuiVersion &&//no changes to external data that isnt managed by react but imperatively like the inventory data,were made.
         prev.itemID === next.itemID &&//its the same cell at that index
         prev.selectedCellID === next.selectedCellID &&//the selected cell remains the same
-        prev.cellHovered === next.cellHovered &&//the same cell is hovered over
+        // prev.cellHovered === next.cellHovered &&//the same cell is hovered over
         prev.tab === next.tab &&//the gui tab is the same
         prev.selectCell === next.selectCell &&//the function refs are the same.even if the defintions remain stable,we still need to check for this to prevent subtle bugs when referencing an old closure
         prev.setHoveredCell === next.setHoveredCell &&
@@ -29,6 +29,7 @@ function areEqual(prev: Props, next: Props) {
     );
 }
 const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cellHovered,setHoveredCell,cellRefs}:Props)=>{
+    console.log('Drag Rendering Cell for:',itemID);
     const multiplierStyle:style = "absolute top-[3%] right-[4%] font-semibold";
     const itemCount = (itemManager.inventory.has(itemID) && `x ${itemManager.inventory.get(itemID)?.count}`) || ''
     
