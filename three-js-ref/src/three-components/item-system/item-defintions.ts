@@ -30,10 +30,14 @@ function eulerDegToRad(euler: THREE.Euler): THREE.Euler {
         euler.order // preserve the order
     );
 }
+const modelPaths = {//this is to prevent duplication
+    Block:'./block/block.glb',
+    Snowball:'./snowball/snowball.glb',
+}
 export const itemDefinitions:Record<ItemID,Item>  = {//items should be registered on startup and shouldn be mutated
     'block':{
         name:'Block',
-        modelPath:'./block/block.glb',
+        modelPath:modelPaths.Block,
         imagePath:'./block/block.png',
         scene:null,
         transform:{
@@ -41,11 +45,16 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
             scale:new THREE.Vector3(0.5,0.5,0.5)
         },
-        behaviour:new DynamicBody()
+        behaviour:new DynamicBody({
+            modelPath:modelPaths.Block,
+            width:5,
+            height:5,
+            depth:5
+        })
     },
     'snowball':{
         name:'Snowball',
-        modelPath:'./snowball/snowball.glb',
+        modelPath:modelPaths.Snowball,
         imagePath:'./snowball/snowball.png',
         scene:null,
         transform:{
