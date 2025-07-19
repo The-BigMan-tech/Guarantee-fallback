@@ -188,7 +188,7 @@ class Player extends Controller implements EntityLike {
                 this.attack();
             }
         }
-        if (this.keysPressed['KeyE']) {
+        if (this.keysPressed['KeyR']) {
             if (this.toggleItemGuiTimer > this.toggleItemGuiCooldown) {
                 toggleItemGui()
                 this.toggleItemGuiTimer = 0;

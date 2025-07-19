@@ -1,4 +1,6 @@
 import * as THREE from "three"
+import { DynamicBody } from "./behaviour/dynamic-body.three";
+import { Throwable } from "./behaviour/throwable.three";
 
 export type ItemID = string;
 
@@ -13,7 +15,8 @@ export interface Item {
     readonly modelPath: string,   // path to model file
     readonly imagePath: string,    // path to model file
     scene:THREE.Group | null,//holds a ref to the gltf model
-    transform:ItemTransform
+    transform:ItemTransform,
+    behaviour:DynamicBody | Throwable
 }
 function eulerDegToRad(euler: THREE.Euler): THREE.Euler {
     return new THREE.Euler(
@@ -33,7 +36,8 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             position:new THREE.Vector3(0,-0.3,0), 
             rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
             scale:new THREE.Vector3(0.5,0.5,0.5)
-        }
+        },
+        behaviour:new DynamicBody()
     },
     'snowball':{
         name:'Snowball',
@@ -44,6 +48,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             position:new THREE.Vector3(0,-0.3,0), 
             rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
             scale:new THREE.Vector3(0.3,0.3,0.3)
-        }
+        },
+        behaviour:new Throwable()
     }
 }

@@ -174,7 +174,7 @@ export default function ItemGui() {
             else if (event.code == 'ArrowUp') moveSelection(-gridCols);
             else if (event.code == 'ArrowDown') moveSelection(gridCols);    
             else {
-                const deselectKey ='KeyE'
+                const deselectKey ='KeyR'
                 if (event.code == deselectKey) {//i used the same key for both toggling off the item gui and deselecting a cell for good ux.
                     setSelectedCellID(undefined);
                     setIsCellSelected(false);
