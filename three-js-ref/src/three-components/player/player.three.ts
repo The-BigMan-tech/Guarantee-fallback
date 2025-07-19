@@ -349,10 +349,10 @@ class Player extends Controller implements EntityLike {
     private loadItemModel(itemInHand: InventoryItem) {
         this.disposeItem(); // Remove previous model from item3D
         const clonedModel = itemInHand.item.scene!.clone(true); // Deep clone
-        const placement = itemInHand.item.placement;
-        clonedModel.scale.set(0.5, 0.5, 0.5); // Scale to 50% in all dimensions
-        clonedModel.position.copy(placement.position);
-        clonedModel.rotation.copy(placement.rotation);
+        const transform = itemInHand.item.transform;
+        clonedModel.scale.copy(transform.scale); // Scale to 50% in all dimensions
+        clonedModel.position.copy(transform.position);
+        clonedModel.rotation.copy(transform.rotation);
         this.item3D.add(clonedModel);// Clone before adding
     }
 

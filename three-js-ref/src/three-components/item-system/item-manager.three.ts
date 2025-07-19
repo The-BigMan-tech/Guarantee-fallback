@@ -6,16 +6,17 @@ export interface Item {
     readonly name: string,          // friendly name
     readonly modelPath: string,   // path to model file
     readonly imagePath: string,    // path to model file
-    scene:THREE.Group | null,
-    placement:ItemPlacement
+    scene:THREE.Group | null,//holds a ref to the gltf model
+    transform:ItemPlacement
 }
 export interface InventoryItem {
     count:number,
     item:Item
 }
 export interface ItemPlacement {
-    position: THREE.Vector3;
-    rotation: THREE.Euler;
+    position:THREE.Vector3,
+    rotation:THREE.Euler,
+    scale:THREE.Vector3
 }
 function eulerDegToRad(euler: THREE.Euler): THREE.Euler {
     return new THREE.Euler(
@@ -41,9 +42,10 @@ class ItemManager {
             modelPath:'./block/block.glb',
             imagePath:'./block/block.png',
             scene:null,
-            placement:{
+            transform:{
                 position:new THREE.Vector3(0,-0.2,0), 
-                rotation:eulerDegToRad(new THREE.Euler(0,0,0))
+                rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
+                scale:new THREE.Vector3(0.5,0.5,0.5)
             }
         },
         'snowball':{
@@ -51,9 +53,10 @@ class ItemManager {
             modelPath:'./snowball/snowball.glb',
             imagePath:'./snowball/snowball.png',
             scene:null,
-            placement:{
+            transform:{
                 position:new THREE.Vector3(0,-0.2,0), 
-                rotation:eulerDegToRad(new THREE.Euler(0,0,0))
+                rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
+                scale:new THREE.Vector3(0.5,0.5,0.5)
             }
         }
     }
