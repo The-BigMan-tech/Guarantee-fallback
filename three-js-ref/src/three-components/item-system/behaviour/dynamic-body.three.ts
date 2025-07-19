@@ -22,20 +22,20 @@ export class DynamicBody implements ItemBehaviour {
             this.model = gltf.scene;
         })
     }
+    private getSpawnPosition(customCamera:Camera):THREE.Vector3 {
+        const lookAtDistance = 5;
+        const spawnPosition = new THREE.Vector3();// Calculate spawn position: camera position + camera forward vector * distance
+        customCamera.cam3D.getWorldPosition(spawnPosition);             
+        const forwardVector = new THREE.Vector3(0, 0,-1).applyQuaternion(customCamera.cam3D.getWorldQuaternion(new THREE.Quaternion()));
+        forwardVector.multiplyScalar(lookAtDistance)
+        spawnPosition.add(forwardVector);
+        return spawnPosition;
+    }
     public use(customCamera:Camera) {
         if (this.model) {
-            const lookAtDistance = 5;
             const clone = this.model.clone(true);
-            const spawnPosition = new THREE.Vector3();// Calculate spawn position: camera position + camera forward vector * distance
-            customCamera.cam3D.getWorldPosition(spawnPosition);
-                    
-            const forwardVector = new THREE.Vector3(0, 0,-1).applyQuaternion(customCamera.cam3D.getWorldQuaternion(new THREE.Quaternion()));
-            forwardVector.multiplyScalar(lookAtDistance)
-            spawnPosition.add(forwardVector)
-            clone.position.copy(spawnPosition);
-
+            clone.position.copy(this.getSpawnPosition(customCamera));
             DynamicBody.dynamicBodyGroup.add(clone);
-            console.log('model has loaded');
         }
     }
 }
