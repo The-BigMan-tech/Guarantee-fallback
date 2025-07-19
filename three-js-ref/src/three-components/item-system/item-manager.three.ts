@@ -1,31 +1,11 @@
-import * as THREE from "three";
+import { itemDefinitions, type Item,type ItemID } from "./item-defintions";
 
-export type ItemID = string;
-
-export interface Item {
-    readonly name: string,          // friendly name
-    readonly modelPath: string,   // path to model file
-    readonly imagePath: string,    // path to model file
-    scene:THREE.Group | null,//holds a ref to the gltf model
-    transform:ItemPlacement
-}
 export interface InventoryItem {
     count:number,
     item:Item
 }
-export interface ItemPlacement {
-    position:THREE.Vector3,
-    rotation:THREE.Euler,
-    scale:THREE.Vector3
-}
-function eulerDegToRad(euler: THREE.Euler): THREE.Euler {
-    return new THREE.Euler(
-        THREE.MathUtils.degToRad(euler.x),
-        THREE.MathUtils.degToRad(euler.y),
-        THREE.MathUtils.degToRad(euler.z),
-        euler.order // preserve the order
-    );
-}
+
+
 type Singleton<T> = T;
 class ItemManager {
     private static manager:ItemManager;
@@ -35,31 +15,7 @@ class ItemManager {
 
     private _itemInHand:InventoryItem | null = null;//i used inv item type to keep track of its count to clear it when it reaches zero(no longer in the inventory)
     private _inventory:Map<ItemID,InventoryItem> = new Map();
-
-    private _items:Record<ItemID,Item> = {//items should be registered on startup and shouldn be mutated
-        'block':{
-            name:'Block',
-            modelPath:'./block/block.glb',
-            imagePath:'./block/block.png',
-            scene:null,
-            transform:{
-                position:new THREE.Vector3(0,-0.3,0), 
-                rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
-                scale:new THREE.Vector3(0.5,0.5,0.5)
-            }
-        },
-        'snowball':{
-            name:'Snowball',
-            modelPath:'./snowball/snowball.glb',
-            imagePath:'./snowball/snowball.png',
-            scene:null,
-            transform:{
-                position:new THREE.Vector3(0,-0.3,0), 
-                rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
-                scale:new THREE.Vector3(0.3,0.3,0.3)
-            }
-        }
-    }
+    private _items:Record<ItemID,Item> = itemDefinitions
 
     private constructor() {}
     public static get instance() {

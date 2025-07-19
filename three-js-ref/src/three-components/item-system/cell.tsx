@@ -1,5 +1,6 @@
 import {motion} from "motion/react"
-import { itemManager, type ItemID } from "./item-manager.three";
+import { itemManager } from "./item-manager.three";
+import type { ItemID } from "./item-defintions";
 import { useEffect, useMemo,useState,memo,type RefObject } from "react";
 
 type style = string;
