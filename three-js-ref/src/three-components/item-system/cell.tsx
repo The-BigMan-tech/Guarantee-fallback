@@ -43,6 +43,7 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
     const multiplierStyle:style = "absolute top-[3%] right-[4%] font-semibold text-[#e3fcd8]";
     const itemCount = (itemManager.inventory.has(itemID) && `x ${itemManager.inventory.get(itemID)?.count}`) || ''
     const stackfullText:string | null = (itemManager.isStackFull(itemID)?'Full':null);//to indicate the inv is full.i only used this indicator in the main item grid to signal it to playrs when adding items from it to their inv but the inv itself will always show the item count
+    const itemNameStyle:style = "font-mono font-semibold text-sm"
 
     const ANIMATION_CONFIG = useMemo(() => ({
         cell: {
@@ -85,21 +86,19 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
                 >
                 {/*only render the image if on the items tab or if we are in the inventory tab but the count is greater than 0.this is to avoid the image from lingering the inv */}
                 {(tab == "Items") || ((itemManager.inventory.get(itemID)?.count || 0) > 0) 
-                    ?<img src={src} className="w-[80%] relative left-[10%] " draggable={false}/>
+                    ?<img src={src} className={`w-[75%] relative left-[10%]`} draggable={false}/>
                     :null
                 }
                 {(tab == "Items")
                     ?<div className="text-sm">
-                        <div>{itemManager.items[itemID]?.name}</div>
+                        <div className={itemNameStyle}>{itemManager.items[itemID]?.name}</div>
                         {((selectedCellID==itemID) || (cellHovered==itemID))
-                            ?<>
-                                <div className={multiplierStyle}>{stackfullText || itemCount}</div>
-                            </>
+                            ?<div className={multiplierStyle}>{stackfullText || itemCount}</div>
                             :null
                         }
                     </div>
                     :<div>
-                        <div>{itemManager.inventory.get(itemID)?.item.name}</div>
+                        <div className={itemNameStyle}>{itemManager.inventory.get(itemID)?.item.name}</div>
                         <div className={multiplierStyle}>{`${itemCount}`}</div>
                     </div>
                 }

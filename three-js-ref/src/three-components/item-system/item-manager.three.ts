@@ -26,14 +26,14 @@ class ItemManager {
     private _items:Record<ItemID,Item> = {//items should be registered on startup and shouldn be mutated
         'block':{
             name:'Block',
-            modelPath:'./block.glb',
-            imagePath:'./block.png',
+            modelPath:'./block/block.glb',
+            imagePath:'./block/block.png',
             scene:null
         },
         'snowball':{
             name:'Snowball',
             modelPath:'./block.glb',
-            imagePath:'./snowball.png',
+            imagePath:'./snowball/snowball.png',
             scene:null
         }
     }
