@@ -1591,3 +1591,10 @@ Preventing default behavior on keyboard events is needed to block Spacebar/Enter
 *moving your root bone away from the origin (the starting grid) in Blockbench can cause unexpected behavior on export, especially regarding where your model appears in-game and how it interacts with other systems like your character’s hand position
 
 *so my item system is now in layers--the item definitions containing static data describing the items,the item manager which is the single source of truth of item and inventory management.the inventory ui which provides a user friendly interface over the item manager and safely interacts with the manager via exposed methods.the jotai state which is used to sync the ui with the player controls like siwtching beyween grid navigation or ordinary player movement,toggling on and off the ui.Then i have the controller which reserves a spot for items to be placed but it itself doesnt manage or handle that item then the player who loads and unloads item models into that spot based on the held item as said by the item manager.
+
+
+*Use useMemo for derived, potentially expensive values that depend on other state or props and you want to optimize recalculation.
+
+*Use useState for independent mutable state that user or events update over time.it isnt best for derived state because useState isnt reactive to change in data and requires manual syncing in a use effect
+
+*Use a raw variable for simple or cheap computations.

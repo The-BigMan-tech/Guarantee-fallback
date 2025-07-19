@@ -50,6 +50,7 @@ export default function ItemGui() {
     const dragOverItem = useRef<number | null>(null);
 
     const [loadProgressively,setLoadProgressively] = useState<boolean>(true);
+    const scrollStyle:string = selectedCellID?'overflow-y-scroll':'overflow-y-hidden'//when not selecting a cell i.e not in grid nav mode,i want to prevent the grids container from scrolling on player input which is because the player may be attempting to rotate their char so they dont expect the containr to scroll.but on gri navigation mode,scrolling the container with the mouse is allowed.
 
     function toggleTab() {
         setTab((prev)=>{
@@ -254,7 +255,7 @@ export default function ItemGui() {
                         </motion.button>
                     </motion.div>
 
-                    <motion.div key="div2" className={`grid h-[90%] ${gridColClass} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] overflow-y-hidden rounded-b-xl custom-scrollbar`} {...ANIMATION_CONFIG.grid}>
+                    <motion.div key="div2" className={`grid h-[90%] ${gridColClass} absolute z-20 top-[8%] left-[4%] bg-[#ffffff2d] shadow-md pt-[0.4%] pb-[0.4%] pl-[0.5%] pr-[0.5%] gap-[2%] rounded-b-xl custom-scrollbar ${scrollStyle}`} {...ANIMATION_CONFIG.grid}>
                         {((loadProgressively)?visibleCells:cellsArray).map((itemID,index) => (     
                             <Cell key={itemID} {...{
                                 itemGuiVersion,
