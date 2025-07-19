@@ -88,6 +88,9 @@ class Player extends Controller implements EntityLike {
     private readonly zoomDelta:number = 1;
     private readonly zoomClamp = 15
 
+    private useItemCooldown:seconds = 0.5;
+    private useItemTimer:seconds = 0;
+
     private isDescendantOf(child: THREE.Object3D, parent: THREE.Object3D): boolean {
         let current = child;
         while (current) {
@@ -217,6 +220,15 @@ class Player extends Controller implements EntityLike {
                 this.camModeNum = ((this.camModeNum<3)?this.camModeNum + 1:1) as 1 | 2 | 3;//this is to increase the camMode,when its 3rd person,reset it back to 1st person and repeat 
                 this.toggleTimer = 0;
             }            
+        }
+        if (this.keysPressed['KeyE']) {
+            if (this.useItemTimer > this.useItemCooldown) {
+                const itemInHand = itemManager.itemInHand;
+                if (itemInHand) {
+                    itemInHand.item.behaviour.use();
+                }
+                this.useItemTimer = 0
+            }
         }
     }
     private zoomCamera(zoomDelta:number,camForward:THREE.Vector3) {
@@ -384,6 +396,7 @@ class Player extends Controller implements EntityLike {
         this.toggleItemGuiTimer += this.clockDelta || 0;
         this.showEntityHealthTimer += this.clockDelta || 0;
         this.attackTimer += this.clockDelta || 0;
+        this.useItemTimer += this.clockDelta || 0;
         this.currentHealth = this.health.value;
         this.holdSelectedItem();
         this.checkIfOutOfBounds();

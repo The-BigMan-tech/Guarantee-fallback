@@ -2,6 +2,10 @@ import * as THREE from "three"
 import { DynamicBody } from "./behaviour/dynamic-body.three";
 import { Throwable } from "./behaviour/throwable.three";
 
+
+export interface ItemBehaviour {
+    use:()=>void
+}
 export type ItemID = string;
 
 export interface ItemTransform {
@@ -16,7 +20,7 @@ export interface Item {
     readonly imagePath: string,    // path to model file
     scene:THREE.Group | null,//holds a ref to the gltf model
     transform:ItemTransform,
-    behaviour:DynamicBody | Throwable
+    behaviour:ItemBehaviour
 }
 function eulerDegToRad(euler: THREE.Euler): THREE.Euler {
     return new THREE.Euler(
