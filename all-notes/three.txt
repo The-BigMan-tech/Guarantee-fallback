@@ -1181,7 +1181,7 @@ Three.js meshes use positions relative to their parent object. Since your this.c
 so physics engines use flat world coords(absolute 3D world coords) while 3D libraries use hierarchical positioning where elements are positioned relative to their parents allowing for comple transformations
 
 *Lifetimes
-*Position management--explicit local and world offset,position centering
+*Coordinate management--explicit local and world offset,position centering
 *Rotation management
 
 *so the reason why my entities and me as the player dont require explicit position management between local and world cords is because unlike the chunk/floor,the cords of the group or scene dont change so there is no parent offsets that will cause issues.Their groups (or the player’s group) are direct children of the scene or a root group whose position is fixed at the world origin (0,0,0).Because their parent’s transform does not change or offset their position, their .position is effectively in world coordinates.

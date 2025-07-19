@@ -1,10 +1,10 @@
 import * as THREE from "three"
 import { DynamicBody } from "./behaviour/dynamic-body.three";
 import { Throwable } from "./behaviour/throwable.three";
-
+import { Camera } from "../camera/camera.three";
 
 export interface ItemBehaviour {
-    use:(camera:THREE.Camera)=>void
+    use:(customCamera:Camera)=>void
 }
 export type ItemID = string;
 
