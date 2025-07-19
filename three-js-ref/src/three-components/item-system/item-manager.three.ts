@@ -3,16 +3,28 @@ import * as THREE from "three";
 export type ItemID = string;
 
 export interface Item {
-    readonly name: string;          // friendly name
-    readonly modelPath: string;     // path to model file
-    readonly imagePath: string;     // path to model file
-    scene:THREE.Group | null
+    readonly name: string,          // friendly name
+    readonly modelPath: string,   // path to model file
+    readonly imagePath: string,    // path to model file
+    scene:THREE.Group | null,
+    placement:ItemPlacement
 }
 export interface InventoryItem {
     count:number,
     item:Item
 }
-
+export interface ItemPlacement {
+    position: THREE.Vector3;
+    rotation: THREE.Euler;
+}
+function eulerDegToRad(euler: THREE.Euler): THREE.Euler {
+    return new THREE.Euler(
+        THREE.MathUtils.degToRad(euler.x),
+        THREE.MathUtils.degToRad(euler.y),
+        THREE.MathUtils.degToRad(euler.z),
+        euler.order // preserve the order
+    );
+}
 type Singleton<T> = T;
 class ItemManager {
     private static manager:ItemManager;
@@ -28,13 +40,21 @@ class ItemManager {
             name:'Block',
             modelPath:'./block/block.glb',
             imagePath:'./block/block.png',
-            scene:null
+            scene:null,
+            placement:{
+                position:new THREE.Vector3(0,-0.2,0), 
+                rotation:eulerDegToRad(new THREE.Euler(0,0,0))
+            }
         },
         'snowball':{
             name:'Snowball',
-            modelPath:'./block.glb',
+            modelPath:'./snowball/snowball.glb',
             imagePath:'./snowball/snowball.png',
-            scene:null
+            scene:null,
+            placement:{
+                position:new THREE.Vector3(0,-0.2,0), 
+                rotation:eulerDegToRad(new THREE.Euler(0,0,0))
+            }
         }
     }
 

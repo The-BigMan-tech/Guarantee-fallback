@@ -14,7 +14,7 @@ import { groupIDs } from "../entity-system/globals";
 import { relationshipManager } from "../entity-system/relationships.three";
 import type { seconds } from "../entity-system/globals";
 import { toggleItemGui,isCellSelected } from "../item-system/item-state";
-import { itemManager } from "../item-system/item-manager.three";
+import { itemManager, type InventoryItem } from "../item-system/item-manager.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
@@ -346,13 +346,13 @@ class Player extends Controller implements EntityLike {
         }
     }
 
-    private loadItemModel(model:THREE.Group) {
+    private loadItemModel(itemInHand: InventoryItem) {
         this.disposeItem(); // Remove previous model from item3D
-        const clonedModel = model.clone(true); // Deep clone
+        const clonedModel = itemInHand.item.scene!.clone(true); // Deep clone
+        const placement = itemInHand.item.placement;
         clonedModel.scale.set(0.5, 0.5, 0.5); // Scale to 50% in all dimensions
-        const offset = { position: new THREE.Vector3(0,-0.2,0), rotation: new THREE.Euler(0,0,0) };
-        clonedModel.position.copy(offset.position);
-        clonedModel.rotation.copy(offset.rotation);
+        clonedModel.position.copy(placement.position);
+        clonedModel.rotation.copy(placement.rotation);
         this.item3D.add(clonedModel);// Clone before adding
     }
 
@@ -366,17 +366,15 @@ class Player extends Controller implements EntityLike {
                 this.disposeItem();
                 return
             }
-            if (itemInHand.item.scene) {
+            if (itemInHand.item.scene) {//reuse the scene if already loaded
                 console.log('used item scene');
-                this.loadItemModel(itemInHand.item.scene)
+                this.loadItemModel(itemInHand)
                 return
             }else {
-                this.modelLoader.load(itemInHand.item.modelPath,
-                    gltf=>{
-                        itemInHand.item.scene = gltf.scene;
-                        this.loadItemModel(itemInHand.item.scene)
-                    }
-                );
+                this.modelLoader.load(itemInHand.item.modelPath,gltf=>{
+                    itemInHand.item.scene = gltf.scene;
+                    this.loadItemModel(itemInHand)
+                });
             }
         }
     }
