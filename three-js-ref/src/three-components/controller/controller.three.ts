@@ -117,6 +117,7 @@ export abstract class Controller {
     private landSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener);;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
     private punchSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener)
     
+    //this group is positioned exactly at the hand group of the 3d model by the controller and exposed to the children to do whatever thwy want with it like adding and removing item models from the group.i did it here because the controller unlike the player can call it at the appropriate time where its sure that the model is already available before it queries for the hand.else it will be null if attempted to be done in the children
     protected item3D:THREE.Group = new THREE.Group();
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
