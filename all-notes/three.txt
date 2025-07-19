@@ -1619,3 +1619,5 @@ The behavior class instance (to handle interaction, physics, events).
 
 
 *im essentially using Unity's component based approach
+
+*all of these kinds of subtleties is under transform management.that is,either using world or local points ,center or corner positions,euler or quaternion rotation.so i have to use the right one for my context.for example,rigid bodies and poisson samples use world cords but meshes use local cords so properly syncig them means applying the right transform to each component.without knowing these little distsinctions,it can lead to a transform bug.this is particular to 3d programming

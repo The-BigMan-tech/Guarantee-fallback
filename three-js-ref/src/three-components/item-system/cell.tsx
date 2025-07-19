@@ -60,7 +60,7 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
     useEffect(() => {//i delayed the loading of the img to prevent it from disturbing the mounting animation of the cell because of initial layout shift
         const timer = setTimeout(() => {
             setSrc(itemManager.items[itemID]?.imagePath);
-        }, 100);
+        },50);
         return () => clearTimeout(timer);
     }, [itemID]);
 
