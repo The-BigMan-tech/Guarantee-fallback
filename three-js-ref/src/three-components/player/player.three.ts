@@ -121,7 +121,6 @@ class Player extends Controller implements EntityLike {
         this.camera = new Camera(miscData.camArgs);
         this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
         this.addObject(listener);
-        this.addObject(this.item3D);
         this.addEventListeners();
         this.health = new Health(miscData.healthValue);
         this.currentHealth = miscData.healthValue;
@@ -336,7 +335,6 @@ class Player extends Controller implements EntityLike {
     }
 
 
-    private item3D:THREE.Group = new THREE.Group();
     private currentHeldItemID: string | null = null;
 
     private modelLoader:GLTFLoader = new GLTFLoader();
@@ -348,12 +346,14 @@ class Player extends Controller implements EntityLike {
             disposeHierarchy(child); // Dispose the removed child's geometry/materials/textures etc.
         }
     }
+
     private loadItemModel(model:THREE.Group) {
         this.disposeItem(); // Remove previous model from item3D
         const clonedModel = model.clone(true); // Deep clone
         clonedModel.scale.set(0.5, 0.5, 0.5); // Scale to 50% in all dimensions
         this.item3D.add(clonedModel);// Clone before adding
     }
+
     private holdSelectedItem() {//called on loop
         const itemInHand = itemManager.itemInHand;
         const heldItemID = itemInHand ? itemInHand.item.name : null;

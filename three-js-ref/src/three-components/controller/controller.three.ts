@@ -117,6 +117,8 @@ export abstract class Controller {
     private landSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener);;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
     private punchSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener)
     
+    protected item3D:THREE.Group = new THREE.Group();
+
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
         const halfWidth = Math.round(fixedData.characterWidth)/2;
@@ -182,12 +184,23 @@ export abstract class Controller {
                 const characterModel = gltf.scene
                 characterModel.position.z = this.modelZOffset
                 this.character.add(characterModel);
+                this.loadItem3D();
                 this.mixer = new AnimationMixer(characterModel);
                 this.loadCharacterAnimations(gltf);
                 this.applyMaterialToModel(characterModel)
             },undefined, 
             error =>console.error( error ),
         );
+    }
+    private loadItem3D() {
+        this.character.add(this.item3D);
+        const handGroup = this.character.getObjectByName('hand');
+        if (handGroup) {
+            handGroup.add(this.item3D);
+            this.item3D.position.set(0, 0, 0);
+            this.item3D.quaternion.identity();
+            this.item3D.scale.set(1, 1, 1);
+        }
     }
     private loadCharacterAnimations(gltf:GLTF):void {
         if (!this.mixer) return;
