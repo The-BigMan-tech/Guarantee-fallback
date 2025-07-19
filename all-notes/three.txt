@@ -1540,9 +1540,17 @@ progressbar js
 motion
 r3f
 
+
+*Item workflow
 go to my blockbench model
 screenshot my model
 remove.bg
+pivot the hand point of my character model
+pivot the point of each item model
+
+*Entity workflow
+Blockbench model
+Use my framework
 
 *Avoiding over-engineering and choosing the workflow or pattern that’s “boring but bulletproof.”
 

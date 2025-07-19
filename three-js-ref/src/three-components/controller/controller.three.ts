@@ -194,7 +194,7 @@ export abstract class Controller {
         );
     }
     private loadItem3D() {
-        this.character.add(this.item3D);
+        
         const handGroup = this.character.getObjectByName('hand');
         if (handGroup) {
             handGroup.add(this.item3D);
