@@ -43,7 +43,7 @@ class ItemManager {
             imagePath:'./block/block.png',
             scene:null,
             transform:{
-                position:new THREE.Vector3(0,1,0), 
+                position:new THREE.Vector3(0,-0.3,0), 
                 rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
                 scale:new THREE.Vector3(0.5,0.5,0.5)
             }
@@ -54,9 +54,9 @@ class ItemManager {
             imagePath:'./snowball/snowball.png',
             scene:null,
             transform:{
-                position:new THREE.Vector3(0,0,0), 
+                position:new THREE.Vector3(0,-0.3,0), 
                 rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
-                scale:new THREE.Vector3(0.5,0.5,0.5)
+                scale:new THREE.Vector3(0.3,0.3,0.3)
             }
         }
     }

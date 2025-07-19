@@ -1582,3 +1582,10 @@ vector distance is signed but in a vector form unless turned into a dot product
 *so not only is my ui non-blocking,but also error safe.this is bulletproof.the ui state can never affect the game because the ui on top of this only mutates the underlying data through safe getters and setters that they themselves handle all the mutation underneath.so i cant expect y ui as the reason why my game crash if it does.this can narrow down bug hunting later
 
 *so my js game will be fast because its lean on resource usage but c++ games despite using heavy runtimes if made with unreal,are fast because of heavy low level optimiations
+
+
+*Tabindex vs E.prevent default
+The tabindex attribute is primarily for tab key navigation order and focusability.
+Preventing default behavior on keyboard events is needed to block Spacebar/Enter from triggering focused buttons
+
+*moving your root bone away from the origin (the starting grid) in Blockbench can cause unexpected behavior on export, especially regarding where your model appears in-game and how it interacts with other systems like your character’s hand position
