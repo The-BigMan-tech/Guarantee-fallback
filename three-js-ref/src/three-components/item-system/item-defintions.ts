@@ -4,7 +4,7 @@ import { Throwable } from "./behaviour/throwable.three";
 
 
 export interface ItemBehaviour {
-    use:()=>void
+    use:(camera:THREE.Camera)=>void
 }
 export type ItemID = string;
 

@@ -1,6 +1,7 @@
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { ItemBehaviour } from "../item-defintions";
 import * as THREE from "three"
+import { Camera } from "three";
 
 interface DynamicBodyData {
     modelPath:string,
@@ -21,9 +22,18 @@ export class DynamicBody implements ItemBehaviour {
             this.model = gltf.scene;
         })
     }
-    public use() {
+    public use(camera:THREE.Camera) {
         if (this.model) {
-            DynamicBody.dynamicBodyGroup.add(this.model.clone(true));
+            const lookAtDistance = 5;
+            const clone = this.model.clone(true);
+            const spawnPosition = new THREE.Vector3();// Calculate spawn position: camera position + camera forward vector * distance
+            camera.getWorldPosition(spawnPosition);
+                    
+            const forwardVector = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+            spawnPosition.add(forwardVector.multiplyScalar(lookAtDistance)); 
+            clone.position.copy(spawnPosition);
+
+            DynamicBody.dynamicBodyGroup.add(clone);
             console.log('model has loaded');
         }
     }
