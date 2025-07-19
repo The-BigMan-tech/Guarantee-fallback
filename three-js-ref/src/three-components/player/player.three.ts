@@ -350,7 +350,7 @@ class Player extends Controller implements EntityLike {
         this.disposeItem(); // Remove previous model from item3D
         const clonedModel = model.clone(true); // Deep clone
         clonedModel.scale.set(0.5, 0.5, 0.5); // Scale to 50% in all dimensions
-        const offset = { position: new THREE.Vector3(0,0,1), rotation: new THREE.Euler(0,0,0) };
+        const offset = { position: new THREE.Vector3(0,-0.2,0), rotation: new THREE.Euler(0,0,0) };
         clonedModel.position.copy(offset.position);
         clonedModel.rotation.copy(offset.rotation);
         this.item3D.add(clonedModel);// Clone before adding

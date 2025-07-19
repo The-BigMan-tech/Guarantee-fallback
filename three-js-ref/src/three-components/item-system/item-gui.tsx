@@ -159,8 +159,6 @@ export default function ItemGui() {
             return cellsArray.findIndex(id => id === itemID)
         }
         function moveSelection(offset: number) {
-            console.log('selected Cell id 2:', selectedCellID);
-
             if (selectedCellID == undefined) return; // nothing selected
             const newIndex = getCellIndex(selectedCellID) + offset;
             console.log('selected cell id newIndex:', newIndex);
@@ -169,7 +167,6 @@ export default function ItemGui() {
                 selectCell(newID);
             }
         }
-
         function navGrid(event:KeyboardEvent) {
             if (event.code == 'ArrowRight') moveSelection(1);
             else if (event.code == 'ArrowLeft') moveSelection(-1);
@@ -185,26 +182,28 @@ export default function ItemGui() {
                 }
             }
         }
-
+        function interactWithInventory(event:KeyboardEvent) {
+            if (selectedCellID && !selectedCellID.startsWith(nullCellIDPrefix)) {//this is to prevent null pads from causing erros since their ids arent present in the actual item list
+                if ((tab === 'Items' ) && (event.code === 'Enter') ) {
+                    itemManager.addToInventory(selectedCellID);
+                    setItemGuiVersion(prev=>prev+1);//to force react to rerender to imperative inventory update that exists outside of react's render loop
+                }
+                else if ((tab === 'Inventory' ) && (event.code === 'Backspace') ) {
+                    itemManager.removeFromInventory(selectedCellID);
+                    setItemGuiVersion(prev=>prev+1);
+                }
+            }
+        }
         function handleKeyDown(event:KeyboardEvent) {//ised a single key listener to prevent conflict or eating up of events between multiple listeners
             if (selectedCellID) event.preventDefault();
             const now = performance.now();
-            
             if ((now - navTimerRef.current) > navCooldown) {
                 navGrid(event);
                 navTimerRef.current = now;
             }
             if ((now - actionTimerRef.current) > actionCooldown) {
-                if (selectedCellID && !selectedCellID.startsWith(nullCellIDPrefix)) {//this is to prevent null pads from causing erros since their ids arent present in the actual item list
-                    if ((tab === 'Items' ) && (event.code === 'Enter') ) {
-                        itemManager.addToInventory(selectedCellID);
-                        setItemGuiVersion(prev=>prev+1);//to force react to rerender to imperative inventory update that exists outside of react's render loop
-                    }
-                    else if ((tab === 'Inventory' ) && (event.code === 'Backspace') ) {
-                        itemManager.removeFromInventory(selectedCellID);
-                        setItemGuiVersion(prev=>prev+1);
-                    }
-                }
+                interactWithInventory(event);
+                actionTimerRef.current = now;
             }
         }
 

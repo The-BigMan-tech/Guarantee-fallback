@@ -29,6 +29,12 @@ class ItemManager {
             modelPath:'./block.glb',
             imagePath:'./block.png',
             scene:null
+        },
+        'snowball':{
+            name:'Snowball',
+            modelPath:'./block.glb',
+            imagePath:'./snowball.png',
+            scene:null
         }
     }
 
