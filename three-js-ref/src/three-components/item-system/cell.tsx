@@ -40,7 +40,7 @@ function areEqual(prev: Props, next: Props) {
 }
 const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cellHovered,setHoveredCell,cellRefs,handleDragEnter,handleDragStart,handleDrop,index}:Props)=>{
     console.log('Drag Rendering Cell for:',itemID);
-    const multiplierStyle:style = "absolute top-[3%] right-[4%] font-semibold text-[#e3fcd8]";
+    const multiplierStyle:style = "absolute top-[3%] right-[4%] font-semibold font-[Consolas]";
     const itemCount = (itemManager.inventory.has(itemID) && `x ${itemManager.inventory.get(itemID)?.count}`) || ''
     const stackfullText:string | null = (itemManager.isStackFull(itemID)?'Full':null);//to indicate the inv is full.i only used this indicator in the main item grid to signal it to playrs when adding items from it to their inv but the inv itself will always show the item count
     const itemNameStyle:style = "font-mono font-semibold text-sm"
