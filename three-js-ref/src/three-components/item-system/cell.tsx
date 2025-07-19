@@ -74,6 +74,7 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
             >
             <motion.button 
                 onClick={()=>selectCell(itemID)} 
+                onKeyDown={e => {if (e.key === ' ') e.preventDefault();}}//to prevent cells from being selected with space bar
                 className={`relative rounded w-full aspect-square shadow-lg cursor-pointer text-white ${selectedCellStyle(itemID)}`}
                 ref={el => { cellRefs.current[itemID] = el; }}
                 onHoverStart={() => setHoveredCell(itemID)}
