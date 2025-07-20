@@ -1,6 +1,6 @@
 export interface ItemCloneData {
     modelPath:string,
-    mass:number,
+    density:number,
     width:number,
     height:number,
     depth:number

@@ -26,7 +26,7 @@ export interface FixedControllerData {
     characterHeight:number,
     characterWidth:number,
     shape:'capsule' | 'box'
-    mass:number,
+    density:number,
 }
 //this is data for the controller that can change dynamically after creation
 export interface DynamicControllerData {
@@ -134,14 +134,13 @@ export abstract class Controller {
         this.characterPosition = this.fixedData.spawnPoint
 
         if (fixedData.shape == 'capsule') {
-            this.characterCollider = RAPIER.ColliderDesc.capsule(halfHeight,radius);
+            this.characterCollider = RAPIER.ColliderDesc.capsule(halfHeight,radius)
             this.charLine = createCapsuleLine(radius,fixedData.characterHeight)//this is an offset to make the hitbox visually accurate to its physics body height
         }else {
             this.characterCollider = RAPIER.ColliderDesc.cuboid(increasedHalfWidth,increasedHalfHeight,increasedHalfWidth);
             this.charLine = createBoxLine(increasedHalfWidth,increasedHalfHeight)
         }
-
-        this.characterBody.mass = this.fixedData.mass;
+        this.characterCollider.setDensity(fixedData.density)
         this.characterRigidBody = physicsWorld.createRigidBody(this.characterBody);
         this.characterColliderHandle = physicsWorld.createCollider(this.characterCollider,this.characterRigidBody).handle;
         this.characterRigidBody.setTranslation(this.characterPosition,true);

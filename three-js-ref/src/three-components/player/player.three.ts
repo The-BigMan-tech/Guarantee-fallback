@@ -420,7 +420,7 @@ const playerFixedData:FixedControllerData = {
     characterHeight:2,
     characterWidth:1,
     shape:'capsule',
-    mass:40,
+    density:40,
 }
 const playerDynamicData:DynamicControllerData = {
     horizontalVelocity:20,

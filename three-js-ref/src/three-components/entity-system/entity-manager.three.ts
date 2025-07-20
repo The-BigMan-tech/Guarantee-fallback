@@ -97,7 +97,7 @@ class EntityManager {
             characterHeight:2,
             characterWidth:1,
             shape:'capsule',
-            mass:40,
+            density:40,
         }
         const entityDynamicData:DynamicControllerData = {//this is for controller data that can be changed after creation
             horizontalVelocity:0,

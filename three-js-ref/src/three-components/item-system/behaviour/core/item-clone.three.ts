@@ -40,9 +40,8 @@ export class ItemClone {
         const hitbox = createBoxLine(data.width,data.height,data.depth);//this is for debugging
         if (ItemClone.addHitbox) this.mesh.add(hitbox);
 
-        const cloneCollider = RAPIER.ColliderDesc.cuboid(data.width/2,data.height/2,data.depth/2);
-        const cloneBody = RAPIER.RigidBodyDesc.dynamic();
-        cloneBody.mass = data.mass;
+        const cloneCollider = RAPIER.ColliderDesc.cuboid(data.width/2,data.height/2,data.depth/2).setDensity(data.density);
+        const cloneBody = RAPIER.RigidBodyDesc.dynamic()
         this.rigidBody = physicsWorld.createRigidBody(cloneBody);
         this.handle = physicsWorld.createCollider(cloneCollider,this.rigidBody).handle;
 
