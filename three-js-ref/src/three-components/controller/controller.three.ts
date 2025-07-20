@@ -5,6 +5,7 @@ import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY, combatCooldown} from "../physics-world.three";
 import { listener, audioLoader } from "../listener/listener.three";
 import {v4 as uniqueID} from "uuid"
+import { getGroundDetectionDistance } from "./helper";
 
 //these methods are to create line geometries for their respective shapes.they are used to visualize hitboxes for visual debugging
 function createCapsuleLine(radius:number,halfHeight:number) {
@@ -17,6 +18,7 @@ function createBoxLine(halfWidth:number,halfHeight:number) {
     const charEdges = new THREE.EdgesGeometry(charGeometry);
     return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
 }
+
 //this is data fpr the controller that cant or should not be changed after creation
 export interface FixedControllerData {
     modelPath:string,
@@ -145,7 +147,7 @@ export abstract class Controller {
         this.characterRigidBody.setTranslation(this.characterPosition,true);
 
         this.widthDebuf = fixedData.characterWidth - 1;
-        this.groundDetectionDistance = halfHeight + 0.5 + ((fixedData.characterHeight%2) * 0.5);//this formula wasnt just decided,it was designed.i made the formula after trying different values that each worked for a given hardcoded heights,saw a pattern and crafted a formula for it
+        this.groundDetectionDistance = getGroundDetectionDistance(fixedData.characterHeight);
 
         this.originalHorizontalVel = dynamicData.horizontalVelocity;
 
@@ -193,7 +195,7 @@ export abstract class Controller {
             error =>console.error( error ),
         );
     }
-    private loadItem3D() {
+    private loadItem3D() {//it reserves a spot for item models to be added which is the hand group of the model
         const handGroup = this.character.getObjectByName('hand');
         if (handGroup) {
             handGroup.add(this.item3D);
@@ -288,11 +290,6 @@ export abstract class Controller {
             const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
             console.log("Is character collider: ",isCharacterCollider);
             if (isCharacterCollider) return true;//skip the check for the player and contiune searching for other colliers at that point
-            const collider = physicsWorld.getCollider(colliderObject.handle);
-            const shape = collider.shape
-    
-            console.log("PointY Ground: ",point.y);
-            console.log('Ground Collider shape:', shape);
 
             if (this.playLandSound) {
                 this.landSound.play();

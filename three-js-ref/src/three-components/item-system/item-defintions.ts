@@ -66,9 +66,9 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
         behaviour:new Throwable({
             modelPath:modelPaths.Snowball,
             mass:30,
-            width:2,
-            height:2,
-            depth:2
+            width:5,
+            height:5,
+            depth:5
         })
     }
 }
