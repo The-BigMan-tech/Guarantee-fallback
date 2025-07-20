@@ -51,9 +51,9 @@ class ItemClone {
         }
     }
 }
-class CommonItemBehaviour {
+class ItemUtils {
     constructor() {}
-    public getSpawnPosition(customCamera:Camera):THREE.Vector3 {
+    public static getSpawnPosition(customCamera:Camera):THREE.Vector3 {
         const lookAtDistance = 5;
         const spawnPosition = new THREE.Vector3();// Calculate spawn position: camera position + camera forward vector * distance
         customCamera.cam3D.getWorldPosition(spawnPosition);             
@@ -72,8 +72,6 @@ export class DynamicBody implements ItemBehaviour {
     private data:DynamicBodyData;
     private model:THREE.Group | null = null; 
 
-    private commonItemBehaviour:CommonItemBehaviour = new CommonItemBehaviour();
-
     constructor(data:DynamicBodyData) {
         this.data = data;
         DynamicBody.modelLoader.load(this.data.modelPath,gltf=>{
@@ -82,7 +80,7 @@ export class DynamicBody implements ItemBehaviour {
     }
     public use(customCamera:Camera) {
         if (this.model) {
-            const spawnPosition = this.commonItemBehaviour.getSpawnPosition(customCamera)
+            const spawnPosition = ItemUtils.getSpawnPosition(customCamera)
             const clone = new ItemClone(this.model.clone(),spawnPosition,this.data)
             DynamicBody.dynamicBodyGroup.add(clone.mesh);
             DynamicBody.clones.push(clone)

@@ -1634,3 +1634,7 @@ clones should be per behaviour type
 Behaviour type,instance,clone
 
 *so it means that the behaviour type is the blueprint for a specifc item behaviour.an instance is just an immutable defintions to create runtime clones.and the clones are managed and collected by the behaviour type not by the instances
+
+*so reusable classes across other classes is better named common X behaviour if it directly references the instances and operates on them like my common entity behaviour that operates directly on entities to add death and attack state transitions but for my items,since its just a stateless reusable code,its better to rename it to item helper till i expect it to directly mutate the clone.
+
+*so enttities have shared reusable blocks as mutable common behaviour because of the complexity of synchronizing state machines and handling transitions but for items,ill use a stateless utils class for majority of cases.and any specific behaviour is usually distsinct and added by the behaviour type itself.there is no machine or state to synchronize
