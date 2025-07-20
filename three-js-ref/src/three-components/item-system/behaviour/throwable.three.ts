@@ -27,7 +27,7 @@ export class Throwable implements ItemBehaviour {
             const clone = new ItemClone(Throwable.group,this.model.clone(),spawnData.spawnPosition,this.data)
             Throwable.group.add(clone.mesh);
             Throwable.clones.push(clone);
-            const impulseStrength = 5;
+            const impulseStrength = 50;
             const throwImpulse = spawnData.direction.multiplyScalar(impulseStrength);
             clone.rigidBody?.applyImpulse(throwImpulse, true);
             itemManager.removeFromInventory(itemID)

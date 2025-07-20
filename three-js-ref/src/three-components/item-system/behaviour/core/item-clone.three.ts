@@ -15,15 +15,14 @@ export class ItemClone {
     public  rigidBody:RAPIER.RigidBody | null;
     private handle:number;
     private height:number;
-    private width:number;
     private parent:THREE.Group
 
+    private spinApplied = false;
     private static readonly addHitbox:boolean = false;
 
     constructor(parent:THREE.Group,clonedModel: THREE.Group,spawnPosition:THREE.Vector3,data:ItemCloneData) {
         this.parent = parent;
         this.height = data.height;
-        this.width = data.width;
         const box = new THREE.Box3().setFromObject(clonedModel);
         const size = new THREE.Vector3();
         box.getSize(size);
@@ -48,20 +47,25 @@ export class ItemClone {
         this.handle = physicsWorld.createCollider(cloneCollider,this.rigidBody).handle;
 
         this.rigidBody.setTranslation(spawnPosition,true);
-
-        const spinVelocity = 5; // max magnitude for spin
-        const symmetricalSpinVelocity = 2 * spinVelocity
-        const angularVelocity = new RAPIER.Vector3(
-          (Math.random() - 0.5) * symmetricalSpinVelocity,
-          (Math.random() - 0.5) * symmetricalSpinVelocity,
-          (Math.random() - 0.5) * symmetricalSpinVelocity
-        );
-        this.rigidBody.applyTorqueImpulse(angularVelocity, true);//this is to rotate it when it spawns for realisic falling if spawned in mid air--good for throwable blocks
         this.mesh.position.copy(this.rigidBody.translation());
     }
+    private applySpin() {
+        if (this.rigidBody && !this.spinApplied) {
+            const spinVelocity = 5; // max magnitude for spin
+            const symmetricalSpinVelocity = 2 * spinVelocity
+            const angularVelocity = new RAPIER.Vector3(
+              (Math.random() - 0.5) * symmetricalSpinVelocity,
+              (Math.random() - 0.5) * symmetricalSpinVelocity,
+              (Math.random() - 0.5) * symmetricalSpinVelocity
+            );
+            this.rigidBody.applyTorqueImpulse(angularVelocity, true);//this is to rotate it when it spawns for realisic falling if spawned in mid air--good for throwable blocks
+            this.spinApplied = true;//to prevent applying a spin to the body when one is already applied.we reset it here to ensure that its only set to true when its guaranteed that this method applied the torque
+        }
+    }
     private isGrounded():boolean {
+        if (this.rigidBody?.isSleeping()) return true;//if it sleeps,its grounded.so we can skip the computation here.
         const groundDetectionDistance = getGroundDetectionDistance(this.height)
-        const groundPoint = (this.mesh.position.y - groundDetectionDistance) + ((this.height%2)*0.5);
+        const groundPoint = (this.mesh.position.y - groundDetectionDistance) + ((this.height%2)*0.5);//took into account the parity of the height
         const groundPos = this.mesh.position.clone().setY(groundPoint);
         console.log('spin. groundPoint:', groundPoint);
 
@@ -77,8 +81,14 @@ export class ItemClone {
         if (this.rigidBody) {
             this.mesh.position.copy(this.rigidBody.translation());
             this.mesh.quaternion.copy(this.rigidBody.rotation());
-            console.log('is Body sleeping: ',this.rigidBody.isSleeping());
-            console.log('spin. is Body grounded: ',this.isGrounded());
+            console.log('spin. is Body sleeping: ',this.rigidBody.isSleeping());
+            const onGround = this.isGrounded();
+            console.log('spin. is Body grounded: ',onGround);
+            if (!onGround) {
+                this.applySpin();
+            }else {
+                this.spinApplied = false; //its on the ground so we need to reset it so that spin can apply again after next throw
+            }
         }
     }
     public cleanUp() {

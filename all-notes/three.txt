@@ -1668,3 +1668,9 @@ controller--reserve spot
 code to hold the item
 Item utils
 Item clone
+
+*so i had to use an input-output table to do this.the table is meaningful as long as one input-output is correct.how to know if any input-iutput is correct is just to check if what the program sees is what you see
+
+*How to debug points
+Input-Output table for point queries
+Point marker to visualize if the points is correctly placed at the expected position
