@@ -51,6 +51,18 @@ class ItemClone {
         }
     }
 }
+class CommonItemBehaviour {
+    constructor() {}
+    public getSpawnPosition(customCamera:Camera):THREE.Vector3 {
+        const lookAtDistance = 5;
+        const spawnPosition = new THREE.Vector3();// Calculate spawn position: camera position + camera forward vector * distance
+        customCamera.cam3D.getWorldPosition(spawnPosition);             
+        const forwardVector = new THREE.Vector3(0, 0,-1).applyQuaternion(customCamera.cam3D.getWorldQuaternion(new THREE.Quaternion()));
+        forwardVector.multiplyScalar(lookAtDistance)
+        spawnPosition.add(forwardVector);
+        return spawnPosition;
+    }
+}
 export class DynamicBody implements ItemBehaviour {
     private static modelLoader = new GLTFLoader();
     public  static dynamicBodyGroup:THREE.Group = new THREE.Group()
@@ -60,24 +72,17 @@ export class DynamicBody implements ItemBehaviour {
     private data:DynamicBodyData;
     private model:THREE.Group | null = null; 
 
+    private commonItemBehaviour:CommonItemBehaviour = new CommonItemBehaviour();
+
     constructor(data:DynamicBodyData) {
         this.data = data;
         DynamicBody.modelLoader.load(this.data.modelPath,gltf=>{
             this.model = gltf.scene;
         })
     }
-    private getSpawnPosition(customCamera:Camera):THREE.Vector3 {
-        const lookAtDistance = 5;
-        const spawnPosition = new THREE.Vector3();// Calculate spawn position: camera position + camera forward vector * distance
-        customCamera.cam3D.getWorldPosition(spawnPosition);             
-        const forwardVector = new THREE.Vector3(0, 0,-1).applyQuaternion(customCamera.cam3D.getWorldQuaternion(new THREE.Quaternion()));
-        forwardVector.multiplyScalar(lookAtDistance)
-        spawnPosition.add(forwardVector);
-        return spawnPosition;
-    }
     public use(customCamera:Camera) {
         if (this.model) {
-            const spawnPosition = this.getSpawnPosition(customCamera)
+            const spawnPosition = this.commonItemBehaviour.getSpawnPosition(customCamera)
             const clone = new ItemClone(this.model.clone(),spawnPosition,this.data)
             DynamicBody.dynamicBodyGroup.add(clone.mesh);
             DynamicBody.clones.push(clone)
