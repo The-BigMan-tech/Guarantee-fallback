@@ -3,7 +3,7 @@ import { DynamicBody } from "./behaviour/dynamic-body.three";
 import { Throwable } from "./behaviour/throwable.three";
 
 export interface ItemBehaviour {
-    use:(view:THREE.Group,eyeLevel:number,itemID:string)=>void
+    use:(view:THREE.Group,eyeLevel:number,itemID:string,userStrength:number)=>void
 }
 export type ItemID = string;
 

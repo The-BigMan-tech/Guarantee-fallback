@@ -27,7 +27,8 @@ interface PlayerMiscData {
     camArgs:PlayerCamData
     healthValue:number,
     attackDamage:number,
-    knockback:number
+    knockback:number,
+    strength:number//the player's strength to throw or knockback blocks
 }
 enum CameraMode {
     FirstPerson = 1,
@@ -76,7 +77,8 @@ class Player extends Controller implements EntityLike {
     private attackCooldown:seconds = combatCooldown; // half a second cooldown
     private attackTimer:seconds = 0;
 
-    public knockback:number;
+    public  knockback:number;
+    private strength:number
     private lookedAtEntity:EntityContract | null = null;
 
     private respawnDelay:seconds = 7; // seconds
@@ -130,6 +132,7 @@ class Player extends Controller implements EntityLike {
         this.playerHeight = fixedData.characterHeight;
         this.attackDamage = miscData.attackDamage;
         this.knockback = miscData.knockback;
+        this.strength = miscData.strength;
     }
     private addEventListeners() {
         document.addEventListener('keydown',this.onPlayerKeyDown);
@@ -225,7 +228,7 @@ class Player extends Controller implements EntityLike {
             if (this.useItemTimer > this.useItemCooldown) {
                 const itemInHand = itemManager.itemInHand;
                 if (itemInHand) {
-                    itemInHand.item.behaviour.use(this.char,this.offsetY,itemInHand.itemID);
+                    itemInHand.item.behaviour.use(this.char,this.offsetY,itemInHand.itemID,this.strength);
                     setUsedItem(true);
                 }
                 this.useItemTimer = 0
@@ -435,6 +438,7 @@ const playerMiscData:PlayerMiscData = {
     healthValue:1000,
     attackDamage:1,
     knockback:150,
+    strength:100,
     camArgs: {
         FOV:75,
         nearPoint:0.1,

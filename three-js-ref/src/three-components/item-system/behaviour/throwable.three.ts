@@ -20,14 +20,13 @@ export class Throwable implements ItemBehaviour {
             this.model = gltf.scene;
         })
     }
-    public use(view:THREE.Group,eyeLevel:number,itemID:string):void {
+    public use(view:THREE.Group,eyeLevel:number,itemID:string,userStrength:number):void {
         if (this.model) {
             const spawnData = ItemUtils.getSpawnPosition(view,eyeLevel)
             const clone = new ItemClone(Throwable.group,this.model.clone(),spawnData.spawnPosition,this.data)
             Throwable.group.add(clone.mesh);
             Throwable.clones.push(clone);
-            const impulseStrength = 100;
-            const throwImpulse = spawnData.direction.multiplyScalar(impulseStrength);
+            const throwImpulse = spawnData.direction.multiplyScalar(userStrength);
             clone.rigidBody?.applyImpulse(throwImpulse, true);
             itemManager.removeFromInventory(itemID)
         }
