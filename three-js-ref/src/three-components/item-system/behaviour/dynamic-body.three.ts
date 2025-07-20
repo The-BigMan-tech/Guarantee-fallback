@@ -8,7 +8,7 @@ import { ItemClone } from "./core/item-clone.three";
 
 export class DynamicBody implements ItemBehaviour {
     private static modelLoader = new GLTFLoader();
-    public  static dynamicBodyGroup:THREE.Group = new THREE.Group()
+    public  static group:THREE.Group = new THREE.Group()
     //i made the clones static even though it makes sense to store clones per instance.this is so that i can access all the clones in one place for cleaning and updating instead of iterating through every item to do this
     public  static clones:ItemClone[] = []//this is for the player to get the looked at clone and dispose its reources when removing it
 
@@ -24,8 +24,8 @@ export class DynamicBody implements ItemBehaviour {
     public use(customCamera:Camera) {
         if (this.model) {
             const spawnPosition = ItemUtils.getSpawnPosition(customCamera)
-            const clone = new ItemClone(DynamicBody.dynamicBodyGroup,this.model.clone(),spawnPosition,this.data)
-            DynamicBody.dynamicBodyGroup.add(clone.mesh);
+            const clone = new ItemClone(DynamicBody.group,this.model.clone(),spawnPosition,this.data)
+            DynamicBody.group.add(clone.mesh);
             DynamicBody.clones.push(clone)
         }
     }
