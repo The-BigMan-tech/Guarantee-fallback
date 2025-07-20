@@ -1658,3 +1658,13 @@ world vs local,corner vs center vs edge
 scale,bounding box
 
 *so its item utils and item clone that do the tedious or low level 3d or physics engine work.behaviour can focus entirely on implementatioon.so this means that even if there arent enough behaviours to satisfy an item defintion.one can still create a behaviour without going deep into low level phsysics controls.they just need to ensure they pass the right args,update clones correctly and adhere to the interface
+
+
+Inventory ui
+item defintions
+item manager
+jotai state
+controller--reserve spot
+code to hold the item
+Item utils
+Item clone

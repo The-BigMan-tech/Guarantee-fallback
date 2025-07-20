@@ -13,7 +13,7 @@ import type { EntityLike } from "../entity-system/relationships.three";
 import { groupIDs } from "../entity-system/globals";
 import { relationshipManager } from "../entity-system/relationships.three";
 import type { seconds } from "../entity-system/globals";
-import { toggleItemGui,isCellSelected } from "../item-system/item-state";
+import { toggleItemGui,isCellSelected, setUsedItem } from "../item-system/item-state";
 import { itemManager, type InventoryItem } from "../item-system/item-manager.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
@@ -225,8 +225,8 @@ class Player extends Controller implements EntityLike {
             if (this.useItemTimer > this.useItemCooldown) {
                 const itemInHand = itemManager.itemInHand;
                 if (itemInHand) {
-                    itemInHand.item.behaviour.use(this.camera);
-                    console.log('used the item: ',itemInHand.item.name);
+                    itemInHand.item.behaviour.use(this.camera,itemInHand.itemID);
+                    setUsedItem(true);
                 }
                 this.useItemTimer = 0
             }

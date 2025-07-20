@@ -1,10 +1,11 @@
 import { useAtom } from "jotai";
-import { isCellSelectedAtom, registerIsCellSelectedGetter, registerIsCellSelectedSetter, registerShowItemGuiGetter, registerShowItemGuiSetter, showItemGuiAtom } from "./item-state";
+import { isCellSelectedAtom, registerIsCellSelectedGetter, registerIsCellSelectedSetter, registerShowItemGuiGetter, registerShowItemGuiSetter, registerUsedItemGetter, registerUsedItemSetter, showItemGuiAtom, usedItemAtom } from "./item-state";
 import { useEffect } from "react";
 
 export default function ItemStateRegister() {
     const [showItemGui,showItemGuiSetter] = useAtom(showItemGuiAtom);
     const [isCellSelected,cellIsSelectedSetter] = useAtom(isCellSelectedAtom);
+    const [usedItem,usedItemSetter] = useAtom(usedItemAtom);
 
     useEffect(() => {
         registerShowItemGuiSetter(showItemGuiSetter);
@@ -12,7 +13,10 @@ export default function ItemStateRegister() {
 
         registerIsCellSelectedSetter(cellIsSelectedSetter);
         registerIsCellSelectedGetter(()=>isCellSelected);
-    }, [showItemGuiSetter,showItemGui,isCellSelected,cellIsSelectedSetter]);
+
+        registerUsedItemSetter(usedItemSetter);
+        registerUsedItemGetter(()=>usedItem);
+    }, [showItemGuiSetter,showItemGui,isCellSelected,cellIsSelectedSetter,usedItem,usedItemSetter]);
 
     return null
 }

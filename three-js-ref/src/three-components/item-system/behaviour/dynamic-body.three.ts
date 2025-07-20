@@ -5,6 +5,7 @@ import { Camera } from "../../camera/camera.three";
 import { ItemUtils } from "./core/item-utils.three";
 import type { ItemCloneData } from "./core/types";
 import { ItemClone } from "./core/item-clone.three";
+import { itemManager } from "../item-manager.three";
 
 export class DynamicBody implements ItemBehaviour {
     private static modelLoader = new GLTFLoader();
@@ -21,12 +22,13 @@ export class DynamicBody implements ItemBehaviour {
             this.model = gltf.scene;
         })
     }
-    public use(customCamera:Camera) {
+    public use(customCamera:Camera,itemID:string) {
         if (this.model) {
             const spawnPosition = ItemUtils.getSpawnPosition(customCamera)
             const clone = new ItemClone(DynamicBody.group,this.model.clone(),spawnPosition,this.data)
             DynamicBody.group.add(clone.mesh);
             DynamicBody.clones.push(clone)
+            itemManager.removeFromInventory(itemID)
         }
     }
     public static updateClones() {

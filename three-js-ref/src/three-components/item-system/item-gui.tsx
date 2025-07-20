@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState ,useRef,useCallback} from "react";
 import { motion,AnimatePresence,easeInOut} from "motion/react"
-import { isCellSelectedAtom, showItemGuiAtom, toggleItemGui } from "./item-state";
+import { isCellSelectedAtom, showItemGuiAtom, toggleItemGui, usedItemAtom } from "./item-state";
 import { useAtom } from "jotai";
 import { itemManager } from "./item-manager.three";
 import type { ItemID } from "./item-defintions";
@@ -26,6 +26,8 @@ export default function ItemGui() {
     const [cellHovered, setCellHovered] = useState<string>('');
 
     const [showItemGui] = useAtom(showItemGuiAtom);
+    const [usedItem,setUsedItem] = useAtom(usedItemAtom);
+
     const [tab,setTab] = useState<'Items' | 'Inventory'>('Items');
     
     const [gridCols,setGridCols] = useState<number>(tab === 'Items'?3:1);
@@ -220,7 +222,11 @@ export default function ItemGui() {
             itemManager.holdItem(selectedCellID)
         }
     },[tab,selectedCellID])
-
+    
+    useEffect(()=>{//this is to reload the gui when the player uses an item and that item can decrease in the inv
+        setItemGuiVersion(prev=>prev+1);
+        if (usedItem) setUsedItem(false);
+    },[usedItem,setUsedItem])
 
     const ANIMATION_CONFIG = useMemo(() => ({
         buttonDiv: {

@@ -1,6 +1,7 @@
 import { itemDefinitions, type Item,type ItemID } from "./item-defintions";
 
 export interface InventoryItem {
+    itemID: ItemID;  //for use in other parts of my code outside the ui that doesnt have reasy access to the item ID like my player's code
     count:number,
     item:Item
 }
@@ -16,6 +17,7 @@ class ItemManager {
     private _itemInHand:InventoryItem | null = null;//i used inv item type to keep track of its count to clear it when it reaches zero(no longer in the inventory)
     private _inventory:Map<ItemID,InventoryItem> = new Map();
     private _items:Record<ItemID,Item> = itemDefinitions
+
 
     private constructor() {}
     public static get instance() {
@@ -34,7 +36,7 @@ class ItemManager {
             this.validateID(itemID);
             const item = this._inventory.get(itemID);
             if (!item) {
-                this._inventory.set(itemID, {item:this._items[itemID],count:1 })
+                this._inventory.set(itemID, {itemID,item:this._items[itemID],count:1 })
             }else if (item.count < this.maxStackSize) {
                 item.count ++
             }

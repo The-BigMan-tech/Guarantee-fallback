@@ -14,6 +14,8 @@ export class ItemClone {
     public  rigidBody:RAPIER.RigidBody | null;
     private parent:THREE.Group
 
+    private static readonly addHitbox:boolean = false;
+
     constructor(parent:THREE.Group,clonedModel: THREE.Group,spawnPosition:THREE.Vector3,data:ItemCloneData) {
         this.parent = parent;
         const box = new THREE.Box3().setFromObject(clonedModel);
@@ -30,8 +32,8 @@ export class ItemClone {
         this.mesh.add(clonedModel)
         this.mesh.position.copy(spawnPosition);
 
-        const hitbox = createBoxLine(data.width,data.height,data.depth);
-        this.mesh.add(hitbox)
+        const hitbox = createBoxLine(data.width,data.height,data.depth);//this is for debugging
+        if (ItemClone.addHitbox) this.mesh.add(hitbox);
 
         const cloneCollider = RAPIER.ColliderDesc.cuboid(data.width/2,data.height/2,data.depth/2);
         const cloneBody = RAPIER.RigidBodyDesc.dynamic();
