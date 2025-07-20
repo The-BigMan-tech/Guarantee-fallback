@@ -6,6 +6,7 @@ import type { ItemCloneData } from "./core/types";
 import { ItemClone } from "./core/item-clone.three";
 import { itemManager } from "../item-manager.three";
 
+
 export class DynamicBody implements ItemBehaviour {
     private static modelLoader = new GLTFLoader();
     public  static group:THREE.Group = new THREE.Group()
@@ -23,10 +24,14 @@ export class DynamicBody implements ItemBehaviour {
     }
     public use(view:THREE.Group,eyeLevel:number,itemID:string) {
         if (this.model) {
-            const spawnData = ItemUtils.getSpawnPosition(view,eyeLevel)
-            const clone = new ItemClone(DynamicBody.group,this.model.clone(),spawnData.spawnPosition,this.data)
-            DynamicBody.group.add(clone.mesh);
-            DynamicBody.clones.push(clone)
+            ItemUtils.spawnItemClone({
+                view,
+                eyeLevel,
+                group:DynamicBody.group,
+                model:this.model,
+                cloneData:this.data,
+                clones:DynamicBody.clones
+            })
             itemManager.removeFromInventory(itemID)
         }
     }

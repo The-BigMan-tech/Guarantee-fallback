@@ -1677,3 +1677,7 @@ Point marker to visualize if the points is correctly placed at the expected posi
 
 
 *when creating dynamic rigid bodies,its better to specify density than mass to ensure that the mass matches the collider shape which it wouldnt have been if one set the mass directly
+
+*so to keep each behaviour distinct--no behaviour is composed of another behaviour and at the same time,keep it dry,ill have to lift the common stuff to item utils and make it stateless.my entiy kinds like npc and enemy for example are composed of common bhevaiour class but since my item behaviours follow a data driven declaative architecture,i cant afford to make throwable for example composed of a dynamic body.so using statelss utils will work hete
+
+*and because its stateless,all util methods are static.a singleton util manager can also achieve a similar effect where the behaviours dont instaitate an utils instance but singleton is better for mutatble data like my item manager or entity manager or terrain manager.those ones are singletons because they mutate somehthing but only one exists to ensure evryone calls methods on the same data for coordination but an utils class is good as static
