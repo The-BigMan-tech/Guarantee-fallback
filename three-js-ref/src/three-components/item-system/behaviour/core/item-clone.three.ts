@@ -40,7 +40,17 @@ export class ItemClone {
         cloneBody.mass = data.mass;
         this.rigidBody = physicsWorld.createRigidBody(cloneBody);
         physicsWorld.createCollider(cloneCollider,this.rigidBody);
-        this.rigidBody.setTranslation(spawnPosition,true)
+
+        this.rigidBody.setTranslation(spawnPosition,true);
+
+        const spinVelocity = 5; // max magnitude for spin
+        const symmetricalSpinVelocity = 2 * spinVelocity
+        const angularVelocity = new RAPIER.Vector3(
+          (Math.random() - 0.5) * symmetricalSpinVelocity,
+          (Math.random() - 0.5) * symmetricalSpinVelocity,
+          (Math.random() - 0.5) * symmetricalSpinVelocity
+        );
+        this.rigidBody.setAngvel(angularVelocity, true);//this is to rotate it when it spawns for realisic falling if spawned in mid air--good for throwable blocks
         this.mesh.position.copy(this.rigidBody.translation());
     }
     public updateClone() {
