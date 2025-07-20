@@ -1674,3 +1674,6 @@ Item clone
 *How to debug points
 Input-Output table for point queries
 Point marker to visualize if the points is correctly placed at the expected position
+
+
+*when creating dynamic rigid bodies,its better to specify density than mass to ensure that the mass matches the collider shape which it wouldnt have been if one set the mass directly

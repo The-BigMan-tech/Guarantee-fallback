@@ -50,15 +50,17 @@ export class ItemClone {
     }
     private applySpin() {
         if (this.rigidBody && !this.spinApplied) {
-            const spinVelocity = 5; // max magnitude for spin
-            const symmetricalSpinVelocity = 2 * spinVelocity
-            const angularVelocity = new RAPIER.Vector3(
-              (Math.random() - 0.5) * symmetricalSpinVelocity,
-              (Math.random() - 0.5) * symmetricalSpinVelocity,
-              (Math.random() - 0.5) * symmetricalSpinVelocity
+            const baseSpinVelocity = 100;
+            const spinMagnitude = baseSpinVelocity / this.rigidBody.mass();//we are making this inversely proportional because the point here isnt to make all objects of all masses to spin like a ball but to make objects that can spin to spin while heavier ones shouldnt
+
+            const spinVelocity = new RAPIER.Vector3(
+              (Math.random() - 0.5) * spinMagnitude,
+              (Math.random() - 0.5) * spinMagnitude,
+              (Math.random() - 0.5) * spinMagnitude
             );
-            this.rigidBody.applyTorqueImpulse(angularVelocity, true);//this is to rotate it when it spawns for realisic falling if spawned in mid air--good for throwable blocks
+            this.rigidBody.setAngvel(spinVelocity, true);//i directly set the ang vel here over applying torque because doing so wont produce the desired effects because rapier also does its own calc before applying it
             this.spinApplied = true;//to prevent applying a spin to the body when one is already applied.we reset it here to ensure that its only set to true when its guaranteed that this method applied the torque
+            console.log('spin applied');
         }
     }
     private isGrounded():boolean {
