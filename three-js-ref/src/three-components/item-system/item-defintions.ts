@@ -48,9 +48,9 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
         behaviour:new DynamicBody({
             modelPath:modelPaths.Block,
             mass:30,
-            width:3,
-            height:3,
-            depth:3
+            width:2,
+            height:2,
+            depth:2
         })
     },
     'snowball':{

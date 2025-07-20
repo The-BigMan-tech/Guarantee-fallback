@@ -32,7 +32,8 @@ class ItemClone {
         const scaleZ = data.depth / size.z;
 
         clonedModel.scale.set(scaleX, scaleY, scaleZ);
-
+        clonedModel.position.y -= data.height / 2;
+        
         this.mesh.add(clonedModel)
         this.mesh.position.copy(spawnPosition);
 
