@@ -1,7 +1,6 @@
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { ItemBehaviour } from "../item-defintions";
 import * as THREE from "three"
-import { Camera } from "../../camera/camera.three";
 import { ItemUtils } from "./core/item-utils.three";
 import type { ItemCloneData } from "./core/types";
 import { ItemClone } from "./core/item-clone.three";
@@ -22,9 +21,9 @@ export class DynamicBody implements ItemBehaviour {
             this.model = gltf.scene;
         })
     }
-    public use(customCamera:Camera,itemID:string) {
+    public use(view:THREE.Group,eyeLevel:number,itemID:string) {
         if (this.model) {
-            const spawnData = ItemUtils.getSpawnPosition(customCamera)
+            const spawnData = ItemUtils.getSpawnPosition(view,eyeLevel)
             const clone = new ItemClone(DynamicBody.group,this.model.clone(),spawnData.spawnPosition,this.data)
             DynamicBody.group.add(clone.mesh);
             DynamicBody.clones.push(clone)

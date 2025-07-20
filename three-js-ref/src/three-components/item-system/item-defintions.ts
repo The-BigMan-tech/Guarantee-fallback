@@ -1,10 +1,9 @@
 import * as THREE from "three"
 import { DynamicBody } from "./behaviour/dynamic-body.three";
 import { Throwable } from "./behaviour/throwable.three";
-import { Camera } from "../camera/camera.three";
 
 export interface ItemBehaviour {
-    use:(customCamera:Camera,itemID:string)=>void
+    use:(view:THREE.Group,eyeLevel:number,itemID:string)=>void
 }
 export type ItemID = string;
 

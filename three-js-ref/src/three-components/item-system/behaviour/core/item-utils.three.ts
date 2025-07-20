@@ -1,4 +1,3 @@
-import { Camera } from "../../../camera/camera.three";
 import * as THREE from "three"
 
 export interface SpawnData {
@@ -7,14 +6,14 @@ export interface SpawnData {
 }
 export class ItemUtils {
     constructor() {}
-    public static getSpawnPosition(customCamera:Camera):SpawnData {
+    public static getSpawnPosition(view:THREE.Group,eyeLevel:number):SpawnData {
         const lookAtDistance = 5;
         const spawnPosition = new THREE.Vector3();// Calculate spawn position: camera position + camera forward vector * distance
-        customCamera.cam3D.getWorldPosition(spawnPosition);             
+        view.getWorldPosition(spawnPosition);             
         const forwardVector = new THREE.Vector3(0, 0,-1)
-            .applyQuaternion(customCamera.cam3D.getWorldQuaternion(new THREE.Quaternion()))
+            .applyQuaternion(view.getWorldQuaternion(new THREE.Quaternion()))
             .normalize();//i normalized it to ensure its a unit vector
-        forwardVector.multiplyScalar(lookAtDistance)
+        forwardVector.multiplyScalar(lookAtDistance).setY(eyeLevel)
         spawnPosition.add(forwardVector);
         return {spawnPosition,direction:forwardVector};
     }
