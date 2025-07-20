@@ -61,7 +61,7 @@ export class ItemClone {
     }
     private isGrounded():boolean {
         const groundDetectionDistance = getGroundDetectionDistance(this.height)
-        const groundPoint = this.mesh.position.y - groundDetectionDistance;
+        const groundPoint = (this.mesh.position.y - groundDetectionDistance) + ((this.height%2)*0.5);
         const groundPos = this.mesh.position.clone().setY(groundPoint);
         console.log('spin. groundPoint:', groundPoint);
 
