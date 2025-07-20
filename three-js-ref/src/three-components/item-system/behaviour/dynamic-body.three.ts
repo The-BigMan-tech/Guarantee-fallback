@@ -26,7 +26,12 @@ class ItemClone {
         const box = new THREE.Box3().setFromObject(clonedModel);
         const size = new THREE.Vector3();
         box.getSize(size);
-        clonedModel.position.y -= size.y / 2
+
+        const scaleX = data.width / size.x;
+        const scaleY = data.height / size.y;
+        const scaleZ = data.depth / size.z;
+
+        clonedModel.scale.set(scaleX, scaleY, scaleZ);
 
         this.mesh.add(clonedModel)
         this.mesh.position.copy(spawnPosition);

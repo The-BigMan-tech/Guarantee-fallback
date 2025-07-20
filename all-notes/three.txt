@@ -1647,3 +1647,12 @@ Because Entities are highly dynamic, often require custom state, interact with o
 Most item logic is simple, data-driven, and doesn’t need its own state machine or update loop. Declarative definitions enable rapid content growth and designer-friendliness.
 
 *composed behaviour vs inherited behaviour vs referenced behaviour
+
+*You are correct: if you position your mesh so its bottom sits at local y = 0 (after offsetting by half its own height), the mesh and collider will align perfectly only if they are exactly the same size. 
+
+*so the scale of any 3d object is 1 because scale is relative to the original size not to a fixed unit.so to get the size of the model by its actual size not its size relative to its original size,we use bounding box
+
+target variables
+euler,quaternion
+world vs local,corner vs center vs edge
+scale,bounding box
