@@ -1,0 +1,59 @@
+import * as THREE from "three"
+import * as RAPIER from "@dimforge/rapier3d"
+import { physicsWorld } from "../../../physics-world.three";
+import { disposeHierarchy } from "../../../disposer/disposer.three";
+import type { ItemCloneData } from "./types";
+
+function createBoxLine(width:number,height:number,depth:number) {
+    const charGeometry = new THREE.BoxGeometry(width,height,depth);
+    const charEdges = new THREE.EdgesGeometry(charGeometry);
+    return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
+}
+export class ItemClone {
+    public  mesh:THREE.Group = new THREE.Group();
+    public  rigidBody:RAPIER.RigidBody | null;
+    private parent:THREE.Group
+
+    constructor(parent:THREE.Group,clonedModel: THREE.Group,spawnPosition:THREE.Vector3,data:ItemCloneData) {
+        this.parent = parent;
+        const box = new THREE.Box3().setFromObject(clonedModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+
+        const scaleX = data.width / size.x;
+        const scaleY = data.height / size.y;
+        const scaleZ = data.depth / size.z;
+
+        clonedModel.scale.set(scaleX, scaleY, scaleZ);
+        clonedModel.position.y -= data.height / 2;
+
+        this.mesh.add(clonedModel)
+        this.mesh.position.copy(spawnPosition);
+
+        const hitbox = createBoxLine(data.width,data.height,data.depth);
+        this.mesh.add(hitbox)
+
+        const cloneCollider = RAPIER.ColliderDesc.cuboid(data.width/2,data.height/2,data.depth/2);
+        const cloneBody = RAPIER.RigidBodyDesc.dynamic();
+        cloneBody.mass = data.mass;
+        this.rigidBody = physicsWorld.createRigidBody(cloneBody);
+        physicsWorld.createCollider(cloneCollider,this.rigidBody);
+        this.rigidBody.setTranslation(spawnPosition,true)
+        this.mesh.position.copy(this.rigidBody.translation());
+    }
+    public updateClone() {
+        if (this.rigidBody) {
+            this.mesh.position.copy(this.rigidBody.translation());
+            this.mesh.quaternion.copy(this.rigidBody.rotation());
+            console.log('is Body sleeping: ',this.rigidBody.isSleeping());
+        }
+    }
+    public cleanUp() {
+        this.parent.remove(this.mesh)
+        disposeHierarchy(this.mesh)
+        if (this.rigidBody) {
+            physicsWorld.removeRigidBody(this.rigidBody)
+            this.rigidBody = null
+        }
+    }
+}

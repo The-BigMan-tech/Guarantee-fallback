@@ -40,7 +40,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
         modelPath:modelPaths.Block,
         imagePath:'./block/block.png',
         scene:null,
-        transform:{
+        transform:{//this is how it looks when holding the item
             position:new THREE.Vector3(0,-0.3,0), 
             rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
             scale:new THREE.Vector3(0.2,0.2,0.2)
