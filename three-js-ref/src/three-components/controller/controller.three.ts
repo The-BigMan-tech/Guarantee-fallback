@@ -278,7 +278,7 @@ export abstract class Controller {
    //this just uses the calculated ground point to query for the ground to know if the controller is grounded or not.i used it to determine which forces to apply on the controller to move its body like linear velocity for movement,impulse for knockback and no explicit velocity control when jumping to make jumping feel more natural.
     private isGrounded():boolean {
         if (!this.characterRigidBody) return false;
-        if (this.characterRigidBody.isSleeping()) return true;//to prevent unnecessary queries when the update loop calls it to know whether to force sleep force sleep.
+        if (this.characterRigidBody.isSleeping()) return true;//to prevent unnecessary queries when the update loop calls it because it will only sleep if its on the ground in the first place
         const point:THREE.Vector3 = new THREE.Vector3(this.characterPosition.x,this.calculateGroundPosition(),this.characterPosition.z)
         let onGround = false
 

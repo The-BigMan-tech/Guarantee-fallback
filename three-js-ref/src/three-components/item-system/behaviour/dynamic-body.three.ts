@@ -33,7 +33,7 @@ class ItemClone {
 
         clonedModel.scale.set(scaleX, scaleY, scaleZ);
         clonedModel.position.y -= data.height / 2;
-        
+
         this.mesh.add(clonedModel)
         this.mesh.position.copy(spawnPosition);
 
@@ -52,6 +52,7 @@ class ItemClone {
         if (this.rigidBody) {
             this.mesh.position.copy(this.rigidBody.translation());
             this.mesh.quaternion.copy(this.rigidBody.rotation());
+            console.log('is Body sleeping: ',this.rigidBody.isSleeping());
         }
     }
     public cleanUp() {
