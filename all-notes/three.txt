@@ -1638,3 +1638,12 @@ Behaviour type,instance,clone
 *so reusable classes across other classes is better named common X behaviour if it directly references the instances and operates on them like my common entity behaviour that operates directly on entities to add death and attack state transitions but for my items,since its just a stateless reusable code,its better to rename it to item helper till i expect it to directly mutate the clone.
 
 *so enttities have shared reusable blocks as mutable common behaviour because of the complexity of synchronizing state machines and handling transitions but for items,ill use a stateless utils class for majority of cases.and any specific behaviour is usually distsinct and added by the behaviour type itself.there is no machine or state to synchronize
+
+
+*Why do entities use imperative per-instance pattern?
+Because Entities are highly dynamic, often require custom state, interact with other subsystems (AI, animations, inventory, networking), and need update loops/state machines. Factory/imperative instantiation gives you maximum control and flexibility.
+
+*why are items declaraive data diven pattrn
+Most item logic is simple, data-driven, and doesn’t need its own state machine or update loop. Declarative definitions enable rapid content growth and designer-friendliness.
+
+*composed behaviour vs inherited behaviour vs referenced behaviour

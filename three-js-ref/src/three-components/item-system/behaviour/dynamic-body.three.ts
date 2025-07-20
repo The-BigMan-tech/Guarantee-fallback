@@ -19,22 +19,28 @@ function createBoxLine(width:number,height:number,depth:number) {
     return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
 }
 class ItemClone {
-    public mesh:THREE.Group;
+    public mesh:THREE.Group = new THREE.Group();
     public rigidBody:RAPIER.RigidBody | null
 
     constructor(clonedModel: THREE.Group,spawnPosition:THREE.Vector3,data:DynamicBodyData) {
-        this.mesh = clonedModel;
+        const box = new THREE.Box3().setFromObject(clonedModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        clonedModel.position.y -= size.y / 2
+
+        this.mesh.add(clonedModel)
         this.mesh.position.copy(spawnPosition);
+
+        const hitbox = createBoxLine(data.width,data.height,data.depth);
+        this.mesh.add(hitbox)
+
         const cloneCollider = RAPIER.ColliderDesc.cuboid(data.width/2,data.height/2,data.depth/2);
         const cloneBody = RAPIER.RigidBodyDesc.dynamic();
         cloneBody.mass = data.mass;
         this.rigidBody = physicsWorld.createRigidBody(cloneBody);
         physicsWorld.createCollider(cloneCollider,this.rigidBody);
         this.rigidBody.setTranslation(spawnPosition,true)
-        clonedModel.position.copy(this.rigidBody.translation());
-
-        const hitBox = createBoxLine(data.width,data.height,data.depth);
-        this.mesh.add(hitBox)
+        this.mesh.position.copy(this.rigidBody.translation());
     }
     public updateClone() {
         if (this.rigidBody) {
