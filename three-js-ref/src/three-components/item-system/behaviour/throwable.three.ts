@@ -23,10 +23,13 @@ export class Throwable implements ItemBehaviour {
     }
     public use(customCamera:Camera,itemID:string):void {
         if (this.model) {
-            const spawnPosition = ItemUtils.getSpawnPosition(customCamera)
-            const clone = new ItemClone(Throwable.group,this.model.clone(),spawnPosition,this.data)
+            const spawnData = ItemUtils.getSpawnPosition(customCamera)
+            const clone = new ItemClone(Throwable.group,this.model.clone(),spawnData.spawnPosition,this.data)
             Throwable.group.add(clone.mesh);
             Throwable.clones.push(clone);
+            const impulseStrength = 50;
+            const throwImpulse = spawnData.direction.multiplyScalar(impulseStrength);
+            clone.rigidBody?.applyImpulse(throwImpulse, true);
             itemManager.removeFromInventory(itemID)
         }
     }

@@ -24,8 +24,8 @@ export class DynamicBody implements ItemBehaviour {
     }
     public use(customCamera:Camera,itemID:string) {
         if (this.model) {
-            const spawnPosition = ItemUtils.getSpawnPosition(customCamera)
-            const clone = new ItemClone(DynamicBody.group,this.model.clone(),spawnPosition,this.data)
+            const spawnData = ItemUtils.getSpawnPosition(customCamera)
+            const clone = new ItemClone(DynamicBody.group,this.model.clone(),spawnData.spawnPosition,this.data)
             DynamicBody.group.add(clone.mesh);
             DynamicBody.clones.push(clone)
             itemManager.removeFromInventory(itemID)

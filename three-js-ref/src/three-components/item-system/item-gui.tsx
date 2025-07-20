@@ -225,7 +225,7 @@ export default function ItemGui() {
     
     useEffect(()=>{//this is to reload the gui when the player uses an item and that item can decrease in the inv
         setItemGuiVersion(prev=>prev+1);
-        if (usedItem) setUsedItem(false);
+        if (usedItem) setUsedItem(false);//resetting the state ensures that it remains up to date with the game cuz it shouldnt always stay true and i cant mke the player's imperative code to reliably set it to false after the gui sees it as a change.so its best to do it here.and the player doesnt need to reset it.
     },[usedItem,setUsedItem])
 
     const ANIMATION_CONFIG = useMemo(() => ({
