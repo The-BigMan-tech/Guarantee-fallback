@@ -228,7 +228,7 @@ class Player extends Controller implements EntityLike {
             if (this.useItemTimer > this.useItemCooldown) {
                 const itemInHand = itemManager.itemInHand;
                 if (itemInHand) {
-                    itemInHand.item.behaviour.use(this.char,this.offsetY,itemInHand.itemID,this.strength);
+                    itemInHand.item.behaviour.use(this.camera.cam3D,this.offsetY,itemInHand.itemID,this.strength);
                     setUsedItem(true);
                 }
                 this.useItemTimer = 0
@@ -438,7 +438,7 @@ const playerMiscData:PlayerMiscData = {
     healthValue:1000,
     attackDamage:1,
     knockback:150,
-    strength:100,
+    strength:150,
     camArgs: {
         FOV:75,
         nearPoint:0.1,

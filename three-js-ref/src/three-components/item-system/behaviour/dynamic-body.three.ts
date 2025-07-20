@@ -24,9 +24,9 @@ export class DynamicBody implements ItemBehaviour {
     }
     public use(view:THREE.Group,eyeLevel:number,itemID:string) {
         if (this.model) {
+            const spawnData = ItemUtils.getSpawnPosition(view,eyeLevel)
             ItemUtils.spawnItemClone({
-                view,
-                eyeLevel,
+                spawnPosition:spawnData.spawnPosition,
                 group:DynamicBody.group,
                 model:this.model,
                 cloneData:this.data,

@@ -8,7 +8,7 @@ export interface CameraData {
     cameraRotationDelta:number;
 }
 export class Camera {
-    private camera3D:THREE.Object3D = new THREE.Object3D();
+    private camera3D:THREE.Group = new THREE.Group();
     private targetQuaternion:THREE.Quaternion = new THREE.Quaternion();
     private targetPosition:THREE.Vector3 = new THREE.Vector3(0,0,0);
     private translationSpeed:number = 0;
