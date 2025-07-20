@@ -1621,3 +1621,16 @@ The behavior class instance (to handle interaction, physics, events).
 *im essentially using Unity's component based approach
 
 *all of these kinds of subtleties is under transform management.that is,either using world or local points ,center or corner positions,euler or quaternion rotation.so i have to use the right one for my context.for example,rigid bodies and poisson samples use world cords but meshes use local cords so properly syncig them means applying the right transform to each component.without knowing these little distsinctions,it can lead to a transform bug.this is particular to 3d programming
+
+*so to get things straight,my entity system uses per instance runtime entity because i create them on demand because i used a factory not a configuration.i used per isnatnce for entity because it felt the OOP way but for my items,i wanted to do the same thing but because i started from the ui not the actual item objects,i used a data-driven/configuration pattern and because i couldnt just switch my data structure to be per instance,i now extended the definition with behaviour but the thing is that defintions are static.they are predefined not on demand like the entities.so even if i can have many instances of a dynamic body item,there is ever only one block or snowball.so i now have to create clones on top per usage.so the class is a blueprint for behaviour and the insatnces are blueprints for clones.this is the only way to keep that on demand creation while still retaining to a configuration design
+
+*per instance vs config
+
+*if i went to per instance design,my item defintions will be a whole lot different.ill now have an id to instances.so for a block,ill now have 10-50 instances depending on how many are generated on demand.so it will be id - instance array.i cant even imagine how ill use this for ui.because my uo has to select one instance for metadata and there has to be guarantee that one isnatce will be created before the ui accesses this.it will be bloat and selecting one instance for metadata is serioulsy error prone.so because of these factors,a data driven item design is better with behaviour attatched to it and clones geerated on demand.per isnatnce makes sense for entity because those ones arent dependencies of anyting else outside of the game world and more specifcally,just the entity sytem
+
+*and to create new items,i dont need to write imperative factories just declarative configs.so to add new items,i just describe how it should be like and my code handles the rest.but entites remain imperative for creation and behaviour
+
+clones should be per behaviour type
+Behaviour type,instance,clone
+
+*so it means that the behaviour type is the blueprint for a specifc item behaviour.an instance is just an immutable defintions to create runtime clones.and the clones are managed and collected by the behaviour type not by the instances

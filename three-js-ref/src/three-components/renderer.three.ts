@@ -7,6 +7,7 @@ import { player } from './player/player.three';
 import { entityManager } from './entity-system/entity-manager.three';
 import { terrainManager } from './terrain-system/terrain-manager.three';
 import { relationshipManager } from './entity-system/relationships.three';
+import { DynamicBody } from './item-system/behaviour/dynamic-body.three';
 
 
 export const renderer = new THREE.WebGLRenderer({antialias:true});//play with this
@@ -25,6 +26,7 @@ renderer.setAnimationLoop(()=>{
     player.updateController(deltaTime);
     terrainManager.updateTerrain();
     entityManager.updateAllEntities(deltaTime);
+    DynamicBody.updateClones();
     updateSun();
     renderer.render( scene,player.camera.cam);//a must to be called last
 });

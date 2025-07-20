@@ -47,6 +47,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
         },
         behaviour:new DynamicBody({
             modelPath:modelPaths.Block,
+            mass:30,
             width:5,
             height:5,
             depth:5
