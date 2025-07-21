@@ -5,8 +5,8 @@ import { Health } from "../health/health";
 import { combatCooldown, physicsWorld } from "../physics-world.three";
 import type { EntityLike } from "./relationships.three";
 import { disposeHierarchy, disposeMixer } from "../disposer/disposer.three";
-import type { EntityCount,EntityWrapper} from "./globals";
-import { isEntityWrapper } from "./globals";
+import type { EntityCount,EntityWrapper} from "./global-types"
+import { isEntityWrapper } from "./entity-registry";
 
 type Behaviour = 'idle' | 'patrol' | 'chase' | 'attack' | 'death';
 interface EntityStateMachine {

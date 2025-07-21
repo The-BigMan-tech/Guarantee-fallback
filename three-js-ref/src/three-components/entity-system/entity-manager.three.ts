@@ -1,46 +1,27 @@
 import * as THREE from "three";
 import type {FixedControllerData,DynamicControllerData} from "../controller/controller.three";
 import type { EntityContract,EntityMiscData,ManagingStructure } from "./entity.three";
-import type { EntityWrapper,EntityCount } from "./globals";
 import * as RAPIER from '@dimforge/rapier3d'
 import { player } from "../player/player.three";
 import { entities, entityIndexMap} from "./entity.three";
 import PoissonDiskSampling from 'poisson-disk-sampling';
 import { choices } from "./choices";
-import { groupIDs } from "./globals";
+import { entityCounts, entityMapping, groupIDs } from "./entity-registry";
 import { entityFactory } from "./factory.three";
 import type { FullEntityData } from "./entity.three";
 import type { EntityFactory } from "./factory.three";
 import { terrainManager } from "../terrain-system/terrain-manager.three";
 import Denque from "denque";
+import type { EntitySpawnData,EntityWrapper,EntityCount} from "./global-types";
 
-interface EntitySpawnData {
-    readonly groupID:Readonly<string>,
-    readonly spawnWeight:Readonly<number>
-}
 type Singleton<T> = T;
 
 class EntityManager {
     private static manager: EntityManager;
     private factory:Singleton<EntityFactory> = entityFactory;
 
-    private entityCounts:EntityCount = {
-        totalCount:0,
-        individualCounts: {
-            HostileEntity:{currentCount:0,minCount:1},//the min count influences how many entities of this kind should be in the world before the manager is satisfied to stop spawning more entities.a higher number means that it will attempt to spawn new entities more and more until this thresh is satisfied but its capped at max entity cap for perf to prevent too many attempts
-            NPC:{currentCount:0,minCount:1},
-        }
-    }
-    private entityMapping:Record<EntityWrapper,EntitySpawnData> = {
-        HostileEntity:{
-            groupID:groupIDs.hostileEntity,//i called it groupID cuz its not per isntance but per entity type or kind
-            spawnWeight:0//an important thing to note is that when the weight is 0 but at least one of the others is non-zero,then this entity will never have the chance to be pciked but if all the other entities are non-zero,its the same thing as all of them having 10 or 100 cuz the weights are equal.thats the thing about weighted random.is the probabliliy of picking one relative to the probability of others not absolute probability.so to totally remove entities,set entity cap to 0.
-        },
-        NPC: {
-            groupID:groupIDs.npc,
-            spawnWeight:10
-        }
-    }
+    private entityCounts:EntityCount = entityCounts;
+    private entityMapping:Record<EntityWrapper,EntitySpawnData> = entityMapping;
 
     private readonly multiChoicePercent = 50;//it controls the percentage of entity types from the provided entity mapping struct that will be chosen at a time for every spawn point thats generated.Increasing this number will increase the probability of an entity of a given kind to spawn because the manager doesnt just choose one entity per point but rather,it can make two choices or three at a time with the choices influenced by the weight.Even at a low value,theres still a chance for an entity of a given kind to spawn as long as the weiht is considerable enough but this will increase that prob and a higher number will also slightly improve perf because it will spawn more at a time which reduces the time to reach the entity cap and number of times it has to run the weighted choice function.Tune as needed
     private readonly maxEntityCap = 1;//the max number of entities in the world before it stops spawning

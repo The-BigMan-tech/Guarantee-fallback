@@ -1,8 +1,8 @@
 import { Controller } from "../controller/controller.three";
 import type { Health } from "../health/health";
 import Heap from "heap-js";
-import { groupIDs } from "./globals";
-import type { seconds,minutes } from "./globals";
+import { groupIDs } from "./entity-registry";
+import type { seconds,minutes } from "./global-types";
 
 //im not going to explain the structure or how it works cuz its evident from the code.the more important question which is why i chose to use a reference tree instead of a graph is because linear data flow is easier to preduct than a bidirectional one as seen in a graph
 
