@@ -256,8 +256,13 @@ export default function ItemGui() {
             {showItemGui
                 ?<>
                     <motion.div key="div1" className="absolute z-20 top-[2%] left-[4%]" {...ANIMATION_CONFIG.buttonDiv}>
-                        <motion.button className=" w-[9.5vw] py-[4%] shadow-sm cursor-pointer bg-[#2c2c2ca4] hover:bg-[#48372bb1] font-[Consolas] font-bold text-[#fffffffd] " onClick={toggleTab} {...ANIMATION_CONFIG.button}>
-                            {hovered ? "Switch" :tab}
+                        <motion.button 
+                            className=" w-[9.5vw] py-[4%] shadow-sm cursor-pointer bg-[#2c2c2ca4] hover:bg-[#48372bb1] font-[Consolas] font-bold text-[#fffffffd] " 
+                            onClick={toggleTab} 
+                            onKeyDown={e => {if (e.key === ' ') e.preventDefault();}}//to prevent it from listening to the spacebar
+                            {...ANIMATION_CONFIG.button} 
+                            >
+                                {hovered ? "Switch" :tab}
                         </motion.button>
                     </motion.div>
 
