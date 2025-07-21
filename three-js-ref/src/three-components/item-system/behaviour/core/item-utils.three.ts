@@ -8,13 +8,13 @@ export interface SpawnData {
 export class ItemUtils {
     constructor() {}
     public static getSpawnPosition(view:THREE.Group,eyeLevel:number):SpawnData {
-        const lookAtDistance = 2;
+        const lookAtDistance = 5;
         const spawnPosition = new THREE.Vector3();// Calculate spawn position: camera position + camera forward vector * distance
         view.getWorldPosition(spawnPosition);    
 
-        const forwardVector = new THREE.Vector3(0, 0,-1)
+        const forwardVector = new THREE.Vector3(0,0,-1)
             .applyQuaternion(view.getWorldQuaternion(new THREE.Quaternion()))
-            .normalize()//i normalized it to ensure its a unit vector
+            .normalize()
             .multiplyScalar(lookAtDistance);
 
         spawnPosition.add(forwardVector.clone().setY(eyeLevel));
