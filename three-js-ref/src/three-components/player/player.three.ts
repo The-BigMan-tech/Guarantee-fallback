@@ -326,6 +326,8 @@ class Player extends Controller implements EntityLike {
                 }
             }else if (this.lookedAtItemClone) {
                 console.log('attacked block');
+                this.lookedAtItemClone.applyKnockback(this.position,this.strength);
+                this.attackTimer = 0;
             }
         }
     }
