@@ -14,9 +14,9 @@ import { groupIDs } from "../entity-system/globals";
 import { relationshipManager } from "../entity-system/relationships.three";
 import type { seconds } from "../entity-system/globals";
 import { toggleItemGui,isCellSelected, setUsedItem } from "../item-system/item-state";
-import { itemManager, type InventoryItem } from "../item-system/item-manager.three";
-import { disposeHierarchy } from "../disposer/disposer.three";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { itemManager } from "../item-system/item-manager.three";
+import { ItemHolder } from "../item-system/item-holder.three";
+
 
 // console.log = ()=>{};
 interface PlayerCamData extends CameraData {
@@ -92,6 +92,7 @@ class Player extends Controller implements EntityLike {
 
     private useItemCooldown:seconds = 0.5;
     private useItemTimer:seconds = 0;
+    private itemHolder:ItemHolder;
 
     private isDescendantOf(child: THREE.Object3D, parent: THREE.Object3D): boolean {
         let current = child;
@@ -133,6 +134,7 @@ class Player extends Controller implements EntityLike {
         this.attackDamage = miscData.attackDamage;
         this.knockback = miscData.knockback;
         this.strength = miscData.strength;
+        this.itemHolder = new ItemHolder(this.item3D)
     }
     private addEventListeners() {
         document.addEventListener('keydown',this.onPlayerKeyDown);
@@ -351,50 +353,6 @@ class Player extends Controller implements EntityLike {
     }
 
 
-    private currentHeldItemID: string | null = null;
-    private modelLoader:GLTFLoader = new GLTFLoader();
-
-    private disposeItem() {
-        while (this.item3D.children.length > 0) {
-            const child = this.item3D.children[0];
-            this.item3D.remove(child);
-            disposeHierarchy(child); // Dispose the removed child's geometry/materials/textures etc.
-        }
-    }
-
-    private loadItemModel(itemInHand: InventoryItem) {
-        this.disposeItem(); // Remove previous model from item3D
-        const clonedModel = itemInHand.item.scene!.clone(true); // Deep clone
-        const transform = itemInHand.item.transform;
-        clonedModel.scale.copy(transform.scale); // Scale to 50% in all dimensions
-        clonedModel.position.copy(transform.position);
-        clonedModel.rotation.copy(transform.rotation);
-        this.item3D.add(clonedModel);// Clone before adding
-    }
-
-    private holdSelectedItem() {//called on loop
-        const itemInHand = itemManager.itemInHand;
-        const heldItemID = itemInHand ? itemInHand.item.name : null;
-        if (heldItemID !== this.currentHeldItemID) {
-            this.currentHeldItemID = heldItemID;
-            console.log('holding currentHeldItemID:',this.currentHeldItemID);
-            if (!itemInHand) {
-                this.disposeItem();
-                return
-            }
-            if (itemInHand.item.scene) {//reuse the scene if already loaded
-                console.log('used item scene');
-                this.loadItemModel(itemInHand)
-                return
-            }else {
-                this.modelLoader.load(itemInHand.item.modelPath,gltf=>{
-                    itemInHand.item.scene = gltf.scene;
-                    this.loadItemModel(itemInHand)
-                });
-            }
-        }
-    }
-
     protected onLoop() {//this is where all character updates to this instance happens.
         this.toggleTimer += this.clockDelta || 0;
         this.toggleItemGuiTimer += this.clockDelta || 0;
@@ -402,7 +360,7 @@ class Player extends Controller implements EntityLike {
         this.attackTimer += this.clockDelta || 0;
         this.useItemTimer += this.clockDelta || 0;
         this.currentHealth = this.health.value;
-        this.holdSelectedItem();
+        this.itemHolder.holdItem(itemManager.itemInHand?.item || null)
         this.checkIfOutOfBounds();
         this.updateHealthGUI();
         this.health.checkGroundDamage(this.velBeforeHittingGround);

@@ -1,11 +1,11 @@
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import * as THREE from "three";
-import type { InventoryItem } from "../item-system/item-manager.three";
+import type { Item } from "./item-defintions";
 import { disposeHierarchy } from "../disposer/disposer.three";
 
 export class ItemHolder {
     private item3D: THREE.Group;
-    private currentHeldItemID: string | null = null;
+    private currentHeldItem: string | null = null;
     private modelLoader:GLTFLoader = new GLTFLoader();
 
     constructor(item3D: THREE.Group) {
@@ -18,34 +18,32 @@ export class ItemHolder {
             disposeHierarchy(child); // Dispose the removed child's geometry/materials/textures etc.
         }
     }
-
-    private loadItemModel(itemInHand: InventoryItem) {
+    private loadItemModel(item:Item) {
         this.disposeItem(); // Remove previous model from item3D
-        const clonedModel = itemInHand.item.scene!.clone(true); // Deep clone
-        const transform = itemInHand.item.transform;
+        const clonedModel = item.scene!.clone(true); // Deep clone
+        const transform = item.transform;
         clonedModel.scale.copy(transform.scale); // Scale to 50% in all dimensions
         clonedModel.position.copy(transform.position);
         clonedModel.rotation.copy(transform.rotation);
         this.item3D.add(clonedModel);// Clone before adding
     }
-
-    private holdSelectedItem(itemInHand:InventoryItem | null) {//called on loop
-        const heldItemID = itemInHand ? itemInHand.itemID : null;
-        if (heldItemID !== this.currentHeldItemID) {
-            this.currentHeldItemID = heldItemID;
-            console.log('holding currentHeldItemID:',this.currentHeldItemID);
-            if (!itemInHand) {
+    public holdItem(item:Item | null) {//called on loop
+        const heldItem = item ? item.name : null;
+        if (heldItem !== this.currentHeldItem) {
+            this.currentHeldItem = heldItem;
+            console.log('holding currentHeldItemID:',this.currentHeldItem);
+            if (!item) {
                 this.disposeItem();
                 return
             }
-            if (itemInHand.item.scene) {//reuse the scene if already loaded
+            if (item.scene) {//reuse the scene if already loaded
                 console.log('used item scene');
-                this.loadItemModel(itemInHand)
+                this.loadItemModel(item)
                 return
             }else {
-                this.modelLoader.load(itemInHand.item.modelPath,gltf=>{
-                    itemInHand.item.scene = gltf.scene;
-                    this.loadItemModel(itemInHand)
+                this.modelLoader.load(item.modelPath,gltf=>{
+                    item.scene = gltf.scene;
+                    this.loadItemModel(item)
                 });
             }
         }
