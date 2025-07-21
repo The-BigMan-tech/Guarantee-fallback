@@ -10,7 +10,7 @@ export class Throwable implements ItemBehaviour {
     private static modelLoader = new GLTFLoader();
     private data:ItemBody;
     private model:THREE.Group | null = null; 
-    
+
     constructor(data:ItemBody) {
         this.data = data;
         Throwable.modelLoader.load(this.data.modelPath,gltf=>{
@@ -23,8 +23,7 @@ export class Throwable implements ItemBehaviour {
             const {direction,spawnPosition} = ItemUtils.getSpawnPosition(view,eyeLevel);
             const spinVectorInAir = new THREE.Vector3(1,1,1);
             const clone = new ItemClone(this.model,spawnPosition,this.data,spinVectorInAir);
-            const throwImpulse = direction.multiplyScalar(userStrength);
-            clone.rigidBody!.applyImpulse(throwImpulse, true);
+            clone.applyKnockback(direction,userStrength);
             itemManager.removeFromInventory(itemID)
         }
     }

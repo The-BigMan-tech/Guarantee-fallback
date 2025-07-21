@@ -19,7 +19,7 @@ export class ItemClone {
 
     private spinApplied = false;
     private spinVectorInAir:THREE.Vector3;//this is a unit vector used to determine which component the spin velocity is applied.each component is like a flag to decide whether to apply spin in this axis or not
-    private static readonly addHitbox:boolean = true;
+    private static readonly addHitbox:boolean = false;
     
     constructor(model: THREE.Group,spawnPosition:THREE.Vector3,properties:ItemCloneProps,spinVectorInAir:THREE.Vector3) {
         this.height = properties.height;
@@ -82,6 +82,10 @@ export class ItemClone {
             return false;
         })
         return onGround
+    }
+    public applyKnockback(direction:THREE.Vector3,strength:number) {
+        const throwImpulse = direction.multiplyScalar(strength);
+        this.rigidBody!.applyImpulse(throwImpulse, true);
     }
     public updateClone() {
         if (this.rigidBody) {
