@@ -306,7 +306,7 @@ class Player extends Controller implements EntityLike {
             const targetHealth = entity.health;
             if (targetHealth && !targetHealth.isDead) {
                 targetHealth.takeDamage(this.attackDamage);
-                entity.knockbackCharacter('backwards',this.knockback);
+                entity.knockbackCharacter(this.position,this.knockback);
                 this.addRelationship(entity,relationshipManager.enemyOf[groupIDs.player]);
                 this.addRelationship(this,relationshipManager.attackerOf[entity._groupID!]);
                 this.attackTimer = 0;

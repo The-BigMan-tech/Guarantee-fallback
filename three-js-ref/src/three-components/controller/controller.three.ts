@@ -813,7 +813,7 @@ export abstract class Controller {
     }
     private updateCharacterTransformations():void {
         if (!this.characterRigidBody) return;
-        //i minused it from ground detction distance to get it to stay exactly on the ground
+        //i  used its ground position and also added the level where things on the ground stand on as the y transform of the mesh
         const [posX,posY,posZ] = [this.characterPosition.x,this.calculateGroundPosition()+startingLevelY,this.characterPosition.z];
         this.character.position.set(posX,posY,posZ);
         this.character.quaternion.slerp(this.targetQuaternion,this.dynamicData.rotationSpeed);
@@ -844,15 +844,14 @@ export abstract class Controller {
     private knockbackCooldown:seconds = combatCooldown;//to give the physics engine time to reflect the knockback
 
     //this method applies an impulse to the character.so i can use it for other things besides knockback but take into account that velocity is the main method used to control characters
-    public knockbackCharacter(direction:'forward'| 'backwards',knockbackImpulse:number,scalarY?:number):void {
+    public knockbackCharacter(sourcePosition:THREE.Vector3,knockbackImpulse:number,scalarY?:number):void {
         this.wakeUpBody();
         const upwardScalar = 3
-        const dir = new THREE.Vector3(0,0,(direction=='forward')?-1:1);
-        const knockbackDir = dir.applyQuaternion(this.character.quaternion)
+        const direction = new THREE.Vector3().subVectors(this.position, sourcePosition).normalize();
         const impulse = new RAPIER.Vector3(
-            knockbackDir.x * knockbackImpulse,
+            direction.x * knockbackImpulse,
             knockbackImpulse * (scalarY || upwardScalar),
-            knockbackDir.z * knockbackImpulse
+            direction.z * knockbackImpulse
         );
         this.impulse.copy(impulse);
         this.isKnockedBack = true;
