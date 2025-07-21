@@ -40,7 +40,7 @@ export class FloorContent {
         
             const height = randFloat(minHeight,maxHeight);
             
-            const localY = startingLevelY + height/2;//to make it stand on the startinglevl not that half of it is above and another half above
+            const localY = startingLevelY + height/2 ;//to make it stand on the startinglevl not that half of it is above and another half above
             const localX = x - this.floorContentData.chunkSize / 2;
             const localZ = z - this.floorContentData.chunkSize / 2;
 
@@ -57,9 +57,10 @@ export class FloorContent {
             physicsWorld.createCollider(tallCubeCollider,tallCubeRigidBody);
             
             const worldX = this.chunkPos.x + localX;
+            const worldY = height/2;
             const worldZ = this.chunkPos.z + localZ;
 
-            tallCubeRigidBody.setTranslation({x:worldX,y:localY,z:worldZ},true)
+            tallCubeRigidBody.setTranslation({x:worldX,y:worldY,z:worldZ},true)
             tallCube.position.set(localX,localY, localZ);
 
             this.content.add(tallCube);

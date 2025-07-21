@@ -18,7 +18,7 @@ export class ItemClone {
     private height:number;
 
     private spinApplied = false;
-    private static readonly addHitbox:boolean = false;
+    private static readonly addHitbox:boolean = true;
     
     constructor(model: THREE.Group,spawnPosition:THREE.Vector3,properties:ItemCloneProps) {
         this.height = properties.height;
