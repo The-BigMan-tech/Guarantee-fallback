@@ -1,13 +1,10 @@
 import * as THREE from "three"
 
 
-export interface SpawnData {
-    spawnPosition:THREE.Vector3,
-    direction:THREE.Vector3
-}
+
 export class ItemUtils {
     constructor() {}
-    public static getSpawnPosition(view:THREE.Group,eyeLevel:number):SpawnData {
+    public static getSpawnPosition(view:THREE.Group,eyeLevel:number):THREE.Vector3 {
         const lookAtDistance = 5;
         const spawnPosition = new THREE.Vector3();// Calculate spawn position: camera position + camera forward vector * distance
         view.getWorldPosition(spawnPosition);    
@@ -18,7 +15,7 @@ export class ItemUtils {
             .multiplyScalar(lookAtDistance);
 
         spawnPosition.add(forwardVector.clone().setY(eyeLevel));
-        return {spawnPosition,direction:forwardVector};
+        return spawnPosition
     }
     public static applyMaterialToModel(model:THREE.Group<THREE.Object3DEventMap>,metalness:number,roughness:number) {
         model.traverse((obj) => {//apply a metallic material

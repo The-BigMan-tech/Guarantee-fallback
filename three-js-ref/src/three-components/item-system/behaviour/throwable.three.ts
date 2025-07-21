@@ -20,14 +20,14 @@ export class Throwable implements ItemBehaviour {
     }
     public use(view:THREE.Group,eyeLevel:number,itemID:string,userStrength:number):void {
         if (this.model) {
-            const {direction,spawnPosition} = ItemUtils.getSpawnPosition(view,eyeLevel);
+            const spawnPosition = ItemUtils.getSpawnPosition(view,eyeLevel);
             const clone = ItemClone.createClone({
                 model:this.model,
                 spawnPosition,
                 properties:this.data,
                 spinVectorInAir:new THREE.Vector3(1,1,1)//this means spin in all axis while in the air
             });
-            clone.applyKnockback(direction,userStrength);
+            clone.applyKnockback(view.getWorldPosition(new THREE.Vector3),userStrength);
             itemManager.removeFromInventory(itemID)
         }
     }

@@ -95,9 +95,10 @@ export class ItemClone {
         })
         return onGround
     }
-    public applyKnockback(direction:THREE.Vector3,strength:number) {
-        const throwImpulse = direction.multiplyScalar(strength);
-        this.rigidBody!.applyImpulse(throwImpulse, true);
+    public applyKnockback(sourcePosition:THREE.Vector3,strength:number) {
+        const direction = new THREE.Vector3().subVectors(this.rigidBody!.translation(), sourcePosition).normalize();
+        const impulse = direction.multiplyScalar(strength).setY(strength)
+        this.rigidBody!.applyImpulse(impulse, true);
     }
     public updateClone() {
         if (this.rigidBody) {
