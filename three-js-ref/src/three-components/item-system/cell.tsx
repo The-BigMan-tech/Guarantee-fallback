@@ -47,27 +47,31 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
     const stackfullText:string | null = (itemManager.isStackFull(itemID)?'Full':null);//to indicate the inv is full.i only used this indicator in the main item grid to signal it to playrs when adding items from it to their inv but the inv itself will always show the item count
     const itemNameStyle:style = "font-mono font-semibold text-sm"
 
+    const holdingItemInCell = (itemManager.itemInHand?.itemID === itemID)
 
     const selectedCellBackground = useCallback(()=> {
-        if (selectedCellID === itemID) {
+        if (selectedCellID === itemID) {//this is the style of a cell when we select it
             return { scale: 1.11, backgroundColor: "#2c2c2ca4" }
-        }else if (tab=="Inventory" && !selectedCellID && (itemManager.itemInHand?.itemID === itemID)) {
-            return { scale: 1.11, backgroundColor: "#d86666a3" }
-        }else {
+        }
+        //so the effect of this is to highlight the selected inventory item after the user has switched away from grid mode.this is because switching away from grid mode deselects the cell.so we need to apply some sort of style so that the character knows which item he is holding even though he deselected the cell to switch out of grid mode and start moving
+        else if (tab=="Inventory" && !selectedCellID && holdingItemInCell) {//so what this does is that if the user is in the inventory,and the item in this cell is what he is holding,highlight it BUT we only want to highlight it this color when the user has deselected the cell to exit grid mode.thats why i added !selectedCellID.because if not,this style will apply to any item he selects in the inv not when he exited grid mode.
+            return { scale: 1.11, backgroundColor: "#333d32a0" }
+        }
+        else {//this is the style of a cell when it isnt selected
             return { scale: 1, backgroundColor: "#2424246b" }
         }
-    },[itemID,selectedCellID,tab])
+    },[itemID,selectedCellID,tab,holdingItemInCell])
 
 
     const ANIMATION_CONFIG = useMemo(() => ({
         cell: {
             animate:selectedCellBackground(),
-            whileHover:(!selectedCellID) ? { //only do hover animation only when a cell isnt selected to prevent two cells from being emphasized at the same time
+            whileHover:(!selectedCellID && !holdingItemInCell) ? { //only do hover animation only when a cell isnt selected to prevent two cells from being emphasized at the same time.we also dont want to override the style of the cell if the user is holding an item from it which is why i added the second check.
                 scale: 1.15,
                 backgroundColor:"#2c2c2ca4"
             } : {}
         }
-    }), [selectedCellID,selectedCellBackground]);
+    }), [selectedCellID,selectedCellBackground,holdingItemInCell]);
 
 
     const [src, setSrc] = useState<string | undefined>(undefined);//i used undefined here to prevent react from throwing errors that i cant use an empty string as the src even though my app didnt crash from it.
