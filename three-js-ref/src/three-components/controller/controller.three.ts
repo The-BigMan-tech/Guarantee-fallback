@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
-import { physicsWorld,gravityY,outOfBoundsY, combatCooldown} from "../physics-world.three";
+import { physicsWorld,gravityY,outOfBoundsY, combatCooldown, startingLevelY} from "../physics-world.three";
 import { listener, audioLoader } from "../listener/listener.three";
 import {v4 as uniqueID} from "uuid"
 import { getGroundDetectionDistance } from "./helper";
@@ -467,8 +467,8 @@ export abstract class Controller {
 
                 console.log('PointY Obstacle: ', offsetPoint.y);
                 hasCollidedForward = true;
-
-                const groundPosY = Math.floor(offsetPoint.y);//i floored it to clarify the ref point so that rather than 0.7 or 0.1,its 0.why floor specifically?i can instead use round or ceil.but the reason why i made this decision was because of feedback from game testing and the logs.i tested this in an env where i knew the exact height of the obstacles i was testing against but i needed the algo to know that.so after iteratively playing with precision,floor was the best choice.for something like ground ref,flooring it is better cuz it provides a stable ref point across all floats of a particular number.its more stable than round which is biased to higher floats and its better than ceil thats too generous to lower floats
+                //i also considered the point in the y axis where obstacles stand.thats why i added startingLevelY
+                const groundPosY = Math.floor(offsetPoint.y)+startingLevelY;//i floored it to clarify the ref point so that rather than 0.7 or 0.1,its 0.why floor specifically?i can instead use round or ceil.but the reason why i made this decision was because of feedback from game testing and the logs.i tested this in an env where i knew the exact height of the obstacles i was testing against but i needed the algo to know that.so after iteratively playing with precision,floor was the best choice.for something like ground ref,flooring it is better cuz it provides a stable ref point across all floats of a particular number.its more stable than round which is biased to higher floats and its better than ceil thats too generous to lower floats
                 const stepOverPosY = (groundPosY + this.dynamicData.maxStepUpHeight)+0.1//so what we want to do here is to check for the point at the height just above what the character can step over before taking clearance checks from there to get the exact height.we could have used 1 but it misses on float heights so 0.1 is more precise.it catches the height more accurately
                 const stepOverPos = new THREE.Vector3(offsetPoint.x,stepOverPosY,offsetPoint.z)
 

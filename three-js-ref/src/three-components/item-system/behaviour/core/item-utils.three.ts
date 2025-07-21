@@ -8,7 +8,7 @@ export interface SpawnData {
 export class ItemUtils {
     constructor() {}
     public static getSpawnPosition(view:THREE.Group,eyeLevel:number):SpawnData {
-        const lookAtDistance = 5;
+        const lookAtDistance = 2;
         const spawnPosition = new THREE.Vector3();// Calculate spawn position: camera position + camera forward vector * distance
         view.getWorldPosition(spawnPosition);    
 

@@ -12,7 +12,7 @@ import { listener } from "../listener/listener.three";
 import type { EntityLike } from "../entity-system/relationships.three";
 import { groupIDs } from "../entity-system/entity-registry";
 import { relationshipManager } from "../entity-system/relationships.three";
-import type { seconds } from "../entity-system/entity-registry";
+import type { seconds } from "../entity-system/global-types";
 import { toggleItemGui,isCellSelected, setUsedItem } from "../item-system/item-state";
 import { itemManager } from "../item-system/item-manager.three";
 import { ItemHolder } from "../item-system/item-holder.three";
@@ -58,7 +58,7 @@ class Player extends Controller implements EntityLike {
 
     private offsetY:number;
     //use these target variables to manipulate the camera's position not directly through mutating the position of the camera directly.this is to ensure that different parts of the codebase modify the camera's position safely and predictably.trying to directly mutate its position in this code where the target variables are used will result in unexpected behaviour.i tried to diectly update the cam's position for zooming in and out where my code was relying on the target variables causing my effect to not apply properly
-    private targetZ:number = -0.6;//this is used to offset the cam either forward or backward.i made it -0.6 initially cuz it starts as first person and ill want the cam to shift a little away from the model to clear the view
+    private targetZ:number = 0;//this is used to offset the cam either forward or backward.i made it -0.6 initially cuz it starts as first person and ill want the cam to shift a little away from the model to clear the view
     private targetY:number = 0;
 
     private readonly toggleCooldown:seconds = 0.3; // Cooldown in seconds.this value in particular works the best
@@ -125,8 +125,8 @@ class Player extends Controller implements EntityLike {
         this.camRotationSpeed = miscData.camArgs.cameraRotationSpeed;
         this.originalCamRotSpeed = miscData.camArgs.cameraRotationSpeed;
         this.camera = new Camera(miscData.camArgs);
-        this.addObject(this.camera.cam3D);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
-        this.addObject(listener);
+        this.addObject(this.camera.cam3D);
+        this.addObject(listener);//any object thats added to the controller must provide their functionality as the controller doesn provide any logic for these objects except adding them to the chaacter object
         this.addEventListeners();
         this.health = new Health(miscData.healthValue);
         this.currentHealth = miscData.healthValue;
@@ -211,6 +211,7 @@ class Player extends Controller implements EntityLike {
         
         const camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion);
         const camPosToPlayer = this.camera.cam3D.position.clone().sub(this.position);
+        console.log('signedDist position:',this.position);
         const signedDist = camPosToPlayer.dot(camForward);
         console.log('signedDist:', signedDist);
         
