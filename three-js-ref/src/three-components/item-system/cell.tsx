@@ -100,24 +100,24 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
                 onHoverStart={() => setHoveredCell(itemID)}
                 {...ANIMATION_CONFIG.cell}
                 >
-                {/*only render the image if on the items tab or if we are in the inventory tab but the count is greater than 0.this is to avoid the image from lingering the inv */}
-                {(tab == "Items") || ((itemManager.inventory.get(itemID)?.count || 0) > 0) 
-                    ?<img src={src} className={`w-[75%] relative left-[15%]`} draggable={false}/>
-                    :null
-                }
-                {(tab == "Items")
-                    ?<div className="text-sm">
-                        <div className={itemNameStyle}>{itemManager.items[itemID]?.name}</div>
-                        {((selectedCellID==itemID) || (cellHovered==itemID))//we want to show the item count if we are selecting that cell or if we are hovering over it
-                            ?<div className={multiplierStyle}>{stackfullText || itemCount}</div>
-                            :null
-                        }
-                    </div>
-                    :<div>
-                        <div className={itemNameStyle}>{itemManager.inventory.get(itemID)?.item.name}</div>
-                        <div className={multiplierStyle}>{`${itemCount}`}</div>
-                    </div>
-                }
+                    {/*only render the image if on the items tab or if we are in the inventory tab but the count is greater than 0.this is to avoid the image from lingering the inv */}
+                    {(tab == "Items") || ((itemManager.inventory.get(itemID)?.count || 0) > 0) 
+                        ?<img src={src} className={`w-[75%] relative left-[15%]`} draggable={false}/>
+                        :null
+                    }
+                    {(tab == "Items")
+                        ?<div className="text-sm">
+                            <div className={itemNameStyle}>{itemManager.items[itemID]?.name}</div>
+                            {((selectedCellID==itemID) || (cellHovered==itemID))//we want to show the item count if we are selecting that cell or if we are hovering over it
+                                ?<div className={multiplierStyle}>{stackfullText || itemCount}</div>
+                                :null
+                            }
+                        </div>
+                        :<div>
+                            <div className={itemNameStyle}>{itemManager.inventory.get(itemID)?.item.name}</div>
+                            <div className={multiplierStyle}>{`${itemCount}`}</div>
+                        </div>
+                    }
             </motion.button>
         </div>
     )
