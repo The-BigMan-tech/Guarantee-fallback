@@ -31,7 +31,7 @@ function eulerDegToRad(euler: THREE.Euler): THREE.Euler {
 }
 const modelPaths = {//this is to prevent duplication
     Block:'./block/block.glb',
-    Snowball:'./snowball/snowball.glb',
+    Boulder:'./boulder/boulder.glb',
 }
 export const itemDefinitions:Record<ItemID,Item>  = {//items should be registered on startup and shouldn be mutated
     'block':{
@@ -52,10 +52,10 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             depth:2
         })
     },
-    'snowball':{
-        name:'Snowball',
-        modelPath:modelPaths.Snowball,
-        imagePath:'./snowball/snowball.png',
+    'boulder':{
+        name:'Boulder',
+        modelPath:modelPaths.Boulder,
+        imagePath:'./boulder/boulder.png',
         scene:null,
         transform:{
             position:new THREE.Vector3(0,-0.3,0), 
@@ -63,7 +63,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             scale:new THREE.Vector3(0.3,0.3,0.3)
         },
         behaviour:new Throwable({
-            modelPath:modelPaths.Snowball,
+            modelPath:modelPaths.Boulder,
             density:2,
             width:3,
             height:3,
