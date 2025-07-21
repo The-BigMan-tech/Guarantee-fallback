@@ -16,6 +16,7 @@ import type { seconds } from "../entity-system/global-types";
 import { toggleItemGui,isCellSelected, setUsedItem } from "../item-system/item-state";
 import { itemManager } from "../item-system/item-manager.three";
 import { ItemHolder } from "../item-system/item-holder.three";
+import { LookRequest } from "./look-request.three";
 
 
 // console.log = ()=>{};
@@ -71,8 +72,6 @@ class Player extends Controller implements EntityLike {
     private playerHeight:number;
 
     public attackDamage:number;
-    private raycaster = new THREE.Raycaster();
-    private lookDirection = new THREE.Vector2(0, 0); // center of screen for forward raycast
 
     private attackCooldown:seconds = combatCooldown; // half a second cooldown
     private attackTimer:seconds = 0;
@@ -93,31 +92,9 @@ class Player extends Controller implements EntityLike {
     private useItemCooldown:seconds = 0.5;
     private useItemTimer:seconds = 0;
     private itemHolder:ItemHolder;
+    private lookRequest:LookRequest;
     private camForward:THREE.Vector3 = new THREE.Vector3();
 
-    private isDescendantOf(child: THREE.Object3D, parent: THREE.Object3D): boolean {
-        let current = child;
-        while (current) {
-            if (current === parent) return true;
-            current = current.parent!;
-        }
-        return false;
-    }
-    private getTheLookedAtEntity(entities:EntityContract[], maxDistance = 10):EntityContract | null {
-        this.raycaster.setFromCamera(this.lookDirection, this.camera.perspectiveCamera);
-        const objectsToTest = entities.map(e => e._entity.char); // implement getRootObject() to return THREE.Object3D of entity
-        const intersects = this.raycaster.intersectObjects(objectsToTest, true);
-        
-        if (intersects.length > 0 && intersects[0].distance <= maxDistance) {
-            const intersectedObject = intersects[0].object;// Find which entity corresponds to the intersected object
-            for (const [index,object] of objectsToTest.entries()) {
-                if (this.isDescendantOf(intersectedObject,object)) {
-                    return entities[index];
-                }
-            }
-        }
-        return null;
-    }
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:PlayerMiscData) {
         super(fixedData,dynamicData);
@@ -135,7 +112,8 @@ class Player extends Controller implements EntityLike {
         this.attackDamage = miscData.attackDamage;
         this.knockback = miscData.knockback;
         this.strength = miscData.strength;
-        this.itemHolder = new ItemHolder(this.item3D)
+        this.itemHolder = new ItemHolder(this.item3D);
+        this.lookRequest = new LookRequest(new THREE.Vector2(0, 0)); // center of screen for forward raycast
     }
     private addEventListeners() {
         document.addEventListener('keydown',this.onPlayerKeyDown);
@@ -244,6 +222,14 @@ class Player extends Controller implements EntityLike {
         this.targetY = zoomPosition.y;
         this.targetZ = zoomPosition.z
     }
+    public requestLookedEntity():EntityContract | null {
+        return this.lookRequest.requestObject({
+            nativeCamera:this.camera.perspectiveCamera,
+            testObjects:entities.map(e => e._entity.char),
+            maxDistance:10,
+            selection:entities
+        })
+    }
     private bindKeysToAnimations() {
         if (this.isAirBorne()) {
             this.stopWalkSound()
@@ -302,7 +288,7 @@ class Player extends Controller implements EntityLike {
 
     private updateHealthGUI() {
         console.log('Health. Player: ',this.health.value);
-        this.lookedAtEntity = this.getTheLookedAtEntity(entities, 10);
+        this.lookedAtEntity = this.requestLookedEntity();
         setPlayerHealth({currentValue:this.health.value,maxValue:this.health.maxHealth});
         if (this.lookedAtEntity) {
             const entityHealth = this.lookedAtEntity._entity.health;

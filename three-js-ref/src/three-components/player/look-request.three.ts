@@ -1,6 +1,6 @@
 import * as THREE from "three"
 
-export class ViewRequest {
+export class LookRequest {//to request if a looked at object is any one of the given objects
     private raycaster = new THREE.Raycaster();
     private mouseCords:THREE.Vector2;
 
