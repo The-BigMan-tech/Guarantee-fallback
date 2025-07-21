@@ -59,7 +59,9 @@ export class ItemClone {
 
         this.rigidBody.setTranslation(spawnPosition,true);
         this.mesh.position.copy(this.rigidBody.translation());
+
         ItemClones.clones.push(this);//automatically push the clone to the clones array for updating
+        ItemClones.cloneIndices.set(this,ItemClones.clones.length-1);//add its index to the map for removal
         ItemClones.group.add(this.mesh);//auto add it to the group to be shown in the scene
     }
     private applySpin() {
@@ -111,9 +113,21 @@ export class ItemClone {
             }
         }
     }
+    private removeFromClones() {//used swap and pop delete for O(1) deletion
+        const index = ItemClones.cloneIndices.get(this)!;
+        const lastIndex = ItemClones.clones.length - 1;
+        if (index < lastIndex) {
+            const lastClone = ItemClones.clones[lastIndex];
+            ItemClones.clones[index] = lastClone;
+            ItemClones.cloneIndices.set(lastClone,index)
+        }
+        ItemClones.clones.pop();
+        ItemClones.cloneIndices.delete(this);
+    }
     public cleanUp() {
         ItemClones.group.remove(this.mesh)
-        disposeHierarchy(this.mesh)
+        disposeHierarchy(this.mesh);
+        this.removeFromClones();
         if (this.rigidBody) {
             physicsWorld.removeRigidBody(this.rigidBody)
             this.rigidBody = null
@@ -123,6 +137,7 @@ export class ItemClone {
 }
 export class ItemClones {
     public static clones:ItemClone[] = [];//this is for the player to get the looked at clone and dispose its reources when removing it
+    public static cloneIndices:Map<ItemClone,number> = new Map();
     public static group:THREE.Group = new THREE.Group();
 
     public static updateClones() {
