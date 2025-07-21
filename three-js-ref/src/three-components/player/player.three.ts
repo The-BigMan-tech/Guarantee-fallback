@@ -288,7 +288,6 @@ class Player extends Controller implements EntityLike {
 
     private updateHealthGUI() {
         console.log('Health. Player: ',this.health.value);
-        this.lookedAtEntity = this.requestLookedEntity();
         setPlayerHealth({currentValue:this.health.value,maxValue:this.health.maxHealth});
         if (this.lookedAtEntity) {
             const entityHealth = this.lookedAtEntity._entity.health;
@@ -348,6 +347,7 @@ class Player extends Controller implements EntityLike {
         this.attackTimer += this.clockDelta || 0;
         this.useItemTimer += this.clockDelta || 0;
         this.currentHealth = this.health.value;
+        this.lookedAtEntity = this.requestLookedEntity();
         this.camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion);
         this.itemHolder.holdItem(itemManager.itemInHand?.item || null)
         this.checkIfOutOfBounds();
