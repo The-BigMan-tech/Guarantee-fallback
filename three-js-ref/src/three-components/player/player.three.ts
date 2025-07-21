@@ -93,6 +93,7 @@ class Player extends Controller implements EntityLike {
     private useItemCooldown:seconds = 0.5;
     private useItemTimer:seconds = 0;
     private itemHolder:ItemHolder;
+    private camForward:THREE.Vector3 = new THREE.Vector3();
 
     private isDescendantOf(child: THREE.Object3D, parent: THREE.Object3D): boolean {
         let current = child;
@@ -209,17 +210,15 @@ class Player extends Controller implements EntityLike {
             this.rotateCharacterX('right')
         };
         
-        const camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion);
         const camPosToPlayer = this.camera.cam3D.position.clone().sub(this.position);
-        console.log('signedDist position:',this.position);
-        const signedDist = camPosToPlayer.dot(camForward);
+        const signedDist = camPosToPlayer.dot(this.camForward);
         console.log('signedDist:', signedDist);
         
         if (this.keysPressed['Equal'] &&  (signedDist <= this.zoomClamp)) {//this corresponds to + key.zoom in
-            this.zoomCamera(this.zoomDelta,camForward);
+            this.zoomCamera(this.zoomDelta);
         }
         if (this.keysPressed['Minus'] && (signedDist >= -this.zoomClamp)) {//zoom out
-            this.zoomCamera(-this.zoomDelta,camForward);
+            this.zoomCamera(-this.zoomDelta);
         }
         
         if (this.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
@@ -239,8 +238,8 @@ class Player extends Controller implements EntityLike {
             }
         }
     }
-    private zoomCamera(zoomDelta:number,camForward:THREE.Vector3) {
-        const zoomDirection = camForward.clone().multiplyScalar(zoomDelta);
+    private zoomCamera(zoomDelta:number) {
+        const zoomDirection = this.camForward.clone().multiplyScalar(zoomDelta);
         const zoomPosition = this.camera.cam3D.position.clone().add(zoomDirection); // move forward
         this.targetY = zoomPosition.y;
         this.targetZ = zoomPosition.z
@@ -292,6 +291,7 @@ class Player extends Controller implements EntityLike {
             }
         }
     }
+    //TODO: Im not suppose to use tsrget y and z directly here because it will set the camera in world cords not the player's own cord.Im suppose to get the local pos from the cam direction vector
     private updateCamPosition() {
         const camPosition = this.camera.cam3D.position;
         const newCamPosition = new THREE.Vector3(camPosition.x,this.targetY,this.targetZ)
@@ -362,6 +362,7 @@ class Player extends Controller implements EntityLike {
         this.attackTimer += this.clockDelta || 0;
         this.useItemTimer += this.clockDelta || 0;
         this.currentHealth = this.health.value;
+        this.camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion);
         this.itemHolder.holdItem(itemManager.itemInHand?.item || null)
         this.checkIfOutOfBounds();
         this.updateHealthGUI();
