@@ -814,7 +814,7 @@ export abstract class Controller {
     private updateCharacterTransformations():void {
         if (!this.characterRigidBody) return;
         //i minused it from ground detction distance to get it to stay exactly on the ground
-        const [posX,posY,posZ] = [this.characterPosition.x,this.calculateGroundPosition()+0.5,this.characterPosition.z];
+        const [posX,posY,posZ] = [this.characterPosition.x,this.calculateGroundPosition(),this.characterPosition.z];
         this.character.position.set(posX,posY,posZ);
         this.character.quaternion.slerp(this.targetQuaternion,this.dynamicData.rotationSpeed);
         this.characterRigidBody.setRotation(this.targetQuaternion,true);
