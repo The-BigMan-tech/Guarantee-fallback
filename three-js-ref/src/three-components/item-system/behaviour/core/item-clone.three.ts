@@ -2,7 +2,7 @@ import * as THREE from "three"
 import * as RAPIER from "@dimforge/rapier3d"
 import { physicsWorld } from "../../../physics-world.three";
 import { disposeHierarchy } from "../../../disposer/disposer.three";
-import type { ItemCloneData } from "./types";
+import type { ItemCloneProps } from "./types";
 import { getGroundDetectionDistance } from "../../../controller/helper";
 
 function createBoxLine(width:number,height:number,depth:number) {
@@ -20,7 +20,7 @@ export class ItemClone {
     private spinApplied = false;
     private static readonly addHitbox:boolean = true;
 
-    constructor(parent:THREE.Group,clonedModel: THREE.Group,spawnPosition:THREE.Vector3,data:ItemCloneData) {
+    constructor(parent:THREE.Group,clonedModel: THREE.Group,spawnPosition:THREE.Vector3,data:ItemCloneProps) {
         this.parent = parent;
         this.height = data.height;
         const box = new THREE.Box3().setFromObject(clonedModel);

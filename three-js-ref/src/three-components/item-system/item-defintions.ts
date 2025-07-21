@@ -62,7 +62,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
             scale:new THREE.Vector3(0.3,0.3,0.3)
         },
-        behaviour:new DynamicBody({
+        behaviour:new Throwable({
             modelPath:modelPaths.Boulder,
             density:2,
             width:3,

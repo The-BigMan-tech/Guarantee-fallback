@@ -212,6 +212,7 @@ class Player extends Controller implements EntityLike {
         const camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion);
         const camPosToPlayer = this.camera.cam3D.position.clone().sub(this.position);
         const signedDist = camPosToPlayer.dot(camForward);
+        console.log('signedDist:', signedDist);
         
         if (this.keysPressed['Equal'] &&  (signedDist <= this.zoomClamp)) {//this corresponds to + key.zoom in
             this.zoomCamera(this.zoomDelta,camForward);
