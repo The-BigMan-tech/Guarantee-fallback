@@ -9,8 +9,6 @@ import { itemManager } from "../item-manager.three";
 
 export class DynamicBody implements ItemBehaviour {
     private static modelLoader = new GLTFLoader();
-    public  static group:THREE.Group = new THREE.Group()
-
     private data:ItemBody;
     private model:THREE.Group | null = null; 
 
@@ -22,10 +20,8 @@ export class DynamicBody implements ItemBehaviour {
     }
     public use(view:THREE.Group,eyeLevel:number,itemID:string) {
         if (this.model) {
-            console.log('dynamic model');
-            const spawnData = ItemUtils.getSpawnPosition(view,eyeLevel)
-            const clone = new ItemClone(DynamicBody.group,this.model,spawnData.spawnPosition,this.data)
-            DynamicBody.group.add(clone.mesh);
+            const {spawnPosition} = ItemUtils.getSpawnPosition(view,eyeLevel)
+            new ItemClone(this.model,spawnPosition,this.data)
             itemManager.removeFromInventory(itemID)
         }
     }

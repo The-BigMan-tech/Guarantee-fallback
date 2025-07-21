@@ -8,8 +8,6 @@ import { itemManager } from "../item-manager.three";
 
 export class Throwable implements ItemBehaviour {
     private static modelLoader = new GLTFLoader();
-    public  static group:THREE.Group = new THREE.Group()
-
     private data:ItemBody;
     private model:THREE.Group | null = null; 
     
@@ -22,10 +20,9 @@ export class Throwable implements ItemBehaviour {
     }
     public use(view:THREE.Group,eyeLevel:number,itemID:string,userStrength:number):void {
         if (this.model) {
-            const spawnData = ItemUtils.getSpawnPosition(view,eyeLevel)
-            const clone = new ItemClone(Throwable.group,this.model,spawnData.spawnPosition,this.data)
-            Throwable.group.add(clone.mesh);
-            const throwImpulse = spawnData.direction.multiplyScalar(userStrength);
+            const {direction,spawnPosition} = ItemUtils.getSpawnPosition(view,eyeLevel)
+            const clone = new ItemClone(this.model,spawnPosition,this.data)
+            const throwImpulse = direction.multiplyScalar(userStrength);
             clone.rigidBody!.applyImpulse(throwImpulse, true);
             itemManager.removeFromInventory(itemID)
         }

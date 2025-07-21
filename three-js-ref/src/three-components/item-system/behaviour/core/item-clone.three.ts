@@ -16,13 +16,11 @@ export class ItemClone {
     public  rigidBody:RAPIER.RigidBody | null;
     private handle:number;
     private height:number;
-    private parent:THREE.Group
 
     private spinApplied = false;
     private static readonly addHitbox:boolean = false;
-
-    constructor(parent:THREE.Group,model: THREE.Group,spawnPosition:THREE.Vector3,properties:ItemCloneProps) {
-        this.parent = parent;
+    
+    constructor(model: THREE.Group,spawnPosition:THREE.Vector3,properties:ItemCloneProps) {
         this.height = properties.height;
         const clonedModel = model.clone(true);
         const box = new THREE.Box3().setFromObject(clonedModel);
@@ -49,7 +47,8 @@ export class ItemClone {
 
         this.rigidBody.setTranslation(spawnPosition,true);
         this.mesh.position.copy(this.rigidBody.translation());
-        ItemClones.clones.push(this);
+        ItemClones.clones.push(this);//automatically push the clone to the clones array for updating
+        ItemClones.group.add(this.mesh);//auto add it to the group to be shown in the scene
     }
     private applySpin() {
         if (this.rigidBody && !this.spinApplied) {
@@ -96,7 +95,7 @@ export class ItemClone {
         }
     }
     public cleanUp() {
-        this.parent.remove(this.mesh)
+        ItemClones.group.remove(this.mesh)
         disposeHierarchy(this.mesh)
         if (this.rigidBody) {
             physicsWorld.removeRigidBody(this.rigidBody)
@@ -107,6 +106,8 @@ export class ItemClone {
 }
 export class ItemClones {
     public static clones:ItemClone[] = [];//this is for the player to get the looked at clone and dispose its reources when removing it
+    public static group:THREE.Group = new THREE.Group();
+
     public static updateClones() {
         for (const clone of ItemClones.clones) {
             clone.updateClone()
