@@ -77,7 +77,8 @@ class Player extends Controller implements EntityLike {
     private attackTimer:seconds = 0;
 
     public  knockback:number;
-    private strength:number
+    private strength:number;
+    
     private lookedAtEntity:EntityContract | null = null;
 
     private respawnDelay:seconds = 7; // seconds
@@ -301,15 +302,20 @@ class Player extends Controller implements EntityLike {
         if (this.attackTimer > (this.attackCooldown -0.4)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
             this.playAttackAnimation();
         }
-        if ((this.attackTimer > this.attackCooldown) && (this.lookedAtEntity)) { 
-            const entity = this.lookedAtEntity._entity;
-            const targetHealth = entity.health;
-            if (targetHealth && !targetHealth.isDead) {
-                targetHealth.takeDamage(this.attackDamage);
-                entity.knockbackCharacter(this.position,this.knockback);
-                this.addRelationship(entity,relationshipManager.enemyOf[groupIDs.player]);
-                this.addRelationship(this,relationshipManager.attackerOf[entity._groupID!]);
-                this.attackTimer = 0;
+        if ((this.attackTimer > this.attackCooldown)){
+            if (this.lookedAtEntity) { 
+                console.log('attacked entity');
+                const entity = this.lookedAtEntity._entity;
+                const targetHealth = entity.health;
+                if (targetHealth && !targetHealth.isDead) {
+                    targetHealth.takeDamage(this.attackDamage);
+                    entity.knockbackCharacter(this.position,this.knockback);
+                    this.addRelationship(entity,relationshipManager.enemyOf[groupIDs.player]);
+                    this.addRelationship(this,relationshipManager.attackerOf[entity._groupID!]);
+                    this.attackTimer = 0;
+                }
+            }else if (this) {
+                console.log('attacked block');
             }
         }
     }

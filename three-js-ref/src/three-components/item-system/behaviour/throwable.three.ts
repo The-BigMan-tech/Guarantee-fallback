@@ -27,7 +27,8 @@ export class Throwable implements ItemBehaviour {
                 properties:this.data,
                 spinVectorInAir:new THREE.Vector3(1,1,1)//this means spin in all axis while in the air
             });
-            clone.applyKnockback(view.getWorldPosition(new THREE.Vector3),userStrength);
+            const sourceThrow = view.getWorldPosition(new THREE.Vector3)
+            clone.applyKnockback(sourceThrow,userStrength);
             itemManager.removeFromInventory(itemID)
         }
     }
