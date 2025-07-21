@@ -1,7 +1,7 @@
 import type { ItemBehaviour } from "../item-defintions";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { ItemClone, ItemClones } from "./core/item-clone.three";
+import { ItemClone } from "./core/item-clone.three";
 import type { ItemBody } from "./core/types";
 import { ItemUtils } from "./core/item-utils.three";
 import { itemManager } from "../item-manager.three";
@@ -24,10 +24,9 @@ export class Throwable implements ItemBehaviour {
         if (this.model) {
             const spawnData = ItemUtils.getSpawnPosition(view,eyeLevel)
             const clone = new ItemClone(Throwable.group,this.model,spawnData.spawnPosition,this.data)
-            ItemClones.clones.push(clone)
             Throwable.group.add(clone.mesh);
             const throwImpulse = spawnData.direction.multiplyScalar(userStrength);
-            clone.rigidBody?.applyImpulse(throwImpulse, true);
+            clone.rigidBody!.applyImpulse(throwImpulse, true);
             itemManager.removeFromInventory(itemID)
         }
     }

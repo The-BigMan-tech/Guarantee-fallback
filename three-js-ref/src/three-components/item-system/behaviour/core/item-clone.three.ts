@@ -49,6 +49,7 @@ export class ItemClone {
 
         this.rigidBody.setTranslation(spawnPosition,true);
         this.mesh.position.copy(this.rigidBody.translation());
+        ItemClones.clones.push(this);
     }
     private applySpin() {
         if (this.rigidBody && !this.spinApplied) {

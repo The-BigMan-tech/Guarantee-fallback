@@ -3,7 +3,7 @@ import type { ItemBehaviour } from "../item-defintions";
 import * as THREE from "three"
 import { ItemUtils } from "./core/item-utils.three";
 import type { ItemBody } from "./core/types";
-import { ItemClone, ItemClones } from "./core/item-clone.three";
+import { ItemClone } from "./core/item-clone.three";
 import { itemManager } from "../item-manager.three";
 
 
@@ -26,7 +26,6 @@ export class DynamicBody implements ItemBehaviour {
             const spawnData = ItemUtils.getSpawnPosition(view,eyeLevel)
             const clone = new ItemClone(DynamicBody.group,this.model,spawnData.spawnPosition,this.data)
             DynamicBody.group.add(clone.mesh);
-            ItemClones.clones.push(clone);
             itemManager.removeFromInventory(itemID)
         }
     }
