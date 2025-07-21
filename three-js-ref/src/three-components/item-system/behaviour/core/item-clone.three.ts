@@ -18,10 +18,12 @@ export class ItemClone {
     private height:number;
 
     private spinApplied = false;
+    private spinVectorInAir:THREE.Vector3;//this is a unit vector used to determine which component the spin velocity is applied.each component is like a flag to decide whether to apply spin in this axis or not
     private static readonly addHitbox:boolean = true;
     
-    constructor(model: THREE.Group,spawnPosition:THREE.Vector3,properties:ItemCloneProps) {
+    constructor(model: THREE.Group,spawnPosition:THREE.Vector3,properties:ItemCloneProps,spinVectorInAir:THREE.Vector3) {
         this.height = properties.height;
+        this.spinVectorInAir = spinVectorInAir.normalize();//i normalized it to ensure its a unit vector
         const clonedModel = model.clone(true);
         const box = new THREE.Box3().setFromObject(clonedModel);
         const size = new THREE.Vector3();
@@ -55,11 +57,12 @@ export class ItemClone {
             const baseSpinVelocity = 100;
             const spinMagnitude = baseSpinVelocity / this.rigidBody.mass();//we are making this inversely proportional because the point here isnt to make all objects of all masses to spin like a ball but to make objects that can spin to spin while heavier ones shouldnt
 
-            const spinVelocity = new RAPIER.Vector3(
+            const spinVelocity = new THREE.Vector3(
               (Math.random() - 0.5) * spinMagnitude,
               (Math.random() - 0.5) * spinMagnitude,
               (Math.random() - 0.5) * spinMagnitude
-            );
+            ).multiply(this.spinVectorInAir);
+
             this.rigidBody.setAngvel(spinVelocity, true);//i directly set the ang vel here over applying torque because doing so wont produce the desired effects because rapier also does its own calc before applying it
             this.spinApplied = true;//to prevent applying a spin to the body when one is already applied.we reset it here to ensure that its only set to true when its guaranteed that this method applied the torque
             console.log('spin applied');

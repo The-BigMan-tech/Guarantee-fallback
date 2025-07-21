@@ -20,8 +20,9 @@ export class DynamicBody implements ItemBehaviour {
     }
     public use(view:THREE.Group,eyeLevel:number,itemID:string) {
         if (this.model) {
-            const {spawnPosition} = ItemUtils.getSpawnPosition(view,eyeLevel)
-            new ItemClone(this.model,spawnPosition,this.data)
+            const {spawnPosition} = ItemUtils.getSpawnPosition(view,eyeLevel);
+            const spinVectorInAir = new THREE.Vector3(0,0,0)
+            new ItemClone(this.model,spawnPosition,this.data,spinVectorInAir)
             itemManager.removeFromInventory(itemID)
         }
     }
