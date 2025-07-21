@@ -844,11 +844,12 @@ export abstract class Controller {
     private knockbackCooldown:seconds = combatCooldown;//to give the physics engine time to reflect the knockback
 
     //this method applies an impulse to the character.so i can use it for other things besides knockback but take into account that velocity is the main method used to control characters
-    public knockbackCharacter(sourcePosition:THREE.Vector3,knockbackImpulse:number,scalarY?:number):void {
+    public knockbackCharacter(sourcePosition:THREE.Vector3,knockbackImpulse:number):void {
         this.wakeUpBody();
-        const upwardScalar = 3
         const direction = new THREE.Vector3().subVectors(this.position, sourcePosition).normalize();
-        const impulse = direction.multiplyScalar(knockbackImpulse).setY(knockbackImpulse * (scalarY || upwardScalar))
+        const impulse = direction.multiplyScalar(knockbackImpulse);
+        const upwardScalar = 3
+        impulse.y += (knockbackImpulse * upwardScalar)//to lift it in the air cuz the impulse here as it is,doesnt lift the object into the air
         this.impulse.copy(impulse);
         this.isKnockedBack = true;
         this.playPunchSound();
