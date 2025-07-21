@@ -18,6 +18,7 @@ export class Throwable implements ItemBehaviour {
         this.data = data;
         Throwable.modelLoader.load(this.data.modelPath,gltf=>{
             this.model = gltf.scene;
+            ItemUtils.applyMaterialToModel(this.model,0,1)
         })
     }
     public use(view:THREE.Group,eyeLevel:number,itemID:string,userStrength:number):void {

@@ -26,7 +26,7 @@ export class EntityFactory {
         dynamicData.jumpVelocity = randInt(20,30);
         dynamicData.jumpResistance = Math.min(randInt(6,10),dynamicData.horizontalVelocity-5);//i capped it to be smaller than horizontal velocity cuz if not and it happens to be bigger than the horizontal vel,the entity wont be able to jump because its jump resistance is equal or bigger
         miscData.healthValue = randInt(10,10);
-        miscData.knockback = randInt(100,150);
+        miscData.knockback = randInt(10,15);
         miscData.attackDamage = randFloat(0.5,1);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         const hostileEntity = new HostileEntity(entity);
@@ -41,7 +41,7 @@ export class EntityFactory {
         dynamicData.jumpVelocity = randInt(25,32);
         dynamicData.jumpResistance = Math.min(randInt(6,10),dynamicData.horizontalVelocity-5);
         miscData.healthValue = randInt(10,11);
-        miscData.knockback = randInt(100,150);
+        miscData.knockback = randInt(25,30);
         miscData.attackDamage = randFloat(1,2);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         const npc =  new NPC(entity);

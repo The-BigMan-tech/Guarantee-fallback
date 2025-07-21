@@ -27,4 +27,14 @@ export class ItemUtils {
         args.clones.push(clone);
         return clone
     }
+    public static applyMaterialToModel(model:THREE.Group<THREE.Object3DEventMap>,metalness:number,roughness:number) {
+        model.traverse((obj) => {//apply a metallic material
+            if (!(obj instanceof THREE.Mesh)) return
+            if (obj.material && obj.material.isMeshStandardMaterial) {
+                obj.material.metalness = metalness; 
+                obj.material.roughness = roughness;   
+                obj.material.needsUpdate = true;
+            }
+        });
+    }
 }
