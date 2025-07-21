@@ -110,9 +110,9 @@ class Player extends Controller implements EntityLike {
         
         if (intersects.length > 0 && intersects[0].distance <= maxDistance) {
             const intersectedObject = intersects[0].object;// Find which entity corresponds to the intersected object
-            for (const entity of entities) {
-                if (this.isDescendantOf(intersectedObject, entity._entity.char)) {
-                    return entity;
+            for (const [index,object] of objectsToTest.entries()) {
+                if (this.isDescendantOf(intersectedObject,object)) {
+                    return entities[index];
                 }
             }
         }
@@ -269,7 +269,7 @@ class Player extends Controller implements EntityLike {
             this.targetY = this.offsetY;//reset the cam y position on toggling to cancel out the effect of zooming
             switch (this.camModeNum) {
                 case CameraMode.FirstPerson: {
-                    this.targetZ = -1;
+                    this.targetZ = -1
                     this.camRotationSpeed = this.originalCamRotSpeed
                     this.cameraClampAngle = this.firstPersonClamp
                     this.camera.setCameraRotationX(0,0);
