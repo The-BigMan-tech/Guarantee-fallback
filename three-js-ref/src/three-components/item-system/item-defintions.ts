@@ -46,7 +46,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
         },
         behaviour:new DynamicBody({
             modelPath:modelPaths.Block,
-            density:30,
+            density:2,
             width:2,
             height:2,
             depth:2
@@ -62,7 +62,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
             scale:new THREE.Vector3(0.3,0.3,0.3)
         },
-        behaviour:new Throwable({
+        behaviour:new DynamicBody({
             modelPath:modelPaths.Boulder,
             density:2,
             width:3,

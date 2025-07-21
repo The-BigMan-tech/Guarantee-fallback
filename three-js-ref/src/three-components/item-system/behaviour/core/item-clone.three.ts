@@ -18,7 +18,7 @@ export class ItemClone {
     private parent:THREE.Group
 
     private spinApplied = false;
-    private static readonly addHitbox:boolean = false;
+    private static readonly addHitbox:boolean = true;
 
     constructor(parent:THREE.Group,clonedModel: THREE.Group,spawnPosition:THREE.Vector3,data:ItemCloneData) {
         this.parent = parent;

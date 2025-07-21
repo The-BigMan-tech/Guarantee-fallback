@@ -24,14 +24,11 @@ export class DynamicBody implements ItemBehaviour {
     }
     public use(view:THREE.Group,eyeLevel:number,itemID:string) {
         if (this.model) {
+            console.log('dynamic model');
             const spawnData = ItemUtils.getSpawnPosition(view,eyeLevel)
-            ItemUtils.spawnItemClone({
-                spawnPosition:spawnData.spawnPosition,
-                group:DynamicBody.group,
-                model:this.model,
-                cloneData:this.data,
-                clones:DynamicBody.clones
-            })
+            const clone = new ItemClone(DynamicBody.group,this.model.clone(),spawnData.spawnPosition,this.data)
+            DynamicBody.group.add(clone.mesh);
+            DynamicBody.clones.push(clone);
             itemManager.removeFromInventory(itemID)
         }
     }

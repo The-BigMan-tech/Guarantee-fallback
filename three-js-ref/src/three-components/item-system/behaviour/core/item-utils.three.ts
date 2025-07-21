@@ -1,6 +1,5 @@
 import * as THREE from "three"
-import { ItemClone } from "./item-clone.three";
-import type { ItemCloneData } from "./types";
+
 
 export interface SpawnData {
     spawnPosition:THREE.Vector3,
@@ -20,12 +19,6 @@ export class ItemUtils {
 
         spawnPosition.add(forwardVector.clone().setY(eyeLevel));
         return {spawnPosition,direction:forwardVector};
-    }
-    public static spawnItemClone(args:{spawnPosition:THREE.Vector3,group:THREE.Group,model:THREE.Group,cloneData:ItemCloneData,clones:ItemClone[]}):ItemClone {
-        const clone = new ItemClone(args.group,args.model.clone(),args.spawnPosition,args.cloneData)
-        args.group.add(clone.mesh);
-        args.clones.push(clone);
-        return clone
     }
     public static applyMaterialToModel(model:THREE.Group<THREE.Object3DEventMap>,metalness:number,roughness:number) {
         model.traverse((obj) => {//apply a metallic material

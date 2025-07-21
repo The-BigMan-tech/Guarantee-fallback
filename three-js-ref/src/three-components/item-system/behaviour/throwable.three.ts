@@ -24,13 +24,9 @@ export class Throwable implements ItemBehaviour {
     public use(view:THREE.Group,eyeLevel:number,itemID:string,userStrength:number):void {
         if (this.model) {
             const spawnData = ItemUtils.getSpawnPosition(view,eyeLevel)
-            const clone = ItemUtils.spawnItemClone({
-                spawnPosition:spawnData.spawnPosition,
-                group:Throwable.group,
-                model:this.model,
-                cloneData:this.data,
-                clones:Throwable.clones
-            })
+            const clone = new ItemClone(Throwable.group,this.model.clone(),spawnData.spawnPosition,this.data)
+            Throwable.group.add(clone.mesh);
+            Throwable.clones.push(clone);
             const throwImpulse = spawnData.direction.multiplyScalar(userStrength);
             clone.rigidBody?.applyImpulse(throwImpulse, true);
             itemManager.removeFromInventory(itemID)
