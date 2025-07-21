@@ -848,11 +848,7 @@ export abstract class Controller {
         this.wakeUpBody();
         const upwardScalar = 3
         const direction = new THREE.Vector3().subVectors(this.position, sourcePosition).normalize();
-        const impulse = new RAPIER.Vector3(
-            direction.x * knockbackImpulse,
-            knockbackImpulse * (scalarY || upwardScalar),
-            direction.z * knockbackImpulse
-        );
+        const impulse = direction.multiplyScalar(knockbackImpulse).setY(knockbackImpulse * (scalarY || upwardScalar))
         this.impulse.copy(impulse);
         this.isKnockedBack = true;
         this.playPunchSound();
