@@ -4,7 +4,7 @@ import { randInt,randFloat} from "three/src/math/MathUtils.js";
 import { Entity } from "./entity.three";
 import type { EntityContract } from "./entity.three";
 import type { FullEntityData } from "./entity.three";
-
+import { groupIDs } from "./entity-registry";
 
 type Singleton<T> = T;
 export class EntityFactory {
@@ -26,10 +26,12 @@ export class EntityFactory {
         dynamicData.jumpVelocity = randInt(20,30);
         dynamicData.jumpResistance = Math.min(randInt(6,10),dynamicData.horizontalVelocity-5);//i capped it to be smaller than horizontal velocity cuz if not and it happens to be bigger than the horizontal vel,the entity wont be able to jump because its jump resistance is equal or bigger
         miscData.healthValue = randInt(10,10);
-        miscData.knockback = randInt(10,15);
+        miscData.knockback = randInt(8,10);
         miscData.attackDamage = randFloat(0.5,1);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         const hostileEntity = new HostileEntity(entity);
+        hostileEntity._entity._groupID = groupIDs.hostileEntity;//this is important to distinguish entities in a relationship.for example,not all attackers of the player are from a particular class
+        hostileEntity._entity.incEntityCount('HostileEntity');
         return hostileEntity;
     }
     public createNPC(entityData:FullEntityData):EntityContract {
@@ -45,6 +47,8 @@ export class EntityFactory {
         miscData.attackDamage = randFloat(1,2);
         const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
         const npc =  new NPC(entity);
+        npc._entity._groupID = groupIDs.npc;
+        npc._entity.incEntityCount('NPC');
         return npc
     }
     public createDefault(entityData:FullEntityData):EntityContract {
