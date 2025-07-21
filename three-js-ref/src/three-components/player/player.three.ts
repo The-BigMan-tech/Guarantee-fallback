@@ -17,6 +17,7 @@ import { toggleItemGui,isCellSelected, setUsedItem } from "../item-system/item-s
 import { itemManager } from "../item-system/item-manager.three";
 import { ItemHolder } from "../item-system/item-holder.three";
 import { LookRequest } from "./look-request.three";
+import { ItemClone, ItemClones } from "../item-system/behaviour/core/item-clone.three";
 
 
 // console.log = ()=>{};
@@ -78,8 +79,9 @@ class Player extends Controller implements EntityLike {
 
     public  knockback:number;
     private strength:number;
-    
+
     private lookedAtEntity:EntityContract | null = null;
+    private lookedAtItemClone:ItemClone | null = null;
 
     private respawnDelay:seconds = 7; // seconds
     private respawnTimer: seconds = 0;
@@ -231,6 +233,14 @@ class Player extends Controller implements EntityLike {
             selection:entities
         })
     }
+    public requestLookedItemClone():ItemClone | null {
+        return this.lookRequest.requestObject({
+            nativeCamera:this.camera.perspectiveCamera,
+            testObjects:ItemClones.clones.map(clone=>clone.mesh),
+            maxDistance:10,
+            selection:ItemClones.clones
+        })
+    }
     private bindKeysToAnimations() {
         if (this.isAirBorne()) {
             this.stopWalkSound()
@@ -314,7 +324,7 @@ class Player extends Controller implements EntityLike {
                     this.addRelationship(this,relationshipManager.attackerOf[entity._groupID!]);
                     this.attackTimer = 0;
                 }
-            }else if (this) {
+            }else if (this.lookedAtItemClone) {
                 console.log('attacked block');
             }
         }
@@ -353,7 +363,10 @@ class Player extends Controller implements EntityLike {
         this.attackTimer += this.clockDelta || 0;
         this.useItemTimer += this.clockDelta || 0;
         this.currentHealth = this.health.value;
+
         this.lookedAtEntity = this.requestLookedEntity();
+        this.lookedAtItemClone = this.requestLookedItemClone();
+
         this.camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion);
         this.itemHolder.holdItem(itemManager.itemInHand?.item || null)
         this.checkIfOutOfBounds();
