@@ -378,7 +378,7 @@ export abstract class Controller {
         
         //the purpose of this point cast is to lead the agent along the wall of an obstacle by shooting forward till there is no obstacle ahead of it which means that it has sucessfully walked along the wall.youll understand this better if you see it yourself using the visual debugger.
 
-        if ((purpose == 'sideRay') && reachedPreviousClearance) {//only the side or foremost ray can be called at a time per call.
+        if ((purpose == 'sideRay')) {//only the side or foremost ray can be called at a time per call.
             const straightLinePos = point.clone();//i termed this straight line cuz it penetrates through blocks to get a clearance point
             let finalPos: THREE.Vector3 | null = null;
             for (let i=0;i <= maxWidthToCheck;i++) {
