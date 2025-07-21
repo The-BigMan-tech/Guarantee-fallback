@@ -80,7 +80,7 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
                 ref={el => { cellRefs.current[itemID] = el; }}
                 onHoverStart={() => setHoveredCell(itemID)}
                 animate= { // the reason why i didnt include this in the config as well is because i need to check a specifc property of a particular cell which can only be accessed withing the map rendering.
-                    selectedCellID === itemID
+                    (selectedCellID === itemID) 
                     ? { scale: 1.11, backgroundColor: "#2c2c2ca4" }
                     : { scale: 1, backgroundColor: "#2424246b" }
                 }

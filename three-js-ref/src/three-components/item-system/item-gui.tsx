@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState ,useRef,useCallback} from "react";
 import { motion,AnimatePresence,easeInOut} from "motion/react"
-import { isCellSelectedAtom, showItemGuiAtom, toggleItemGui, usedItemAtom } from "./item-state";
+import { isCellSelected, isCellSelectedAtom, showItemGuiAtom, toggleItemGui, usedItemAtom } from "./item-state";
 import { useAtom } from "jotai";
 import { itemManager } from "./item-manager.three";
 import type { ItemID } from "./item-defintions";
@@ -162,7 +162,7 @@ export default function ItemGui() {
             return cellsArray.findIndex(id => id === itemID)
         }
         function moveSelection(offset: number) {
-            if (selectedCellID == undefined) return; // nothing selected
+            if ( (selectedCellID == undefined) || (!isCellSelected()) ) return; // nothing selected
             const newIndex = getCellIndex(selectedCellID) + offset;
             console.log('selected cell id newIndex:', newIndex);
             if ((newIndex >= 0) && (newIndex < cellsArray.length)) {//only advance the selection when within bounds
@@ -178,7 +178,7 @@ export default function ItemGui() {
             else {
                 const deselectKey ='KeyR'
                 if (event.code == deselectKey) {//i used the same key for both toggling off the item gui and deselecting a cell for good ux.
-                    setSelectedCellID(undefined);
+                    if (tab === "Items") setSelectedCellID(undefined);//we dont want to deselect the cell in the inventory so that the player can know which item he is holding
                     setIsCellSelected(false);
                     if (selectedCellID) toggleItemGui();//i did this to cancel out the effect of the E-key listener in the player class so that pressing E when a cell is selected,only deselects the cell and the gui will only close when E is pressed and there is no cell selected
                     return;
