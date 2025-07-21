@@ -57,7 +57,7 @@ export class FloorContent {
             physicsWorld.createCollider(tallCubeCollider,tallCubeRigidBody);
             
             const worldX = this.chunkPos.x + localX;
-            const worldY = height/2;
+            const worldY = height/2;//i used it without adding starting level cuz the one with the starting level made objects to rest slightly above the mesh
             const worldZ = this.chunkPos.z + localZ;
 
             tallCubeRigidBody.setTranslation({x:worldX,y:worldY,z:worldZ},true)
