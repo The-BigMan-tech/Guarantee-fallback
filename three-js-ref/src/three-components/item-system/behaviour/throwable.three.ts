@@ -1,7 +1,7 @@
 import type { ItemBehaviour } from "../item-defintions";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { ItemClone } from "./core/item-clone.three";
+import { ItemClone, ItemClones } from "./core/item-clone.three";
 import type { ItemBody } from "./core/types";
 import { ItemUtils } from "./core/item-utils.three";
 import { itemManager } from "../item-manager.three";
@@ -9,7 +9,6 @@ import { itemManager } from "../item-manager.three";
 export class Throwable implements ItemBehaviour {
     private static modelLoader = new GLTFLoader();
     public  static group:THREE.Group = new THREE.Group()
-    public  static clones:ItemClone[] = []//this is for the player to get the looked at clone and dispose its reources when removing it
 
     private data:ItemBody;
     private model:THREE.Group | null = null; 
@@ -24,17 +23,12 @@ export class Throwable implements ItemBehaviour {
     public use(view:THREE.Group,eyeLevel:number,itemID:string,userStrength:number):void {
         if (this.model) {
             const spawnData = ItemUtils.getSpawnPosition(view,eyeLevel)
-            const clone = new ItemClone(Throwable.group,this.model.clone(true),spawnData.spawnPosition,this.data)
+            const clone = new ItemClone(Throwable.group,this.model,spawnData.spawnPosition,this.data)
+            ItemClones.clones.push(clone)
             Throwable.group.add(clone.mesh);
-            Throwable.clones.push(clone);
             const throwImpulse = spawnData.direction.multiplyScalar(userStrength);
             clone.rigidBody?.applyImpulse(throwImpulse, true);
             itemManager.removeFromInventory(itemID)
-        }
-    }
-    public static updateClones() {
-        for (const clone of Throwable.clones) {
-            clone.updateClone()
         }
     }
 }

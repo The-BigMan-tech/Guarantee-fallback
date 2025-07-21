@@ -65,9 +65,9 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
         behaviour:new Throwable({
             modelPath:modelPaths.Boulder,
             density:2,
-            width:3,
-            height:3,
-            depth:3
+            width:2,
+            height:2,
+            depth:2
         })
     }
 }

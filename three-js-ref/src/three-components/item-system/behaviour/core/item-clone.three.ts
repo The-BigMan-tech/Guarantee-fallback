@@ -10,6 +10,7 @@ function createBoxLine(width:number,height:number,depth:number) {
     const charEdges = new THREE.EdgesGeometry(charGeometry);
     return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
 }
+
 export class ItemClone {
     public  mesh:THREE.Group = new THREE.Group();
     public  rigidBody:RAPIER.RigidBody | null;
@@ -20,27 +21,28 @@ export class ItemClone {
     private spinApplied = false;
     private static readonly addHitbox:boolean = false;
 
-    constructor(parent:THREE.Group,clonedModel: THREE.Group,spawnPosition:THREE.Vector3,data:ItemCloneProps) {
+    constructor(parent:THREE.Group,model: THREE.Group,spawnPosition:THREE.Vector3,properties:ItemCloneProps) {
         this.parent = parent;
-        this.height = data.height;
+        this.height = properties.height;
+        const clonedModel = model.clone(true);
         const box = new THREE.Box3().setFromObject(clonedModel);
         const size = new THREE.Vector3();
         box.getSize(size);
 
-        const scaleX = data.width / size.x;
-        const scaleY = data.height / size.y;
-        const scaleZ = data.depth / size.z;
+        const scaleX = properties.width / size.x;
+        const scaleY = properties.height / size.y;
+        const scaleZ = properties.depth / size.z;
 
         clonedModel.scale.set(scaleX, scaleY, scaleZ);
-        clonedModel.position.y -= data.height / 2;
+        clonedModel.position.y -= properties.height / 2;
 
         this.mesh.add(clonedModel)
         this.mesh.position.copy(spawnPosition);
 
-        const hitbox = createBoxLine(data.width,data.height,data.depth);//this is for debugging
+        const hitbox = createBoxLine(properties.width,properties.height,properties.depth);//this is for debugging
         if (ItemClone.addHitbox) this.mesh.add(hitbox);
 
-        const cloneCollider = RAPIER.ColliderDesc.cuboid(data.width/2,data.height/2,data.depth/2).setDensity(data.density);
+        const cloneCollider = RAPIER.ColliderDesc.cuboid(properties.width/2,properties.height/2,properties.depth/2).setDensity(properties.density);
         const cloneBody = RAPIER.RigidBodyDesc.dynamic()
         this.rigidBody = physicsWorld.createRigidBody(cloneBody);
         this.handle = physicsWorld.createCollider(cloneCollider,this.rigidBody).handle;
@@ -98,6 +100,15 @@ export class ItemClone {
         if (this.rigidBody) {
             physicsWorld.removeRigidBody(this.rigidBody)
             this.rigidBody = null
+        }
+    }
+    
+}
+export class ItemClones {
+    public static clones:ItemClone[] = [];//this is for the player to get the looked at clone and dispose its reources when removing it
+    public static updateClones() {
+        for (const clone of ItemClones.clones) {
+            clone.updateClone()
         }
     }
 }

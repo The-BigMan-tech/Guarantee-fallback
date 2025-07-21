@@ -58,7 +58,7 @@ class Player extends Controller implements EntityLike {
 
     private offsetY:number;
     //use these target variables to manipulate the camera's position not directly through mutating the position of the camera directly.this is to ensure that different parts of the codebase modify the camera's position safely and predictably.trying to directly mutate its position in this code where the target variables are used will result in unexpected behaviour.i tried to diectly update the cam's position for zooming in and out where my code was relying on the target variables causing my effect to not apply properly
-    private targetZ:number = 0;//this is used to offset the cam either forward or backward.i made it -0.6 initially cuz it starts as first person and ill want the cam to shift a little away from the model to clear the view
+    private targetZ:number = -1;//this is used to offset the cam either forward or backward.i made it -0.6 initially cuz it starts as first person and ill want the cam to shift a little away from the model to clear the view
     private targetY:number = 0;
 
     private readonly toggleCooldown:seconds = 0.3; // Cooldown in seconds.this value in particular works the best
