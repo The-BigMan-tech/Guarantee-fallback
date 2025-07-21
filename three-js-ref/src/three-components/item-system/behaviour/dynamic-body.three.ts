@@ -20,9 +20,13 @@ export class DynamicBody implements ItemBehaviour {
     }
     public use(view:THREE.Group,eyeLevel:number,itemID:string) {
         if (this.model) {
-            const {spawnPosition} = ItemUtils.getSpawnPosition(view,eyeLevel);
-            const spinVectorInAir = new THREE.Vector3(0,0,0)
-            new ItemClone(this.model,spawnPosition,this.data,spinVectorInAir)
+            const {spawnPosition} = ItemUtils.getSpawnPosition(view,eyeLevel); 
+            ItemClone.createClone({
+                model:this.model,
+                spawnPosition,
+                properties:this.data,
+                spinVectorInAir:new THREE.Vector3(0,0,0)//this means dont spin in any axis while in the air
+            })
             itemManager.removeFromInventory(itemID)
         }
     }

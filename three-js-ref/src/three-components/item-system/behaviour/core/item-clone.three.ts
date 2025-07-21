@@ -11,6 +11,12 @@ function createBoxLine(width:number,height:number,depth:number) {
     return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
 }
 
+interface CloneArgs {
+    model: THREE.Group,
+    spawnPosition:THREE.Vector3,
+    properties:ItemCloneProps,
+    spinVectorInAir:THREE.Vector3
+}
 export class ItemClone {
     public  mesh:THREE.Group = new THREE.Group();
     public  rigidBody:RAPIER.RigidBody | null;
@@ -21,7 +27,11 @@ export class ItemClone {
     private spinVectorInAir:THREE.Vector3;//this is a unit vector used to determine which component the spin velocity is applied.each component is like a flag to decide whether to apply spin in this axis or not
     private static readonly addHitbox:boolean = false;
     
-    constructor(model: THREE.Group,spawnPosition:THREE.Vector3,properties:ItemCloneProps,spinVectorInAir:THREE.Vector3) {
+    public static createClone(args:CloneArgs):ItemClone {//i made a separate method for creating an item clone without the constructor because a behaviour may or may not even need the clone instance at all.the item clone class will already add the clone to the scene and update it at every loop.so there is isnt any management the behaviour class has to do with the clone after creating it.they can just use the exposed method to perform actions on the clone like applying knockback
+        return new ItemClone(args)
+    }
+    private constructor(args:CloneArgs) {
+        const {model,spawnPosition,properties,spinVectorInAir} = args;
         this.height = properties.height;
         this.spinVectorInAir = spinVectorInAir.normalize();//i normalized it to ensure its a unit vector
         const clonedModel = model.clone(true);
