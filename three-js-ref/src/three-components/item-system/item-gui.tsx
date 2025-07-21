@@ -178,7 +178,7 @@ export default function ItemGui() {
             else {
                 const deselectKey ='KeyR'
                 if (event.code == deselectKey) {//i used the same key for both toggling off the item gui and deselecting a cell for good ux.
-                    if (tab === "Items") setSelectedCellID(undefined);//we dont want to deselect the cell in the inventory so that the player can know which item he is holding
+                    setSelectedCellID(undefined);
                     setIsCellSelected(false);
                     if (selectedCellID) toggleItemGui();//i did this to cancel out the effect of the E-key listener in the player class so that pressing E when a cell is selected,only deselects the cell and the gui will only close when E is pressed and there is no cell selected
                     return;

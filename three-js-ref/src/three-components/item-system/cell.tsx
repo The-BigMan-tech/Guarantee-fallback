@@ -1,7 +1,7 @@
 import {motion} from "motion/react"
 import { itemManager } from "./item-manager.three";
 import type { ItemID } from "./item-defintions";
-import { useEffect, useMemo,useState,memo,type RefObject } from "react";
+import { useEffect, useMemo,useState,memo,type RefObject, useCallback } from "react";
 
 type style = string;
 
@@ -41,19 +41,33 @@ function areEqual(prev: Props, next: Props) {
 }
 const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cellHovered,setHoveredCell,cellRefs,handleDragEnter,handleDragStart,handleDrop,index}:Props)=>{
     console.log('Drag Rendering Cell for:',itemID);
+    
     const multiplierStyle:style = "absolute top-[3%] right-[4%] font-semibold font-[Consolas]";
     const itemCount = (itemManager.inventory.has(itemID) && `x ${itemManager.inventory.get(itemID)?.count}`) || ''
     const stackfullText:string | null = (itemManager.isStackFull(itemID)?'Full':null);//to indicate the inv is full.i only used this indicator in the main item grid to signal it to playrs when adding items from it to their inv but the inv itself will always show the item count
     const itemNameStyle:style = "font-mono font-semibold text-sm"
 
+
+    const selectedCellBackground = useCallback(()=> {
+        if (selectedCellID === itemID) {
+            return { scale: 1.11, backgroundColor: "#2c2c2ca4" }
+        }else if (tab=="Inventory" && !selectedCellID && (itemManager.itemInHand?.itemID === itemID)) {
+            return { scale: 1.11, backgroundColor: "#d86666a3" }
+        }else {
+            return { scale: 1, backgroundColor: "#2424246b" }
+        }
+    },[itemID,selectedCellID,tab])
+
+
     const ANIMATION_CONFIG = useMemo(() => ({
         cell: {
+            animate:selectedCellBackground(),
             whileHover:(!selectedCellID) ? { //only do hover animation only when a cell isnt selected to prevent two cells from being emphasized at the same time
                 scale: 1.15,
                 backgroundColor:"#2c2c2ca4"
             } : {}
         }
-    }), [selectedCellID]);
+    }), [selectedCellID,selectedCellBackground]);
 
 
     const [src, setSrc] = useState<string | undefined>(undefined);//i used undefined here to prevent react from throwing errors that i cant use an empty string as the src even though my app didnt crash from it.
@@ -64,6 +78,7 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
         return () => clearTimeout(timer);
     }, [itemID]);
 
+    
 
     return (
         <div 
@@ -79,11 +94,6 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
                 className={`relative rounded w-full aspect-square shadow-lg cursor-pointer text-white ${selectedCellStyle(itemID)}`}
                 ref={el => { cellRefs.current[itemID] = el; }}
                 onHoverStart={() => setHoveredCell(itemID)}
-                animate= { // the reason why i didnt include this in the config as well is because i need to check a specifc property of a particular cell which can only be accessed withing the map rendering.
-                    (selectedCellID === itemID) 
-                    ? { scale: 1.11, backgroundColor: "#2c2c2ca4" }
-                    : { scale: 1, backgroundColor: "#2424246b" }
-                }
                 {...ANIMATION_CONFIG.cell}
                 >
                 {/*only render the image if on the items tab or if we are in the inventory tab but the count is greater than 0.this is to avoid the image from lingering the inv */}
@@ -94,7 +104,7 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
                 {(tab == "Items")
                     ?<div className="text-sm">
                         <div className={itemNameStyle}>{itemManager.items[itemID]?.name}</div>
-                        {((selectedCellID==itemID) || (cellHovered==itemID))
+                        {((selectedCellID==itemID) || (cellHovered==itemID))//we want to show the item count if we are selecting that cell or if we are hovering over it
                             ?<div className={multiplierStyle}>{stackfullText || itemCount}</div>
                             :null
                         }
