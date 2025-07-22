@@ -65,3 +65,34 @@ export function disposeHierarchy(object: THREE.Object3D) {
         }
     });
 }
+export class Fader {
+    private fadeDuration = 2; // seconds
+    private elapsed = 0;
+    private progress:number = 0;
+
+    public fadeOut(mesh:THREE.Group,deltaTime:number):void {
+        if (this.progress === 1) return;//we dont want to repeat the fade out if its already done
+        this.elapsed += deltaTime;
+        this.progress = Math.min(this.elapsed /this.fadeDuration, 1);
+        console.log('fadeout progress:', this.progress);
+        
+        const opacity = 1 - this.progress;
+
+        mesh.traverse((child) => {
+            const mesh = child as THREE.Mesh;
+            if (mesh && mesh.material) {
+                if (Array.isArray(mesh.material)) {
+                    mesh.material.forEach((mat) => {
+                        mat.transparent = true;
+                        mat.opacity = opacity;
+                        mat.depthWrite = false; // helps with rendering transparent objects
+                    });
+                } else {
+                    mesh.material.transparent = true;
+                    mesh.material.opacity = opacity;
+                    mesh.material.depthWrite = false;
+                }
+            }
+        });
+    }
+}

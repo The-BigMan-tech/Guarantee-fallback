@@ -4,7 +4,7 @@ import * as THREE from "three"
 import { Health } from "../health/health";
 import { combatCooldown, physicsWorld } from "../physics-world.three";
 import type { EntityLike } from "./relationships.three";
-import { disposeHierarchy, disposeMixer } from "../disposer/disposer.three";
+import { disposeHierarchy, disposeMixer, Fader } from "../disposer/disposer.three";
 import type { EntityCount,EntityWrapper} from "./global-types"
 import { isEntityWrapper } from "./entity-registry";
 
@@ -61,11 +61,9 @@ export class Entity extends Controller implements EntityLike {
     private struct:ManagingStructure;
     public knockback:number;
 
-    private fadeDuration = 2; // seconds
-    private elapsed = 0;
-
     private movementType:'fluid' | 'precise' = 'precise'
 
+    private fader:Fader = new Fader();
 
     private state:EntityStateMachine = {
         behaviour:'idle'
@@ -127,7 +125,7 @@ export class Entity extends Controller implements EntityLike {
     public death():void {
         if (this.health.isDead && !this.isRemoved) {
             this.playDeathAnimation();
-            this.fadeOut(this.clockDelta || 0);
+            this.fader.fadeOut(this.char,this.clockDelta || 0);
             this.cleanUpResources();
         }
     }
@@ -160,28 +158,6 @@ export class Entity extends Controller implements EntityLike {
             }
         }
     } 
-    private fadeOut(deltaTime:number):void {
-        this.elapsed += deltaTime;
-        const progress = Math.min(this.elapsed / this.fadeDuration, 1);
-        const opacity = 1 - progress;
-    
-        this.char.traverse((child) => {
-            const mesh = child as THREE.Mesh;
-            if (mesh && mesh.material) {
-                if (Array.isArray(mesh.material)) {
-                    mesh.material.forEach((mat) => {
-                        mat.transparent = true;
-                        mat.opacity = opacity;
-                        mat.depthWrite = false; // helps with rendering transparent objects
-                    });
-                } else {
-                    mesh.material.transparent = true;
-                    mesh.material.opacity = opacity;
-                    mesh.material.depthWrite = false;
-                }
-            }
-        });
-    }
     public incEntityCount(wrapperName:EntityWrapper) {
         this.struct.entityCounts.totalCount += 1;
         this.struct.entityCounts.individualCounts[wrapperName].currentCount += 1;
