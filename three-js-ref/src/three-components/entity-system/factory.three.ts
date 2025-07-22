@@ -5,23 +5,35 @@ import { Entity } from "./entity.three";
 import type { EntityContract } from "./entity.three";
 import type { FullEntityData } from "./entity.three";
 import { groupIDs } from "./entity-registry";
+import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { gltfLoader } from "../gltf-loader.three";
 
 type Singleton<T> = T;
 export class EntityFactory {
     private static factory:EntityFactory;
 
-    private constructor() {};
+    private hostileEntityGLTF:GLTF | null = null;
+    private npcGLTF:GLTF | null = null;
+
+
+    private constructor() {
+        gltfLoader.load(HostileEntity.modelPath,gltf=>{this.hostileEntityGLTF = gltf});
+        gltfLoader.load(NPC.modelPath,gltf=>{this.npcGLTF = gltf});
+    };
+
     public static get instance():EntityFactory {
         if (!EntityFactory.factory)  {
             EntityFactory.factory = new EntityFactory();
         }
         return EntityFactory.factory;
     }
+
+
     public createHostileEntity(entityData:FullEntityData):EntityContract {
         const fixedData = entityData.fixedData;
         const dynamicData = entityData.dynamicData;
         const miscData = entityData.miscData;//i did this to make the code neater and it will work since it references the same object
-        fixedData.modelPath = HostileEntity.modelPath;
+        fixedData.gltfModel = this.hostileEntityGLTF;
         dynamicData.horizontalVelocity = randInt(5,20);
         dynamicData.jumpVelocity = randInt(20,30);
         dynamicData.jumpResistance = Math.min(randInt(6,10),dynamicData.horizontalVelocity-5);//i capped it to be smaller than horizontal velocity cuz if not and it happens to be bigger than the horizontal vel,the entity wont be able to jump because its jump resistance is equal or bigger
@@ -38,7 +50,7 @@ export class EntityFactory {
         const fixedData = entityData.fixedData;
         const dynamicData = entityData.dynamicData;
         const miscData = entityData.miscData
-        fixedData.modelPath = NPC.modelPath;
+        fixedData.gltfModel = this.npcGLTF;
         dynamicData.horizontalVelocity = randInt(15,30);
         dynamicData.jumpVelocity = randInt(25,32);
         dynamicData.jumpResistance = Math.min(randInt(6,10),dynamicData.horizontalVelocity-5);

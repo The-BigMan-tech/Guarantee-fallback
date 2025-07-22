@@ -18,6 +18,7 @@ import { itemManager } from "../item-system/item-manager.three";
 import { ItemHolder } from "../item-system/item-holder.three";
 import { LookRequest } from "./look-request.three";
 import { ItemClone, ItemClones } from "../item-system/behaviour/core/item-clone.three";
+import { gltfLoader } from "../gltf-loader.three";
 
 
 // console.log = ()=>{};
@@ -100,6 +101,9 @@ class Player extends Controller implements EntityLike {
 
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:PlayerMiscData) {
+        gltfLoader.load('./snowman-v3.glb',gltf=>{
+            fixedData.gltfModel = gltf;
+        })
         super(fixedData,dynamicData);
         this.offsetY = (miscData.camArgs.offsetY=='auto')?fixedData.characterHeight+2:miscData.camArgs.offsetY;
         this.targetY = this.offsetY;
@@ -392,9 +396,8 @@ class Player extends Controller implements EntityLike {
         this.handleRespawn();
     }
 }
-
 const playerFixedData:FixedControllerData = {
-    modelPath:'./snowman-v3.glb',
+    gltfModel:null,
     spawnPoint: new RAPIER.Vector3(0,30,0),
     characterHeight:2,
     characterWidth:1,

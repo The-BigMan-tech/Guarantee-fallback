@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
+import { type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY, combatCooldown, startingLevelY} from "../physics-world.three";
@@ -21,7 +21,7 @@ function createBoxLine(halfWidth:number,halfHeight:number) {
 
 //this is data fpr the controller that cant or should not be changed after creation
 export interface FixedControllerData {
-    modelPath:string,
+    gltfModel:GLTF | null,
     spawnPoint: RAPIER.Vector3,
     characterHeight:number,
     characterWidth:number,
@@ -180,18 +180,14 @@ export abstract class Controller {
         this.character.add(this.landSound)
     }
     private loadCharacterModel():void {
-        const loader:GLTFLoader = new GLTFLoader();
-        loader.load(this.fixedData.modelPath,
-            gltf=>{
-                const characterModel = gltf.scene
-                characterModel.position.z = this.modelZOffset
-                this.character.add(characterModel);
-                this.loadItem3D();
-                this.mixer = new AnimationMixer(characterModel);
-                this.loadCharacterAnimations(gltf);
-            },undefined, 
-            error =>console.error( error ),
-        );
+        if (this.fixedData.gltfModel) {
+            const characterModel = this.fixedData.gltfModel.scene.clone(true);
+            characterModel.position.z = this.modelZOffset
+            this.character.add(characterModel);
+            this.loadItem3D();
+            this.mixer = new AnimationMixer(characterModel);
+            this.loadCharacterAnimations(this.fixedData.gltfModel);
+        }
     }
     private loadItem3D() {//it reserves a spot for item models to be added which is the hand group of the model
         const handGroup = this.character.getObjectByName('hand');

@@ -52,7 +52,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             width:2,
             height:2,
             depth:2,
-            durability:1,
+            durability:10,
             spawnDistance
         })
     },

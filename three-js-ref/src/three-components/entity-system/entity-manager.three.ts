@@ -73,7 +73,7 @@ class EntityManager {
     private createEntity(groupID:string,spawnPoint:THREE.Vector3Like):EntityContract {
          //these are just basic props for any entity type.it can be passed to methods that spawn specific entity types to configure any of these parameters before creating an entity of their preferred type
         const entityFixedData:FixedControllerData = {//this is for controller data thats not supposed to be changed after creation
-            modelPath:'',
+            gltfModel:null,
             spawnPoint:spawnPoint,
             characterHeight:2,
             characterWidth:1,

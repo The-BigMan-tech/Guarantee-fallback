@@ -1,12 +1,11 @@
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import * as THREE from "three";
 import type { Item } from "./item-defintions";
 import { disposeHierarchy } from "../disposer/disposer.three";
+import { gltfLoader } from "../gltf-loader.three";
 
 export class ItemHolder {
     private item3D: THREE.Group;
     private currentHeldItem: string | null = null;
-    private modelLoader:GLTFLoader = new GLTFLoader();
 
     constructor(item3D: THREE.Group) {
         this.item3D = item3D;
@@ -41,7 +40,7 @@ export class ItemHolder {
                 this.loadItemModel(item)
                 return
             }else {
-                this.modelLoader.load(item.modelPath,gltf=>{
+                gltfLoader.load(item.modelPath,gltf=>{
                     item.scene = gltf.scene;
                     this.loadItemModel(item)
                 });
