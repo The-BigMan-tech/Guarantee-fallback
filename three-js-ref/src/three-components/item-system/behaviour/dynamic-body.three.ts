@@ -18,7 +18,7 @@ export class DynamicBody implements ItemBehaviour {
             this.model = gltf.scene;
         })
     }
-    public use(view:THREE.Group,_eyeLevel:number,itemID:string) {
+    public use(view:THREE.Group,itemID:string) {
         if (this.model) {
             const spawnPosition = ItemUtils.getSpawnPosition(view,this.data.spawnDistance); 
 

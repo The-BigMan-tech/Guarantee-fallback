@@ -18,7 +18,7 @@ export class Throwable implements ItemBehaviour {
             ItemUtils.applyMaterialToModel(this.model,0,1)
         })
     }
-    public use(view:THREE.Group,eyeLevel:number,itemID:string,userStrength:number):void {
+    public use(view:THREE.Group,itemID:string,userStrength:number):void {
         if (this.model) {
             const spawnPosition = ItemUtils.getSpawnPosition(view,this.data.spawnDistance);
             const clone = ItemClone.createClone({
