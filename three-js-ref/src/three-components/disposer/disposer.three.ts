@@ -5,6 +5,7 @@ function disposeMaterial(material: THREE.Material) {
     const disposeTexture = (tex: THREE.Texture | null) => {
         if (tex != null) { // checks for both null and undefined
             tex.dispose();
+            console.log('disposed textures');
         }
     };
     // Check material type and dispose known texture maps accordingly

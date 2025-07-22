@@ -99,11 +99,7 @@ class Player extends Controller implements EntityLike {
     private lookRequest:LookRequest;
     private camForward:THREE.Vector3 = new THREE.Vector3();
 
-
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:PlayerMiscData) {
-        gltfLoader.load('./snowman-v3.glb',gltf=>{
-            fixedData.gltfModel = gltf;
-        })
         super(fixedData,dynamicData);
         this.offsetY = (miscData.camArgs.offsetY=='auto')?fixedData.characterHeight+2:miscData.camArgs.offsetY;
         this.targetY = this.offsetY;
@@ -397,7 +393,7 @@ class Player extends Controller implements EntityLike {
     }
 }
 const playerFixedData:FixedControllerData = {
-    gltfModel:null,
+    gltfModel:await gltfLoader.loadAsync('./snowman-v3.glb'),
     spawnPoint: new RAPIER.Vector3(0,30,0),
     characterHeight:2,
     characterWidth:1,
@@ -427,4 +423,4 @@ const playerMiscData:PlayerMiscData = {
         offsetY:'auto'
     }
 }
-export const player = new Player(playerFixedData,playerDynamicData,playerMiscData)
+export const player = new Player(playerFixedData,playerDynamicData,playerMiscData);

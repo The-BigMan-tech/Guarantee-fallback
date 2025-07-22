@@ -40,7 +40,7 @@ export class EntityFactory {
         miscData.healthValue = randInt(10,10);
         miscData.knockback = randInt(8,10);
         miscData.attackDamage = randFloat(0.5,1);
-        const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
+        const entity = new Entity(fixedData,dynamicData,miscData,entityData.managingStruct);
         const hostileEntity = new HostileEntity(entity);
         hostileEntity._entity._groupID = groupIDs.hostileEntity;//this is important to distinguish entities in a relationship.for example,not all attackers of the player are from a particular class
         hostileEntity._entity.incEntityCount('HostileEntity');
@@ -57,7 +57,7 @@ export class EntityFactory {
         miscData.healthValue = randInt(10,11);
         miscData.knockback = randInt(100,100);
         miscData.attackDamage = randFloat(1,2);
-        const entity = new Entity(entityData.fixedData,entityData.dynamicData,entityData.miscData,entityData.managingStruct);
+        const entity = new Entity(fixedData,dynamicData,entityData.miscData,entityData.managingStruct);
         const npc =  new NPC(entity);
         npc._entity._groupID = groupIDs.npc;
         npc._entity.incEntityCount('NPC');
