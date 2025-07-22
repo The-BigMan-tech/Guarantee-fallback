@@ -25,7 +25,7 @@ export class Throwable implements ItemBehaviour {
                 model:this.model,
                 spawnPosition,
                 properties:this.data,
-                spinVectorInAir:new THREE.Vector3(1,1,1)//this means spin in all axis while in the air
+                spinVectorInAir:new THREE.Vector3(1,1,1),//this means spin in all axis while in the air,
             });
 
             const sourceThrow = ItemUtils.getSpawnPosition(view)

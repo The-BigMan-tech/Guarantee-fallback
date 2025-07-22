@@ -4,6 +4,7 @@ import { physicsWorld } from "../../../physics-world.three";
 import { disposeHierarchy } from "../../../disposer/disposer.three";
 import type { ItemCloneProps } from "./types";
 import { getGroundDetectionDistance } from "../../../controller/helper";
+import { Health } from "../../../health/health";
 
 function createBoxLine(width:number,height:number,depth:number) {
     const charGeometry = new THREE.BoxGeometry(width,height,depth);
@@ -15,7 +16,7 @@ interface CloneArgs {
     model: THREE.Group,
     spawnPosition:THREE.Vector3,
     properties:ItemCloneProps,
-    spinVectorInAir:THREE.Vector3
+    spinVectorInAir:THREE.Vector3,
 }
 export class ItemClone {
     public  mesh:THREE.Group = new THREE.Group();
@@ -27,6 +28,8 @@ export class ItemClone {
     private spinVectorInAir:THREE.Vector3;//this is a unit vector used to determine which component the spin velocity is applied.each component is like a flag to decide whether to apply spin in this axis or not
     private static readonly addHitbox:boolean = false;
     
+    public durability:Health;
+
     public static createClone(args:CloneArgs):ItemClone {//i made a separate method for creating an item clone without the constructor because a behaviour may or may not even need the clone instance at all.the item clone class will already add the clone to the scene and update it at every loop.so there is isnt any management the behaviour class has to do with the clone after creating it.they can just use the exposed method to perform actions on the clone like applying knockback
         return new ItemClone(args)
     }
@@ -59,6 +62,8 @@ export class ItemClone {
 
         this.rigidBody.setTranslation(spawnPosition,true);
         this.mesh.position.copy(this.rigidBody.translation());
+
+        this.durability = new Health(properties.durability);
 
         ItemClones.clones.push(this);//automatically push the clone to the clones array for updating
         ItemClones.cloneIndices.set(this,ItemClones.clones.length-1);//add its index to the map for removal
@@ -100,8 +105,9 @@ export class ItemClone {
         const impulse = direction.multiplyScalar(strength)
         this.rigidBody!.applyImpulse(impulse, true);
     }
+    private isRemoved = false;
     public updateClone() {
-        if (this.rigidBody) {
+        if (this.rigidBody && !this.durability.isDead) {
             this.mesh.position.copy(this.rigidBody.translation());
             this.mesh.quaternion.copy(this.rigidBody.rotation());
             console.log('spin. is Body sleeping: ',this.rigidBody.isSleeping());
@@ -112,6 +118,8 @@ export class ItemClone {
             }else {
                 this.spinApplied = false; //its on the ground so we need to reset it so that spin can apply again after next throw
             }
+        }else if (!this.isRemoved) {//to ensure resources are cleaned only once 
+            this.cleanUp();
         }
     }
     private removeFromClones() {//used swap and pop delete for O(1) deletion
@@ -133,6 +141,7 @@ export class ItemClone {
             physicsWorld.removeRigidBody(this.rigidBody)
             this.rigidBody = null
         }
+        this.isRemoved = true
     }
     
 }

@@ -26,7 +26,7 @@ export class DynamicBody implements ItemBehaviour {
                 model:this.model,
                 spawnPosition,
                 properties:this.data,
-                spinVectorInAir:new THREE.Vector3(0,0,0)//this means dont spin in any axis while in the air
+                spinVectorInAir:new THREE.Vector3(0,0,0),//this means dont spin in any axis while in the air
             })
             itemManager.removeFromInventory(itemID)
         }
