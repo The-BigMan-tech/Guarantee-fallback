@@ -5,7 +5,7 @@ import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY, combatCooldown, startingLevelY} from "../physics-world.three";
 import { listener, audioLoader } from "../listener/listener.three";
 import {v4 as uniqueID} from "uuid"
-import { getGroundDetectionDistance } from "./helper";
+import { getGroundDetectionDistance, VelocityCalculationUtils } from "./helper";
 import { createBoxLine, createCapsuleLine } from "../item-system/behaviour/hitbox-helper.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 
@@ -112,6 +112,8 @@ export abstract class Controller {
     
     //this group is positioned exactly at the hand group of the 3d model by the controller and exposed to the children to do whatever thwy want with it like adding and removing item models from the group.i did it here because the controller unlike the player can call it at the appropriate time where its sure that the model is already available before it queries for the hand.else it will be null if attempted to be done in the children
     protected item3D:THREE.Group = new THREE.Group();
+
+    private velCalculationUtils:VelocityCalculationUtils = new VelocityCalculationUtils();
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
@@ -997,20 +999,11 @@ export abstract class Controller {
 
 
 
-    private velocitiesY:number[] = []
     protected velBeforeHittingGround:number = 0;
 
     private updateVelJustAboveGround() {
         if (!this.characterRigidBody) return;
-        this.velBeforeHittingGround = 0;//the effect of this reset is in the next frame not in the current one since i didnt clear it after setting it
-        if (this.velocitiesY.length >= 2) this.velocitiesY.shift();
-        const verticalVel = Math.round(this.characterRigidBody.linvel().y);
-        this.velocitiesY.push(verticalVel);
-        const firstVel = this.velocitiesY[0];
-        const secondVel = this.velocitiesY[1];
-        if ((Math.sign(firstVel) == -1) && (secondVel == 0)) {
-            this.velBeforeHittingGround = Math.abs(firstVel)
-        }
+        this.velBeforeHittingGround = this.velCalculationUtils.getVelJustAboveGround(this.characterRigidBody.linvel().y);
     }
 
     protected abstract onLoop():void//this is a hook where the entity must be controlled before updating

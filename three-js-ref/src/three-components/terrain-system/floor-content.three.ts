@@ -12,7 +12,7 @@ export interface FloorContentData {
 }
 export class FloorContent {
     public  content:THREE.Group = new THREE.Group();//the group that holds all of the content that will be placed on the floor.there should only be one fall content added to the floor at a time.so it means that any new content should be added here not to the floor directly
-    private contentRigidBodies:RAPIER.RigidBody[] = [];//it holds the rigid boides for all the content for cleanup
+    private contentRigidBodies:(RAPIER.RigidBody | null)[] = [];//it holds the rigid boides for all the content for cleanup
 
     private floorContentData:FloorContentData;
     private chunkPos:THREE.Vector3;
@@ -68,8 +68,11 @@ export class FloorContent {
         }
     }
     public cleanUpPhysics(): void {
-        for (const rigidBody of this.contentRigidBodies) {
-            physicsWorld.removeRigidBody(rigidBody);
+        for (let rigidBody of this.contentRigidBodies) {
+            if (rigidBody) {
+                physicsWorld.removeRigidBody(rigidBody);
+                rigidBody = null;
+            }
         }
         this.contentRigidBodies.length = 0; // Clear the array,removing all refs and allowing for gc
     }
