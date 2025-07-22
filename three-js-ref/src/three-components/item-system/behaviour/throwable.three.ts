@@ -30,13 +30,18 @@ export class Throwable implements ItemBehaviour {
             const sourceThrow = view.getWorldPosition(new THREE.Vector3);
             console.log('throw sourceThrow:', sourceThrow);
             const forwardVector = new THREE.Vector3(0,0,-1)
-                        .applyQuaternion(view.getWorldQuaternion(new THREE.Quaternion()));
+                        .applyQuaternion(view.getWorldQuaternion(new THREE.Quaternion()))
+                        .normalize();
+
             console.log('throw forwardVector:', forwardVector);
+
             sourceThrow.add(forwardVector);
             console.log('throw final sourceThrow:', sourceThrow);
 
             sourceThrow.y *= -1;
             console.log('throw modified sourceThrow:', sourceThrow);
+
+            console.log('throw eye level: ',eyeLevel);
 
             clone.applyKnockback(sourceThrow,userStrength);
             itemManager.removeFromInventory(itemID)
