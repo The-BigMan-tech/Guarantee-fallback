@@ -421,7 +421,7 @@ const playerMiscData:PlayerMiscData = {
     healthValue:1000,
     attackDamage:1,
     knockback:200,
-    strength:500,
+    strength:1000,
     camArgs: {
         FOV:75,
         nearPoint:0.1,

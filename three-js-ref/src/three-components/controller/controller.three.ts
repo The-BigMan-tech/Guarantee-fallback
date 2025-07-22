@@ -6,18 +6,8 @@ import { physicsWorld,gravityY,outOfBoundsY, combatCooldown, startingLevelY} fro
 import { listener, audioLoader } from "../listener/listener.three";
 import {v4 as uniqueID} from "uuid"
 import { getGroundDetectionDistance } from "./helper";
+import { createBoxLine, createCapsuleLine } from "../item-system/behaviour/hitbox-helper.three";
 
-//these methods are to create line geometries for their respective shapes.they are used to visualize hitboxes for visual debugging
-function createCapsuleLine(radius:number,halfHeight:number) {
-    const charGeometry = new THREE.CapsuleGeometry(radius,halfHeight*2);
-    const charEdges = new THREE.EdgesGeometry(charGeometry);
-    return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
-}
-function createBoxLine(halfWidth:number,halfHeight:number) {
-    const charGeometry = new THREE.BoxGeometry(halfWidth*2,halfHeight*2,halfWidth*2);
-    const charEdges = new THREE.EdgesGeometry(charGeometry);
-    return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
-}
 
 //this is data fpr the controller that cant or should not be changed after creation
 export interface FixedControllerData {
@@ -138,7 +128,7 @@ export abstract class Controller {
             this.charLine = createCapsuleLine(radius,fixedData.characterHeight)//this is an offset to make the hitbox visually accurate to its physics body height
         }else {
             this.characterCollider = RAPIER.ColliderDesc.cuboid(increasedHalfWidth,increasedHalfHeight,increasedHalfWidth);
-            this.charLine = createBoxLine(increasedHalfWidth,increasedHalfHeight)
+            this.charLine = createBoxLine(increasedHalfWidth*2,increasedHalfHeight*2,increasedHalfWidth*2)
         }
         this.characterCollider.setDensity(fixedData.density)
         this.characterRigidBody = physicsWorld.createRigidBody(this.characterBody);

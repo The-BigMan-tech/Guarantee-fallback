@@ -5,12 +5,8 @@ import { disposeHierarchy } from "../../../disposer/disposer.three";
 import type { ItemCloneProps } from "./types";
 import { getGroundDetectionDistance } from "../../../controller/helper";
 import { Health } from "../../../health/health";
+import { createBoxLine } from "../hitbox-helper.three";
 
-function createBoxLine(width:number,height:number,depth:number) {
-    const charGeometry = new THREE.BoxGeometry(width,height,depth);
-    const charEdges = new THREE.EdgesGeometry(charGeometry);
-    return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
-}
 
 interface CloneArgs {
     model: THREE.Group,
@@ -49,7 +45,7 @@ export class ItemClone {
         clonedModel.scale.set(scaleX, scaleY, scaleZ);
         clonedModel.position.y -= properties.height / 2;
 
-        this.mesh.add(clonedModel)
+        this.mesh.add(clonedModel);
         this.mesh.position.copy(spawnPosition);
 
         const hitbox = createBoxLine(properties.width,properties.height,properties.depth);//this is for debugging
