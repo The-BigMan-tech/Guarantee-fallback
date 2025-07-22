@@ -1683,3 +1683,7 @@ Point marker to visualize if the points is correctly placed at the expected posi
 *and because its stateless,all util methods are static.a singleton util manager can also achieve a similar effect where the behaviours dont instaitate an utils instance but singleton is better for mutatble data like my item manager or entity manager or terrain manager.those ones are singletons because they mutate somehthing but only one exists to ensure evryone calls methods on the same data for coordination but an utils class is good as static
 
 its like my item clone has a mutation bug
+
+Tranform management
+Vector maths
+Physics engine

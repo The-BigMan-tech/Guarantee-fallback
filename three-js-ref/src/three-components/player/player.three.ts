@@ -212,7 +212,7 @@ class Player extends Controller implements EntityLike {
             if (this.useItemTimer > this.useItemCooldown) {
                 const itemInHand = itemManager.itemInHand;
                 if (itemInHand) {
-                    itemInHand.item.behaviour.use(this.camera.cam3D,0,itemInHand.itemID,this.strength);
+                    itemInHand.item.behaviour.use(this.camera.cam3D,-3,itemInHand.itemID,this.strength);
                     setUsedItem(true);
                 }
                 this.useItemTimer = 0

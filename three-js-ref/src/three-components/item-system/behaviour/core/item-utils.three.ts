@@ -14,7 +14,7 @@ export class ItemUtils {
             .normalize()
             .multiplyScalar(lookAtDistance);
 
-        spawnPosition.add(forwardVector.clone().setY(eyeLevel));
+        spawnPosition.add(forwardVector);
         return spawnPosition
     }
     public static applyMaterialToModel(model:THREE.Group<THREE.Object3DEventMap>,metalness:number,roughness:number) {
