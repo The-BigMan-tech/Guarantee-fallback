@@ -313,13 +313,16 @@ class Player extends Controller implements EntityLike {
             this.playAttackAnimation();
         }
         if ((this.attackTimer > this.attackCooldown)){
+            const srcPosition = this.position.clone();
+            srcPosition.y *= -1;//i did this because the Y diff between the src position(player position) and the target is effectively zero here.This is because there is hardly any angular diff when a player hits a target up close.this means that there isnt any upward force that will be applied on the body because the src position is always facing horizontally forward to the target.so to work around this,i dragged the src position down so that the resulting impulse comes like an upper cut
+            
             if (this.lookedAtEntity) { 
                 console.log('attacked entity');
                 const entity = this.lookedAtEntity._entity;
                 const targetHealth = entity.health;
-                if (targetHealth && !targetHealth.isDead) {
+                if (targetHealth && !targetHealth.isDead) {    
                     targetHealth.takeDamage(this.attackDamage);
-                    entity.knockbackCharacter(this.position,this.knockback);
+                    entity.knockbackCharacter(srcPosition,this.knockback);
                     this.addRelationship(entity,relationshipManager.enemyOf[groupIDs.player]);
                     this.addRelationship(this,relationshipManager.attackerOf[entity._groupID!]);
                     this.attackTimer = 0;
@@ -329,7 +332,7 @@ class Player extends Controller implements EntityLike {
                 const targetDurability = this.lookedAtItemClone.durability;
                 if (!targetDurability.isDead) {
                     targetDurability.takeDamage(this.attackDamage);
-                    this.lookedAtItemClone.applyKnockback(this.position,this.strength);
+                    this.lookedAtItemClone.applyKnockback(srcPosition,this.strength);
                     console.log('targetDurability:', targetDurability.value);
                 }
                 this.attackTimer = 0;
@@ -410,7 +413,7 @@ const playerDynamicData:DynamicControllerData = {
 const playerMiscData:PlayerMiscData = {
     healthValue:1000,
     attackDamage:1,
-    knockback:50,
+    knockback:200,
     strength:500,
     camArgs: {
         FOV:75,

@@ -770,7 +770,7 @@ export abstract class Controller {
         if (this.isKnockedBack && !this.appliedKnockbackImpulse) {
             this.characterRigidBody.applyImpulse(this.impulse,true);
             this.appliedKnockbackImpulse = true;
-            this.shouldPlayJumpAnimation = true;
+            this.shouldPlayJumpAnimation = true;//this is to make controllers to look they took knockback
         }
         if (this.knockbackTimer > this.knockbackCooldown) {//i cant reset it to false immediately under the same frame so it needs to reflect this change so i used a cooldown
             this.isKnockedBack = false;
@@ -846,13 +846,10 @@ export abstract class Controller {
     //this method applies an impulse to the character.so i can use it for other things besides knockback but take into account that velocity is the main method used to control characters
     public knockbackCharacter(sourcePosition:THREE.Vector3,knockbackImpulse:number):void {
         this.wakeUpBody();
-        const direction = new THREE.Vector3().subVectors(this.position, sourcePosition).normalize();
+        const direction = new THREE.Vector3().subVectors(this.position,sourcePosition).normalize();
         const impulse = direction.multiplyScalar(knockbackImpulse);
-        const upwardScalar = 3
-        impulse.y = (knockbackImpulse * upwardScalar)//i did this because the Y component of the src position is effectively 0 which i believe is because of the lack of angular diff between the player and the target during combat.this means that there isnt any upward force that will be applied on the body because the src position is always facing horizontally forward.so by assigning the impulse to the knockback impulse scaled by an upward scalar variable,we can make the impulse to generate a force upward as well.
         this.impulse.copy(impulse);
         this.isKnockedBack = true;
-        this.playPunchSound();
     }
 
 
@@ -961,6 +958,7 @@ export abstract class Controller {
         if (this.mixer && this.attackAction && this.deathAction){
             if (!this.deathAction.isRunning()) {
                 this.fadeToAnimation(this.attackAction);
+                this.playPunchSound();
             }
         }
     }

@@ -105,6 +105,7 @@ export class ItemClone {
         const impulse = direction.multiplyScalar(strength)
         this.rigidBody!.applyImpulse(impulse, true);
     }
+
     private isRemoved = false;
     public updateClone() {
         if (this.rigidBody && !this.durability.isDead) {
@@ -119,9 +120,11 @@ export class ItemClone {
                 this.spinApplied = false; //its on the ground so we need to reset it so that spin can apply again after next throw
             }
         }else if (!this.isRemoved) {//to ensure resources are cleaned only once 
+            console.log('targetDurability. cleaned up block');
             this.cleanUp();
         }
     }
+    
     private removeFromClones() {//used swap and pop delete for O(1) deletion
         const index = ItemClones.cloneIndices.get(this)!;
         const lastIndex = ItemClones.clones.length - 1;

@@ -116,7 +116,10 @@ export class Entity extends Controller implements EntityLike {
             this.playAttackAnimation();
         }
         if (this.attackTimer > this.attackCooldown) {
-            this.targetEntity.knockbackCharacter(this.position,this.knockback);
+            const srcPosition = this.position.clone();
+            srcPosition.y *= -1
+
+            this.targetEntity.knockbackCharacter(srcPosition,this.knockback);
             this.targetEntity.health.takeDamage(this.attackDamage);
             this.attackTimer = 0;
         }
