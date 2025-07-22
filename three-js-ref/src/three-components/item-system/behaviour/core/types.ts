@@ -8,4 +8,5 @@ export interface ItemCloneProps {
 export interface ItemBody extends ItemCloneProps {
     modelPath:string,
     spawnDistance:number,
+    showPlacementHelper:boolean
 }

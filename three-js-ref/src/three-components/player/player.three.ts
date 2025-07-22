@@ -378,7 +378,7 @@ class Player extends Controller implements EntityLike {
     }
     private showPlacementHelper() {
         const itemBody = itemManager.itemInHand?.item.behaviour.itemBody 
-        if (itemBody && !isCellSelected()) {//the second condition is to ensure that it only shows when the player's controls arent locked to avoid confusion that players can immediately place an item.
+        if (itemBody && !isCellSelected() && itemBody.showPlacementHelper) {//the second condition is to ensure that it only shows when the player's controls arent locked to avoid confusion that players can immediately place an item.
             const hitbox = createBoxLine(itemBody.width,itemBody.height,itemBody.depth);
             hitbox.position.copy(ItemUtils.getSpawnPosition(this.camera.cam3D,spawnDistance))
             placementHelper.add(hitbox);

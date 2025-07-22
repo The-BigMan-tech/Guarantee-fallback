@@ -55,7 +55,8 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             height:2,
             depth:2,
             durability:10,
-            spawnDistance
+            spawnDistance,
+            showPlacementHelper:true
         })
     },
     'boulder':{
@@ -75,7 +76,8 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             height:2,
             depth:2,
             durability:10,
-            spawnDistance
+            spawnDistance,
+            showPlacementHelper:false
         })
     }
 }
