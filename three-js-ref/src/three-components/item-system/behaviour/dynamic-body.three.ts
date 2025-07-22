@@ -17,13 +17,13 @@ export class DynamicBody implements ItemBehaviour {
             this.model = gltf.scene;
         })
     }
-    public use(view:THREE.Group,itemID:string) {
+    public use(view:THREE.Group,itemID:string,_userStrength:number,userQuaternion:THREE.Quaternion) {
         if (this.model) {
             const spawnPosition = ItemUtils.getSpawnPosition(view,this._itemBody.spawnDistance); 
-
             ItemClone.createClone({
                 model:this.model,
                 spawnPosition,
+                spawnQuaternion:userQuaternion,
                 properties:this._itemBody,
                 spinVectorInAir:new THREE.Vector3(0,0,0),//this means dont spin in any axis while in the air
             })

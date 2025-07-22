@@ -11,6 +11,7 @@ import { createBoxLine } from "../hitbox-helper.three";
 interface CloneArgs {
     model: THREE.Group,
     spawnPosition:THREE.Vector3,
+    spawnQuaternion:THREE.Quaternion,
     properties:ItemCloneProps,
     spinVectorInAir:THREE.Vector3,
 }
@@ -30,7 +31,7 @@ export class ItemClone {
         return new ItemClone(args)
     }
     private constructor(args:CloneArgs) {
-        const {model,spawnPosition,properties,spinVectorInAir} = args;
+        const {model,spawnPosition,spawnQuaternion,properties,spinVectorInAir} = args;
         this.height = properties.height;
         this.spinVectorInAir = spinVectorInAir.normalize();//i normalized it to ensure its a unit vector
         const clonedModel = model.clone(true);
@@ -57,6 +58,7 @@ export class ItemClone {
         this.handle = physicsWorld.createCollider(cloneCollider,this.rigidBody).handle;
 
         this.rigidBody.setTranslation(spawnPosition,true);
+        this.rigidBody.setRotation(spawnQuaternion,true)
         this.mesh.position.copy(this.rigidBody.translation());
 
         this.durability = new Health(properties.durability);

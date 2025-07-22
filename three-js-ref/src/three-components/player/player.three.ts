@@ -216,7 +216,7 @@ class Player extends Controller implements EntityLike {
             if (this.useItemTimer > this.useItemCooldown) {
                 const itemInHand = itemManager.itemInHand;
                 if (itemInHand) {
-                    itemInHand.item.behaviour.use(this.camera.cam3D,itemInHand.itemID,this.strength);
+                    itemInHand.item.behaviour.use(this.camera.cam3D,itemInHand.itemID,this.strength,this.char.quaternion);
                     setUsedItem(true);
                 }
                 this.useItemTimer = 0
@@ -380,7 +380,8 @@ class Player extends Controller implements EntityLike {
         const itemBody = itemManager.itemInHand?.item.behaviour.itemBody 
         if (itemBody && !isCellSelected() && itemBody.showPlacementHelper) {//the second condition is to ensure that it only shows when the player's controls arent locked to avoid confusion that players can immediately place an item.
             const hitbox = createBoxLine(itemBody.width,itemBody.height,itemBody.depth);
-            hitbox.position.copy(ItemUtils.getSpawnPosition(this.camera.cam3D,spawnDistance))
+            hitbox.position.copy(ItemUtils.getSpawnPosition(this.camera.cam3D,spawnDistance));
+            hitbox.quaternion.copy(this.char.quaternion);
             placementHelper.add(hitbox);
         }
     }

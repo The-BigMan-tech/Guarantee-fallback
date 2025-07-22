@@ -4,7 +4,7 @@ import { Throwable } from "./behaviour/throwable.three";
 import type { ItemBody } from "./behaviour/core/types";
 
 export interface ItemBehaviour {
-    use:(view:THREE.Group,itemID:string,userStrength:number)=>void,
+    use:(view:THREE.Group,itemID:string,userStrength:number,userQuaternion:THREE.Quaternion)=>void,
     itemBody?:ItemBody//not all item behaviours will need to be placed in the world like a sword
 }
 export type ItemID = string;

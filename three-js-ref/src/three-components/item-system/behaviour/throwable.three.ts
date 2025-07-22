@@ -17,12 +17,13 @@ export class Throwable implements ItemBehaviour {
             ItemUtils.applyMaterialToModel(this.model,0,1)
         })
     }
-    public use(view:THREE.Group,itemID:string,userStrength:number):void {
+    public use(view:THREE.Group,itemID:string,userStrength:number,userQuaternion:THREE.Quaternion):void {
         if (this.model) {
             const spawnPosition = ItemUtils.getSpawnPosition(view,this._itemBody.spawnDistance);
             const clone = ItemClone.createClone({
                 model:this.model,
                 spawnPosition,
+                spawnQuaternion:userQuaternion,
                 properties:this._itemBody,
                 spinVectorInAir:new THREE.Vector3(1,1,1),//this means spin in all axis while in the air,
             });
