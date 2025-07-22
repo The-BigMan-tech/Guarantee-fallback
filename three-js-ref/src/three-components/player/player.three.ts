@@ -7,7 +7,7 @@ import { Health } from "../health/health";
 import { type EntityContract } from "../entity-system/entity.three";
 import { entities } from "../entity-system/entity.three";
 import { combatCooldown } from "../physics-world.three";
-import { setEntityHealth, setPlayerHealth } from "../health/health-state";
+import { setBlockDurability, setEntityHealth, setPlayerHealth } from "../health/health-state";
 import { listener } from "../listener/listener.three";
 import type { EntityLike } from "../entity-system/relationships.three";
 import { groupIDs } from "../entity-system/entity-registry";
@@ -302,9 +302,17 @@ class Player extends Controller implements EntityLike {
         setPlayerHealth({currentValue:this.health.value,maxValue:this.health.maxHealth});
         if (this.lookedAtEntity) {
             const entityHealth = this.lookedAtEntity._entity.health;
-            setEntityHealth({currentValue:entityHealth.value,maxValue:entityHealth.maxHealth})
-        }else if (this.showEntityHealthTimer > this.showEntityHealthCooldown) {
+            setEntityHealth({currentValue:entityHealth.value,maxValue:entityHealth.maxHealth});
+            setBlockDurability(null);//we dont want to show the block durability ui at the same time with the entity because they stay at the same position to preserve screen space
+        }
+        else if (this.lookedAtItemClone) {
+            const durability = this.lookedAtItemClone.durability;
+            setBlockDurability({currentValue:durability.value,maxValue:durability.maxHealth});
+            setEntityHealth(null)
+        }
+        else if (this.showEntityHealthTimer > this.showEntityHealthCooldown) {
             setEntityHealth(null);
+            setBlockDurability(null);
             this.showEntityHealthTimer = 0;
         }
     }
