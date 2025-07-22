@@ -28,20 +28,21 @@ export class Throwable implements ItemBehaviour {
                 spinVectorInAir:new THREE.Vector3(1,1,1)//this means spin in all axis while in the air
             });
             const sourceThrow = view.getWorldPosition(new THREE.Vector3);
-            console.log('throw sourceThrow:', sourceThrow);
             const forwardVector = new THREE.Vector3(0,0,-1)
-                        .applyQuaternion(view.getWorldQuaternion(new THREE.Quaternion()))
-                        .normalize();
-
-            console.log('throw forwardVector:', forwardVector);
-
-            sourceThrow.add(forwardVector);
-            console.log('throw final sourceThrow:', sourceThrow);
-
-            sourceThrow.y *= -1;
-            console.log('throw modified sourceThrow:', sourceThrow);
+                    .applyQuaternion(view.getWorldQuaternion(new THREE.Quaternion()))
+                    .normalize();
 
             console.log('throw eye level: ',eyeLevel);
+
+            sourceThrow.add(forwardVector);
+            console.log('throw sourceThrow 1:', sourceThrow);
+
+            sourceThrow.y = Math.round(eyeLevel - sourceThrow.y);
+            console.log('throw sourceThrow 2:', sourceThrow);
+
+            sourceThrow.y *= -1;    
+            console.log('throw modified sourceThrow:', sourceThrow);
+
 
             clone.applyKnockback(sourceThrow,userStrength);
             itemManager.removeFromInventory(itemID)
