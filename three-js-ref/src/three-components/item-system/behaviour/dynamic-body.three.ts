@@ -1,4 +1,4 @@
-import type { ItemBehaviour } from "../item-defintions";
+import type { ItemBehaviour,UseItemDependecies } from "./core/types";
 import * as THREE from "three"
 import { ItemUtils } from "./core/item-utils.three";
 import type { ItemBody } from "./core/types";
@@ -17,7 +17,8 @@ export class DynamicBody implements ItemBehaviour {
             this.model = gltf.scene;
         })
     }
-    public use(view:THREE.Group,itemID:string,_userStrength:number,userQuaternion:THREE.Quaternion) {
+    public use(args:UseItemDependecies) {
+        const {view,userQuaternion,itemID} = args
         if (this.model) {
             const spawnPosition = ItemUtils.getSpawnPosition(view,this._itemBody.spawnDistance); 
             ItemClone.createClone({

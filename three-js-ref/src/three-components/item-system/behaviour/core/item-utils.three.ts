@@ -1,7 +1,5 @@
 import * as THREE from "three"
 
-
-
 export class ItemUtils {
     constructor() {}
     public static getSpawnPosition(view:THREE.Group,spawnDistance?:number):THREE.Vector3 {

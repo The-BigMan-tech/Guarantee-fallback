@@ -1,28 +1,8 @@
 import * as THREE from "three"
 import { DynamicBody } from "./behaviour/dynamic-body.three";
 import { Throwable } from "./behaviour/throwable.three";
-import type { ItemBody } from "./behaviour/core/types";
+import type { ItemID,Item } from "./behaviour/core/types";
 
-export interface ItemBehaviour {
-    use:(view:THREE.Group,itemID:string,userStrength:number,userQuaternion:THREE.Quaternion)=>void,
-    itemBody?:ItemBody//not all item behaviours will need to be placed in the world like a sword
-}
-export type ItemID = string;
-
-export interface ItemTransform {
-    position:THREE.Vector3,
-    rotation:THREE.Euler,
-    scale:THREE.Vector3
-}
-
-export interface Item {
-    readonly name: string,          // friendly name
-    readonly modelPath: string,   // path to model file
-    readonly imagePath: string,    // path to model file
-    scene:THREE.Group | null,//holds a ref to the gltf model
-    transform:ItemTransform,
-    behaviour:ItemBehaviour
-}
 function eulerDegToRad(euler: THREE.Euler): THREE.Euler {
     return new THREE.Euler(
         THREE.MathUtils.degToRad(euler.x),
@@ -43,7 +23,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
         modelPath:modelPaths.Block,
         imagePath:'./block/block.png',
         scene:null,
-        transform:{//this is how it looks when holding the item
+        transformInHand:{
             position:new THREE.Vector3(0,-0.3,0), 
             rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
             scale:new THREE.Vector3(0.2,0.2,0.2)
@@ -64,7 +44,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
         modelPath:modelPaths.Boulder,
         imagePath:'./boulder/boulder.png',
         scene:null,
-        transform:{
+        transformInHand:{
             position:new THREE.Vector3(0,-0.3,0), 
             rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
             scale:new THREE.Vector3(0.3,0.3,0.3)

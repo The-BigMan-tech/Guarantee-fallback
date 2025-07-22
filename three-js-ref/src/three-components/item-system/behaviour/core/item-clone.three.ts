@@ -2,19 +2,12 @@ import * as THREE from "three"
 import * as RAPIER from "@dimforge/rapier3d"
 import { physicsWorld } from "../../../physics-world.three";
 import { disposeHierarchy } from "../../../disposer/disposer.three";
-import type { ItemCloneProps } from "./types";
+import type { CloneArgs } from "./types";
 import { getGroundDetectionDistance } from "../../../controller/helper";
 import { Health } from "../../../health/health";
 import { createBoxLine } from "../hitbox-helper.three";
 
 
-interface CloneArgs {
-    model: THREE.Group,
-    spawnPosition:THREE.Vector3,
-    spawnQuaternion:THREE.Quaternion,
-    properties:ItemCloneProps,
-    spinVectorInAir:THREE.Vector3,
-}
 export class ItemClone {
     public  mesh:THREE.Group = new THREE.Group();
     public  rigidBody:RAPIER.RigidBody | null;
@@ -58,8 +51,10 @@ export class ItemClone {
         this.handle = physicsWorld.createCollider(cloneCollider,this.rigidBody).handle;
 
         this.rigidBody.setTranslation(spawnPosition,true);
-        this.rigidBody.setRotation(spawnQuaternion,true)
+        this.rigidBody.setRotation(spawnQuaternion,true);
+
         this.mesh.position.copy(this.rigidBody.translation());
+        this.mesh.quaternion.copy(this.rigidBody.rotation());
 
         this.durability = new Health(properties.durability);
 

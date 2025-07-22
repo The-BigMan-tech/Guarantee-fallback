@@ -214,13 +214,21 @@ class Player extends Controller implements EntityLike {
         }
         if (this.keysPressed['KeyE']) {
             if (this.useItemTimer > this.useItemCooldown) {
-                const itemInHand = itemManager.itemInHand;
-                if (itemInHand) {
-                    itemInHand.item.behaviour.use(this.camera.cam3D,itemInHand.itemID,this.strength,this.char.quaternion);
-                    setUsedItem(true);
-                }
+                this.useItemInHand();
                 this.useItemTimer = 0
             }
+        }
+    }
+    private useItemInHand() {
+        const itemInHand = itemManager.itemInHand;
+        if (itemInHand) {
+            itemInHand.item.behaviour.use({
+                view:this.camera.cam3D,
+                itemID:itemInHand.itemID,
+                userStrength:this.strength,
+                userQuaternion:this.char.quaternion
+            });
+            setUsedItem(true);//update the gui to reflect changes like removing an item from the inv after using it
         }
     }
     private zoomCamera(zoomDelta:number) {

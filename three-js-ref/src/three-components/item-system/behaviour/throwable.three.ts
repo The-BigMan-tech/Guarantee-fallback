@@ -1,4 +1,4 @@
-import type { ItemBehaviour } from "../item-defintions";
+import type { UseItemDependecies,ItemBehaviour } from "./core/types";
 import * as THREE from "three";
 import { ItemClone } from "./core/item-clone.three";
 import type { ItemBody } from "./core/types";
@@ -17,7 +17,8 @@ export class Throwable implements ItemBehaviour {
             ItemUtils.applyMaterialToModel(this.model,0,1)
         })
     }
-    public use(view:THREE.Group,itemID:string,userStrength:number,userQuaternion:THREE.Quaternion):void {
+    public use(args:UseItemDependecies):void {
+        const {view,userQuaternion,itemID,userStrength} = args
         if (this.model) {
             const spawnPosition = ItemUtils.getSpawnPosition(view,this._itemBody.spawnDistance);
             const clone = ItemClone.createClone({

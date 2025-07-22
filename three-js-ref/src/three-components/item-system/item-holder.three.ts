@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { Item } from "./item-defintions";
+import type { Item } from "./behaviour/core/types";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { gltfLoader } from "../gltf-loader.three";
 
@@ -20,7 +20,7 @@ export class ItemHolder {
     private loadItemModel(item:Item) {
         this.disposeItem(); // Remove previous model from item3D
         const clonedModel = item.scene!.clone(true); // Deep clone
-        const transform = item.transform;
+        const transform = item.transformInHand;
         clonedModel.scale.copy(transform.scale); // Scale to 50% in all dimensions
         clonedModel.position.copy(transform.position);
         clonedModel.rotation.copy(transform.rotation);

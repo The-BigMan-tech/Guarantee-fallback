@@ -1,4 +1,5 @@
-import { itemDefinitions, type Item,type ItemID } from "./item-defintions";
+import { itemDefinitions } from "./item-defintions";
+import type { ItemID ,Item} from "./behaviour/core/types";
 
 export interface InventoryItem {
     itemID: ItemID;  //for use in other parts of my code outside the ui that doesnt have reasy access to the item ID like my player's code
