@@ -29,7 +29,6 @@ export class Throwable implements ItemBehaviour {
             });
 
             const sourceThrow = ItemUtils.getSpawnPosition(view)
-            sourceThrow.y *= -1;    
             clone.applyKnockback(sourceThrow,userStrength);
             itemManager.removeFromInventory(itemID)
         }

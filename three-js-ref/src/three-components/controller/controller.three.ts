@@ -849,7 +849,7 @@ export abstract class Controller {
         const direction = new THREE.Vector3().subVectors(this.position, sourcePosition).normalize();
         const impulse = direction.multiplyScalar(knockbackImpulse);
         const upwardScalar = 3
-        impulse.y = (knockbackImpulse * upwardScalar)//in combat scenarios,you normally get close enough to hit the enemy when you are both on roughly the same Y level.and as such,the Y component of the src position is effectively 0.this means that there isnt any upward force that will be applied on the body because the src position is always facing horizontally forward.so by assigning the impulse to the knockback impulse scaled by an upward scalar variable,we can make the impulse to generate a force upward as well.
+        impulse.y = (knockbackImpulse * upwardScalar)//i did this because the Y component of the src position is effectively 0.this means that there isnt any upward force that will be applied on the body because the src position is always facing horizontally forward.so by assigning the impulse to the knockback impulse scaled by an upward scalar variable,we can make the impulse to generate a force upward as well.
         this.impulse.copy(impulse);
         this.isKnockedBack = true;
         this.playPunchSound();
