@@ -7,23 +7,23 @@ import { itemManager } from "../item-manager.three";
 import { gltfLoader } from "../../gltf-loader.three";
 
 export class Throwable implements ItemBehaviour {
-    private data:ItemBody;
+    private _itemBody:ItemBody;
     private model:THREE.Group | null = null; 
 
-    constructor(data:ItemBody) {
-        this.data = data;
-        gltfLoader.load(this.data.modelPath,gltf=>{
+    constructor(itemBody:ItemBody) {
+        this._itemBody = itemBody;
+        gltfLoader.load(this._itemBody.modelPath,gltf=>{
             this.model = gltf.scene;
             ItemUtils.applyMaterialToModel(this.model,0,1)
         })
     }
     public use(view:THREE.Group,itemID:string,userStrength:number):void {
         if (this.model) {
-            const spawnPosition = ItemUtils.getSpawnPosition(view,this.data.spawnDistance);
+            const spawnPosition = ItemUtils.getSpawnPosition(view,this._itemBody.spawnDistance);
             const clone = ItemClone.createClone({
                 model:this.model,
                 spawnPosition,
-                properties:this.data,
+                properties:this._itemBody,
                 spinVectorInAir:new THREE.Vector3(1,1,1),//this means spin in all axis while in the air,
             });
 
@@ -31,5 +31,8 @@ export class Throwable implements ItemBehaviour {
             clone.applyKnockback(sourceThrow,userStrength);
             itemManager.removeFromInventory(itemID)
         }
+    }
+    get itemBody() {
+        return this._itemBody;
     }
 }

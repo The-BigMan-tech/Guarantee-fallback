@@ -8,26 +8,29 @@ import { gltfLoader } from "../../gltf-loader.three";
 
 
 export class DynamicBody implements ItemBehaviour {
-    private data:ItemBody;
+    private _itemBody:ItemBody;
     private model:THREE.Group | null = null; 
 
-    constructor(data:ItemBody) {
-        this.data = data;
-        gltfLoader.load(this.data.modelPath,gltf=>{
+    constructor(itemBody:ItemBody) {
+        this._itemBody = itemBody;
+        gltfLoader.load(this._itemBody.modelPath,gltf=>{
             this.model = gltf.scene;
         })
     }
     public use(view:THREE.Group,itemID:string) {
         if (this.model) {
-            const spawnPosition = ItemUtils.getSpawnPosition(view,this.data.spawnDistance); 
+            const spawnPosition = ItemUtils.getSpawnPosition(view,this._itemBody.spawnDistance); 
 
             ItemClone.createClone({
                 model:this.model,
                 spawnPosition,
-                properties:this.data,
+                properties:this._itemBody,
                 spinVectorInAir:new THREE.Vector3(0,0,0),//this means dont spin in any axis while in the air
             })
             itemManager.removeFromInventory(itemID)
         }
+    }
+    get itemBody() {
+        return this._itemBody;
     }
 }

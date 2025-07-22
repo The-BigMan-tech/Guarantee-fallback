@@ -1,9 +1,11 @@
 import * as THREE from "three"
 import { DynamicBody } from "./behaviour/dynamic-body.three";
 import { Throwable } from "./behaviour/throwable.three";
+import type { ItemBody } from "./behaviour/core/types";
 
 export interface ItemBehaviour {
     use:(view:THREE.Group,itemID:string,userStrength:number)=>void,
+    itemBody?:ItemBody//not all item behaviours will need to be placed in the world like a sword
 }
 export type ItemID = string;
 

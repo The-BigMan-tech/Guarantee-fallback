@@ -7,6 +7,7 @@ import { listener, audioLoader } from "../listener/listener.three";
 import {v4 as uniqueID} from "uuid"
 import { getGroundDetectionDistance } from "./helper";
 import { createBoxLine, createCapsuleLine } from "../item-system/behaviour/hitbox-helper.three";
+import { disposeHierarchy } from "../disposer/disposer.three";
 
 
 //this is data fpr the controller that cant or should not be changed after creation
@@ -1033,6 +1034,7 @@ export abstract class Controller {
             console.log("sleeping...");
             return;//to prevent unnecessary queries.Since it sleeps only when its grounded.its appropriate to return true here saving computation
         }else {
+            disposeHierarchy(this.points);
             this.points.clear();
             this.applyVelocity();
             this.updateCharacterTransformations();

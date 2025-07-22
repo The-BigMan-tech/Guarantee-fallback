@@ -19,6 +19,9 @@ import { ItemHolder } from "../item-system/item-holder.three";
 import { LookRequest } from "./look-request.three";
 import { ItemClone, ItemClones } from "../item-system/behaviour/core/item-clone.three";
 import { gltfLoader } from "../gltf-loader.three";
+import { createBoxLine, hitboxHelper } from "../item-system/behaviour/hitbox-helper.three";
+import { ItemUtils } from "../item-system/behaviour/core/item-utils.three";
+import { disposeHierarchy } from "../disposer/disposer.three";
 
 
 // console.log = ()=>{};
@@ -372,9 +375,20 @@ class Player extends Controller implements EntityLike {
     get _groupID():string {
         return this.groupID;
     }
+    private showPlacementHelper() {
+        const itemBody = itemManager.itemInHand?.item.behaviour.itemBody 
+        if (itemBody) {
+            const hitbox = createBoxLine(itemBody.width,itemBody.height,itemBody.depth);
+            hitbox.position.copy(ItemUtils.getSpawnPosition(this.camera.cam3D,5))
+            hitboxHelper.add(hitbox);
+        }
+    }
 
 
     protected onLoop() {//this is where all character updates to this instance happens.
+        disposeHierarchy(hitboxHelper);
+        hitboxHelper.clear();
+        
         this.toggleTimer += this.clockDelta || 0;
         this.toggleItemGuiTimer += this.clockDelta || 0;
         this.showNonPlayerHealthTimer += this.clockDelta || 0;
@@ -384,9 +398,12 @@ class Player extends Controller implements EntityLike {
 
         this.lookedAtEntity = this.requestLookedEntity();
         this.lookedAtItemClone = this.requestLookedItemClone();
-
+        
         this.camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion);
-        this.itemHolder.holdItem(itemManager.itemInHand?.item || null)
+
+        this.itemHolder.holdItem(itemManager.itemInHand?.item || null);
+        this.showPlacementHelper();
+
         this.checkIfOutOfBounds();
         this.updateHealthGUI();
         this.health.checkGroundDamage(this.velBeforeHittingGround);
