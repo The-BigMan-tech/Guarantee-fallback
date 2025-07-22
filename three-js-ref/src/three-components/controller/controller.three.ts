@@ -245,7 +245,7 @@ export abstract class Controller {
     }
     private calculateForwardVelocity(upwardVelocity:number):number {
         const totalAirTime = (2 * upwardVelocity) / gravityY;
-        const forwardVelocity = Math.ceil(this.obstacleDetectionDistance / totalAirTime);//i used ceil here for the same reason why i used it it for upward velocity
+        const forwardVelocity = this.obstacleDetectionDistance / totalAirTime;//i didnt use ceiling here to ensure it doesnt overshoot passed the top of the obstacle
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
