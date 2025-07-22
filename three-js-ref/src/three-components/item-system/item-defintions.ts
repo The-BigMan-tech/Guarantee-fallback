@@ -36,7 +36,7 @@ const modelPaths = {//this is to prevent duplication
     Boulder:'./boulder/boulder.glb',
 }
 
-const spawnDistance = 5;
+export const spawnDistance = 5;
 export const itemDefinitions:Record<ItemID,Item>  = {//items should be registered on startup and shouldn be mutated
     'block':{
         name:'Block',

@@ -22,6 +22,7 @@ import { gltfLoader } from "../gltf-loader.three";
 import { createBoxLine,placementHelper } from "../item-system/behaviour/hitbox-helper.three";
 import { ItemUtils } from "../item-system/behaviour/core/item-utils.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
+import { spawnDistance } from "../item-system/item-defintions";
 
 
 // console.log = ()=>{};
@@ -379,7 +380,7 @@ class Player extends Controller implements EntityLike {
         const itemBody = itemManager.itemInHand?.item.behaviour.itemBody 
         if (itemBody && !isCellSelected()) {//the second condition is to ensure that it only shows when the player's controls arent locked to avoid confusion that players can immediately place an item.
             const hitbox = createBoxLine(itemBody.width,itemBody.height,itemBody.depth);
-            hitbox.position.copy(ItemUtils.getSpawnPosition(this.camera.cam3D,5))
+            hitbox.position.copy(ItemUtils.getSpawnPosition(this.camera.cam3D,spawnDistance))
             placementHelper.add(hitbox);
         }
     }
