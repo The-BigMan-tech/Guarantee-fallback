@@ -4,7 +4,7 @@ import * as THREE from "three"
 import { Health } from "../health/health";
 import { combatCooldown, physicsWorld } from "../physics-world.three";
 import type { EntityLike } from "./relationships.three";
-import { disposeHierarchy, disposeMixer, Fader } from "../disposer/disposer.three";
+import { disposeHierarchy, disposeMixer } from "../disposer/disposer.three";
 import type { EntityCount,EntityWrapper} from "./global-types"
 import { isEntityWrapper } from "./entity-registry";
 
@@ -62,8 +62,6 @@ export class Entity extends Controller implements EntityLike {
     public knockback:number;
 
     private movementType:'fluid' | 'precise' = 'precise'
-
-    private fader:Fader = new Fader();
 
     private state:EntityStateMachine = {
         behaviour:'idle'
@@ -128,7 +126,7 @@ export class Entity extends Controller implements EntityLike {
     public death():void {
         if (this.health.isDead && !this.isRemoved) {
             this.playDeathAnimation();
-            this.fader.fadeOut(this.char,this.clockDelta || 0);
+            //I used to have a fadeout function right here to fade out the animation slowly as the entity dies but the problem is that it mutated the opacity of the materails directly which is fine as long as i reread the gltf file from disk for each entity.but if i only read it once and clone the model,it only clones the model not the material.each model clone even deep ones will still ref the same material in mem for perf.i didnt discover this till i reused models for my item clones.
             this.cleanUpResources();
         }
     }

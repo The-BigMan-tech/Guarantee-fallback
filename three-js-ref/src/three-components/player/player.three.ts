@@ -334,8 +334,8 @@ class Player extends Controller implements EntityLike {
                     targetDurability.takeDamage(this.attackDamage);
                     this.lookedAtItemClone.applyKnockback(srcPosition,this.strength);
                     console.log('targetDurability:', targetDurability.value);
+                    this.attackTimer = 0;
                 }
-                this.attackTimer = 0;
             }
         }
     }
