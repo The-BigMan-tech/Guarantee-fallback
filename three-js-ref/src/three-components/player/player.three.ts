@@ -19,7 +19,7 @@ import { ItemHolder } from "../item-system/item-holder.three";
 import { LookRequest } from "./look-request.three";
 import { ItemClone, ItemClones } from "../item-system/behaviour/core/item-clone.three";
 import { gltfLoader } from "../gltf-loader.three";
-import { createBoxLine, hitboxHelper } from "../item-system/behaviour/hitbox-helper.three";
+import { createBoxLine,placementHelper } from "../item-system/behaviour/hitbox-helper.three";
 import { ItemUtils } from "../item-system/behaviour/core/item-utils.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 
@@ -377,18 +377,20 @@ class Player extends Controller implements EntityLike {
     }
     private showPlacementHelper() {
         const itemBody = itemManager.itemInHand?.item.behaviour.itemBody 
-        if (itemBody) {
+        if (itemBody && !isCellSelected()) {//the second condition is to ensure that it only shows when the player's controls arent locked to avoid confusion that players can immediately place an item.
             const hitbox = createBoxLine(itemBody.width,itemBody.height,itemBody.depth);
             hitbox.position.copy(ItemUtils.getSpawnPosition(this.camera.cam3D,5))
-            hitboxHelper.add(hitbox);
+            placementHelper.add(hitbox);
         }
     }
-
+    private clearPlacementHelper() {
+        disposeHierarchy(placementHelper);//onl
+        placementHelper.clear();
+    }
 
     protected onLoop() {//this is where all character updates to this instance happens.
-        disposeHierarchy(hitboxHelper);
-        hitboxHelper.clear();
-        
+        this.clearPlacementHelper();//we want to clear the helper in the frame after rendering the helper to prevent it from clearing prematurely which is why i cleared it at the top befor rendering the helper
+
         this.toggleTimer += this.clockDelta || 0;
         this.toggleItemGuiTimer += this.clockDelta || 0;
         this.showNonPlayerHealthTimer += this.clockDelta || 0;

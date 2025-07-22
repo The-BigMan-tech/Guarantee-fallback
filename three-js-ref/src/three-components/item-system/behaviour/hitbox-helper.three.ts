@@ -13,4 +13,4 @@ export function createBoxLine(width:number,height:number,depth:number) {
     const charEdges = new THREE.EdgesGeometry(charGeometry);
     return new THREE.LineSegments(charEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
 }
-export const hitboxHelper:THREE.Group = new THREE.Group();
+export const placementHelper:THREE.Group = new THREE.Group();
