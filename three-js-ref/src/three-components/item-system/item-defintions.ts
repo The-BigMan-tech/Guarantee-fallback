@@ -33,6 +33,8 @@ const modelPaths = {//this is to prevent duplication
     Block:'./block/block.glb',
     Boulder:'./boulder/boulder.glb',
 }
+
+const spawnDistance = 5;
 export const itemDefinitions:Record<ItemID,Item>  = {//items should be registered on startup and shouldn be mutated
     'block':{
         name:'Block',
@@ -49,7 +51,8 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             density:3,
             width:2,
             height:2,
-            depth:2
+            depth:2,
+            spawnDistance
         })
     },
     'boulder':{
@@ -67,7 +70,8 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             density:2,
             width:2,
             height:2,
-            depth:2
+            depth:2,
+            spawnDistance
         })
     }
 }

@@ -4,16 +4,14 @@ import * as THREE from "three"
 
 export class ItemUtils {
     constructor() {}
-    public static getSpawnPosition(view:THREE.Group,eyeLevel:number):THREE.Vector3 {
-        const lookAtDistance = 5;
+    public static getSpawnPosition(view:THREE.Group,spawnDistance?:number):THREE.Vector3 {
         const spawnPosition = new THREE.Vector3();// Calculate spawn position: camera position + camera forward vector * distance
         view.getWorldPosition(spawnPosition);    
 
         const forwardVector = new THREE.Vector3(0,0,-1)
-            .applyQuaternion(view.getWorldQuaternion(new THREE.Quaternion()))
-            .normalize()
-            .multiplyScalar(lookAtDistance);
+            .applyQuaternion(view.getWorldQuaternion(new THREE.Quaternion())).normalize();
 
+        if (spawnDistance) forwardVector.multiplyScalar(spawnDistance);
         spawnPosition.add(forwardVector);
         return spawnPosition
     }

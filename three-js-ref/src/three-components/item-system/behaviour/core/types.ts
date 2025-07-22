@@ -5,5 +5,6 @@ export interface ItemCloneProps {
     depth:number
 }
 export interface ItemBody extends ItemCloneProps {
-    modelPath:string
+    modelPath:string,
+    spawnDistance:number
 }

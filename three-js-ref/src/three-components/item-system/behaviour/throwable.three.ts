@@ -20,30 +20,16 @@ export class Throwable implements ItemBehaviour {
     }
     public use(view:THREE.Group,eyeLevel:number,itemID:string,userStrength:number):void {
         if (this.model) {
-            const spawnPosition = ItemUtils.getSpawnPosition(view,eyeLevel);
+            const spawnPosition = ItemUtils.getSpawnPosition(view,this.data.spawnDistance);
             const clone = ItemClone.createClone({
                 model:this.model,
                 spawnPosition,
                 properties:this.data,
                 spinVectorInAir:new THREE.Vector3(1,1,1)//this means spin in all axis while in the air
             });
-            const sourceThrow = view.getWorldPosition(new THREE.Vector3);
-            const forwardVector = new THREE.Vector3(0,0,-1)
-                    .applyQuaternion(view.getWorldQuaternion(new THREE.Quaternion()))
-                    .normalize();
 
-            console.log('throw eye level: ',eyeLevel);
-
-            sourceThrow.add(forwardVector);
-            console.log('throw sourceThrow 1:', sourceThrow);
-
-            sourceThrow.y = Math.round(eyeLevel - sourceThrow.y);
-            console.log('throw sourceThrow 2:', sourceThrow);
-
+            const sourceThrow = ItemUtils.getSpawnPosition(view)
             sourceThrow.y *= -1;    
-            console.log('throw modified sourceThrow:', sourceThrow);
-
-
             clone.applyKnockback(sourceThrow,userStrength);
             itemManager.removeFromInventory(itemID)
         }
