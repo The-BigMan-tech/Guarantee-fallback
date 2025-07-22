@@ -98,7 +98,6 @@ export class ItemClone {
     public applyKnockback(sourcePosition:THREE.Vector3,strength:number) {
         const direction = new THREE.Vector3().subVectors(this.rigidBody!.translation(), sourcePosition).normalize();
         const impulse = direction.multiplyScalar(strength);
-        impulse.y += strength;//to lift it in the air
         this.rigidBody!.applyImpulse(impulse, true);
     }
     public updateClone() {
