@@ -87,8 +87,8 @@ class Player extends Controller implements EntityLike {
     private respawnDelay:seconds = 7; // seconds
     private respawnTimer: seconds = 0;
 
-    private showEntityHealthTimer:seconds = 0;
-    private readonly showEntityHealthCooldown:seconds = 3;
+    private showNonPlayerHealthTimer:seconds = 0;
+    private readonly showNonPlayerHealthCooldown:seconds = 3;
 
     private readonly zoomDelta:number = 1;
     private readonly zoomClamp = 15
@@ -310,10 +310,10 @@ class Player extends Controller implements EntityLike {
             setBlockDurability({currentValue:durability.value,maxValue:durability.maxHealth});
             setEntityHealth(null)
         }
-        else if (this.showEntityHealthTimer > this.showEntityHealthCooldown) {
+        else if (this.showNonPlayerHealthTimer > this.showNonPlayerHealthCooldown) {
             setEntityHealth(null);
             setBlockDurability(null);
-            this.showEntityHealthTimer = 0;
+            this.showNonPlayerHealthTimer = 0;
         }
     }
     private attack() {
@@ -377,7 +377,7 @@ class Player extends Controller implements EntityLike {
     protected onLoop() {//this is where all character updates to this instance happens.
         this.toggleTimer += this.clockDelta || 0;
         this.toggleItemGuiTimer += this.clockDelta || 0;
-        this.showEntityHealthTimer += this.clockDelta || 0;
+        this.showNonPlayerHealthTimer += this.clockDelta || 0;
         this.attackTimer += this.clockDelta || 0;
         this.useItemTimer += this.clockDelta || 0;
         this.currentHealth = this.health.value;

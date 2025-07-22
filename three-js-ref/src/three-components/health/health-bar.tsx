@@ -41,7 +41,7 @@ export function RingHealthBar() {
         if (containerRef2.current) {
             circleRef2.current = new Circle(containerRef2.current, {
                 ...CircleBarConfig,
-                color: '#c00e0e', 
+                color: '#954040', 
                 trailColor: '#efaeae', 
             });
         }
@@ -53,7 +53,7 @@ export function RingHealthBar() {
         if (containerRef3.current) {
             circleRef3.current = new Circle(containerRef3.current, {
                 ...CircleBarConfig,
-                color: '#0e46c0', 
+                color: '#464748', 
                 trailColor: '#aebcef', 
             });
         }
