@@ -77,7 +77,7 @@ export abstract class Controller {
     //this is just a flag i use to control exactly when the landing sound is made cuz unlike the other sounds,this sound has to be played at the right time which is when the character makes an impact on the ground which cant be done in outside code.it has to be integrated directly into the internals which this already does on behalf of the concretes.
     private playLandSound: boolean = true; 
     
-    //this stores the current time since the last delta.i have a global clock that i use to get the delta and i pass it to every controller to store here for easy access/
+    //this stores the current time since the last delta.i have a global clock that i use to get the delta and i pass it to every controller to store here for easy access.I could have made update controller to pass it to every method that needs it but it will lead to parametr bloat.this makes it easy so that any method under this controller including inheriting classes can easily access it just through a property.it had to be null at first because the delta time may not be immediately available on initilaiztion.i could have made assigned it to 0 at first but i decided to start it with null so that each method can decide how they want to handle the case where the time isnt yet available.but most of the times,i just do delta || 0.
     protected clockDelta:number | null = null;
 
     //these are animation specific variables

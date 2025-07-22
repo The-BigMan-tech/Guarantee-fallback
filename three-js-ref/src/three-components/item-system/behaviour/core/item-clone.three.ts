@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import * as RAPIER from "@dimforge/rapier3d"
 import { physicsWorld } from "../../../physics-world.three";
-import { disposeHierarchy } from "../../../disposer/disposer.three";
+import { disposeHierarchy, Fader } from "../../../disposer/disposer.three";
 import type { ItemCloneProps } from "./types";
 import { getGroundDetectionDistance } from "../../../controller/helper";
 import { Health } from "../../../health/health";
@@ -29,6 +29,12 @@ export class ItemClone {
     private static readonly addHitbox:boolean = false;
     
     public durability:Health;
+    private fader:Fader;
+    private clockDelta:number | null = null;//Check the controller for a comment next to its own clock delta to see why i chose to initialize it with null
+
+    private cleanupTimer = 0;
+    private readonly cleanupCooldown = 3;//to allow playing an animation before removal
+
 
     public static createClone(args:CloneArgs):ItemClone {//i made a separate method for creating an item clone without the constructor because a behaviour may or may not even need the clone instance at all.the item clone class will already add the clone to the scene and update it at every loop.so there is isnt any management the behaviour class has to do with the clone after creating it.they can just use the exposed method to perform actions on the clone like applying knockback
         return new ItemClone(args)
@@ -64,11 +70,14 @@ export class ItemClone {
         this.mesh.position.copy(this.rigidBody.translation());
 
         this.durability = new Health(properties.durability);
+        this.fader = new Fader();
 
         ItemClones.clones.push(this);//automatically push the clone to the clones array for updating
         ItemClones.cloneIndices.set(this,ItemClones.clones.length-1);//add its index to the map for removal
         ItemClones.group.add(this.mesh);//auto add it to the group to be shown in the scene
     }
+
+
     private applySpin() {
         if (this.rigidBody && !this.spinApplied) {
             const baseSpinVelocity = 100;
@@ -85,6 +94,8 @@ export class ItemClone {
             console.log('spin applied');
         }
     }
+
+
     private isGrounded():boolean {
         if (this.rigidBody?.isSleeping()) return true;//if it sleeps,its grounded.so we can skip the computation here.
         const groundDetectionDistance = getGroundDetectionDistance(this.height)
@@ -100,14 +111,18 @@ export class ItemClone {
         })
         return onGround
     }
+
+
     public applyKnockback(sourcePosition:THREE.Vector3,strength:number) {
         const direction = new THREE.Vector3().subVectors(this.rigidBody!.translation(), sourcePosition).normalize();
         const impulse = direction.multiplyScalar(strength)
         this.rigidBody!.applyImpulse(impulse, true);
     }
 
+
     private isRemoved = false;
-    public updateClone() {
+    public updateClone(deltaTime:number) {
+        this.clockDelta = deltaTime;
         if (this.rigidBody && !this.durability.isDead) {
             this.mesh.position.copy(this.rigidBody.translation());
             this.mesh.quaternion.copy(this.rigidBody.rotation());
@@ -120,11 +135,12 @@ export class ItemClone {
                 this.spinApplied = false; //its on the ground so we need to reset it so that spin can apply again after next throw
             }
         }else if (!this.isRemoved) {//to ensure resources are cleaned only once 
-            console.log('targetDurability. cleaned up block');
+            this.fader.fadeOut(this.mesh,deltaTime);
             this.cleanUp();
         }
     }
-    
+
+
     private removeFromClones() {//used swap and pop delete for O(1) deletion
         const index = ItemClones.cloneIndices.get(this)!;
         const lastIndex = ItemClones.clones.length - 1;
@@ -136,15 +152,23 @@ export class ItemClone {
         ItemClones.clones.pop();
         ItemClones.cloneIndices.delete(this);
     }
+
+
+    //Note: the reason why im not going to cleanup any clone based on player proximity unlike the entities,is because item clones are explicitly spawned in the world by the player.for example, i cant just cleanup the work that players put in building something.
     public cleanUp() {
-        ItemClones.group.remove(this.mesh)
-        disposeHierarchy(this.mesh);
-        this.removeFromClones();
-        if (this.rigidBody) {
-            physicsWorld.removeRigidBody(this.rigidBody)
-            this.rigidBody = null
+        this.cleanupTimer += this.clockDelta!//im going to be using null assertion with clock delta going forward because this method is guaanteed to be called with a valid delta.ill also change other use cases in the codebase to also do this.
+        if (this.cleanupTimer >= this.cleanupCooldown) {
+            ItemClones.group.remove(this.mesh)
+            disposeHierarchy(this.mesh);
+            this.removeFromClones();
+            if (this.rigidBody) {
+                physicsWorld.removeRigidBody(this.rigidBody)
+                this.rigidBody = null
+            }
+            this.isRemoved = true;
+            this.cleanupTimer = 0;
+            console.log('targetDurability. cleaned up block');
         }
-        this.isRemoved = true
     }
     
 }
@@ -153,9 +177,9 @@ export class ItemClones {
     public static cloneIndices:Map<ItemClone,number> = new Map();
     public static group:THREE.Group = new THREE.Group();
 
-    public static updateClones() {
+    public static updateClones(deltaTime:number) {
         for (const clone of ItemClones.clones) {
-            clone.updateClone()
+            clone.updateClone(deltaTime);
         }
     }
 }

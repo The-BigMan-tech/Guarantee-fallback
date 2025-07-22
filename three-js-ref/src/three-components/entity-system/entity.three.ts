@@ -55,7 +55,7 @@ export class Entity extends Controller implements EntityLike {
     public basePatrolPoint:THREE.Vector3 | null = null;//this is meant to be hook where a concrete entity changes where the patrolling is centred around by changing this value.by default its null.so if null,it uses the characterPos as the patrol point else,it uses the provided one.
 
     private cleanupTimer = 0;
-    private readonly cleanupCooldown = 7;//to allow playing an animation before removal
+    private readonly cleanupCooldown = 3;//to allow playing an animation before removal
     private isRemoved = false;//to ensure resources are cleaned only once per dead entity
 
     private struct:ManagingStructure;
@@ -217,6 +217,7 @@ export class Entity extends Controller implements EntityLike {
                 this.characterRigidBody = null;//this is a critical step for it to work.nullify the ref to the rigid body after removal.
             }
             this.isRemoved = true;
+            this.cleanupTimer = 0;//you actually dont need to reset this since the entity will no longer exist to use it again.so there is no need to woryy about an invalid state.but its good practice to still do this
         }
     }
     get cleanUp():() => void {
