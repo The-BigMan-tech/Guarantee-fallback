@@ -24,7 +24,7 @@ class EntityManager {
     private entityMapping:Record<EntityWrapper,EntitySpawnData> = entityMapping;
 
     private readonly multiChoicePercent = 50;//it controls the percentage of entity types from the provided entity mapping struct that will be chosen at a time for every spawn point thats generated.Increasing this number will increase the probability of an entity of a given kind to spawn because the manager doesnt just choose one entity per point but rather,it can make two choices or three at a time with the choices influenced by the weight.Even at a low value,theres still a chance for an entity of a given kind to spawn as long as the weiht is considerable enough but this will increase that prob and a higher number will also slightly improve perf because it will spawn more at a time which reduces the time to reach the entity cap and number of times it has to run the weighted choice function.Tune as needed
-    private readonly maxEntityCap = 0;//the max number of entities in the world before it stops spawning
+    private readonly maxEntityCap = 10;//the max number of entities in the world before it stops spawning
     private readonly maxSpawnedEntitiesPerFrame = 3;//controls how many entities from the entity batch are spawned under one frame.reducing this value spreads the workload over many frames reducing initial lag spikes.if its too long,it will prolong spawning unecessarily causing it to linger in many frames which can cause some overhead on subsequent frames but if i make it too large,they might pop in too fast causing an initial spike.so 2-5 is a good value
     private readonly spawnCooldown:number = 7;//after deciding to spawn entities,this controls the time in seconds it waits before it actually spawns them.this is to improve exp as it gives the player some space before entities are spawned and it also improves perf on startup by only spawning entities afterw when the player has been spawned first not simultaneously
     private readonly spawnRadius = 50;//the radius from the player where spawning begins.the higher the spawn radius,the more the entities that will spawn at a given time and vice versa but it stops at the max entity cap or when all min thresholds are satisfied.i believe that increasing the radius is better because not only does it supply spacing but it also means that the manager will spawn entities lesser to reach the cap or satisfy the thresh such that all the entities that will ever be needed in the world are saved in one go preventing calls to spawn from happening again in the next frame.i believe that this preserves performance
@@ -153,18 +153,6 @@ class EntityManager {
     }
 
 
-
-    private despawnFarEntities() {
-        const playerPos = player.char.position;
-        for (let i = entities.length - 1; i >= 0; i--) {
-            const entityWrapper = entities[i];
-            const entityPos = entityWrapper._entity.char.position;
-            const distance = playerPos.distanceTo(entityPos);
-            if (distance > this.despawnRadius) {
-                entityWrapper._entity.cleanUp()
-            }
-        }
-    }
     private spawnNewEntitiesWithCooldown(deltaTime:number) {
         console.log("Entity count: ",this.entityCounts);
         let canSpawnEntities:boolean = false;
@@ -199,15 +187,20 @@ class EntityManager {
             addedCount++;
         }
     }
-
-
+    private despawnIfFar(createdEntity:EntityContract) {
+        const entityPos = createdEntity._entity.position;
+        const distance = player.position.distanceTo(entityPos);
+        if (distance > this.despawnRadius) {
+            createdEntity._entity.cleanUp()
+        }
+    }
     public updateAllEntities(deltaTime:number) {
         this.saveCreatedEntities();//the reason why i moved the saving of entities to the game to the next frame is to reduce the amount of time when entities spawn visually and when they actually move cuz if not,the entities will be saved to the game,true, but they will appear frozen till the player and the terrain updates which can spoil experience.so what i now did was to batch them in the same frame but make them available in game in the same frame they will be updated and its better than prioritizing entity updates first
         for (const createdEntity of entities) {
             console.log('updating entities');
-            createdEntity._entity.updateController(deltaTime)
+            createdEntity._entity.updateController(deltaTime);
+            this.despawnIfFar(createdEntity);
         }
-        this.despawnFarEntities();
         this.spawnNewEntitiesWithCooldown(deltaTime);
     }
 }

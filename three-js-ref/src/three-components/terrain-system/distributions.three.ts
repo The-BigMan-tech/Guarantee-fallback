@@ -30,7 +30,7 @@ export class Distributions {
         for (let i = 0; i < points.length; i++) {
             const [x, z] = points[i];
         
-            const height = randFloat(3,3);
+            const height = randFloat(10,10);
             
             const localY = startingLevelY + height/2 ;//to make it stand on the startinglevl not that half of it is above and another half above
             const localX = x - this.chunkSize / 2;
@@ -49,7 +49,7 @@ export class Distributions {
                     spinVectorInAir:new THREE.Vector3(1,1,1), //this means spin in all axis while in the air
                     parent:this.content,
                     properties:{
-                        density:2,
+                        density:100,
                         width:3,
                         height,
                         depth:3,

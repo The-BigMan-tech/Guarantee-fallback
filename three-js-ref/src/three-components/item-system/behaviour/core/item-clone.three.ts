@@ -6,6 +6,7 @@ import type { CloneArgs } from "./types";
 import { getGroundDetectionDistance, VelCalcUtils } from "../../../controller/helper";
 import { Health } from "../../../health/health";
 import { createBoxLine, rotateBy180 } from "../other-helpers.three";
+import { IntersectionRequest } from "../../../player/intersection-request.three";
 
 
 export class ItemClone {
@@ -24,6 +25,8 @@ export class ItemClone {
 
     private parent:THREE.Group;
 
+    private intersectionRequest = new IntersectionRequest();
+    
     public static createClone(args:CloneArgs):ItemClone {//i made a separate method for creating an item clone without the constructor because a behaviour may or may not even need the clone instance at all.the item clone class will already add the clone to the scene and update it at every loop.so there is isnt any management the behaviour class has to do with the clone after creating it.they can just use the exposed method to perform actions on the clone like applying knockback
         return new ItemClone(args)
     }
