@@ -2,7 +2,7 @@ import * as THREE from "three";
 import * as RAPIER from "@dimforge/rapier3d";
 import { physicsWorld } from "../physics-world.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
-import { FloorContent } from "./floor-content.three";
+import { FloorContent } from "./distributions.three";
 
 export interface ChunkData {
     chunkPos:THREE.Vector3

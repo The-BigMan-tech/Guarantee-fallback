@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { Chunk, type ChunkData } from "./chunk.three";
 import { groundLevelY } from "../physics-world.three";
 import { player } from "../player/player.three";
-import { FloorContent } from "./floor-content.three";
+import { FloorContent } from "./distributions.three";
 
 type ChunkKey = string;
 type Singleton<T> = T;
