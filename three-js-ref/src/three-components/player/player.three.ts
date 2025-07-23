@@ -16,10 +16,10 @@ import type { seconds } from "../entity-system/global-types";
 import { toggleItemGui,isCellSelected, setUsedItem } from "../item-system/item-state";
 import { itemManager } from "../item-system/item-manager.three";
 import { ItemHolder } from "../item-system/item-holder.three";
-import { LookRequest } from "./look-request.three";
+import { IntersectionRequest } from "./intersection-request.three";
 import { ItemClone, ItemClones } from "../item-system/behaviour/core/item-clone.three";
 import { gltfLoader } from "../gltf-loader.three";
-import { createBox, createBoxLine,placementHelper } from "../item-system/behaviour/other-helpers.three";
+import { createBoxLine,placementHelper } from "../item-system/behaviour/other-helpers.three";
 import { ItemUtils } from "../item-system/behaviour/core/item-utils.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { spawnDistance } from "../item-system/item-defintions";
@@ -100,8 +100,11 @@ class Player extends Controller implements EntityLike {
     private useItemCooldown:seconds = 0.5;
     private useItemTimer:seconds = 0;
     private itemHolder:ItemHolder;
-    private lookRequest:LookRequest;
+    private intersectionRequest:IntersectionRequest = new IntersectionRequest();
     private camForward:THREE.Vector3 = new THREE.Vector3();
+
+    private mouseCords:THREE.Vector2 = new THREE.Vector2(0,0);
+    private raycaster:THREE.Raycaster = new THREE.Raycaster()
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData,miscData:PlayerMiscData) {
         super(fixedData,dynamicData);
@@ -120,7 +123,6 @@ class Player extends Controller implements EntityLike {
         this.knockback = miscData.knockback;
         this.strength = miscData.strength;
         this.itemHolder = new ItemHolder(this.item3D);
-        this.lookRequest = new LookRequest(new THREE.Vector2(0, 0)); // center of screen for forward raycast
     }
     private addEventListeners() {
         document.addEventListener('keydown',this.onPlayerKeyDown);
@@ -238,16 +240,18 @@ class Player extends Controller implements EntityLike {
         this.targetZ = zoomPosition.z
     }
     public requestLookedEntity():EntityContract | null {
-        return this.lookRequest.requestObject({
-            nativeCamera:this.camera.perspectiveCamera,
+        this.raycaster.setFromCamera(this.mouseCords,this.camera.perspectiveCamera);
+        return this.intersectionRequest.requestObject({
+            raycaster:this.raycaster,
             testObjects:entities.map(e => e._entity.char),
             maxDistance:10,
             selection:entities
         })
     }
     public requestLookedItemClone():ItemClone | null {
-        return this.lookRequest.requestObject({
-            nativeCamera:this.camera.perspectiveCamera,
+        this.raycaster.setFromCamera(this.mouseCords,this.camera.perspectiveCamera);
+        return this.intersectionRequest.requestObject({
+            raycaster:this.raycaster,
             testObjects:ItemClones.clones.map(clone=>clone.mesh),
             maxDistance:10,
             selection:ItemClones.clones

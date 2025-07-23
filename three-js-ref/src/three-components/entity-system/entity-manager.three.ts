@@ -60,7 +60,7 @@ class EntityManager {
         const maxHeightAboveTerrain = 100;
         const origin = new THREE.Vector3(x, maxHeightAboveTerrain, z);
         this.raycaster.set(origin, this.down);
-        const intersects = this.raycaster.intersectObjects(terrainManager.floorGroup.children, true);
+        const intersects = this.raycaster.intersectObjects(terrainManager.chunkParent.children, true);
         const heightBoost = 5;//to prevent situations where they will be spawned in between the ground
         if (intersects.length > 0) {
             console.log("Used height calc");

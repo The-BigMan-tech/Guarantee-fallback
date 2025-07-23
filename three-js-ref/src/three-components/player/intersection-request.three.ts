@@ -1,12 +1,7 @@
 import * as THREE from "three"
 
-export class LookRequest {//to request if a looked at object is any one of the given objects
-    private raycaster = new THREE.Raycaster();
-    private mouseCords:THREE.Vector2;
-
-    constructor(mouseCords:THREE.Vector2) {
-        this.mouseCords = mouseCords
-    }
+export class IntersectionRequest {//to request if a looked at object is any one of the given objects
+    constructor() {};
     private isDescendantOf(child: THREE.Object3D, parent: THREE.Object3D): boolean {
         let current = child;
         while (current) {
@@ -15,10 +10,9 @@ export class LookRequest {//to request if a looked at object is any one of the g
         }
         return false;
     }
-    public requestObject<T>(args:{nativeCamera:THREE.Camera,testObjects:THREE.Group[],maxDistance:number,selection:T[]}):T | null {
-        const {nativeCamera,testObjects,maxDistance,selection} = args
-        this.raycaster.setFromCamera(this.mouseCords,nativeCamera);
-        const intersects = this.raycaster.intersectObjects(testObjects, true);
+    public requestObject<T>(args:{raycaster:THREE.Raycaster,testObjects:THREE.Group[],maxDistance:number,selection:T[]}):T | null {
+        const {raycaster,testObjects,maxDistance,selection} = args
+        const intersects = raycaster.intersectObjects(testObjects, true);
 
         if (intersects.length > 0 && (intersects[0].distance <= maxDistance)) {
             const intersectedObject = intersects[0].object;// Find which entity corresponds to the intersected object
