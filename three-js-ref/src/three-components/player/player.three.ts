@@ -413,7 +413,7 @@ class Player extends Controller implements EntityLike {
         console.log('placement compare quat: ',this.changedQuaternion);
     }
     private clearPlacementHelper() {
-        if ((this.changedPosition || this.changedQuaternion) || (isCellSelected())) {
+        if (this.changedPosition || this.changedQuaternion || isCellSelected()) {
             console.log('placement cleared');
             disposeHierarchy(placementHelper);//onl
             placementHelper.clear();

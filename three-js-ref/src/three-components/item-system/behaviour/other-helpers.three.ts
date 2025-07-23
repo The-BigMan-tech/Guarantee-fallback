@@ -9,16 +9,14 @@ export function createCapsuleLine(radius:number,halfHeight:number) {
     return new THREE.LineSegments(capsuleEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
 }
 
+
+const lineMat = new THREE.LineBasicMaterial({ color: 0x000000 });
 export function createBoxLine(width:number,height:number,depth:number) {
     const boxGeometry = new THREE.BoxGeometry(width,height,depth);
     const boxEdges = new THREE.EdgesGeometry(boxGeometry);
-    return new THREE.LineSegments(boxEdges, new THREE.LineBasicMaterial({ color: 0x000000 }));
+    return new THREE.LineSegments(boxEdges,lineMat);
 }
-export function createBox(width:number,height:number,depth:number,color:THREE.ColorRepresentation | undefined) {
-    const boxGeometry = new THREE.BoxGeometry(width,height,depth);
-    const boxMaterial = new THREE.MeshPhysicalMaterial({ color });
-    return new THREE.Mesh(boxGeometry,boxMaterial)
-}
+
 export function rotateBy180():THREE.Quaternion {
     const targetRotation:THREE.Vector3 = new THREE.Vector3().setY(1);
     return new THREE.Quaternion().setFromAxisAngle(targetRotation,degToRad(180));
