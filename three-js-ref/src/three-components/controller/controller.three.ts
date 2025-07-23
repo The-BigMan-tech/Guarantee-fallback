@@ -293,10 +293,8 @@ export abstract class Controller {
         );
         return point
     }
-    //todo:make the margin to be equal the jump distance.
     private updateObstacleDetectionDistance() {
         const delta = this.clockDelta || 0;
-        //*Be cautious when changing this margin.it has to be smaller or equal to the distance that the entity can jump or else,it will never jump
         const margin = 5; // tune as needed.its how far ahead do you want to detect obstacles in addition to the calculated dist which is usually below 1 cuz delta frames are usually fractions of a second
         this.obstacleDetectionDistance = (this.dynamicData.horizontalVelocity * delta) + margin
         console.log("Obstacle detection distance: ",this.obstacleDetectionDistance);
