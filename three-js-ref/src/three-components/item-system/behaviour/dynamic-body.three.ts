@@ -27,6 +27,7 @@ export class DynamicBody implements ItemBehaviour {
                 spawnQuaternion:userQuaternion,
                 properties:this._itemBody,
                 spinVectorInAir:new THREE.Vector3(0,0,0),//this means dont spin in any axis while in the air
+                addToScene:true
             })
             itemManager.removeFromInventory(itemID)
         }

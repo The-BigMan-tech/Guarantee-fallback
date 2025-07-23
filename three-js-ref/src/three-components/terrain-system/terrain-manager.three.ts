@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { Floor, type FloorData } from "./floor.three";
 import { groundLevelY } from "../physics-world.three";
 import { player } from "../player/player.three";
-import { FloorContent, type FloorContentData } from "./floor-content.three";
+import { FloorContent } from "./floor-content.three";
 
 type ChunkKey = string;
 type Singleton<T> = T;
@@ -10,10 +10,10 @@ type Singleton<T> = T;
 class TerrainManager {
     private static manager:TerrainManager;
 
-    public floorGroup:THREE.Group = new THREE.Group();
+    public  floorParent:THREE.Group = new THREE.Group();
     private loadedFloors: Map<ChunkKey, Floor> = new Map();
 
-    private chunkSize = 300;  // size of each floor chunk
+    private chunkSize = 10;  // size of each floor chunk
     private loadRadius = 1;    // how many chunks away to load (1 means 3x3 grid)
 
     private constructor() {};
@@ -32,15 +32,10 @@ class TerrainManager {
         const floorData: FloorData = {
             chunkPos:chunkPos,
             chunkSize:this.chunkSize,
-            parent: this.floorGroup,
+            floorParent: this.floorParent,
         };
-        const floorContentData:FloorContentData = {
-            chunkSize:this.chunkSize,
-            minDistance:40, // or any spacing you want
-        };
-        const floorContent = new FloorContent(floorContentData,chunkPos);
-        const floor = new Floor(floorData,floorContent);
-        return floor;
+        const floorContent = new FloorContent(this.chunkSize,chunkPos,50);
+        return new Floor(floorData,floorContent);
     }
 
 

@@ -429,6 +429,7 @@ class Player extends Controller implements EntityLike {
         this.handleRespawn();
     }
 }
+//Note:This is the only place where ill load gltf models async.the rest of my codebase will use sync loading with callback management to ensure that the models are prepared before use.the reason why i did this for the rest of the codebase is because i dont want the use of a single await to propagate all of my ethods to be async.i want everything to remain as sync methods to reduce verbosity and clear predictability in control flow.the only reason why i used await here is because await at the top level doesnt cause async propagation and unlike the rest of my code that loads gltf models,i dont really have a way to time this one properly because a bug part of my code is reliant on the player and i need to ensure that the player is ready before demand.i tried to do a player factory to do this like the way i did it for my entity factory but that didnt work.it has to be fully prepared on export.
 const playerFixedData:FixedControllerData = {
     gltfModel:await gltfLoader.loadAsync('./snowman-v3.glb'),
     spawnPoint: new RAPIER.Vector3(0,30,0),

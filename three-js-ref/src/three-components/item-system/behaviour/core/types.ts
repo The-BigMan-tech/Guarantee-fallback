@@ -13,6 +13,7 @@ export interface CloneArgs {
     spawnQuaternion:THREE.Quaternion,
     properties:ItemCloneProps,
     spinVectorInAir:THREE.Vector3,
+    addToScene:boolean
 }
 
 export interface ItemBody extends ItemCloneProps {

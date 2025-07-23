@@ -1,10 +1,9 @@
 import * as THREE from 'three'
-import { EdgesGeometry, LineSegments, LineBasicMaterial } from 'three';
-import { physicsWorld } from '../physics-world.three';
-import * as RAPIER from '@dimforge/rapier3d'
 import PoissonDiskSampling from 'poisson-disk-sampling';
 import { startingLevelY } from '../physics-world.three';
 import { randFloat } from 'three/src/math/MathUtils.js';
+import { ItemClone } from '../item-system/behaviour/core/item-clone.three';
+import { gltfLoader } from '../gltf-loader.three';
 
 export interface FloorContentData {
     chunkSize:number,
@@ -12,68 +11,63 @@ export interface FloorContentData {
 }
 export class FloorContent {
     public  content:THREE.Group = new THREE.Group();//the group that holds all of the content that will be placed on the floor.there should only be one fall content added to the floor at a time.so it means that any new content should be added here not to the floor directly
-    private contentRigidBodies:(RAPIER.RigidBody | null)[] = [];//it holds the rigid boides for all the content for cleanup
+    private clones:ItemClone[] = [];
 
-    private floorContentData:FloorContentData;
+    private chunkSize:number;
     private chunkPos:THREE.Vector3;
+    private minDistance:number;
 
-    constructor(floorContentData:FloorContentData,chunkPos:THREE.Vector3) {
-        this.floorContentData = floorContentData;
+    constructor(chunkSize:number,chunkPos:THREE.Vector3,minDistance:number) {
+        this.chunkSize = chunkSize;
         this.chunkPos = chunkPos;
+        this.minDistance = minDistance;
         this.generateDistributions();
     }    
     //ignoring this for this part of the development
     private generateDistributions() {
         const pds = new PoissonDiskSampling({
-            shape: [this.floorContentData.chunkSize,this.floorContentData.chunkSize], // width and depth of sampling area
-            minDistance:this.floorContentData.minDistance,
+            shape: [this.chunkSize,this.chunkSize], // width and depth of sampling area
+            minDistance:this.minDistance,
             tries: 10
         });
         const points = pds.fill(); // array of [x, z] points
-        const tallCubeMaterial = new THREE.MeshPhysicalMaterial({ color:0x4f4f4f});
-        const minHeight = 1//im not exposing these as part of the interface cuz the cubes are just placeholders for content like trees,structures but not blocks for terrain cuz that one will use a different algorithm for placement.so the interface shouldnt be tied to speciic content till i make sub or behaviour classes
-        const maxHeight = 30
-        const width = 20;
-
         for (let i = 0; i < points.length; i++) {
             const [x, z] = points[i];
         
-            const height = randFloat(minHeight,maxHeight);
+            const height = randFloat(3,3);
             
             const localY = startingLevelY + height/2 ;//to make it stand on the startinglevl not that half of it is above and another half above
-            const localX = x - this.floorContentData.chunkSize / 2;
-            const localZ = z - this.floorContentData.chunkSize / 2;
+            const localX = x - this.chunkSize / 2;
+            const localZ = z - this.chunkSize / 2;
 
-            const tallCubeGeometry = new THREE.BoxGeometry(width,height,width);
-            const tallCube = new THREE.Mesh(tallCubeGeometry,tallCubeMaterial)
-            const tallCubeEdges = new EdgesGeometry(tallCubeGeometry);
-            const tallCubeLine = new LineSegments(tallCubeEdges, new LineBasicMaterial({ color: 0x000000 }));
-            tallCube.add(tallCubeLine)
-        
-            const tallCubeCollider = RAPIER.ColliderDesc.cuboid(width/2,height/2,width/2);
-            tallCubeCollider.setFriction(0.5)
-            const tallCubeBody = RAPIER.RigidBodyDesc.fixed();
-            const tallCubeRigidBody = physicsWorld.createRigidBody(tallCubeBody);
-            physicsWorld.createCollider(tallCubeCollider,tallCubeRigidBody);
-            
             const worldX = this.chunkPos.x + localX;
-            const worldY = height/2;//i used it without adding starting level cuz the one with the starting level made objects to rest slightly above the mesh
             const worldZ = this.chunkPos.z + localZ;
 
-            tallCubeRigidBody.setTranslation({x:worldX,y:worldY,z:worldZ},true)
-            tallCube.position.set(localX,localY, localZ);
-
-            this.content.add(tallCube);
-            this.contentRigidBodies.push(tallCubeRigidBody);
+            const spawnPosition = new THREE.Vector3(worldX,localY,worldZ);
+            gltfLoader.load('./block/block.glb',gltf=>{
+                const model = gltf.scene;
+                const clone = ItemClone.createClone({
+                    model:model,
+                    spawnPosition,
+                    spawnQuaternion:new THREE.Quaternion(),
+                    spinVectorInAir:new THREE.Vector3(1,1,1), //this means spin in all axis while in the air
+                    addToScene:false,
+                    properties:{
+                        density:2,
+                        width:3,
+                        height,
+                        depth:3,
+                        durability:40
+                    }
+                });
+                this.content.add(clone.mesh);
+                this.clones.push(clone);
+            })
         }
     }
-    public cleanUpPhysics(): void {
-        for (let rigidBody of this.contentRigidBodies) {
-            if (rigidBody) {
-                physicsWorld.removeRigidBody(rigidBody);
-                rigidBody = null;
-            }
+    public cleanUpClones() {
+        for (const clone of this.clones) {
+            clone.cleanUp();
         }
-        this.contentRigidBodies.length = 0; // Clear the array,removing all refs and allowing for gc
     }
 }

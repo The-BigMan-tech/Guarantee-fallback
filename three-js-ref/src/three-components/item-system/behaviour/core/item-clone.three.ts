@@ -26,7 +26,8 @@ export class ItemClone {
         return new ItemClone(args)
     }
     private constructor(args:CloneArgs) {
-        const {model,spawnPosition,spawnQuaternion,properties,spinVectorInAir} = args;
+        const {model,spawnPosition,spawnQuaternion,properties,spinVectorInAir,addToScene} = args;
+        
         this.height = properties.height;
         this.spinVectorInAir = spinVectorInAir.normalize();//i normalized it to ensure its a unit vector
         const clonedModel = model.clone(true);
@@ -62,7 +63,9 @@ export class ItemClone {
 
         ItemClones.clones.push(this);//automatically push the clone to the clones array for updating
         ItemClones.cloneIndices.set(this,ItemClones.clones.length-1);//add its index to the map for removal
-        ItemClones.group.add(this.mesh);//auto add it to the group to be shown in the scene
+        if (addToScene) {
+            ItemClones.group.add(this.mesh);//auto add it to the group to be shown in the scene
+        }
     }
 
 
