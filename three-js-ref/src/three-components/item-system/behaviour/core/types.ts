@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-interface ItemCloneProps {
+interface RigidBodyCloneProps {
     density:number,
     width:number,
     height:number,
@@ -11,12 +11,12 @@ export interface CloneArgs {
     model: THREE.Group,
     spawnPosition:THREE.Vector3,
     spawnQuaternion:THREE.Quaternion,
-    properties:ItemCloneProps,
+    properties:RigidBodyCloneProps,
     spinVectorInAir:THREE.Vector3,
     parent:THREE.Group//i made the parent group explicit so that callers can decide if they want to add it to the scene themselves for management.an example of this is my content distributions in my chunk.their meshes should be handled by the chunk loader.so this is a case where this applies
 }
 
-export interface ItemBody extends ItemCloneProps {
+export interface ItemBody extends RigidBodyCloneProps {
     modelPath:string,
     spawnDistance:number,
     showPlacementHelper:boolean

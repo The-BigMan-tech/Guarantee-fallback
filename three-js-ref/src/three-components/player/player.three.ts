@@ -17,8 +17,8 @@ import { toggleItemGui,isCellSelected, setUsedItem } from "../item-system/item-s
 import { itemManager } from "../item-system/item-manager.three";
 import { ItemHolder } from "../item-system/item-holder.three";
 import { IntersectionRequest } from "./intersection-request.three";
-import type { ItemClone } from "../item-system/behaviour/core/item-clone.three";
-import { ItemClones } from "../item-system/behaviour/core/object-clones.three";
+import type { RigidBodyClone } from "../item-system/behaviour/core/rigidbody-clone.three";
+import { RigidBodyClones } from "../item-system/behaviour/core/rigidbody-clones.three";
 import { gltfLoader } from "../gltf-loader.three";
 import { createBoxLine,placementHelper } from "../item-system/behaviour/other-helpers.three";
 import { ItemUtils } from "../item-system/behaviour/core/item-utils.three";
@@ -87,7 +87,7 @@ class Player extends Controller implements EntityLike {
     private strength:number;
 
     private lookedAtEntity:EntityContract | null = null;
-    private lookedAtItemClone:ItemClone | null = null;
+    private lookedAtClone:RigidBodyClone | null = null;
 
     private respawnDelay:seconds = 7; // seconds
     private respawnTimer: seconds = 0;
@@ -249,13 +249,13 @@ class Player extends Controller implements EntityLike {
             selection:entities
         })
     }
-    public requestLookedItemClone():ItemClone | null {
+    public requestLookedClone():RigidBodyClone | null {
         this.raycaster.setFromCamera(this.mouseCords,this.camera.perspectiveCamera);
         return this.intersectionRequest.requestObject({
             raycaster:this.raycaster,
-            testObjects:ItemClones.clones.map(clone=>clone.mesh),
+            testObjects:RigidBodyClones.clones.map(clone=>clone.mesh),
             maxDistance:10,
-            selection:ItemClones.clones
+            selection:RigidBodyClones.clones
         })
     }
     private bindKeysToAnimations() {
@@ -322,8 +322,8 @@ class Player extends Controller implements EntityLike {
             setEntityHealth({currentValue:entityHealth.value,maxValue:entityHealth.maxHealth});
             setBlockDurability(null);//we dont want to show the block durability ui at the same time with the entity because they stay at the same position to preserve screen space
         }
-        else if (this.lookedAtItemClone) {
-            const durability = this.lookedAtItemClone.durability;
+        else if (this.lookedAtClone) {
+            const durability = this.lookedAtClone.durability;
             setBlockDurability({currentValue:durability.value,maxValue:durability.maxHealth});
             setEntityHealth(null)
         }
@@ -352,12 +352,12 @@ class Player extends Controller implements EntityLike {
                     this.addRelationship(this,relationshipManager.attackerOf[entity._groupID!]);
                     this.attackTimer = 0;
                 }
-            }else if (this.lookedAtItemClone) {
+            }else if (this.lookedAtClone) {
                 console.log('attacked block');
-                const targetDurability = this.lookedAtItemClone.durability;
+                const targetDurability = this.lookedAtClone.durability;
                 if (!targetDurability.isDead) {
                     targetDurability.takeDamage(this.attackDamage);
-                    this.lookedAtItemClone.applyKnockback(srcPosition,this.strength);
+                    this.lookedAtClone.applyKnockback(srcPosition,this.strength);
                     console.log('targetDurability:', targetDurability.value);
                     this.attackTimer = 0;
                 }
@@ -437,7 +437,7 @@ class Player extends Controller implements EntityLike {
         this.currentHealth = this.health.value;
 
         this.lookedAtEntity = this.requestLookedEntity();
-        this.lookedAtItemClone = this.requestLookedItemClone();
+        this.lookedAtClone = this.requestLookedClone();
         
         this.camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion));
 

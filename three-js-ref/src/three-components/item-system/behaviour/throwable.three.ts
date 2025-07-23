@@ -1,7 +1,7 @@
 import type { UseItemDependecies,ItemBehaviour } from "./core/types";
 import * as THREE from "three";
-import { ItemClone } from "./core/item-clone.three";
-import { ItemClones } from "./core/object-clones.three";
+import { RigidBodyClone } from "./core/rigidbody-clone.three";
+import { RigidBodyClones } from "./core/rigidbody-clones.three";
 import type { ItemBody } from "./core/types";
 import { ItemUtils } from "./core/item-utils.three";
 import { itemManager } from "../item-manager.three";
@@ -22,13 +22,13 @@ export class Throwable implements ItemBehaviour {
         const {view,userQuaternion,itemID,userStrength} = args
         if (this.model) {
             const spawnPosition = ItemUtils.getSpawnPosition(view,this._itemBody.spawnDistance);
-            const clone = ItemClone.createClone({
+            const clone = RigidBodyClone.createClone({
                 model:this.model,
                 spawnPosition,
                 spawnQuaternion:userQuaternion,
                 properties:this._itemBody,
                 spinVectorInAir:new THREE.Vector3(1,1,1), //this means spin in all axis while in the air
-                parent:ItemClones.group
+                parent:RigidBodyClones.group
             });
 
             const sourceThrow = ItemUtils.getSpawnPosition(view)

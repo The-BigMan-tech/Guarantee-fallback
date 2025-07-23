@@ -6,11 +6,11 @@ import type { CloneArgs } from "./types";
 import { getGroundDetectionDistance, VelCalcUtils } from "../../../controller/helper";
 import { Health } from "../../../health/health";
 import { createBoxLine, rotateBy180 } from "../other-helpers.three";
-import { ItemClones } from "./object-clones.three";
+import { RigidBodyClones } from "./rigidbody-clones.three";
 import { player } from "../../../player/player.three";
 
-
-export class ItemClone {
+//Note:The Controller and RigidBodyClone class are what ill be using and i recoomend to use to create dynamic physics bodies because they have a simple api while providing management underneath.The controler is for dynamic bodies that are controlled by a living entity while rigid body clone are for game objects 
+export class RigidBodyClone {
     public  mesh:THREE.Group = new THREE.Group();
     public  rigidBody:RAPIER.RigidBody | null;
     private handle:number;
@@ -27,8 +27,8 @@ export class ItemClone {
     private parent:THREE.Group;
     private despawnRadius:number = 500;
 
-    public static createClone(args:CloneArgs):ItemClone {//i made a separate method for creating an item clone without the constructor because a behaviour may or may not even need the clone instance at all.the item clone class will already add the clone to the scene and update it at every loop.so there is isnt any management the behaviour class has to do with the clone after creating it.they can just use the exposed method to perform actions on the clone like applying knockback
-        return new ItemClone(args)
+    public static createClone(args:CloneArgs):RigidBodyClone {//i made a separate method for creating an item clone without the constructor because a behaviour may or may not even need the clone instance at all.the item clone class will already add the clone to the scene and update it at every loop.so there is isnt any management the behaviour class has to do with the clone after creating it.they can just use the exposed method to perform actions on the clone like applying knockback
+        return new RigidBodyClone(args)
     }
     private constructor(args:CloneArgs) {
         const {model,spawnPosition,spawnQuaternion,properties,spinVectorInAir,parent} = args;
@@ -52,7 +52,7 @@ export class ItemClone {
         this.mesh.position.copy(spawnPosition);
 
         const hitbox = createBoxLine(properties.width,properties.height,properties.depth);//this is for debugging
-        if (ItemClone.addHitbox) this.mesh.add(hitbox);
+        if (RigidBodyClone.addHitbox) this.mesh.add(hitbox);
 
         const cloneCollider = RAPIER.ColliderDesc.cuboid(properties.width/2,properties.height/2,properties.depth/2).setDensity(properties.density);
         const cloneBody = RAPIER.RigidBodyDesc.dynamic()
@@ -67,8 +67,8 @@ export class ItemClone {
 
         this.durability = new Health(properties.durability);
 
-        ItemClones.clones.push(this);//automatically push the clone to the clones array for updating
-        ItemClones.cloneIndices.set(this,ItemClones.clones.length-1);//add its index to the map for removal
+        RigidBodyClones.clones.push(this);//automatically push the clone to the clones array for updating
+        RigidBodyClones.cloneIndices.set(this,RigidBodyClones.clones.length-1);//add its index to the map for removal
         this.parent.add(this.mesh)//add it to the parent group to be shown in the scene
     }
 
@@ -161,15 +161,15 @@ export class ItemClone {
 
 
     private removeFromClones() {//used swap and pop delete for O(1) deletion
-        const index = ItemClones.cloneIndices.get(this)!;
-        const lastIndex = ItemClones.clones.length - 1;
+        const index = RigidBodyClones.cloneIndices.get(this)!;
+        const lastIndex = RigidBodyClones.clones.length - 1;
         if (index < lastIndex) {
-            const lastClone = ItemClones.clones[lastIndex];
-            ItemClones.clones[index] = lastClone;
-            ItemClones.cloneIndices.set(lastClone,index)
+            const lastClone = RigidBodyClones.clones[lastIndex];
+            RigidBodyClones.clones[index] = lastClone;
+            RigidBodyClones.cloneIndices.set(lastClone,index)
         }
-        ItemClones.clones.pop();
-        ItemClones.cloneIndices.delete(this);
+        RigidBodyClones.clones.pop();
+        RigidBodyClones.cloneIndices.delete(this);
     }
 
 

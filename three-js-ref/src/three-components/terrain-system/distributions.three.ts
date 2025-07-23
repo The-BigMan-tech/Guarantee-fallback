@@ -2,13 +2,13 @@ import * as THREE from 'three'
 import PoissonDiskSampling from 'poisson-disk-sampling';
 import { startingLevelY } from '../physics-world.three';
 import { randFloat } from 'three/src/math/MathUtils.js';
-import { ItemClone } from '../item-system/behaviour/core/item-clone.three';
+import { RigidBodyClone } from '../item-system/behaviour/core/rigidbody-clone.three';
 import { gltfLoader } from '../gltf-loader.three';
 
 
 export class Distributions {
     public  content:THREE.Group = new THREE.Group();//the group that holds all of the content that will be placed on the floor.there should only be one fall content added to the floor at a time.so it means that any new content should be added here not to the floor directly
-    private clones:ItemClone[] = [];
+    private clones:RigidBodyClone[] = [];
 
     private chunkSize:number;
     private chunkPos:THREE.Vector3;
@@ -42,7 +42,7 @@ export class Distributions {
             const spawnPosition = new THREE.Vector3(worldX,localY,worldZ);
             gltfLoader.load('./block/block.glb',gltf=>{
                 const model = gltf.scene;
-                const clone = ItemClone.createClone({
+                const clone = RigidBodyClone.createClone({
                     model:model,
                     spawnPosition,
                     spawnQuaternion:new THREE.Quaternion(),
