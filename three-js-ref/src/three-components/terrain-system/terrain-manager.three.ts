@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { Chunk, type ChunkData } from "./chunk.three";
 import { groundLevelY } from "../physics-world.three";
 import { player } from "../player/player.three";
-import { FloorContent } from "./distributions.three";
+import { Distributions } from "./distributions.three";
 
 type ChunkKey = string;
 type Singleton<T> = T;
@@ -34,8 +34,8 @@ class TerrainManager {
             chunkSize:this.chunkSize,
             chunkParent: this.chunkParent,
         };
-        const floorContent = new FloorContent(this.chunkSize,chunkPos,50);
-        return new Chunk(chunkData,floorContent);
+        const distributions = new Distributions(this.chunkSize,chunkPos,40);
+        return new Chunk(chunkData,distributions);
     }
 
 

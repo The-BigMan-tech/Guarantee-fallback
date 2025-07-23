@@ -5,11 +5,8 @@ import { randFloat } from 'three/src/math/MathUtils.js';
 import { ItemClone } from '../item-system/behaviour/core/item-clone.three';
 import { gltfLoader } from '../gltf-loader.three';
 
-export interface FloorContentData {
-    chunkSize:number,
-    minDistance:number,
-}
-export class FloorContent {
+
+export class Distributions {
     public  content:THREE.Group = new THREE.Group();//the group that holds all of the content that will be placed on the floor.there should only be one fall content added to the floor at a time.so it means that any new content should be added here not to the floor directly
     private clones:ItemClone[] = [];
 

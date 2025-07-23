@@ -2,7 +2,7 @@ import * as THREE from "three";
 import * as RAPIER from "@dimforge/rapier3d";
 import { physicsWorld } from "../physics-world.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
-import { FloorContent } from "./distributions.three";
+import { Distributions } from "./distributions.three";
 
 export interface ChunkData {
     chunkPos:THREE.Vector3
@@ -12,10 +12,10 @@ export interface ChunkData {
 export class Chunk {
     private group:THREE.Group | null;
     private chunkRigidBody:RAPIER.RigidBody | null;
-    private distributions:FloorContent | null;
+    private distributions:Distributions | null;
     private chunkParent:THREE.Group;//this will be the group of floors held by the terrain manager
 
-    constructor(chunkData:ChunkData,distributions:FloorContent | null) {
+    constructor(chunkData:ChunkData,distributions:Distributions | null) {
         this.group = new THREE.Group();
         this.chunkParent = chunkData.chunkParent;
         this.chunkParent.add(this.group);
