@@ -6,6 +6,7 @@ import { gltfLoader } from "../gltf-loader.three";
 export class ItemHolder {
     private item3D: THREE.Group;
     private currentHeldItem: string | null = null;
+    public  hasChangedHeldItem:boolean = false;
 
     constructor(item3D: THREE.Group) {
         this.item3D = item3D;
@@ -30,6 +31,7 @@ export class ItemHolder {
         const heldItem = item ? item.name : null;
         if (heldItem !== this.currentHeldItem) {
             this.currentHeldItem = heldItem;
+            this.hasChangedHeldItem = true;
             console.log('holding currentHeldItemID:',this.currentHeldItem);
             if (!item) {
                 this.disposeItem();
@@ -45,6 +47,8 @@ export class ItemHolder {
                     this.loadItemModel(item)
                 });
             }
+        }else {
+            this.hasChangedHeldItem = false;
         }
     }
 }

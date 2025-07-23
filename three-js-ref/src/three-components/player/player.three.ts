@@ -384,37 +384,37 @@ class Player extends Controller implements EntityLike {
     get _groupID():string {
         return this.groupID;
     }
-    private showPlacementHelper() {
-        const itemBody = itemManager.itemInHand?.item.behaviour.itemBody 
-        if (itemBody && !isCellSelected() && itemBody.showPlacementHelper) {//the second condition is to ensure that it only shows when the player's controls arent locked to avoid confusion that players can immediately place an item.
+    private placementCube:THREE.Mesh | null = null;
+    private placementHitBox:THREE.LineSegments | null = null;
+
+    private lastPosition:THREE.Vector3 = new THREE.Vector3();
+    private changedPosition:boolean = false;
+
+    private lastQuaternion:THREE.Quaternion = new THREE.Quaternion();
+    private changedQuaternion:boolean = false;
+
+    private showPlacementHelper() {//the is cell selected condition is to ensure that it only shows when the player's controls arent locked to avoid confusion that players can immediately place an item.
+        const itemBody = itemManager.itemInHand?.item.behaviour.itemBody ;
+        this.changedPosition = !this.lastPosition.equals(this.position);
+        this.changedQuaternion = !this.lastQuaternion.equals(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion));
+
+        console.log('placement compare pos: ',this.changedPosition);
+        console.log('placement compare quat: ',this.changedQuaternion);
+
+        if (itemBody && !isCellSelected() && itemBody.showPlacementHelper && ((this.changedPosition) || (this.changedQuaternion))) {
             const placementBox = new THREE.Group();
             placementBox.position.copy(ItemUtils.getSpawnPosition(this.camera.cam3D,spawnDistance));
             placementBox.quaternion.copy(this.char.quaternion);
+            console.log('holding has changed item: ',this.itemHolder.hasChangedHeldItem);
             const smallOffset= 0.1;//this to prevent the surfaces of the placement box and the actual item from colliding when spawned which will cause a visual problem on the surfaces
-            const placementCube = createBox(itemBody.width+smallOffset,itemBody.height+smallOffset,itemBody.depth+smallOffset,0x9ad49f)
-            const placementHitBox = createBoxLine(itemBody.width+smallOffset,itemBody.height+smallOffset,itemBody.depth+smallOffset);
-            const opacity = 0.3
-            placementCube.traverse((child) => {
-                const mesh = child as THREE.Mesh;
-                if (mesh && mesh.material) {
-                    if (Array.isArray(mesh.material)) {
-                        mesh.material.forEach((mat) => {
-                            mat.transparent = true;
-                            mat.opacity = opacity;
-                            mat.depthWrite = false; // helps with rendering transparent objects
-                        });
-                    } else {
-                        mesh.material.transparent = true;
-                        mesh.material.opacity = opacity;
-                        mesh.material.depthWrite = false;
-                    }
-                }
-            });
-
-            placementBox.add(placementCube,placementHitBox)
+            this.placementCube = createBox(itemBody.width+smallOffset,itemBody.height+smallOffset,itemBody.depth+smallOffset,0x9ad49f)
+            this.placementHitBox = createBoxLine(itemBody.width+smallOffset,itemBody.height+smallOffset,itemBody.depth+smallOffset);
+            placementBox.add(this.placementCube,this.placementHitBox)
             placementHelper.add(placementBox);
 
         }
+        this.lastPosition.copy(this.position);
+        this.lastQuaternion.copy(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion))
     }
     private clearPlacementHelper() {
         disposeHierarchy(placementHelper);//onl
