@@ -5,8 +5,7 @@ import { disposeHierarchy } from "../../../disposer/disposer.three";
 import type { CloneArgs } from "./types";
 import { getGroundDetectionDistance, VelCalcUtils } from "../../../controller/helper";
 import { Health } from "../../../health/health";
-import { createBoxLine } from "../hitbox-helper.three";
-import { degToRad } from "three/src/math/MathUtils.js";
+import { createBoxLine, rotateBy180 } from "../other-helpers.three";
 
 
 export class ItemClone {
@@ -53,11 +52,8 @@ export class ItemClone {
         this.rigidBody = physicsWorld.createRigidBody(cloneBody);
         this.handle = physicsWorld.createCollider(cloneCollider,this.rigidBody).handle;
 
-        const targetRotation:THREE.Euler = new THREE.Euler(0,degToRad(180), 0, 'YXZ');
-        const targetQuaternion:THREE.Quaternion = new THREE.Quaternion().setFromEuler(targetRotation);
-
         this.rigidBody.setTranslation(spawnPosition,true);
-        this.rigidBody.setRotation(spawnQuaternion.clone().multiply(targetQuaternion),true);
+        this.rigidBody.setRotation(spawnQuaternion.clone().multiply(rotateBy180()),true);//i rotated it by 180 so that it faces the player on spawn because directly making the clone rotation the player's quaternion will make it face where the player is facing not at the player.
 
         this.mesh.position.copy(this.rigidBody.translation());
         this.mesh.quaternion.copy(this.rigidBody.rotation());

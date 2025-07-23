@@ -19,7 +19,7 @@ import { ItemHolder } from "../item-system/item-holder.three";
 import { LookRequest } from "./look-request.three";
 import { ItemClone, ItemClones } from "../item-system/behaviour/core/item-clone.three";
 import { gltfLoader } from "../gltf-loader.three";
-import { createBoxLine,placementHelper } from "../item-system/behaviour/hitbox-helper.three";
+import { createBoxLine,placementHelper } from "../item-system/behaviour/other-helpers.three";
 import { ItemUtils } from "../item-system/behaviour/core/item-utils.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { spawnDistance } from "../item-system/item-defintions";

@@ -5,7 +5,7 @@ import { player } from './player/player.three';
 import { entityManager } from './entity-system/entity-manager.three';
 import { terrainManager } from './terrain-system/terrain-manager.three';
 import { ItemClones } from './item-system/behaviour/core/item-clone.three';
-import { placementHelper } from './item-system/behaviour/hitbox-helper.three';
+import { placementHelper } from './item-system/behaviour/other-helpers.three';
 
 export const scene = new THREE.Scene();
 

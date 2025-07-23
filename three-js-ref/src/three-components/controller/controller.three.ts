@@ -6,7 +6,7 @@ import { physicsWorld,gravityY,outOfBoundsY, combatCooldown, startingLevelY} fro
 import { listener, audioLoader } from "../listener/listener.three";
 import {v4 as uniqueID} from "uuid"
 import { getGroundDetectionDistance, VelCalcUtils } from "./helper";
-import { createBoxLine, createCapsuleLine } from "../item-system/behaviour/hitbox-helper.three";
+import { createBoxLine, createCapsuleLine } from "../item-system/behaviour/other-helpers.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 
 
