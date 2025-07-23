@@ -195,8 +195,8 @@ class Player extends Controller implements EntityLike {
             this.rotateCharacterX('right')
         };
         
-        const camPosToPlayer = this.camera.cam3D.position.clone().sub(this.position);
-        const signedDist = camPosToPlayer.dot(this.camForward);
+        const camPosToPlayer = this.camera.cam3D.getWorldPosition(new THREE.Vector3).clone().sub(this.position);
+        const signedDist = Math.round(camPosToPlayer.dot(this.camForward));
         console.log('signedDist:', signedDist);
         
         if (this.keysPressed['Equal'] &&  (signedDist <= this.zoomClamp)) {//this corresponds to + key.zoom in
@@ -278,7 +278,7 @@ class Player extends Controller implements EntityLike {
             this.targetY = this.offsetY;//reset the cam y position on toggling to cancel out the effect of zooming
             switch (this.camModeNum) {
                 case CameraMode.FirstPerson: {
-                    this.targetZ = -1
+                    this.targetZ = -1//i used minus here because the forward direction is along the negative z axis
                     this.camRotationSpeed = this.originalCamRotSpeed
                     this.cameraClampAngle = this.firstPersonClamp
                     this.camera.setCameraRotationX(0,0);
@@ -300,7 +300,7 @@ class Player extends Controller implements EntityLike {
             }
         }
     }
-    //TODO: Im not suppose to use tsrget y and z directly here because it will set the camera in world cords not the player's own cord.Im suppose to get the local pos from the cam direction vector
+
     private updateCamPosition() {
         const camPosition = this.camera.cam3D.position;
         const newCamPosition = new THREE.Vector3(camPosition.x,this.targetY,this.targetZ)
@@ -411,7 +411,7 @@ class Player extends Controller implements EntityLike {
         this.lookedAtEntity = this.requestLookedEntity();
         this.lookedAtItemClone = this.requestLookedItemClone();
         
-        this.camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion);
+        this.camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.char.getWorldQuaternion(new THREE.Quaternion));
 
         this.itemHolder.holdItem(itemManager.itemInHand?.item || null);
         this.showPlacementHelper();
