@@ -19,7 +19,7 @@ import { ItemHolder } from "../item-system/item-holder.three";
 import { LookRequest } from "./look-request.three";
 import { ItemClone, ItemClones } from "../item-system/behaviour/core/item-clone.three";
 import { gltfLoader } from "../gltf-loader.three";
-import { createBoxLine,placementHelper } from "../item-system/behaviour/other-helpers.three";
+import { createBox, createBoxLine,placementHelper } from "../item-system/behaviour/other-helpers.three";
 import { ItemUtils } from "../item-system/behaviour/core/item-utils.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { spawnDistance } from "../item-system/item-defintions";
@@ -387,10 +387,33 @@ class Player extends Controller implements EntityLike {
     private showPlacementHelper() {
         const itemBody = itemManager.itemInHand?.item.behaviour.itemBody 
         if (itemBody && !isCellSelected() && itemBody.showPlacementHelper) {//the second condition is to ensure that it only shows when the player's controls arent locked to avoid confusion that players can immediately place an item.
-            const hitbox = createBoxLine(itemBody.width,itemBody.height,itemBody.depth);
-            hitbox.position.copy(ItemUtils.getSpawnPosition(this.camera.cam3D,spawnDistance));
-            hitbox.quaternion.copy(this.char.quaternion);
-            placementHelper.add(hitbox);
+            const placementBox = new THREE.Group();
+            placementBox.position.copy(ItemUtils.getSpawnPosition(this.camera.cam3D,spawnDistance));
+            placementBox.quaternion.copy(this.char.quaternion);
+            const smallOffset= 0.1;//this to prevent the surfaces of the placement box and the actual item from colliding when spawned which will cause a visual problem on the surfaces
+            const placementCube = createBox(itemBody.width+smallOffset,itemBody.height+smallOffset,itemBody.depth+smallOffset,0x9ad49f)
+            const placementHitBox = createBoxLine(itemBody.width+smallOffset,itemBody.height+smallOffset,itemBody.depth+smallOffset);
+            const opacity = 0.3
+            placementCube.traverse((child) => {
+                const mesh = child as THREE.Mesh;
+                if (mesh && mesh.material) {
+                    if (Array.isArray(mesh.material)) {
+                        mesh.material.forEach((mat) => {
+                            mat.transparent = true;
+                            mat.opacity = opacity;
+                            mat.depthWrite = false; // helps with rendering transparent objects
+                        });
+                    } else {
+                        mesh.material.transparent = true;
+                        mesh.material.opacity = opacity;
+                        mesh.material.depthWrite = false;
+                    }
+                }
+            });
+
+            placementBox.add(placementCube,placementHitBox)
+            placementHelper.add(placementBox);
+
         }
     }
     private clearPlacementHelper() {
