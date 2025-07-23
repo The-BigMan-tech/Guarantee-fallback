@@ -49,6 +49,7 @@ export class ItemHolder {
             }
         }else {
             this.hasChangedHeldItem = false;
+            console.log('holding same item');
         }
     }
 }

@@ -384,29 +384,24 @@ class Player extends Controller implements EntityLike {
     get _groupID():string {
         return this.groupID;
     }
-    private placementCube:THREE.Mesh | null = null;
-    private placementHitBox:THREE.LineSegments | null = null;
-
     private lastPosition:THREE.Vector3 = new THREE.Vector3();
     private changedPosition:boolean = false;
 
     private lastQuaternion:THREE.Quaternion = new THREE.Quaternion();
     private changedQuaternion:boolean = false;
 
-    private showPlacementHelper() {//the is cell selected condition is to ensure that it only shows when the player's controls arent locked to avoid confusion that players can immediately place an item.
-        const itemBody = itemManager.itemInHand?.item.behaviour.itemBody ;
+    //the last AND condition is to ensure that the placement helper is only generated if the player's position or rotation has changed.this preserves perf by ensuring that its only regenerated when the player actually moves
+    private showPlacementHelper() {
+        const itemBody = itemManager.itemInHand?.item.behaviour.itemBody
+        const showPlacementHelper = itemBody?.showPlacementHelper;
+        console.log('holding has changed item: ',this.itemHolder.hasChangedHeldItem);
 
-        if (itemBody && !isCellSelected() && itemBody.showPlacementHelper && ((this.changedPosition) || (this.changedQuaternion))) {
-            const placementBox = new THREE.Group();
+        if (showPlacementHelper && (this.changedPosition || this.changedQuaternion)) {
+            console.log('placement created');
+            const placementBox = createBoxLine(itemBody.width,itemBody.height,itemBody.depth);
             placementBox.position.copy(ItemUtils.getSpawnPosition(this.camera.cam3D,spawnDistance));
             placementBox.quaternion.copy(this.char.quaternion);
-            console.log('holding has changed item: ',this.itemHolder.hasChangedHeldItem);
-            const smallOffset= 0.1;//this to prevent the surfaces of the placement box and the actual item from colliding when spawned which will cause a visual problem on the surfaces
-            this.placementCube = createBox(itemBody.width+smallOffset,itemBody.height+smallOffset,itemBody.depth+smallOffset,0x9ad49f)
-            this.placementHitBox = createBoxLine(itemBody.width+smallOffset,itemBody.height+smallOffset,itemBody.depth+smallOffset);
-            placementBox.add(this.placementCube,this.placementHitBox)
             placementHelper.add(placementBox);
-
         }
         this.lastPosition.copy(this.position);
         this.lastQuaternion.copy(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion))
@@ -418,7 +413,7 @@ class Player extends Controller implements EntityLike {
         console.log('placement compare quat: ',this.changedQuaternion);
     }
     private clearPlacementHelper() {
-        if (this.changedPosition || this.changedQuaternion) {
+        if ((this.changedPosition || this.changedQuaternion) || (isCellSelected())) {
             console.log('placement cleared');
             disposeHierarchy(placementHelper);//onl
             placementHelper.clear();
