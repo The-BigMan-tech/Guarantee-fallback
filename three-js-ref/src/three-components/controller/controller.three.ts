@@ -814,7 +814,7 @@ export abstract class Controller {
         this.characterPosition = this.characterRigidBody.translation();
         this.character.position.set(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
     }
-    private respawnIfOutOfBounds():void {
+    private updateIsOutOfBounds():void {
         this.isOutOfBounds = false
         if (this.characterPosition.y <= outOfBoundsY) {
             this.isOutOfBounds = true
@@ -1032,7 +1032,7 @@ export abstract class Controller {
             this.updateObstacleDetectionDistance();//must be called before resetting cuz it relies on a variable that needs to be used befor it gets reset
             this.resetSomeVariables();//must be called before obstacle detection to prevent overriding its result
             this.detectObstacle();
-            this.respawnIfOutOfBounds();
+            this.updateIsOutOfBounds();
             if (this.characterRigidBody) {
                 this.characterRigidBody.setGravityScale(this.dynamicData.gravityScale,true);
             }

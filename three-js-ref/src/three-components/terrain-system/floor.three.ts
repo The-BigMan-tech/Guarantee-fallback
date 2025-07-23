@@ -46,7 +46,7 @@ export class Floor {
         const floorPosY = floorHeight/2 + chunkPos.y;//to fix the situation where half of it is above and half is below the specfied ground level
         this.floorRigidBody.setTranslation({x:chunkPos.x,y:floorPosY,z:chunkPos.z},true);
         this.group.position.copy(this.floorRigidBody.translation());
-        if (floorContent) this.group.attach(floorContent.content);
+        if (floorContent) this.group.attach(floorContent.content);//i used attatch here instaed of add so that i can use world space cords to create clones for distribution safely because my item clone class expects that the parent group is at world cords and if i used add here,the cords of the group will shift which will cause bugs
     }    
     public cleanUp():void {
         if (this.floorRigidBody) {

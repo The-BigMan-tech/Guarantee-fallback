@@ -53,7 +53,7 @@ export class FloorContent {
                     spinVectorInAir:new THREE.Vector3(1,1,1), //this means spin in all axis while in the air
                     parent:this.content,
                     properties:{
-                        density:100,
+                        density:2,
                         width:3,
                         height,
                         depth:3,

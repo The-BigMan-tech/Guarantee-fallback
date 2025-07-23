@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import * as RAPIER from "@dimforge/rapier3d"
-import { physicsWorld } from "../../../physics-world.three";
+import { outOfBoundsY, physicsWorld } from "../../../physics-world.three";
 import { disposeHierarchy } from "../../../disposer/disposer.three";
 import type { CloneArgs } from "./types";
 import { getGroundDetectionDistance, VelCalcUtils } from "../../../controller/helper";
@@ -116,11 +116,22 @@ export class ItemClone {
         const velBeforeHittingGround = this.velCalcUtils.getVelJustAboveGround(velocityY,onGround)
         this.durability.checkGroundDamage(velBeforeHittingGround);
     }
-
+    private isOutOfBounds():boolean {
+        if (this.rigidBody!.translation().y <= outOfBoundsY) {
+            return true
+        }
+        return false;
+    }
+    private checkIfOutOfBounds() {
+        if (this.isOutOfBounds()) {
+            this.durability.takeDamage(this.durability.value);
+        }
+    }
 
     private isRemoved = false;
     public updateClone() {
         if (this.rigidBody && !this.durability.isDead) {
+            this.checkIfOutOfBounds();
             this.mesh.position.copy(this.rigidBody.translation());
             this.mesh.quaternion.copy(this.rigidBody.rotation());
             const onGround = this.isGrounded();
