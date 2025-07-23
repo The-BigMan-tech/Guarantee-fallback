@@ -3,7 +3,7 @@ import { motion,AnimatePresence,easeInOut} from "motion/react"
 import { isCellSelected, isCellSelectedAtom, showItemGuiAtom, toggleItemGui, usedItemAtom } from "./item-state";
 import { useAtom } from "jotai";
 import { itemManager } from "./item-manager.three";
-import type { ItemID } from "./item-defintions";
+import type { ItemID } from "./behaviour/core/types";
 import Cell from "./cell";
 
 

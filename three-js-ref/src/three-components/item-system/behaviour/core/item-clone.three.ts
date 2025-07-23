@@ -3,7 +3,7 @@ import * as RAPIER from "@dimforge/rapier3d"
 import { physicsWorld } from "../../../physics-world.three";
 import { disposeHierarchy } from "../../../disposer/disposer.three";
 import type { CloneArgs } from "./types";
-import { getGroundDetectionDistance } from "../../../controller/helper";
+import { getGroundDetectionDistance, VelCalcUtils } from "../../../controller/helper";
 import { Health } from "../../../health/health";
 import { createBoxLine } from "../hitbox-helper.three";
 
@@ -18,7 +18,9 @@ export class ItemClone {
     private spinVectorInAir:THREE.Vector3;//this is a unit vector used to determine which component the spin velocity is applied.each component is like a flag to decide whether to apply spin in this axis or not
     private static readonly addHitbox:boolean = false;
     
-    public durability:Health;
+    public durability:Health;//i reused the health class for durability because its literally the same functionality.so im leveraging code reuse but i renamed it to durability for clarity that it isnt a living entity
+
+    private velCalcUtils:VelCalcUtils = new VelCalcUtils();
 
     public static createClone(args:CloneArgs):ItemClone {//i made a separate method for creating an item clone without the constructor because a behaviour may or may not even need the clone instance at all.the item clone class will already add the clone to the scene and update it at every loop.so there is isnt any management the behaviour class has to do with the clone after creating it.they can just use the exposed method to perform actions on the clone like applying knockback
         return new ItemClone(args)
@@ -105,20 +107,29 @@ export class ItemClone {
         this.rigidBody!.applyImpulse(impulse, true);
     }
 
+    private applyGroundDamage(onGround:boolean) {
+        const velocityY = this.rigidBody!.linvel().y;
+        const velBeforeHittingGround = this.velCalcUtils.getVelJustAboveGround(velocityY,onGround)
+        this.durability.checkGroundDamage(velBeforeHittingGround);
+    }
 
+    
     private isRemoved = false;
     public updateClone() {
         if (this.rigidBody && !this.durability.isDead) {
             this.mesh.position.copy(this.rigidBody.translation());
             this.mesh.quaternion.copy(this.rigidBody.rotation());
-            console.log('spin. is Body sleeping: ',this.rigidBody.isSleeping());
             const onGround = this.isGrounded();
+
+            console.log('spin. is Body sleeping: ',this.rigidBody.isSleeping());
             console.log('spin. is Body grounded: ',onGround);
+
             if (!onGround) {
                 this.applySpin();
             }else {
                 this.spinApplied = false; //its on the ground so we need to reset it so that spin can apply again after next throw
             }
+            this.applyGroundDamage(onGround);
         }else if (!this.isRemoved) {//to ensure resources are cleaned only once 
             this.cleanUp();
         }

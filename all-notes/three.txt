@@ -1687,3 +1687,6 @@ its like my item clone has a mutation bug
 Tranform management
 Vector maths
 Physics engine
+
+
+*Browser inconsistency is a problem with js browsers
