@@ -57,7 +57,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             depth:2,
             durability:10,
             spawnDistance,
-            showPlacementHelper:false
+            showPlacementHelper:true
         })
     }
 }

@@ -395,11 +395,6 @@ class Player extends Controller implements EntityLike {
 
     private showPlacementHelper() {//the is cell selected condition is to ensure that it only shows when the player's controls arent locked to avoid confusion that players can immediately place an item.
         const itemBody = itemManager.itemInHand?.item.behaviour.itemBody ;
-        this.changedPosition = !this.lastPosition.equals(this.position);
-        this.changedQuaternion = !this.lastQuaternion.equals(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion));
-
-        console.log('placement compare pos: ',this.changedPosition);
-        console.log('placement compare quat: ',this.changedQuaternion);
 
         if (itemBody && !isCellSelected() && itemBody.showPlacementHelper && ((this.changedPosition) || (this.changedQuaternion))) {
             const placementBox = new THREE.Group();
@@ -416,12 +411,22 @@ class Player extends Controller implements EntityLike {
         this.lastPosition.copy(this.position);
         this.lastQuaternion.copy(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion))
     }
-    private clearPlacementHelper() {
-        disposeHierarchy(placementHelper);//onl
-        placementHelper.clear();
+    private updateHasChangedVariables() {
+        this.changedPosition = !this.lastPosition.equals(this.position);
+        this.changedQuaternion = !this.lastQuaternion.equals(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion));
+        console.log('placement compare pos: ',this.changedPosition);
+        console.log('placement compare quat: ',this.changedQuaternion);
     }
-
+    private clearPlacementHelper() {
+        if (this.changedPosition || this.changedQuaternion) {
+            console.log('placement cleared');
+            disposeHierarchy(placementHelper);//onl
+            placementHelper.clear();
+        }
+    }
+    //a partial part of the order of updates here are critical.this means that some updates must come before others for correctness
     protected onLoop() {//this is where all character updates to this instance happens.
+        this.updateHasChangedVariables();//this one must be called before clearing the placement helper so that it receives the latest state before use
         this.clearPlacementHelper();//we want to clear the helper in the frame after rendering the helper to prevent it from clearing prematurely which is why i cleared it at the top befor rendering the helper
 
         this.toggleTimer += this.clockDelta || 0;
@@ -439,6 +444,7 @@ class Player extends Controller implements EntityLike {
         this.itemHolder.holdItem(itemManager.itemInHand?.item || null);
         this.showPlacementHelper();
 
+        //these ones arent sensitive to order of operations
         this.checkIfOutOfBounds();
         this.updateHealthGUI();
         this.health.checkGroundDamage(this.velBeforeHittingGround);
@@ -447,9 +453,9 @@ class Player extends Controller implements EntityLike {
         this.bindKeysToAnimations();
         this.toggleCamPerspective();
         this.updateCamPosition();
-        this.camera.updateCamera(this.camRotationSpeed);
         this.updateCameraHeightBasedOnHealth();
         this.handleRespawn();
+        this.camera.updateCamera(this.camRotationSpeed);
     }
 }
 //Note:This is the only place where ill load gltf models async.the rest of my codebase will use sync loading with callback management to ensure that the models are prepared before use.the reason why i did this for the rest of the codebase is because i dont want the use of a single await to propagate all of my ethods to be async.i want everything to remain as sync methods to reduce verbosity and clear predictability in control flow.the only reason why i used await here is because await at the top level doesnt cause async propagation and unlike the rest of my code that loads gltf models,i dont really have a way to time this one properly because a bug part of my code is reliant on the player and i need to ensure that the player is ready before demand.i tried to do a player factory to do this like the way i did it for my entity factory but that didnt work.it has to be fully prepared on export.
