@@ -7,7 +7,7 @@ import { player } from './player/player.three';
 import { entityManager } from './entity-system/entity-manager.three';
 import { terrainManager } from './terrain-system/terrain-manager.three';
 import { relationshipManager } from './entity-system/relationships.three';
-import { ItemClones } from './item-system/behaviour/core/item-clone.three';
+import { ItemClones } from './item-system/behaviour/core/object-clones.three';
 
 
 export const renderer = new THREE.WebGLRenderer({antialias:true});//play with this

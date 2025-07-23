@@ -17,7 +17,8 @@ import { toggleItemGui,isCellSelected, setUsedItem } from "../item-system/item-s
 import { itemManager } from "../item-system/item-manager.three";
 import { ItemHolder } from "../item-system/item-holder.three";
 import { IntersectionRequest } from "./intersection-request.three";
-import { ItemClone, ItemClones } from "../item-system/behaviour/core/item-clone.three";
+import type { ItemClone } from "../item-system/behaviour/core/item-clone.three";
+import { ItemClones } from "../item-system/behaviour/core/object-clones.three";
 import { gltfLoader } from "../gltf-loader.three";
 import { createBoxLine,placementHelper } from "../item-system/behaviour/other-helpers.three";
 import { ItemUtils } from "../item-system/behaviour/core/item-utils.three";

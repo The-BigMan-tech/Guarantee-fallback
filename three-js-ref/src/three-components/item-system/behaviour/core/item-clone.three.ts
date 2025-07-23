@@ -6,7 +6,8 @@ import type { CloneArgs } from "./types";
 import { getGroundDetectionDistance, VelCalcUtils } from "../../../controller/helper";
 import { Health } from "../../../health/health";
 import { createBoxLine, rotateBy180 } from "../other-helpers.three";
-import { IntersectionRequest } from "../../../player/intersection-request.three";
+import { ItemClones } from "./object-clones.three";
+import { player } from "../../../player/player.three";
 
 
 export class ItemClone {
@@ -24,9 +25,8 @@ export class ItemClone {
     private velCalcUtils:VelCalcUtils = new VelCalcUtils();
 
     private parent:THREE.Group;
+    private despawnRadius:number = 500;
 
-    private intersectionRequest = new IntersectionRequest();
-    
     public static createClone(args:CloneArgs):ItemClone {//i made a separate method for creating an item clone without the constructor because a behaviour may or may not even need the clone instance at all.the item clone class will already add the clone to the scene and update it at every loop.so there is isnt any management the behaviour class has to do with the clone after creating it.they can just use the exposed method to perform actions on the clone like applying knockback
         return new ItemClone(args)
     }
@@ -130,7 +130,12 @@ export class ItemClone {
             this.durability.takeDamage(this.durability.value);
         }
     }
-
+    private despawnSelfIfFar() {
+        const distance = player.position.distanceTo(this.mesh.position);
+        if (distance > this.despawnRadius) {
+            this.cleanUp()
+        }
+    }
     private isRemoved = false;
     public updateClone() {
         if (this.rigidBody && !this.durability.isDead) {
@@ -148,6 +153,7 @@ export class ItemClone {
                 this.spinApplied = false; //its on the ground so we need to reset it so that spin can apply again after next throw
             }
             this.applyGroundDamage(onGround);
+            this.despawnSelfIfFar();//the reason why i made each clone responsible for despawning itself unlike the entity system where the manager despawns far entities is because i dont want to import the player directly into the class that updates the clones because the player also imports that.so its to remove circular imports
         }else if (!this.isRemoved) {//to ensure resources are cleaned only once 
             this.cleanUp();
         }
@@ -167,7 +173,6 @@ export class ItemClone {
     }
 
 
-    //Note: the reason why im not going to cleanup any clone based on player proximity unlike the entities,is because item clones are explicitly spawned in the world by the player.for example, i cant just cleanup the work that players put in building something.
     public cleanUp() {
         this.parent.remove(this.mesh)
         disposeHierarchy(this.mesh);
@@ -180,15 +185,4 @@ export class ItemClone {
         console.log('targetDurability. cleaned up block');
     }
     
-}
-export class ItemClones {
-    public static clones:ItemClone[] = [];//this is for the player to get the looked at clone and dispose its reources when removing it
-    public static cloneIndices:Map<ItemClone,number> = new Map();
-    public static group:THREE.Group = new THREE.Group();
-
-    public static updateClones() {
-        for (const clone of ItemClones.clones) {
-            clone.updateClone();
-        }
-    }
 }

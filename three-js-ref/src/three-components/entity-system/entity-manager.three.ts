@@ -29,7 +29,7 @@ class EntityManager {
     private readonly spawnCooldown:number = 7;//after deciding to spawn entities,this controls the time in seconds it waits before it actually spawns them.this is to improve exp as it gives the player some space before entities are spawned and it also improves perf on startup by only spawning entities afterw when the player has been spawned first not simultaneously
     private readonly spawnRadius = 50;//the radius from the player where spawning begins.the higher the spawn radius,the more the entities that will spawn at a given time and vice versa but it stops at the max entity cap or when all min thresholds are satisfied.i believe that increasing the radius is better because not only does it supply spacing but it also means that the manager will spawn entities lesser to reach the cap or satisfy the thresh such that all the entities that will ever be needed in the world are saved in one go preventing calls to spawn from happening again in the next frame.i believe that this preserves performance
     private readonly minSpawnDistance = 15; //the minimum distance between each entity that gets spawned within the spawn radius
-    private readonly despawnRadius: number = 1000;//its the opposite of spawn radius.it states the distance from the player proximity that entities will be despawned.it improves perf by only rendering entities that are actually meaningful to the gameplay
+    private readonly despawnRadius: number = 500;//its the opposite of spawn radius.it states the distance from the player proximity that entities will be despawned.it improves perf by only rendering entities that are actually meaningful to the gameplay
     
     private entityWrappers:EntityWrapper[] = [];
     private groupIDList:string[] = [];

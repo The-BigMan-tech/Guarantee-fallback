@@ -1,6 +1,7 @@
 import type { UseItemDependecies,ItemBehaviour } from "./core/types";
 import * as THREE from "three";
-import { ItemClone, ItemClones } from "./core/item-clone.three";
+import { ItemClone } from "./core/item-clone.three";
+import { ItemClones } from "./core/object-clones.three";
 import type { ItemBody } from "./core/types";
 import { ItemUtils } from "./core/item-utils.three";
 import { itemManager } from "../item-manager.three";
