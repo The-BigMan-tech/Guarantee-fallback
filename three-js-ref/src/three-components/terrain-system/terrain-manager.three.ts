@@ -13,7 +13,7 @@ class TerrainManager {
     public  floorParent:THREE.Group = new THREE.Group();
     private loadedFloors: Map<ChunkKey, Floor> = new Map();
 
-    private chunkSize = 10;  // size of each floor chunk
+    private chunkSize = 50;  // size of each floor chunk
     private loadRadius = 1;    // how many chunks away to load (1 means 3x3 grid)
 
     private constructor() {};

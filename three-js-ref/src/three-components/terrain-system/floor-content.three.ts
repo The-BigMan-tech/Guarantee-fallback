@@ -21,10 +21,9 @@ export class FloorContent {
         this.chunkSize = chunkSize;
         this.chunkPos = chunkPos;
         this.minDistance = minDistance;
-        this.generateDistributions();
     }    
     //ignoring this for this part of the development
-    private generateDistributions() {
+    public generateDistributions() {
         const pds = new PoissonDiskSampling({
             shape: [this.chunkSize,this.chunkSize], // width and depth of sampling area
             minDistance:this.minDistance,
