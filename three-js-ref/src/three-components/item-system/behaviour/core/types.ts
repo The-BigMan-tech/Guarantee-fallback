@@ -13,7 +13,7 @@ export interface CloneArgs {
     spawnQuaternion:THREE.Quaternion,
     properties:ItemCloneProps,
     spinVectorInAir:THREE.Vector3,
-    addToScene:boolean
+    parent:THREE.Group//i made the parent group explicit so that callers can decide if they want to add it to the scene themselves for management.an example of this is my content distributions in my chunk.their meshes should be handled by the chunk loader.so this is a case where this applies
 }
 
 export interface ItemBody extends ItemCloneProps {

@@ -2,7 +2,7 @@ import type { ItemBehaviour,UseItemDependecies } from "./core/types";
 import * as THREE from "three"
 import { ItemUtils } from "./core/item-utils.three";
 import type { ItemBody } from "./core/types";
-import { ItemClone } from "./core/item-clone.three";
+import { ItemClone, ItemClones } from "./core/item-clone.three";
 import { itemManager } from "../item-manager.three";
 import { gltfLoader } from "../../gltf-loader.three";
 
@@ -27,7 +27,7 @@ export class DynamicBody implements ItemBehaviour {
                 spawnQuaternion:userQuaternion,
                 properties:this._itemBody,
                 spinVectorInAir:new THREE.Vector3(0,0,0),//this means dont spin in any axis while in the air
-                addToScene:true
+                parent:ItemClones.group
             })
             itemManager.removeFromInventory(itemID)
         }

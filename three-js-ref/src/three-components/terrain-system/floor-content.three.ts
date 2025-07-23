@@ -51,16 +51,15 @@ export class FloorContent {
                     spawnPosition,
                     spawnQuaternion:new THREE.Quaternion(),
                     spinVectorInAir:new THREE.Vector3(1,1,1), //this means spin in all axis while in the air
-                    addToScene:false,
+                    parent:this.content,
                     properties:{
-                        density:2,
+                        density:100,
                         width:3,
                         height,
                         depth:3,
-                        durability:40
+                        durability:5
                     }
                 });
-                this.content.add(clone.mesh);
                 this.clones.push(clone);
             })
         }

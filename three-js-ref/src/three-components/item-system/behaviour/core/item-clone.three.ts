@@ -22,12 +22,15 @@ export class ItemClone {
 
     private velCalcUtils:VelCalcUtils = new VelCalcUtils();
 
+    private parent:THREE.Group;
+
     public static createClone(args:CloneArgs):ItemClone {//i made a separate method for creating an item clone without the constructor because a behaviour may or may not even need the clone instance at all.the item clone class will already add the clone to the scene and update it at every loop.so there is isnt any management the behaviour class has to do with the clone after creating it.they can just use the exposed method to perform actions on the clone like applying knockback
         return new ItemClone(args)
     }
     private constructor(args:CloneArgs) {
-        const {model,spawnPosition,spawnQuaternion,properties,spinVectorInAir,addToScene} = args;
-        
+        const {model,spawnPosition,spawnQuaternion,properties,spinVectorInAir,parent} = args;
+        this.parent = parent;
+
         this.height = properties.height;
         this.spinVectorInAir = spinVectorInAir.normalize();//i normalized it to ensure its a unit vector
         const clonedModel = model.clone(true);
@@ -63,9 +66,7 @@ export class ItemClone {
 
         ItemClones.clones.push(this);//automatically push the clone to the clones array for updating
         ItemClones.cloneIndices.set(this,ItemClones.clones.length-1);//add its index to the map for removal
-        if (addToScene) {
-            ItemClones.group.add(this.mesh);//auto add it to the group to be shown in the scene
-        }
+        this.parent.add(this.mesh)//add it to the parent group to be shown in the scene
     }
 
 
@@ -154,7 +155,7 @@ export class ItemClone {
 
     //Note: the reason why im not going to cleanup any clone based on player proximity unlike the entities,is because item clones are explicitly spawned in the world by the player.for example, i cant just cleanup the work that players put in building something.
     public cleanUp() {
-        ItemClones.group.remove(this.mesh)
+        this.parent.remove(this.mesh)
         disposeHierarchy(this.mesh);
         this.removeFromClones();
         if (this.rigidBody) {
