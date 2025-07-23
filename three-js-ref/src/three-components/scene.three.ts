@@ -13,7 +13,7 @@ scene.add(directionalLight);
 scene.add(sky);
 scene.add(player.char,player.points);
 scene.add(entityManager.entityGroup);
-scene.add(terrainManager.floorParent);
+scene.add(terrainManager.chunkParent);
 scene.add(ItemClones.group);
 scene.add(placementHelper)
 scene.fog = new THREE.Fog(0xa5a5a5,30,100)

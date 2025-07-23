@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { Floor, type FloorData } from "./floor.three";
+import { Chunk, type ChunkData } from "./chunk.three";
 import { groundLevelY } from "../physics-world.three";
 import { player } from "../player/player.three";
 import { FloorContent } from "./floor-content.three";
@@ -10,8 +10,8 @@ type Singleton<T> = T;
 class TerrainManager {
     private static manager:TerrainManager;
 
-    public  floorParent:THREE.Group = new THREE.Group();
-    private loadedFloors: Map<ChunkKey, Floor> = new Map();
+    public  chunkParent:THREE.Group = new THREE.Group();
+    private loadedChunks: Map<ChunkKey, Chunk> = new Map();
 
     private chunkSize = 50;  // size of each floor chunk
     private loadRadius = 1;    // how many chunks away to load (1 means 3x3 grid)
@@ -23,19 +23,19 @@ class TerrainManager {
         }
         return TerrainManager.manager;
     }
-    private createFloorAtChunk(x: number, z: number): Floor {
+    private createChunk(x: number, z: number):Chunk {
         const chunkPos = new THREE.Vector3(//Multiplying by chunkSize gives the corner position of the chunk.Adding (chunkSize / 2) shifts this to the center of the chunk.
             (x * this.chunkSize) + this.chunkSize / 2,
             groundLevelY,
             (z * this.chunkSize) + this.chunkSize / 2
         );
-        const floorData: FloorData = {
+        const chunkData:ChunkData = {
             chunkPos:chunkPos,
             chunkSize:this.chunkSize,
-            floorParent: this.floorParent,
+            chunkParent: this.chunkParent,
         };
         const floorContent = new FloorContent(this.chunkSize,chunkPos,50);
-        return new Floor(floorData,floorContent);
+        return new Chunk(chunkData,floorContent);
     }
 
 
@@ -54,18 +54,18 @@ class TerrainManager {
                 const chunkZ = playerChunk.z + dz;
                 const key = this.chunkKey(chunkX, chunkZ);
                 chunksToKeep.add(key);
-                if (!this.loadedFloors.has(key)) {// Load new floor chunk
-                    const floor = this.createFloorAtChunk(chunkX, chunkZ);
-                    this.loadedFloors.set(key, floor);
+                if (!this.loadedChunks.has(key)) {// Load new floor chunk
+                    const chunk = this.createChunk(chunkX, chunkZ);
+                    this.loadedChunks.set(key, chunk);
                     console.log("chunk loader.");
                 }
             }
         }
         // Unload floors out of range
-        for (const [key, floor] of this.loadedFloors.entries()) {
+        for (const [key, chunk] of this.loadedChunks.entries()) {
             if (!chunksToKeep.has(key)) {
-                floor.cleanUp();
-                this.loadedFloors.delete(key);
+                chunk.cleanUp();
+                this.loadedChunks.delete(key);
                 console.log('deleted a chunk');
             }
         }
