@@ -49,7 +49,7 @@ export class Distributions {
                     spinVectorInAir:new THREE.Vector3(1,1,1), //this means spin in all axis while in the air
                     parent:this.content,
                     properties:{
-                        density:100,
+                        density:2,
                         width:height,//im using the height here for width and depth to get a cube unit.this will  depending on the model
                         height,
                         depth:height,

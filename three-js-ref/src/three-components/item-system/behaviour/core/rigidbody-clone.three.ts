@@ -171,10 +171,10 @@ export class RigidBodyClone {
                 selection:RigidBodyClones.clones,
                 self:this.mesh
             });
-            const rayLine = visualizeRay(origin, velDirection, 10);
+            const rayLine = visualizeRay(origin, velDirection,10);
             this.rayGroup.attach(rayLine);
             const knockbackSrcPos = origin.clone().multiply(new THREE.Vector3(1,-1,1))
-            clone?.applyKnockback(knockbackSrcPos,1000)
+            clone?.applyKnockback(knockbackSrcPos,10000)
             console.log('impact. touched clone: ',Boolean(clone));
         }
     }
