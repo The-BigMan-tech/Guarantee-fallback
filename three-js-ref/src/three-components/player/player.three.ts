@@ -44,7 +44,7 @@ enum CameraMode {
     ThirdPerson = 3
 }
 //Note:The player's character only rotates on the x-axis while the camera rotates on the y-axis but by parent transform,the camera also rotates on the x-axis.so to get the quaternion of only the x-axis,use this.char but to get the quaternion on both x and y,use this.camera.cam3d.quaternion.Use the correct quaternion----either local or world quaternion 
-class Player extends Controller implements EntityLike {
+export class Player extends Controller implements EntityLike {
     private keysPressed:Record<string,boolean> = {};//i made it static not per instance so that the event listeners can access them
     private readonly groupID = groupIDs.player;//the player's group id unlike the entities is readonly because its a fixed one not changed dynamically
 

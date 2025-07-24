@@ -7,7 +7,7 @@ import { getGroundDetectionDistance, VelCalcUtils } from "../../../controller/he
 import { Health } from "../../../health/health";
 import { createBoxLine, rotateOnXBy180 } from "../other-helpers.three";
 import { RigidBodyClones } from "./rigidbody-clones.three";
-import { player } from "../../../player/player.three";
+import { type Player, player } from "../../../player/player.three";
 import { IntersectionRequest } from "../../../player/intersection-request.three";
 import { entities, type EntityContract } from "../../../entity-system/entity.three";
 
@@ -34,7 +34,8 @@ export class RigidBodyClone {
     private spinApplied = false;
     private spinVectorInAir:THREE.Vector3;//this is a unit vector used to determine which component the spin velocity is applied.each component is like a flag to decide whether to apply spin in this axis or not
     private static readonly addHitbox:boolean = false;
-    
+    private static readonly addRay:boolean = false;
+
     public durability:Health;//i reused the health class for durability because its literally the same functionality.so im leveraging code reuse but i renamed it to durability for clarity that it isnt a living entity
 
     private velCalcUtils:VelCalcUtils = new VelCalcUtils();
@@ -167,25 +168,36 @@ export class RigidBodyClone {
 
             console.log('impact. direction: ',velDirection);
             const origin = new THREE.Vector3().copy(this.rigidBody!.translation()); // Get the position of the rigid body
+            const maxDistance = 10;
             this.raycaster.set(origin.clone(),velDirection);
             
-            const rayLine = visualizeRay(origin, velDirection,10);
-            this.rayGroup.attach(rayLine);
+            if (RigidBodyClone.addRay) {
+                const rayLine = visualizeRay(origin, velDirection,10);
+                this.rayGroup.attach(rayLine);
+            }
 
             const clone:RigidBodyClone | null = this.intersectionRequest.requestObject({
                 raycaster: this.raycaster,
                 testObjects:RigidBodyClones.clones.map(clone=>clone.mesh),
-                maxDistance:10,
+                maxDistance,
                 selection:RigidBodyClones.clones,
                 self:this.mesh
             });
             const entity:EntityContract | null = this.intersectionRequest.requestObject({
                 raycaster: this.raycaster,
                 testObjects:entities.map(e => e._entity.char),
-                maxDistance:10,
+                maxDistance,
                 selection:entities,
                 self:this.mesh
             });
+            const playerObject:Player | null = this.intersectionRequest.requestObject({
+                raycaster: this.raycaster,
+                testObjects:[player.char],
+                maxDistance,
+                selection:[player],
+                self:this.mesh
+            });
+
             const knockbackScalar = 150;
             const knockbackImpulse = this.density * knockbackScalar;
             const knockbackSrcPos = origin.clone().multiply(new THREE.Vector3(1,-2,1));//i used -2 to shoot the target upwards even more.
@@ -195,6 +207,9 @@ export class RigidBodyClone {
 
             entity?._entity.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
             entity?._entity.health.takeDamage(this.density);
+
+            playerObject?.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
+            playerObject?.health.takeDamage(this.density);
             console.log('impact. touched clone: ',Boolean(clone));
         }
     }
