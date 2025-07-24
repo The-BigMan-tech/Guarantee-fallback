@@ -9,6 +9,7 @@ import { createBoxLine, rotateOnXBy180 } from "../other-helpers.three";
 import { RigidBodyClones } from "./rigidbody-clones.three";
 import { player } from "../../../player/player.three";
 import { IntersectionRequest } from "../../../player/intersection-request.three";
+import { entities, type EntityContract } from "../../../entity-system/entity.three";
 
 function visualizeRay(origin:THREE.Vector3, direction:THREE.Vector3, distance:number):THREE.Line {
     const endPoint = new THREE.Vector3().copy(origin).add(direction.clone().normalize().multiplyScalar(distance));
@@ -167,6 +168,9 @@ export class RigidBodyClone {
             console.log('impact. direction: ',velDirection);
             const origin = new THREE.Vector3().copy(this.rigidBody!.translation()); // Get the position of the rigid body
             this.raycaster.set(origin.clone(),velDirection);
+            
+            const rayLine = visualizeRay(origin, velDirection,10);
+            this.rayGroup.attach(rayLine);
 
             const clone:RigidBodyClone | null = this.intersectionRequest.requestObject({
                 raycaster: this.raycaster,
@@ -175,10 +179,22 @@ export class RigidBodyClone {
                 selection:RigidBodyClones.clones,
                 self:this.mesh
             });
-            const rayLine = visualizeRay(origin, velDirection,10);
-            this.rayGroup.attach(rayLine);
-            const knockbackSrcPos = origin.clone().multiply(new THREE.Vector3(1,-1,1))
-            clone?.applyKnockback(knockbackSrcPos,10000)
+            const entity:EntityContract | null = this.intersectionRequest.requestObject({
+                raycaster: this.raycaster,
+                testObjects:entities.map(e => e._entity.char),
+                maxDistance:10,
+                selection:entities,
+                self:this.mesh
+            });
+            const knockbackScalar = 150;
+            const knockbackImpulse = this.density * knockbackScalar;
+            const knockbackSrcPos = origin.clone().multiply(new THREE.Vector3(1,-2,1));//i used -2 to shoot the target upwards even more.
+
+            clone?.applyKnockback(knockbackSrcPos,knockbackImpulse);
+            clone?.durability.takeDamage(this.density);
+
+            entity?._entity.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
+            entity?._entity.health.takeDamage(this.density);
             console.log('impact. touched clone: ',Boolean(clone));
         }
     }

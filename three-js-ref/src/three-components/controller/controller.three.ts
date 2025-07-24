@@ -836,7 +836,8 @@ export abstract class Controller {
         const direction = new THREE.Vector3().subVectors(this.position,sourcePosition).normalize();
         const impulse = direction.multiplyScalar(knockbackImpulse);
         this.impulse.copy(impulse);
-        this.isKnockedBack = true;
+        this.isKnockedBack = true;//we need to set this flag explicitly so that the controller allows the impulse to affect it.else,the impulse wont apply because the controller will directly control linvel which will interfer with this
+        this.playPunchSound();
     }
 
 
@@ -945,7 +946,6 @@ export abstract class Controller {
         if (this.mixer && this.attackAction && this.deathAction){
             if (!this.deathAction.isRunning()) {
                 this.fadeToAnimation(this.attackAction);
-                this.playPunchSound();
             }
         }
     }

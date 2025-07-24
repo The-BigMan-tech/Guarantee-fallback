@@ -260,7 +260,6 @@ class Player extends Controller implements EntityLike {
         if (this.camModeNum == CameraMode.SecondPerson) {//this is to make the spawn pos consitently infront of the player even in 2nd person
             this.playerViewForItemUse.quaternion.multiply(rotateOnXBy180());
             this.playerViewForItemUse.rotation.x *= - 1;//this will invert its Y rotation
-            console.log('view quat', this.playerViewForItemUse.rotation);
         }
     }
     private useItemInHand(itemInHand:InventoryItem) {
