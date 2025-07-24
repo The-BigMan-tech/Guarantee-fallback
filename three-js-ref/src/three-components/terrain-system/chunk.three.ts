@@ -21,7 +21,7 @@ export class Chunk {
         this.chunkParent.add(this.group);
         const {chunkPos,chunkSize} = chunkData;
 
-        const chunkHeight = 2
+        const chunkHeight = 2;
         const chunkGeometry = new THREE.BoxGeometry(chunkSize,chunkHeight,chunkSize);
         const chunkMaterial = new THREE.MeshPhysicalMaterial({ color:0x2b2a33 });
         const chunkMesh = new THREE.Mesh(chunkGeometry,chunkMaterial);

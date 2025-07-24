@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import PoissonDiskSampling from 'poisson-disk-sampling';
 import { startingLevelY } from '../physics-world.three';
-import { randInt } from 'three/src/math/MathUtils.js';
+import { randFloat } from 'three/src/math/MathUtils.js';
 import { RigidBodyClone } from '../item-system/behaviour/core/rigidbody-clone.three';
 import { gltfLoader } from '../gltf-loader.three';
 
@@ -30,7 +30,7 @@ export class Distributions {
         for (let i = 0; i < points.length; i++) {
             const [x, z] = points[i];
         
-            const height = randInt(10,10);
+            const height = randFloat(8.6,8.6);
             
             const localY = startingLevelY + height/2 ;//to make it stand on the startinglevl not that half of it is above and another half above
             const localX = x - this.chunkSize / 2;
