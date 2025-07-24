@@ -26,6 +26,7 @@ export class RigidBodyClone {
     public  rigidBody:RAPIER.RigidBody | null;
     private handle:number;
     private height:number;
+    private density:number;
 
     private spinApplied = false;
     private spinVectorInAir:THREE.Vector3;//this is a unit vector used to determine which component the spin velocity is applied.each component is like a flag to decide whether to apply spin in this axis or not
@@ -49,6 +50,7 @@ export class RigidBodyClone {
         this.parent = parent;
 
         this.height = properties.height;
+        this.density = properties.density;
         this.spinVectorInAir = spinVectorInAir.normalize();//i normalized it to ensure its a unit vector
         const clonedModel = model.clone(true);
         const box = new THREE.Box3().setFromObject(clonedModel);
@@ -160,7 +162,7 @@ export class RigidBodyClone {
 
             console.log('impact. direction: ',velDirection);
             const origin = new THREE.Vector3().copy(this.rigidBody!.translation()); // Get the position of the rigid body
-            this.raycaster.set(origin,velDirection);
+            this.raycaster.set(origin.clone(),velDirection);
 
             const clone:RigidBodyClone | null = this.intersectionRequest.requestObject({
                 raycaster: this.raycaster,
@@ -171,6 +173,8 @@ export class RigidBodyClone {
             });
             const rayLine = visualizeRay(origin, velDirection, 10);
             this.rayGroup.attach(rayLine);
+            const knockbackSrcPos = origin.clone().multiply(new THREE.Vector3(1,-1,1))
+            clone?.applyKnockback(knockbackSrcPos,this.density*50)
             console.log('impact. touched clone: ',Boolean(clone));
         }
     }
