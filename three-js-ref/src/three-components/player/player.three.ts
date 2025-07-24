@@ -229,7 +229,7 @@ class Player extends Controller implements EntityLike {
                 view:this.camera.cam3D,
                 itemID:itemInHand.itemID,
                 userStrength:this.strength,
-                userQuaternion:this.char.quaternion
+                userHorizontalQuaternion:this.char.quaternion
             });
             setUsedItem(true);//update the gui to reflect changes like removing an item from the inv after using it
         }

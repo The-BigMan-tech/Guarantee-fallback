@@ -29,7 +29,7 @@ export interface UseItemDependecies {//the parameters here are variables that sh
     view:THREE.Group,
     itemID:string,
     userStrength:number,
-    userQuaternion:THREE.Quaternion
+    userHorizontalQuaternion:THREE.Quaternion
 }
 export interface ItemBehaviour {
     use:(args:UseItemDependecies)=>void,

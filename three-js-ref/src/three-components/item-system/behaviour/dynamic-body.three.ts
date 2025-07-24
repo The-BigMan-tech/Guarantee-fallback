@@ -19,13 +19,13 @@ export class DynamicBody implements ItemBehaviour {
         })
     }
     public use(args:UseItemDependecies) {
-        const {view,userQuaternion,itemID} = args
+        const {view,userHorizontalQuaternion,itemID} = args
         if (this.model) {
             const spawnPosition = ItemUtils.getSpawnPosition(view,this._itemBody.spawnDistance); 
             RigidBodyClone.createClone({
                 model:this.model,
                 spawnPosition,
-                spawnQuaternion:userQuaternion,
+                spawnQuaternion:userHorizontalQuaternion,
                 properties:this._itemBody,
                 spinVectorInAir:new THREE.Vector3(0,0,0),//this means dont spin in any axis while in the air
                 parent:RigidBodyClones.group
