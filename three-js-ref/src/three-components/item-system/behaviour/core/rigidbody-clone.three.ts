@@ -107,7 +107,7 @@ export class RigidBodyClone {
         }
     }
 
-
+    //Note:the reason why the ground calc that works for this class is different from that of the controller is most likely because of the volume or shape of the colliders i used.for the controller,i used capsule even though i provided the option for box.and for this class,it uses a box collider
     private isGrounded():boolean {
         if (this.rigidBody?.isSleeping()) return true;//if it sleeps,its grounded.so we can skip the computation here.
         const groundDetectionDistance = getGroundDetectionDistance(this.height)
@@ -181,11 +181,11 @@ export class RigidBodyClone {
     private isRemoved = false;
     public updateClone() {
         this.despawnSelfIfFar();//the reason why i made each clone responsible for despawning itself unlike the entity system where the manager despawns far entities is because i dont want to import the player directly into the class that updates the clones because the player also imports that.so its to remove circular imports
+        const onGround = this.isGrounded();
         if (this.rigidBody && !this.durability.isDead) {
             this.checkIfOutOfBounds();
             this.mesh.position.copy(this.rigidBody.translation());
             this.mesh.quaternion.copy(this.rigidBody.rotation());
-            const onGround = this.isGrounded();
 
             console.log('spin. is Body sleeping: ',this.rigidBody.isSleeping());
             console.log('spin. is Body grounded: ',onGround);
