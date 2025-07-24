@@ -21,4 +21,7 @@ export function rotateBy180():THREE.Quaternion {
     const targetRotation:THREE.Vector3 = new THREE.Vector3().setY(1);
     return new THREE.Quaternion().setFromAxisAngle(targetRotation,degToRad(180));
 }
+export function invertVerticalRotation():THREE.Quaternion {
+    return new THREE.Quaternion().setFromEuler(new THREE.Euler(-1,0,0,'YXZ'))
+}
 export const placementHelper:THREE.Group = new THREE.Group();

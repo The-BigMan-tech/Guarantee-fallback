@@ -20,7 +20,7 @@ import { IntersectionRequest } from "./intersection-request.three";
 import type { RigidBodyClone } from "../item-system/behaviour/core/rigidbody-clone.three";
 import { RigidBodyClones } from "../item-system/behaviour/core/rigidbody-clones.three";
 import { gltfLoader } from "../gltf-loader.three";
-import { createBoxLine,placementHelper } from "../item-system/behaviour/other-helpers.three";
+import { createBoxLine,placementHelper, rotateBy180 } from "../item-system/behaviour/other-helpers.three";
 import { ItemUtils } from "../item-system/behaviour/core/item-utils.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { spawnDistance } from "../item-system/item-defintions";
@@ -238,9 +238,15 @@ class Player extends Controller implements EntityLike {
     }
     private useItemInHand() {
         const itemInHand = itemManager.itemInHand;
+        const view = new THREE.Group();
+        view.position.copy(this.position);
+        view.quaternion.copy(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion));
+        if (this.camModeNum == CameraMode.SecondPerson) {
+            view.quaternion.multiply(rotateBy180());
+        }
         if (itemInHand) {
             itemInHand.item.behaviour.use({
-                view:this.char,
+                view,
                 itemID:itemInHand.itemID,
                 userStrength:this.strength,
                 userHorizontalQuaternion:this.char.quaternion
