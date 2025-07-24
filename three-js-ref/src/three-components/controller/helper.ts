@@ -10,12 +10,15 @@ export class VelCalcUtils {
     public roundTo3dp(num:number):number {
         return Math.round(num * 1000) / 1000;
     }
-    public getVelocityDirection(rigidBody:RAPIER.RigidBody):THREE.Vector3 {
-        const velocity = new THREE.Vector3().copy(rigidBody.linvel());
-        const direction = velocity.normalize(); // Normalize to get the direction
-        direction.x = this.roundTo3dp(direction.x);
-        direction.y = this.roundTo3dp(direction.y);
-        direction.z = this.roundTo3dp(direction.z);
+    public getVelocityDirection(rigidBody:RAPIER.RigidBody,onGround:boolean):THREE.Vector3 {
+        const direction: THREE.Vector3 = new THREE.Vector3();
+        if (!onGround) {
+            const velocity = new THREE.Vector3().copy(rigidBody.linvel());
+            direction.copy(velocity.normalize()); // Normalize to get the direction
+            direction.x = this.roundTo3dp(direction.x);
+            direction.y = this.roundTo3dp(direction.y);
+            direction.z = this.roundTo3dp(direction.z);
+        }
         return direction;
     }
 

@@ -154,8 +154,8 @@ export class RigidBodyClone {
         }
     }
     private raycaster:THREE.Raycaster = new THREE.Raycaster();
-    private knockbackObjectsAlongPath() {
-        const velDirection = this.velCalcUtils.getVelocityDirection(this.rigidBody!);
+    private knockbackObjectsAlongPath(onGround:boolean) {
+        const velDirection = this.velCalcUtils.getVelocityDirection(this.rigidBody!,onGround);
         if (!velDirection.equals(new THREE.Vector3(0,0,0))) {
             disposeHierarchy(this.rayGroup);
             this.rayGroup.clear();
@@ -174,7 +174,7 @@ export class RigidBodyClone {
             const rayLine = visualizeRay(origin, velDirection, 10);
             this.rayGroup.attach(rayLine);
             const knockbackSrcPos = origin.clone().multiply(new THREE.Vector3(1,-1,1))
-            clone?.applyKnockback(knockbackSrcPos,this.density*50)
+            clone?.applyKnockback(knockbackSrcPos,1000)
             console.log('impact. touched clone: ',Boolean(clone));
         }
     }
@@ -195,7 +195,7 @@ export class RigidBodyClone {
             }else {
                 this.spinApplied = false; //its on the ground so we need to reset it so that spin can apply again after next throw
             }
-            this.knockbackObjectsAlongPath();
+            this.knockbackObjectsAlongPath(onGround);
             this.applyGroundDamage(onGround);  
         }else if (!this.isRemoved) {//to ensure resources are cleaned only once 
             this.cleanUp();
