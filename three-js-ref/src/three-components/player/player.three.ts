@@ -246,7 +246,8 @@ class Player extends Controller implements EntityLike {
             raycaster:this.raycaster,
             testObjects:entities.map(e => e._entity.char),
             maxDistance:10,
-            selection:entities
+            selection:entities,
+            self:this.char
         })
     }
     public requestLookedClone():RigidBodyClone | null {
@@ -255,7 +256,8 @@ class Player extends Controller implements EntityLike {
             raycaster:this.raycaster,
             testObjects:RigidBodyClones.clones.map(clone=>clone.mesh),
             maxDistance:10,
-            selection:RigidBodyClones.clones
+            selection:RigidBodyClones.clones,
+            self:this.char
         })
     }
     private bindKeysToAnimations() {

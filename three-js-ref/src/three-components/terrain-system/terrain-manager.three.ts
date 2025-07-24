@@ -35,7 +35,7 @@ class TerrainManager {
             chunkParent: this.chunkParent,
         };
         const distributions = new Distributions(this.chunkSize,chunkPos,40);
-        return new Chunk(chunkData,distributions);
+        return new Chunk(chunkData,null);
     }
 
 

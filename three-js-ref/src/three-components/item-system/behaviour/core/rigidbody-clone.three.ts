@@ -151,7 +151,8 @@ export class RigidBodyClone {
                 raycaster: this.raycaster,
                 testObjects:RigidBodyClones.clones.map(clone=>clone.mesh),
                 maxDistance:10,
-                selection:RigidBodyClones.clones
+                selection:RigidBodyClones.clones,
+                self:this.mesh
             });
             console.log('impact. touched clone: ',Boolean(clone));
         }
