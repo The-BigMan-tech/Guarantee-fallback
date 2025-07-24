@@ -20,7 +20,7 @@ import { IntersectionRequest } from "./intersection-request.three";
 import type { RigidBodyClone } from "../item-system/behaviour/core/rigidbody-clone.three";
 import { RigidBodyClones } from "../item-system/behaviour/core/rigidbody-clones.three";
 import { gltfLoader } from "../gltf-loader.three";
-import { createBoxLine,placementHelper, rotateBy180 } from "../item-system/behaviour/other-helpers.three";
+import { createBoxLine,invertVerticalRotation,placementHelper, rotateBy180 } from "../item-system/behaviour/other-helpers.three";
 import { ItemUtils } from "../item-system/behaviour/core/item-utils.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { spawnDistance } from "../item-system/item-defintions";
@@ -236,17 +236,19 @@ class Player extends Controller implements EntityLike {
         this.useConsistentControls();
 
     }
+    private viewForItemUse = new THREE.Group();
+    private updateViewForItemUse() {
+        this.viewForItemUse.position.copy(this.position.clone().setY(this.camera.cam3D.getWorldPosition(new THREE.Vector3).y));
+        this.viewForItemUse.quaternion.copy(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion));
+        if (this.camModeNum == CameraMode.SecondPerson) {
+            this.viewForItemUse.quaternion.multiply(rotateBy180());
+        }
+    }
     private useItemInHand() {
         const itemInHand = itemManager.itemInHand;
-        const view = new THREE.Group();
-        view.position.copy(this.position);
-        view.quaternion.copy(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion));
-        if (this.camModeNum == CameraMode.SecondPerson) {
-            view.quaternion.multiply(rotateBy180());
-        }
         if (itemInHand) {
             itemInHand.item.behaviour.use({
-                view,
+                view:this.viewForItemUse,
                 itemID:itemInHand.itemID,
                 userStrength:this.strength,
                 userHorizontalQuaternion:this.char.quaternion
@@ -426,7 +428,7 @@ class Player extends Controller implements EntityLike {
         if (showPlacementHelper && (this.changedPosition || this.changedQuaternion)) {
             console.log('placement created');
             const placementBox = createBoxLine(itemBody.width,itemBody.height,itemBody.depth);
-            placementBox.position.copy(ItemUtils.getSpawnPosition(this.char,spawnDistance));
+            placementBox.position.copy(ItemUtils.getSpawnPosition(this.viewForItemUse,spawnDistance));
             placementBox.quaternion.copy(this.char.quaternion);
             placementHelper.add(placementBox);
         }
@@ -463,6 +465,7 @@ class Player extends Controller implements EntityLike {
         
         this.camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion));
 
+        this.updateViewForItemUse();
         this.itemHolder.holdItem(itemManager.itemInHand?.item || null);
         this.showPlacementHelper();
 
@@ -471,8 +474,9 @@ class Player extends Controller implements EntityLike {
         this.updateHealthGUI();
         this.health.checkGroundDamage(this.velBeforeHittingGround);
         if (!isCellSelected()) this.bindKeysToControls();//this is to prevent the player's event listeners on his character from triggering when the player is actively traversing through the item grid to select an item
-        console.log('isCellSelected:', isCellSelected());
         this.bindKeysToAnimations();
+
+        //update camera must be called last to reflect the camera updates for this frame
         this.toggleCamPerspective();
         this.updateCamPosition();
         this.updateCameraHeightBasedOnHealth();
