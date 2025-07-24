@@ -38,7 +38,6 @@ export class RigidBodyClone {
 
     private velCalcUtils:VelCalcUtils = new VelCalcUtils();
 
-    private parent:THREE.Group;
     private despawnRadius:number = 500;
 
     private intersectionRequest = new IntersectionRequest();
@@ -49,8 +48,6 @@ export class RigidBodyClone {
     }
     private constructor(args:CloneArgs) {
         const {model,spawnPosition,spawnQuaternion,properties,spinVectorInAir,parent} = args;
-        this.parent = parent;
-
         this.height = properties.height;
         this.density = properties.density;
         this.spinVectorInAir = spinVectorInAir.normalize();//i normalized it to ensure its a unit vector
@@ -89,7 +86,7 @@ export class RigidBodyClone {
         RigidBodyClones.clones.push(this);//automatically push the clone to the clones array for updating
         RigidBodyClones.cloneIndices.set(this,RigidBodyClones.clones.length-1);//add its index to the map for removal
         this.meshGroup.add(this.mesh);//i added the mesh to a group before attatching the group to world space instead of attacthing the meshes directly to world space because,i really dont know why,but thats the only way it worked without breaking from any sync issues.
-        this.parent.attach(this.meshGroup)//add it to the parent group to be shown in the scene.i used attatch here instead of the add method so that i can include the meshes in the parent for management while still having them use world space cords because my item clone class expects that the parent group is at world cords and if i used the add method here,the cords of the group will shift which will cause sync bugs and i dont have to worry my class about using local or world space for the mesh and rigid bpdy separately
+        parent.attach(this.meshGroup)//add it to the parent group to be shown in the scene.i used attatch here instead of the add method so that i can include the meshes in the parent for management while still having them use world space cords because my item clone class expects that the parent group is at world cords and if i used the add method here,the cords of the group will shift which will cause sync bugs and i dont have to worry my class about using local or world space for the mesh and rigid bpdy separately
     }
 
 
@@ -220,7 +217,7 @@ export class RigidBodyClone {
 
 
     public cleanUp() {
-        this.parent.remove(this.mesh)
+        this.meshGroup.remove(this.mesh)
         disposeHierarchy(this.mesh);
         this.removeFromClones();
         if (this.rigidBody) {
