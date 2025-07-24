@@ -5,7 +5,7 @@ import { disposeHierarchy } from "../../../disposer/disposer.three";
 import type { CloneArgs } from "./types";
 import { getGroundDetectionDistance, VelCalcUtils } from "../../../controller/helper";
 import { Health } from "../../../health/health";
-import { createBoxLine, rotateBy180 } from "../other-helpers.three";
+import { createBoxLine, rotateBy180X } from "../other-helpers.three";
 import { RigidBodyClones } from "./rigidbody-clones.three";
 import { player } from "../../../player/player.three";
 import { IntersectionRequest } from "../../../player/intersection-request.three";
@@ -76,7 +76,7 @@ export class RigidBodyClone {
         this.handle = physicsWorld.createCollider(cloneCollider,this.rigidBody).handle;
 
         this.rigidBody.setTranslation(spawnPosition,true);
-        this.rigidBody.setRotation(spawnQuaternion.clone().multiply(rotateBy180()),true);//i rotated it by 180 so that it faces the player on spawn because directly making the clone rotation the player's quaternion will make it face where the player is facing not at the player.
+        this.rigidBody.setRotation(spawnQuaternion.clone().multiply(rotateBy180X()),true);//i rotated it by 180 so that it faces the player on spawn because directly making the clone rotation the player's quaternion will make it face where the player is facing not at the player.
 
         this.mesh.position.copy(this.rigidBody.translation());
         this.mesh.quaternion.copy(this.rigidBody.rotation());

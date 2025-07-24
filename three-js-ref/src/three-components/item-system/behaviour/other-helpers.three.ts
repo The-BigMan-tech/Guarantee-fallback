@@ -17,11 +17,17 @@ export function createBoxLine(width:number,height:number,depth:number) {
     return new THREE.LineSegments(boxEdges,lineMat);
 }
 
-export function rotateBy180():THREE.Quaternion {
+export function rotateBy180X():THREE.Quaternion {
     const targetRotation:THREE.Vector3 = new THREE.Vector3().setY(1);
     return new THREE.Quaternion().setFromAxisAngle(targetRotation,degToRad(180));
 }
-export function invertVerticalRotation():THREE.Quaternion {
-    return new THREE.Quaternion().setFromEuler(new THREE.Euler(-1,0,0,'YXZ'))
+export function rotateBy180Y():THREE.Quaternion {
+    const targetRotation:THREE.Vector3 = new THREE.Vector3().setX(1);
+    return new THREE.Quaternion().setFromAxisAngle(targetRotation,degToRad(180));
 }
+export function invertVerticalRotation():THREE.Quaternion {
+    const targetRotation:THREE.Vector3 = new THREE.Vector3().setY(1);
+    return new THREE.Quaternion().setFromAxisAngle(targetRotation,degToRad(90));
+}
+
 export const placementHelper:THREE.Group = new THREE.Group();

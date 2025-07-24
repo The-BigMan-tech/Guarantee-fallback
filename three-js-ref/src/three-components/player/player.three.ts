@@ -20,7 +20,7 @@ import { IntersectionRequest } from "./intersection-request.three";
 import type { RigidBodyClone } from "../item-system/behaviour/core/rigidbody-clone.three";
 import { RigidBodyClones } from "../item-system/behaviour/core/rigidbody-clones.three";
 import { gltfLoader } from "../gltf-loader.three";
-import { createBoxLine,invertVerticalRotation,placementHelper, rotateBy180 } from "../item-system/behaviour/other-helpers.three";
+import { createBoxLine,rotateBy180Y,placementHelper, rotateBy180X } from "../item-system/behaviour/other-helpers.three";
 import { ItemUtils } from "../item-system/behaviour/core/item-utils.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { spawnDistance } from "../item-system/item-defintions";
@@ -241,7 +241,9 @@ class Player extends Controller implements EntityLike {
         this.viewForItemUse.position.copy(this.position.clone().setY(this.camera.cam3D.getWorldPosition(new THREE.Vector3).y));
         this.viewForItemUse.quaternion.copy(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion));
         if (this.camModeNum == CameraMode.SecondPerson) {
-            this.viewForItemUse.quaternion.multiply(rotateBy180());
+            this.viewForItemUse.quaternion.multiply(rotateBy180X());
+            this.viewForItemUse.rotation.x *= - 1;
+            console.log('view quat', this.viewForItemUse.rotation);
         }
     }
     private useItemInHand() {
