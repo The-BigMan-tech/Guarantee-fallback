@@ -146,6 +146,14 @@ export class RigidBodyClone {
             console.log('impact. direction: ',velDirection);
             const origin = new THREE.Vector3().copy(this.rigidBody!.translation()); // Get the position of the rigid body
             this.raycaster.set(origin,velDirection);
+
+            const clone:RigidBodyClone | null = this.intersectionRequest.requestObject({
+                raycaster: this.raycaster,
+                testObjects:RigidBodyClones.clones.map(clone=>clone.mesh),
+                maxDistance:10,
+                selection:RigidBodyClones.clones
+            });
+            console.log('impact. touched clone: ',Boolean(clone));
         }
     }
     private isRemoved = false;

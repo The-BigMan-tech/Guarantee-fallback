@@ -10,7 +10,7 @@ export class IntersectionRequest {//to request if a looked at object is any one 
         }
         return false;
     }
-    public requestObject<T>(args:{raycaster:THREE.Raycaster,testObjects:THREE.Group[],maxDistance:number,selection:T[]}):T | null {
+    public requestObject<T>(args:{raycaster:THREE.Raycaster,testObjects:THREE.Object3D[],maxDistance:number,selection:T[]}):T | null {
         const {raycaster,testObjects,maxDistance,selection} = args
         const intersects = raycaster.intersectObjects(testObjects, true);
 

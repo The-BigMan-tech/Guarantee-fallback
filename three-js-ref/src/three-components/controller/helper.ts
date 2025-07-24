@@ -11,9 +11,8 @@ export class VelCalcUtils {
         return Math.round(num * 1000) / 1000;
     }
     public getRigidBodyDirection(rigidBody:RAPIER.RigidBody):THREE.Vector3 {
-        const stepSize = 1; // Adjust this value as needed
         const velocity = new THREE.Vector3().copy(rigidBody.linvel());
-        const direction = velocity.normalize().multiplyScalar(stepSize); // Normalize to get the direction
+        const direction = velocity.normalize(); // Normalize to get the direction
         direction.x = this.roundTo3dp(direction.x);
         direction.y = this.roundTo3dp(direction.y);
         direction.z = this.roundTo3dp(direction.z);
