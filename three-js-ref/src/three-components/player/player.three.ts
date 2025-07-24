@@ -150,6 +150,12 @@ class Player extends Controller implements EntityLike {
         if (this.keysPressed['ArrowDown']) {
             this.camera.rotateCameraUp(this.cameraClampAngle)
         };
+        if (this.keysPressed['ArrowLeft'])  {
+            this.rotateCharacterX('right')
+        };  
+        if (this.keysPressed['ArrowRight']) {
+            this.rotateCharacterX('left')
+        };
         if (this.keysPressed['Minus'] &&  (camDistToPlayer >= -this.zoomClamp)) {//this corresponds to + key.zoom in
             this.zoomCamera(-this.zoomDelta);
         }
@@ -171,6 +177,12 @@ class Player extends Controller implements EntityLike {
         };  
         if (this.keysPressed['ArrowDown']) {
             this.camera.rotateCameraDown(this.cameraClampAngle)
+        };
+        if (this.keysPressed['ArrowLeft'])  {
+            this.rotateCharacterX('left')
+        };  
+        if (this.keysPressed['ArrowRight']) {
+            this.rotateCharacterX('right')
         };
         if (this.keysPressed['Equal'] &&  (camDistToPlayer <= this.zoomClamp)) {//this corresponds to + key.zoom in
             this.zoomCamera(this.zoomDelta);
@@ -195,12 +207,6 @@ class Player extends Controller implements EntityLike {
                 this.attack();
             }
         }
-        if (this.keysPressed['ArrowLeft'])  {
-            this.rotateCharacterX('left')
-        };  
-        if (this.keysPressed['ArrowRight']) {
-            this.rotateCharacterX('right')
-        };
         if (this.keysPressed['KeyR']) {
             if (this.toggleItemGuiTimer > this.toggleItemGuiCooldown) {
                 toggleItemGui()
