@@ -437,13 +437,13 @@ class Player extends Controller implements EntityLike {
 
     //the last AND condition is to ensure that the placement helper is only generated if the player's position or rotation has changed.this preserves perf by ensuring that its only regenerated when the player actually moves
     private showPlacementHelper() {
-        const itemBody = itemManager.itemInHand?.item.behaviour.itemBody
-        const showPlacementHelper = itemBody?.showPlacementHelper;
+        const placeableConfig = itemManager.itemInHand?.item.behaviour.placeableConfig
+        const showPlacementHelper = placeableConfig?.showPlacementHelper;
         console.log('holding has changed item: ',this.itemHolder.hasChangedHeldItem);
 
         if (showPlacementHelper && (this.changedPosition || this.changedQuaternion)) {
             console.log('placement created');
-            const placementBox = createBoxLine(itemBody.width,itemBody.height,itemBody.depth);
+            const placementBox = createBoxLine(placeableConfig.width,placeableConfig.height,placeableConfig.depth);
             placementBox.position.copy(ItemUtils.getSpawnPosition(this.playerViewForItemUse,spawnDistance));
             placementBox.quaternion.copy(this.char.quaternion);
             placementHelper.add(placementBox);

@@ -2,18 +2,18 @@ import type { ItemUsageDependecies,ItemBehaviour } from "./core/types";
 import * as THREE from "three";
 import { RigidBodyClone } from "./core/rigidbody-clone.three";
 import { RigidBodyClones } from "./core/rigidbody-clones.three";
-import type { ItemBody } from "./core/types";
+import type { PlaceableItemConfig } from "./core/types";
 import { ItemUtils } from "./core/item-utils.three";
 import { itemManager } from "../item-manager.three";
 import { gltfLoader } from "../../gltf-loader.three";
 
 export class Throwable implements ItemBehaviour {
-    private _itemBody:ItemBody;
+    private _placeableConfig:PlaceableItemConfig;
     private model:THREE.Group | null = null; 
 
-    constructor(itemBody:ItemBody) {
-        this._itemBody = itemBody;
-        gltfLoader.load(this._itemBody.modelPath,gltf=>{
+    constructor(placeableConfig:PlaceableItemConfig) {
+        this._placeableConfig = placeableConfig;
+        gltfLoader.load(this._placeableConfig.modelPath,gltf=>{
             this.model = gltf.scene;
             ItemUtils.applyMaterialToModel(this.model,0,1)
         })
@@ -21,14 +21,14 @@ export class Throwable implements ItemBehaviour {
     public use(args:ItemUsageDependecies):void {
         const {view,userHorizontalQuaternion,itemID,userStrength} = args
         if (this.model) {
-            const spawnPosition = ItemUtils.getSpawnPosition(view,this._itemBody.spawnDistance);
+            const spawnPosition = ItemUtils.getSpawnPosition(view,this._placeableConfig.spawnDistance);
             const clone = RigidBodyClone.createClone({
                 itemID,
-                canPickUp:this._itemBody.canPickUp,
+                canPickUp:this._placeableConfig.canPickUp,
                 model:this.model,
                 spawnPosition,
                 spawnQuaternion:userHorizontalQuaternion,
-                properties:this._itemBody,
+                properties:this._placeableConfig,
                 spinVectorInAir:new THREE.Vector3(1,1,1), //this means spin in all axis while in the air
                 parent:RigidBodyClones.group
             });
@@ -38,7 +38,7 @@ export class Throwable implements ItemBehaviour {
             itemManager.removeFromInventory(itemID)
         }
     }
-    get itemBody() {
-        return this._itemBody;
+    get placeableConfig() {
+        return this._placeableConfig;
     }
 }
