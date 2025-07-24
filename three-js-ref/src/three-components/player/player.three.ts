@@ -136,6 +136,10 @@ class Player extends Controller implements EntityLike {
         this.keysPressed[event.code] = false
     }
     private bindKeysToControls() {//i used keydown here for instant feedback and debounced some of them
+        const camPosToPlayer = this.camera.cam3D.getWorldPosition(new THREE.Vector3).clone().sub(this.position);
+        const signedDist = Math.round(camPosToPlayer.dot(this.camForward));
+        console.log('signedDist:', signedDist);
+
         if (this.keysPressed['KeyP']) {
             console.log = ()=>{};
         }
@@ -154,6 +158,12 @@ class Player extends Controller implements EntityLike {
             if (this.keysPressed['ArrowDown']) {
                 this.camera.rotateCameraUp(this.cameraClampAngle)
             };
+            if (this.keysPressed['Equal'] &&  (signedDist >= -this.zoomClamp)) {//this corresponds to + key.zoom in
+                this.zoomCamera(-this.zoomDelta);
+            }
+            if (this.keysPressed['Minus'] && (signedDist <= this.zoomClamp)) {//zoom out
+                this.zoomCamera(this.zoomDelta);
+            }
         }else {//Normal WASD controls   
             if (!this.health.isDead) { 
                 if (this.keysPressed['KeyA']) {
@@ -169,7 +179,15 @@ class Player extends Controller implements EntityLike {
             if (this.keysPressed['ArrowDown']) {
                 this.camera.rotateCameraDown(this.cameraClampAngle)
             };
+            if (this.keysPressed['Equal'] &&  (signedDist <= this.zoomClamp)) {//this corresponds to + key.zoom in
+                this.zoomCamera(this.zoomDelta);
+            }
+            if (this.keysPressed['Minus'] && (signedDist >= -this.zoomClamp)) {//zoom out
+                this.zoomCamera(-this.zoomDelta);
+            }
         }
+
+
         if (!this.health.isDead) {
             if (this.keysPressed['KeyW']) {
                 if (this.keysPressed['ShiftLeft']) this.dynamicData.horizontalVelocity += 10;
@@ -198,16 +216,6 @@ class Player extends Controller implements EntityLike {
             this.rotateCharacterX('right')
         };
         
-        const camPosToPlayer = this.camera.cam3D.getWorldPosition(new THREE.Vector3).clone().sub(this.position);
-        const signedDist = Math.round(camPosToPlayer.dot(this.camForward));
-        console.log('signedDist:', signedDist);
-        
-        if (this.keysPressed['Equal'] &&  (signedDist <= this.zoomClamp)) {//this corresponds to + key.zoom in
-            this.zoomCamera(this.zoomDelta);
-        }
-        if (this.keysPressed['Minus'] && (signedDist >= -this.zoomClamp)) {//zoom out
-            this.zoomCamera(-this.zoomDelta);
-        }
         
         if (this.keysPressed['KeyT']) {//im allowing this one regardless of death state because it doesnt affect the charcater model in any way
             if (this.toggleTimer > this.toggleCooldown) { //this is a debouncing mechanism
@@ -226,7 +234,7 @@ class Player extends Controller implements EntityLike {
         const itemInHand = itemManager.itemInHand;
         if (itemInHand) {
             itemInHand.item.behaviour.use({
-                view:this.camera.cam3D,
+                view:this.char,
                 itemID:itemInHand.itemID,
                 userStrength:this.strength,
                 userHorizontalQuaternion:this.char.quaternion
@@ -406,7 +414,7 @@ class Player extends Controller implements EntityLike {
         if (showPlacementHelper && (this.changedPosition || this.changedQuaternion)) {
             console.log('placement created');
             const placementBox = createBoxLine(itemBody.width,itemBody.height,itemBody.depth);
-            placementBox.position.copy(ItemUtils.getSpawnPosition(this.camera.cam3D,spawnDistance));
+            placementBox.position.copy(ItemUtils.getSpawnPosition(this.char,spawnDistance));
             placementBox.quaternion.copy(this.char.quaternion);
             placementHelper.add(placementBox);
         }
