@@ -14,7 +14,7 @@ import { groupIDs } from "../entity-system/entity-registry";
 import { relationshipManager } from "../entity-system/relationships.three";
 import type { seconds } from "../entity-system/global-types";
 import { toggleItemGui,isCellSelected, setUsedItem } from "../item-system/item-state";
-import { itemManager } from "../item-system/item-manager.three";
+import { itemManager, type InventoryItem } from "../item-system/item-manager.three";
 import { ItemHolder } from "../item-system/item-holder.three";
 import { IntersectionRequest } from "./intersection-request.three";
 import type { RigidBodyClone } from "../item-system/behaviour/core/rigidbody-clone.three";
@@ -221,7 +221,14 @@ class Player extends Controller implements EntityLike {
         }
         if (this.keysPressed['KeyE']) {
             if (this.useItemTimer > this.useItemCooldown) {
-                this.useItemInHand();
+                const itemInHand = itemManager.itemInHand;
+                if (itemInHand) {
+                    this.useItemInHand(itemInHand);
+                }else if (this.lookedAtClone && this.lookedAtClone.canPickUp) {
+                    itemManager.addToInventory(this.lookedAtClone.itemID);
+                    this.lookedAtClone.cleanUp();
+                    setUsedItem(true)//update the gui with dummy state.
+                }
                 this.useItemTimer = 0
             }
         }
@@ -256,17 +263,14 @@ class Player extends Controller implements EntityLike {
             console.log('view quat', this.playerViewForItemUse.rotation);
         }
     }
-    private useItemInHand() {
-        const itemInHand = itemManager.itemInHand;
-        if (itemInHand) {
-            itemInHand.item.behaviour.use({
-                view:this.playerViewForItemUse,
-                itemID:itemInHand.itemID,
-                userStrength:this.strength,
-                userHorizontalQuaternion:this.char.quaternion
-            });
-            setUsedItem(true);//update the gui to reflect changes like removing an item from the inv after using it
-        }
+    private useItemInHand(itemInHand:InventoryItem) {
+        itemInHand.item.behaviour.use({
+            view:this.playerViewForItemUse,
+            itemID:itemInHand.itemID,
+            userStrength:this.strength,
+            userHorizontalQuaternion:this.char.quaternion
+        });
+        setUsedItem(true);//update the gui to reflect changes like removing an item from the inv after using it
     }
     private zoomCamera(zoomDelta:number) {
         const zoomDirection = this.camForward.clone().multiplyScalar(zoomDelta);

@@ -29,6 +29,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             scale:new THREE.Vector3(0.2,0.2,0.2)
         },
         behaviour:new DynamicBody({
+            canPickUp:true,
             modelPath:modelPaths.Block,
             density:3,
             width:2,
@@ -50,6 +51,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             scale:new THREE.Vector3(0.3,0.3,0.3)
         },
         behaviour:new Throwable({
+            canPickUp:true,
             modelPath:modelPaths.Boulder,
             density:2,
             width:2,

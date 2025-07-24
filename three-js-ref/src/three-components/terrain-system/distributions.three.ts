@@ -40,9 +40,11 @@ export class Distributions {
             const worldZ = this.chunkPos.z + localZ;
 
             const spawnPosition = new THREE.Vector3(worldX,localY,worldZ);
-            gltfLoader.load('./block/block.glb',gltf=>{
+            gltfLoader.load('./block/block.glb',gltf=>{//ill change this to spawn differnt types of clones like trees or rocks.but this will do for now
                 const model = gltf.scene;
                 const clone = RigidBodyClone.createClone({
+                    itemID:'block',
+                    canPickUp:false,
                     model:model,
                     spawnPosition,
                     spawnQuaternion:new THREE.Quaternion(),

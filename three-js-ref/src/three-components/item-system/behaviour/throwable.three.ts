@@ -1,4 +1,4 @@
-import type { UseItemDependecies,ItemBehaviour } from "./core/types";
+import type { ItemUsageDependecies,ItemBehaviour } from "./core/types";
 import * as THREE from "three";
 import { RigidBodyClone } from "./core/rigidbody-clone.three";
 import { RigidBodyClones } from "./core/rigidbody-clones.three";
@@ -18,11 +18,13 @@ export class Throwable implements ItemBehaviour {
             ItemUtils.applyMaterialToModel(this.model,0,1)
         })
     }
-    public use(args:UseItemDependecies):void {
+    public use(args:ItemUsageDependecies):void {
         const {view,userHorizontalQuaternion,itemID,userStrength} = args
         if (this.model) {
             const spawnPosition = ItemUtils.getSpawnPosition(view,this._itemBody.spawnDistance);
             const clone = RigidBodyClone.createClone({
+                itemID,
+                canPickUp:this._itemBody.canPickUp,
                 model:this.model,
                 spawnPosition,
                 spawnQuaternion:userHorizontalQuaternion,

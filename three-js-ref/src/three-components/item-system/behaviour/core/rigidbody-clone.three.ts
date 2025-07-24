@@ -2,7 +2,7 @@ import * as THREE from "three"
 import * as RAPIER from "@dimforge/rapier3d"
 import { outOfBoundsY, physicsWorld } from "../../../physics-world.three";
 import { disposeHierarchy } from "../../../disposer/disposer.three";
-import type { CloneArgs } from "./types";
+import type { CloneArgs, ItemID } from "./types";
 import { getGroundDetectionDistance, VelCalcUtils } from "../../../controller/helper";
 import { Health } from "../../../health/health";
 import { createBoxLine, rotateOnXBy180 } from "../other-helpers.three";
@@ -42,12 +42,16 @@ export class RigidBodyClone {
 
     private intersectionRequest = new IntersectionRequest();
     private rayGroup:THREE.Group = new THREE.Group();
+    private _itemID:ItemID;
+    private _canPickUp:boolean
 
     public static createClone(args:CloneArgs):RigidBodyClone {//i made a separate method for creating an item clone without the constructor because a behaviour may or may not even need the clone instance at all.the item clone class will already add the clone to the scene and update it at every loop.so there is isnt any management the behaviour class has to do with the clone after creating it.they can just use the exposed method to perform actions on the clone like applying knockback
         return new RigidBodyClone(args)
     }
     private constructor(args:CloneArgs) {
-        const {model,spawnPosition,spawnQuaternion,properties,spinVectorInAir,parent} = args;
+        const {model,spawnPosition,spawnQuaternion,properties,spinVectorInAir,parent,itemID,canPickUp} = args;
+        this._itemID = itemID;
+        this._canPickUp = canPickUp;
         this.height = properties.height;
         this.density = properties.density;
         this.spinVectorInAir = spinVectorInAir.normalize();//i normalized it to ensure its a unit vector
@@ -226,6 +230,13 @@ export class RigidBodyClone {
         }
         this.isRemoved = true;
         console.log('targetDurability. cleaned up block');
+    }
+
+    public get itemID():ItemID {
+        return this._itemID
+    }
+    public get canPickUp():boolean {
+        return this._canPickUp;
     }
     public interact?:()=>void//a hook i will integrate with the clone for custom interactions after spawning the clone per behaviour.for example,an explosive behaviour doesnt make an item an explosive.it only spawns a rigid body clone.so what it can do is to modify the hook of this clone to cause an explosion making this clone an explosive without the clone being inherited or derived from the explosive behaviour itself.it will remain as a clone
 }
