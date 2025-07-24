@@ -20,7 +20,7 @@ import { IntersectionRequest } from "./intersection-request.three";
 import type { RigidBodyClone } from "../item-system/behaviour/core/rigidbody-clone.three";
 import { RigidBodyClones } from "../item-system/behaviour/core/rigidbody-clones.three";
 import { gltfLoader } from "../gltf-loader.three";
-import { createBoxLine,rotateBy180Y,placementHelper, rotateBy180X } from "../item-system/behaviour/other-helpers.three";
+import { createBoxLine,placementHelper, rotateOnXBy180 } from "../item-system/behaviour/other-helpers.three";
 import { ItemUtils } from "../item-system/behaviour/core/item-utils.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { spawnDistance } from "../item-system/item-defintions";
@@ -221,7 +221,7 @@ class Player extends Controller implements EntityLike {
         }
     }
     private bindKeysToControls() {//i used keydown here for instant feedback and debounced some of them
-        const camPosToPlayer = this.camera.cam3D.getWorldPosition(new THREE.Vector3).clone().sub(this.position);
+        const camPosToPlayer = this.camWorldPos.clone().sub(this.position);
         const signedDist = Math.round(camPosToPlayer.dot(this.camForward));
         console.log('signedDist:', signedDist);
 
@@ -237,12 +237,16 @@ class Player extends Controller implements EntityLike {
 
     }
     private viewForItemUse = new THREE.Group();
+    private camWorldPos:THREE.Vector3 = new THREE.Vector3();
+    private camWorldQuat:THREE.Quaternion = new THREE.Quaternion();
+
+    //the reason why i didnt use the controller group directly as the view is because the controller only roates left or right.its the camera that rotates up or down.so using the controller's group as the view wont allow me to spawn blocks where im looking along the vertical axis.if i used the camera as the view,it will lead to a situation where the spawn position is from the camera's view point not from the controller's standing position.this becomes a problem when trying to spawn blocks when the camera is zoomed way out of the character or when the camera is in second person causing the spawn point to be generated at the back of the player.but by merging the two--controller for position and camera for rotation,i can achieve the desired effect where the spawn position responds to my vertical rotation but also considers the controller's position.
     private updateViewForItemUse() {
-        this.viewForItemUse.position.copy(this.position.clone().setY(this.camera.cam3D.getWorldPosition(new THREE.Vector3).y));
-        this.viewForItemUse.quaternion.copy(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion));
-        if (this.camModeNum == CameraMode.SecondPerson) {
-            this.viewForItemUse.quaternion.multiply(rotateBy180X());
-            this.viewForItemUse.rotation.x *= - 1;
+        this.viewForItemUse.position.copy(this.position).setY(this.camWorldPos.y);//make it at the player's position and at the same Y level as the cam
+        this.viewForItemUse.quaternion.copy(this.camWorldQuat);
+        if (this.camModeNum == CameraMode.SecondPerson) {//this is to make the spawn pos consitently infront of the player even in 2nd person
+            this.viewForItemUse.quaternion.multiply(rotateOnXBy180());
+            this.viewForItemUse.rotation.x *= - 1;//this will invert its Y rotation
             console.log('view quat', this.viewForItemUse.rotation);
         }
     }
@@ -439,7 +443,7 @@ class Player extends Controller implements EntityLike {
     }
     private updateHasChangedVariables() {
         this.changedPosition = !this.lastPosition.equals(this.position);
-        this.changedQuaternion = !this.lastQuaternion.equals(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion));
+        this.changedQuaternion = !this.lastQuaternion.equals(this.camWorldQuat);
         console.log('placement compare pos: ',this.changedPosition);
         console.log('placement compare quat: ',this.changedQuaternion);
     }
@@ -452,8 +456,9 @@ class Player extends Controller implements EntityLike {
     }
     //a partial part of the order of updates here are critical.this means that some updates must come before others for correctness
     protected onLoop() {//this is where all character updates to this instance happens.
-        this.updateHasChangedVariables();//this one must be called before clearing the placement helper so that it receives the latest state before use
-        this.clearPlacementHelper();//we want to clear the helper in the frame after rendering the helper to prevent it from clearing prematurely which is why i cleared it at the top befor rendering the helper
+        this.camWorldPos = this.camera.cam3D.getWorldPosition(new THREE.Vector3);
+        this.camWorldQuat = this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion)
+        this.camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camWorldQuat);
 
         this.toggleTimer += this.clockDelta || 0;
         this.toggleItemGuiTimer += this.clockDelta || 0;
@@ -465,7 +470,8 @@ class Player extends Controller implements EntityLike {
         this.lookedAtEntity = this.requestLookedEntity();
         this.lookedAtClone = this.requestLookedClone();
         
-        this.camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion));
+        this.updateHasChangedVariables();//this one must be called before clearing the placement helper so that it receives the latest state before use
+        this.clearPlacementHelper();//we want to clear the helper in the frame after rendering the helper to prevent it from clearing prematurely which is why i cleared it at the top befor rendering the helper
 
         this.updateViewForItemUse();
         this.itemHolder.holdItem(itemManager.itemInHand?.item || null);

@@ -2,6 +2,7 @@ import * as THREE from "three"
 
 export class ItemUtils {
     constructor() {}
+    //the view is the group that the caller uses to look into the world.its needed to make the spawn position exactly infront of where the caller is looking
     public static getSpawnPosition(view:THREE.Group,spawnDistance?:number):THREE.Vector3 {
         const spawnPosition = new THREE.Vector3();// Calculate spawn position: camera position + camera forward vector * distance
         view.getWorldPosition(spawnPosition);    
