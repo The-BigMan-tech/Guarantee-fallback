@@ -24,8 +24,8 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
         imagePath:'./block/block.png',
         scene:null,
         transformInHand:{
-            position:new THREE.Vector3(0,-0.3,0), 
-            rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
+            position:new THREE.Vector3(0,0,0.4), 
+            rotation:eulerDegToRad(new THREE.Euler(-90,0,0)),
             scale:new THREE.Vector3(0.2,0.2,0.2)
         },
         behaviour:new DynamicBody({
@@ -45,8 +45,8 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
         imagePath:'./boulder/boulder.png',
         scene:null,
         transformInHand:{
-            position:new THREE.Vector3(0,-0.3,0), 
-            rotation:eulerDegToRad(new THREE.Euler(0,0,0)),
+            position:new THREE.Vector3(0,0,0.4), 
+            rotation:eulerDegToRad(new THREE.Euler(-90,0,0)),
             scale:new THREE.Vector3(0.3,0.3,0.3)
         },
         behaviour:new Throwable({
