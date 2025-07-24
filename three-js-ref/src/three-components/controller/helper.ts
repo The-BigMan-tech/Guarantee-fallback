@@ -10,7 +10,7 @@ export class VelCalcUtils {
     public roundTo3dp(num:number):number {
         return Math.round(num * 1000) / 1000;
     }
-    public getRigidBodyDirection(rigidBody:RAPIER.RigidBody):THREE.Vector3 {
+    public getVelocityDirection(rigidBody:RAPIER.RigidBody):THREE.Vector3 {
         const velocity = new THREE.Vector3().copy(rigidBody.linvel());
         const direction = velocity.normalize(); // Normalize to get the direction
         direction.x = this.roundTo3dp(direction.x);

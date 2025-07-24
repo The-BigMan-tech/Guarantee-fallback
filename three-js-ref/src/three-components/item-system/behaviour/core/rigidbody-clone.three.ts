@@ -10,6 +10,16 @@ import { RigidBodyClones } from "./rigidbody-clones.three";
 import { player } from "../../../player/player.three";
 import { IntersectionRequest } from "../../../player/intersection-request.three";
 
+function visualizeRay(origin:THREE.Vector3, direction:THREE.Vector3, distance:number):THREE.Line {
+    const endPoint = new THREE.Vector3().copy(origin).add(direction.clone().normalize().multiplyScalar(distance));
+    const points = [origin, endPoint];
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    const material = new THREE.LineBasicMaterial({ color: 0xff0000 }); // Red color
+    const rayLine = new THREE.Line(geometry, material);
+    return rayLine;
+}
+
+
 //Note:The Controller and RigidBodyClone class are what ill be using and i recoomend to use to create dynamic physics bodies because they have a simple api while providing management underneath.The controler is for dynamic bodies that are controlled by a living entity while rigid body clone are for game objects 
 export class RigidBodyClone {
     public  mesh:THREE.Group = new THREE.Group();
@@ -29,6 +39,7 @@ export class RigidBodyClone {
     private despawnRadius:number = 500;
 
     private intersectionRequest = new IntersectionRequest();
+    private rayGroup:THREE.Group = new THREE.Group();
 
     public static createClone(args:CloneArgs):RigidBodyClone {//i made a separate method for creating an item clone without the constructor because a behaviour may or may not even need the clone instance at all.the item clone class will already add the clone to the scene and update it at every loop.so there is isnt any management the behaviour class has to do with the clone after creating it.they can just use the exposed method to perform actions on the clone like applying knockback
         return new RigidBodyClone(args)
@@ -51,6 +62,7 @@ export class RigidBodyClone {
         clonedModel.scale.set(scaleX, scaleY, scaleZ);
         clonedModel.position.y -= properties.height / 2;
 
+        this.mesh.add(this.rayGroup);
         this.mesh.add(clonedModel);
         this.mesh.position.copy(spawnPosition);
 
@@ -141,7 +153,7 @@ export class RigidBodyClone {
     }
     private raycaster:THREE.Raycaster = new THREE.Raycaster();
     private knockbackObjectsAlongPath() {
-        const velDirection = this.velCalcUtils.getRigidBodyDirection(this.rigidBody!);
+        const velDirection = this.velCalcUtils.getVelocityDirection(this.rigidBody!);
         if (!velDirection.equals(new THREE.Vector3(0,0,0))) {
             console.log('impact. direction: ',velDirection);
             const origin = new THREE.Vector3().copy(this.rigidBody!.translation()); // Get the position of the rigid body
@@ -154,11 +166,15 @@ export class RigidBodyClone {
                 selection:RigidBodyClones.clones,
                 self:this.mesh
             });
+            const rayLine = visualizeRay(origin, velDirection, 10);
+            this.rayGroup.add(rayLine);
             console.log('impact. touched clone: ',Boolean(clone));
         }
     }
     private isRemoved = false;
     public updateClone() {
+        disposeHierarchy(this.rayGroup);
+        this.rayGroup.clear();
         this.despawnSelfIfFar();//the reason why i made each clone responsible for despawning itself unlike the entity system where the manager despawns far entities is because i dont want to import the player directly into the class that updates the clones because the player also imports that.so its to remove circular imports
         if (this.rigidBody && !this.durability.isDead) {
             this.checkIfOutOfBounds();
