@@ -242,25 +242,25 @@ class Player extends Controller implements EntityLike {
         this.useConsistentControls();
 
     }
-    private viewForItemUse = new THREE.Group();
+    private playerViewForItemUse = new THREE.Group();
     private camWorldPos:THREE.Vector3 = new THREE.Vector3();
     private camWorldQuat:THREE.Quaternion = new THREE.Quaternion();
 
     //the reason why i didnt use the controller group directly as the view is because the controller only roates left or right.its the camera that rotates up or down.so using the controller's group as the view wont allow me to spawn blocks where im looking along the vertical axis.if i used the camera as the view,it will lead to a situation where the spawn position is from the camera's view point not from the controller's standing position.this becomes a problem when trying to spawn blocks when the camera is zoomed way out of the character or when the camera is in second person causing the spawn point to be generated at the back of the player.but by merging the two--controller for position and camera for rotation,i can achieve the desired effect where the spawn position responds to my vertical rotation but also considers the controller's position.
-    private updateViewForItemUse() {
-        this.viewForItemUse.position.copy(this.position).setY(this.camWorldPos.y);//make it at the player's position and at the same Y level as the cam
-        this.viewForItemUse.quaternion.copy(this.camWorldQuat);
+    private updatePlayerViewForItemUse() {
+        this.playerViewForItemUse.position.copy(this.position).setY(this.camWorldPos.y);//make it at the player's position and at the same Y level as the cam
+        this.playerViewForItemUse.quaternion.copy(this.camWorldQuat);
         if (this.camModeNum == CameraMode.SecondPerson) {//this is to make the spawn pos consitently infront of the player even in 2nd person
-            this.viewForItemUse.quaternion.multiply(rotateOnXBy180());
-            this.viewForItemUse.rotation.x *= - 1;//this will invert its Y rotation
-            console.log('view quat', this.viewForItemUse.rotation);
+            this.playerViewForItemUse.quaternion.multiply(rotateOnXBy180());
+            this.playerViewForItemUse.rotation.x *= - 1;//this will invert its Y rotation
+            console.log('view quat', this.playerViewForItemUse.rotation);
         }
     }
     private useItemInHand() {
         const itemInHand = itemManager.itemInHand;
         if (itemInHand) {
             itemInHand.item.behaviour.use({
-                view:this.viewForItemUse,
+                view:this.playerViewForItemUse,
                 itemID:itemInHand.itemID,
                 userStrength:this.strength,
                 userHorizontalQuaternion:this.char.quaternion
@@ -440,7 +440,7 @@ class Player extends Controller implements EntityLike {
         if (showPlacementHelper && (this.changedPosition || this.changedQuaternion)) {
             console.log('placement created');
             const placementBox = createBoxLine(itemBody.width,itemBody.height,itemBody.depth);
-            placementBox.position.copy(ItemUtils.getSpawnPosition(this.viewForItemUse,spawnDistance));
+            placementBox.position.copy(ItemUtils.getSpawnPosition(this.playerViewForItemUse,spawnDistance));
             placementBox.quaternion.copy(this.char.quaternion);
             placementHelper.add(placementBox);
         }
@@ -479,7 +479,7 @@ class Player extends Controller implements EntityLike {
         this.updateHasChangedVariables();//this one must be called before clearing the placement helper so that it receives the latest state before use
         this.clearPlacementHelper();//we want to clear the helper in the frame after rendering the helper to prevent it from clearing prematurely which is why i cleared it at the top befor rendering the helper
 
-        this.updateViewForItemUse();
+        this.updatePlayerViewForItemUse();
         this.itemHolder.holdItem(itemManager.itemInHand?.item || null);
         this.showPlacementHelper();
 
