@@ -8,6 +8,7 @@ import { Health } from "../../../health/health";
 import { createBoxLine, rotateBy180 } from "../other-helpers.three";
 import { RigidBodyClones } from "./rigidbody-clones.three";
 import { player } from "../../../player/player.three";
+import { IntersectionRequest } from "../../../player/intersection-request.three";
 
 //Note:The Controller and RigidBodyClone class are what ill be using and i recoomend to use to create dynamic physics bodies because they have a simple api while providing management underneath.The controler is for dynamic bodies that are controlled by a living entity while rigid body clone are for game objects 
 export class RigidBodyClone {
@@ -26,6 +27,8 @@ export class RigidBodyClone {
 
     private parent:THREE.Group;
     private despawnRadius:number = 500;
+
+    private intersectionRequest = new IntersectionRequest();
 
     public static createClone(args:CloneArgs):RigidBodyClone {//i made a separate method for creating an item clone without the constructor because a behaviour may or may not even need the clone instance at all.the item clone class will already add the clone to the scene and update it at every loop.so there is isnt any management the behaviour class has to do with the clone after creating it.they can just use the exposed method to perform actions on the clone like applying knockback
         return new RigidBodyClone(args)
@@ -136,8 +139,18 @@ export class RigidBodyClone {
             this.cleanUp()
         }
     }
+    private raycaster:THREE.Raycaster = new THREE.Raycaster();
+    private knockbackObjectsAlongPath() {
+        const velDirection = this.velCalcUtils.getRigidBodyDirection(this.rigidBody!);
+        if (!velDirection.equals(new THREE.Vector3(0,0,0))) {
+            console.log('impact. direction: ',velDirection);
+            const origin = new THREE.Vector3().copy(this.rigidBody!.translation()); // Get the position of the rigid body
+            this.raycaster.set(origin,velDirection);
+        }
+    }
     private isRemoved = false;
     public updateClone() {
+        this.despawnSelfIfFar();//the reason why i made each clone responsible for despawning itself unlike the entity system where the manager despawns far entities is because i dont want to import the player directly into the class that updates the clones because the player also imports that.so its to remove circular imports
         if (this.rigidBody && !this.durability.isDead) {
             this.checkIfOutOfBounds();
             this.mesh.position.copy(this.rigidBody.translation());
@@ -152,8 +165,8 @@ export class RigidBodyClone {
             }else {
                 this.spinApplied = false; //its on the ground so we need to reset it so that spin can apply again after next throw
             }
-            this.applyGroundDamage(onGround);
-            this.despawnSelfIfFar();//the reason why i made each clone responsible for despawning itself unlike the entity system where the manager despawns far entities is because i dont want to import the player directly into the class that updates the clones because the player also imports that.so its to remove circular imports
+            this.knockbackObjectsAlongPath();
+            this.applyGroundDamage(onGround);  
         }else if (!this.isRemoved) {//to ensure resources are cleaned only once 
             this.cleanUp();
         }
@@ -184,5 +197,5 @@ export class RigidBodyClone {
         this.isRemoved = true;
         console.log('targetDurability. cleaned up block');
     }
-    
+    public interact?:()=>void//a hook i will integrate with the clone for custom interactions after spawning the clone per behaviour.for example,an explosive behaviour doesnt make an item an explosive.it only spawns a rigid body clone.so what it can do is to modify the hook of this clone to cause an explosion making this clone an explosive without the clone being inherited or derived from the explosive behaviour itself.it will remain as a clone
 }

@@ -34,7 +34,7 @@ export class EntityFactory {
         const dynamicData = entityData.dynamicData;
         const miscData = entityData.miscData;//i did this to make the code neater and it will work since it references the same object
         fixedData.gltfModel = this.hostileEntityGLTF;
-        dynamicData.horizontalVelocity = randInt(5,20);
+        dynamicData.horizontalVelocity = randInt(15,20);
         dynamicData.jumpVelocity = randInt(20,30);
         dynamicData.jumpResistance = Math.min(randInt(6,10),dynamicData.horizontalVelocity-5);//i capped it to be smaller than horizontal velocity cuz if not and it happens to be bigger than the horizontal vel,the entity wont be able to jump because its jump resistance is equal or bigger
         miscData.healthValue = randInt(10,10);

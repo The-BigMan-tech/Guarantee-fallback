@@ -241,7 +241,7 @@ class Player extends Controller implements EntityLike {
         this.targetZ = zoomPosition.z
     }
     public requestLookedEntity():EntityContract | null {
-        this.raycaster.setFromCamera(this.mouseCords,this.camera.perspectiveCamera);
+        this.raycaster.setFromCamera(this.mouseCords.clone(),this.camera.perspectiveCamera);
         return this.intersectionRequest.requestObject({
             raycaster:this.raycaster,
             testObjects:entities.map(e => e._entity.char),
@@ -250,7 +250,7 @@ class Player extends Controller implements EntityLike {
         })
     }
     public requestLookedClone():RigidBodyClone | null {
-        this.raycaster.setFromCamera(this.mouseCords,this.camera.perspectiveCamera);
+        this.raycaster.setFromCamera(this.mouseCords.clone(),this.camera.perspectiveCamera);
         return this.intersectionRequest.requestObject({
             raycaster:this.raycaster,
             testObjects:RigidBodyClones.clones.map(clone=>clone.mesh),
