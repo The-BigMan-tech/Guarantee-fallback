@@ -1,10 +1,11 @@
 import * as THREE from "three";
 
+//it doesnt matter if the dimensions of the model matches the one you define here because the game will automatically scale the model to fit into the rigid body.so you can comfortably rely on this config to properly sync the model with its physics body
 interface RigidBodyCloneProps {
     density:number,
-    width:number,
-    height:number,
-    depth:number,
+    width:number,//the width of the rigid body
+    height:number,//the height of the rigid body
+    depth:number,//the depth of the rigid body
     durability:number
 }
 export interface CloneArgs {

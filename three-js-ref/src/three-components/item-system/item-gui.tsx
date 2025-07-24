@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState ,useRef,useCallback} from "react";
 import { motion,AnimatePresence,easeInOut} from "motion/react"
-import { isCellSelected, isCellSelectedAtom, showItemGuiAtom, toggleItemGui, usedItemAtom } from "./item-state";
+import { isCellSelected, isCellSelectedAtom, showItemGuiAtom, toggleItemGui, refreshGuiAtom } from "./item-state";
 import { useAtom } from "jotai";
 import { itemManager } from "./item-manager.three";
 import type { ItemID } from "./behaviour/core/types";
@@ -14,7 +14,7 @@ const nullCellIDPrefix = 'pad'//the prefix for ids of null/empty cells
 
 
 export default function ItemGui() {
-    const [itemGuiVersion,setItemGuiVersion] = useState(0)//this is a dummy state to force react to rerender.i dont need to read it which is why i only have a setter
+    const [itemGuiVersion,setItemGuiVersion] = useState(0)//this is a dummy state to force react to rerender when changes to data outside react happens imperatively
 
     const navCooldown:milliseconds = 100; 
     const navTimerRef = useRef<number>(0);
@@ -26,7 +26,7 @@ export default function ItemGui() {
     const [cellHovered, setCellHovered] = useState<string>('');
 
     const [showItemGui] = useAtom(showItemGuiAtom);
-    const [usedItem,setUsedItem] = useAtom(usedItemAtom);
+    const [refreshGui,setRefreshGui] = useAtom(refreshGuiAtom);
 
     const [tab,setTab] = useState<'Items' | 'Inventory'>('Items');
     
@@ -225,8 +225,8 @@ export default function ItemGui() {
     
     useEffect(()=>{//this is to reload the gui when the player uses an item and that item can decrease in the inv
         setItemGuiVersion(prev=>prev+1);
-        if (usedItem) setUsedItem(false);//resetting the state ensures that it remains up to date with the game cuz it shouldnt always stay true and i cant mke the player's imperative code to reliably set it to false after the gui sees it as a change.so its best to do it here.and the player doesnt need to reset it.
-    },[usedItem,setUsedItem])
+        if (refreshGui) setRefreshGui(false);//resetting the state ensures that it remains up to date with the game cuz it shouldnt always stay true and i cant mke the player's imperative code to reliably set it to false after the gui sees it as a change.so its best to do it here.and the player doesnt need to reset it.
+    },[refreshGui,setRefreshGui])
 
     const ANIMATION_CONFIG = useMemo(() => ({
         buttonDiv: {

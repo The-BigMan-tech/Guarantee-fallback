@@ -13,7 +13,7 @@ import type { EntityLike } from "../entity-system/relationships.three";
 import { groupIDs } from "../entity-system/entity-registry";
 import { relationshipManager } from "../entity-system/relationships.three";
 import type { seconds } from "../entity-system/global-types";
-import { toggleItemGui,isCellSelected, setUsedItem } from "../item-system/item-state";
+import { toggleItemGui,isCellSelected, reloadGui } from "../item-system/item-state";
 import { itemManager, type InventoryItem } from "../item-system/item-manager.three";
 import { ItemHolder } from "../item-system/item-holder.three";
 import { IntersectionRequest } from "./intersection-request.three";
@@ -227,7 +227,7 @@ class Player extends Controller implements EntityLike {
                 }else if (this.lookedAtClone && this.lookedAtClone.canPickUp) {
                     itemManager.addToInventory(this.lookedAtClone.itemID);
                     this.lookedAtClone.cleanUp();
-                    setUsedItem(true)//update the gui with dummy state.
+                    reloadGui();//the imperative update needs to be reflected in the gui.The reason why i dont call this every frame is so that the gui only rerenders when necessary
                 }
                 this.useItemTimer = 0
             }
@@ -270,7 +270,7 @@ class Player extends Controller implements EntityLike {
             userStrength:this.strength,
             userHorizontalQuaternion:this.char.quaternion
         });
-        setUsedItem(true);//update the gui to reflect changes like removing an item from the inv after using it
+        reloadGui();
     }
     private zoomCamera(zoomDelta:number) {
         const zoomDirection = this.camForward.clone().multiplyScalar(zoomDelta);
