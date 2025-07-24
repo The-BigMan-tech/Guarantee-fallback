@@ -84,7 +84,7 @@ export class RigidBodyClone {
 
         RigidBodyClones.clones.push(this);//automatically push the clone to the clones array for updating
         RigidBodyClones.cloneIndices.set(this,RigidBodyClones.clones.length-1);//add its index to the map for removal
-        this.parent.add(this.mesh)//add it to the parent group to be shown in the scene
+        this.parent.add(this.mesh)//add it to the parent group to be shown in the scene.
     }
 
 
@@ -155,6 +155,9 @@ export class RigidBodyClone {
     private knockbackObjectsAlongPath() {
         const velDirection = this.velCalcUtils.getVelocityDirection(this.rigidBody!);
         if (!velDirection.equals(new THREE.Vector3(0,0,0))) {
+            disposeHierarchy(this.rayGroup);
+            this.rayGroup.clear();
+
             console.log('impact. direction: ',velDirection);
             const origin = new THREE.Vector3().copy(this.rigidBody!.translation()); // Get the position of the rigid body
             this.raycaster.set(origin,velDirection);
@@ -167,14 +170,12 @@ export class RigidBodyClone {
                 self:this.mesh
             });
             const rayLine = visualizeRay(origin, velDirection, 10);
-            this.rayGroup.add(rayLine);
+            this.rayGroup.attach(rayLine);
             console.log('impact. touched clone: ',Boolean(clone));
         }
     }
     private isRemoved = false;
     public updateClone() {
-        disposeHierarchy(this.rayGroup);
-        this.rayGroup.clear();
         this.despawnSelfIfFar();//the reason why i made each clone responsible for despawning itself unlike the entity system where the manager despawns far entities is because i dont want to import the player directly into the class that updates the clones because the player also imports that.so its to remove circular imports
         if (this.rigidBody && !this.durability.isDead) {
             this.checkIfOutOfBounds();

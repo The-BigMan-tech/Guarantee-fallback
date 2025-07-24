@@ -49,7 +49,7 @@ export class Chunk {
         this.distributions = distributions;
         if (this.distributions) {
             this.distributions.generateDistributions();
-            this.group.attach(this.distributions.content);//i used attatch here instaed of add so that i can use world space cords to create clones for distribution safely because my item clone class expects that the parent group is at world cords and if i used add here,the cords of the group will shift which will cause bugs
+            this.group.attach(this.distributions.content);//i used attatch here instaed of add so that i can use world space cords to create clones for distribution safely because my item clone class expects that the parent group is at world cords and if i used add here,the cords of the group will shift which will cause sync bugs
         }
     }    
     public cleanUp():void {
