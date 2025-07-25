@@ -13,7 +13,9 @@ interface Props {
     cellHovered: string,
     cellRefs:RefObject<Record<string, HTMLButtonElement | null>>,
     index:number,
+    setItemGuiVersion: (value: React.SetStateAction<number>) => void
     selectCell:(itemID:ItemID)=>void,
+    deselectCell:()=>void,
     selectedCellStyle:(itemID:ItemID)=>string,
     setHoveredCell:(value:string)=>void,
     handleDragEnter: (index: number) => void,
@@ -30,8 +32,10 @@ function areEqual(prev: Props, next: Props) {
         prev.cellHovered == next.cellHovered &&
 
         prev.selectCell === next.selectCell &&//the function refs are the same.even if the defintions remain stable,we still need to check for this to prevent subtle bugs when referencing an old closure
+        prev.deselectCell === next.deselectCell &&
         prev.setHoveredCell === next.setHoveredCell &&
         prev.selectedCellStyle === next.selectedCellStyle &&
+        prev.setItemGuiVersion === next.setItemGuiVersion &&
 
         prev.handleDragStart === next.handleDragStart &&
         prev.handleDragEnter === next.handleDragEnter &&
@@ -39,7 +43,7 @@ function areEqual(prev: Props, next: Props) {
          //we can ignore cell refs because the refs to the cells always remains the same
     );
 }
-const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cellHovered,setHoveredCell,cellRefs,handleDragEnter,handleDragStart,handleDrop,index}:Props)=>{
+const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cellHovered,setHoveredCell,cellRefs,handleDragEnter,handleDragStart,handleDrop,index,deselectCell,setItemGuiVersion}:Props)=>{
     console.log('Drag Rendering Cell for:',itemID);
     
     const multiplierStyle:style = "absolute top-[3%] right-[4%] font-semibold font-[Consolas]";
@@ -66,12 +70,12 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
     const ANIMATION_CONFIG = useMemo(() => ({
         cell: {
             animate:selectedCellBackground(),
-            whileHover:(!selectedCellID && !holdingItemInCell) ? { //only do hover animation only when a cell isnt selected to prevent two cells from being emphasized at the same time.we also dont want to override the style of the cell if the user is holding an item from it which is why i added the second check.
+            whileHover:(itemManager.itemInHand?.itemID !== itemID) ? { //only do hover animation only when a cell isnt selected to prevent two cells from being emphasized at the same time.we also dont want to override the style of the cell if the user is holding an item from it which is why i added the second check.
                 scale: 1.15,
                 backgroundColor:"#2c2c2ca4"
             } : {}
         }
-    }), [selectedCellID,selectedCellBackground,holdingItemInCell]);
+    }), [selectedCellBackground,itemID]);
 
 
     const [src, setSrc] = useState<string | undefined>(undefined);//i used undefined here to prevent react from throwing errors that i cant use an empty string as the src even though my app didnt crash from it.
@@ -82,6 +86,24 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
         return () => clearTimeout(timer);
     }, [itemID]);
 
+
+    useEffect(()=>{ //this is to navigate the inventory using the digit keys
+        function handleKeyDown(event:KeyboardEvent) {//ised a single key listener to prevent conflict or eating up of events between multiple listeners
+            if ((tab==="Inventory") && (event.code.startsWith('Digit'))) {
+                const digit = Number(event.code.charAt(5));
+                const invIndex = digit - 1;
+                if (index === invIndex) {
+                    deselectCell();
+                    itemManager.holdItem(itemID);
+                    setItemGuiVersion(prev=>prev+1);
+                }
+            }
+        }
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    },[tab,index,itemID,selectCell,deselectCell,setItemGuiVersion])
     
 
     return (

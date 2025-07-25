@@ -14,6 +14,7 @@ const nullCellIDPrefix = 'pad'//the prefix for ids of null/empty cells
 
 
 export default function ItemGui() {
+    //this dummy state is to force rerender within the ui itself
     const [itemGuiVersion,setItemGuiVersion] = useState(0)//this is a dummy state to force react to rerender when changes to data outside react happens imperatively
 
     const navCooldown:milliseconds = 100; 
@@ -26,6 +27,8 @@ export default function ItemGui() {
     const [cellHovered, setCellHovered] = useState<string>('');
 
     const [showItemGui] = useAtom(showItemGuiAtom);
+
+    //this dummy state is for outside code to force a rerender of the gui
     const [refreshGui,setRefreshGui] = useAtom(refreshGuiAtom);
 
     const [tab,setTab] = useState<'Items' | 'Inventory'>('Items');
@@ -69,8 +72,7 @@ export default function ItemGui() {
                 setGridColClass('grid-cols-1');
             }
             //When toggling tabs, the new grids layout changes grid columns and cell count, so the current selectedCell might no longer be valid.so we reset the associated variables.
-            setSelectedCellID(undefined);
-            setIsCellSelected(false);
+            deselectCell();
             return newTab
         })  
     }
@@ -83,6 +85,11 @@ export default function ItemGui() {
         setSelectedCellID(itemID);
         setIsCellSelected(true);
     }, [setSelectedCellID, setIsCellSelected]);
+
+    const deselectCell = useCallback(()=>{
+        setSelectedCellID(undefined);
+        setIsCellSelected(false);
+    },[setIsCellSelected]);
 
     const selectedCellStyle = useCallback((itemID: ItemID) => {
         return selectedCellID === itemID ? 'shadow-xl border-3 border-[#00000020]' : '';
@@ -178,8 +185,7 @@ export default function ItemGui() {
             else {
                 const deselectKey ='KeyR'
                 if (event.code == deselectKey) {//i used the same key for both toggling off the item gui and deselecting a cell for good ux.
-                    setSelectedCellID(undefined);
-                    setIsCellSelected(false);
+                    deselectCell();
                     if (selectedCellID) toggleItemGui();//i did this to cancel out the effect of the E-key listener in the player class so that pressing E when a cell is selected,only deselects the cell and the gui will only close when E is pressed and there is no cell selected
                     return;
                 }
@@ -215,7 +221,7 @@ export default function ItemGui() {
             window.removeEventListener('keydown', handleKeyDown);
         };
         
-    },[setIsCellSelected,gridCols,cellsArray,selectedCellID,tab,selectCell]);
+    },[setIsCellSelected,gridCols,cellsArray,selectedCellID,tab,selectCell,deselectCell]);
 
     useEffect(()=>{
         if ((tab === 'Inventory' ) && selectedCellID) {
@@ -270,6 +276,8 @@ export default function ItemGui() {
                         {((loadProgressively)?visibleCells:cellsArray).map((itemID,index) => (     
                             <Cell key={itemID} {...{
                                 itemGuiVersion,
+                                setItemGuiVersion,
+                                deselectCell,
                                 itemID,
                                 selectedCellID,
                                 tab,
