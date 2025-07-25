@@ -249,11 +249,11 @@ export abstract class Controller {
     //this calcukates the height of an obstacle by starting from a clearance point downwards till there is no clearance which is where an obstacle has been detected.we can then use this point to get the relative height of an obstacle
     private calcHeightTopDown(stepOverPos:THREE.Vector3,groundPosY:number) {
         const increment = 0.1;//the reason why i used a float this precise for the increment is to improve its robustness.this is because the blocks i generated in my world had random heights between x to y but not in whole integers but in floats.so when i used 1 here as the increment,it led to a subtle bug where the height was calculated as 2 but in reality,it was actually 2.2 leading to false positives that made the controller to attempt to step over the obstacle using a calculated upward and forward velocity that wasnt the actucal required velocity to overcome the obstacle and it wasnt suppose to walk over it in te first place which also led to a bug where calc clearance for agent was never called so my entity got stuck.but using smaller increments takes more runtime than big steps but this negligible for the gains in precision.
-        const decrementVector = new THREE.Vector3(0,-increment,0)
+        const decrementVector = new THREE.Vector3(0,-1,0)
         
         for (let i=0;i <= this.dynamicData.maxStepUpHeight;i+=increment) {
             let downwardClearance = true
-            const downwardCheckPos = stepOverPos.clone().addScaledVector(decrementVector, i)
+            const downwardCheckPos = stepOverPos.clone().addScaledVector(decrementVector,i)
 
             physicsWorld.intersectionsWithPoint(downwardCheckPos,()=>{
                 const relativeHeight = Number((downwardCheckPos.y - groundPosY).toFixed(1));//i fixed it to 2dp to make the result more concise.the obstacle height used here is a relative height not an absolute one.an absolute one is just directly uses the y pos without subtracting it from the ground pos and its effective enough for situations where the controller and all the obstacles are on the same ground level like a flat world with disperesed platforms but its not robust enough on terrains cuz blocks can be stacked on top of each other and you can be standing on a block next to the stacked block and its more important to know the height from where you are standing than wherever the obstacle stands on.so using relative height here is more robust
@@ -274,15 +274,15 @@ export abstract class Controller {
     }
     //this calcuates the height of an obstacle by starting from a given point and going upwards till there is clearance which infers that the point of clearance is where the osbtacle height stops which can be used for other calculations.
     private calcHeightBottomUp(stepOverPos:THREE.Vector3,groundPosY:number) {
-        const maxHeightToCheck = 30;
+        const maxHeightToCheck = 3;
         const increment = 0.1;//the reason why the increment is in float is for the same reason it is for calc height top down
-        const incrementVector = new THREE.Vector3(0,increment,0);
+        const incrementVector = new THREE.Vector3(0,1,0);
 
         for (let i=0;i <= maxHeightToCheck;i+=increment) {
             console.log('relative i:', i);
             let upwardClearance = true
-            const upwardCheckPos = stepOverPos.clone().addScaledVector(incrementVector, i);
-            const reachedMaxHeight = (maxHeightToCheck-i) < 0.2;
+            const upwardCheckPos = stepOverPos.clone().addScaledVector(incrementVector,i);
+            const reachedMaxHeight = (maxHeightToCheck-i) < 0.1;
             physicsWorld.intersectionsWithPoint(upwardCheckPos,()=>{
                 upwardClearance = false
                 return true
@@ -299,7 +299,7 @@ export abstract class Controller {
     private calcDepthForward(detectionPoint:THREE.Vector3):number {
         const maxDepthToCheck = 30;//this states the thresh
         const increment = 0.1;//the reason why the increment is in float is for the same reason it is for calc height top down
-        const incrementVector = new THREE.Vector3(0,0,-increment).applyQuaternion(this.characterRigidBody!.rotation()).setY(0).normalize();
+        const incrementVector = this.getHorizontalForward()
         let depth = 0;
 
         for (let i=0;i <= maxDepthToCheck;i+=increment) {
