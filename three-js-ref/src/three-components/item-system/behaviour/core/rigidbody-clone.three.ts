@@ -249,7 +249,7 @@ export class RigidBodyClone {
                 this.checkForOwnership();
                 console.log('spin. is Body sleeping: ',this.rigidBody.isSleeping());
                 console.log('spin. is Body grounded: ',onGround);
-            }else{
+            }else{//i dont have a cleanup cooldown unlike my entities to simulate other things before cleanup because the cooldown may not be big enough to allow a physics simulation to happen on the body like a knockback before cleanup or it may be too big which will cause it to linger in memory longer after its supposed to be cleaned up.The reason why this was acceptable for my entity is because my entity has an animation that will complete before the cooldown runs out and cleans the entity.but for this class,since i dont have any death animation cuz they are just non living objects,i have to allow teh physics at that moment to simulate before cleanup which a timer cant do predictably.so by including is meh out of sync,i ensure i only clean a body only after all physics at that moment has simulated on the body by checking if the mesh is perfectly in sync with the body.this allows things like knockbackt to simulate before cleanup even though its durability has been damaged to zero.
                 this.cleanUp();
             }
         }
