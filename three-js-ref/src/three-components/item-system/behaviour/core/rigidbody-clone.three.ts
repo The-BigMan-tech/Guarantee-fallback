@@ -250,6 +250,7 @@ export class RigidBodyClone {
             this.applyGroundDamage(onGround);  
 
             if (this.owner?.health.isDead) {
+                console.log('owner is dead');
                 this.owner = null//remove any reference to the entity when its dead to allow for garbage collection
             }
         }else if (!this.isRemoved) {//to ensure resources are cleaned only once 

@@ -521,7 +521,7 @@ const playerDynamicData:DynamicControllerData = {
     gravityScale:1
 }
 const playerMiscData:PlayerMiscData = {
-    healthValue:1000,
+    healthValue:15,
     attackDamage:1,
     knockback:200,
     strength:1000,

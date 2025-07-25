@@ -38,7 +38,7 @@ export class HostileEntity implements EntityContract  {
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
         this.originalTargetEntity = this.commonBehaviour.getValidHostileTarget(this.originalHostileTarget.subQueries.byThreat,'highest')
         const currentTarget = (
-            this.commonBehaviour.getValidHostileTarget(this.attackersOfEntityKind.subQueries.byAttackDamage,'highest') || 
+            this.commonBehaviour.getValidHostileTarget(this.attackersOfEntityKind.subQueries.byAttackDamage,'lowest') || 
             this.originalTargetEntity
         );
         if (currentTarget) {
