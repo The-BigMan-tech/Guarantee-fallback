@@ -150,23 +150,20 @@ export class RigidBodyClone {
         const velBeforeHittingGround = this.velCalcUtils.getVelJustAboveGround(velocityY,onGround)
         this.durability.checkGroundDamage(velBeforeHittingGround);
     }
-    private isOutOfBounds():boolean {
-        if (this.rigidBody!.translation().y <= outOfBoundsY) {
-            return true
-        }
-        return false;
-    }
+
     private checkIfOutOfBounds() {
-        if (this.isOutOfBounds()) {
+        if (this.rigidBody!.translation().y <= outOfBoundsY) {
             this.durability.takeDamage(this.durability.value);
         }
     }
+
     private despawnSelfIfFar() {
         const distance = player.position.distanceTo(this.mesh.position);
         if (distance > this.despawnRadius) {
             this.cleanUp()
         }
     }
+
     private raycaster:THREE.Raycaster = new THREE.Raycaster();
     private knockbackObjectsAlongPath(onGround:boolean) {
         const velDirection = this.velCalcUtils.getVelocityDirection(this.rigidBody!,onGround);
@@ -226,8 +223,6 @@ export class RigidBodyClone {
                 }
             }
             console.log('impact. touched clone: ',Boolean(clone));
-
-
         }
     }
     private checkForOwnership() {
@@ -236,27 +231,27 @@ export class RigidBodyClone {
             this.owner = null//remove any reference to the entity when its dead to allow for garbage collection
         }
     }
-    private isRemoved = false;
+    private isRemoved = false;//to ensure resources are cleaned only once 
     public updateClone() {
-        if (this.rigidBody) return;
-        this.despawnSelfIfFar();//the reason why i made each clone responsible for despawning itself unlike the entity system where the manager despawns far entities is because i dont want to import the player directly into the class that updates the clones because the player also imports that.so its to remove circular imports
-        const onGround = this.isGrounded();
-        const rigidBodyQuaternion = new THREE.Quaternion().copy(this.rigidBody.rotation());
-        const isMeshOutOfSync =  !this.mesh.position.equals(this.rigidBody.translation()) || !this.mesh.quaternion.equals(rigidBodyQuaternion);
-        
-        if ((!this.durability.isDead) || isMeshOutOfSync) {
-            this.checkIfOutOfBounds();
-            this.mesh.position.copy(this.rigidBody.translation());
-            this.mesh.quaternion.copy(this.rigidBody.rotation());
-            this.applySpin(onGround)
-            this.knockbackObjectsAlongPath(onGround);
-            this.applyGroundDamage(onGround);  
-            this.checkForOwnership();
-
-            console.log('spin. is Body sleeping: ',this.rigidBody.isSleeping());
-            console.log('spin. is Body grounded: ',onGround);
-        }else if (!this.isRemoved) {//to ensure resources are cleaned only once 
-            this.cleanUp();
+        if (this.rigidBody && !this.isRemoved) {
+            this.despawnSelfIfFar();//the reason why i made each clone responsible for despawning itself unlike the entity system where the manager despawns far entities is because i dont want to import the player directly into the class that updates the clones because the player also imports that.so its to remove circular imports
+            const rigidBodyQuaternion = new THREE.Quaternion().copy(this.rigidBody.rotation());
+            const isMeshOutOfSync =  !this.mesh.position.equals(this.rigidBody.translation()) || !this.mesh.quaternion.equals(rigidBodyQuaternion);
+            
+            if (!this.durability.isDead) {
+                const onGround = this.isGrounded();
+                this.mesh.position.copy(this.rigidBody.translation());
+                this.mesh.quaternion.copy(this.rigidBody.rotation());
+                this.checkIfOutOfBounds();
+                this.applySpin(onGround)
+                this.knockbackObjectsAlongPath(onGround);
+                this.applyGroundDamage(onGround);  
+                this.checkForOwnership();
+                console.log('spin. is Body sleeping: ',this.rigidBody.isSleeping());
+                console.log('spin. is Body grounded: ',onGround);
+            }else{
+                this.cleanUp();
+            }
         }
     }
 
@@ -271,6 +266,8 @@ export class RigidBodyClone {
         }
         RigidBodyClones.clones.pop();
         RigidBodyClones.cloneIndices.delete(this);
+        console.log('rigid. clones: ',RigidBodyClones.clones.length);
+        console.log('rigid. clones indices: ',RigidBodyClones.cloneIndices.size);
     }
 
 
@@ -283,7 +280,7 @@ export class RigidBodyClone {
             this.rigidBody = null
         }
         this.isRemoved = true;
-        console.log('targetDurability. cleaned up block');
+        console.log('rigid. cleaned up block');
     }
 
     public get itemID():ItemID {
