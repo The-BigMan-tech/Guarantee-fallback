@@ -70,7 +70,7 @@ const Cell = memo( ({itemID,selectedCellID,selectCell,selectedCellStyle,tab,cell
     const ANIMATION_CONFIG = useMemo(() => ({
         cell: {
             animate:selectedCellBackground(),
-            whileHover:(itemManager.itemInHand?.itemID !== itemID) ? { //only do hover animation only when a cell isnt selected to prevent two cells from being emphasized at the same time.we also dont want to override the style of the cell if the user is holding an item from it which is why i added the second check.
+            whileHover:(itemManager.itemInHand?.itemID !== itemID) ? { //we dont want to override the style of the cell of the item in hand which is why i added the second check.
                 scale: 1.15,
                 backgroundColor:"#2c2c2ca4"
             } : {}
