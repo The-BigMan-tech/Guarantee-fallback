@@ -1,5 +1,12 @@
 import * as THREE from "three"
 
+interface IntersectionDependencies<T> {
+    raycaster:THREE.Raycaster,
+    testObjects:THREE.Object3D[],
+    maxDistance:number,
+    selection:T[],
+    self:THREE.Object3D
+}
 export class IntersectionRequest {//to request if a looked at object is any one of the given objects
     constructor() {};
     private isDescendantOf(child: THREE.Object3D, parent: THREE.Object3D): boolean {
@@ -10,7 +17,7 @@ export class IntersectionRequest {//to request if a looked at object is any one 
         }
         return false;
     }
-    public requestObject<T>(args:{raycaster:THREE.Raycaster,testObjects:THREE.Object3D[],maxDistance:number,selection:T[],self:THREE.Object3D}):T | null {
+    public requestObject<T>(args:IntersectionDependencies<T>):T | null {
         const {raycaster,testObjects,maxDistance,selection} = args
         const intersects = raycaster.intersectObjects(testObjects, true);
 
