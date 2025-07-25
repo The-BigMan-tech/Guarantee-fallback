@@ -267,7 +267,9 @@ export class Player extends Controller implements EntityLike {
         reloadGui();
     }
     private zoomCamera(zoomDelta:number) {
-        const zoomDirection = this.camForward.clone().multiplyScalar(zoomDelta);
+        //i used the local quat here to solve a bug in the zooming direction in 2nd person
+        const localCamQuat = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion)
+        const zoomDirection = localCamQuat.multiplyScalar(zoomDelta);
         const zoomPosition = this.camera.cam3D.position.clone().add(zoomDirection); // move forward
         this.targetY = zoomPosition.y;
         this.targetZ = zoomPosition.z
