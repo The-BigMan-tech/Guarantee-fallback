@@ -24,8 +24,8 @@ function visualizeRay(origin:THREE.Vector3, direction:THREE.Vector3, distance:nu
 
 //Note:The Controller and RigidBodyClone class are what ill be using and i recoomend to use to create dynamic physics bodies because they have a simple api while providing management underneath.The controler is for dynamic bodies that are controlled by a living entity while rigid body clone are for game objects 
 export class RigidBodyClone {
-    public   group:THREE.Group = new THREE.Group();
-    private  container:THREE.Group = new THREE.Group();
+    public   group:THREE.Group = new THREE.Group();//this where the clone's model is actualy stored.use this to sync with the rigid body and know the mesh's current data liek position or rotation
+    private  container:THREE.Group = new THREE.Group();//this is just a container used to add and remove the group to and from a parent to ensure that its world transform is correct by using the attatch method.it is meant to be unique per clone because this clone class should never take the responsibility of parenting itself or other clones by using a static group variable.doing so will break it because the same group will be added to multiple parents and will cause lots of issues
     private  parent:THREE.Group;
 
     public  rigidBody:RAPIER.RigidBody | null;
@@ -102,7 +102,7 @@ export class RigidBodyClone {
 
         RigidBodyClones.clones.push(this);//automatically push the clone to the clones array for updating
         RigidBodyClones.cloneIndices.set(this,RigidBodyClones.clones.length-1);//add its index to the map for removal
-        this.container.add(this.group);//i added the mesh to a group before attatching the group to world space instead of attacthing the meshes directly to world space because,i really dont know why,but thats the only way it worked without breaking from any sync issues.
+        this.container.add(this.group);
         this.parent.attach(this.container)//add it to the parent group to be shown in the scene.i used attatch here instead of the add method so that i can include the meshes in the parent for management while still having them use world space cords because my item clone class expects that the parent group is at world cords and if i used the add method here,the cords of the group will shift which will cause sync bugs and i dont have to worry my class about using local or world space for the mesh and rigid bpdy separately
     }
 
