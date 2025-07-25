@@ -37,7 +37,7 @@ export class RigidBodyClone {
 
     private spinApplied = false;
     private spinVectorInAir:THREE.Vector3;//this is a unit vector used to determine which component the spin velocity is applied.each component is like a flag to decide whether to apply spin in this axis or not
-    private static readonly addHitbox:boolean = false;
+    private static readonly addHitbox:boolean = true;
     private static readonly addRay:boolean = false;
 
     public durability:Health;//i reused the health class for durability because its literally the same functionality.so im leveraging code reuse but i renamed it to durability for clarity that it isnt a living entity

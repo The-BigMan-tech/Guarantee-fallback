@@ -40,7 +40,7 @@ type seconds = number;
 //through out the codebase,im using private-first encapsulation.This is to ensure data safety and to prevent accidental mutation to internals.most times when i want to reduce strictness,i use protected but only when absolutely necessary that i use public because there will always be some method that needs public access for the other parts of the codebase to use.
 export abstract class Controller {
     private static readonly showHitBoxes = false;//this is used to toggle the hitboxes for visual debugging.i made it static to make it easy to tune this for all controller concretes
-    private static readonly showPoints = false;//this toggles explicitly colored points for visual debugging.if you are directly working on the internals of this controller,then you can color any point you want to visualize for debugging purposes using the color point method and just make sure that you add the point group to the scene along side the group containing the character which has already been done for the player and the entities.all you have to do is to call this on any vector representing a point and it will handle updating thse point every frame as well as clearing the ones from the previous frame.
+    private static readonly showPoints = true;//this toggles explicitly colored points for visual debugging.if you are directly working on the internals of this controller,then you can color any point you want to visualize for debugging purposes using the color point method and just make sure that you add the point group to the scene along side the group containing the character which has already been done for the player and the entities.all you have to do is to call this on any vector representing a point and it will handle updating thse point every frame as well as clearing the ones from the previous frame.
 
     protected dynamicData:DynamicControllerData;//needs to be protected so that concretes can change this dynamically at runtime but not public to ensure this data retains its integrity
     private fixedData:FixedControllerData;
@@ -250,9 +250,11 @@ export abstract class Controller {
     private calcHeightTopDown(stepOverPos:THREE.Vector3,groundPosY:number) {
         const downwardCheckPos = stepOverPos.clone();//i cloned it to prevent subtle bugs if i reuse stepoverpos later
         const increment = 0.1;//the reason why i used a float this precise for the increment is to improve its robustness.this is because the blocks i generated in my world had random heights between x to y but not in whole integers but in floats.so when i used 1 here as the increment,it led to a subtle bug where the height was calculated as 2 but in reality,it was actually 2.2 leading to false positives that made the controller to attempt to step over the obstacle using a calculated upward and forward velocity that wasnt the actucal required velocity to overcome the obstacle and it wasnt suppose to walk over it in te first place which also led to a bug where calc clearance for agent was never called so my entity got stuck.but using smaller increments takes more runtime than big steps but this negligible for the gains in precision.
+        const decrementVector = new THREE.Vector3(0,-increment,0)
+        
         for (let i=0;i <= this.dynamicData.maxStepUpHeight;i+=increment) {
             let downwardClearance = true
-            downwardCheckPos.sub(new THREE.Vector3(0,increment,0));
+            downwardCheckPos.add(decrementVector);
 
             physicsWorld.intersectionsWithPoint(downwardCheckPos,()=>{
                 const relativeHeight = Number((downwardCheckPos.y - groundPosY).toFixed(2));//i fixed it to 2dp to make the result more concise.the obstacle height used here is a relative height not an absolute one.an absolute one is just directly uses the y pos without subtracting it from the ground pos and its effective enough for situations where the controller and all the obstacles are on the same ground level like a flat world with disperesed platforms but its not robust enough on terrains cuz blocks can be stacked on top of each other and you can be standing on a block next to the stacked block and its more important to know the height from where you are standing than wherever the obstacle stands on.so using relative height here is more robust
@@ -276,15 +278,16 @@ export abstract class Controller {
         const upwardCheckPos = stepOverPos.clone();
         const maxHeightToCheck = 30;
         const increment = 0.1;//the reason why the increment is in float is for the same reason it is for calc height top down
+        const incrementVector = new THREE.Vector3(0,increment,0);
 
         for (let i=0;i <= maxHeightToCheck;i+=increment) {
             let upwardClearance = true
-            upwardCheckPos.add(new THREE.Vector3(0,increment,0));
+            upwardCheckPos.add(incrementVector);
             physicsWorld.intersectionsWithPoint(upwardCheckPos,()=>{
                 upwardClearance = false
                 return true
             })
-            if (upwardClearance) {
+            if (upwardClearance ||  (i === maxHeightToCheck)) {
                 const relativeHeight = Number((upwardCheckPos.y - groundPosY).toFixed(2));
                 console.log('relative upwardCheckPos.y:', upwardCheckPos.y);
                 this.obstacleHeight = relativeHeight
@@ -292,6 +295,29 @@ export abstract class Controller {
                 break;
             }
         }   
+    }
+    private calcDepthForward(detectionPoint:THREE.Vector3,groundPosY:number):number {
+        const maxDepthToCheck = 30;//this states the thresh
+        const increment = 1;//the reason why the increment is in float is for the same reason it is for calc height top down
+        const incrementVector = new THREE.Vector3(0,0,-increment).applyQuaternion(this.character.quaternion).setY(0).normalize();
+        let depth = 0;
+
+        for (let i=0;i <= maxDepthToCheck;i+=increment) {
+            const forwardCheckPos = detectionPoint.clone().addScaledVector(incrementVector, i);//to avoid cumulative floating-point drift.
+            forwardCheckPos.y -= 1;
+            this.colorPoint(forwardCheckPos,0x073042);
+            let forwardClearance = true;
+            physicsWorld.intersectionsWithPoint(forwardCheckPos,()=>{
+                forwardClearance = false
+                return true
+            })
+            if (forwardClearance ||  (i === maxDepthToCheck)) {//the max depth to check is where the controller gives up checking for clearance.so it uses the current point where it gave up to get the relative depth of the obstacle.even though the depth may be a lot times deeper,having this still gives a meaningful result while preventing a potential infinite samples of points to be queried
+                depth = this.distanceXZ(this.characterPosition,forwardCheckPos)-this.obstacleDetectionDistance;
+                console.log('relative depth: ',depth);
+                break;
+            }
+        } 
+        return depth  
     }
     //this is used to prioritize branches created by the foremost and side ray
     private prioritizeBranch:boolean = false;
@@ -392,7 +418,7 @@ export abstract class Controller {
             physicsWorld.intersectionsWithPoint(offsetPoint, (colliderObject) => {
                 const shape = physicsWorld.getCollider(colliderObject.handle).shape
                 const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
-                if (isCharacterCollider || !(shape instanceof RAPIER.Cuboid)) return true;//avoid the character own collider and any other collier that isnt a cuboid cuz im using capsule for entities and the player and i dont want false positives
+                if (isCharacterCollider || !(shape instanceof RAPIER.Cuboid)) return true;//avoid the character own collider and any other collier that isnt a cuboid cuz im using capsule for entities and the player and i dont want false positives or a situation where it thinks that an entity is a wall
 
                 console.log('PointY Obstacle: ', offsetPoint.y);
                 hasCollidedForward = true;
@@ -414,7 +440,8 @@ export abstract class Controller {
                     return false
                 })
                 if (clearance) {//so if there is clearance,we will want to check the height of the obstacle by moving the point down to the point of no clearance then we can take that point and subtract it from the ground position to know the relativ height
-                    this.calcHeightTopDown(stepOverPos,groundPosY)            
+                    this.calcDepthForward(stepOverPos,groundPosY);
+                    this.calcHeightTopDown(stepOverPos,groundPosY);        
                 }else {//Else,if there is no clearance,we will want to check for the height by moving the point up till there is clearance then use that point relativ to our ground pos to get the relative height.We also want to get the clearance point for the agent only when it cant step over it which occurs when it has to check for the obstacle height bottom up rather than top down cuz it will lead to unnecessar calc and cost perf if we do this in every frame even when we dont need it
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
                     if ((i == foremostPoint) || (i == firstPoint)) this.calcClearanceForAgent(offsetPoint,purpose);
@@ -516,7 +543,7 @@ export abstract class Controller {
         return new THREE.Vector3(charDirection.x, 0, charDirection.z).normalize();
     }
     //helper method to get the distance between two poit vectors by their xz components alone
-    private distanceXZ(a: THREE.Vector3, b: THREE.Vector3): number {
+    private distanceXZ(a: THREE.Vector3Like, b: THREE.Vector3Like): number {
         const dx = a.x - b.x;
         const dz = a.z - b.z;
         return Math.sqrt((dx * dx) + (dz * dz));
