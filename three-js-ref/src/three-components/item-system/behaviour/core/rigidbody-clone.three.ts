@@ -26,7 +26,7 @@ function visualizeRay(origin:THREE.Vector3, direction:THREE.Vector3, distance:nu
 export class RigidBodyClone {
     public  mesh:THREE.Group = new THREE.Group();
     public  rigidBody:RAPIER.RigidBody | null;
-    private meshGroup:THREE.Group = new THREE.Group();
+    private static meshGroup:THREE.Group = new THREE.Group();
 
     private handle:number;
     private height:number;
@@ -98,8 +98,8 @@ export class RigidBodyClone {
 
         RigidBodyClones.clones.push(this);//automatically push the clone to the clones array for updating
         RigidBodyClones.cloneIndices.set(this,RigidBodyClones.clones.length-1);//add its index to the map for removal
-        this.meshGroup.add(this.mesh);//i added the mesh to a group before attatching the group to world space instead of attacthing the meshes directly to world space because,i really dont know why,but thats the only way it worked without breaking from any sync issues.
-        parent.attach(this.meshGroup)//add it to the parent group to be shown in the scene.i used attatch here instead of the add method so that i can include the meshes in the parent for management while still having them use world space cords because my item clone class expects that the parent group is at world cords and if i used the add method here,the cords of the group will shift which will cause sync bugs and i dont have to worry my class about using local or world space for the mesh and rigid bpdy separately
+        RigidBodyClone.meshGroup.add(this.mesh);//i added the mesh to a group before attatching the group to world space instead of attacthing the meshes directly to world space because,i really dont know why,but thats the only way it worked without breaking from any sync issues.
+        parent.attach(RigidBodyClone.meshGroup)//add it to the parent group to be shown in the scene.i used attatch here instead of the add method so that i can include the meshes in the parent for management while still having them use world space cords because my item clone class expects that the parent group is at world cords and if i used the add method here,the cords of the group will shift which will cause sync bugs and i dont have to worry my class about using local or world space for the mesh and rigid bpdy separately
     }
 
 
@@ -233,7 +233,9 @@ export class RigidBodyClone {
     public updateClone() {
         this.despawnSelfIfFar();//the reason why i made each clone responsible for despawning itself unlike the entity system where the manager despawns far entities is because i dont want to import the player directly into the class that updates the clones because the player also imports that.so its to remove circular imports
         const onGround = this.isGrounded();
-        if (this.rigidBody && !this.durability.isDead) {
+        if (!this.rigidBody) return;
+        if ((!this.durability.isDead) || this.mesh.position.equals(this.rigidBody.translation())) {
+            if (!this.rigidBody) return;
             this.checkIfOutOfBounds();
             this.mesh.position.copy(this.rigidBody.translation());
             this.mesh.quaternion.copy(this.rigidBody.rotation());
@@ -273,7 +275,7 @@ export class RigidBodyClone {
 
 
     public cleanUp() {
-        this.meshGroup.remove(this.mesh)
+        RigidBodyClone.meshGroup.remove(this.mesh)
         disposeHierarchy(this.mesh);
         this.removeFromClones();
         if (this.rigidBody) {

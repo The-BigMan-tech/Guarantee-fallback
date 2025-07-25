@@ -93,7 +93,7 @@ export class Player extends Controller implements EntityLike {
     private respawnTimer: seconds = 0;
 
     private showNonPlayerHealthTimer:seconds = 0;
-    private readonly showNonPlayerHealthCooldown:seconds = 3;
+    private readonly showNonPlayerHealthCooldown:seconds = 2;
 
     private readonly zoomDelta:number = 1;
     private readonly zoomClamp = 15
@@ -381,9 +381,9 @@ export class Player extends Controller implements EntityLike {
                 console.log('attacked entity');
                 const entity = this.lookedAtEntity._entity;
                 const targetHealth = entity.health;
-                if (targetHealth && !targetHealth.isDead) {    
+                if (targetHealth && !targetHealth.isDead) {  
+                    entity.knockbackCharacter(srcPosition,this.knockback);  
                     targetHealth.takeDamage(this.attackDamage);
-                    entity.knockbackCharacter(srcPosition,this.knockback);
                     this.addRelationship(entity,relationshipManager.enemyOf[groupIDs.player]);
                     this.addRelationship(this,relationshipManager.attackerOf[entity._groupID!]);
                     this.attackTimer = 0;
@@ -392,8 +392,8 @@ export class Player extends Controller implements EntityLike {
                 console.log('attacked block');
                 const targetDurability = this.lookedAtClone.durability;
                 if (!targetDurability.isDead) {
-                    targetDurability.takeDamage(this.attackDamage);
                     this.lookedAtClone.applyKnockback(srcPosition,this.strength);
+                    targetDurability.takeDamage(this.attackDamage);
                     console.log('targetDurability:', targetDurability.value);
                     this.attackTimer = 0;
                 }
@@ -518,7 +518,7 @@ const playerDynamicData:DynamicControllerData = {
 }
 const playerMiscData:PlayerMiscData = {
     healthValue:1000,
-    attackDamage:1,
+    attackDamage:10,
     knockback:200,
     strength:1000,
     camArgs: {
