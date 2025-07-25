@@ -80,7 +80,7 @@ export abstract class Controller {
     private originalHorizontalVel:number
 
     public points:THREE.Object3D = new THREE.Object3D();//this is the 3d group containing the points for visual debugging that are added to the scene
-    private readonly pointDensity = 1.5;//this is used to control the number of points per unit distance in teh obstacle detection distance.obstacle detection distance doesnt just check a fixed point ahead of the player but also other points in between that.this is used to detect obstacles that might just appear infront of the player and the point density is tied to this as already mentioned
+    private readonly pointDensity = 1;//this is used to control the number of points per unit distance in teh obstacle detection distance.obstacle detection distance doesnt just check a fixed point ahead of the player but also other points in between that.this is used to detect obstacles that might just appear infront of the player and the point density is tied to this as already mentioned
 
     private obstacleDistance:number = 0;//unlike obstacledetection distance which is a fixed unit telling the contoller how far to detect obstacles ahead of time,this one actually tells the realtime distance between an approaching obstacle and the controller.its always smaller or equal to obstacle detection distance because obstacles arent detected beyond that distance to even update this variable in the first place
     
@@ -296,15 +296,15 @@ export abstract class Controller {
             }
         }   
     }
-    private calcDepthForward(detectionPoint:THREE.Vector3,groundPosY:number):number {
+    private calcDepthForward(detectionPoint:THREE.Vector3):number {
         const maxDepthToCheck = 30;//this states the thresh
         const increment = 1;//the reason why the increment is in float is for the same reason it is for calc height top down
-        const incrementVector = new THREE.Vector3(0,0,-increment).applyQuaternion(this.character.quaternion).setY(0).normalize();
+        const incrementVector = new THREE.Vector3(0,0,-increment).applyQuaternion(this.characterRigidBody!.rotation()).setY(0).normalize();
         let depth = 0;
 
         for (let i=0;i <= maxDepthToCheck;i+=increment) {
             const forwardCheckPos = detectionPoint.clone().addScaledVector(incrementVector, i);//to avoid cumulative floating-point drift.
-            forwardCheckPos.y -= 1;
+            forwardCheckPos.y -= 1;//i did this because the point as it is,is a bit to the obstacles top that it can slide up away from it and end prematurely.this is to prevent that
             this.colorPoint(forwardCheckPos,0x073042);
             let forwardClearance = true;
             physicsWorld.intersectionsWithPoint(forwardCheckPos,()=>{
@@ -312,7 +312,7 @@ export abstract class Controller {
                 return true
             })
             if (forwardClearance ||  (i === maxDepthToCheck)) {//the max depth to check is where the controller gives up checking for clearance.so it uses the current point where it gave up to get the relative depth of the obstacle.even though the depth may be a lot times deeper,having this still gives a meaningful result while preventing a potential infinite samples of points to be queried
-                depth = this.distanceXZ(this.characterPosition,forwardCheckPos)-this.obstacleDetectionDistance;
+                depth = this.distanceXZ(this.characterPosition,forwardCheckPos)-this.obstacleDetectionDistance//i minused the obstacle det distance to also condier the gap between the controller and the obstacle
                 console.log('relative depth: ',depth);
                 break;
             }
@@ -440,7 +440,7 @@ export abstract class Controller {
                     return false
                 })
                 if (clearance) {//so if there is clearance,we will want to check the height of the obstacle by moving the point down to the point of no clearance then we can take that point and subtract it from the ground position to know the relativ height
-                    this.calcDepthForward(stepOverPos,groundPosY);
+                    this.calcDepthForward(stepOverPos);
                     this.calcHeightTopDown(stepOverPos,groundPosY);        
                 }else {//Else,if there is no clearance,we will want to check for the height by moving the point up till there is clearance then use that point relativ to our ground pos to get the relative height.We also want to get the clearance point for the agent only when it cant step over it which occurs when it has to check for the obstacle height bottom up rather than top down cuz it will lead to unnecessar calc and cost perf if we do this in every frame even when we dont need it
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
@@ -539,7 +539,7 @@ export abstract class Controller {
 
     // Helper method to get horizontal forward direction
     private getHorizontalForward(): THREE.Vector3 {
-        const charDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(this.character.quaternion);
+        const charDirection = new THREE.Vector3(0, 0, -1).applyQuaternion(this.characterRigidBody!.rotation());
         return new THREE.Vector3(charDirection.x, 0, charDirection.z).normalize();
     }
     //helper method to get the distance between two poit vectors by their xz components alone
