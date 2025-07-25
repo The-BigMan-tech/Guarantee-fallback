@@ -306,7 +306,7 @@ export abstract class Controller {
             const forwardCheckPos = detectionPoint.clone().addScaledVector(incrementVector, i);//to avoid cumulative floating-point drift.
             const reachedMaxDepth = (maxDepthToCheck-i) < 0.2;//i did this because exact equality on floats will be fragile
             forwardCheckPos.y -= 1;//i did this because the point as it is,is a bit to the obstacles top that it can slide up away from it and end prematurely.this is to prevent that
-            this.colorPoint(forwardCheckPos,0x073042);
+            // this.colorPoint(forwardCheckPos,0x073042);
             
             let forwardClearance = true;
             physicsWorld.intersectionsWithPoint(forwardCheckPos,()=>{
@@ -314,7 +314,8 @@ export abstract class Controller {
                 return true
             })
             if (forwardClearance || reachedMaxDepth) {//the max depth to check is where the controller gives up checking for clearance.so it uses the current point where it gave up to get the relative depth of the obstacle.even though the depth may be a lot times deeper,having this still gives a meaningful result while preventing a potential infinite samples of points to be queried
-                depth = this.distanceXZ(this.characterPosition,forwardCheckPos)-this.obstacleDetectionDistance//i minused the obstacle det distance to also condier the gap between the controller and the obstacle
+                depth = this.distanceXZ(detectionPoint,forwardCheckPos)//i minused the obstacle det distance to also condier the gap between the controller and the obstacle
+                depth = Number(depth.toFixed(1));
                 console.log('relative depth: ',depth);
                 break;
             }
