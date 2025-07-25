@@ -238,7 +238,7 @@ export class RigidBodyClone {
             const rigidBodyQuaternion = new THREE.Quaternion().copy(this.rigidBody.rotation());
             const isMeshOutOfSync =  !this.mesh.position.equals(this.rigidBody.translation()) || !this.mesh.quaternion.equals(rigidBodyQuaternion);
             
-            if (!this.durability.isDead) {
+            if (!this.durability.isDead || isMeshOutOfSync) {
                 const onGround = this.isGrounded();
                 this.mesh.position.copy(this.rigidBody.translation());
                 this.mesh.quaternion.copy(this.rigidBody.rotation());
