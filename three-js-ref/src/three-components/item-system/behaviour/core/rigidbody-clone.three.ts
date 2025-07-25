@@ -10,6 +10,7 @@ import { RigidBodyClones } from "./rigidbody-clones.three";
 import { type Player, player } from "../../../player/player.three";
 import { IntersectionRequest } from "../../../player/intersection-request.three";
 import { entities, type EntityContract } from "../../../entity-system/entity.three";
+import { relationshipManager, type EntityLike } from "../../../entity-system/relationships.three";
 
 function visualizeRay(origin:THREE.Vector3, direction:THREE.Vector3, distance:number):THREE.Line {
     const endPoint = new THREE.Vector3().copy(origin).add(direction.clone().normalize().multiplyScalar(distance));
@@ -45,14 +46,20 @@ export class RigidBodyClone {
     private intersectionRequest = new IntersectionRequest();
     private rayGroup:THREE.Group = new THREE.Group();
     private _itemID:ItemID;
-    private _canPickUp:boolean
+    private _canPickUp:boolean;
+
+    private owner:EntityLike | null;
+
+    private addRelationship = relationshipManager.addRelationship;
 
     public static createClone(args:CloneArgs):RigidBodyClone {//i made a separate method for creating an item clone without the constructor because a behaviour may or may not even need the clone instance at all.the item clone class will already add the clone to the scene and update it at every loop.so there is isnt any management the behaviour class has to do with the clone after creating it.they can just use the exposed method to perform actions on the clone like applying knockback
         return new RigidBodyClone(args)
     }
     private constructor(args:CloneArgs) {
-        const {model,spawnPosition,spawnQuaternion,properties,spinVectorInAir,parent,itemID,canPickUp} = args;
+        const {model,spawnPosition,spawnQuaternion,properties,spinVectorInAir,parent,itemID,canPickUp,owner} = args;
         this._itemID = itemID;
+        this.owner = owner;
+
         this._canPickUp = canPickUp;
         this.height = properties.height;
         this.density = properties.density;
@@ -183,7 +190,7 @@ export class RigidBodyClone {
                 selection:RigidBodyClones.clones,
                 self:this.mesh
             });
-            const entity:EntityContract | null = this.intersectionRequest.requestObject({
+            const entityWrapper:EntityContract | null = this.intersectionRequest.requestObject({
                 raycaster: this.raycaster,
                 testObjects:entities.map(e => e._entity.char),
                 maxDistance,
@@ -205,12 +212,21 @@ export class RigidBodyClone {
             clone?.applyKnockback(knockbackSrcPos,knockbackImpulse);
             clone?.durability.takeDamage(this.density);
 
-            entity?._entity.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
-            entity?._entity.health.takeDamage(this.density);
-
             playerObject?.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
             playerObject?.health.takeDamage(this.density);
+
+            if (entityWrapper) {
+                const entity = entityWrapper._entity;
+                entity.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
+                entity.health.takeDamage(this.density);
+                if (this.owner) {
+                    this.addRelationship(entity,relationshipManager.enemyOf[this.owner._groupID!]);
+                    this.addRelationship(this.owner,relationshipManager.attackerOf[entity._groupID!]);
+                }
+            }
             console.log('impact. touched clone: ',Boolean(clone));
+
+
         }
     }
     private isRemoved = false;
@@ -232,6 +248,10 @@ export class RigidBodyClone {
             }
             this.knockbackObjectsAlongPath(onGround);
             this.applyGroundDamage(onGround);  
+
+            if (this.owner?.health.isDead) {
+                this.owner = null//remove any reference to the entity when its dead to allow for garbage collection
+            }
         }else if (!this.isRemoved) {//to ensure resources are cleaned only once 
             this.cleanUp();
         }

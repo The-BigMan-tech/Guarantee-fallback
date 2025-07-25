@@ -22,10 +22,10 @@ export const entityCounts:EntityCount =  {
 export const entityMapping:Record<EntityWrapper,EntitySpawnData> = {
     HostileEntity:{
         groupID:groupIDs.hostileEntity,//i called it groupID cuz its not per isntance but per entity type or kind
-        spawnWeight:10//an important thing to note is that when the weight is 0 but at least one of the others is non-zero,then this entity will never have the chance to be pciked but if all the other entities are non-zero,its the same thing as all of them having 10 or 100 cuz the weights are equal.thats the thing about weighted random.is the probabliliy of picking one relative to the probability of others not absolute probability.so to totally remove entities,set entity cap to 0.
+        spawnWeight:0//an important thing to note is that when the weight is 0 but at least one of the others is non-zero,then this entity will never have the chance to be pciked but if all the other entities are non-zero,its the same thing as all of them having 10 or 100 cuz the weights are equal.thats the thing about weighted random.is the probabliliy of picking one relative to the probability of others not absolute probability.so to totally remove entities,set entity cap to 0.
     },
     NPC: {
         groupID:groupIDs.npc,
-        spawnWeight:0
+        spawnWeight:10
     }
 }

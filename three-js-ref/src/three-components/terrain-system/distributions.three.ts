@@ -30,7 +30,7 @@ export class Distributions {
         for (let i = 0; i < points.length; i++) {
             const [x, z] = points[i];
         
-            const height = randFloat(8.6,8.6);
+            const height = randFloat(10,10);
             
             const localY = startingLevelY + height/2 ;//to make it stand on the startinglevl not that half of it is above and another half above
             const localX = x - this.chunkSize / 2;
@@ -50,10 +50,11 @@ export class Distributions {
                     spawnQuaternion:new THREE.Quaternion(),
                     spinVectorInAir:new THREE.Vector3(1,1,1), //this means spin in all axis while in the air
                     parent:this.content,
+                    owner:null,
                     properties:{
                         density:2,
                         width:height,//im using the height here for width and depth to get a cube unit.this will  depending on the model
-                        height,
+                        height:height,
                         depth:height,
                         durability:5
                     }

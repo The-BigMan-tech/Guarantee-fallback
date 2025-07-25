@@ -19,7 +19,7 @@ export class Throwable implements ItemBehaviour {
         })
     }
     public use(args:ItemUsageDependecies):void {
-        const {view,userHorizontalQuaternion,itemID,userStrength} = args
+        const {view,userHorizontalQuaternion,itemID,userStrength,owner} = args
         if (this.model) {
             const spawnPosition = ItemUtils.getSpawnPosition(view,this._placeableConfig.spawnDistance);
             const clone = RigidBodyClone.createClone({
@@ -30,7 +30,8 @@ export class Throwable implements ItemBehaviour {
                 spawnQuaternion:userHorizontalQuaternion,
                 properties:this._placeableConfig,
                 spinVectorInAir:new THREE.Vector3(1,1,1), //this means spin in all axis while in the air
-                parent:RigidBodyClones.group
+                parent:RigidBodyClones.group,
+                owner
             });
 
             const sourceThrow = ItemUtils.getSpawnPosition(view)

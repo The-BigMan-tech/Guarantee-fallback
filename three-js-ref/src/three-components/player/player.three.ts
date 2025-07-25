@@ -267,7 +267,8 @@ export class Player extends Controller implements EntityLike {
             view:this.playerViewForItemUse,
             itemID:itemInHand.itemID,
             userStrength:this.strength,
-            userHorizontalQuaternion:this.char.quaternion
+            userHorizontalQuaternion:this.char.quaternion,
+            owner:this
         });
         reloadGui();
     }

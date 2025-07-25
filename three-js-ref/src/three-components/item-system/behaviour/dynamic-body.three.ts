@@ -19,7 +19,7 @@ export class DynamicBody implements ItemBehaviour {
         })
     }
     public use(args:ItemUsageDependecies) {
-        const {view,userHorizontalQuaternion,itemID} = args
+        const {view,userHorizontalQuaternion,itemID,owner} = args
         if (this.model) {
             const spawnPosition = ItemUtils.getSpawnPosition(view,this._placeableConfig.spawnDistance); 
             RigidBodyClone.createClone({
@@ -30,7 +30,8 @@ export class DynamicBody implements ItemBehaviour {
                 spawnQuaternion:userHorizontalQuaternion,
                 properties:this._placeableConfig,
                 spinVectorInAir:new THREE.Vector3(0,0,0),//this means dont spin in any axis while in the air
-                parent:RigidBodyClones.group
+                parent:RigidBodyClones.group,
+                owner
             })
             itemManager.removeFromInventory(itemID)
         }
