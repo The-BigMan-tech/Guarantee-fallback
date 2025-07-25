@@ -288,7 +288,7 @@ export class Player extends Controller implements EntityLike {
         this.raycaster.setFromCamera(this.mouseCords.clone(),this.camera.perspectiveCamera);
         return this.intersectionRequest.requestObject({
             raycaster:this.raycaster,
-            testObjects:RigidBodyClones.clones.map(clone=>clone.mesh),
+            testObjects:RigidBodyClones.clones.map(clone=>clone.group),
             maxDistance:10,
             selection:RigidBodyClones.clones,
             self:this.char
