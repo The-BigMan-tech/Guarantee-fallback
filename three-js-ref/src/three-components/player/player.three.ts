@@ -267,7 +267,7 @@ export class Player extends Controller implements EntityLike {
         reloadGui();
     }
     private zoomCamera(zoomDelta:number) {
-        //i used the local quat here to solve a bug in the zooming direction in 2nd person
+        //i used the local quat here because it has to zoom relative to its parent not the world.Using world quat here caused a bug where my rotation inverted the zooming direction for the corresponding buttons
         const localCamForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camera.cam3D.quaternion)
         const zoomDirection = localCamForward.clone().multiplyScalar(zoomDelta);
         const zoomPosition = this.camera.cam3D.position.clone().add(zoomDirection); // move forward
@@ -392,7 +392,7 @@ export class Player extends Controller implements EntityLike {
                 console.log('attacked block');
                 const targetDurability = this.lookedAtClone.durability;
                 if (!targetDurability.isDead) {
-                    this.lookedAtClone.applyKnockback(srcPosition,this.strength);
+                    this.lookedAtClone.knockbackClone(srcPosition,this.strength);
                     targetDurability.takeDamage(this.attackDamage);
                     console.log('targetDurability:', targetDurability.value);
                     this.attackTimer = 0;
@@ -518,7 +518,7 @@ const playerDynamicData:DynamicControllerData = {
 }
 const playerMiscData:PlayerMiscData = {
     healthValue:1000,
-    attackDamage:10,
+    attackDamage:1,
     knockback:200,
     strength:1000,
     camArgs: {

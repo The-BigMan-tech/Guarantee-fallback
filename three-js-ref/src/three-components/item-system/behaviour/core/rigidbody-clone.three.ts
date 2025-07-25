@@ -9,7 +9,7 @@ import { createBoxLine, rotateOnXBy180 } from "../other-helpers.three";
 import { RigidBodyClones } from "./rigidbody-clones.three";
 import { type Player, player } from "../../../player/player.three";
 import { IntersectionRequest } from "../../../player/intersection-request.three";
-import { entities, type EntityContract } from "../../../entity-system/entity.three";
+import { entities, type Entity, type EntityContract } from "../../../entity-system/entity.three";
 import { relationshipManager, type EntityLike } from "../../../entity-system/relationships.three";
 
 function visualizeRay(origin:THREE.Vector3, direction:THREE.Vector3, distance:number):THREE.Line {
@@ -139,7 +139,7 @@ export class RigidBodyClone {
     }
 
 
-    public applyKnockback(sourcePosition:THREE.Vector3,strength:number) {
+    public knockbackClone(sourcePosition:THREE.Vector3,strength:number) {
         const direction = new THREE.Vector3().subVectors(this.rigidBody!.translation(), sourcePosition).normalize();
         const impulse = direction.multiplyScalar(strength)
         this.rigidBody!.applyImpulse(impulse, true);
@@ -164,65 +164,76 @@ export class RigidBodyClone {
         }
     }
 
+
+    private requestIntersectedClone(maxDistance:number):RigidBodyClone | null {
+        return this.intersectionRequest.requestObject({
+            raycaster: this.raycaster,
+            testObjects:RigidBodyClones.clones.map(clone=>clone.mesh),
+            maxDistance,
+            selection:RigidBodyClones.clones,
+            self:this.mesh
+        });
+    }
+    private requestIntersectedEntity(maxDistance:number):Entity | null {
+        const entityWrapper:EntityContract | null = this.intersectionRequest.requestObject({
+            raycaster: this.raycaster,
+            testObjects:entities.map(e => e._entity.char),
+            maxDistance,
+            selection:entities,
+            self:this.mesh
+        });
+        return entityWrapper?._entity || null
+    }
+    private requestIntersectedPlayer(maxDistance:number):Player | null {
+        return this.intersectionRequest.requestObject({
+            raycaster: this.raycaster,
+            testObjects:[player.char],
+            maxDistance,
+            selection:[player],
+            self:this.mesh
+        });
+    }
+    private updateRayVisualizer(origin:THREE.Vector3,velDirection:THREE.Vector3) {
+        disposeHierarchy(this.rayGroup);
+        this.rayGroup.clear();
+        if (RigidBodyClone.addRay) {
+            const rayLine = visualizeRay(origin, velDirection,10);
+            this.rayGroup.attach(rayLine);
+        }
+    }
+
     private raycaster:THREE.Raycaster = new THREE.Raycaster();
+    private static readonly knockbackScalar = 150;
+
     private knockbackObjectsAlongPath(onGround:boolean) {
         const velDirection = this.velCalcUtils.getVelocityDirection(this.rigidBody!,onGround);
+        console.log('impact. direction: ',velDirection);
+        
         if (!velDirection.equals(new THREE.Vector3(0,0,0))) {
-            disposeHierarchy(this.rayGroup);
-            this.rayGroup.clear();
-
-            console.log('impact. direction: ',velDirection);
             const origin = new THREE.Vector3().copy(this.rigidBody!.translation()); // Get the position of the rigid body
             const maxDistance = 10;
             this.raycaster.set(origin.clone(),velDirection);
             
-            if (RigidBodyClone.addRay) {
-                const rayLine = visualizeRay(origin, velDirection,10);
-                this.rayGroup.attach(rayLine);
-            }
-
-            const clone:RigidBodyClone | null = this.intersectionRequest.requestObject({
-                raycaster: this.raycaster,
-                testObjects:RigidBodyClones.clones.map(clone=>clone.mesh),
-                maxDistance,
-                selection:RigidBodyClones.clones,
-                self:this.mesh
-            });
-            const entityWrapper:EntityContract | null = this.intersectionRequest.requestObject({
-                raycaster: this.raycaster,
-                testObjects:entities.map(e => e._entity.char),
-                maxDistance,
-                selection:entities,
-                self:this.mesh
-            });
-            const playerObject:Player | null = this.intersectionRequest.requestObject({
-                raycaster: this.raycaster,
-                testObjects:[player.char],
-                maxDistance,
-                selection:[player],
-                self:this.mesh
-            });
-
-            const knockbackScalar = 150;
-            const knockbackImpulse = this.density * knockbackScalar;
+            const knockbackImpulse = this.density * RigidBodyClone.knockbackScalar;
             const knockbackSrcPos = origin.clone().multiply(new THREE.Vector3(1,-2,1));//i used -2 to shoot the target upwards even more.
-
-            clone?.applyKnockback(knockbackSrcPos,knockbackImpulse);
+            
+            const clone = this.requestIntersectedClone(maxDistance);
+            clone?.knockbackClone(knockbackSrcPos,knockbackImpulse);
             clone?.durability.takeDamage(this.density);
 
+            const playerObject = this.requestIntersectedPlayer(maxDistance);
             playerObject?.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
             playerObject?.health.takeDamage(this.density);
+            
+            const entity = this.requestIntersectedEntity(maxDistance);
+            entity?.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
+            entity?.health.takeDamage(this.density);
 
-            if (entityWrapper) {
-                const entity = entityWrapper._entity;
-                entity.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
-                entity.health.takeDamage(this.density);
-                if (this.owner) {
-                    this.addRelationship(entity,relationshipManager.enemyOf[this.owner._groupID!]);
-                    this.addRelationship(this.owner,relationshipManager.attackerOf[entity._groupID!]);
-                }
+            if (this.owner && entity) {
+                this.addRelationship(entity,relationshipManager.enemyOf[this.owner._groupID!]);
+                this.addRelationship(this.owner,relationshipManager.attackerOf[entity._groupID!]);
             }
-            console.log('impact. touched clone: ',Boolean(clone));
+            this.updateRayVisualizer(origin,velDirection);
         }
     }
     private checkForOwnership() {
