@@ -244,8 +244,9 @@ export class RigidBodyClone {
     }
     private isRemoved = false;//to ensure resources are cleaned only once 
     public updateClone() {
+        //This MUST NOT be called inside the below if block because if it is far,it will be cleaned up.but that will be dangerous if done inside the below if block because the below block continues to run its code with the expectation that the rigid body isnt null and cleaning it directly inside this block will cause errors in parts of the block that uses the rigid body
+        this.despawnSelfIfFar();//the reason why i made each clone responsible for despawning itself unlike the entity system where the manager despawns far entities is because i dont want to import the player directly into the class that updates the clones because the player also imports that.so its to remove circular imports
         if (this.rigidBody && !this.isRemoved) {
-            this.despawnSelfIfFar();//the reason why i made each clone responsible for despawning itself unlike the entity system where the manager despawns far entities is because i dont want to import the player directly into the class that updates the clones because the player also imports that.so its to remove circular imports
             const rigidBodyQuaternion = new THREE.Quaternion().copy(this.rigidBody.rotation());
             const isMeshOutOfSync =  !this.mesh.position.equals(this.rigidBody.translation()) || !this.mesh.quaternion.equals(rigidBodyQuaternion);
             
