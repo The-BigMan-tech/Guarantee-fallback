@@ -297,10 +297,10 @@ export class Player extends Controller implements EntityLike {
     private bindKeysToAnimations() {
         if (this.isAirBorne()) {
             this.soundControls.stopWalkSound()
-            this.playJumpAnimation()
+            this.animationControls?.playJumpAnimation()
         }else if (this.keysPressed['KeyW']) {//each key will have its own animation
             this.soundControls.playWalkSound()
-            this.playWalkAnimation()
+            this.animationControls?.playWalkAnimation()
         }else if (this.keysPressed['KeyA']) {
             this.soundControls.playWalkSound()
         }else if (this.keysPressed['KeyS']) {
@@ -308,10 +308,10 @@ export class Player extends Controller implements EntityLike {
         }else if (this.keysPressed['KeyD']) {
             this.soundControls.playWalkSound()
         }else if (this.keysPressed['KeyQ']) {
-            this.playAttackAnimation();
+            this.animationControls?.playAttackAnimation();
         }else if (!this.health.isDead) {
             this.soundControls.stopWalkSound();
-            this.playIdleAnimation();
+            this.animationControls?.playIdleAnimation();
         }
     }
     private toggleCamPerspective() {
@@ -371,7 +371,7 @@ export class Player extends Controller implements EntityLike {
     }
     private attack() {
         if (this.attackTimer > (this.attackCooldown -0.4)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
-            this.playAttackAnimation();
+            this.animationControls?.playAttackAnimation();
         }
         if ((this.attackTimer > this.attackCooldown)){
             const srcPosition = this.position.clone();
@@ -419,7 +419,7 @@ export class Player extends Controller implements EntityLike {
     private updateCameraHeightBasedOnHealth() {
         if (this.health.isDead) {
             this.targetY = this.offsetY - this.playerHeight;
-            this.playDeathAnimation();
+            this.animationControls?.playDeathAnimation();
         }
     }
     get _groupID():string {

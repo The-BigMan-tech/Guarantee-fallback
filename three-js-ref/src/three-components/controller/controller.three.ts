@@ -1,6 +1,5 @@
 import * as THREE from "three"
 import { type GLTF } from 'three/addons/loaders/GLTFLoader.js';
-import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY, combatCooldown, startingLevelY} from "../physics-world.three";
 import {v4 as uniqueID} from "uuid"
@@ -8,6 +7,7 @@ import { getGroundDetectionDistance, VelCalcUtils } from "./helper";
 import { createBoxLine, createCapsuleLine } from "../item-system/behaviour/other-helpers.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { SoundControls } from "./sound-controls.three";
+import { AnimationControls } from "./animation-controls.three";
 
 
 //this is data fpr the controller that cant or should not be changed after creation
@@ -71,15 +71,6 @@ export abstract class Controller {
     //this stores the current time since the last delta.i have a global clock that i use to get the delta and i pass it to every controller to store here for easy access.I could have made update controller to pass it to every method that needs it but it will lead to parametr bloat.this makes it easy so that any method under this controller including inheriting classes can easily access it just through a property.it had to be null at first because the delta time may not be immediately available on initilaiztion.i could have made assigned it to 0 at first but i decided to start it with null so that each method can decide how they want to handle the case where the time isnt yet available.but most of the times,i just do delta || 0.
     protected clockDelta:number | null = null;
 
-    //these are animation specific variables
-    protected mixer: THREE.AnimationMixer | null = null;//im only exposing this for cleanup purposes
-    private currentAction: THREE.AnimationAction | null = null;
-    private idleAction: THREE.AnimationAction | null = null;
-    private walkAction: THREE.AnimationAction | null = null;
-    private jumpAction:THREE.AnimationAction | null = null;
-    private attackAction:THREE.AnimationAction | null = null;
-    private deathAction:THREE.AnimationAction | null = null;
-
     //this is a flag used to control whether the controller should step over an obstacle or not
     private shouldStepUp: boolean = false;
     //this is a flag used to state whether the controller is allowed to play the jump animation or not.
@@ -112,6 +103,7 @@ export abstract class Controller {
 
     private velCalcUtils:VelCalcUtils = new VelCalcUtils();
     public soundControls:SoundControls = new SoundControls();
+    public animationControls:AnimationControls | null = null;
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
@@ -148,6 +140,7 @@ export abstract class Controller {
         this.soundControls.loadSounds();
         this.character.add(this.soundControls.walkSound,this.soundControls.punchSound,this.soundControls.landSound);
     }
+
     private calculateGroundPosition() {
         const initGroundPosY = Number((this.characterPosition.y - this.groundDetectionDistance).toFixed(2)) - 1;//the -1 is required to sink the point a little into the ground to prevent the point from stopping just above the ground which will make the query ineffective for gettng the ground position.
         const finalGroundPosY = Number((initGroundPosY - this.widthDebuf).toFixed(1))//we also want to consider the width debuf as said earlier
@@ -160,11 +153,12 @@ export abstract class Controller {
             const characterModel = this.fixedData.gltfModel.scene.clone(true);
             characterModel.position.z = this.modelZOffset
             this.character.add(characterModel);
+            this.animationControls = new AnimationControls(characterModel);
+            this.animationControls.loadAnimations(this.fixedData.gltfModel);
             this.loadItem3D();
-            this.mixer = new AnimationMixer(characterModel);
-            this.loadCharacterAnimations(this.fixedData.gltfModel);
         }
     }
+
     private loadItem3D() {//it reserves a spot for item models to be added which is the hand group of the model
         const handGroup = this.character.getObjectByName('hand');
         if (handGroup) {
@@ -174,40 +168,7 @@ export abstract class Controller {
             this.item3D.scale.set(1, 1, 1);
         }
     }
-    private loadCharacterAnimations(gltf:GLTF):void {
-        if (!this.mixer) return;
-        const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
-        const walkClip = THREE.AnimationClip.findByName(gltf.animations, 'sprinting'); 
-        const jumpClip = THREE.AnimationClip.findByName(gltf.animations, 'jumping'); 
-        const attackClip = THREE.AnimationClip.findByName(gltf.animations, 'attack'); 
-        const deathClip = THREE.AnimationClip.findByName(gltf.animations, 'death'); 
-    
-        if (walkClip) this.walkAction = this.mixer.clipAction(walkClip);
-        if (jumpClip) this.jumpAction = this.mixer.clipAction(jumpClip);
-        if (attackClip) {
-            this.attackAction = this.mixer.clipAction(attackClip);
-            this.attackAction.setLoop(THREE.LoopOnce, 1);
-            this.attackAction.clampWhenFinished = true;
-        }
-        if (deathClip) {
-            this.deathAction = this.mixer.clipAction(deathClip);
-            this.deathAction.setLoop(THREE.LoopOnce, 1);
-            this.deathAction.clampWhenFinished = true;
-        }
-        if (idleClip) {
-            this.idleAction = this.mixer.clipAction(idleClip);
-            this.idleAction.play();
-            this.currentAction = this.idleAction;
-        }
-    }
-    private fadeToAnimation(newAction: THREE.AnimationAction):void {
-        if (newAction !== this.currentAction) {
-            newAction.reset();
-            newAction.play();
-            if (this.currentAction) this.currentAction.crossFadeTo(newAction, 0.4, false);
-            this.currentAction = newAction;
-        }
-    }
+
     //these velocity calc methods are used to calculate the effective upward and forward velocity required to walk over an osbtacle as detected ahead of the controller by a method
     private calculateUpwardVelocity():number {
         const destinationHeight = this.obstacleHeight; // no need to round here
@@ -221,6 +182,7 @@ export abstract class Controller {
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
+
     //this is the method that colors any point for visual debugging
     protected colorPoint(position:THREE.Vector3, color:number) {
         if (!Controller.showPoints) return;
@@ -232,7 +194,7 @@ export abstract class Controller {
         this.points.add(point);
     }
 
-   //this just uses the calculated ground point to query for the ground to know if the controller is grounded or not.i used it to determine which forces to apply on the controller to move its body like linear velocity for movement,impulse for knockback and no explicit velocity control when jumping to make jumping feel more natural.
+    //this just uses the calculated ground point to query for the ground to know if the controller is grounded or not.i used it to determine which forces to apply on the controller to move its body like linear velocity for movement,impulse for knockback and no explicit velocity control when jumping to make jumping feel more natural.
     private isGrounded():boolean {
         if (!this.characterRigidBody) return false;
         if (this.characterRigidBody.isSleeping()) return true;//to prevent unnecessary queries when the update loop calls it because it will only sleep if its on the ground in the first place
@@ -451,9 +413,9 @@ export abstract class Controller {
                     clearance = false
                     return false
                 })
-                if (clearance) {//so if there is clearance,we will want to check the height of the obstacle by moving the point down to the point of no clearance then we can take that point and subtract it from the ground position to know the relative height
+                if (clearance) {//so if there is clearance,we will want to check the height of the obstacle by moving the point down to the point of no clearance then we can take that point and subtract it from the ground position to know the relativ height
                     this.calcHeightTopDown(stepOverPos,groundPosY)            
-                }else {//Else,if there is no clearance,we will want to check for the height by moving the point up till there is clearance then use that point relative to our ground pos to get the relative height.We also want to get the clearance point for the agent only when it cant step over it which occurs when it has to check for the obstacle height bottom up rather than top down cuz it will lead to unnecessar calc and cost perf if we do this in every frame even when we dont need it
+                }else {//Else,if there is no clearance,we will want to check for the height by moving the point up till there is clearance then use that point relativ to our ground pos to get the relative height.We also want to get the clearance point for the agent only when it cant step over it which occurs when it has to check for the obstacle height bottom up rather than top down cuz it will lead to unnecessar calc and cost perf if we do this in every frame even when we dont need it
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
                     if ((i == foremostPoint) || (i == firstPoint)) this.calcClearanceForAgent(offsetPoint,purpose);
                 }
@@ -463,7 +425,7 @@ export abstract class Controller {
         if (!hasCollidedForward) {
             this.obstacleDistance = Infinity//infinity distance means there are no obstacles
         }
-        this.checkForGroundAhead(steps+1,forward)//this is used for proactive jumping for the agent so that it can jump from block to block that have gaps between them not just when it has reached the wall of an obstacle.this allows for parkour like behaviour
+        this.checkForGroundAhead(steps+1,forward)//this is used for proactive jumping for the agent so that it can jump from block to blok that have gaps between them not just when it has reached the wall of an obstacle.this allows for parkour like behaviour
     }
 
     private groundIsPresentForward:boolean = false;
@@ -527,12 +489,12 @@ export abstract class Controller {
         }
         if (onGround) {
             console.log("Entity is walking");
-            this.playWalkAnimation();
+            this.animationControls?.playWalkAnimation();
             this.soundControls.playWalkSound();
         }
         if ((jumpProactively || this.canJumpOntoObstacle()) && !this.shouldStepUp && onGround) {
             console.log(".*Entity is jumping");
-            this.playJumpAnimation();
+            this.animationControls?.playJumpAnimation();
             this.moveCharacterUp();
         };
         this.moveCharacterForward();
@@ -775,9 +737,7 @@ export abstract class Controller {
             this.knockbackTimer += this.clockDelta || 0;
         }
     }
-    private updateCharacterAnimations():void {
-        if (this.mixer) this.mixer.update(this.clockDelta || 0);
-    }
+
     private updateCharacterTransformations():void {
         if (!this.characterRigidBody) return;
         //i  used its ground position and also added the level where things on the ground stand on as the y transform of the mesh
@@ -900,39 +860,10 @@ export abstract class Controller {
     }
 
 
-
-
     protected isAirBorne():boolean {
         const onGround = this.isGrounded() ;
         console.log("Airborne| on ground: ",onGround);
         return !onGround && this.shouldPlayJumpAnimation && !this.shouldStepUp
-    }
-    public playJumpAnimation():void {
-        if (this.mixer && this.jumpAction) this.fadeToAnimation(this.jumpAction);
-    }
-    protected playWalkAnimation():void {
-        if (this.mixer && this.walkAction && this.attackAction && !this.attackAction.isRunning()) {
-            this.fadeToAnimation(this.walkAction);
-        }
-    }
-    public playIdleAnimation():void {//i made it public for use by classes composed by the entity
-        if (this.mixer && this.idleAction && this.attackAction) {
-            if (!this.attackAction.isRunning()) {
-                this.fadeToAnimation(this.idleAction);
-            }
-        };
-    }
-    protected playAttackAnimation():void {
-        if (this.mixer && this.attackAction && this.deathAction){
-            if (!this.deathAction.isRunning()) {
-                this.fadeToAnimation(this.attackAction);
-            }
-        }
-    }
-    protected playDeathAnimation():void {
-        if (this.mixer && this.deathAction) {
-            this.fadeToAnimation(this.deathAction);
-        }
     }
 
     
@@ -986,7 +917,7 @@ export abstract class Controller {
         this.updateKnockbackCooldown();
         this.updateVelJustAboveGround();
         this.onLoop();
-        this.updateCharacterAnimations();//im updating the animation before the early return so that it stops naturally 
+        this.animationControls?.updateAnimations(deltaTime);//im updating the animation before the early return so that it stops naturally 
         if (this.characterRigidBody && this.characterRigidBody.isSleeping()) {
             console.log("sleeping...");
             return;//to prevent unnecessary queries.Since it sleeps only when its grounded.its appropriate to return true here saving computation

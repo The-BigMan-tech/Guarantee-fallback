@@ -86,7 +86,7 @@ export class Entity extends Controller implements EntityLike {
     }
 
     private idle():void {
-        this.playIdleAnimation()
+        this.animationControls?.playIdleAnimation()
     }
     private patrol():void {
         if (this.patrolTimer >= this.patrolCooldown) {
@@ -111,7 +111,7 @@ export class Entity extends Controller implements EntityLike {
         this.attackTimer += this.clockDelta || 0;
         if (!this.targetEntity?.health) return;
         if (this.attackTimer > (this.attackCooldown -0.4)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
-            this.playAttackAnimation();
+            this.animationControls?.playAttackAnimation();
         }
         if (this.attackTimer > this.attackCooldown) {
             const srcPosition = this.position.clone();
@@ -125,7 +125,7 @@ export class Entity extends Controller implements EntityLike {
     }
     public death():void {
         if (this.health.isDead && !this.isRemoved) {
-            this.playDeathAnimation();
+            this.animationControls?.playDeathAnimation();
             //I used to have a fadeout function right here to fade out the animation slowly as the entity dies but the problem is that it mutated the opacity of the materails directly which is fine as long as i reread the gltf file from disk for each entity.but if i only read it once and clone the model,it only clones the model not the material.each model clone even deep ones will still ref the same material in mem for perf.i didnt discover this till i reused models for my item clones.
             this.cleanUpResources();
         }
@@ -185,8 +185,9 @@ export class Entity extends Controller implements EntityLike {
             
             //Remove the entity from gpu resources
             disposeHierarchy(this.char);//remove the geometry data from the gpu
-            this.mixer = disposeMixer(this.mixer);//to prevent animation updates
-            
+            if (this.animationControls) {
+                this.animationControls.mixer = disposeMixer(this.animationControls.mixer);//to prevent animation updates
+            }
 
             //Remove the entity from internal data structures
             const index = this.struct.entityIndexMap.get(this)!;
@@ -258,7 +259,7 @@ export class Entity extends Controller implements EntityLike {
         this.currentHealth = this.health.value;
         this.checkIfOutOfBounds();
         this.health.checkGroundDamage(this.velBeforeHittingGround);
-        if (this.isAirBorne() && (!this.health.isDead)) this.playJumpAnimation();
+        if (this.isAirBorne() && (!this.health.isDead)) this.animationControls?.playJumpAnimation();
         if (this.updateInternalState) this.updateInternalState(); 
         this.reactToStateMachine();
     }
