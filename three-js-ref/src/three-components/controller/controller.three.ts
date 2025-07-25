@@ -356,68 +356,70 @@ export abstract class Controller {
     //this is used to prioritize branches created by the foremost and side ray
     private prioritizeBranch:boolean = false;
 
+    private directAgentAlongTheWall(point: THREE.Vector3,horizontalForward:THREE.Vector3,maxWidthToCheck:number) {
+        const straightLinePos = point.clone();//i termed this straight line cuz it penetrates through blocks to get a clearance point
+        let finalPos: THREE.Vector3 | null = null;
+        for (let i=0;i <= maxWidthToCheck;i++) {
+            let straightClearance = true
+            this.colorPoint(straightLinePos,0x033e2b)
+            straightLinePos.add(horizontalForward);
+            physicsWorld.intersectionsWithPoint(straightLinePos,(colliderObject)=>{
+                const shape = physicsWorld.getCollider(colliderObject.handle).shape
+                const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
+                if (isCharacterCollider || !(shape instanceof RAPIER.Cuboid)) return true;
+                straightClearance = false
+                return true
+            })
+            if (straightClearance) {
+                finalPos = straightLinePos.clone().add(horizontalForward.clone().multiplyScalar(6));
+                this.obstacleClearancePoint = finalPos;
+                this.prioritizeBranch = false
+                this.colorPoint(finalPos,0x34053e);
+                console.log('character clearance point:', this.obstacleClearancePoint);
+                break;
+            }
+        }  
+    }
+    private directAgentFromTheWall(point:THREE.Vector3,horizontalForward:THREE.Vector3) {
+        const horizontalBackward = horizontalForward.clone().negate();
+        const direction = this.useClockwiseScan ? horizontalForward : horizontalBackward;
+        const rayLinePos = point.clone();//i termed this ray even though its just shooting points because it behaves like one cuz when it hits an obstacle,it casts a new point at 180 to where the point hit rather than penetrating through the block like the one form the side ray
+        
+        let rayBlocked = false;
+        this.colorPoint(rayLinePos,0x290202)
+        physicsWorld.intersectionsWithPoint(rayLinePos,(colliderObject)=>{ 
+            const shape = physicsWorld.getCollider(colliderObject.handle).shape 
+            const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
+            if (isCharacterCollider || !(shape instanceof RAPIER.Cuboid)) return true;
+            rayBlocked = true;
+            return true;
+        })
+        if (rayBlocked)  {
+            const sideVector = new THREE.Vector3(direction.z, 0, -direction.x).normalize();
+            const nudgePoint = rayLinePos.clone().add(sideVector.multiplyScalar(4));
+            this.colorPoint(nudgePoint,0x19044c)
+            this.obstacleClearancePoint = nudgePoint;
+            this.prioritizeBranch = true
+            console.log('Adjusted clearance point:', this.obstacleClearancePoint);
+        }
+    }
     private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay') {
         const horizontalForward = this.getHorizontalForward();
         const maxWidthToCheck = 40;
         const reachedPreviousClearance = this.obstacleClearancePoint.equals({x:0,y:0,z:0})//this states whether the controller has reached the previous clearance point used to lead it away from an obstacle.i used a zero vector equality check cuz it only clears to 0 when the entity has reached the previous branch
-        
         console.log('reachedPreviousClearance:', reachedPreviousClearance);
         
         //the purpose of this point cast is to lead the agent along the wall of an obstacle by shooting forward till there is no obstacle ahead of it which means that it has sucessfully walked along the wall.youll understand this better if you see it yourself using the visual debugger.
         //only the sideray should be locked behind has reached previous clerance to give priority to the forward ray
         if ((purpose == 'sideRay') && reachedPreviousClearance) {//only the side or foremost ray can be called at a time per call.
-            const straightLinePos = point.clone();//i termed this straight line cuz it penetrates through blocks to get a clearance point
-            let finalPos: THREE.Vector3 | null = null;
-            for (let i=0;i <= maxWidthToCheck;i++) {
-                let straightClearance = true
-                this.colorPoint(straightLinePos,0x033e2b)
-                straightLinePos.add(horizontalForward);
-
-                physicsWorld.intersectionsWithPoint(straightLinePos,(colliderObject)=>{
-                    const shape = physicsWorld.getCollider(colliderObject.handle).shape
-                    const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
-                    if (isCharacterCollider || !(shape instanceof RAPIER.Cuboid)) return true;
-                    straightClearance = false
-                    return true
-                })
-                if (straightClearance) {
-                    finalPos = straightLinePos.clone().add(horizontalForward.clone().multiplyScalar(6));
-                    this.obstacleClearancePoint = finalPos;
-                    this.prioritizeBranch = false
-                    this.colorPoint(finalPos,0x34053e);
-                    console.log('character clearance point:', this.obstacleClearancePoint);
-                    break;
-                }
-            }  
+            this.directAgentAlongTheWall(point,horizontalForward,maxWidthToCheck)
         }
         //the purpose of this point cast is to create that initial turn against an obstacle wall by nudging the clearance point to the side.youll better understand it by using the visual debugger.
-
-        if ((purpose == "foremostRay")) {
-            const horizontalBackward = horizontalForward.clone().negate();
-            const direction = this.useClockwiseScan ? horizontalForward : horizontalBackward;
-            const rayLinePos = point.clone();//i termed this ray even though its just shooting points because it behaves like one cuz when it hits an obstacle,it casts a new point at 180 to where the point hit rather than penetrating through the block like the one form the side ray
-            
-            let rayBlocked = false;
-            this.colorPoint(rayLinePos,0x290202)
-
-            physicsWorld.intersectionsWithPoint(rayLinePos,(colliderObject)=>{ 
-                const shape = physicsWorld.getCollider(colliderObject.handle).shape 
-                const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
-                if (isCharacterCollider || !(shape instanceof RAPIER.Cuboid)) return true;
-                rayBlocked = true;
-                return true;
-            })
-            if (rayBlocked)  {
-                const sideVector = new THREE.Vector3(direction.z, 0, -direction.x).normalize();
-                const nudgePoint = rayLinePos.clone().add(sideVector.multiplyScalar(4));
-                this.colorPoint(nudgePoint,0x19044c)
-                this.obstacleClearancePoint = nudgePoint;
-                this.prioritizeBranch = true
-                console.log('Adjusted clearance point:', this.obstacleClearancePoint);
-            }
-            
+        else if ((purpose == "foremostRay")) {
+            this.directAgentFromTheWall(point,horizontalForward) 
         }
     }
+    
     private detectObstacle():void {
         if (!this.isGrounded()) return;//to prevent detection when in the air
 
