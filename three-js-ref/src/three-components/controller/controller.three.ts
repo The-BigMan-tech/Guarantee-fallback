@@ -279,14 +279,15 @@ export abstract class Controller {
         const incrementVector = new THREE.Vector3(0,increment,0);
 
         for (let i=0;i <= maxHeightToCheck;i+=increment) {
+            console.log('relative i:', i);
             let upwardClearance = true
             const upwardCheckPos = stepOverPos.clone().addScaledVector(incrementVector, i)
             physicsWorld.intersectionsWithPoint(upwardCheckPos,()=>{
                 upwardClearance = false
                 return true
             })
-            if (upwardClearance ||  (i === maxHeightToCheck)) {
-                const relativeHeight = Number((upwardCheckPos.y - groundPosY).toFixed(2));
+            if (upwardClearance ||  ((maxHeightToCheck-i) < 0.2)) {
+                const relativeHeight = Number((upwardCheckPos.y - groundPosY).toFixed(1));
                 console.log('relative upwardCheckPos.y:', upwardCheckPos.y);
                 this.obstacleHeight = relativeHeight
                 console.log("Relative height checked up: ",relativeHeight);
@@ -309,7 +310,7 @@ export abstract class Controller {
                 forwardClearance = false
                 return true
             })
-            if (forwardClearance ||  (i === maxDepthToCheck)) {//the max depth to check is where the controller gives up checking for clearance.so it uses the current point where it gave up to get the relative depth of the obstacle.even though the depth may be a lot times deeper,having this still gives a meaningful result while preventing a potential infinite samples of points to be queried
+            if (forwardClearance || ((maxDepthToCheck-i) < 0.2)) {//the max depth to check is where the controller gives up checking for clearance.so it uses the current point where it gave up to get the relative depth of the obstacle.even though the depth may be a lot times deeper,having this still gives a meaningful result while preventing a potential infinite samples of points to be queried
                 depth = this.distanceXZ(this.characterPosition,forwardCheckPos)-this.obstacleDetectionDistance//i minused the obstacle det distance to also condier the gap between the controller and the obstacle
                 console.log('relative depth: ',depth);
                 break;
@@ -320,9 +321,10 @@ export abstract class Controller {
     //this is used to prioritize branches created by the foremost and side ray
     private prioritizeBranch:boolean = false;
 
-    private directAgentAlongTheWall(point: THREE.Vector3,horizontalForward:THREE.Vector3,maxWidthToCheck:number) {
+    private directAgentAlongTheWall(point: THREE.Vector3,horizontalForward:THREE.Vector3) {
         let finalPos: THREE.Vector3 | null = null;
-        for (let i=0;i <= maxWidthToCheck;i++) {
+        const maxWidthToCheck = 40;
+        for (let i=0;i <= maxWidthToCheck;i++) {//i didnt use 0.1 here because i dont need precise measurement.just a rough point to navigate along the wall
             let straightClearance = true
             const straightLinePos = point.clone().addScaledVector(horizontalForward, i);
             this.colorPoint(straightLinePos,0x033e2b);
@@ -369,14 +371,13 @@ export abstract class Controller {
     }
     private calcClearanceForAgent(point: THREE.Vector3,purpose:'foremostRay' | 'sideRay') {
         const horizontalForward = this.getHorizontalForward();
-        const maxWidthToCheck = 40;
         const reachedPreviousClearance = this.obstacleClearancePoint.equals({x:0,y:0,z:0})//this states whether the controller has reached the previous clearance point used to lead it away from an obstacle.i used a zero vector equality check cuz it only clears to 0 when the entity has reached the previous branch
         console.log('reachedPreviousClearance:', reachedPreviousClearance);
         
         //the purpose of this point cast is to lead the agent along the wall of an obstacle by shooting forward till there is no obstacle ahead of it which means that it has sucessfully walked along the wall.youll understand this better if you see it yourself using the visual debugger.
         //only the sideray should be locked behind has reached previous clerance to give priority to the forward ray
         if ((purpose == 'sideRay') && reachedPreviousClearance) {//only the side or foremost ray can be called at a time per call.
-            this.directAgentAlongTheWall(point,horizontalForward,maxWidthToCheck)
+            this.directAgentAlongTheWall(point,horizontalForward)
         }
         //the purpose of this point cast is to create that initial turn against an obstacle wall by nudging the clearance point to the side.youll better understand it by using the visual debugger.
         else if ((purpose == "foremostRay")) {
