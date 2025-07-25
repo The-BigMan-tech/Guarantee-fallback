@@ -296,21 +296,21 @@ export class Player extends Controller implements EntityLike {
     }
     private bindKeysToAnimations() {
         if (this.isAirBorne()) {
-            this.stopWalkSound()
+            this.soundControls.stopWalkSound()
             this.playJumpAnimation()
         }else if (this.keysPressed['KeyW']) {//each key will have its own animation
-            this.playWalkSound()
+            this.soundControls.playWalkSound()
             this.playWalkAnimation()
         }else if (this.keysPressed['KeyA']) {
-            this.playWalkSound()
+            this.soundControls.playWalkSound()
         }else if (this.keysPressed['KeyS']) {
-            this.playWalkSound()
+            this.soundControls.playWalkSound()
         }else if (this.keysPressed['KeyD']) {
-            this.playWalkSound()
+            this.soundControls.playWalkSound()
         }else if (this.keysPressed['KeyQ']) {
             this.playAttackAnimation();
         }else if (!this.health.isDead) {
-            this.stopWalkSound();
+            this.soundControls.stopWalkSound();
             this.playIdleAnimation();
         }
     }

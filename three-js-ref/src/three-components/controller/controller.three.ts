@@ -3,11 +3,11 @@ import { type GLTF } from 'three/addons/loaders/GLTFLoader.js';
 import { AnimationMixer } from 'three';
 import * as RAPIER from '@dimforge/rapier3d'
 import { physicsWorld,gravityY,outOfBoundsY, combatCooldown, startingLevelY} from "../physics-world.three";
-import { listener, audioLoader } from "../listener/listener.three";
 import {v4 as uniqueID} from "uuid"
 import { getGroundDetectionDistance, VelCalcUtils } from "./helper";
 import { createBoxLine, createCapsuleLine } from "../item-system/behaviour/other-helpers.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
+import { SoundControls } from "./sound-controls.three";
 
 
 //this is data fpr the controller that cant or should not be changed after creation
@@ -106,14 +106,12 @@ export abstract class Controller {
     //this is used to inform concretes if they are out of bounds like out of the world.this is to ensure that they are eithe respawned in the case of the player or killed in the case of entities.since the world is procedurally genrated around the player,its highly unlikely that the player will fall out of bounds since the base floor is indestructibe but i still left that respawning when out of bounds cuz i made it at the time where the world was finite and besides,its a good defensive check where the player may glitch of the world unexpectedly in cases of high falling velocities or something like that.As for the entities,i use this especially as an easy way to clean entities that are off the chunk without explicitly limiting the despawn radius to the chunk distance.it allows me to decouple those variables improving overall clarity.
     protected isOutOfBounds:boolean = false;
 
-    private walkSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener);;//the inheriting class can only access this sound through exposed methods
-    private landSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener);;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
-    private punchSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener)
     
     //this group is positioned exactly at the hand group of the 3d model by the controller and exposed to the children to do whatever thwy want with it like adding and removing item models from the group.i did it here because the controller unlike the player can call it at the appropriate time where its sure that the model is already available before it queries for the hand.else it will be null if attempted to be done in the children
     protected item3D:THREE.Group = new THREE.Group();
 
     private velCalcUtils:VelCalcUtils = new VelCalcUtils();
+    public soundControls:SoundControls = new SoundControls();
 
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
@@ -147,7 +145,8 @@ export abstract class Controller {
         if (Controller.showHitBoxes) this.character.add(this.charLine);
 
         this.loadCharacterModel();
-        this.loadSounds();
+        this.soundControls.loadSounds();
+        this.character.add(this.soundControls.walkSound,this.soundControls.punchSound,this.soundControls.landSound);
     }
     private calculateGroundPosition() {
         const initGroundPosY = Number((this.characterPosition.y - this.groundDetectionDistance).toFixed(2)) - 1;//the -1 is required to sink the point a little into the ground to prevent the point from stopping just above the ground which will make the query ineffective for gettng the ground position.
@@ -155,23 +154,7 @@ export abstract class Controller {
         console.log('groundPosY:',finalGroundPosY);
         return finalGroundPosY
     }
-    private loadSounds() {
-        audioLoader.load('walking.mp3',(buffer)=> {
-            this.walkSound.setBuffer(buffer);
-            this.walkSound.setVolume(0.5);//The volumes here are multiplers of the computer's current volume-DO NOT INCREASE MORE THAN ONE
-        });
-        audioLoader.load('landing.mp3',(buffer)=> {
-            this.landSound.setBuffer(buffer);
-            this.landSound.setVolume(0.5);
-        });
-        audioLoader.load('punch.mp3',(buffer)=> {
-            this.punchSound.setBuffer(buffer);
-            this.punchSound.setVolume(0.5);
-        });
-        this.character.add(this.walkSound);
-        this.character.add(this.punchSound);
-        this.character.add(this.landSound)
-    }
+    
     private loadCharacterModel():void {
         if (this.fixedData.gltfModel) {
             const characterModel = this.fixedData.gltfModel.scene.clone(true);
@@ -248,11 +231,6 @@ export abstract class Controller {
         point.position.y -= 0.5;
         this.points.add(point);
     }
-    //this is to color the ground point but im not currently using it cuz the ground point jitters about a fixed position because of float precision changes per frame or something like that
-    private colorGroundPoint() {//i rounded the height cuz the point doesnt always exactly touch the ground
-        const point:THREE.Vector3 = new THREE.Vector3(this.characterPosition.x,Math.round(this.calculateGroundPosition()),this.characterPosition.z);
-        this.colorPoint(point,0xffffff)
-    }
 
    //this just uses the calculated ground point to query for the ground to know if the controller is grounded or not.i used it to determine which forces to apply on the controller to move its body like linear velocity for movement,impulse for knockback and no explicit velocity control when jumping to make jumping feel more natural.
     private isGrounded():boolean {
@@ -269,7 +247,7 @@ export abstract class Controller {
             if (isCharacterCollider) return true;//skip the check for the player and contiune searching for other colliers at that point
 
             if (this.playLandSound) {
-                this.landSound.play();
+                this.soundControls.playLandSound();
                 this.playLandSound = false
             }
             onGround = true
@@ -534,7 +512,7 @@ export abstract class Controller {
         return canJump
     }
     private autoMoveForward(finalDestY:number) {//this is used by the nav method to just move forward.thats its only job.it just moves forward and jump if the entity needs to jump.the high level overview of the nav logic is handled by the nav to target method
-        this.stopWalkSound();
+        this.soundControls.stopWalkSound();
         const onGround = this.isGrounded();
 
         const greaterOrSameYLevel = Math.round(finalDestY - this.character.position.y) >= 2;//this is to ensure it doesnt jumps proactively when im below it.it should just walk down
@@ -550,7 +528,7 @@ export abstract class Controller {
         if (onGround) {
             console.log("Entity is walking");
             this.playWalkAnimation();
-            this.playWalkSound();
+            this.soundControls.playWalkSound();
         }
         if ((jumpProactively || this.canJumpOntoObstacle()) && !this.shouldStepUp && onGround) {
             console.log(".*Entity is jumping");
@@ -648,7 +626,7 @@ export abstract class Controller {
         if (hasReachedOriginalPath || this.isNearOriginalPath) {//the current value of isNearOriginalPath will come in the next frame before using it to make its decision.cuz its needed for automoveforward to know it should stop moving the entity.if i use it to return from here,that opportunity wont happen and the entity wont preserve any space between it and the target
             this.spaceTimer += this.clockDelta || 0;
             this.terminateBranch();
-            this.stopWalkSound();
+            this.soundControls.stopWalkSound();
             console.log('.:Reached original path');
             if (this.spaceTimer > this.spaceCooldown) {//i used a cooldown to retain this space for some time or else,it will just go straight to the target again
                 this.isNearOriginalPath = false
@@ -839,7 +817,7 @@ export abstract class Controller {
         const impulse = direction.multiplyScalar(knockbackImpulse);
         this.impulse.copy(impulse);
         this.isKnockedBack = true;//we need to set this flag explicitly so that the controller allows the impulse to affect it.else,the impulse wont apply because the controller will directly control linvel which will interfer with this
-        this.playPunchSound();
+        this.soundControls.playPunchSound();
     }
 
 
@@ -955,20 +933,6 @@ export abstract class Controller {
         if (this.mixer && this.deathAction) {
             this.fadeToAnimation(this.deathAction);
         }
-    }
-
-
-    protected playWalkSound():void {
-        if (!this.walkSound.isPlaying) this.walkSound.play();
-    }
-    protected playPunchSound():void {
-        if (!this.punchSound.isPlaying) this.punchSound.play();
-    }
-    protected stopWalkSound():void {
-        this.walkSound.stop();
-    }
-    protected stopPunchSound():void {
-        this.punchSound.stop();
     }
 
     
