@@ -24,7 +24,7 @@ function visualizeRay(origin:THREE.Vector3, direction:THREE.Vector3, distance:nu
 
 //Note:The Controller and RigidBodyClone class are what ill be using and i recoomend to use to create dynamic physics bodies because they have a simple api while providing management underneath.The controler is for dynamic bodies that are controlled by a living entity while rigid body clone are for game objects 
 export class RigidBodyClone {
-    public   group:THREE.Group = new THREE.Group();//this where the clone's model is actualy stored.use this to sync with the rigid body and know the mesh's current data liek position or rotation
+    public   group:THREE.Group = new THREE.Group();//this where the clone's model is actualy stored.use this to sync with the rigid body and know the mesh's current data liek position or rotation.using the container for this type of task will lead to problems
     private  container:THREE.Group = new THREE.Group();//this is just a container used to add and remove the group to and from a parent to ensure that its world transform is correct by using the attatch method.it is meant to be unique per clone because this clone class should never take the responsibility of parenting itself or other clones by using a static group variable.doing so will break it because the same group will be added to multiple parents and will cause lots of issues
     private  parent:THREE.Group;
 
