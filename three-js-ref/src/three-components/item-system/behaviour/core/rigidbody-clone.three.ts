@@ -291,6 +291,7 @@ export class RigidBodyClone {
         this.parent.remove(this.container);
         disposeHierarchy(this.container);
         this.removeFromClones();
+        this.owner = null;//dont reference the owner again upon cleanup to allow the owner to be garbage collected when its time comes
         if (this.rigidBody) {
             physicsWorld.removeRigidBody(this.rigidBody)
             this.rigidBody = null
