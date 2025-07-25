@@ -24,9 +24,9 @@ function visualizeRay(origin:THREE.Vector3, direction:THREE.Vector3, distance:nu
 
 //Note:The Controller and RigidBodyClone class are what ill be using and i recoomend to use to create dynamic physics bodies because they have a simple api while providing management underneath.The controler is for dynamic bodies that are controlled by a living entity while rigid body clone are for game objects 
 export class RigidBodyClone {
-    public  mesh:THREE.Group = new THREE.Group();
+    public  group:THREE.Group = new THREE.Group();
     public  rigidBody:RAPIER.RigidBody | null;
-    private static meshGroup:THREE.Group = new THREE.Group();
+    private container:THREE.Group = new THREE.Group();
 
     private handle:number;
     private height:number;
@@ -76,12 +76,12 @@ export class RigidBodyClone {
         clonedModel.scale.set(scaleX, scaleY, scaleZ);
         clonedModel.position.y -= properties.height / 2;
 
-        this.mesh.add(this.rayGroup);
-        this.mesh.add(clonedModel);
-        this.mesh.position.copy(spawnPosition);
+        this.group.add(this.rayGroup);
+        this.group.add(clonedModel);
+        this.group.position.copy(spawnPosition);
 
         const hitbox = createBoxLine(properties.width,properties.height,properties.depth);//this is for debugging
-        if (RigidBodyClone.addHitbox) this.mesh.add(hitbox);
+        if (RigidBodyClone.addHitbox) this.group.add(hitbox);
 
         const cloneCollider = RAPIER.ColliderDesc.cuboid(properties.width/2,properties.height/2,properties.depth/2).setDensity(properties.density);
         const cloneBody = RAPIER.RigidBodyDesc.dynamic()
@@ -91,15 +91,15 @@ export class RigidBodyClone {
         this.rigidBody.setTranslation(spawnPosition,true);
         this.rigidBody.setRotation(spawnQuaternion.clone().multiply(rotateOnXBy180()),true);//i rotated it by 180 so that it faces the player on spawn because directly making the clone rotation the player's quaternion will make it face where the player is facing not at the player.
 
-        this.mesh.position.copy(this.rigidBody.translation());
-        this.mesh.quaternion.copy(this.rigidBody.rotation());
+        this.group.position.copy(this.rigidBody.translation());
+        this.group.quaternion.copy(this.rigidBody.rotation());
 
         this.durability = new Health(properties.durability);
 
         RigidBodyClones.clones.push(this);//automatically push the clone to the clones array for updating
         RigidBodyClones.cloneIndices.set(this,RigidBodyClones.clones.length-1);//add its index to the map for removal
-        RigidBodyClone.meshGroup.add(this.mesh);//i added the mesh to a group before attatching the group to world space instead of attacthing the meshes directly to world space because,i really dont know why,but thats the only way it worked without breaking from any sync issues.
-        parent.attach(RigidBodyClone.meshGroup)//add it to the parent group to be shown in the scene.i used attatch here instead of the add method so that i can include the meshes in the parent for management while still having them use world space cords because my item clone class expects that the parent group is at world cords and if i used the add method here,the cords of the group will shift which will cause sync bugs and i dont have to worry my class about using local or world space for the mesh and rigid bpdy separately
+        this.container.add(this.group);//i added the mesh to a group before attatching the group to world space instead of attacthing the meshes directly to world space because,i really dont know why,but thats the only way it worked without breaking from any sync issues.
+        parent.attach(this.container)//add it to the parent group to be shown in the scene.i used attatch here instead of the add method so that i can include the meshes in the parent for management while still having them use world space cords because my item clone class expects that the parent group is at world cords and if i used the add method here,the cords of the group will shift which will cause sync bugs and i dont have to worry my class about using local or world space for the mesh and rigid bpdy separately
     }
 
 
@@ -125,8 +125,8 @@ export class RigidBodyClone {
     private isGrounded():boolean {
         if (this.rigidBody?.isSleeping()) return true;//if it sleeps,its grounded.so we can skip the computation here.
         const groundDetectionDistance = getGroundDetectionDistance(this.height)
-        const groundPoint = (this.mesh.position.y - groundDetectionDistance) + ((this.height%2)*0.5);//took into account the parity of the height
-        const groundPos = this.mesh.position.clone().setY(groundPoint);
+        const groundPoint = (this.group.position.y - groundDetectionDistance) + ((this.height%2)*0.5);//took into account the parity of the height
+        const groundPos = this.group.position.clone().setY(groundPoint);
         console.log('spin. groundPoint:', groundPoint);
 
         let onGround = false
@@ -158,7 +158,7 @@ export class RigidBodyClone {
     }
 
     private despawnSelfIfFar() {
-        const distance = player.position.distanceTo(this.mesh.position);
+        const distance = player.position.distanceTo(this.group.position);
         if (distance > this.despawnRadius) {
             this.cleanUp()
         }
@@ -168,10 +168,10 @@ export class RigidBodyClone {
     private requestIntersectedClone(maxDistance:number):RigidBodyClone | null {
         return this.intersectionRequest.requestObject({
             raycaster: this.raycaster,
-            testObjects:RigidBodyClones.clones.map(clone=>clone.mesh),
+            testObjects:RigidBodyClones.clones.map(clone=>clone.group),
             maxDistance,
             selection:RigidBodyClones.clones,
-            self:this.mesh
+            self:this.group
         });
     }
     private requestIntersectedEntity(maxDistance:number):Entity | null {
@@ -180,7 +180,7 @@ export class RigidBodyClone {
             testObjects:entities.map(e => e._entity.char),
             maxDistance,
             selection:entities,
-            self:this.mesh
+            self:this.group
         });
         return entityWrapper?._entity || null
     }
@@ -190,7 +190,7 @@ export class RigidBodyClone {
             testObjects:[player.char],
             maxDistance,
             selection:[player],
-            self:this.mesh
+            self:this.group
         });
     }
     private updateRayVisualizer(origin:THREE.Vector3,velDirection:THREE.Vector3) {
@@ -248,12 +248,12 @@ export class RigidBodyClone {
         this.despawnSelfIfFar();//the reason why i made each clone responsible for despawning itself unlike the entity system where the manager despawns far entities is because i dont want to import the player directly into the class that updates the clones because the player also imports that.so its to remove circular imports
         if (this.rigidBody && !this.isRemoved) {
             const rigidBodyQuaternion = new THREE.Quaternion().copy(this.rigidBody.rotation());
-            const isMeshOutOfSync =  !this.mesh.position.equals(this.rigidBody.translation()) || !this.mesh.quaternion.equals(rigidBodyQuaternion);
+            const isMeshOutOfSync =  !this.group.position.equals(this.rigidBody.translation()) || !this.group.quaternion.equals(rigidBodyQuaternion);
             
             if (!this.durability.isDead || isMeshOutOfSync) {
                 const onGround = this.isGrounded();
-                this.mesh.position.copy(this.rigidBody.translation());
-                this.mesh.quaternion.copy(this.rigidBody.rotation());
+                this.group.position.copy(this.rigidBody.translation());
+                this.group.quaternion.copy(this.rigidBody.rotation());
                 this.checkIfOutOfBounds();
                 this.applySpin(onGround)
                 this.knockbackObjectsAlongPath(onGround);
@@ -284,8 +284,8 @@ export class RigidBodyClone {
 
 
     public cleanUp() {
-        RigidBodyClone.meshGroup.remove(this.mesh)
-        disposeHierarchy(this.mesh);
+        this.container.remove(this.group);
+        disposeHierarchy(this.group);
         this.removeFromClones();
         if (this.rigidBody) {
             physicsWorld.removeRigidBody(this.rigidBody)
