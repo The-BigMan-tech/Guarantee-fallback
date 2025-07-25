@@ -103,17 +103,18 @@ export class RigidBodyClone {
     }
 
 
-    private applySpin() {
-        if (this.rigidBody && !this.spinApplied) {
+    private applySpin(onGround:boolean) {
+        if (onGround) {
+            this.spinApplied = false;//its on the ground so we need to reset it so that spin can apply again after next throw
+        }
+        else if (this.rigidBody && !this.spinApplied) {
             const baseSpinVelocity = 100;
             const spinMagnitude = baseSpinVelocity / this.rigidBody.mass();//we are making this inversely proportional because the point here isnt to make all objects of all masses to spin like a ball but to make objects that can spin to spin while heavier ones shouldnt
-
             const spinVelocity = new THREE.Vector3(
               (Math.random() - 0.5) * spinMagnitude,
               (Math.random() - 0.5) * spinMagnitude,
               (Math.random() - 0.5) * spinMagnitude
             ).multiply(this.spinVectorInAir);
-
             this.rigidBody.setAngvel(spinVelocity, true);//i directly set the ang vel here over applying torque because doing so wont produce the desired effects because rapier also does its own calc before applying it
             this.spinApplied = true;//to prevent applying a spin to the body when one is already applied.we reset it here to ensure that its only set to true when its guaranteed that this method applied the torque
             console.log('spin applied');
@@ -229,32 +230,31 @@ export class RigidBodyClone {
 
         }
     }
+    private checkForOwnership() {
+        if (this.owner?.health.isDead) {
+            console.log('owner is dead');
+            this.owner = null//remove any reference to the entity when its dead to allow for garbage collection
+        }
+    }
     private isRemoved = false;
     public updateClone() {
+        if (this.rigidBody) return;
         this.despawnSelfIfFar();//the reason why i made each clone responsible for despawning itself unlike the entity system where the manager despawns far entities is because i dont want to import the player directly into the class that updates the clones because the player also imports that.so its to remove circular imports
         const onGround = this.isGrounded();
-        if (!this.rigidBody) return;
-        if ((!this.durability.isDead) || this.mesh.position.equals(this.rigidBody.translation())) {
-            if (!this.rigidBody) return;
+        const rigidBodyQuaternion = new THREE.Quaternion().copy(this.rigidBody.rotation());
+        const isMeshOutOfSync =  !this.mesh.position.equals(this.rigidBody.translation()) || !this.mesh.quaternion.equals(rigidBodyQuaternion);
+        
+        if ((!this.durability.isDead) || isMeshOutOfSync) {
             this.checkIfOutOfBounds();
             this.mesh.position.copy(this.rigidBody.translation());
             this.mesh.quaternion.copy(this.rigidBody.rotation());
+            this.applySpin(onGround)
+            this.knockbackObjectsAlongPath(onGround);
+            this.applyGroundDamage(onGround);  
+            this.checkForOwnership();
 
             console.log('spin. is Body sleeping: ',this.rigidBody.isSleeping());
             console.log('spin. is Body grounded: ',onGround);
-
-            if (!onGround) {
-                this.applySpin();
-            }else {
-                this.spinApplied = false; //its on the ground so we need to reset it so that spin can apply again after next throw
-            }
-            this.knockbackObjectsAlongPath(onGround);
-            this.applyGroundDamage(onGround);  
-
-            if (this.owner?.health.isDead) {
-                console.log('owner is dead');
-                this.owner = null//remove any reference to the entity when its dead to allow for garbage collection
-            }
         }else if (!this.isRemoved) {//to ensure resources are cleaned only once 
             this.cleanUp();
         }
