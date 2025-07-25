@@ -274,7 +274,7 @@ export abstract class Controller {
     }
     //this calcuates the height of an obstacle by starting from a given point and going upwards till there is clearance which infers that the point of clearance is where the osbtacle height stops which can be used for other calculations.
     private calcHeightBottomUp(stepOverPos:THREE.Vector3,groundPosY:number) {
-        const maxHeightToCheck = 3;
+        const maxHeightToCheck = 30;
         const increment = 0.1;//the reason why the increment is in float is for the same reason it is for calc height top down
         const incrementVector = new THREE.Vector3(0,1,0);
 
@@ -304,7 +304,7 @@ export abstract class Controller {
 
         for (let i=0;i <= maxDepthToCheck;i+=increment) {
             const forwardCheckPos = detectionPoint.clone().addScaledVector(incrementVector, i);//to avoid cumulative floating-point drift.
-            const reachedMaxDepth = (maxDepthToCheck-i) < 0.2;//i did this because exact equality on floats will be fragile
+            const reachedMaxDepth = (maxDepthToCheck-i) < 0.1;//i did this because exact equality on floats will be fragile
             forwardCheckPos.y -= 1;//i did this because the point as it is,is a bit to the obstacles top that it can slide up away from it and end prematurely.this is to prevent that
             // this.colorPoint(forwardCheckPos,0x073042);
             
@@ -331,7 +331,7 @@ export abstract class Controller {
         for (let i=0;i <= maxWidthToCheck;i++) {//i didnt use 0.1 here because i dont need precise measurement.just a rough point to navigate along the wall
             let straightClearance = true
             const straightLinePos = point.clone().addScaledVector(horizontalForward, i);
-            const reachedMaxWidth = (maxWidthToCheck-i) < 0.2;
+            const reachedMaxWidth = (maxWidthToCheck-i) < 0.1;
             this.colorPoint(straightLinePos,0x033e2b);
 
             physicsWorld.intersectionsWithPoint(straightLinePos,(colliderObject)=>{
