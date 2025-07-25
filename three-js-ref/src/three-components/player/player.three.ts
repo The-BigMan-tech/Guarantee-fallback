@@ -135,7 +135,7 @@ export class Player extends Controller implements EntityLike {
     private onPlayerKeyUp = (event:KeyboardEvent)=> {
         this.keysPressed[event.code] = false
     }
-    private useInvertedControls(camDistToPlayer:number) {
+    private useInvertedControls() {
         if (!this.health.isDead) {
             if (this.keysPressed['KeyA']) {
                 this.moveCharacterRight();
@@ -156,14 +156,8 @@ export class Player extends Controller implements EntityLike {
         if (this.keysPressed['ArrowRight']) {
             this.rotateCharacterX('left')
         };
-        if (this.keysPressed['Minus'] &&  (camDistToPlayer >= -this.zoomClamp)) {//this corresponds to + key.zoom in
-            this.zoomCamera(-this.zoomDelta);
-        }
-        if (this.keysPressed['Equal'] && (camDistToPlayer <= this.zoomClamp)) {//zoom out
-            this.zoomCamera(this.zoomDelta);
-        }
     }
-    private useNormalControls(camDistToPlayer:number) {
+    private useNormalControls() {
         if (!this.health.isDead) { 
             if (this.keysPressed['KeyA']) {
                 this.moveCharacterLeft();
@@ -184,14 +178,8 @@ export class Player extends Controller implements EntityLike {
         if (this.keysPressed['ArrowRight']) {
             this.rotateCharacterX('right')
         };
-        if (this.keysPressed['Equal'] &&  (camDistToPlayer <= this.zoomClamp)) {//this corresponds to + key.zoom in
-            this.zoomCamera(this.zoomDelta);
-        }
-        if (this.keysPressed['Minus'] && (camDistToPlayer >= -this.zoomClamp)) {//zoom out
-            this.zoomCamera(-this.zoomDelta);
-        }
     }
-    private useConsistentControls() {
+    private useConsistentControls(camDistToPlayer:number) {
         if (!this.health.isDead) {
             if (this.keysPressed['KeyW']) {
                 if (this.keysPressed['ShiftLeft']) this.dynamicData.horizontalVelocity += 10;
@@ -232,6 +220,12 @@ export class Player extends Controller implements EntityLike {
                 this.useItemTimer = 0
             }
         }
+        if (this.keysPressed['Equal'] &&  (camDistToPlayer <= this.zoomClamp)) {//this corresponds to + key.zoom in
+            this.zoomCamera(this.zoomDelta);
+        }
+        if (this.keysPressed['Minus'] && (camDistToPlayer >= -this.zoomClamp)) {//zoom out
+            this.zoomCamera(-this.zoomDelta);
+        }
     }
     private bindKeysToControls() {//i used keydown here for instant feedback and debounced some of them
         const camPosToPlayer = this.camWorldPos.clone().sub(this.position);
@@ -242,11 +236,11 @@ export class Player extends Controller implements EntityLike {
             console.log = ()=>{};
         }
         if (this.camModeNum == CameraMode.SecondPerson) {//inverted controls for second person
-            this.useInvertedControls(signedDist)
+            this.useInvertedControls()
         }else {//Normal WASD controls   
-            this.useNormalControls(signedDist)
+            this.useNormalControls()
         }
-        this.useConsistentControls();
+        this.useConsistentControls(signedDist);
 
     }
     private playerViewForItemUse = new THREE.Group();
@@ -521,7 +515,7 @@ const playerDynamicData:DynamicControllerData = {
     gravityScale:1
 }
 const playerMiscData:PlayerMiscData = {
-    healthValue:15,
+    healthValue:1000,
     attackDamage:1,
     knockback:200,
     strength:1000,
