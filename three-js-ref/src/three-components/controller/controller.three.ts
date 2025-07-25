@@ -248,16 +248,15 @@ export abstract class Controller {
     }
     //this calcukates the height of an obstacle by starting from a clearance point downwards till there is no clearance which is where an obstacle has been detected.we can then use this point to get the relative height of an obstacle
     private calcHeightTopDown(stepOverPos:THREE.Vector3,groundPosY:number) {
-        const downwardCheckPos = stepOverPos.clone();//i cloned it to prevent subtle bugs if i reuse stepoverpos later
         const increment = 0.1;//the reason why i used a float this precise for the increment is to improve its robustness.this is because the blocks i generated in my world had random heights between x to y but not in whole integers but in floats.so when i used 1 here as the increment,it led to a subtle bug where the height was calculated as 2 but in reality,it was actually 2.2 leading to false positives that made the controller to attempt to step over the obstacle using a calculated upward and forward velocity that wasnt the actucal required velocity to overcome the obstacle and it wasnt suppose to walk over it in te first place which also led to a bug where calc clearance for agent was never called so my entity got stuck.but using smaller increments takes more runtime than big steps but this negligible for the gains in precision.
         const decrementVector = new THREE.Vector3(0,-increment,0)
         
         for (let i=0;i <= this.dynamicData.maxStepUpHeight;i+=increment) {
             let downwardClearance = true
-            downwardCheckPos.add(decrementVector);
+            const downwardCheckPos = stepOverPos.clone().addScaledVector(decrementVector, i)
 
             physicsWorld.intersectionsWithPoint(downwardCheckPos,()=>{
-                const relativeHeight = Number((downwardCheckPos.y - groundPosY).toFixed(2));//i fixed it to 2dp to make the result more concise.the obstacle height used here is a relative height not an absolute one.an absolute one is just directly uses the y pos without subtracting it from the ground pos and its effective enough for situations where the controller and all the obstacles are on the same ground level like a flat world with disperesed platforms but its not robust enough on terrains cuz blocks can be stacked on top of each other and you can be standing on a block next to the stacked block and its more important to know the height from where you are standing than wherever the obstacle stands on.so using relative height here is more robust
+                const relativeHeight = Number((downwardCheckPos.y - groundPosY).toFixed(1));//i fixed it to 2dp to make the result more concise.the obstacle height used here is a relative height not an absolute one.an absolute one is just directly uses the y pos without subtracting it from the ground pos and its effective enough for situations where the controller and all the obstacles are on the same ground level like a flat world with disperesed platforms but its not robust enough on terrains cuz blocks can be stacked on top of each other and you can be standing on a block next to the stacked block and its more important to know the height from where you are standing than wherever the obstacle stands on.so using relative height here is more robust
                 console.log('relative downwardCheckPos:', downwardCheckPos.y);
                 this.obstacleHeight = relativeHeight
                 downwardClearance = false
@@ -275,14 +274,13 @@ export abstract class Controller {
     }
     //this calcuates the height of an obstacle by starting from a given point and going upwards till there is clearance which infers that the point of clearance is where the osbtacle height stops which can be used for other calculations.
     private calcHeightBottomUp(stepOverPos:THREE.Vector3,groundPosY:number) {
-        const upwardCheckPos = stepOverPos.clone();
         const maxHeightToCheck = 30;
         const increment = 0.1;//the reason why the increment is in float is for the same reason it is for calc height top down
         const incrementVector = new THREE.Vector3(0,increment,0);
 
         for (let i=0;i <= maxHeightToCheck;i+=increment) {
             let upwardClearance = true
-            upwardCheckPos.add(incrementVector);
+            const upwardCheckPos = stepOverPos.clone().addScaledVector(incrementVector, i)
             physicsWorld.intersectionsWithPoint(upwardCheckPos,()=>{
                 upwardClearance = false
                 return true
@@ -323,12 +321,12 @@ export abstract class Controller {
     private prioritizeBranch:boolean = false;
 
     private directAgentAlongTheWall(point: THREE.Vector3,horizontalForward:THREE.Vector3,maxWidthToCheck:number) {
-        const straightLinePos = point.clone();//i termed this straight line cuz it penetrates through blocks to get a clearance point
         let finalPos: THREE.Vector3 | null = null;
         for (let i=0;i <= maxWidthToCheck;i++) {
             let straightClearance = true
-            this.colorPoint(straightLinePos,0x033e2b)
-            straightLinePos.add(horizontalForward);
+            const straightLinePos = point.clone().addScaledVector(horizontalForward, i);
+            this.colorPoint(straightLinePos,0x033e2b);
+
             physicsWorld.intersectionsWithPoint(straightLinePos,(colliderObject)=>{
                 const shape = physicsWorld.getCollider(colliderObject.handle).shape
                 const isCharacterCollider = colliderObject.handle == this.characterColliderHandle;
@@ -424,7 +422,7 @@ export abstract class Controller {
                 hasCollidedForward = true;
                 //i also considered the point in the y axis where obstacles stand.thats why i added startingLevelY
                 const groundPosY = Math.floor(offsetPoint.y);//i floored it to clarify the ref point so that rather than 0.7 or 0.1,its 0.why floor specifically?i can instead use round or ceil.but the reason why i made this decision was because of feedback from game testing and the logs.i tested this in an env where i knew the exact height of the obstacles i was testing against but i needed the algo to know that.so after iteratively playing with precision,floor was the best choice.for something like ground ref,flooring it is better cuz it provides a stable ref point across all floats of a particular number.its more stable than round which is biased to higher floats and its better than ceil thats too generous to lower floats
-                const stepOverPosY = (groundPosY + this.dynamicData.maxStepUpHeight)+0.1//so what we want to do here is to check for the point at the height just above what the character can step over before taking clearance checks from there to get the exact height.we could have used 1 but it misses on float heights so 0.1 is more precise.it catches the height more accurately
+                const stepOverPosY = groundPosY + this.dynamicData.maxStepUpHeight;
                 const stepOverPos = new THREE.Vector3(offsetPoint.x,stepOverPosY,offsetPoint.z)
 
 
