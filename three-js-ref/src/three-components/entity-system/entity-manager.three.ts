@@ -93,7 +93,8 @@ class EntityManager {
             targetEntity:null,
             healthValue:0,
             knockback:0,
-            attackDamage:0
+            attackDamage:0,
+            strength:0
         }
         const entityManagingStruct:ManagingStructure = {//these are data structures passed to the individual entities so that they can use it for clean up
             group:this.entityGroup,

@@ -5,7 +5,7 @@ import { Health } from "../health/health";
 import { combatCooldown, physicsWorld } from "../physics-world.three";
 import type { EntityLike } from "./relationships.three";
 import { disposeHierarchy, disposeMixer } from "../disposer/disposer.three";
-import type { EntityCount,EntityWrapper} from "./global-types"
+import type { EntityCount,EntityWrapper, seconds} from "./global-types"
 import { isEntityWrapper } from "./entity-registry";
 
 type Behaviour = 'idle' | 'patrol' | 'chase' | 'attack' | 'death';
@@ -17,7 +17,8 @@ export interface EntityMiscData {
     targetEntity:EntityLike | null,
     healthValue:number,
     attackDamage:number,
-    knockback:number
+    knockback:number,
+    strength:number
 }
 export interface EntityContract {
     _entity:Entity
@@ -60,8 +61,13 @@ export class Entity extends Controller implements EntityLike {
 
     private struct:ManagingStructure;
     public knockback:number;
+    public strength:number;
 
     private movementType:'fluid' | 'precise' = 'precise'
+
+    public useItemCooldown:seconds = 3;
+    public useItemTimer:seconds = 0;
+    public height:number
 
     private state:EntityStateMachine = {
         behaviour:'idle'
@@ -75,6 +81,8 @@ export class Entity extends Controller implements EntityLike {
         this.attackDamage = miscData.attackDamage;
         this.struct = struct;
         this.knockback = miscData.knockback;
+        this.strength = miscData.strength;
+        this.height = fixedData.characterHeight
     }
     private getRandomPatrolPoint(): THREE.Vector3 {
         this.basePatrolPoint ||= this.position.clone();//use char position as base patrol point if none is provided
@@ -257,6 +265,7 @@ export class Entity extends Controller implements EntityLike {
     protected onLoop(): void {
         this.patrolTimer += this.clockDelta || 0;
         this.currentHealth = this.health.value;
+        this.useItemTimer += this.clockDelta || 0;
         this.checkIfOutOfBounds();
         this.health.checkGroundDamage(this.velBeforeHittingGround);
         if (this.isAirBorne() && (!this.health.isDead)) this.animationControls?.playJumpAnimation();

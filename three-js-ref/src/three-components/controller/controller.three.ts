@@ -925,6 +925,9 @@ export abstract class Controller {
     get position():THREE.Vector3 {
         return new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z)
     }
+    get quat():THREE.Quaternion {
+        return new THREE.Quaternion().copy(this.characterRigidBody!.rotation())
+    }
 
     private controllerId = uniqueID();
     get controllerID() {//this is for testing purposes to clarify different controllers from the logs
