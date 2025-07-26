@@ -7,10 +7,10 @@ import { ItemHolder } from "../item-system/item-holder.three";
 import type { ItemID } from "../item-system/behaviour/core/types";
 import { itemManager } from "../item-system/item-manager.three";
 import { itemIDs } from "../item-system/item-defintions";
-import type { ItemUsageWeight } from "./global-types";
+import type { degrees, ItemUsageWeight } from "./global-types";
 import { choices } from "./choices";
 import * as THREE from "three";
-import { degToRad } from "three/src/math/MathUtils.js";
+import { degToRad, radToDeg } from "three/src/math/MathUtils.js";
 
 
 export class HostileEntity implements EntityContract  {
@@ -84,25 +84,28 @@ export class HostileEntity implements EntityContract  {
     }
     private utilizeItem(currentTarget:EntityLike) {
         const distToTarget = this.entity.position.distanceTo(currentTarget.position);
-        const targetPosToSelf = new THREE.Vector3().subVectors(currentTarget.position,this.entity.position).normalize();
-        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.entity.quat).normalize();
-        const dot = forward.dot(targetPosToSelf);
-        const angle = Math.acos(dot); // angle in radians.it ranges from -1 to 1
-        const facingThreshold = THREE.MathUtils.degToRad(15); // e.g., 15 degrees
-        const isFacingTarget = angle < facingThreshold;
-        
+        const isFacingTarget = this.isFacingTarget(currentTarget.position).isFacingTarget;
+
+        const YDifference = Math.abs(Math.round(currentTarget.position.y - this.entity.position.y));
+        console.log('item. YDifference:', YDifference);
+        const onSameOrGreaterYLevel = YDifference >= 0;
+
+        const angleDiff = this.getVerticalAngleDiff(currentTarget.position);
         console.log('item. Dist to target: ',distToTarget);
         console.log('item. isFacing:', isFacingTarget);
-        if ((distToTarget > 10) && isFacingTarget && (this.entity.obstDistance === Infinity)) {
+        console.log('item. angle: ',angleDiff);
+        
+        if ((distToTarget > 10) && isFacingTarget && (this.entity.obstDistance === Infinity) && onSameOrGreaterYLevel) {
+            console.log('item. going to throw');
             const itemID:ItemID = choices<ItemID>(this.entityItemIDs,this.usageWeights,1)[0];
             const item = itemManager.items[itemID];
             this.itemHolder.holdItem(item);
             if (this.entity.useItemTimer > this.entity.useItemCooldown) {
                 const view = new THREE.Group()
                 view.position.copy(this.entity.position);
-                view.quaternion.copy(this.entity.quat);
+                view.quaternion.copy(this.entity.char.quaternion).multiply(this.isFacingTarget(currentTarget.position).lookAtQuat)
                 view.position.y += this.entity.height ;
-                view.quaternion.x += degToRad(3);
+                view.quaternion.x += degToRad(angleDiff);
 
                 item.behaviour.use({
                     view,
@@ -113,8 +116,39 @@ export class HostileEntity implements EntityContract  {
                 })
                 this.entity.useItemTimer = 0;
             }
+        }else {
+            this.itemHolder.holdItem(null);
         }
+    }
+    private isFacingTarget(targetPos:THREE.Vector3) {
+        const dirToTarget = new THREE.Vector3().subVectors(targetPos,this.entity.position).normalize();
+        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.entity.char.quaternion).normalize();
+
+        const flatForward = forward.clone().setY(0).normalize();
+        const flatDirToTarget = dirToTarget.clone().setY(0).normalize();
+
+        const dot = flatForward.dot(flatDirToTarget)
+        const angle = Math.acos(dot); // angle in radians.it ranges from -1 to 1
+        const facingThreshold = THREE.MathUtils.degToRad(15); // e.g., 15 degrees
+        const isFacingTarget = angle < facingThreshold;
+
+        const lookAtQuat = new THREE.Quaternion().setFromUnitVectors(forward, dirToTarget);
+        return {isFacingTarget,lookAtQuat}
+    }
+    private getVerticalAngleDiff(targetPos:THREE.Vector3):degrees {
+        const dirToTarget = new THREE.Vector3().subVectors(targetPos,this.entity.position);
+        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.entity.char.quaternion).normalize();
         
+        const forwardYZ = new THREE.Vector3(0, forward.y, forward.z).normalize();
+        const dirYZ = new THREE.Vector3(0, dirToTarget.y, dirToTarget.z).normalize();
+        
+        let angle = forwardYZ.angleTo(dirYZ); // Angle in radians (0 to PI)
+
+        const cross = new THREE.Vector3().crossVectors(forwardYZ, dirYZ);
+        const sign = Math.sign(cross.x); // +1 means target is above, -1 below
+        
+        angle = angle * sign;
+        return Math.round(radToDeg(angle));
     }
     get _entity() {
         return this.entity

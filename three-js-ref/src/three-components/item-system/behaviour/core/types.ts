@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import type { EntityLike } from "../../../entity-system/relationships.three";
 
+
+export type CloneOwner = EntityLike | 'Game' //to know the entity that spawned the clone to indicate ownersjip.it can be used to form relationships like the entity A threw an item at entity B.The Game owner value means its spawned naturally by the game
 //it doesnt matter if the dimensions of the model matches the one you define here because the game will automatically scale the model to fit into the rigid body.so you can comfortably rely on this config to properly sync the model with its physics body
 interface RigidBodyCloneProps {
     density:number,
@@ -16,7 +18,7 @@ export interface CloneArgs {
     properties:RigidBodyCloneProps,
     spinVectorInAir:THREE.Vector3,
     canPickUp:boolean,
-    owner:EntityLike | null//to know the entity that spawned the clone to indicate ownersjip.it can be used to form relationships like the entity A threw an item at entity B.Null means no owner like the ones spawned naturally
+    owner:CloneOwner
     itemID:ItemID//i added this so that i can know the item that created this clone.its required to implement item pickup so that i can which item im adding back to the inventory.
     parent:THREE.Group//i made the parent group explicit so that callers can decide if they want to add it to the scene themselves for management.an example of this is my content distributions in my chunk.their meshes should be handled by the chunk loader.so this is a case where this applies
 }

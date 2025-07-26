@@ -65,7 +65,7 @@ export class Entity extends Controller implements EntityLike {
 
     private movementType:'fluid' | 'precise' = 'precise'
 
-    public useItemCooldown:seconds = 3;
+    public useItemCooldown:seconds = 3;//increase the cooldown accordingly to control the rate at which entities spawn items in the game which indirectly preserves memory
     public useItemTimer:seconds = 0;
     public height:number
 

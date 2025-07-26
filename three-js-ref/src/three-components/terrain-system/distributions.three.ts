@@ -50,7 +50,7 @@ export class Distributions {
                     spawnQuaternion:new THREE.Quaternion(),
                     spinVectorInAir:new THREE.Vector3(1,1,1), //this means spin in all axis while in the air
                     parent:this.content,
-                    owner:null,
+                    owner:'Game',//it spawned naturally so its owned by the game
                     properties:{
                         density:1,
                         width:height,//im using the height here for width and depth to get a cube unit.this will  depending on the model

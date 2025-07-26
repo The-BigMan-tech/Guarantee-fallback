@@ -246,7 +246,7 @@ export class RigidBodyClone {
             this.updateRayVisualizer(origin,velDirection);
         }
     }
-    private removeTemporaryCloneCooldown:seconds = 5;
+    private removeTemporaryCloneCooldown:seconds = 30;
     private removeTemporaryCloneTimer:seconds = 0;
 
     private checkForOwnership() {

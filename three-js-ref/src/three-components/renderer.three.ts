@@ -26,7 +26,7 @@ renderer.setAnimationLoop(()=>{
     player.updateController(deltaTime);
     terrainManager.updateTerrain();
     entityManager.updateAllEntities(deltaTime);
-    RigidBodyClones.updateClones();
+    RigidBodyClones.updateClones(deltaTime);
     updateSun();
     renderer.render( scene,player.camera.cam);//a must to be called last
 });
