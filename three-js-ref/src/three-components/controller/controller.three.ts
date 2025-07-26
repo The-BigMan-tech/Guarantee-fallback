@@ -246,6 +246,7 @@ export abstract class Controller {
         steps = Math.min(Math.max(steps, minSteps), maxSteps);
         return steps
     }
+    //Im terming these algorithms that use clearance to get info--clearance sampling algorithm
     //NOTE:These numerous obstacle queries may look similar but dont unify them using a single method and pass props or data.This is because their implementaions differ slightly but that slight difference is a different meaning.trying to unify them will make it hard to follow and debug and also more difficult to tune as tuning a single method will also affect others
     //this calcukates the height of an obstacle by starting from a clearance point downwards till there is no clearance which is where an obstacle has been detected.we can then use this point to get the relative height of an obstacle
     private calcHeightTopDown(stepOverPos:THREE.Vector3,groundPosY:number) {
@@ -297,14 +298,13 @@ export abstract class Controller {
             }
         }   
     }
-    private calcDepthForward(detectionPoint:THREE.Vector3):number {
+    private obstacleDepth:number = 0;
+    private calcDepth(detectionPoint:THREE.Vector3,directionVector:THREE.Vector3):number {
         const maxDepthToCheck = 30;//this states the thresh
         const increment = 0.1;//the reason why the increment is in float is for the same reason it is for calc height top down
-        const incrementVector = this.getHorizontalForward()
-        let depth = 0;
-
+        let depth:number = 0;
         for (let i=0;i <= maxDepthToCheck;i+=increment) {
-            const forwardCheckPos = detectionPoint.clone().addScaledVector(incrementVector, i);//to avoid cumulative floating-point drift.
+            const forwardCheckPos = detectionPoint.clone().addScaledVector(directionVector, i);//to avoid cumulative floating-point drift.
             const reachedMaxDepth = (maxDepthToCheck-i) < 0.1;//i did this because exact equality on floats will be fragile
             forwardCheckPos.y -= 1;//i did this because the point as it is,is a bit to the obstacles top that it can slide up away from it and end prematurely.this is to prevent that
             // this.colorPoint(forwardCheckPos,0x073042);
@@ -317,11 +317,10 @@ export abstract class Controller {
             if (forwardClearance || reachedMaxDepth) {//the max depth to check is where the controller gives up checking for clearance.so it uses the current point where it gave up to get the relative depth of the obstacle.even though the depth may be a lot times deeper,having this still gives a meaningful result while preventing a potential infinite samples of points to be queried
                 depth = this.distanceXZ(detectionPoint,forwardCheckPos)//i minused the obstacle det distance to also condier the gap between the controller and the obstacle
                 depth = Number(depth.toFixed(1));
-                console.log('relative depth: ',depth);
                 break;
             }
         } 
-        return depth  
+        return depth
     }
     //this is used to prioritize branches created by the foremost and side ray
     private prioritizeBranch:boolean = false;
@@ -444,15 +443,20 @@ export abstract class Controller {
                     clearance = false
                     return false
                 })
+                const horizontalForward = this.getHorizontalForward()
                 if (clearance) {//so if there is clearance,we will want to check the height of the obstacle by moving the point down to the point of no clearance then we can take that point and subtract it from the ground position to know the relativ height
-                    this.calcDepthForward(stepOverPos);
+                    const forwardDepth = this.calcDepth(stepOverPos,horizontalForward);//im only calling this here to prevent wasteful depth calculation when the controller cant step over it
+                    const backwardDepth = this.calcDepth(stepOverPos,horizontalForward.clone().negate());
+                    this.obstacleDepth = forwardDepth + backwardDepth
                     this.calcHeightTopDown(stepOverPos,groundPosY);        
+                    console.log('relative depth:', this.obstacleDepth);
                 }else {//Else,if there is no clearance,we will want to check for the height by moving the point up till there is clearance then use that point relativ to our ground pos to get the relative height.We also want to get the clearance point for the agent only when it cant step over it which occurs when it has to check for the obstacle height bottom up rather than top down cuz it will lead to unnecessar calc and cost perf if we do this in every frame even when we dont need it
                     this.calcHeightBottomUp(stepOverPos,groundPosY);
                     if ((i == foremostPoint) || (i == firstPoint)) this.calcClearanceForAgent(offsetPoint,purpose);
                 }
                 return true
             });    
+
         }
         if (!hasCollidedForward) {
             this.obstacleDistance = Infinity//infinity distance means there are no obstacles
