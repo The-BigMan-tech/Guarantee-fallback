@@ -2,7 +2,7 @@ import * as THREE from "three"
 import * as RAPIER from "@dimforge/rapier3d"
 import { outOfBoundsY, physicsWorld } from "../../../physics-world.three";
 import { disposeHierarchy } from "../../../disposer/disposer.three";
-import type { CloneArgs, ItemID } from "./types";
+import type { CloneArgs, CloneOwner, ItemID } from "./types";
 import { getGroundDetectionDistance, VelCalcUtils } from "../../../controller/helper";
 import { Health } from "../../../health/health";
 import { createBoxLine, rotateOnXBy180 } from "../other-helpers.three";
@@ -10,7 +10,10 @@ import { RigidBodyClones } from "./rigidbody-clones.three";
 import { type Player, player } from "../../../player/player.three";
 import { IntersectionRequest } from "../../../player/intersection-request.three";
 import { entities, type Entity, type EntityContract } from "../../../entity-system/entity.three";
-import { relationshipManager, type EntityLike } from "../../../entity-system/relationships.three";
+import { relationshipManager } from "../../../entity-system/relationships.three";
+import type { seconds } from "../../../entity-system/global-types";
+import { groupIDs } from "../../../entity-system/entity-registry";
+import type { EntityLike } from "../../../entity-system/relationships.three";
 
 function visualizeRay(origin:THREE.Vector3, direction:THREE.Vector3, distance:number):THREE.Line {
     const endPoint = new THREE.Vector3().copy(origin).add(direction.clone().normalize().multiplyScalar(distance));
@@ -21,7 +24,8 @@ function visualizeRay(origin:THREE.Vector3, direction:THREE.Vector3, distance:nu
     return rayLine;
 }
 
-
+//Note:The lifetime of a rigid body clone is tied to its durability,proximity,ownership,and indirectly by the loaded chunk since theyll just fall off the unloaded chunk and despawn or manually removed like those from the chunk loader
+//Using my rigod body clones class for in game object comes with the perk of lifetime management so the caller never needs to concern itself with how they are managed for perf
 //Note:The Controller and RigidBodyClone class are what ill be using and i recoomend to use to create dynamic physics bodies because they have a simple api while providing management underneath.The controler is for dynamic bodies that are controlled by a living entity while rigid body clone are for game objects 
 export class RigidBodyClone {
     public   group:THREE.Group = new THREE.Group();//this where the clone's model is actualy stored.use this to sync with the rigid body and know the mesh's current data liek position or rotation.using the container for this type of task will lead to problems
@@ -51,7 +55,7 @@ export class RigidBodyClone {
     private _itemID:ItemID;
     private _canPickUp:boolean;
 
-    private owner:EntityLike | null;
+    private owner:CloneOwner | null;//the null is used to allow the owner to be garbage collected when the owner is dead
 
     private addRelationship = relationshipManager.addRelationship;
 
@@ -157,7 +161,7 @@ export class RigidBodyClone {
 
     private checkIfOutOfBounds() {
         if (this.rigidBody!.translation().y <= outOfBoundsY) {
-            this.durability.takeDamage(this.durability.value);
+            this.durability.takeDamage(this.durability.value);//this will make it to be cleaned up because its durability is 0.i didnt use a direct cleanup here because another method in the update loop already calls cleanup directly and calling cleanup in that if block of the update loop will cause other methods that rely on the rigid body to fail.so direct cleanup inside the if block of the update loop that executes it should be called last.so why cant i just do this also in check for ownership?well,its just a taste
         }
     }
 
@@ -205,7 +209,9 @@ export class RigidBodyClone {
             this.rayGroup.attach(rayLine);
         }
     }
-
+    private isEntityLike(owner:CloneOwner | null):owner is EntityLike {
+        return Boolean(owner && (owner !== "Game"));
+    }
     private raycaster:THREE.Raycaster = new THREE.Raycaster();
     private static readonly knockbackScalar = 150;
 
@@ -233,24 +239,37 @@ export class RigidBodyClone {
             entity?.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
             entity?.health.takeDamage(this.density);
 
-            if (this.owner && entity) {
+            if (this.isEntityLike(this.owner) && entity) {
                 this.addRelationship(entity,relationshipManager.enemyOf[this.owner._groupID!]);
                 this.addRelationship(this.owner,relationshipManager.attackerOf[entity._groupID!]);
             }
             this.updateRayVisualizer(origin,velDirection);
         }
     }
+    private removeTemporaryCloneCooldown:seconds = 5;
+    private removeTemporaryCloneTimer:seconds = 0;
+
     private checkForOwnership() {
-        if (this.owner?.health.isDead) {
+        const doesPlayerOwnIt = this.isEntityLike(this.owner) && (this.owner._groupID === groupIDs.player);
+        const isOwnerDead = this.isEntityLike(this.owner) && this.owner.health.isDead;
+        if (isOwnerDead) {
             console.log('owner is dead');
-            this.owner = null//remove any reference to the entity when its dead to allow for garbage collection
+            this.owner = null//remove any reference to the entity when its dead to allow for garbage collection but we dont want to cleanup the body just because the entity is dead
+        }
+        if (this.owner !== 'Game' && !doesPlayerOwnIt) {//im considering a clone spawned by any entity besides the player as temporary because entity spawned items can get a lot like when an entity throws a boulder at the player and the items arent really useful after that.The player's own is persistent until it gets cleaned up naturally because player spanwed bodies are a first priority cuz they can build something but they dont expect it to just get vanished.Any rigid body spawned by the game gets the same treatment as the player
+            if (this.removeTemporaryCloneTimer > this.removeTemporaryCloneCooldown) {
+                this.cleanUp();
+                this.removeTemporaryCloneTimer = 0;
+            } 
         }
     }
+
     private isRemoved = false;//to ensure resources are cleaned only once 
-    public updateClone() {
+    public updateClone(deltaTime:number) {
         //This MUST NOT be called inside the below if block because if it is far,it will be cleaned up.but that will be dangerous if done inside the below if block because the below block continues to run its code with the expectation that the rigid body isnt null and cleaning it directly inside this block will cause errors in parts of the block that uses the rigid body
         this.despawnSelfIfFar();//the reason why i made each clone responsible for despawning itself unlike the entity system where the manager despawns far entities is because i dont want to import the player directly into the class that updates the clones because the player also imports that.so its to remove circular imports
         if (this.rigidBody && !this.isRemoved) {
+            this.removeTemporaryCloneTimer += deltaTime;
             const rigidBodyQuaternion = new THREE.Quaternion().copy(this.rigidBody.rotation());
             const isMeshOutOfSync =  !this.group.position.equals(this.rigidBody.translation()) || !this.group.quaternion.equals(rigidBodyQuaternion);
             
@@ -262,9 +281,9 @@ export class RigidBodyClone {
                 this.applySpin(onGround)
                 this.knockbackObjectsAlongPath(onGround);
                 this.applyGroundDamage(onGround);  
-                this.checkForOwnership();
                 console.log('spin. is Body sleeping: ',this.rigidBody.isSleeping());
                 console.log('spin. is Body grounded: ',onGround);
+                this.checkForOwnership();//must be called last because it can call cleanup which will make other methods that rely on the rigid body to fail.so doing this last ensures that the next time the update loop runs,it stops execution without causing errors
             }else{//i dont have a cleanup cooldown unlike my entities to simulate other things before cleanup because the cooldown may not be big enough to allow a physics simulation to happen on the body like a knockback before cleanup or it may be too big which will cause it to linger in memory longer after its supposed to be cleaned up.The reason why this was acceptable for my entity is because my entity has an animation that will complete before the cooldown runs out and cleans the entity.but for this class,since i dont have any death animation cuz they are just non living objects,i have to allow teh physics at that moment to simulate before cleanup which a timer cant do predictably.so by including is meh out of sync,i ensure i only clean a body only after all physics at that moment has simulated on the body by checking if the mesh is perfectly in sync with the body.this allows things like knockbackt to simulate before cleanup even though its durability has been damaged to zero.
                 this.cleanUp();
             }

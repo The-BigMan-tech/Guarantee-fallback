@@ -6,9 +6,9 @@ export class RigidBodyClones {
     public static cloneIndices:Map<RigidBodyClone,number> = new Map();
     public static group:THREE.Group = new THREE.Group();
 
-    public static updateClones() {
+    public static updateClones(deltaTime:number) {
         for (const clone of RigidBodyClones.clones) {
-            clone.updateClone();
+            clone.updateClone(deltaTime);
         }
     }
 }
