@@ -150,12 +150,6 @@ export class Player extends Controller implements EntityLike {
         if (this.keysPressed['ArrowDown']) {
             this.camera.rotateCameraUp(this.cameraClampAngle)
         };
-        if (this.keysPressed['ArrowLeft'])  {
-            this.rotateCharacterX('right')
-        };  
-        if (this.keysPressed['ArrowRight']) {
-            this.rotateCharacterX('left')
-        };
     }
     private useNormalControls() {
         if (!this.health.isDead) { 
@@ -171,12 +165,6 @@ export class Player extends Controller implements EntityLike {
         };  
         if (this.keysPressed['ArrowDown']) {
             this.camera.rotateCameraDown(this.cameraClampAngle)
-        };
-        if (this.keysPressed['ArrowLeft'])  {
-            this.rotateCharacterX('left')
-        };  
-        if (this.keysPressed['ArrowRight']) {
-            this.rotateCharacterX('right')
         };
     }
     private useConsistentControls(camDistToPlayer:number) {
@@ -226,6 +214,12 @@ export class Player extends Controller implements EntityLike {
         if (this.keysPressed['Minus'] && (camDistToPlayer >= -this.zoomClamp)) {//zoom out
             this.zoomCamera(-this.zoomDelta);
         }
+        if (this.keysPressed['ArrowLeft'])  {
+            this.rotateCharacterX('left')
+        };  
+        if (this.keysPressed['ArrowRight']) {
+            this.rotateCharacterX('right')
+        };
     }
     private bindKeysToControls() {//i used keydown here for instant feedback and debounced some of them
         const camPosToPlayer = this.camWorldPos.clone().sub(this.position);
