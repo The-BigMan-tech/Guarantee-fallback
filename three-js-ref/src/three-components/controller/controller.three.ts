@@ -176,9 +176,10 @@ export abstract class Controller {
         console.log("Final upward velocity: ",upwardVelocity);
         return upwardVelocity
     }
+    //NOTE:Obstacle distance is the distance between the controller and an obstacle as the controller approaches it.Obstacle detection distance is how far ahead the controller searches for obstacles in front of the controller
     private calculateForwardVelocity(upwardVelocity:number):number {
         const totalAirTime = (2 * upwardVelocity) / gravityY;
-        const forwardVelocity = this.obstacleDetectionDistance / totalAirTime;//i didnt use ceiling here to ensure it doesnt overshoot passed the top of the obstacle
+        const forwardVelocity = this.obstacleDistance / totalAirTime;//i didnt use ceiling here to ensure it doesnt overshoot passed the top of the obstacle
         console.log("Final forward velocity: ",forwardVelocity);
         return forwardVelocity
     }
@@ -246,6 +247,7 @@ export abstract class Controller {
         steps = Math.min(Math.max(steps, minSteps), maxSteps);
         return steps
     }
+    //the results from the algorithms may have a float error of 0.1 but this is negligible.
     //Im terming these algorithms that use clearance to get info--clearance sampling algorithm
     //NOTE:These numerous obstacle queries may look similar but dont unify them using a single method and pass props or data.This is because their implementaions differ slightly but that slight difference is a different meaning.trying to unify them will make it hard to follow and debug and also more difficult to tune as tuning a single method will also affect others
     //this calcukates the height of an obstacle by starting from a clearance point downwards till there is no clearance which is where an obstacle has been detected.we can then use this point to get the relative height of an obstacle
