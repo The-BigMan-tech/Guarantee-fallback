@@ -301,14 +301,14 @@ export abstract class Controller {
             }
         }   
     }
-    private calcDepth(detectionPoint:THREE.Vector3,directionVector:THREE.Vector3):number {
+    private calcDepth(detectionPoint:THREE.Vector3,directionVector:THREE.Vector3,groundPosY:number):number {
         const maxDepthToCheck = 30;//this states the thresh
         const increment = 0.1;//the reason why the increment is in float is for the same reason it is for calc height top down
         let depth:number = 0;
         for (let i=0;i <= maxDepthToCheck;i+=increment) {
             const directionCheckPos = detectionPoint.clone().addScaledVector(directionVector, i);//to avoid cumulative floating-point drift.
             const reachedMaxDepth = (maxDepthToCheck-i) < 0.1;//i did this because exact equality on floats will be fragile
-            directionCheckPos.y -= 1;//i did this because the point as it is,is a bit to the obstacles top that it can slide up away from it and end prematurely.this is to prevent that
+            directionCheckPos.y = groundPosY + 1;//i did this because the detection point as it is,is a bit to the obstacles top that it can slide up away from it and end prematurely since its at step over pos.This line prevents that by bringin it to roughly the ground point of the controller.i cant take it to the ground point directly because it will sink to the ground and sample along the ground not the obstacle
             // this.colorPoint(forwardCheckPos,0x073042);
             
             let directionClearance = true;
@@ -448,8 +448,8 @@ export abstract class Controller {
                 //It may seem redundant in terms of computation to calculate the depth and height of an obstacle for eah point sampled along the obstacle detection distance but its necessary because the reason why i sampled many points between the controller and the detection distance and each point calcuates depth and height independently is because obstacles may come dynamically infront of the controller out of nowhere and if i make it rely only on the result of one point,the controller wont be able to get the appropriate data for the obstacle immediately in front of it
                 const horizontalForward = this.getHorizontalForward()
                 if (clearance) {//so if there is clearance,we will want to check the height of the obstacle by moving the point down to the point of no clearance then we can take that point and subtract it from the ground position to know the relativ height
-                    const forwardDepth = this.calcDepth(stepOverPos,horizontalForward);//im only calling this here to prevent wasteful depth calculation when the controller cant step over it
-                    const backwardDepth = this.calcDepth(stepOverPos,horizontalForward.clone().negate());//we are calculating backward depth in cases where the detction point started from within the obstacle
+                    const forwardDepth = this.calcDepth(stepOverPos,horizontalForward,groundPosY);//im only calling this here to prevent wasteful depth calculation when the controller cant step over it
+                    const backwardDepth = this.calcDepth(stepOverPos,horizontalForward.clone().negate(),groundPosY);//we are calculating backward depth in cases where the detction point started from within the obstacle
                     this.obstacleDepth = forwardDepth + backwardDepth;//we can add the two depths to get the full depth regardless of the detection point location but at the cost of more computation
                     this.calcHeightTopDown(stepOverPos,groundPosY);        
                     console.log('relative depth:', this.obstacleDepth);
@@ -566,7 +566,7 @@ export abstract class Controller {
     //helper to get the angular diff in degrees between a point and the character's position point.
     private getAngleDiff(path:THREE.Vector3):degrees {
         const direction = path.clone().sub(this.character.position);
-        const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.quat)
+        const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
         const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
         const normAngle = (angleDiff + (2*Math.PI)) % (2 * Math.PI) ;//we normalized the angle cuz its measured in radians not degrees
         const normAngleInDegrees = Number((normAngle * (180/Math.PI)).toFixed(2));
@@ -574,7 +574,8 @@ export abstract class Controller {
     }
     //uses the angular diff from the helper to decide whether the entity should steer left or right
     private getSteeringDirection(path:THREE.Vector3):'right' | 'left' | null {
-        const angle:degrees = this.getAngleDiff(path)
+        const angle:degrees = this.getAngleDiff(path);
+        //if i dont set a threshold or if its too low,the controller will never move if rotate and move in the nav is set to false because it will use every frame to rotate itself even for small differences that it will nevr try to move since in this mode,rotation happens before movement
         const rotationThreshold = 7;//the magnitude of the rotation diff before it rotates to the target direction
         if (angle > rotationThreshold) {
             return (angle < 180)?'right':'left'
@@ -924,9 +925,6 @@ export abstract class Controller {
     }
     get position():THREE.Vector3 {
         return new THREE.Vector3(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z)
-    }
-    get quat():THREE.Quaternion {
-        return new THREE.Quaternion().copy(this.characterRigidBody!.rotation())
     }
     get obstDistance():number {
         return this.obstacleDistance
