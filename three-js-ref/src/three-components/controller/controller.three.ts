@@ -34,7 +34,7 @@ type degrees = number;
 type seconds = number;
 
 //The controller class is a class to create and manage dynamic rigid bodis in the world with the ability to control these bodies with simple interfaces at runtime.it is used for players and entities.I encourage blocks to be made with a static physics body because of perf.so this class isnt meant for blocks.
-
+//The controller class is mostly stable and mature as it does only a handful of things but it does them well and robustly.This also means that its code wont increase rapidly with addition of new features to the game.Since its stable,most updates will just be bug fixes and ongoing maintenance of the eistsing code.
 //i made it an abstract class to prevent it from being directly instantiated so that its internals remain hidden from instances for safety.This controller is meant to be extended to concrete types and there are two current classes that inherit from this that already covers majority of the uses of this controller-the player and entity class which itself can be used to create other entities with complex behaviour.the class exposes a hook thats called in every update loop at a point where its safe to add concrete specific behaviour in a way that it always correctly reflects the state of the controller.the concretes dont need to know how or at what point their hook is called but they do know that in the hook,they can define all the high level behaviour they want to dynamically control the controller.
 
 //through out the codebase,im using private-first encapsulation.This is to ensure data safety and to prevent accidental mutation to internals.most times when i want to reduce strictness,i use protected but only when absolutely necessary that i use public because there will always be some method that needs public access for the other parts of the codebase to use.
@@ -445,6 +445,7 @@ export abstract class Controller {
                     clearance = false
                     return false
                 })
+                //It may seem redundant in terms of computation to calculate the depth and height of an obstacle for eah point sampled along the obstacle detection distance but its necessary because the reason why i sampled many points between the controller and the detection distance and each point calcuates depth and height independently is because obstacles may come dynamically infront of the controller out of nowhere and if i make it rely only on the result of one point,the controller wont be able to get the appropriate data for the obstacle immediately in front of it
                 const horizontalForward = this.getHorizontalForward()
                 if (clearance) {//so if there is clearance,we will want to check the height of the obstacle by moving the point down to the point of no clearance then we can take that point and subtract it from the ground position to know the relativ height
                     const forwardDepth = this.calcDepth(stepOverPos,horizontalForward);//im only calling this here to prevent wasteful depth calculation when the controller cant step over it
