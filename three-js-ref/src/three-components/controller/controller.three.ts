@@ -566,7 +566,7 @@ export abstract class Controller {
     //helper to get the angular diff in degrees between a point and the character's position point.
     private getAngleDiff(path:THREE.Vector3):degrees {
         const direction = path.clone().sub(this.character.position);
-        const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.character.quaternion)
+        const charDirection = new THREE.Vector3(0,0,-1).applyQuaternion(this.quat)
         const angleDiff = Math.atan2(charDirection.x,charDirection.z) - Math.atan2(direction.x,direction.z);
         const normAngle = (angleDiff + (2*Math.PI)) % (2 * Math.PI) ;//we normalized the angle cuz its measured in radians not degrees
         const normAngleInDegrees = Number((normAngle * (180/Math.PI)).toFixed(2));
@@ -575,7 +575,7 @@ export abstract class Controller {
     //uses the angular diff from the helper to decide whether the entity should steer left or right
     private getSteeringDirection(path:THREE.Vector3):'right' | 'left' | null {
         const angle:degrees = this.getAngleDiff(path)
-        const rotationThreshold = 10;//the magnitude of the rotation diff before it rotates to the target direction
+        const rotationThreshold = 7;//the magnitude of the rotation diff before it rotates to the target direction
         if (angle > rotationThreshold) {
             return (angle < 180)?'right':'left'
         }
@@ -927,6 +927,9 @@ export abstract class Controller {
     }
     get quat():THREE.Quaternion {
         return new THREE.Quaternion().copy(this.characterRigidBody!.rotation())
+    }
+    get obstDistance():number {
+        return this.obstacleDistance
     }
 
     private controllerId = uniqueID();

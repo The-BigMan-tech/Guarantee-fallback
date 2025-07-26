@@ -93,7 +93,7 @@ export class HostileEntity implements EntityContract  {
         
         console.log('item. Dist to target: ',distToTarget);
         console.log('item. isFacing:', isFacingTarget);
-        if ((distToTarget > 10) && isFacingTarget) {
+        if ((distToTarget > 10) && isFacingTarget && (this.entity.obstDistance === Infinity)) {
             const itemID:ItemID = choices<ItemID>(this.entityItemIDs,this.usageWeights,1)[0];
             const item = itemManager.items[itemID];
             this.itemHolder.holdItem(item);
@@ -102,8 +102,7 @@ export class HostileEntity implements EntityContract  {
                 view.position.copy(this.entity.position);
                 view.quaternion.copy(this.entity.quat);
                 view.position.y += this.entity.height ;
-                view.quaternion.x += degToRad(8);
-                view.quaternion.y -= degToRad(3);
+                view.quaternion.x += degToRad(3);
 
                 item.behaviour.use({
                     view,
