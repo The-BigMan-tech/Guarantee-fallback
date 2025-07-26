@@ -446,8 +446,8 @@ export abstract class Controller {
                 const horizontalForward = this.getHorizontalForward()
                 if (clearance) {//so if there is clearance,we will want to check the height of the obstacle by moving the point down to the point of no clearance then we can take that point and subtract it from the ground position to know the relativ height
                     const forwardDepth = this.calcDepth(stepOverPos,horizontalForward);//im only calling this here to prevent wasteful depth calculation when the controller cant step over it
-                    const backwardDepth = this.calcDepth(stepOverPos,horizontalForward.clone().negate());
-                    this.obstacleDepth = forwardDepth + backwardDepth
+                    const backwardDepth = this.calcDepth(stepOverPos,horizontalForward.clone().negate());//we are calculating backward depth in cases where the detction point started from within the obstacle
+                    this.obstacleDepth = forwardDepth + backwardDepth;//we can add the two depths to get the full depth regardless of the detection point location but at the cost of more computation
                     this.calcHeightTopDown(stepOverPos,groundPosY);        
                     console.log('relative depth:', this.obstacleDepth);
                 }else {//Else,if there is no clearance,we will want to check for the height by moving the point up till there is clearance then use that point relativ to our ground pos to get the relative height.We also want to get the clearance point for the agent only when it cant step over it which occurs when it has to check for the obstacle height bottom up rather than top down cuz it will lead to unnecessar calc and cost perf if we do this in every frame even when we dont need it
