@@ -1,3 +1,4 @@
+
 export type EntityWrapper = 'HostileEntity' | 'NPC'
 
 interface CountData {
@@ -16,3 +17,5 @@ export interface EntitySpawnData {
 export type seconds = number;
 export type minutes = number;
 export type degrees = number;
+
+export type ItemUsageWeight = number;

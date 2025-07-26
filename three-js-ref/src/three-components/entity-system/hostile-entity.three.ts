@@ -3,9 +3,18 @@ import { Entity, type EntityContract } from "./entity.three";
 import { relationshipManager, type EntityLike } from "./relationships.three";
 import type { RelationshipData } from "./relationships.three";
 import { groupIDs } from "./entity-registry";
+import { ItemHolder } from "../item-system/item-holder.three";
+import type { ItemID } from "../item-system/behaviour/core/types";
+import { itemManager } from "../item-system/item-manager.three";
+import { itemIDs } from "../item-system/item-defintions";
+import type { ItemUsageWeight } from "./global-types";
+import { choices } from "./choices";
 
 
 export class HostileEntity implements EntityContract  {
+    private entityItems:Record<ItemID,ItemUsageWeight> = {
+        [itemIDs.boulder]:10
+    }
     public static modelPath:string = "./silvermoon.glb";
 
     private entity:Entity;
@@ -19,6 +28,10 @@ export class HostileEntity implements EntityContract  {
     private originalHostileTarget:RelationshipData = relationshipManager.hostileTargetOf[groupIDs.hostileEntity]
 
     private addRelationship = relationshipManager.addRelationship;
+    private itemHolder:ItemHolder;
+
+    private entityItemIDs:ItemID[] = [];
+    private usageWeights:ItemUsageWeight[] = [];
 
     constructor(entity:Entity) {
         this.commonBehaviour = new CommonBehaviour(entity);//this creates a proxy to update its records in its respecive heaps
@@ -26,6 +39,11 @@ export class HostileEntity implements EntityContract  {
         this.entity.onTargetReached = this.onTargetReached.bind(this);
         this.entity.updateInternalState = this.updateInternalState.bind(this);
         this.originalTargetEntity = this.entity._targetEntity;
+        this.itemHolder = new ItemHolder(this.entity.item3D);
+        Object.keys(this.entityItems).forEach(entityItemID=>{
+            this.entityItemIDs.push(entityItemID);
+            this.usageWeights.push(this.entityItems[entityItemID]);
+        })
     }
     private onTargetReached():'attack' | 'idle' {//the behaviour when it reaches the target will be later tied to a state machine
         if (this.commonBehaviour.attackBehaviour()) {
@@ -46,6 +64,13 @@ export class HostileEntity implements EntityContract  {
             this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!]
             this.trackedRelationships.add(this.selfToTargetRelationship);
             this.commonBehaviour.updateOrderInRelationship(this.selfToTargetRelationship);
+            const distToTarget = this.entity.position.distanceTo(currentTarget.position);
+            console.log('item. Dist to target: ',distToTarget);
+            if (distToTarget > 10) {
+                const itemID:ItemID = choices<ItemID>(this.entityItemIDs,this.usageWeights,1)[0];
+                const item = itemManager.items[itemID];
+                this.itemHolder.holdItem(item);
+            }
             console.log('relationship. hostile entity is attacking: ',currentTarget?._groupID);
         }
 

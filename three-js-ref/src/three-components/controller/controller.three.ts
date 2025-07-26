@@ -100,7 +100,7 @@ export abstract class Controller {
 
     
     //this group is positioned exactly at the hand group of the 3d model by the controller and exposed to the children to do whatever thwy want with it like adding and removing item models from the group.i did it here because the controller unlike the player can call it at the appropriate time where its sure that the model is already available before it queries for the hand.else it will be null if attempted to be done in the children
-    protected item3D:THREE.Group = new THREE.Group();
+    public item3D:THREE.Group = new THREE.Group();//i made it public so that entity wrappers can access it
 
     private velCalcUtils:VelCalcUtils = new VelCalcUtils();
     public soundControls:SoundControls = new SoundControls();

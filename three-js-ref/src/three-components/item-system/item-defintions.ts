@@ -15,10 +15,14 @@ const modelPaths = {//this is to prevent duplication
     Block:'./block/block.glb',
     Boulder:'./boulder/boulder.glb',
 }
+export const itemIDs = {
+    block:'block',
+    boulder:'boulder'
+}
 
 export const spawnDistance = 5;
 export const itemDefinitions:Record<ItemID,Item>  = {//items should be registered on startup and shouldn be mutated
-    'block':{
+    [itemIDs.block]:{
         name:'Block',
         modelPath:modelPaths.Block,
         imagePath:'./block/block.png',
@@ -40,7 +44,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             showPlacementHelper:true
         })
     },
-    'boulder':{
+    [itemIDs.boulder]:{
         name:'Boulder',
         modelPath:modelPaths.Boulder,
         imagePath:'./boulder/boulder.png',
