@@ -98,7 +98,7 @@ export class Player extends Controller implements EntityLike {
     private readonly zoomDelta:number = 1;
     private readonly zoomClamp = 15
 
-    private useItemCooldown:seconds = 0.5;
+    private useItemCooldown:seconds = 0.3;
     private useItemTimer:seconds = 0;
     private itemHolder:ItemHolder;
     private intersectionRequest:IntersectionRequest = new IntersectionRequest();
