@@ -5,24 +5,7 @@ import { randFloat } from 'three/src/math/MathUtils.js';
 import { RigidBodyClone } from '../item-system/behaviour/core/rigidbody-clone.three';
 import { gltfLoader } from '../gltf-loader.three';
 
-function makeGroupTransparent(group: THREE.Object3D, opacity: number = 0): void {
-    group.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh && (child as THREE.Mesh).material) {
-            const mesh = child as THREE.Mesh;
-            // Cast material to MeshStandardMaterial (or the appropriate subclass you're using)
-            const materials = Array.isArray(mesh.material) 
-                ? mesh.material.map(mat => mat as THREE.MeshStandardMaterial) 
-                : [mesh.material as THREE.MeshStandardMaterial];
 
-            materials.forEach((material) => {
-              material.map = null;             // Remove texture map
-              material.transparent = true;    // Enable transparency
-              material.opacity = opacity;     // Set opacity value
-              material.needsUpdate = true;    // Flag for material update
-            });
-        }
-    });
-}
 export class Distributions {
     public  content:THREE.Group = new THREE.Group();//the group that holds all of the content that will be placed on the floor.there should only be one fall content added to the floor at a time.so it means that any new content should be added here not to the floor directly
     private clones:RigidBodyClone[] = [];
@@ -47,7 +30,7 @@ export class Distributions {
         for (let i = 0; i < points.length; i++) {
             const [x, z] = points[i];
         
-            const height = randFloat(12,12);
+            const height = randFloat(10,10);
             
             const localY = startingLevelY + height/2 ;//to make it stand on the startinglevl not that half of it is above and another half above
             const localX = x - this.chunkSize / 2;
@@ -69,15 +52,15 @@ export class Distributions {
                     parent:this.content,
                     owner:null,
                     properties:{
-                        density:2,
-                        width:10,//im using the height here for width and depth to get a cube unit.this will  depending on the model
+                        density:1,
+                        width:height,//im using the height here for width and depth to get a cube unit.this will  depending on the model
                         height:height,
-                        depth:10,
+                        depth:height,
                         durability:5
                     }
                 });
                 this.clones.push(clone);
-                makeGroupTransparent(clone.group);
+                // makeGroupTransparent(clone.group);
             })
         }
     }

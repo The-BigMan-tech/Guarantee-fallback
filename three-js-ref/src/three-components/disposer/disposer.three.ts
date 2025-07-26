@@ -66,4 +66,23 @@ export function disposeHierarchy(object: THREE.Object3D) {
         }
     });
 }
+//i didnt know which file this will fit.So i dropped it here
+export function makeGroupTransparent(group: THREE.Object3D, opacity: number = 0): void {
+    group.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh && (child as THREE.Mesh).material) {
+            const mesh = child as THREE.Mesh;
+            // Cast material to MeshStandardMaterial (or the appropriate subclass you're using)
+            const materials = Array.isArray(mesh.material) 
+                ? mesh.material.map(mat => mat as THREE.MeshStandardMaterial) 
+                : [mesh.material as THREE.MeshStandardMaterial];
+
+            materials.forEach((material) => {
+              material.map = null;             // Remove texture map
+              material.transparent = true;    // Enable transparency
+              material.opacity = opacity;     // Set opacity value
+              material.needsUpdate = true;    // Flag for material update
+            });
+        }
+    });
+}
 
