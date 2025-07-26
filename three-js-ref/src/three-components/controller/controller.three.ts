@@ -304,18 +304,18 @@ export abstract class Controller {
         const increment = 0.1;//the reason why the increment is in float is for the same reason it is for calc height top down
         let depth:number = 0;
         for (let i=0;i <= maxDepthToCheck;i+=increment) {
-            const forwardCheckPos = detectionPoint.clone().addScaledVector(directionVector, i);//to avoid cumulative floating-point drift.
+            const directionCheckPos = detectionPoint.clone().addScaledVector(directionVector, i);//to avoid cumulative floating-point drift.
             const reachedMaxDepth = (maxDepthToCheck-i) < 0.1;//i did this because exact equality on floats will be fragile
-            forwardCheckPos.y -= 1;//i did this because the point as it is,is a bit to the obstacles top that it can slide up away from it and end prematurely.this is to prevent that
+            directionCheckPos.y -= 1;//i did this because the point as it is,is a bit to the obstacles top that it can slide up away from it and end prematurely.this is to prevent that
             // this.colorPoint(forwardCheckPos,0x073042);
             
-            let forwardClearance = true;
-            physicsWorld.intersectionsWithPoint(forwardCheckPos,()=>{
-                forwardClearance = false
+            let directionClearance = true;
+            physicsWorld.intersectionsWithPoint(directionCheckPos,()=>{
+                directionClearance = false
                 return true
             })
-            if (forwardClearance || reachedMaxDepth) {//the max depth to check is where the controller gives up checking for clearance.so it uses the current point where it gave up to get the relative depth of the obstacle.even though the depth may be a lot times deeper,having this still gives a meaningful result while preventing a potential infinite samples of points to be queried
-                depth = this.distanceXZ(detectionPoint,forwardCheckPos)//i minused the obstacle det distance to also condier the gap between the controller and the obstacle
+            if (directionClearance || reachedMaxDepth) {//the max depth to check is where the controller gives up checking for clearance.so it uses the current point where it gave up to get the relative depth of the obstacle.even though the depth may be a lot times deeper,having this still gives a meaningful result while preventing a potential infinite samples of points to be queried
+                depth = this.distanceXZ(detectionPoint,directionCheckPos)//i minused the obstacle det distance to also condier the gap between the controller and the obstacle
                 depth = Number(depth.toFixed(1));
                 break;
             }
