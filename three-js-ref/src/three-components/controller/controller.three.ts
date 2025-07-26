@@ -54,8 +54,11 @@ export abstract class Controller {
 
     private readonly modelZOffset:number = 0.3;//this is to offset the model backwards a little from the actual character position so that the legs can be seen in first person properly without having to move the camera cuz relatively moving the camera can lead to misalignment cuz the camera position wont actually align with the characters center which is used as the pivot for rotation
 
+    private obstacleDistance:number = 0;//unlike obstacledetection distance which is a fixed unit telling the contoller how far to detect obstacles ahead of time,this one actually tells the realtime distance between an approaching obstacle and the controller.its always smaller or equal to obstacle detection distance because obstacles arent detected beyond that distance to even update this variable in the first place
     private obstacleHeight: number = 0;//this tells the height of the immediate obstacle infront of the controller.0 means no obstacle height therefore no obstacles while any non-zero integer means that there is an obstacle ahead of a given height.
+    private obstacleDepth:number = 0;
     private obstacleDetectionDistance:number = 0;//this is the distance ahead of the controller where obstacles are queried/detected.it allows for more natural gameplay exp than detecting directly infront of the controller cuz it allows the controller to prepare ahead of time.for example,to smoothly step over an obstacle,the controller must know that before the player gets to collide with it to make it a natural walk.else,it will hit the obstacle,then go up producing a less natural feel.
+
 
     private groundDetectionDistance:number;//this is a calcualted variable that is deducted from the character's y position to know which point below the character should a query for the ground be made.
     
@@ -81,8 +84,6 @@ export abstract class Controller {
 
     public points:THREE.Object3D = new THREE.Object3D();//this is the 3d group containing the points for visual debugging that are added to the scene
     private readonly pointDensity = 1;//this is used to control the number of points per unit distance in teh obstacle detection distance.obstacle detection distance doesnt just check a fixed point ahead of the player but also other points in between that.this is used to detect obstacles that might just appear infront of the player and the point density is tied to this as already mentioned
-
-    private obstacleDistance:number = 0;//unlike obstacledetection distance which is a fixed unit telling the contoller how far to detect obstacles ahead of time,this one actually tells the realtime distance between an approaching obstacle and the controller.its always smaller or equal to obstacle detection distance because obstacles arent detected beyond that distance to even update this variable in the first place
     
     private widthDebuf:number//this is a calculated variable used to deduct from the calculated ground position because my ground detection distance doesnt take into account the width of the controller.its confusing how width influences the accuracy of groud position calculation but it does as according to the playtest.so this fixes that allowing the controller to now work with arbritary widths and heights.but still test thoruoghly.
 
@@ -300,7 +301,6 @@ export abstract class Controller {
             }
         }   
     }
-    private obstacleDepth:number = 0;
     private calcDepth(detectionPoint:THREE.Vector3,directionVector:THREE.Vector3):number {
         const maxDepthToCheck = 30;//this states the thresh
         const increment = 0.1;//the reason why the increment is in float is for the same reason it is for calc height top down

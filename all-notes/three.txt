@@ -1704,3 +1704,7 @@ line visualizer
 Intersection test
 physics collision
 physics queries
+
+*so in rapier and other physics engines,setting mass explicitly overrides the automatic mass calculation that considers the volume.it wont crash the program but if one sets an arbitrary mass explicitly without considering the volume himself,it will lead to unrealistic physics interactions for large and small bodies.so the reason why setting density is preferred is because density is used in consideration of the volume to get the mass
+
+Clearance-sampling algorithm
