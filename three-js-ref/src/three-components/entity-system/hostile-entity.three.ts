@@ -84,16 +84,13 @@ export class HostileEntity implements EntityContract  {
     }
     private utilizeItem(currentTarget:EntityLike) {
         const distToTarget = this.entity.position.distanceTo(currentTarget.position);
-        const isFacingTarget = this.isFacingTarget(currentTarget.position).isFacingTarget;
+        const isFacingTarget = this.isFacingTarget(currentTarget.position);
 
         const YDifference = Math.abs(Math.round(currentTarget.position.y - this.entity.position.y));
-        console.log('item. YDifference:', YDifference);
         const onSameOrGreaterYLevel = YDifference >= 0;
 
         const angleDiff = this.getVerticalAngleDiff(currentTarget.position);
-        console.log('item. Dist to target: ',distToTarget);
-        console.log('item. isFacing:', isFacingTarget);
-        console.log('item. angle: ',angleDiff);
+        const 
         
         if ((distToTarget > 10) && isFacingTarget && (this.entity.obstDistance === Infinity) && onSameOrGreaterYLevel) {
             console.log('item. going to throw');
@@ -103,7 +100,8 @@ export class HostileEntity implements EntityContract  {
             if (this.entity.useItemTimer > this.entity.useItemCooldown) {
                 const view = new THREE.Group()
                 view.position.copy(this.entity.position);
-                view.quaternion.copy(this.entity.char.quaternion).multiply(this.isFacingTarget(currentTarget.position).lookAtQuat)
+                view.quaternion.copy(this.entity.char.quaternion)
+                view.quaternion.multiply(this.getRequiredQuat(currentTarget.position))
                 view.position.y += this.entity.height ;
                 view.quaternion.x += degToRad(angleDiff);
 
@@ -120,10 +118,13 @@ export class HostileEntity implements EntityContract  {
             this.itemHolder.holdItem(null);
         }
     }
-    private isFacingTarget(targetPos:THREE.Vector3) {
+    private getDirToTarget(targetPos:THREE.Vector3) {
         const dirToTarget = new THREE.Vector3().subVectors(targetPos,this.entity.position).normalize();
         const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.entity.char.quaternion).normalize();
-
+        return {forward,dirToTarget}
+    }
+    private isFacingTarget(targetPos:THREE.Vector3):boolean {
+        const {forward,dirToTarget} = this.getDirToTarget(targetPos)
         const flatForward = forward.clone().setY(0).normalize();
         const flatDirToTarget = dirToTarget.clone().setY(0).normalize();
 
@@ -132,8 +133,11 @@ export class HostileEntity implements EntityContract  {
         const facingThreshold = THREE.MathUtils.degToRad(15); // e.g., 15 degrees
         const isFacingTarget = angle < facingThreshold;
 
-        const lookAtQuat = new THREE.Quaternion().setFromUnitVectors(forward, dirToTarget);
-        return {isFacingTarget,lookAtQuat}
+        return isFacingTarget
+    }
+    private getRequiredQuat(targetPos:THREE.Vector3):THREE.Quaternion {
+        const {forward,dirToTarget} = this.getDirToTarget(targetPos)
+        return new THREE.Quaternion().setFromUnitVectors(forward, dirToTarget);
     }
     private getVerticalAngleDiff(targetPos:THREE.Vector3):degrees {
         const dirToTarget = new THREE.Vector3().subVectors(targetPos,this.entity.position);
