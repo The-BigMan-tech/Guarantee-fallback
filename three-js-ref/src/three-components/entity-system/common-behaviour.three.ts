@@ -25,6 +25,44 @@ export interface ItemWithID {
 export class VectorUtils {
     
 }
+class Utils {
+    public static getDirToTarget(srcPos:THREE.Vector3,srcQuat:THREE.Quaternion,targetPos:THREE.Vector3) {
+        const dirToTarget = new THREE.Vector3().subVectors(targetPos,srcPos).normalize();
+        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(srcQuat).normalize();
+        return {forward,dirToTarget}
+    }
+    public static getVerticalAngleDiff(srcPos:THREE.Vector3,srcQuat:THREE.Quaternion,targetPos:THREE.Vector3):degrees {
+        const dirToTarget = new THREE.Vector3().subVectors(targetPos,srcPos);
+        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(srcQuat).normalize();
+        
+        const forwardYZ = new THREE.Vector3(0, forward.y, forward.z).normalize();
+        const dirYZ = new THREE.Vector3(0, dirToTarget.y, dirToTarget.z).normalize();
+        
+        let angle = forwardYZ.angleTo(dirYZ); // Angle in radians (0 to PI)
+
+        const cross = new THREE.Vector3().crossVectors(forwardYZ, dirYZ);
+        const sign = Math.sign(cross.x); // +1 means target is above, -1 below
+        
+        angle = angle * sign;
+        return Math.round(radToDeg(angle));
+    }
+    public static isFacingTarget(srcPos:THREE.Vector3,srcQuat:THREE.Quaternion,targetPos:THREE.Vector3):boolean {
+        const {forward,dirToTarget} = Utils.getDirToTarget(srcPos,srcQuat,targetPos)
+        const flatForward = forward.clone().setY(0).normalize();
+        const flatDirToTarget = dirToTarget.clone().setY(0).normalize();
+
+        const dot = flatForward.dot(flatDirToTarget)
+        const angle = Math.acos(dot); // angle in radians.it ranges from -1 to 1
+        const facingThreshold = THREE.MathUtils.degToRad(15); // e.g., 15 degrees
+        const isFacingTarget = angle < facingThreshold;
+
+        return isFacingTarget
+    }
+    public static getRequiredQuat(srcPos:THREE.Vector3,srcQuat:THREE.Quaternion,targetPos:THREE.Vector3):THREE.Quaternion {
+        const {forward,dirToTarget} = Utils.getDirToTarget(srcPos,srcQuat,targetPos)
+        return new THREE.Quaternion().setFromUnitVectors(forward, dirToTarget);
+    }
+}
 export class CommonBehaviour {
     public entity:Entity;
     private targetRelationshipToUpdate: RelationshipData | null = null;
@@ -125,54 +163,20 @@ export class CommonBehaviour {
         return null;
     }
 
-    public getDirToTarget(targetPos:THREE.Vector3) {
-        const dirToTarget = new THREE.Vector3().subVectors(targetPos,this.entity.position).normalize();
-        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.entity.char.quaternion).normalize();
-        return {forward,dirToTarget}
-    }
-    public isFacingTarget(targetPos:THREE.Vector3):boolean {
-        const {forward,dirToTarget} = this.getDirToTarget(targetPos)
-        const flatForward = forward.clone().setY(0).normalize();
-        const flatDirToTarget = dirToTarget.clone().setY(0).normalize();
-
-        const dot = flatForward.dot(flatDirToTarget)
-        const angle = Math.acos(dot); // angle in radians.it ranges from -1 to 1
-        const facingThreshold = THREE.MathUtils.degToRad(15); // e.g., 15 degrees
-        const isFacingTarget = angle < facingThreshold;
-
-        return isFacingTarget
-    }
-    public getRequiredQuat(targetPos:THREE.Vector3):THREE.Quaternion {
-        const {forward,dirToTarget} = this.getDirToTarget(targetPos)
-        return new THREE.Quaternion().setFromUnitVectors(forward, dirToTarget);
-    }
-    public getVerticalAngleDiff(targetPos:THREE.Vector3):degrees {
-        const dirToTarget = new THREE.Vector3().subVectors(targetPos,this.entity.position);
-        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.entity.char.quaternion).normalize();
-        
-        const forwardYZ = new THREE.Vector3(0, forward.y, forward.z).normalize();
-        const dirYZ = new THREE.Vector3(0, dirToTarget.y, dirToTarget.z).normalize();
-        
-        let angle = forwardYZ.angleTo(dirYZ); // Angle in radians (0 to PI)
-
-        const cross = new THREE.Vector3().crossVectors(forwardYZ, dirYZ);
-        const sign = Math.sign(cross.x); // +1 means target is above, -1 below
-        
-        angle = angle * sign;
-        return Math.round(radToDeg(angle));
-    }
-
     public throwItem(targetPos:THREE.Vector3,itemWithID:ItemWithID) {
+        const entityPos = this.entity.position;
+        const entityQuat = this.entity.char.quaternion;
+
         const distToTarget = this.entity.position.distanceTo(targetPos);
-        const isFacingTarget = this.isFacingTarget(targetPos);
+        const isFacingTarget = Utils.isFacingTarget(entityPos,entityQuat,targetPos);
         const YDifference = Math.abs(Math.round(targetPos.y - this.entity.position.y));
         const onSameOrGreaterYLevel = YDifference >= 0;
-        const angleDiff = this.getVerticalAngleDiff(targetPos);
+        const angleDiff = Utils.getVerticalAngleDiff(entityPos,entityQuat,targetPos);
         const shouldThrow = (distToTarget > 10) && isFacingTarget && (this.entity.obstDistance === Infinity) && onSameOrGreaterYLevel
         
         if (shouldThrow) {
             const view = this.getView();
-            view.quaternion.multiply(this.getRequiredQuat(targetPos));
+            view.quaternion.multiply(Utils.getRequiredQuat(entityPos,entityQuat,targetPos));
             const angleRad = degToRad(angleDiff);
             const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angleRad);
             view.quaternion.multiply(pitchQuat);
