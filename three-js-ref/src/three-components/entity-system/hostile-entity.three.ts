@@ -4,15 +4,24 @@ import { relationshipManager, type EntityLike } from "./relationships.three";
 import type { RelationshipData } from "./relationships.three";
 import { groupIDs } from "./entity-registry";
 import { ItemHolder } from "../item-system/item-holder.three";
-import type { ItemID } from "../item-system/behaviour/core/types";
+import type { Item, ItemID } from "../item-system/behaviour/core/types";
 import { itemManager } from "../item-system/item-manager.three";
 import { itemIDs } from "../item-system/item-defintions";
 import type { degrees, ItemUsageWeight } from "./global-types";
 import { choices } from "./choices";
 import * as THREE from "three";
 import { degToRad, radToDeg } from "three/src/math/MathUtils.js";
+import { Throwable } from "../item-system/behaviour/throwable.three";
 
-
+interface EntityItemUsage {
+    view:THREE.Group,
+    itemID:ItemID,
+    item:Item
+}
+interface ItemWithID {
+    item:Item,
+    itemID:ItemID
+}
 export class HostileEntity implements EntityContract  {
     private entityItems:Record<ItemID,ItemUsageWeight> = {
         [itemIDs.boulder]:10
@@ -83,23 +92,32 @@ export class HostileEntity implements EntityContract  {
         }
     }
     private utilizeItem(currentTarget:EntityLike) {
-        const distToTarget = this.entity.position.distanceTo(currentTarget.position);
-        const isFacingTarget = this.isFacingTarget(currentTarget.position);
-
-        const YDifference = Math.abs(Math.round(currentTarget.position.y - this.entity.position.y));
+        const itemWithID = this.selectRandomItem();
+        if (itemWithID.item.behaviour instanceof Throwable) {
+            this.throwItem(currentTarget.position,itemWithID)
+        }
+    }
+    private throwItem(targetPos:THREE.Vector3,itemWithID:ItemWithID) {
+        const distToTarget = this.entity.position.distanceTo(targetPos);
+        const isFacingTarget = this.isFacingTarget(targetPos);
+        const YDifference = Math.abs(Math.round(targetPos.y - this.entity.position.y));
         const onSameOrGreaterYLevel = YDifference >= 0;
-
-        const angleDiff = this.getVerticalAngleDiff(currentTarget.position);
+        const angleDiff = this.getVerticalAngleDiff(targetPos);
         const shouldThrow = (distToTarget > 10) && isFacingTarget && (this.entity.obstDistance === Infinity) && onSameOrGreaterYLevel
         
         if (shouldThrow) {
             const view = this.getView();
-            view.quaternion.multiply(this.getRequiredQuat(currentTarget.position));
+            view.quaternion.multiply(this.getRequiredQuat(targetPos));
             view.quaternion.x += degToRad(angleDiff);
-            this.useAnItem(view);
+            this.useItem({view,...itemWithID});
         }else {
             this.itemHolder.holdItem(null);
         }
+    }
+    private selectRandomItem():ItemWithID {
+        const itemID:ItemID = choices<ItemID>(this.entityItemIDs,this.usageWeights,1)[0];
+        const item = itemManager.items[itemID];
+        return {item,itemID}
     }
     private getView():THREE.Group {
         const view = new THREE.Group()
@@ -108,14 +126,12 @@ export class HostileEntity implements EntityContract  {
         view.position.y += this.entity.height ;
         return view
     }
-    private useAnItem(view:THREE.Group) {
-        const itemID:ItemID = choices<ItemID>(this.entityItemIDs,this.usageWeights,1)[0];
-        const item = itemManager.items[itemID];
-        this.itemHolder.holdItem(item);
+    private useItem(args:EntityItemUsage) {
+        this.itemHolder.holdItem(args.item);
         if (this.entity.useItemTimer > this.entity.useItemCooldown) { 
-            item.behaviour.use({
-                view,
-                itemID:itemID,
+            args.item.behaviour.use({
+                view:args.view,
+                itemID:args.itemID,
                 owner:this.entity,
                 userStrength:this.entity.strength,
                 userHorizontalQuaternion:this.entity.char.quaternion
