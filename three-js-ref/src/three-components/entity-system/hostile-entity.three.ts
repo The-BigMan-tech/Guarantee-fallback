@@ -108,7 +108,9 @@ export class HostileEntity implements EntityContract  {
         if (shouldThrow) {
             const view = this.getView();
             view.quaternion.multiply(this.getRequiredQuat(targetPos));
-            view.quaternion.x += degToRad(angleDiff);
+            const angleRad = degToRad(angleDiff);
+            const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angleRad);
+            view.quaternion.multiply(pitchQuat);
             this.useItem({view,...itemWithID});
         }else {
             this.itemHolder.holdItem(null);
