@@ -90,32 +90,37 @@ export class HostileEntity implements EntityContract  {
         const onSameOrGreaterYLevel = YDifference >= 0;
 
         const angleDiff = this.getVerticalAngleDiff(currentTarget.position);
-        const 
+        const shouldThrow = (distToTarget > 10) && isFacingTarget && (this.entity.obstDistance === Infinity) && onSameOrGreaterYLevel
         
-        if ((distToTarget > 10) && isFacingTarget && (this.entity.obstDistance === Infinity) && onSameOrGreaterYLevel) {
-            console.log('item. going to throw');
-            const itemID:ItemID = choices<ItemID>(this.entityItemIDs,this.usageWeights,1)[0];
-            const item = itemManager.items[itemID];
-            this.itemHolder.holdItem(item);
-            if (this.entity.useItemTimer > this.entity.useItemCooldown) {
-                const view = new THREE.Group()
-                view.position.copy(this.entity.position);
-                view.quaternion.copy(this.entity.char.quaternion)
-                view.quaternion.multiply(this.getRequiredQuat(currentTarget.position))
-                view.position.y += this.entity.height ;
-                view.quaternion.x += degToRad(angleDiff);
-
-                item.behaviour.use({
-                    view,
-                    itemID:itemID,
-                    owner:this.entity,
-                    userStrength:this.entity.strength,
-                    userHorizontalQuaternion:this.entity.char.quaternion
-                })
-                this.entity.useItemTimer = 0;
-            }
+        if (shouldThrow) {
+            const view = this.getView();
+            view.quaternion.multiply(this.getRequiredQuat(currentTarget.position));
+            view.quaternion.x += degToRad(angleDiff);
+            this.useAnItem(view);
         }else {
             this.itemHolder.holdItem(null);
+        }
+    }
+    private getView():THREE.Group {
+        const view = new THREE.Group()
+        view.position.copy(this.entity.position);
+        view.quaternion.copy(this.entity.char.quaternion)
+        view.position.y += this.entity.height ;
+        return view
+    }
+    private useAnItem(view:THREE.Group) {
+        const itemID:ItemID = choices<ItemID>(this.entityItemIDs,this.usageWeights,1)[0];
+        const item = itemManager.items[itemID];
+        this.itemHolder.holdItem(item);
+        if (this.entity.useItemTimer > this.entity.useItemCooldown) { 
+            item.behaviour.use({
+                view,
+                itemID:itemID,
+                owner:this.entity,
+                userStrength:this.entity.strength,
+                userHorizontalQuaternion:this.entity.char.quaternion
+            })
+            this.entity.useItemTimer = 0;
         }
     }
     private getDirToTarget(targetPos:THREE.Vector3) {
