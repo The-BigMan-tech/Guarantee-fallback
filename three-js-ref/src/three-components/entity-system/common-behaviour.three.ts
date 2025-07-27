@@ -3,15 +3,38 @@ import * as THREE from "three"
 import type { EntityLike } from "./relationships.three";
 import { relationshipManager,type RelationshipData } from "./relationships.three";
 import Heap from "heap-js";
+import type { degrees, EntityItems, ItemUsageWeight } from "./global-types";
+import { degToRad, radToDeg } from "three/src/math/MathUtils.js";
+import type { Item, ItemID } from "../item-system/behaviour/core/types";
+import { ItemHolder } from "../item-system/item-holder.three";
+import { itemManager } from "../item-system/item-manager.three";
+import { choices } from "./choices";
 
 type EntityKeys = keyof Entity
 
+
+export interface EntityItemUsage {
+    view:THREE.Group,
+    itemID:ItemID,
+    item:Item
+}
+export interface ItemWithID {
+    item:Item,
+    itemID:ItemID
+}
+export class VectorUtils {
+    
+}
 export class CommonBehaviour {
     public entity:Entity;
     private targetRelationshipToUpdate: RelationshipData | null = null;
     private removeFromRelationship = relationshipManager.removeFromRelationship;
+    private itemHolder:ItemHolder;
 
-    constructor(entity:Entity) {
+    private entityItemIDs:ItemID[] = [];
+    private usageWeights:ItemUsageWeight[] = [];
+
+    constructor(entity:Entity,entityItems:EntityItems) {
         const proxy = new Proxy(entity, {//used a proxy on the entity to update relevant heaps used in the relationships when its property changes
             set: (target: Entity, prop: EntityKeys, value: unknown) => {
                 const descriptor = Object.getOwnPropertyDescriptor(target, prop);
@@ -37,6 +60,11 @@ export class CommonBehaviour {
             }
         })
         this.entity = proxy;
+        this.itemHolder = new ItemHolder(this.entity.item3D);
+        Object.keys(entityItems).forEach(entityItemID=>{
+            this.entityItemIDs.push(entityItemID);
+            this.usageWeights.push(entityItems[entityItemID]);
+        })
     }
     public patrolBehaviour(basePatrolPoint:THREE.Vector3 | null):boolean {
         this.entity.basePatrolPoint = basePatrolPoint
@@ -95,6 +123,88 @@ export class CommonBehaviour {
             }
         }
         return null;
+    }
+
+    public getDirToTarget(targetPos:THREE.Vector3) {
+        const dirToTarget = new THREE.Vector3().subVectors(targetPos,this.entity.position).normalize();
+        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.entity.char.quaternion).normalize();
+        return {forward,dirToTarget}
+    }
+    public isFacingTarget(targetPos:THREE.Vector3):boolean {
+        const {forward,dirToTarget} = this.getDirToTarget(targetPos)
+        const flatForward = forward.clone().setY(0).normalize();
+        const flatDirToTarget = dirToTarget.clone().setY(0).normalize();
+
+        const dot = flatForward.dot(flatDirToTarget)
+        const angle = Math.acos(dot); // angle in radians.it ranges from -1 to 1
+        const facingThreshold = THREE.MathUtils.degToRad(15); // e.g., 15 degrees
+        const isFacingTarget = angle < facingThreshold;
+
+        return isFacingTarget
+    }
+    public getRequiredQuat(targetPos:THREE.Vector3):THREE.Quaternion {
+        const {forward,dirToTarget} = this.getDirToTarget(targetPos)
+        return new THREE.Quaternion().setFromUnitVectors(forward, dirToTarget);
+    }
+    public getVerticalAngleDiff(targetPos:THREE.Vector3):degrees {
+        const dirToTarget = new THREE.Vector3().subVectors(targetPos,this.entity.position);
+        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.entity.char.quaternion).normalize();
+        
+        const forwardYZ = new THREE.Vector3(0, forward.y, forward.z).normalize();
+        const dirYZ = new THREE.Vector3(0, dirToTarget.y, dirToTarget.z).normalize();
+        
+        let angle = forwardYZ.angleTo(dirYZ); // Angle in radians (0 to PI)
+
+        const cross = new THREE.Vector3().crossVectors(forwardYZ, dirYZ);
+        const sign = Math.sign(cross.x); // +1 means target is above, -1 below
+        
+        angle = angle * sign;
+        return Math.round(radToDeg(angle));
+    }
+
+    public throwItem(targetPos:THREE.Vector3,itemWithID:ItemWithID) {
+        const distToTarget = this.entity.position.distanceTo(targetPos);
+        const isFacingTarget = this.isFacingTarget(targetPos);
+        const YDifference = Math.abs(Math.round(targetPos.y - this.entity.position.y));
+        const onSameOrGreaterYLevel = YDifference >= 0;
+        const angleDiff = this.getVerticalAngleDiff(targetPos);
+        const shouldThrow = (distToTarget > 10) && isFacingTarget && (this.entity.obstDistance === Infinity) && onSameOrGreaterYLevel
+        
+        if (shouldThrow) {
+            const view = this.getView();
+            view.quaternion.multiply(this.getRequiredQuat(targetPos));
+            const angleRad = degToRad(angleDiff);
+            const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angleRad);
+            view.quaternion.multiply(pitchQuat);
+            this.useItem({view,...itemWithID});
+        }else {
+            this.itemHolder.holdItem(null);
+        }
+    }
+    public selectRandomItem():ItemWithID {
+        const itemID:ItemID = choices<ItemID>(this.entityItemIDs,this.usageWeights,1)[0];
+        const item = itemManager.items[itemID];
+        return {item,itemID}
+    }
+    private getView():THREE.Group {
+        const view = new THREE.Group()
+        view.position.copy(this.entity.position);
+        view.quaternion.copy(this.entity.char.quaternion)
+        view.position.y += this.entity.height ;
+        return view
+    }
+    private useItem(args:EntityItemUsage) {
+        this.itemHolder.holdItem(args.item);
+        if (this.entity.useItemTimer > this.entity.useItemCooldown) { 
+            args.item.behaviour.use({
+                view:args.view,
+                itemID:args.itemID,
+                owner:this.entity,
+                userStrength:this.entity.strength,
+                userHorizontalQuaternion:this.entity.char.quaternion
+            })
+            this.entity.useItemTimer = 0;
+        }
     }
     public updateOrderInRelationship(target:RelationshipData | null) {
         this.targetRelationshipToUpdate = target;

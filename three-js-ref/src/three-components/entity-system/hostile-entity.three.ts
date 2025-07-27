@@ -3,30 +3,14 @@ import { Entity, type EntityContract } from "./entity.three";
 import { relationshipManager, type EntityLike } from "./relationships.three";
 import type { RelationshipData } from "./relationships.three";
 import { groupIDs } from "./entity-registry";
-import { ItemHolder } from "../item-system/item-holder.three";
-import type { Item, ItemID } from "../item-system/behaviour/core/types";
-import { itemManager } from "../item-system/item-manager.three";
 import { itemIDs } from "../item-system/item-defintions";
-import type { degrees, ItemUsageWeight } from "./global-types";
-import { choices } from "./choices";
-import * as THREE from "three";
-import { degToRad, radToDeg } from "three/src/math/MathUtils.js";
+import type { EntityItems } from "./global-types";
 import { Throwable } from "../item-system/behaviour/throwable.three";
 
-interface EntityItemUsage {
-    view:THREE.Group,
-    itemID:ItemID,
-    item:Item
-}
-interface ItemWithID {
-    item:Item,
-    itemID:ItemID
-}
 export class HostileEntity implements EntityContract  {
-    private entityItems:Record<ItemID,ItemUsageWeight> = {
+    private entityItems:EntityItems = {
         [itemIDs.boulder]:10
     }
-
     public static modelPath:string = "./silvermoon.glb";
 
     private entity:Entity;
@@ -40,22 +24,13 @@ export class HostileEntity implements EntityContract  {
     private originalHostileTarget:RelationshipData = relationshipManager.hostileTargetOf[groupIDs.hostileEntity]
 
     private addRelationship = relationshipManager.addRelationship;
-    private itemHolder:ItemHolder;
-
-    private entityItemIDs:ItemID[] = [];
-    private usageWeights:ItemUsageWeight[] = [];
 
     constructor(entity:Entity) {
-        this.commonBehaviour = new CommonBehaviour(entity);//this creates a proxy to update its records in its respecive heaps
+        this.commonBehaviour = new CommonBehaviour(entity,this.entityItems);//this creates a proxy to update its records in its respecive heaps
         this.entity = this.commonBehaviour.entity;//use the proxied entity
         this.entity.onTargetReached = this.onTargetReached.bind(this);
         this.entity.updateInternalState = this.updateInternalState.bind(this);
         this.originalTargetEntity = this.entity._targetEntity;
-        this.itemHolder = new ItemHolder(this.entity.item3D);
-        Object.keys(this.entityItems).forEach(entityItemID=>{
-            this.entityItemIDs.push(entityItemID);
-            this.usageWeights.push(this.entityItems[entityItemID]);
-        })
     }
     private onTargetReached():'attack' | 'idle' {//the behaviour when it reaches the target will be later tied to a state machine
         if (this.commonBehaviour.attackBehaviour()) {
@@ -92,90 +67,10 @@ export class HostileEntity implements EntityContract  {
         }
     }
     private utilizeItem(currentTarget:EntityLike) {
-        const itemWithID = this.selectRandomItem();
+        const itemWithID = this.commonBehaviour.selectRandomItem();
         if (itemWithID.item.behaviour instanceof Throwable) {
-            this.throwItem(currentTarget.position,itemWithID)
+            this.commonBehaviour.throwItem(currentTarget.position,itemWithID)
         }
-    }
-    private throwItem(targetPos:THREE.Vector3,itemWithID:ItemWithID) {
-        const distToTarget = this.entity.position.distanceTo(targetPos);
-        const isFacingTarget = this.isFacingTarget(targetPos);
-        const YDifference = Math.abs(Math.round(targetPos.y - this.entity.position.y));
-        const onSameOrGreaterYLevel = YDifference >= 0;
-        const angleDiff = this.getVerticalAngleDiff(targetPos);
-        const shouldThrow = (distToTarget > 10) && isFacingTarget && (this.entity.obstDistance === Infinity) && onSameOrGreaterYLevel
-        
-        if (shouldThrow) {
-            const view = this.getView();
-            view.quaternion.multiply(this.getRequiredQuat(targetPos));
-            const angleRad = degToRad(angleDiff);
-            const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angleRad);
-            view.quaternion.multiply(pitchQuat);
-            this.useItem({view,...itemWithID});
-        }else {
-            this.itemHolder.holdItem(null);
-        }
-    }
-    private selectRandomItem():ItemWithID {
-        const itemID:ItemID = choices<ItemID>(this.entityItemIDs,this.usageWeights,1)[0];
-        const item = itemManager.items[itemID];
-        return {item,itemID}
-    }
-    private getView():THREE.Group {
-        const view = new THREE.Group()
-        view.position.copy(this.entity.position);
-        view.quaternion.copy(this.entity.char.quaternion)
-        view.position.y += this.entity.height ;
-        return view
-    }
-    private useItem(args:EntityItemUsage) {
-        this.itemHolder.holdItem(args.item);
-        if (this.entity.useItemTimer > this.entity.useItemCooldown) { 
-            args.item.behaviour.use({
-                view:args.view,
-                itemID:args.itemID,
-                owner:this.entity,
-                userStrength:this.entity.strength,
-                userHorizontalQuaternion:this.entity.char.quaternion
-            })
-            this.entity.useItemTimer = 0;
-        }
-    }
-    private getDirToTarget(targetPos:THREE.Vector3) {
-        const dirToTarget = new THREE.Vector3().subVectors(targetPos,this.entity.position).normalize();
-        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.entity.char.quaternion).normalize();
-        return {forward,dirToTarget}
-    }
-    private isFacingTarget(targetPos:THREE.Vector3):boolean {
-        const {forward,dirToTarget} = this.getDirToTarget(targetPos)
-        const flatForward = forward.clone().setY(0).normalize();
-        const flatDirToTarget = dirToTarget.clone().setY(0).normalize();
-
-        const dot = flatForward.dot(flatDirToTarget)
-        const angle = Math.acos(dot); // angle in radians.it ranges from -1 to 1
-        const facingThreshold = THREE.MathUtils.degToRad(15); // e.g., 15 degrees
-        const isFacingTarget = angle < facingThreshold;
-
-        return isFacingTarget
-    }
-    private getRequiredQuat(targetPos:THREE.Vector3):THREE.Quaternion {
-        const {forward,dirToTarget} = this.getDirToTarget(targetPos)
-        return new THREE.Quaternion().setFromUnitVectors(forward, dirToTarget);
-    }
-    private getVerticalAngleDiff(targetPos:THREE.Vector3):degrees {
-        const dirToTarget = new THREE.Vector3().subVectors(targetPos,this.entity.position);
-        const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.entity.char.quaternion).normalize();
-        
-        const forwardYZ = new THREE.Vector3(0, forward.y, forward.z).normalize();
-        const dirYZ = new THREE.Vector3(0, dirToTarget.y, dirToTarget.z).normalize();
-        
-        let angle = forwardYZ.angleTo(dirYZ); // Angle in radians (0 to PI)
-
-        const cross = new THREE.Vector3().crossVectors(forwardYZ, dirYZ);
-        const sign = Math.sign(cross.x); // +1 means target is above, -1 below
-        
-        angle = angle * sign;
-        return Math.round(radToDeg(angle));
     }
     get _entity() {
         return this.entity

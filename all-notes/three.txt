@@ -1734,3 +1734,5 @@ Clearance-sampling algorithm
 *Good architecture combined with a capable runtime (like JS’s JIT or PyPy’s JIT) enables high-performance games regardless of language. Your JavaScript game can be performant not only because JS is JIT compiled but also because your architecture is lean, predictable, and efficient.
 
 *for my player,i have an inventory that the player interacts with using the ui in order to use items but my entities dont have an inventory.they just have a list of items they utilize and based on conditions,they can use those items. entities don’t have full inventories but instead have a weighted list of items they can utilize.
+
+*you can directly mutate the properties of an euler rotation but not for quat

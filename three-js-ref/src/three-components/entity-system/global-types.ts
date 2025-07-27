@@ -1,3 +1,4 @@
+import type { ItemID } from "../item-system/behaviour/core/types";
 
 export type EntityWrapper = 'HostileEntity' | 'NPC'
 
@@ -19,3 +20,5 @@ export type minutes = number;
 export type degrees = number;
 
 export type ItemUsageWeight = number;
+
+export type EntityItems = Record<ItemID,ItemUsageWeight>
