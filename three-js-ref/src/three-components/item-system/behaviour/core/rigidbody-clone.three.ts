@@ -37,7 +37,6 @@ export class RigidBodyClone {
 
     private handle:number;
     private height:number;
-    private density:number;
 
     private spinApplied = false;
     private spinVectorInAir:THREE.Vector3;//this is a unit vector used to determine which component the spin velocity is applied.each component is like a flag to decide whether to apply spin in this axis or not
@@ -70,7 +69,6 @@ export class RigidBodyClone {
 
         this._canPickUp = canPickUp;
         this.height = properties.height;
-        this.density = properties.density;
         this.spinVectorInAir = spinVectorInAir.normalize();//i normalized it to ensure its a unit vector
         const clonedModel = model.clone(true);
         const box = new THREE.Box3().setFromObject(clonedModel);
@@ -213,7 +211,6 @@ export class RigidBodyClone {
         return Boolean(owner && (owner !== "Game"));
     }
     private raycaster:THREE.Raycaster = new THREE.Raycaster();
-    private static readonly knockbackScalar = 150;
 
     private knockbackObjectsAlongPath(onGround:boolean) {
         const velDirection = this.velCalcUtils.getVelocityDirection(this.rigidBody!,onGround);
@@ -224,20 +221,24 @@ export class RigidBodyClone {
             const maxDistance = 10;
             this.raycaster.set(origin.clone(),velDirection);
             
-            const knockbackImpulse = this.density * RigidBodyClone.knockbackScalar;
-            const knockbackSrcPos = origin.clone().multiply(new THREE.Vector3(1,-2,1));//i used -2 to shoot the target upwards even more.
+            const mass = this.rigidBody!.mass();
+            const velocity = new THREE.Vector3().copy(this.rigidBody!.linvel()).length();
+            const knockbackWeight = 0.4;
+
+            const knockbackImpulse = mass * velocity * knockbackWeight;
+            const knockbackSrcPos = origin.clone().multiply(new THREE.Vector3(0,-1,0));//i used -2 to shoot the target upwards even more.
             
             const clone = this.requestIntersectedClone(maxDistance);
             clone?.knockbackClone(knockbackSrcPos,knockbackImpulse);
-            clone?.durability.takeDamage(this.density);
+            clone?.durability.takeDamage(mass);
 
             const playerObject = this.requestIntersectedPlayer(maxDistance);
             playerObject?.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
-            playerObject?.health.takeDamage(this.density);
+            playerObject?.health.takeDamage(mass);
             
             const entity = this.requestIntersectedEntity(maxDistance);
             entity?.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
-            entity?.health.takeDamage(this.density);
+            entity?.health.takeDamage(mass);
 
             if (this.isEntityLike(this.owner) && entity) {
                 this.addRelationship(entity,relationshipManager.enemyOf[this.owner._groupID!]);
