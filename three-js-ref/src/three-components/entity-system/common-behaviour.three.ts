@@ -64,7 +64,17 @@ class EntityVecUtils {
     public static getRequiredQuat(srcPos:THREE.Vector3,srcQuat:THREE.Quaternion,targetPos:THREE.Vector3):THREE.Quaternion {
         const {forward,dirToTarget} = EntityVecUtils.getDirToTarget(srcPos,srcQuat,targetPos)
         return new THREE.Quaternion().setFromUnitVectors(forward, dirToTarget);
-    }    
+    }   
+    public static getForce(srcPos:THREE.Vector3,targetPos:THREE.Vector3,angleRad:number) {
+        const gravity = 9.8; // or your gravity constant
+        const theta = angleRad
+        const dist = this.distanceXZ(srcPos,targetPos)   // horizontal distance to target
+        const heightDiff = targetPos.y - srcPos.y; // vertical height difference
+
+        const denominator = 2 * Math.pow(Math.cos(theta), 2) * (dist * Math.tan(theta) - heightDiff);
+        const initialVelocity = Math.sqrt((gravity * dist * dist) / denominator);
+        return initialVelocity;
+    } 
 }
 export class CommonBehaviour {
     public entity:Entity;
@@ -184,7 +194,7 @@ export class CommonBehaviour {
         console.log('item. distToTarget:', distToTarget);
 
         if (shouldThrow) {
-            const parabolicDist = minDist + 30;
+            const parabolicDist = minDist + 10;
             const useParabolicThrow = distToTarget > parabolicDist;
             const elevationWeight = (useParabolicThrow)?1:0;
             const elevationHeight = elevationWeight * distToTarget;
@@ -199,13 +209,13 @@ export class CommonBehaviour {
             const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angleDiffRad);
             view.quaternion.multiply(pitchQuat);
 
-            const strongerForcePerUnit = 30;
-            const weakerForcePerUnit = 8;
-            const baseForcePerUnit = (useParabolicThrow)?weakerForcePerUnit:strongerForcePerUnit
-            const strength = baseForcePerUnit * distToTarget;//no need to clamp because it wont throw when the dist is too far
+        
+            const parabolicForce = EntityVecUtils.getForce(this.entity.position,targetPos,angleDiffRad) ;
+            const baseForcePerUnit = 30
+            const strength =  (useParabolicThrow)?parabolicForce:baseForcePerUnit * distToTarget;//no need to clamp because it wont throw when the dist is too far
             
             console.log('item. useParabolicThrow:', useParabolicThrow);
-            console.log('item. useParabolicThrow base unit:', baseForcePerUnit);
+            console.log('item. useParabolicThrow base strength:',strength);
             console.log('item. angleDiff:', angleDiff);
             this.useItem({view,...itemWithID,strength:strength});
         }else {

@@ -147,7 +147,7 @@ export class RigidBodyClone {
 
     public knockbackClone(sourcePosition:THREE.Vector3,strength:number) {
         const direction = new THREE.Vector3().subVectors(this.rigidBody!.translation(), sourcePosition).normalize();
-        const impulse = direction.multiplyScalar(strength)
+        const impulse = direction.multiplyScalar(strength);//in case i may ever think of considering mass in getting the strength,i didnt do that intentionally because your strength is the ultimate factor in whether you can kncoback an object and i dont want artificially increase that strength with the mass of the throwable
         this.rigidBody!.applyImpulse(impulse, true);
     }
 
