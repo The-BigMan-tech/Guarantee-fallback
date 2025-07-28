@@ -65,7 +65,8 @@ class EntityVecUtils {
         const {forward,dirToTarget} = EntityVecUtils.getDirToTarget(srcPos,srcQuat,targetPos)
         return new THREE.Quaternion().setFromUnitVectors(forward, dirToTarget);
     }   
-    public static getForce(srcPos:THREE.Vector3,targetPos:THREE.Vector3,angleRad:number) {
+    //it gets the velocity that an object must have to be thrown from a src pos to a target with a given throw angle
+    public static getThrowVelocity(srcPos:THREE.Vector3,targetPos:THREE.Vector3,angleRad:number) {
         const gravity = 9.8; // or your gravity constant
         const theta = angleRad
         const dist = this.distanceXZ(srcPos,targetPos)   // horizontal distance to target
@@ -181,7 +182,7 @@ export class CommonBehaviour {
         const entityQuat = this.entity.char.quaternion;
 
         const distToTarget = this.entity.position.distanceTo(targetPos);      
-        const minDist = 10;
+        const minDist = 15;
         const maxDist = 100;
 
         const YDifference = Math.round(targetPos.y - this.entity.position.y);
@@ -201,11 +202,11 @@ export class CommonBehaviour {
 
         if (shouldThrow) {
             const parabolicDist = minDist + 10;
-            const useParabolicThrow = distToTarget > parabolicDist;
+            const useParabolicThrow = distToTarget > parabolicDist;//i can always make my entity perform a linear throw and it will always be on taregt but it wont be realistic because people usually aim higher to shoot at a farther target
             const elevationWeight = (useParabolicThrow)?0.4:0;
             const elevationHeight = elevationWeight * distToTarget;
             const elevatedTargetPos = targetPos.clone();
-            elevatedTargetPos.y += elevationHeight;
+            elevatedTargetPos.y += elevationHeight;//i elevated the target pos when deciding to perform a parabolic throw so that the view of the entity naturally looks upwards to this new position even though the target's actual position isnt elevated.
 
             const angleDiff:degrees = EntityVecUtils.getVerticalAngleDiff(entityPos,entityQuat,elevatedTargetPos);
             const angleDiffRad = degToRad(angleDiff);  
@@ -215,9 +216,9 @@ export class CommonBehaviour {
             const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angleDiffRad);
             view.quaternion.multiply(pitchQuat);
         
-            const parabolicForce = EntityVecUtils.getForce(this.entity.position,targetPos,angleDiffRad) ;
-            const parabolicForceScalar = 14;
-            const parabolicStrength = parabolicForce * parabolicForceScalar;
+            const parabolicThrowVelocity = EntityVecUtils.getThrowVelocity(this.entity.position,targetPos,angleDiffRad) ;
+            const parabolicForceScalar = 13;
+            const parabolicStrength = parabolicThrowVelocity * parabolicForceScalar;
 
             const forcePerUnitDistance = 30;
             const linearStrength = forcePerUnitDistance * distToTarget
