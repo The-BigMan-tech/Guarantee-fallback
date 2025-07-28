@@ -180,15 +180,21 @@ export class CommonBehaviour {
         const entityPos = this.entity.position;
         const entityQuat = this.entity.char.quaternion;
 
-        const distToTarget = this.entity.position.distanceTo(targetPos);
-        const isFacingTarget = EntityVecUtils.isFacingTargetXZ(entityPos,entityQuat,targetPos);
+        const distToTarget = this.entity.position.distanceTo(targetPos);      
+        const minDist = 10;
+        const maxDist = 100;
+
         const YDifference = Math.round(targetPos.y - this.entity.position.y);
         const onSameOrGreaterYLevel = YDifference >= 0;//i added this check because without using the vertical dist to lock throwing,it can throw through the wall's edge.unless i make the calc consider other pars
 
-        const minDist = 10;
-        const maxDist = 100;
-        const withinAReasonableDist =  (distToTarget >= minDist) && (distToTarget <= maxDist)
-        const shouldThrow = withinAReasonableDist && isFacingTarget && (this.entity.obstDistance === Infinity) && onSameOrGreaterYLevel
+        const isFacingTarget = EntityVecUtils.isFacingTargetXZ(entityPos,entityQuat,targetPos);
+        const withinAReasonableDist =  (distToTarget >= minDist) && (distToTarget <= maxDist);
+        const pathIsClear =  this.entity.obstDistance === Infinity;
+        const atObstacleEdge = !this.entity.isThereGroundAhead;
+        const shouldThrow = withinAReasonableDist && 
+            isFacingTarget && 
+            pathIsClear && 
+            (onSameOrGreaterYLevel || atObstacleEdge);//the at obstacle edge check enables it to throw downwards
         
         console.log('item. YDifference:', YDifference);
         console.log('item. distToTarget:', distToTarget);
@@ -196,7 +202,7 @@ export class CommonBehaviour {
         if (shouldThrow) {
             const parabolicDist = minDist + 10;
             const useParabolicThrow = distToTarget > parabolicDist;
-            const elevationWeight = (useParabolicThrow)?1:0;
+            const elevationWeight = (useParabolicThrow)?0.4:0;
             const elevationHeight = elevationWeight * distToTarget;
             const elevatedTargetPos = targetPos.clone();
             elevatedTargetPos.y += elevationHeight;
@@ -208,14 +214,17 @@ export class CommonBehaviour {
             view.quaternion.multiply(EntityVecUtils.getRequiredQuat(entityPos,entityQuat,targetPos));
             const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angleDiffRad);
             view.quaternion.multiply(pitchQuat);
-
         
             const parabolicForce = EntityVecUtils.getForce(this.entity.position,targetPos,angleDiffRad) ;
-            const baseForcePerUnit = 30
-            const strength =  (useParabolicThrow)?parabolicForce:baseForcePerUnit * distToTarget;//no need to clamp because it wont throw when the dist is too far
+            const parabolicForceScalar = 14;
+            const parabolicStrength = parabolicForce * parabolicForceScalar;
+
+            const forcePerUnitDistance = 30;
+            const linearStrength = forcePerUnitDistance * distToTarget
+            const strength =  (useParabolicThrow)?parabolicStrength:linearStrength;//no need to clamp because it wont throw when the dist is too far
             
             console.log('item. useParabolicThrow:', useParabolicThrow);
-            console.log('item. useParabolicThrow base strength:',strength);
+            console.log('item. strength:',strength);
             console.log('item. angleDiff:', angleDiff);
             this.useItem({view,...itemWithID,strength:strength});
         }else {

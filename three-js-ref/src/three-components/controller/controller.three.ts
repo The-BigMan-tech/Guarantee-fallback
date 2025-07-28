@@ -544,7 +544,7 @@ export abstract class Controller {
     }
     private moveAgent(finalDestY:number) {
         if (!this.isFinalDestClose) {
-            this.autoMoveForward(finalDestY);
+            // this.autoMoveForward(finalDestY);
         }
     }
 
@@ -629,7 +629,7 @@ export abstract class Controller {
             this.spaceTimer += this.clockDelta || 0;
             this.terminateBranch();
             this.soundControls.stopWalkSound();
-            console.log('.:Reached original path');
+            console.log('Reached original path');
             if (this.spaceTimer > this.spaceCooldown) {//i used a cooldown to retain this space for some time or else,it will just go straight to the target again
                 this.isNearOriginalPath = false
                 this.spaceTimer = 0
@@ -928,6 +928,9 @@ export abstract class Controller {
     }
     get obstDistance():number {
         return this.obstacleDistance
+    }
+    get isThereGroundAhead():boolean {
+        return this.groundIsPresentForward;
     }
 
     private controllerId = uniqueID();
