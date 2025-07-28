@@ -203,7 +203,7 @@ export class CommonBehaviour {
         if (shouldThrow) {
             const parabolicDist = minDist + 10;
             const useParabolicThrow = distToTarget > parabolicDist;//i can always make my entity perform a linear throw and it will always be on taregt but it wont be realistic because people usually aim higher to shoot at a farther target
-            const elevationWeight = (useParabolicThrow)?0.5:0;
+            const elevationWeight = (useParabolicThrow)?0.5:0.02;
             const elevationHeight = elevationWeight * distToTarget;
             const elevatedTargetPos = targetPos.clone();
             elevatedTargetPos.y += elevationHeight;//i elevated the target pos when deciding to perform a parabolic throw so that the view of the entity naturally looks upwards to this new position even though the target's actual position isnt elevated.
@@ -213,18 +213,18 @@ export class CommonBehaviour {
 
             //Horizontal aiming
             const view = this.getView();
-            const flatTargetPos = targetPos.clone().setY(0);
+            const flatTargetPos = targetPos.clone().setY(entityPos.y);
             view.quaternion.multiply(EntityVecUtils.getRequiredQuat(entityPos,entityQuat,flatTargetPos));//i used a flat pos here because the horizontal aiming (yaw) should be independent of vertical height differences — the target’s XZ position determines the left-right facing direction.By zeroing out Y for getRequiredQuat, the program avoids skewing or twisting the horizontal rotation with vertical height data, ensuring the entity faces correctly on the ground plane.
             
             //vertical aiming
             const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angleDiffRad);
             view.quaternion.multiply(pitchQuat);
         
-            const parabolicThrowVelocity = EntityVecUtils.getThrowVelocity(this.entity.position,targetPos,angleDiffRad) ;
-            const parabolicForceScalar = 14;
+            const parabolicThrowVelocity = EntityVecUtils.getThrowVelocity(entityPos,targetPos,angleDiffRad) ;
+            const parabolicForceScalar = 13;
             const parabolicStrength = parabolicThrowVelocity * parabolicForceScalar;
 
-            const forcePerUnitDistance = 30;
+            const forcePerUnitDistance = 20;
             const linearStrength = forcePerUnitDistance * distToTarget
             const strength =  (useParabolicThrow)?parabolicStrength:linearStrength;//no need to clamp because it wont throw when the dist is too far
             

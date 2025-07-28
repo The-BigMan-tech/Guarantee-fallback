@@ -544,7 +544,7 @@ export abstract class Controller {
     }
     private moveAgent(finalDestY:number) {
         if (!this.isFinalDestClose) {
-            this.autoMoveForward(finalDestY);
+            // this.autoMoveForward(finalDestY);
         }
     }
 
@@ -576,7 +576,7 @@ export abstract class Controller {
     private getSteeringDirection(path:THREE.Vector3):'right' | 'left' | null {
         const angle:degrees = this.getAngleDiff(path);
         //if i dont set a threshold or if its too low,the controller will never move if rotate and move in the nav is set to false because it will use every frame to rotate itself even for small differences that it will nevr try to move since in this mode,rotation happens before movement
-        const rotationThreshold = 7;//the magnitude of the rotation diff before it rotates to the target direction
+        const rotationThreshold = 8;//the magnitude of the rotation diff before it rotates to the target direction
         if (angle > rotationThreshold) {
             return (angle < 180)?'right':'left'
         }
@@ -693,7 +693,7 @@ export abstract class Controller {
         }
 
         this.isFinalDestClose = distToFinalDest < distToFinalDestThresh;
-        this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 6);//this is used to control spacing between the entity and the target to prevent jitter when it knocks me back while coming at me
+        this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 7);//this is used to control spacing between the entity and the target to prevent jitter when it knocks me back while coming at me
         
         if (rotateAndMove) {
             if (finalDir !== null) this.rotateCharacterX(finalDir);
