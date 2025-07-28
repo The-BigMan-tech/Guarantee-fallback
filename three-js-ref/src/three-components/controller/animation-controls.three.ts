@@ -48,7 +48,7 @@ export class AnimationControls {
             this.currentAction = newAction;
         }
     }
-        public playJumpAnimation():void {
+    public playJumpAnimation():void {
         if (this.mixer && this.jumpAction) this.fadeToAnimation(this.jumpAction);
     }
     public playWalkAnimation():void {
@@ -57,8 +57,8 @@ export class AnimationControls {
         }
     }
     public playIdleAnimation():void {//i made it public for use by classes composed by the entity
-        if (this.mixer && this.idleAction && this.attackAction && this.walkAction) {
-            if (!this.attackAction.isRunning() && !this.walkAction.isRunning()) {
+        if (this.mixer && this.idleAction && this.attackAction && this.walkAction  && this.jumpAction) {
+            if (!this.attackAction.isRunning() && !this.walkAction.isRunning() && !this.jumpAction.isRunning()) {
                 this.fadeToAnimation(this.idleAction);
             }
         };

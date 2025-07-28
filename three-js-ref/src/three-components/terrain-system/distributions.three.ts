@@ -30,7 +30,7 @@ export class Distributions {
         for (let i = 0; i < points.length; i++) {
             const [x, z] = points[i];
         
-            const height = randFloat(10,10);
+            const height = randFloat(1,10);
             
             const localY = startingLevelY + height/2 ;//to make it stand on the startinglevl not that half of it is above and another half above
             const localX = x - this.chunkSize / 2;
@@ -53,10 +53,10 @@ export class Distributions {
                     owner:'Game',//it spawned naturally so its owned by the game
                     properties:{
                         density:1,
-                        width:height,//im using the height here for width and depth to get a cube unit.this will  depending on the model
+                        width:15,//im using the height here for width and depth to get a cube unit.this will  depending on the model
                         height:height,
-                        depth:height,
-                        durability:5
+                        depth:15,
+                        durability:1
                     }
                 });
                 this.clones.push(clone);
