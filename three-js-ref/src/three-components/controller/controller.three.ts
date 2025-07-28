@@ -962,8 +962,8 @@ export abstract class Controller {
         this.forceSleepIfIdle();
         this.updateKnockbackCooldown();
         this.updateVelJustAboveGround();
-        this.onLoop();
         this.animationControls?.updateAnimations(deltaTime);//im updating the animation before the early return so that it stops naturally 
+        this.onLoop();
         if (this.characterRigidBody && this.characterRigidBody.isSleeping()) {
             console.log("sleeping...");
             return;//to prevent unnecessary queries.Since it sleeps only when its grounded.its appropriate to return true here saving computation

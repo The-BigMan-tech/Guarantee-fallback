@@ -11,6 +11,9 @@ export class AnimationControls {
     private attackAction:THREE.AnimationAction | null = null;
     private deathAction:THREE.AnimationAction | null = null;
 
+    private animationIsPlaying:boolean = false;
+    private animationsHasLoaded:boolean = false;
+
     constructor(characterModel: THREE.Group) {
         this.mixer = new THREE.AnimationMixer(characterModel);
     }
@@ -49,33 +52,36 @@ export class AnimationControls {
         }
     }
     public playJumpAnimation():void {
-        if (this.mixer && this.jumpAction) this.fadeToAnimation(this.jumpAction);
+        if (this.animationsHasLoaded && !this.animationIsPlaying) {
+            this.fadeToAnimation(this.jumpAction!);
+        }
     }
     public playWalkAnimation():void {
-        if (this.mixer && this.walkAction && this.attackAction && !this.attackAction.isRunning()) {
-            this.fadeToAnimation(this.walkAction);
+        if (!this.animationIsPlaying || !this.walkAction?.isRunning()) {
+            this.fadeToAnimation(this.walkAction!);
         }
     }
     public playIdleAnimation():void {//i made it public for use by classes composed by the entity
-        if (this.mixer && this.idleAction && this.attackAction && this.walkAction  && this.jumpAction && this.deathAction) {
-            if (!this.attackAction.isRunning() && !this.walkAction.isRunning() && !this.jumpAction.isRunning() && !this.deathAction.isRunning()) {
-                this.fadeToAnimation(this.idleAction);
-            }
-        };
+        if (this.animationsHasLoaded && !this.animationIsPlaying) {
+            this.fadeToAnimation(this.idleAction!);
+        }
     }
     public playAttackAnimation():void {
-        if (this.mixer && this.attackAction && this.deathAction){
-            if (!this.deathAction.isRunning()) {
-                this.fadeToAnimation(this.attackAction);
-            }
-        }
+        if (this.animationsHasLoaded && !this.animationIsPlaying) {
+            this.fadeToAnimation(this.attackAction!);
+        } 
     }
     public playDeathAnimation():void {
-        if (this.mixer && this.deathAction) {
-            this.fadeToAnimation(this.deathAction);
-        }
+        if (this.animationsHasLoaded && !this.animationIsPlaying) {
+            this.fadeToAnimation(this.deathAction!);
+        }  
     }
     public updateAnimations(clockDelta:number) {
-        this.mixer?.update(clockDelta || 0);
+        if (!this.animationsHasLoaded) {
+            this.animationsHasLoaded = Boolean(this.mixer && this.idleAction && this.attackAction && this.walkAction  && this.jumpAction && this.deathAction);
+        }else {//only update animations if they have loaded
+            this.animationIsPlaying = !this.attackAction?.isRunning() && !this.walkAction?.isRunning()  && !this.jumpAction?.isRunning() && !this.deathAction?.isRunning()
+            this.mixer?.update(clockDelta || 0);
+        }
     }
 }

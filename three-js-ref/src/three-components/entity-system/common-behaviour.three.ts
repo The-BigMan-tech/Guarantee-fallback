@@ -213,7 +213,7 @@ export class CommonBehaviour {
 
             //Horizontal aiming
             const view = this.getView();
-            const flatTargetPos = targetPos.clone().setY(entityPos.y);
+            const flatTargetPos = targetPos.clone().setY(entityPos.y);//By flattening target Y to the entity's own Y coordinate,The direction vector from entity to target becomes truly horizontal in the entity's plane, without unintended vertical tilt.
             view.quaternion.multiply(EntityVecUtils.getRequiredQuat(entityPos,entityQuat,flatTargetPos));//i used a flat pos here because the horizontal aiming (yaw) should be independent of vertical height differences — the target’s XZ position determines the left-right facing direction.By zeroing out Y for getRequiredQuat, the program avoids skewing or twisting the horizontal rotation with vertical height data, ensuring the entity faces correctly on the ground plane.
             
             //vertical aiming

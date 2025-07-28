@@ -6,6 +6,7 @@ import type { PlaceableItemConfig } from "./core/types";
 import { ItemUtils } from "./core/item-utils.three";
 import { itemManager } from "../item-manager.three";
 import { gltfLoader } from "../../gltf-loader.three";
+import { groupIDs } from "../../entity-system/entity-registry";
 
 export class Throwable implements ItemBehaviour {
     private _placeableConfig:PlaceableItemConfig;
@@ -36,7 +37,9 @@ export class Throwable implements ItemBehaviour {
 
             const sourceThrow = ItemUtils.getSpawnPosition(view)
             clone.knockbackClone(sourceThrow,userStrength);
-            itemManager.removeFromInventory(itemID)
+            if (owner._groupID === groupIDs.player) {
+                itemManager.removeFromInventory(itemID)
+            }
         }
     }
     get placeableConfig() {
