@@ -211,8 +211,11 @@ export class CommonBehaviour {
             const angleDiff:degrees = EntityVecUtils.getVerticalAngleDiff(entityPos,entityQuat,elevatedTargetPos);
             const angleDiffRad = degToRad(angleDiff);  
 
+            //Horizontal aiming
             const view = this.getView();
-            view.quaternion.multiply(EntityVecUtils.getRequiredQuat(entityPos,entityQuat,targetPos));
+            const flatTargetPos = targetPos.clone().setY(0);
+            view.quaternion.multiply(EntityVecUtils.getRequiredQuat(entityPos,entityQuat,flatTargetPos));//i used a flat pos here because the horizontal aiming (yaw) should be independent of vertical height differences — the target’s XZ position determines the left-right facing direction.By zeroing out Y for getRequiredQuat, the program avoids skewing or twisting the horizontal rotation with vertical height data, ensuring the entity faces correctly on the ground plane.
+            
             const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angleDiffRad);
             view.quaternion.multiply(pitchQuat);
         

@@ -57,8 +57,8 @@ export class AnimationControls {
         }
     }
     public playIdleAnimation():void {//i made it public for use by classes composed by the entity
-        if (this.mixer && this.idleAction && this.attackAction && this.walkAction  && this.jumpAction) {
-            if (!this.attackAction.isRunning() && !this.walkAction.isRunning() && !this.jumpAction.isRunning()) {
+        if (this.mixer && this.idleAction && this.attackAction && this.walkAction  && this.jumpAction && this.deathAction) {
+            if (!this.attackAction.isRunning() && !this.walkAction.isRunning() && !this.jumpAction.isRunning() && !this.deathAction.isRunning()) {
                 this.fadeToAnimation(this.idleAction);
             }
         };
