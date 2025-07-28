@@ -267,12 +267,12 @@ export class Entity extends Controller implements EntityLike {
         this.patrolTimer += this.clockDelta || 0;
         this.currentHealth = this.health.value;
         this.useItemTimer += this.clockDelta || 0;
-        this.idle();
         this.checkIfOutOfBounds();
         this.health.checkGroundDamage(this.velBeforeHittingGround);
         if (this.isAirBorne() && (!this.health.isDead)) this.animationControls?.playJumpAnimation();
         if (this.updateInternalState) this.updateInternalState(); 
         this.reactToStateMachine();
+        this.idle();
     }
 }
 //i intened to define these variables as public variables of the entity manager but because of their wide use in the codebase,it was impossible to do that without causing circular imports where the manager imports a variable that also depends on this variable

@@ -25,7 +25,7 @@ export class NPC implements EntityContract {
     private addRelationship = relationshipManager.addRelationship;
 
     constructor(entity:Entity) {
-        this.commonBehaviour = new CommonBehaviour(entity)
+        this.commonBehaviour = new CommonBehaviour(entity,{})
         this.entity = this.commonBehaviour.entity;//we want to use the entity from the common behaviour because its a proxy
         this.entity.onTargetReached = this.onTargetReached.bind(this);
         this.entity.updateInternalState = this.updateInternalState.bind(this);
