@@ -23,8 +23,11 @@ export interface ItemWithID {
     item:Item,
     itemID:ItemID
 }
-export class VectorUtils {
-    
+interface ThrowAngleArgs {
+    dist: number, 
+    heightDiff: number, 
+    velocity: number, 
+    gravity: number
 }
 class EntityVecUtils {
     public static getDirToTarget(srcPos:THREE.Vector3,srcQuat:THREE.Quaternion,targetPos:THREE.Vector3) {
@@ -33,18 +36,18 @@ class EntityVecUtils {
         return {forward,dirToTarget}
     }
     public static getVerticalAngleDiff(srcPos:THREE.Vector3,srcQuat:THREE.Quaternion,targetPos:THREE.Vector3):degrees {
-        const dirToTarget = new THREE.Vector3().subVectors(targetPos,srcPos);
         const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(srcQuat).normalize();
-        
-        const forwardYZ = new THREE.Vector3(0, forward.y, forward.z).normalize();
-        const dirYZ = new THREE.Vector3(0, dirToTarget.y, dirToTarget.z).normalize();
-        
-        let angle = forwardYZ.angleTo(dirYZ); // Angle in radians (0 to PI)
+        const dirToTarget = new THREE.Vector3().subVectors(targetPos, srcPos).normalize();
+        const worldUp = new THREE.Vector3(0, 1, 0);
 
-        const cross = new THREE.Vector3().crossVectors(forwardYZ, dirYZ);
-        const sign = Math.sign(cross.x); // +1 means target is above, -1 below
-        
+        const right = new THREE.Vector3().crossVectors(forward, worldUp).normalize();
+        const dirOnVerticalPlane = dirToTarget.clone().sub(right.clone().multiplyScalar(dirToTarget.dot(right))).normalize();
+        let angle = forward.angleTo(dirOnVerticalPlane); // radians, 0 to PI
+
+        const cross = new THREE.Vector3().crossVectors(forward, dirOnVerticalPlane);
+        const sign = Math.sign(cross.dot(right)); // positive means target is above forward vector
         angle = angle * sign;
+
         return Math.round(radToDeg(angle));
     }
     public static isFacingTarget(srcPos:THREE.Vector3,srcQuat:THREE.Quaternion,targetPos:THREE.Vector3):boolean {
@@ -63,6 +66,32 @@ class EntityVecUtils {
         const {forward,dirToTarget} = EntityVecUtils.getDirToTarget(srcPos,srcQuat,targetPos)
         return new THREE.Quaternion().setFromUnitVectors(forward, dirToTarget);
     }
+    public static calculateThrowAngle({dist, heightDiff, velocity,gravity}:ThrowAngleArgs): degrees {
+        const velocitySquared = velocity * velocity;
+        const g = gravity;
+        const horizontalDistance = dist;
+        const verticalDisplacement = heightDiff;
+
+        // Calculate the discriminant of the quadratic to solve for launch angle
+        const discriminant = 
+            (velocitySquared * velocitySquared) - 
+            (g * ((g * horizontalDistance * horizontalDistance) + (2 * verticalDisplacement * velocitySquared)));
+
+        // If discriminant is negative, no valid solution exists (target out of range)
+        if (discriminant < 0) {
+            console.log('item. angle disc is 0');
+            return 0; // fallback angle (alternate handling recommended)
+        }
+
+        const sqrtDiscriminant = Math.sqrt(discriminant);
+
+        // Two possible launch angles (radians) from projectile motion formula
+        const angle1 = Math.atan((velocitySquared + sqrtDiscriminant) / (g * horizontalDistance));
+        const angle2 = Math.atan((velocitySquared - sqrtDiscriminant) / (g * horizontalDistance));
+
+        // Return the higher angle in degrees (higher arc)
+        return radToDeg(Math.max(angle1, angle2));
+    }     
 }
 export class CommonBehaviour {
     public entity:Entity;
@@ -172,6 +201,7 @@ export class CommonBehaviour {
         console.log('item. distToTarget:', distToTarget);
         const isFacingTarget = EntityVecUtils.isFacingTarget(entityPos,entityQuat,targetPos);
         const YDifference = Math.round(targetPos.y - this.entity.position.y);
+        console.log('item. YDifference:', YDifference);
         const onSameOrGreaterYLevel = YDifference >= 0;//i added this check because without using the vertical dist to lock throwing,it can throw through the wall's edge.unless i make the calc consider other pars
         const angleDiff = EntityVecUtils.getVerticalAngleDiff(entityPos,entityQuat,targetPos);
         const withinAReasonableDist =  (distToTarget > 10) && (distToTarget < 100)
@@ -180,12 +210,23 @@ export class CommonBehaviour {
         if (shouldThrow) {
             const view = this.getView();
             view.quaternion.multiply(EntityVecUtils.getRequiredQuat(entityPos,entityQuat,targetPos));
-            const angleRad = degToRad(angleDiff);
-            const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angleRad);
-            view.quaternion.multiply(pitchQuat);
+            
             const baseForcePerUnit = 30;
-
             const strength = baseForcePerUnit * distToTarget;//no need to clamp because it wont throw when the dist is too far
+            
+            const throwAngle = EntityVecUtils.calculateThrowAngle({
+                dist:distToTarget, 
+                heightDiff:YDifference, 
+                velocity:strength, 
+                gravity:10
+            });
+            console.log('item. angleDiff:', angleDiff);
+            console.log('item. angle to throw:', throwAngle);
+
+            const angleDiffRad = degToRad(angleDiff);  
+            const throwAngleRad = degToRad(throwAngle);   
+            const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angleDiffRad);
+            view.quaternion.multiply(pitchQuat);
             this.useItem({view,...itemWithID,strength:strength});
         }else {
             this.itemHolder.holdItem(null);
