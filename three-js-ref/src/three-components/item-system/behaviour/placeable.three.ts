@@ -8,7 +8,7 @@ import { itemManager } from "../item-manager.three";
 import { gltfLoader } from "../../gltf-loader.three";
 
 //Item behaviour classes dont extend rigid body clone nor are composed by it.they rather create clones of rigid bodies on the fly using the provided data.They add behaviour by manipulating clones.ill add hooks so that they can plug in behaviour into the clone they spawn
-export class DynamicBody implements ItemBehaviour {
+export class Placeable implements ItemBehaviour {
     private _placeableConfig:PlaceableItemConfig;
     private model:THREE.Group | null = null; 
 

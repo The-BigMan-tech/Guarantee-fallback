@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { DynamicBody } from "./behaviour/dynamic-body.three";
+import { Placeable } from "./behaviour/placeable.three";
 import { Throwable } from "./behaviour/throwable.three";
 import type { ItemID,Item } from "./behaviour/core/types";
 
@@ -32,7 +32,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
             rotation:eulerDegToRad(new THREE.Euler(-90,0,0)),
             scale:new THREE.Vector3(0.2,0.2,0.2)
         },
-        behaviour:new DynamicBody({
+        behaviour:new Placeable({
             canPickUp:true,
             modelPath:modelPaths.Block,
             density:3,
