@@ -620,7 +620,7 @@ export abstract class Controller {
         const characterPos = this.character.position;
         const distToOriginalPath = characterPos.distanceTo(originalPath);//im using hypot dist here cuz i need the distance to reflect all the comp before deciding that its close to it cuz this is where it terminates the navigation but its not the sole factor used to determine that.i also included in the y level diff check
 
-        const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));
+        const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));//i used abs because i only care about the diff not whether if their positions are up or down relative to each other
         const onSameYLevel = YDifference < 2.5;
         const targetReachedDistance = 3//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
         const hasReachedOriginalPath =  (onSameYLevel) && (distToOriginalPath < targetReachedDistance);

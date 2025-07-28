@@ -171,8 +171,8 @@ export class CommonBehaviour {
         const distToTarget = this.entity.position.distanceTo(targetPos);
         console.log('item. distToTarget:', distToTarget);
         const isFacingTarget = EntityVecUtils.isFacingTarget(entityPos,entityQuat,targetPos);
-        const YDifference = Math.abs(Math.round(targetPos.y - this.entity.position.y));
-        const onSameOrGreaterYLevel = YDifference >= 0;
+        const YDifference = Math.round(targetPos.y - this.entity.position.y);
+        const onSameOrGreaterYLevel = YDifference >= 0;//i added this check because without using the vertical dist to lock throwing,it can throw through the wall's edge.unless i make the calc consider other pars
         const angleDiff = EntityVecUtils.getVerticalAngleDiff(entityPos,entityQuat,targetPos);
         const withinAReasonableDist =  (distToTarget > 10) && (distToTarget < 100)
         const shouldThrow = withinAReasonableDist && isFacingTarget && (this.entity.obstDistance === Infinity) && onSameOrGreaterYLevel
@@ -185,7 +185,7 @@ export class CommonBehaviour {
             view.quaternion.multiply(pitchQuat);
             const baseForcePerUnit = 30;
 
-            const strength = baseForcePerUnit * distToTarget;
+            const strength = baseForcePerUnit * distToTarget;//no need to clamp because it wont throw when the dist is too far
             this.useItem({view,...itemWithID,strength:strength});
         }else {
             this.itemHolder.holdItem(null);
