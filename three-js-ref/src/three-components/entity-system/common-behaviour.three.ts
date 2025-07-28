@@ -25,7 +25,7 @@ export interface ItemWithID {
 export class VectorUtils {
     
 }
-class Utils {
+class EntityVecUtils {
     public static getDirToTarget(srcPos:THREE.Vector3,srcQuat:THREE.Quaternion,targetPos:THREE.Vector3) {
         const dirToTarget = new THREE.Vector3().subVectors(targetPos,srcPos).normalize();
         const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(srcQuat).normalize();
@@ -47,7 +47,7 @@ class Utils {
         return Math.round(radToDeg(angle));
     }
     public static isFacingTarget(srcPos:THREE.Vector3,srcQuat:THREE.Quaternion,targetPos:THREE.Vector3):boolean {
-        const {forward,dirToTarget} = Utils.getDirToTarget(srcPos,srcQuat,targetPos)
+        const {forward,dirToTarget} = EntityVecUtils.getDirToTarget(srcPos,srcQuat,targetPos)
         const flatForward = forward.clone().setY(0).normalize();
         const flatDirToTarget = dirToTarget.clone().setY(0).normalize();
 
@@ -59,7 +59,7 @@ class Utils {
         return isFacingTarget
     }
     public static getRequiredQuat(srcPos:THREE.Vector3,srcQuat:THREE.Quaternion,targetPos:THREE.Vector3):THREE.Quaternion {
-        const {forward,dirToTarget} = Utils.getDirToTarget(srcPos,srcQuat,targetPos)
+        const {forward,dirToTarget} = EntityVecUtils.getDirToTarget(srcPos,srcQuat,targetPos)
         return new THREE.Quaternion().setFromUnitVectors(forward, dirToTarget);
     }
 }
@@ -168,15 +168,15 @@ export class CommonBehaviour {
         const entityQuat = this.entity.char.quaternion;
 
         const distToTarget = this.entity.position.distanceTo(targetPos);
-        const isFacingTarget = Utils.isFacingTarget(entityPos,entityQuat,targetPos);
+        const isFacingTarget = EntityVecUtils.isFacingTarget(entityPos,entityQuat,targetPos);
         const YDifference = Math.abs(Math.round(targetPos.y - this.entity.position.y));
         const onSameOrGreaterYLevel = YDifference >= 0;
-        const angleDiff = Utils.getVerticalAngleDiff(entityPos,entityQuat,targetPos);
+        const angleDiff = EntityVecUtils.getVerticalAngleDiff(entityPos,entityQuat,targetPos);
         const shouldThrow = (distToTarget > 10) && isFacingTarget && (this.entity.obstDistance === Infinity) && onSameOrGreaterYLevel
         
         if (shouldThrow) {
             const view = this.getView();
-            view.quaternion.multiply(Utils.getRequiredQuat(entityPos,entityQuat,targetPos));
+            view.quaternion.multiply(EntityVecUtils.getRequiredQuat(entityPos,entityQuat,targetPos));
             const angleRad = degToRad(angleDiff);
             const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angleRad);
             view.quaternion.multiply(pitchQuat);
