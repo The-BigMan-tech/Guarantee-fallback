@@ -174,14 +174,19 @@ export class CommonBehaviour {
         const isFacingTarget = EntityVecUtils.isFacingTargetXZ(entityPos,entityQuat,targetPos);
         const YDifference = Math.round(targetPos.y - this.entity.position.y);
         const onSameOrGreaterYLevel = YDifference >= 0;//i added this check because without using the vertical dist to lock throwing,it can throw through the wall's edge.unless i make the calc consider other pars
-        const withinAReasonableDist =  (distToTarget >= 10) && (distToTarget <= 100)
+
+        const minDist = 10;
+        const maxDist = 100;
+        const withinAReasonableDist =  (distToTarget >= minDist) && (distToTarget <= maxDist)
         const shouldThrow = withinAReasonableDist && isFacingTarget && (this.entity.obstDistance === Infinity) && onSameOrGreaterYLevel
         
         console.log('item. YDifference:', YDifference);
         console.log('item. distToTarget:', distToTarget);
 
         if (shouldThrow) {
-            const elevationWeight = 1;
+            const parabolicDist = minDist + 30;
+            const useParabolicThrow = distToTarget > parabolicDist;
+            const elevationWeight = (useParabolicThrow)?1:0;
             const elevationHeight = elevationWeight * distToTarget;
             const elevatedTargetPos = targetPos.clone();
             elevatedTargetPos.y += elevationHeight;
@@ -194,9 +199,13 @@ export class CommonBehaviour {
             const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angleDiffRad);
             view.quaternion.multiply(pitchQuat);
 
-            const baseForcePerUnit = 30;
+            const strongerForcePerUnit = 30;
+            const weakerForcePerUnit = 8;
+            const baseForcePerUnit = (useParabolicThrow)?weakerForcePerUnit:strongerForcePerUnit
             const strength = baseForcePerUnit * distToTarget;//no need to clamp because it wont throw when the dist is too far
             
+            console.log('item. useParabolicThrow:', useParabolicThrow);
+            console.log('item. useParabolicThrow base unit:', baseForcePerUnit);
             console.log('item. angleDiff:', angleDiff);
             this.useItem({view,...itemWithID,strength:strength});
         }else {
