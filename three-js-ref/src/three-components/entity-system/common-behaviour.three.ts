@@ -177,7 +177,7 @@ export class CommonBehaviour {
         return null;
     }
 
-    public throwItem(targetPos:THREE.Vector3,itemWithID:ItemWithID) {
+    public throwItem(itemWithID:ItemWithID,targetPos:THREE.Vector3) {
         const entityPos = this.entity.position;
         const entityQuat = this.entity.char.quaternion;
 

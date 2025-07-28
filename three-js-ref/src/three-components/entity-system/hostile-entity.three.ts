@@ -69,7 +69,7 @@ export class HostileEntity implements EntityContract  {
     private utilizeItem(currentTarget:EntityLike) {
         const itemWithID = this.commonBehaviour.selectRandomItem();
         if (itemWithID.item.behaviour instanceof Throwable) {
-            this.commonBehaviour.throwItem(currentTarget.position,itemWithID)
+            this.commonBehaviour.throwItem(itemWithID,currentTarget.position)
         }
     }
     get _entity() {
