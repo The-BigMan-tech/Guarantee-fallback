@@ -1747,3 +1747,7 @@ Use .length() on the velocity vector to get the scalar speed (i.e., how fast the
 Use .dot(directionUnitVector) if you want the velocity component along a specific direction.
 
 Don’t use dot product alone if you want just the speed unless you dot the vector with itself and then take the square root.
+
+*so z is for forward vector and x is for the right vector.the right vector is used in rotations because rotation on the vertical plane is done on the upward x axis which the right vector correctly represents.the forward vector is used for positions.and i can get the right vectory by doing a cross vector of the forward and up vectors if i want to represent the rotation more intuitvely by showing its working on vertical rotation
+
+*so cross vector is for getting the perpendicular direction vector to two vectors while dot profuct is to get the relative distance of one vectpr to another and length is used to trun a vector directly to a single scalar but its absolute
