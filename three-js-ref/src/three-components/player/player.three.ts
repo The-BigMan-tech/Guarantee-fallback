@@ -368,8 +368,10 @@ export class Player extends Controller implements EntityLike {
             this.animationControls?.playAttackAnimation();
         }
         if ((this.attackTimer > this.attackCooldown)){
+            const YSign = Math.sign(this.position.y);
             const srcPosition = this.position.clone();
             srcPosition.y *= -1;//i did this because the Y diff between the src position(player position) and the target is effectively zero here.This is because there is hardly any angular diff when a player hits a target up close.this means that there isnt any upward force that will be applied on the body because the src position is always facing horizontally forward to the target.so to work around this,i dragged the src position down so that the resulting impulse comes like an upper cut
+            srcPosition.y *= YSign;
             
             if (this.lookedAtEntity) { 
                 console.log('attacked entity');
@@ -514,7 +516,7 @@ const playerMiscData:PlayerMiscData = {
     healthValue:1000,
     attackDamage:1,
     knockback:200,
-    strength:1000,
+    strength:500,
     camArgs: {
         FOV:75,
         nearPoint:0.1,

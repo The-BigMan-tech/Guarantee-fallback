@@ -1741,3 +1741,9 @@ Clearance-sampling algorithm
 
 
 *Commutative vs Non-commutative vector operations
+
+Use .length() on the velocity vector to get the scalar speed (i.e., how fast the object is moving overall).
+
+Use .dot(directionUnitVector) if you want the velocity component along a specific direction.
+
+Don’t use dot product alone if you want just the speed unless you dot the vector with itself and then take the square root.

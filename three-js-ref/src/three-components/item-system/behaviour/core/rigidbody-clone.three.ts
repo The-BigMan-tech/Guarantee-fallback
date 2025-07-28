@@ -223,10 +223,15 @@ export class RigidBodyClone {
             
             const mass = this.rigidBody!.mass();
             const velocity = new THREE.Vector3().copy(this.rigidBody!.linvel()).length();
-            const knockbackWeight = 0.4;
+            const knockbackWeight = 0.3;
 
             const knockbackImpulse = mass * velocity * knockbackWeight;
-            const knockbackSrcPos = origin.clone().multiply(new THREE.Vector3(0,-1,0));//i used -2 to shoot the target upwards even more.
+            const knockbackSrcPos = origin.clone();
+            const YSign = Math.sign(origin.y);
+
+            //this is to always make the knockback shoot teh target upwards.+y becomes -y to teh target and -y remains as -y
+            knockbackSrcPos.y *= -1;
+            knockbackSrcPos.y *= YSign;
             
             const clone = this.requestIntersectedClone(maxDistance);
             clone?.knockbackClone(knockbackSrcPos,knockbackImpulse);
@@ -247,7 +252,7 @@ export class RigidBodyClone {
             this.updateRayVisualizer(origin,velDirection);
         }
     }
-    private removeTemporaryCloneCooldown:seconds = 30;
+    private removeTemporaryCloneCooldown:seconds = 15;
     private removeTemporaryCloneTimer:seconds = 0;
 
     private checkForOwnership() {

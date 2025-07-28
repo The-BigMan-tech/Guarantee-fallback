@@ -122,8 +122,10 @@ export class Entity extends Controller implements EntityLike {
             this.animationControls?.playAttackAnimation();
         }
         if (this.attackTimer > this.attackCooldown) {
+            const YSign = Math.sign(this.position.y);
             const srcPosition = this.position.clone();
             srcPosition.y *= -1
+            srcPosition.y *= YSign;
 
             this.targetEntity.knockbackCharacter(srcPosition,this.knockback);
             this.targetEntity.health.takeDamage(this.attackDamage);
