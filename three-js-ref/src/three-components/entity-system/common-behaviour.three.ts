@@ -16,7 +16,8 @@ type EntityKeys = keyof Entity
 export interface EntityItemUsage {
     view:THREE.Group,
     itemID:ItemID,
-    item:Item
+    item:Item,
+    strength:number
 }
 export interface ItemWithID {
     item:Item,
@@ -168,11 +169,13 @@ export class CommonBehaviour {
         const entityQuat = this.entity.char.quaternion;
 
         const distToTarget = this.entity.position.distanceTo(targetPos);
+        console.log('item. distToTarget:', distToTarget);
         const isFacingTarget = EntityVecUtils.isFacingTarget(entityPos,entityQuat,targetPos);
         const YDifference = Math.abs(Math.round(targetPos.y - this.entity.position.y));
         const onSameOrGreaterYLevel = YDifference >= 0;
         const angleDiff = EntityVecUtils.getVerticalAngleDiff(entityPos,entityQuat,targetPos);
-        const shouldThrow = (distToTarget > 10) && isFacingTarget && (this.entity.obstDistance === Infinity) && onSameOrGreaterYLevel
+        const withinAReasonableDist =  (distToTarget > 10) && (distToTarget < 100)
+        const shouldThrow = withinAReasonableDist && isFacingTarget && (this.entity.obstDistance === Infinity) && onSameOrGreaterYLevel
         
         if (shouldThrow) {
             const view = this.getView();
@@ -180,7 +183,10 @@ export class CommonBehaviour {
             const angleRad = degToRad(angleDiff);
             const pitchQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), angleRad);
             view.quaternion.multiply(pitchQuat);
-            this.useItem({view,...itemWithID});
+            const baseForcePerUnit = 30;
+
+            const strength = baseForcePerUnit * distToTarget;
+            this.useItem({view,...itemWithID,strength:strength});
         }else {
             this.itemHolder.holdItem(null);
         }
@@ -204,7 +210,7 @@ export class CommonBehaviour {
                 view:args.view,
                 itemID:args.itemID,
                 owner:this.entity,
-                userStrength:this.entity.strength,
+                userStrength:args.strength,
                 userHorizontalQuaternion:this.entity.char.quaternion
             })
             this.entity.useItemTimer = 0;

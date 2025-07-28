@@ -1736,3 +1736,5 @@ Clearance-sampling algorithm
 *for my player,i have an inventory that the player interacts with using the ui in order to use items but my entities dont have an inventory.they just have a list of items they utilize and based on conditions,they can use those items. entities don’t have full inventories but instead have a weighted list of items they can utilize.
 
 *you can directly mutate the properties of an euler rotation but not for quat
+
+*my code automatically scales the model to fit into the phsycis body.so users dont have to worry about if the width and height of the rigid body they are stating will match the size of their mosel.so that auto scaling is for the in game item object.but when the item remains in the hand,the user can use transform in hand to scale and position the model poperly on the hand because my game detects a group named hand in the character model.so users can transform it relative to that hand:

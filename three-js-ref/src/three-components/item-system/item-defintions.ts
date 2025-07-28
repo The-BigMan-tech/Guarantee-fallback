@@ -35,7 +35,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
         behaviour:new Placeable({
             canPickUp:true,
             modelPath:modelPaths.Block,
-            density:3,
+            density:1,
             width:2,
             height:2,
             depth:2,
@@ -57,7 +57,7 @@ export const itemDefinitions:Record<ItemID,Item>  = {//items should be registere
         behaviour:new Throwable({
             canPickUp:true,
             modelPath:modelPaths.Boulder,
-            density:2,
+            density:1,
             width:2,
             height:2,
             depth:2,
