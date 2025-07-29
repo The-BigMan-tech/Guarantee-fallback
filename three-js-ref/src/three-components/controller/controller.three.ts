@@ -689,7 +689,7 @@ export abstract class Controller {
         let distToFinalDestThresh = 2;//this is to tell the algorithm how close to the target the character should be to be considered its close to the target or far from the target.
 
         if (currentPath.distanceTo(finalPath) > epsilon) {//means they are different
-            distToFinalDestThresh = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this a far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
+            distToFinalDestThresh = 0.1//by making the threshold for closeness tight,im making it easy for the algo to see this as far so that it can walk towards it cuz the dist diff on the intial obstacle turn is too short
         }
 
         this.isFinalDestClose = distToFinalDest < distToFinalDestThresh;

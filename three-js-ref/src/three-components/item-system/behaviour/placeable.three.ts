@@ -6,6 +6,7 @@ import { RigidBodyClone } from "./core/rigidbody-clone.three";
 import { RigidBodyClones } from "./core/rigidbody-clones.three";
 import { itemManager } from "../item-manager.three";
 import { gltfLoader } from "../../gltf-loader.three";
+import { groupIDs } from "../../entity-system/entity-registry";
 
 //Item behaviour classes dont extend rigid body clone nor are composed by it.they rather create clones of rigid bodies on the fly using the provided data.They add behaviour by manipulating clones.ill add hooks so that they can plug in behaviour into the clone they spawn
 export class Placeable implements ItemBehaviour {
@@ -33,7 +34,9 @@ export class Placeable implements ItemBehaviour {
                 parent:RigidBodyClones.group,
                 owner
             })
-            itemManager.removeFromInventory(itemID)
+            if (owner._groupID === groupIDs.player) {//to prevent entities from mutating the player's inventory
+                itemManager.removeFromInventory(itemID)
+            }
         }
     }
     get placeableConfig() {
