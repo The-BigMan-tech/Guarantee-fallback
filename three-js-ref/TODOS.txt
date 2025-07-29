@@ -52,3 +52,6 @@ for (const clone of clones) {
 Dragon--flying navigation,seat bone ref,taking control of the dragon when flying it
 menu gui--react and react router
 world saving with indexed db
+
+learn gsap
+make an ast based project

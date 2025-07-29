@@ -181,7 +181,7 @@ export class CommonBehaviour {
         const entityPos = this.entity.position;
         const entityQuat = this.entity.char.quaternion;
 
-        const distToTarget = this.entity.position.distanceTo(targetPos);      
+        const distToTarget = EntityVecUtils.distanceXZ(entityPos,targetPos) 
         const minDist = 15;
         const maxDist = 100;
 

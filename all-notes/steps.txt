@@ -34,8 +34,8 @@ Docker
 tauri updater
 RTK query
 
-4 years with frontend
-1 year with machine learning
+4 years with frontend---react
+1 year with machine learning--computer visison model,vector database
 the remaining with system programming and game development
 
 
