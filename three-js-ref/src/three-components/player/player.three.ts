@@ -345,7 +345,7 @@ export class Player extends Controller implements EntityLike {
     }
     private attack() {
         if (this.attackTimer > (this.attackCooldown -0.4)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
-            this.animationControls?.playAttackAnimation();
+            this.animationControls!.animationToPlay = 'attack'
         }
         if ((this.attackTimer > this.attackCooldown)){
             const YSign = Math.sign(this.position.y);
@@ -395,7 +395,7 @@ export class Player extends Controller implements EntityLike {
     private updateCameraHeightBasedOnHealth() {
         if (this.health.isDead) {
             this.targetY = this.offsetY - this.playerHeight;
-            this.animationControls?.playDeathAnimation();
+            this.animationControls!.animationToPlay = 'death'
         }
     }
     get _groupID():string {

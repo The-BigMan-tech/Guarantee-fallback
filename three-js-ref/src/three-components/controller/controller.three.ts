@@ -515,32 +515,16 @@ export abstract class Controller {
     private autoMoveForward(finalDestY:number) {//this is used by the nav method to just move forward.thats its only job.it just moves forward and jump if the entity needs to jump.the high level overview of the nav logic is handled by the nav to target method
         this.soundControls.stopWalkSound();
         const onGround = this.isGrounded();
-
         const greaterOrSameYLevel = Math.round(finalDestY - this.character.position.y) >= 2;//this is to ensure it doesnt jumps proactively when im below it.it should just walk down
         const jumpProactively = greaterOrSameYLevel && !this.groundIsPresentForward;
         
-        console.log("jump proactively. y diff: ", (finalDestY - this.character.position.y));
-        console.log('.*jump proactively. groundIsNotPresentForward: ',!this.groundIsPresentForward);
-        console.log('.*jump proactively. greaterOrSameYLevel: ',greaterOrSameYLevel);
-
         if (this.isNearOriginalPath) {//this is for it to retain spacing between the entity and the target so that it doesnt jitter between moving and staying idle because of unstable small positional diff between it and the target like moving forward while knockinng back the entity
             return
         }
-        if (onGround) {
-            console.log("Entity is walking");
-            this.animationControls?.playWalkAnimation();
-            this.soundControls.playWalkSound();
-        }
         if ((jumpProactively || this.canJumpOntoObstacle()) && !this.shouldStepUp && onGround) {
-            console.log(".*Entity is jumping");
-            this.animationControls?.playJumpAnimation();
             this.moveCharacterUp();
         };
         this.moveCharacterForward();
-        
-        console.log("Entity Obstacle height: ",this.obstacleHeight);
-        console.log("Entity Obstacle distance: ",this.obstacleDistance);
-        console.log('Entity should step up: ',this.shouldStepUp);
     }
     private moveAgent(finalDestY:number) {
         if (!this.isFinalDestClose) {
@@ -622,7 +606,7 @@ export abstract class Controller {
 
         const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));//i used abs because i only care about the diff not whether if their positions are up or down relative to each other
         const onSameYLevel = YDifference < 2.5;
-        const targetReachedDistance = 3//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
+        const targetReachedDistance = 4//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
         const hasReachedOriginalPath =  (onSameYLevel) && (distToOriginalPath < targetReachedDistance);
 
         if (hasReachedOriginalPath || this.isNearOriginalPath) {//the current value of isNearOriginalPath will come in the next frame before using it to make its decision.cuz its needed for automoveforward to know it should stop moving the entity.if i use it to return from here,that opportunity wont happen and the entity wont preserve any space between it and the target
@@ -856,6 +840,7 @@ export abstract class Controller {
         this.wakeUpBody();
         if (this.shouldStepUp) this.moveOverObstacle();
         else this.moveForward(this.dynamicData.horizontalVelocity);
+        this.animationControls!.animationToPlay = 'sprint'
     }
     protected moveCharacterBackward():void {
         this.wakeUpBody()
@@ -962,8 +947,9 @@ export abstract class Controller {
         this.forceSleepIfIdle();
         this.updateKnockbackCooldown();
         this.updateVelJustAboveGround();
-        this.animationControls?.updateAnimations(deltaTime);//im updating the animation before the early return so that it stops naturally 
+        this.animationControls!.animationToPlay = 'idle';
         this.onLoop();
+        this.animationControls?.updateAnimations(deltaTime);//im updating the animation before the early return so that it stops naturally 
         if (this.characterRigidBody && this.characterRigidBody.isSleeping()) {
             console.log("sleeping...");
             return;//to prevent unnecessary queries.Since it sleeps only when its grounded.its appropriate to return true here saving computation

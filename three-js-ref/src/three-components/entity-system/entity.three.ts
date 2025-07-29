@@ -94,7 +94,7 @@ export class Entity extends Controller implements EntityLike {
     }
 
     private idle():void {
-        this.animationControls?.playIdleAnimation()
+        this.animationControls!.animationToPlay = 'idle'
     }
     private patrol():void {
         if (this.patrolTimer >= this.patrolCooldown) {
@@ -119,7 +119,7 @@ export class Entity extends Controller implements EntityLike {
         this.attackTimer += this.clockDelta || 0;
         if (!this.targetEntity?.health) return;
         if (this.attackTimer > (this.attackCooldown -0.4)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
-            this.animationControls?.playAttackAnimation();
+            this.animationControls!.animationToPlay = 'attack'
         }
         if (this.attackTimer > this.attackCooldown) {
             const YSign = Math.sign(this.position.y);
@@ -134,7 +134,7 @@ export class Entity extends Controller implements EntityLike {
     }
     public death():void {
         if (this.health.isDead && !this.isRemoved) {
-            this.animationControls?.playDeathAnimation();
+            this.animationControls!.animationToPlay = 'death'
             //I used to have a fadeout function right here to fade out the animation slowly as the entity dies but the problem is that it mutated the opacity of the materails directly which is fine as long as i reread the gltf file from disk for each entity.but if i only read it once and clone the model,it only clones the model not the material.each model clone even deep ones will still ref the same material in mem for perf.i didnt discover this till i reused models for my item clones.
             this.cleanUpResources();
         }
@@ -269,10 +269,8 @@ export class Entity extends Controller implements EntityLike {
         this.useItemTimer += this.clockDelta || 0;
         this.checkIfOutOfBounds();
         this.health.checkGroundDamage(this.velBeforeHittingGround);
-        if (this.isAirBorne() && (!this.health.isDead)) this.animationControls?.playJumpAnimation();
         if (this.updateInternalState) this.updateInternalState(); 
         this.reactToStateMachine();
-        this.idle();
     }
 }
 //i intened to define these variables as public variables of the entity manager but because of their wide use in the codebase,it was impossible to do that without causing circular imports where the manager imports a variable that also depends on this variable

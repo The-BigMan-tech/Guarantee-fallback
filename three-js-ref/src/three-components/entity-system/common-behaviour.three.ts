@@ -221,7 +221,7 @@ export class CommonBehaviour {
             view.quaternion.multiply(pitchQuat);
         
             const parabolicThrowVelocity = EntityVecUtils.getThrowVelocity(entityPos,targetPos,angleDiffRad) ;
-            const parabolicForceScalar = 13;
+            const parabolicForceScalar = 14;
             const parabolicStrength = parabolicThrowVelocity * parabolicForceScalar;
 
             const forcePerUnitDistance = 20;
