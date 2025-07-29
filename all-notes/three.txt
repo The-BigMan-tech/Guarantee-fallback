@@ -1753,3 +1753,13 @@ Don’t use dot product alone if you want just the speed unless you dot the vect
 *so cross vector is for getting the perpendicular direction vector to two vectors while dot profuct is to get the relative distance of one vectpr to another and length is used to trun a vector directly to a single scalar but its absolute
 
 *skew errors
+
+*Code productivity tools
+Debugger---Firefox debugger
+Linter----Es lint,Error lens
+Test-----Vitest with wallaby
+Logging-----Turbo console log
+Intellisense
+Code editor ai-----Windsurf
+Chat ai-------perplexity
+Verision control-----Git

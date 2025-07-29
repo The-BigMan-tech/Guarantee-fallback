@@ -1,0 +1,54 @@
+TODO:
+at times,the entity navigation system doesnt even notice im there till i get close at it.It could be that i didnt add the relationship properly under the refresh relationships methd or the nav method itself
+
+Chest--Gui,carrying it physically because my item system doesnt allow reverse flow of item data from the world back into the inventory
+
+my entity controller at times,doesnt hit me when i get directly close at it.it will just be there until i rotate.its the nav method.i checked the logs.it believed that it didnt reach me yet until i rotated a little.
+
+Rework how animations are played.walk and jump animation should be played in the controller under methods that move it or under is Airborne.but you have to check is airborne every frame after calling onLoop and play the jump animation.
+
+rename that item3D variable in the controller to hand.it makes more sense because it actually reflects what it is;a group that holds a ref to the hand bone of a model
+
+get a head group ref in my controller so that i can rotate it up or down in code if the player is looking up or down with the camera and for the entities,rotate the head to look at the target position
+
+nest js & webRTC for multiplayer
+
+throw animation
+
+throw strength ranger---hold down the use key and release once youve accumulated enough strength.it starts from 0 and caps at the player's strength.
+
+make my ui compatible with tauri
+fuzzy item search
+item category sort
+
+sometimes,the container holding the item clones dont get removed from their parents upon cleanup
+
+weapon behaviour
+----------------
+plays use weapon animation
+adds buffs to attack damage and knockback
+item holder will reset buffs when item in hand is null
+hammer--lightening particle effect on hit.Its a weapon behviour but with shift E,it will call the interact hook into the rigid body clone class.this will spawn a throwable at runtime to make the hammer throwable as well
+
+
+How entities will interact with spawned blocks
+---------------------------------------------
+They will push a request object to a request queue inside the class that updates the clones.so they will push a request to RigidBodyClones.request .A rquest will have a condition property which has data from the entity to be used to get the clone that satisfies the condition.For example,it can have the entity's position and a proximity threshold and then it will check for a clone that is within that proximity to that position.then there will be a response property under the request is Clone | null.its initially null at first when the entity pushes it to the queue.but when rigid boyd clones has found a clone,it will set the response property to that clone.How it will work is that under the same loop that updates the clones,ill do something like this:
+
+private Requests:Dequeue;
+for (const clone of clones) {
+    const req = Requests.shift();//we want to consume the requests on iteration
+    if (clone satisifies condition) {
+        req.response = clone;//we already have a response so the request can stay consumed
+    }else {
+        Requests.unshift(req)//this clone didnt give us the response.so we add back the req to the queue for another clone to consume.Repeat
+    }
+    if (clone is the lastClone) {
+        Requests.shift()//all the clones have seen this request so whether it any of them gave a response or not,it has been processed completely and must be removed for the next request to get its own turn.
+    }
+}
+
+
+Dragon--flying navigation,seat bone ref,taking control of the dragon when flying it
+menu gui--react and react router
+world saving with indexed db

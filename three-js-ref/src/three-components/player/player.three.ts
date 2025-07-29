@@ -288,26 +288,6 @@ export class Player extends Controller implements EntityLike {
             self:this.char
         })
     }
-    private bindKeysToAnimations() {
-        if (this.isAirBorne()) {
-            this.soundControls.stopWalkSound()
-            this.animationControls?.playJumpAnimation()
-        }else if (this.keysPressed['KeyW']) {//each key will have its own animation
-            this.soundControls.playWalkSound()
-            this.animationControls?.playWalkAnimation()
-        }else if (this.keysPressed['KeyA']) {
-            this.soundControls.playWalkSound()
-        }else if (this.keysPressed['KeyS']) {
-            this.soundControls.playWalkSound()
-        }else if (this.keysPressed['KeyD']) {
-            this.soundControls.playWalkSound()
-        }else if (this.keysPressed['KeyQ']) {
-            this.animationControls?.playAttackAnimation();
-        }else if (!this.health.isDead) {
-            this.soundControls.stopWalkSound();
-            this.animationControls?.playIdleAnimation();
-        }
-    }
     private toggleCamPerspective() {
         if ((this.keysPressed['KeyT'])) {
             this.targetY = this.offsetY;//reset the cam y position on toggling to cancel out the effect of zooming
@@ -484,7 +464,6 @@ export class Player extends Controller implements EntityLike {
         this.updateHealthGUI();
         this.health.checkGroundDamage(this.velBeforeHittingGround);
         if (!isCellSelected()) this.bindKeysToControls();//this is to prevent the player's event listeners on his character from triggering when the player is actively traversing through the item grid to select an item
-        this.bindKeysToAnimations();
 
         //update camera must be called last to reflect the camera updates for this frame
         this.toggleCamPerspective();

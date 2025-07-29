@@ -23,12 +23,15 @@ export class AnimationControls {
         const attackClip = THREE.AnimationClip.findByName(gltf.animations, 'attack'); 
         const deathClip = THREE.AnimationClip.findByName(gltf.animations, 'death'); 
     
-        if (walkClip) this.walkAction = this.mixer.clipAction(walkClip);
-        if (jumpClip) this.jumpAction = this.mixer.clipAction(jumpClip);
+        if (walkClip) {
+            this.walkAction = this.mixer.clipAction(walkClip);
+        }
+        if (jumpClip) {
+            this.jumpAction = this.mixer.clipAction(jumpClip);
+        }
         if (attackClip) {
             this.attackAction = this.mixer.clipAction(attackClip);
             this.attackAction.setLoop(THREE.LoopOnce, 1);
-            this.attackAction.clampWhenFinished = true;
         }
         if (deathClip) {
             this.deathAction = this.mixer.clipAction(deathClip);
