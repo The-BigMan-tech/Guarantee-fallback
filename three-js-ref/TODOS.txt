@@ -11,6 +11,8 @@ rename that item3D variable in the controller to hand.it makes more sense becaus
 
 get a head group ref in my controller so that i can rotate it up or down in code if the player is looking up or down with the camera and for the entities,rotate the head to look at the target position
 
+update pnpm
+
 nest js & webRTC for multiplayer
 
 throw animation

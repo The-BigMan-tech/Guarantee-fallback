@@ -17,7 +17,7 @@ export class AnimationControls {
     private jumpAction:THREE.AnimationAction | null = null;
     private attackAction:THREE.AnimationAction | null = null;
     private deathAction:THREE.AnimationAction | null = null;
-    private animationsHasLoaded:boolean = false;
+    private animationsHaveLoaded:boolean = false;
 
     public animationToPlay:animations = 'idle';
 
@@ -121,9 +121,11 @@ export class AnimationControls {
         }
     } 
     public updateAnimations(clockDelta:number) {
-        if (!this.animationsHasLoaded) {
-            this.animationsHasLoaded = Boolean(this.mixer && this.idleAction && this.attackAction && this.sprintAction  && this.jumpAction && this.deathAction);
-        }else {//only update animations if they have loaded
+        if (!this.animationsHaveLoaded) {
+            this.animationsHaveLoaded = Boolean(this.idleAction && this.attackAction && this.sprintAction  && this.jumpAction && this.deathAction);
+        }
+        //only update animations if they have loaded and if the mixer is still available.the reason why im checking the mixer state every frame instead of storing it in a variable to prevent reassigning its boolean like i did for animaion has loaded is because the mixer can be removed at any point in the controller when its no longer needed like upon death
+        if (this.mixer && this.animationsHaveLoaded) {
             this.playAnimation();
             this.mixer?.update(clockDelta || 0);
         }
