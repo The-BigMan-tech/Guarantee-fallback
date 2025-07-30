@@ -3,6 +3,11 @@ import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 type animations = 'idle' | 'sprint' | 'jump' | 'attack' | 'death'
 
+interface AnimationFinishedEvent {
+    type:'finished',
+    action:THREE.AnimationAction,
+    direction:number
+}
 export class AnimationControls {
     //these are animation specific variables
     public mixer: THREE.AnimationMixer | null = null;//im only exposing this for cleanup purposes
@@ -18,6 +23,14 @@ export class AnimationControls {
 
     constructor(characterModel: THREE.Group) {
         this.mixer = new THREE.AnimationMixer(characterModel);
+        this.mixer.addEventListener('finished',this.onFinish)
+    }
+    private onFinish = (event:AnimationFinishedEvent)=>{
+        if (event.action === this.sprintAction) {
+            if (this.animationToPlay === 'sprint') {
+                this.sprintAction.reset();
+            }
+        }
     }
     public loadAnimations(gltf:GLTF):void {
         if (!this.mixer) return;
@@ -30,10 +43,12 @@ export class AnimationControls {
         if (sprintClip) {
             this.sprintAction = this.mixer.clipAction(sprintClip);
             this.sprintAction.setLoop(THREE.LoopOnce, 1);
+            this.sprintAction.clampWhenFinished = true;
         }
         if (jumpClip) {
             this.jumpAction = this.mixer.clipAction(jumpClip);
             this.jumpAction.setLoop(THREE.LoopOnce, 1);
+            this.jumpAction.clampWhenFinished = true;
         }
         if (attackClip) {
             this.attackAction = this.mixer.clipAction(attackClip);
@@ -47,7 +62,6 @@ export class AnimationControls {
         }
         if (idleClip) {
             this.idleAction = this.mixer.clipAction(idleClip);
-            this.idleAction.play();
             this.currentAction = this.idleAction;
         }
     }
@@ -60,7 +74,9 @@ export class AnimationControls {
         }
     }
     private playJumpAnimation():void {
-        this.fadeToAnimation(this.jumpAction!);
+        if (!this.attackAction!.isRunning()) {
+            this.fadeToAnimation(this.jumpAction!);
+        }
     }
     private playSprintAnimation():void {
         if (!this.attackAction?.isRunning()) {

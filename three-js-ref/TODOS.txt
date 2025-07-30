@@ -5,7 +5,7 @@ Chest--Gui,carrying it physically because my item system doesnt allow reverse fl
 
 my entity controller at times,doesnt hit me when i get directly close at it.it will just be there until i rotate.its the nav method.i checked the logs.it believed that it didnt reach me yet until i rotated a little.
 
-Rework how animations are played.walk and jump animation should be played in the controller under methods that move it or under is Airborne.but you have to check is airborne every frame after calling onLoop and play the jump animation.
+*Rework how animations are played.walk and jump animation should be played in the controller under methods that move it or under is Airborne.but you have to check is airborne every frame after calling onLoop and play the jump animation.
 
 rename that item3D variable in the controller to hand.it makes more sense because it actually reflects what it is;a group that holds a ref to the hand bone of a model
 
@@ -53,5 +53,10 @@ Dragon--flying navigation,seat bone ref,taking control of the dragon when flying
 menu gui--react and react router
 world saving with indexed db
 
+TNT
+Debris emmitter
+use a weight in the distributions to control the chance of some structures spawning over others
+
+There is a video from a game dev related channel that explains how games fake water.watch that to understand how i can make water in my game
 learn gsap
 make an ast based project

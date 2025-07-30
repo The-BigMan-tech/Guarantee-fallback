@@ -1763,3 +1763,16 @@ Intellisense
 Code editor ai-----Windsurf
 Chat ai-------perplexity
 Verision control-----Git
+
+*Animation control
+Single state variable to prevent conflicts
+use runtime checks on whether another animation was running before to ensure priority or make animations respect previous ones
+use Loop Once and optionally with Clamp or Loop repeat for control according to gameplay feedback
+
+
+single state variable to transition between animations to prevent conflicts
+loop once and loop repeat control
+clamp
+reset
+respecting present animations by checking the state or respecting prev animations by checking isRunning
+listening to playback events

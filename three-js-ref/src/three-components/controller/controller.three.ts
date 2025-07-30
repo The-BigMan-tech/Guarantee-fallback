@@ -947,7 +947,11 @@ export abstract class Controller {
         this.forceSleepIfIdle();
         this.updateKnockbackCooldown();
         this.updateVelJustAboveGround();
-        this.animationControls!.animationToPlay = 'idle';
+        if (this.isAirBorne()) {
+            this.animationControls!.animationToPlay = 'jump';
+        }else {
+            this.animationControls!.animationToPlay = 'idle';
+        }
         this.onLoop();
         this.animationControls?.updateAnimations(deltaTime);//im updating the animation before the early return so that it stops naturally 
         if (this.characterRigidBody && this.characterRigidBody.isSleeping()) {
