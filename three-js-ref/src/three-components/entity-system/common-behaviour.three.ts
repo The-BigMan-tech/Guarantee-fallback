@@ -198,12 +198,12 @@ export class CommonBehaviour {
             (onSameOrGreaterYLevel || atObstacleEdge);//the at obstacle edge check enables it to throw downwards
         
         console.log('item. YDifference:', YDifference);
-        console.log('item. distToTarget:', distToTarget);
+        console.log('item. test distToTarget:', distToTarget);
 
         if (shouldThrow) {
             const parabolicDist = minDist + 10;
             const useParabolicThrow = distToTarget > parabolicDist;//i can always make my entity perform a linear throw and it will always be on taregt but it wont be realistic because people usually aim higher to shoot at a farther target
-            const elevationWeight = (useParabolicThrow)?0.5:0.02;
+            const elevationWeight = (useParabolicThrow)?0.4:0.02;
             const elevationHeight = elevationWeight * distToTarget;
             const elevatedTargetPos = targetPos.clone();
             elevatedTargetPos.y += elevationHeight;//i elevated the target pos when deciding to perform a parabolic throw so that the view of the entity naturally looks upwards to this new position even though the target's actual position isnt elevated.
@@ -230,7 +230,7 @@ export class CommonBehaviour {
             
             console.log('item. useParabolicThrow:', useParabolicThrow);
             console.log('item. strength:',strength);
-            console.log('item. angleDiff:', angleDiff);
+            console.log('item. test angleDiff:', angleDiff);
             this.useItem({view,...itemWithID,strength:strength});
         }else {
             this.itemHolder.holdItem(null);
