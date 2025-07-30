@@ -528,7 +528,7 @@ export abstract class Controller {
     }
     private moveAgent(finalDestY:number) {
         if (!this.isFinalDestClose) {
-            // this.autoMoveForward(finalDestY);
+            this.autoMoveForward(finalDestY);
         }
     }
 
