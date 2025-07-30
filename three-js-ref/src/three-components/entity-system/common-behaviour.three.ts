@@ -72,7 +72,7 @@ class EntityVecUtils {
         const dist = this.distanceXZ(srcPos,targetPos)   // horizontal distance to target
         const heightDiff = targetPos.y - srcPos.y; // vertical height difference
 
-        const denominator = 2 * Math.pow(Math.cos(theta), 2) * (dist * Math.tan(theta) - heightDiff);
+        const denominator = 2 * Math.pow(Math.cos(theta), 2) * ( (dist * Math.tan(theta)) - heightDiff);
         const initialVelocity = Math.sqrt((gravity * dist * dist) / denominator);
         return initialVelocity;
     } 
