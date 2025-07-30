@@ -127,9 +127,10 @@ export class CommonBehaviour {
         const targetEntity = this.entity._targetEntity;
         if (targetEntity) {
             const view = this.getView();
+            view.position.y -= 2;
             const angleDiff:degrees = EntityVecUtils.getVerticalAngleDiff(view.position,view.quaternion,targetEntity.position);
             console.log('head. angleDiff:', angleDiff);
-            this.entity.headRotation.x = degToRad(angleDiff);
+            this.entity.headRotation.x = degToRad(THREE.MathUtils.clamp(angleDiff,-45,45));
         }
     }
     public throwItem(itemWithID:ItemWithID,targetPos:THREE.Vector3) {
@@ -200,7 +201,7 @@ export class CommonBehaviour {
         const view = new THREE.Group()
         view.position.copy(this.entity.position);
         view.quaternion.copy(this.entity.char.quaternion)
-        view.position.y += this.entity.height ;
+        view.position.y += this.entity.height;
         return view
     }
     private useItem(args:EntityItemUsage) {
