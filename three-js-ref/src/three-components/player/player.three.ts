@@ -24,6 +24,7 @@ import { createBoxLine,placementHelper, rotateOnXBy180 } from "../item-system/be
 import { ItemUtils } from "../item-system/behaviour/core/item-utils.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { spawnDistance } from "../item-system/item-defintions";
+import { degToRad } from "three/src/math/MathUtils.js";
 
 
 // console.log = ()=>{};
@@ -51,7 +52,7 @@ export class Player extends Controller implements EntityLike {
     private addRelationship = relationshipManager.addRelationship;
 
     private readonly firstPersonClamp = 75;
-    private readonly secondPersonClamp = 70;
+    private readonly secondPersonClamp = 15;
     private readonly thirdPersonClamp = 10;
     private cameraClampAngle:number =  this.firstPersonClamp;
 
@@ -442,6 +443,14 @@ export class Player extends Controller implements EntityLike {
         this.camWorldPos = this.camera.cam3D.getWorldPosition(new THREE.Vector3);
         this.camWorldQuat = this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion)
         this.camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camWorldQuat);
+
+        if (this.camModeNum === CameraMode.SecondPerson) {
+            const axe = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),degToRad(180))
+            const quat = this.camera.cam3D.quaternion.clone().multiply(axe);
+            this.headRotation.x = - new THREE.Euler().setFromQuaternion(quat).x;
+        }else {
+            this.headRotation.x = this.camera.cam3D.rotation.x;
+        }
 
         this.toggleTimer += this.clockDelta || 0;
         this.toggleItemGuiTimer += this.clockDelta || 0;

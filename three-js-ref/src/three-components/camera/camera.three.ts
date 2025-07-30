@@ -45,13 +45,13 @@ export class Camera {
         this.targetQuaternion.multiplyQuaternions(pitchChange,this.targetQuaternion);
         this.clampPitch(clampAngle)
     }
-    public setCameraRotationX(angle: number,orientation:1 | 0) {//-1 is normal orientation and +1 is upsisde down
-        const rotAngle = THREE.MathUtils.degToRad(angle);
+    public setCameraRotationX(angle: number,orientation:1 | 0) {//0 is normal orientation and +1 is upsisde down
+        const rotationAngle = THREE.MathUtils.degToRad(angle);
         const targetQuaternion = new THREE.Quaternion();
-        targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotAngle);
+        targetQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rotationAngle);
         if (orientation == 1) {
             const correctionQuaternion = new THREE.Quaternion();//to flip it back to the right orientation
-            correctionQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI); // 180 degrees around y-axis
+            correctionQuaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0),degToRad(180)); // 180 degrees around y-axis
             targetQuaternion.multiply(correctionQuaternion);
         }
         this.targetQuaternion.copy(targetQuaternion);

@@ -946,11 +946,12 @@ export abstract class Controller {
             this.characterRigidBody.sleep();
         } 
     }
+    protected headRotation:THREE.Euler = new THREE.Euler(0,0,0,'YXZ')
     private updateHead() {//this is to control the head bone programmatically.its useful for looking up and down.Its best with animations that dont animate the head bone to avoid conflicts
         if (this.head) {
             const animationToPlay = this.animationControls!.animationToPlay;
             if ((animationToPlay === "idle") || (animationToPlay === "sprint")) {//only override the head in the aniations where it will make sense like wlaking or standing idle
-                this.head.rotation.x = degToRad(-90);
+                this.head.rotation.x = this.headRotation.x
             }
         }
     }
