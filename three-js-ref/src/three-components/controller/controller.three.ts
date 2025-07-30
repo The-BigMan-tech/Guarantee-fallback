@@ -528,7 +528,7 @@ export abstract class Controller {
     }
     private moveAgent(finalDestY:number) {
         if (!this.isFinalDestClose) {
-            // this.autoMoveForward(finalDestY);
+            this.autoMoveForward(finalDestY);
         }
     }
 
@@ -653,9 +653,6 @@ export abstract class Controller {
             (!this.canJumpOntoObstacle()) &&
             (!this.shouldStepUp || !this.canWalkForward)
         ) 
-        console.log("Entity path| branched path: ",this.branchedPath);
-        console.log("Entity path| compare original path: ",originalPath);
-        console.log("Entity path| compare char pos: ",characterPos);
         console.log("Entity movement| should walk around obstacle: ",shouldWalkAroundObstacle);
 
 
@@ -947,13 +944,11 @@ export abstract class Controller {
         this.forceSleepIfIdle();
         this.updateKnockbackCooldown();
         this.updateVelJustAboveGround();
-        if (this.isAirBorne()) {
-            this.animationControls!.animationToPlay = 'jump';
-        }else {
-            this.animationControls!.animationToPlay = 'idle';
-        }
+        this.animationControls!.animationToPlay = 'idle';
         this.onLoop();
+        if (this.isAirBorne()) this.animationControls!.animationToPlay = 'jump';
         this.animationControls?.updateAnimations(deltaTime);//im updating the animation before the early return so that it stops naturally 
+        
         if (this.characterRigidBody && this.characterRigidBody.isSleeping()) {
             console.log("sleeping...");
             return;//to prevent unnecessary queries.Since it sleeps only when its grounded.its appropriate to return true here saving computation

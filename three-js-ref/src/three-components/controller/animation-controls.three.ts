@@ -47,8 +47,7 @@ export class AnimationControls {
         }
         if (jumpClip) {
             this.jumpAction = this.mixer.clipAction(jumpClip);
-            this.jumpAction.setLoop(THREE.LoopOnce, 1);
-            this.jumpAction.clampWhenFinished = true;
+            this.jumpAction.setLoop(THREE.LoopRepeat,Infinity)
         }
         if (attackClip) {
             this.attackAction = this.mixer.clipAction(attackClip);
@@ -63,6 +62,7 @@ export class AnimationControls {
         if (idleClip) {
             this.idleAction = this.mixer.clipAction(idleClip);
             this.currentAction = this.idleAction;
+            this.idleAction.play()
         }
     }
     private fadeToAnimation(newAction: THREE.AnimationAction):void {
@@ -79,12 +79,12 @@ export class AnimationControls {
         }
     }
     private playSprintAnimation():void {
-        if (!this.attackAction?.isRunning()) {
+        if (!this.attackAction!.isRunning()) {
             this.fadeToAnimation(this.sprintAction!);
         }
     }
     private playIdleAnimation():void {//i made it public for use by classes composed by the entity
-        if (!(this.attackAction!.isRunning() || this.sprintAction!.isRunning() || this.jumpAction!.isRunning() || this.deathAction!.isRunning())) {
+        if (!(this.attackAction!.isRunning() || this.deathAction!.isRunning())) {
             this.fadeToAnimation(this.idleAction!);
         }
     }
