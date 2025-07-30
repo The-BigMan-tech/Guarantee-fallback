@@ -836,6 +836,7 @@ export abstract class Controller {
         if (this.shouldStepUp) this.moveOverObstacle();
         else this.moveForward(this.dynamicData.horizontalVelocity);
         this.animationControls!.animationToPlay = 'sprint'
+        this.soundControls!.soundToPlay = 'walk'
     }
     protected moveCharacterBackward():void {
         this.wakeUpBody()
@@ -843,6 +844,7 @@ export abstract class Controller {
         backward.applyQuaternion(this.character.quaternion);
         this.velocity.add(backward);
         this.forceCharacterDown();
+        this.soundControls!.soundToPlay = 'walk'
     }
     protected moveCharacterLeft():void {
         this.wakeUpBody()
@@ -850,6 +852,7 @@ export abstract class Controller {
         left.applyQuaternion(this.character.quaternion);
         this.velocity.add(left);
         this.forceCharacterDown();
+        this.soundControls!.soundToPlay = 'walk'
     }
     protected moveCharacterRight():void {
         this.wakeUpBody()
@@ -857,6 +860,7 @@ export abstract class Controller {
         right.applyQuaternion(this.character.quaternion);
         this.velocity.add(right);
         this.forceCharacterDown();
+        this.soundControls!.soundToPlay = 'walk'
     }
     protected moveCharacterUp(velocityDelta?:number):void {
         this.wakeUpBody();
