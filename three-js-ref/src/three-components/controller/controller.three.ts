@@ -8,6 +8,7 @@ import { createBoxLine, createCapsuleLine } from "../item-system/behaviour/other
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { SoundControls } from "./sound-controls.three";
 import { AnimationControls,type animations } from "./animation-controls.three";
+import { degToRad } from "three/src/math/MathUtils.js";
 
 
 //this is data fpr the controller that cant or should not be changed after creation
@@ -101,7 +102,7 @@ export abstract class Controller {
     
     //this group is positioned exactly at the hand group of the 3d model by the controller and exposed to the children to do whatever thwy want with it like adding and removing item models from the group.i did it here because the controller unlike the player can call it at the appropriate time where its sure that the model is already available before it queries for the hand.else it will be null if attempted to be done in the children
     public hand:THREE.Group = new THREE.Group();//i made it public so that entity wrappers can access it
-    public head:THREE.Object3D | null = null//the difference between this and the hand is that the hand is a new group positioned at the pivot of the hand bone of the model while this one directly references the head bone of the model for control which is why the type includes a union of null and thhats it is initial value
+    public head:THREE.Object3D | null = null//the difference between this and the hand is that the hand is a new group positioned at the pivot of the model's hand bone while this one directly references the head bone of the model for control which is why the type includes a union of null and thhats it is initial value
 
     private velCalcUtils:VelCalcUtils = new VelCalcUtils();
     public soundControls:SoundControls = new SoundControls();
@@ -945,7 +946,14 @@ export abstract class Controller {
             this.characterRigidBody.sleep();
         } 
     }
-    
+    private updateHead() {//this is to control the head bone programmatically.its useful for looking up and down.Its best with animations that dont animate the head bone to avoid conflicts
+        if (this.head) {
+            const animationToPlay = this.animationControls!.animationToPlay;
+            if ((animationToPlay === "idle") || (animationToPlay === "sprint")) {//only override the head in the aniations where it will make sense like wlaking or standing idle
+                this.head.rotation.x = degToRad(-90);
+            }
+        }
+    }
      //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateCharacter(deltaTime:number):void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         if (!this.characterRigidBody) return;
@@ -960,6 +968,7 @@ export abstract class Controller {
         }
         this.animationControls?.updateAnimations(deltaTime);//im updating the animation before the early return so that it stops naturally 
         this.soundControls?.playSelectedSound();
+        this.updateHead();//we want to update the head after the animation so that the animation doesnt override this one
         if (this.characterRigidBody && this.characterRigidBody.isSleeping()) {
             console.log("sleeping...");
             return;//to prevent unnecessary queries.Since it sleeps only when its grounded.its appropriate to return true here saving computation
