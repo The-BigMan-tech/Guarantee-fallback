@@ -606,7 +606,7 @@ export abstract class Controller {
 
         const YDifference = Math.abs(Math.round(characterPos.y - originalPath.y));//i used abs because i only care about the diff not whether if their positions are up or down relative to each other
         const onSameYLevel = YDifference < 2.5;
-        const targetReachedDistance = 4//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
+        const targetReachedDistance = 3//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
         const hasReachedOriginalPath =  (onSameYLevel) && (distToOriginalPath < targetReachedDistance);
 
         if (hasReachedOriginalPath || this.isNearOriginalPath) {//the current value of isNearOriginalPath will come in the next frame before using it to make its decision.cuz its needed for automoveforward to know it should stop moving the entity.if i use it to return from here,that opportunity wont happen and the entity wont preserve any space between it and the target
@@ -674,7 +674,7 @@ export abstract class Controller {
         }
 
         this.isFinalDestClose = distToFinalDest < distToFinalDestThresh;
-        this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 7);//this is used to control spacing between the entity and the target to prevent jitter when it knocks me back while coming at me
+        this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 5);//this is used to control spacing between the entity and the target to prevent jitter when it knocks me back while coming at me
         
         if (rotateAndMove) {
             if (finalDir !== null) this.rotateCharacterX(finalDir);

@@ -83,7 +83,8 @@ export class AnimationControls {
         }
     }
     private playIdleAnimation():void {//i made it public for use by classes composed by the entity
-        if (!(this.attackAction!.isRunning() || this.deathAction!.isRunning())) {
+        //making the idle animation wait till the sprint is done means that the controller wont stop animating its sprint when the controller stops moving.Its acceptable because its better for the animation to interpolate smoothly than overriding each other.the benefit of this will be seen in the entity
+        if (!(this.attackAction!.isRunning() || this.sprintAction!.isRunning() || this.deathAction!.isRunning())) {
             this.fadeToAnimation(this.idleAction!);
         }
     }
