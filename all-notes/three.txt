@@ -1776,3 +1776,7 @@ clamp
 reset
 respecting present animations by checking the state or respecting prev animations by checking isRunning
 listening to playback events
+
+*Regular Geometry
+*Instanced Geometry
+*Buffer Geometry
