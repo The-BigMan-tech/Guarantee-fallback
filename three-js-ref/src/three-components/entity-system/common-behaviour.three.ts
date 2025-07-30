@@ -127,10 +127,12 @@ export class CommonBehaviour {
         const targetEntity = this.entity._targetEntity;
         if (targetEntity) {
             const view = this.getView();
-            view.position.y -= 2;
-            const angleDiff:degrees = EntityVecUtils.getVerticalAngleDiff(view.position,view.quaternion,targetEntity.position);
-            console.log('head. angleDiff:', angleDiff);
+            view.position.y -= 2;//to prevent it from looking downwards when target is at eye level
+            const flatTargetPos = targetEntity.position.clone().setY(view.position.y)
+            view.quaternion.multiply(EntityVecUtils.getRequiredQuat(view.position,view.quaternion,flatTargetPos));
+            const angleDiff:degrees = EntityVecUtils.getVerticalAngleDiff(view.position,view.quaternion,targetEntity.position);//i used an on target directed quaternion to ensure that the angle doesnt increase when the target goes to the back of the entity.
             this.entity.headRotation.x = degToRad(THREE.MathUtils.clamp(angleDiff,-45,45));
+            console.log('head. angleDiff:', angleDiff);
         }
     }
     public throwItem(itemWithID:ItemWithID,targetPos:THREE.Vector3) {
