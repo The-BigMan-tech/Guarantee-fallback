@@ -101,6 +101,7 @@ export abstract class Controller {
     
     //this group is positioned exactly at the hand group of the 3d model by the controller and exposed to the children to do whatever thwy want with it like adding and removing item models from the group.i did it here because the controller unlike the player can call it at the appropriate time where its sure that the model is already available before it queries for the hand.else it will be null if attempted to be done in the children
     public hand:THREE.Group = new THREE.Group();//i made it public so that entity wrappers can access it
+    public head:THREE.Object3D | null = null//the difference between this and the hand is that the hand is a new group positioned at the pivot of the hand bone of the model while this one directly references the head bone of the model for control which is why the type includes a union of null and thhats it is initial value
 
     private velCalcUtils:VelCalcUtils = new VelCalcUtils();
     public soundControls:SoundControls = new SoundControls();
@@ -157,6 +158,7 @@ export abstract class Controller {
             this.animationControls = new AnimationControls(characterModel);
             this.animationControls.loadAnimations(this.fixedData.gltfModel);
             this.loadHand();
+            this.loadHead();
         }
     }
 
@@ -169,7 +171,12 @@ export abstract class Controller {
             this.hand.scale.set(1, 1, 1);
         }
     }
-
+    private loadHead() {//it reserves a spot for item models to be added which is the hand group of the model
+        const headGroup = this.character.getObjectByName('head');
+        if (headGroup) {
+            this.head = headGroup;
+        }
+    }
     //these velocity calc methods are used to calculate the effective upward and forward velocity required to walk over an osbtacle as detected ahead of the controller by a method
     private calculateUpwardVelocity():number {
         const destinationHeight = this.obstacleHeight; // no need to round here
