@@ -20,11 +20,10 @@ import { IntersectionRequest } from "./intersection-request.three";
 import type { RigidBodyClone } from "../item-system/behaviour/core/rigidbody-clone.three";
 import { RigidBodyClones } from "../item-system/behaviour/core/rigidbody-clones.three";
 import { gltfLoader } from "../gltf-loader.three";
-import { createBoxLine,placementHelper, rotateOnXBy180 } from "../item-system/behaviour/other-helpers.three";
+import { createBoxLine,placementHelper, rotateOnXBy180, rotateOnYBy180 } from "../item-system/behaviour/other-helpers.three";
 import { ItemUtils } from "../item-system/behaviour/core/item-utils.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { spawnDistance } from "../item-system/item-defintions";
-import { degToRad } from "three/src/math/MathUtils.js";
 
 
 // console.log = ()=>{};
@@ -438,19 +437,20 @@ export class Player extends Controller implements EntityLike {
             placementHelper.clear();
         }
     }
+    private rotateHeadVertically() {
+        if (this.camModeNum === CameraMode.SecondPerson) {//the logic here is because of the inverted nature of rotations in second person mode as opposed to first and third person
+            const correctedQuat = this.camera.cam3D.quaternion.clone().multiply(rotateOnYBy180());
+            const finalRotation = new THREE.Euler().setFromQuaternion(correctedQuat)
+            this.headRotation.x = - finalRotation.x;
+        }else {
+            this.headRotation.x = this.camera.cam3D.rotation.x;
+        }
+    }
     //a partial part of the order of updates here are critical.this means that some updates must come before others for correctness
     protected onLoop() {//this is where all character updates to this instance happens.
         this.camWorldPos = this.camera.cam3D.getWorldPosition(new THREE.Vector3);
         this.camWorldQuat = this.camera.cam3D.getWorldQuaternion(new THREE.Quaternion)
         this.camForward = new THREE.Vector3(0, 0, -1).applyQuaternion(this.camWorldQuat);
-
-        if (this.camModeNum === CameraMode.SecondPerson) {
-            const axe = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),degToRad(180))
-            const quat = this.camera.cam3D.quaternion.clone().multiply(axe);
-            this.headRotation.x = - new THREE.Euler().setFromQuaternion(quat).x;
-        }else {
-            this.headRotation.x = this.camera.cam3D.rotation.x;
-        }
 
         this.toggleTimer += this.clockDelta || 0;
         this.toggleItemGuiTimer += this.clockDelta || 0;
@@ -462,6 +462,7 @@ export class Player extends Controller implements EntityLike {
         this.lookedAtEntity = this.requestLookedEntity();
         this.lookedAtClone = this.requestLookedClone();
         
+        this.rotateHeadVertically();//you can call this anywhere in the update loop and it will still work.
         this.updateHasChangedVariables();//this one must be called before clearing the placement helper so that it receives the latest state before use
         this.clearPlacementHelper();//we want to clear the helper in the frame after rendering the helper to prevent it from clearing prematurely which is why i cleared it at the top befor rendering the helper
 
