@@ -262,7 +262,6 @@ export class Entity extends Controller implements EntityLike {
     set _targetEntity(targetEntity:EntityLike | null) {
         this.targetEntity = targetEntity
     }
-    
     protected onLoop(): void {
         this.patrolTimer += this.clockDelta || 0;
         this.currentHealth = this.health.value;

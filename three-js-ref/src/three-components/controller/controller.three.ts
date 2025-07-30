@@ -945,7 +945,7 @@ export abstract class Controller {
             this.characterRigidBody.sleep();
         } 
     }
-    protected headRotation:THREE.Euler = new THREE.Euler(0,0,0,'YXZ')
+    public headRotation:THREE.Euler = new THREE.Euler(0,0,0,'YXZ')//this state is only public so that entity wrappers can access them from within the entity.some other states too are also public because of the same reason
     private updateHead() {//this is to control the head bone programmatically.its useful for looking up and down.Its best with animations that dont animate the head bone to avoid conflicts
         if (this.head) {
             const animationToPlay = this.animationControls!.animationToPlay;
