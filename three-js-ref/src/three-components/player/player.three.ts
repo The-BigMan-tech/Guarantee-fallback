@@ -123,7 +123,7 @@ export class Player extends Controller implements EntityLike {
         this.attackDamage = miscData.attackDamage;
         this.knockback = miscData.knockback;
         this.strength = miscData.strength;
-        this.itemHolder = new ItemHolder(this.item3D);
+        this.itemHolder = new ItemHolder(this.hand);
     }
     private addEventListeners() {
         document.addEventListener('keydown',this.onPlayerKeyDown);

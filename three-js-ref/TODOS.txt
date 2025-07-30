@@ -3,8 +3,6 @@ at times,the entity navigation system doesnt even notice im there till i get clo
 
 Chest--Gui,carrying it physically because my item system doesnt allow reverse flow of item data from the world back into the inventory
 
-add back the sounds.use a sound state variable
-
 my entity controller at times,doesnt hit me when i get directly close at it.it will just be there until i rotate.its the nav method.i checked the logs.it believed that it didnt reach me yet until i rotated a little.
 
 rename that item3D variable in the controller to hand.it makes more sense because it actually reflects what it is;a group that holds a ref to the hand bone of a model

@@ -112,7 +112,7 @@ export class CommonBehaviour {
             }
         })
         this.entity = proxy;
-        this.itemHolder = new ItemHolder(this.entity.item3D);
+        this.itemHolder = new ItemHolder(this.entity.hand);
         Object.keys(entityItems).forEach(entityItemID=>{
             this.entityItemIDs.push(entityItemID);
             this.usageWeights.push(entityItems[entityItemID]);

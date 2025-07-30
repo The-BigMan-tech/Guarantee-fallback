@@ -4,17 +4,17 @@ import { disposeHierarchy } from "../disposer/disposer.three";
 import { gltfLoader } from "../gltf-loader.three";
 
 export class ItemHolder {
-    private item3D: THREE.Group;
+    private hand: THREE.Group;
     private currentHeldItem: string | null = null;
     public  hasChangedHeldItem:boolean = false;
 
-    constructor(item3D: THREE.Group) {
-        this.item3D = item3D;
+    constructor(hand: THREE.Group) {
+        this.hand = hand;
     }
     private disposeItem() {
-        while (this.item3D.children.length > 0) {
-            const child = this.item3D.children[0];
-            this.item3D.remove(child);
+        while (this.hand.children.length > 0) {
+            const child = this.hand.children[0];
+            this.hand.remove(child);
             disposeHierarchy(child); // Dispose the removed child's geometry/materials/textures etc.
         }
     }
@@ -25,7 +25,7 @@ export class ItemHolder {
         clonedModel.scale.copy(transform.scale); // Scale to 50% in all dimensions
         clonedModel.position.copy(transform.position);
         clonedModel.rotation.copy(transform.rotation);
-        this.item3D.add(clonedModel);// Clone before adding
+        this.hand.add(clonedModel);// Clone before adding
     }
     public holdItem(item:Item | null) {//called on loop
         const heldItem = item ? item.name : null;

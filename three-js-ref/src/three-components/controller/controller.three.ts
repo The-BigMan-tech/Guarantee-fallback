@@ -100,7 +100,7 @@ export abstract class Controller {
 
     
     //this group is positioned exactly at the hand group of the 3d model by the controller and exposed to the children to do whatever thwy want with it like adding and removing item models from the group.i did it here because the controller unlike the player can call it at the appropriate time where its sure that the model is already available before it queries for the hand.else it will be null if attempted to be done in the children
-    public item3D:THREE.Group = new THREE.Group();//i made it public so that entity wrappers can access it
+    public hand:THREE.Group = new THREE.Group();//i made it public so that entity wrappers can access it
 
     private velCalcUtils:VelCalcUtils = new VelCalcUtils();
     public soundControls:SoundControls = new SoundControls();
@@ -156,17 +156,17 @@ export abstract class Controller {
             this.character.add(characterModel);
             this.animationControls = new AnimationControls(characterModel);
             this.animationControls.loadAnimations(this.fixedData.gltfModel);
-            this.loadItem3D();
+            this.loadHand();
         }
     }
 
-    private loadItem3D() {//it reserves a spot for item models to be added which is the hand group of the model
+    private loadHand() {//it reserves a spot for item models to be added which is the hand group of the model
         const handGroup = this.character.getObjectByName('hand');
         if (handGroup) {
-            handGroup.add(this.item3D);
-            this.item3D.position.set(0, 0, 0);
-            this.item3D.quaternion.identity();
-            this.item3D.scale.set(1, 1, 1);
+            handGroup.add(this.hand);
+            this.hand.position.set(0, 0, 0);
+            this.hand.quaternion.identity();
+            this.hand.scale.set(1, 1, 1);
         }
     }
 
