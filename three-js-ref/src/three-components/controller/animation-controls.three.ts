@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-type animations = 'idle' | 'sprint' | 'jump' | 'attack' | 'death'
+export type animations = 'idle' | 'sprint' | 'jump' | 'attack' | 'death'
 
 interface AnimationFinishedEvent {
     type:'finished',
@@ -47,7 +47,6 @@ export class AnimationControls {
         }
         if (jumpClip) {
             this.jumpAction = this.mixer.clipAction(jumpClip);
-            this.jumpAction.setLoop(THREE.LoopRepeat,Infinity)
         }
         if (attackClip) {
             this.attackAction = this.mixer.clipAction(attackClip);

@@ -7,7 +7,7 @@ import { getGroundDetectionDistance, VelCalcUtils } from "./helper";
 import { createBoxLine, createCapsuleLine } from "../item-system/behaviour/other-helpers.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { SoundControls } from "./sound-controls.three";
-import { AnimationControls } from "./animation-controls.three";
+import { AnimationControls,type animations } from "./animation-controls.three";
 
 
 //this is data fpr the controller that cant or should not be changed after creation
@@ -944,9 +944,11 @@ export abstract class Controller {
         this.forceSleepIfIdle();
         this.updateKnockbackCooldown();
         this.updateVelJustAboveGround();
-        this.animationControls!.animationToPlay = 'idle';
+        this.animationControls!.animationToPlay = 'idle' as animations;
         this.onLoop();
-        if (this.isAirBorne()) this.animationControls!.animationToPlay = 'jump';
+        if (this.isAirBorne() && (this.animationControls!.animationToPlay !== 'attack')) {//only ovverride the animation to jump if its airborne and its not doing an attack animation so that it can do an attack in the air
+            this.animationControls!.animationToPlay = 'jump';
+        }
         this.animationControls?.updateAnimations(deltaTime);//im updating the animation before the early return so that it stops naturally 
         
         if (this.characterRigidBody && this.characterRigidBody.isSleeping()) {
