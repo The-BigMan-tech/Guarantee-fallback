@@ -211,7 +211,7 @@ export abstract class Controller {
             if (isCharacterCollider) return true;//skip the check for the player and contiune searching for other colliers at that point
 
             if (this.playLandSound) {
-                this.soundControls.playLandSound();
+                this.soundControls.soundToPlay = 'land'
                 this.playLandSound = false
             }
             onGround = true
@@ -513,7 +513,6 @@ export abstract class Controller {
         return canJump
     }
     private autoMoveForward(finalDestY:number) {//this is used by the nav method to just move forward.thats its only job.it just moves forward and jump if the entity needs to jump.the high level overview of the nav logic is handled by the nav to target method
-        this.soundControls.stopWalkSound();
         const onGround = this.isGrounded();
         const greaterOrSameYLevel = Math.round(finalDestY - this.character.position.y) >= 2;//this is to ensure it doesnt jumps proactively when im below it.it should just walk down
         const jumpProactively = greaterOrSameYLevel && !this.groundIsPresentForward;
@@ -528,7 +527,7 @@ export abstract class Controller {
     }
     private moveAgent(finalDestY:number) {
         if (!this.isFinalDestClose) {
-            this.autoMoveForward(finalDestY);
+            // this.autoMoveForward(finalDestY);
         }
     }
 
@@ -560,7 +559,7 @@ export abstract class Controller {
     private getSteeringDirection(path:THREE.Vector3):'right' | 'left' | null {
         const angle:degrees = this.getAngleDiff(path);
         //if i dont set a threshold or if its too low,the controller will never move if rotate and move in the nav is set to false because it will use every frame to rotate itself even for small differences that it will nevr try to move since in this mode,rotation happens before movement
-        const rotationThreshold = 8;//the magnitude of the rotation diff before it rotates to the target direction
+        const rotationThreshold = 7;//the magnitude of the rotation diff before it rotates to the target direction
         if (angle > rotationThreshold) {
             return (angle < 180)?'right':'left'
         }
@@ -612,7 +611,6 @@ export abstract class Controller {
         if (hasReachedOriginalPath || this.isNearOriginalPath) {//the current value of isNearOriginalPath will come in the next frame before using it to make its decision.cuz its needed for automoveforward to know it should stop moving the entity.if i use it to return from here,that opportunity wont happen and the entity wont preserve any space between it and the target
             this.spaceTimer += this.clockDelta || 0;
             this.terminateBranch();
-            this.soundControls.stopWalkSound();
             console.log('Reached original path');
             if (this.spaceTimer > this.spaceCooldown) {//i used a cooldown to retain this space for some time or else,it will just go straight to the target again
                 this.isNearOriginalPath = false
@@ -798,7 +796,7 @@ export abstract class Controller {
         const impulse = direction.multiplyScalar(knockbackImpulse);
         this.impulse.copy(impulse);
         this.isKnockedBack = true;//we need to set this flag explicitly so that the controller allows the impulse to affect it.else,the impulse wont apply because the controller will directly control linvel which will interfer with this
-        this.soundControls.playPunchSound();
+        this.soundControls.soundToPlay = 'punch'
     }
 
 
@@ -950,7 +948,7 @@ export abstract class Controller {
             this.animationControls!.animationToPlay = 'jump';
         }
         this.animationControls?.updateAnimations(deltaTime);//im updating the animation before the early return so that it stops naturally 
-        
+        this.soundControls?.playSelectedSound();
         if (this.characterRigidBody && this.characterRigidBody.isSleeping()) {
             console.log("sleeping...");
             return;//to prevent unnecessary queries.Since it sleeps only when its grounded.its appropriate to return true here saving computation
