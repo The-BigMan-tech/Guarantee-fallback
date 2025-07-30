@@ -96,6 +96,9 @@ export class AnimationControls {
     private playDeathAnimation():void {
         this.fadeToAnimation(this.deathAction!);
     }
+    get attackTime() {
+        return this.attackAction!.time;
+    }
     private playAnimation():void {
         switch (this.animationToPlay) {
             case 'idle': {

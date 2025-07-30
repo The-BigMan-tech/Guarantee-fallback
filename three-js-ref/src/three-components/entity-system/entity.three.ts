@@ -118,7 +118,7 @@ export class Entity extends Controller implements EntityLike {
     private attack():void {
         this.attackTimer += this.clockDelta || 0;
         if (!this.targetEntity?.health) return;
-        if (this.attackTimer > (this.attackCooldown -0.4)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
+        if (this.attackTimer > (this.attackCooldown - this.animationControls!.attackTime)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
             this.animationControls!.animationToPlay = 'attack'
         }
         if (this.attackTimer > this.attackCooldown) {
