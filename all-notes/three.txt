@@ -1780,3 +1780,8 @@ listening to playback events
 *Regular Geometry
 *Instanced Geometry
 *Buffer Geometry
+
+hypot distance
+xz distance
+vector distance
+dot distance

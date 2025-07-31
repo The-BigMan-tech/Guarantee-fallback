@@ -127,12 +127,20 @@ export class CommonBehaviour {
         const targetEntity = this.entity._targetEntity;
         if (targetEntity) {
             const view = this.getView();
-            view.position.y -= 2;//to prevent it from looking downwards when target is at eye level
+            view.position.y -= 2.5;//to prevent it from looking downwards when target is at eye level
             const flatTargetPos = targetEntity.position.clone().setY(view.position.y)
-            view.quaternion.multiply(EntityVecUtils.getRequiredQuat(view.position,view.quaternion,flatTargetPos));
+            view.quaternion.multiply(EntityVecUtils.getRequiredQuat(view.position,view.quaternion,flatTargetPos));//to prevent the angle from increasing as the target goes to its back
+
             const angleDiff:degrees = EntityVecUtils.getVerticalAngleDiff(view.position,view.quaternion,targetEntity.position);//i used an on target directed quaternion to ensure that the angle doesnt increase when the target goes to the back of the entity.
-            this.entity.headRotation.x = degToRad(THREE.MathUtils.clamp(angleDiff,-45,45));
+            const isTargetInFront = EntityVecUtils.isTargetInfront(view.position,view.quaternion,targetEntity.position)
+            
+            if (isTargetInFront) {
+                this.entity.headRotation.x = degToRad(THREE.MathUtils.clamp(angleDiff,-45,45));
+            }else {//i made the rotation 0 if the target is at the back of the entity because it wont make sense for the entity to look for example,up or down at the target if the target is behind it.its beterr its looking straight forward and only rotate when it actually looks at the target
+                this.entity.headRotation.x = 0
+            }
             console.log('head. angleDiff:', angleDiff);
+            console.log('head. isTargetInFront:',isTargetInFront);
         }
     }
     public throwItem(itemWithID:ItemWithID,targetPos:THREE.Vector3) {

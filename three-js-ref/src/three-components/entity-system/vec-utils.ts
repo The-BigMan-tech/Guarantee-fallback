@@ -55,4 +55,15 @@ export class EntityVecUtils {
         const initialVelocity = Math.sqrt((gravity * dist * dist) / denominator);
         return initialVelocity;
     } 
+    public static signedTargetDist(srcPos:THREE.Vector3,srcQuat:THREE.Quaternion,targetPos:THREE.Vector3) {
+        const targetPosToEntity = targetPos.clone().sub(srcPos);
+        const forward = new THREE.Vector3(0,0,-1).applyQuaternion(srcQuat);
+        const signedDist = Math.round(targetPosToEntity.dot(forward));
+        return signedDist
+    }
+    //The difference between checking for this or is facing target is that is facing target is more precise.it only returns true if the entity is facing head on to the target.this one is more lenient and will return true if the target is front of the entity without requiring the entity to face it.so it will only return false if the target is behind the entity
+    public static isTargetInfront(srcPos:THREE.Vector3,srcQuat:THREE.Quaternion,targetPos:THREE.Vector3):boolean {
+        const signedDist = this.signedTargetDist(srcPos,srcQuat,targetPos)
+        return Math.sign(signedDist) == 1
+    }
 }

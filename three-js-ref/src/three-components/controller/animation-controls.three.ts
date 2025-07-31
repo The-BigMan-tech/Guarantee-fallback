@@ -61,7 +61,6 @@ export class AnimationControls {
         if (idleClip) {
             this.idleAction = this.mixer.clipAction(idleClip);
             this.currentAction = this.idleAction;
-            this.idleAction.play()
         }
     }
     private fadeToAnimation(newAction: THREE.AnimationAction):void {

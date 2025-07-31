@@ -690,8 +690,8 @@ export abstract class Controller {
             if (finalDir !== null) this.rotateCharacterX(finalDir);
             this.moveAgent(finalPath.y);
         }else {//if its not walking around an obstacle,i want it to either rotate or move but not at the same time in the same frame.this is for precision
-            if (finalDir !== null) this.rotateCharacterX(finalDir);
-            else this.moveAgent(finalPath.y);
+            // if (finalDir !== null) this.rotateCharacterX(finalDir);
+            // else this.moveAgent(finalPath.y);
         }
         return false
     }
@@ -950,7 +950,7 @@ export abstract class Controller {
         if (this.head) {
             const animationToPlay = this.animationControls!.animationToPlay;
             if ((animationToPlay === "idle") || (animationToPlay === "sprint")) {//only override the head in the aniations where it will make sense like wlaking or standing idle
-                this.head.quaternion.slerp(new THREE.Quaternion().setFromEuler(this.headRotation),0.4)
+                this.head.quaternion.slerp(new THREE.Quaternion().setFromEuler(this.headRotation),0.1)
             }
         }
     }
