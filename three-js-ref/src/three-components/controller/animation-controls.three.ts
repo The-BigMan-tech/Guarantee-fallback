@@ -17,8 +17,14 @@ export class AnimationControls {
     private jumpAction:THREE.AnimationAction | null = null;
     private attackAction:THREE.AnimationAction | null = null;
     private deathAction:THREE.AnimationAction | null = null;
-    private animationsHaveLoaded:boolean = false;
 
+    private idleClip: THREE.AnimationClip | null = null;
+    private sprintClip: THREE.AnimationClip | null = null;
+    private attackClip: THREE.AnimationClip | null = null
+    private deathClip: THREE.AnimationClip | null = null;
+    private jumpClip: THREE.AnimationClip | null = null;
+
+    private animationsHaveLoaded:boolean = false;
     public animationToPlay:animations | null = null;
     public waitForSprintBeforeIdle:boolean = false;
 
@@ -35,32 +41,32 @@ export class AnimationControls {
     }
     public loadAnimations(gltf:GLTF):void {
         if (!this.mixer) return;
-        const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
-        const sprintClip = THREE.AnimationClip.findByName(gltf.animations, 'sprinting'); 
-        const jumpClip = THREE.AnimationClip.findByName(gltf.animations, 'jumping'); 
-        const attackClip = THREE.AnimationClip.findByName(gltf.animations, 'attack'); 
-        const deathClip = THREE.AnimationClip.findByName(gltf.animations, 'death'); 
-    
-        if (sprintClip) {
-            this.sprintAction = this.mixer.clipAction(sprintClip);
+        this.idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
+        this.sprintClip = THREE.AnimationClip.findByName(gltf.animations, 'sprinting'); 
+        this.jumpClip = THREE.AnimationClip.findByName(gltf.animations, 'jumping'); 
+        this.attackClip = THREE.AnimationClip.findByName(gltf.animations, 'attack'); 
+        this.deathClip = THREE.AnimationClip.findByName(gltf.animations, 'death'); 
+        
+        if (this.sprintClip) {
+            this.sprintAction = this.mixer.clipAction(this.sprintClip);
             this.sprintAction.setLoop(THREE.LoopOnce, 1);
             this.sprintAction.clampWhenFinished = true;
         }
-        if (jumpClip) {
-            this.jumpAction = this.mixer.clipAction(jumpClip);
+        if (this.jumpClip) {
+            this.jumpAction = this.mixer.clipAction(this.jumpClip);
         }
-        if (attackClip) {
-            this.attackAction = this.mixer.clipAction(attackClip);
+        if (this.attackClip) {
+            this.attackAction = this.mixer.clipAction(this.attackClip);
             this.attackAction.setLoop(THREE.LoopOnce, 1);
             this.attackAction.clampWhenFinished = true;
         }
-        if (deathClip) {
-            this.deathAction = this.mixer.clipAction(deathClip);
+        if (this.deathClip) {
+            this.deathAction = this.mixer.clipAction(this.deathClip);
             this.deathAction.setLoop(THREE.LoopOnce, 1);
             this.deathAction.clampWhenFinished = true;
         }
-        if (idleClip) {
-            this.idleAction = this.mixer.clipAction(idleClip);
+        if (this.idleClip) {
+            this.idleAction = this.mixer.clipAction(this.idleClip);
             this.currentAction = this.idleAction;
         }
     }
@@ -102,11 +108,11 @@ export class AnimationControls {
             this.fadeToAnimation(this.deathAction!);
         }
     }
-    get attackTime() {
-        return this.attackAction!.time;
+    get attackDuration() {
+        return this.attackClip!.duration;
     }
-    get deathTime() {
-        return this.deathAction!.time;
+    get deathDuration() {
+        return this.deathClip!.duration;
     }
     private playAnimation():void {
         switch (this.animationToPlay) {
@@ -131,7 +137,6 @@ export class AnimationControls {
                 break;
             }
         }
-        this.animationToPlay = null
     } 
     public updateAnimations(clockDelta:number) {
         if (!this.animationsHaveLoaded) {

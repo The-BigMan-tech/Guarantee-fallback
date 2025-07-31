@@ -344,8 +344,8 @@ export class Player extends Controller implements EntityLike {
         }
     }
     private attack() {
-        const attackAnimationTime = this.animationControls!.attackTime;
-        if (this.attackTimer > (this.attackCooldown - attackAnimationTime)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
+        const attackAnimationDuration = this.animationControls!.attackDuration;
+        if (this.attackTimer > (this.attackCooldown - attackAnimationDuration)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
             this.animationControls!.animationToPlay = 'attack'
         }
         if ((this.attackTimer > this.attackCooldown)){

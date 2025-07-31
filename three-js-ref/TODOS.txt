@@ -13,11 +13,9 @@ nest js & webRTC for multiplayer
 
 *do is mesh out of sync like you didi for the clones but for the entities so that they can fly and all before despawning
 
+*the hostile entities just spam attack very quickly for some reason
+
 entities dont give themselves space when attacking.they clog themselves
-
-when enemies throw boulders at me,their relationships doesnt register
-
-the death animation doesnt play correctky for me and the entities
 
 *throw strength ranger---hold down the use key and release once youve accumulated enough strength.it starts from 0 and caps at the player's strength.
 

@@ -65,7 +65,7 @@ export class Entity extends Controller implements EntityLike {
 
     private movementType:'fluid' | 'precise' = 'precise'
 
-    public useItemCooldown:seconds = 3;//increase the cooldown accordingly to control the rate at which entities spawn items in the game which indirectly preserves memory
+    public useItemCooldown:seconds = 5;//increase the cooldown accordingly to control the rate at which entities spawn items in the game which indirectly preserves memory
     public useItemTimer:seconds = 0;
     public height:number
 
@@ -116,9 +116,9 @@ export class Entity extends Controller implements EntityLike {
         }
     }
     private attack():void {
-        this.attackTimer += this.clockDelta || 0;
         if (!this.targetEntity?.health) return;
-        if (this.attackTimer > (this.attackCooldown - this.animationControls!.attackTime)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
+        this.attackTimer += this.clockDelta || 0;
+        if (this.attackTimer > (this.attackCooldown - this.animationControls!.attackDuration)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
             this.animationControls!.animationToPlay = 'attack'
         }
         if (this.attackTimer > this.attackCooldown) {
@@ -133,9 +133,12 @@ export class Entity extends Controller implements EntityLike {
         }
     }
     public death():void {
-        if (this.health.isDead && !this.isRemoved) {
-            this.animationControls!.animationToPlay = 'death'
-            //I used to have a fadeout function right here to fade out the animation slowly as the entity dies but the problem is that it mutated the opacity of the materails directly which is fine as long as i reread the gltf file from disk for each entity.but if i only read it once and clone the model,it only clones the model not the material.each model clone even deep ones will still ref the same material in mem for perf.i didnt discover this till i reused models for my item clones.
+        if (this.health.isDead && !this.isRemoved) {//I used to have a fadeout function to fade out the animation slowly as the entity dies but the problem is that it mutated the opacity of the materails directly which is fine as long as i reread the gltf file from disk for each entity.but if i only read it once and clone the model,it only clones the model not the material.each model clone even deep ones will still ref the same material in mem for perf.i didnt discover this till i reused models for my item clones.
+            this.cleanupTimer += this.clockDelta || 0;
+            if (this.cleanupTimer > (this.cleanupCooldown - this.animationControls!.deathDuration)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
+                this.animationControls!.animationToPlay = 'death'
+                console.log('death. playing death animation');
+            }
             this.cleanUpResources();
         }
     }
@@ -185,8 +188,7 @@ export class Entity extends Controller implements EntityLike {
         }
     }
     private cleanUpResources():void {
-        this.cleanupTimer += this.clockDelta || 0;
-        if (this.cleanupTimer >= this.cleanupCooldown) {//the cooldown is here to allow playing of death animations or ending effects
+        if (this.cleanupTimer > this.cleanupCooldown) {//the cooldown is here to allow playing of death animations or ending effects
             //Remove the entity from the scene
             this.points.clear();//clear the points array used for visual debugging
             this.struct.group.remove(this.points)//remove them from the scene

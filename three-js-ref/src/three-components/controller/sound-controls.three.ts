@@ -9,7 +9,7 @@ export class SoundControls {
     public landSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener);;//this is the only sound managed internally by the controller because it relies on grounded checks to set properly which i dont want to expose to the inheriting class for simplicity
     public punchSound: THREE.PositionalAudio = new THREE.PositionalAudio(listener);
 
-    public soundToPlay:sounds | null = null;//the reason why sound to play has a null state is because unlike the animation state that needs to have an animation playing all the time to prevent the controller from looking stiff,there is a point in the controller where you wont want sounds to play.which is why i have a null state for sound
+    public soundToPlay:sounds | null = null;
 
     constructor() {};
 

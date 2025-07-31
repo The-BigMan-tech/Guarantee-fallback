@@ -51,6 +51,7 @@ export class NPC implements EntityContract {
             this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!];//i assert the craetion of group id because the entity manager always intializes this id before saving it to the game for updates
             this.trackedRelationships.add(this.selfToTargetRelationship);
             this.commonBehaviour.updateOrderInRelationship(this.selfToTargetRelationship); 
+            this.commonBehaviour.rotateHeadVertically(currentTarget.position);
         }
         //this is also an untracked relationship where the class which is the npc isnt a member of the relationship but rather the key of the record.so it doesnt manage the removal of this relationship and leaves it to peridocial cleanup
         const followTargetEntity = this.commonBehaviour.getValidFollowTarget(this.followTarget.subQueries.byHealth,'highest')

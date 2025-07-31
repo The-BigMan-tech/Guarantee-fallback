@@ -41,7 +41,6 @@ export class HostileEntity implements EntityContract  {
         }else return 'idle';
     }
     private updateInternalState() {//this method respond to external state and it can optionally transition the internal state for a response
-        this.commonBehaviour.rotateHeadVertically();
         this.originalTargetEntity = this.commonBehaviour.getValidHostileTarget(this.originalHostileTarget.subQueries.byThreat,'highest')
         const currentTarget = (
             this.commonBehaviour.getValidHostileTarget(this.attackersOfEntityKind.subQueries.byAttackDamage,'highest') || 
@@ -52,6 +51,7 @@ export class HostileEntity implements EntityContract  {
             this.selfToTargetRelationship = relationshipManager.attackerOf[currentTarget._groupID!]
             this.trackedRelationships.add(this.selfToTargetRelationship);
             this.commonBehaviour.updateOrderInRelationship(this.selfToTargetRelationship);
+            this.commonBehaviour.rotateHeadVertically(currentTarget.position);
             this.utilizeItem(currentTarget);
             console.log('relationship. hostile entity is attacking: ',currentTarget?._groupID);
         }
