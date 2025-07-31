@@ -19,7 +19,7 @@ export class AnimationControls {
     private deathAction:THREE.AnimationAction | null = null;
     private animationsHaveLoaded:boolean = false;
 
-    public animationToPlay:animations = 'idle';
+    public animationToPlay:animations | null = null;
     public waitForSprintBeforeIdle:boolean = false;
 
     constructor(characterModel: THREE.Group) {
@@ -131,6 +131,7 @@ export class AnimationControls {
                 break;
             }
         }
+        this.animationToPlay = null
     } 
     public updateAnimations(clockDelta:number) {
         if (!this.animationsHaveLoaded) {

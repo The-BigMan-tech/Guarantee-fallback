@@ -7,7 +7,7 @@ import { getGroundDetectionDistance, VelCalcUtils } from "../../../controller/he
 import { Health } from "../../../health/health";
 import { createBoxLine, rotateOnXBy180 } from "../other-helpers.three";
 import { RigidBodyClones } from "./rigidbody-clones.three";
-import { type Player, player } from "../../../player/player.three";
+import { Player, player } from "../../../player/player.three";
 import { IntersectionRequest } from "../../../player/intersection-request.three";
 import { entities, type Entity, type EntityContract } from "../../../entity-system/entity.three";
 import { relationshipManager } from "../../../entity-system/relationships.three";
@@ -180,24 +180,21 @@ export class RigidBodyClone {
             self:this.group
         });
     }
-    private requestIntersectedEntity(maxDistance:number):Entity | null {
-        const entityWrapper:EntityContract | null = this.intersectionRequest.requestObject({
+    private requestIntersectedEntityLike(maxDistance:number):Entity | Player | null {
+        const testObjects:THREE.Object3D[] = [player.char]
+        entities.forEach(e => testObjects.push(e._entity.char))
+
+        const result:EntityContract | Player | null = this.intersectionRequest.requestObject({
             raycaster: this.raycaster,
-            testObjects:entities.map(e => e._entity.char),
+            testObjects,
             maxDistance,
-            selection:entities,
+            selection:[player,...entities],//the order here should be consistent with how their meshes are added for testing
             self:this.group
         });
-        return entityWrapper?._entity || null
-    }
-    private requestIntersectedPlayer(maxDistance:number):Player | null {
-        return this.intersectionRequest.requestObject({
-            raycaster: this.raycaster,
-            testObjects:[player.char],
-            maxDistance,
-            selection:[player],
-            self:this.group
-        });
+        if (result instanceof Player) {
+            return result
+        }
+        return result?._entity || null
     }
     private updateRayVisualizer(origin:THREE.Vector3,velDirection:THREE.Vector3) {
         disposeHierarchy(this.rayGroup);
@@ -223,7 +220,7 @@ export class RigidBodyClone {
             
             const mass = this.rigidBody!.mass();
             const velocity = new THREE.Vector3().copy(this.rigidBody!.linvel()).length();
-            const knockbackWeight = 0.3;
+            const knockbackWeight = 0.5;
 
             const knockbackImpulse = mass * velocity * knockbackWeight;
             const knockbackSrcPos = origin.clone();
@@ -236,19 +233,16 @@ export class RigidBodyClone {
             const clone = this.requestIntersectedClone(maxDistance);
             clone?.knockbackClone(knockbackSrcPos,knockbackImpulse);
             clone?.durability.takeDamage(mass);
-
-            const playerObject = this.requestIntersectedPlayer(maxDistance);
-            playerObject?.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
-            playerObject?.health.takeDamage(mass);
             
-            const entity = this.requestIntersectedEntity(maxDistance);
-            entity?.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
-            entity?.health.takeDamage(mass);
+            const entityLike:Entity | Player | null = this.requestIntersectedEntityLike(maxDistance);
+            entityLike?.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
+            entityLike?.health.takeDamage(mass);
 
-            if (this.isEntityLike(this.owner) && entity) {
-                this.addRelationship(entity,relationshipManager.enemyOf[this.owner._groupID!]);
-                this.addRelationship(this.owner,relationshipManager.attackerOf[entity._groupID!]);
+            if (this.isEntityLike(this.owner) && entityLike) {
+                this.addRelationship(entityLike,relationshipManager.enemyOf[this.owner._groupID!]);
+                this.addRelationship(this.owner,relationshipManager.attackerOf[entityLike._groupID!]);
             }
+
             this.updateRayVisualizer(origin,velDirection);
         }
     }
