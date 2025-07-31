@@ -93,8 +93,8 @@ export class AnimationControls {
         }
     }
     private playAttackAnimation():void {
-        if (! this.deathAction?.isRunning()) {
-            this.fadeToAnimation(this.attackAction!);
+        if (!(this.deathAction?.isRunning() || this.attackAction?.isRunning())) {
+            this.fadeToAnimation(this.attackAction!);//i used null assertion here but optional chaining in the if condition to make the ! sign i used for negation clear.
         } 
     }
     private playDeathAnimation():void {
