@@ -1785,3 +1785,5 @@ hypot distance
 xz distance
 vector distance
 dot distance
+
+there is a difference between increasing a timer every frame and increasing it discretly under function calls.the first ensures that the action always happen consistently at X seconds interval but the latter ensures that the action happens at X seconds after an event happened not consistently every X seconds

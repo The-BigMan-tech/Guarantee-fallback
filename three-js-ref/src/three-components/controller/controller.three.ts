@@ -534,7 +534,7 @@ export abstract class Controller {
     }
     private moveAgent(finalDestY:number) {
         if (!this.isFinalDestClose) {
-            // this.autoMoveForward(finalDestY);
+            this.autoMoveForward(finalDestY);
         }
     }
 
@@ -607,6 +607,8 @@ export abstract class Controller {
     //to break down the different types of paths i have,there are four types;the original path,the branched path,the current path and the final path.the original path is the original goal the entity needs to go.the branched path is the temporary point that the entity goes to in order to evade an obstacle that it cant overcome,the current path is the variable that reflects the path that the entity is taking at the moment which is either the original or branched path while the final path is the current path but it can be branched from there or not.the final path wont live long enough to properly lead the entity to the branch cuz its local and reset on every frame but it lives long enough to steer its facing direction to that branch so that in the next frame,the branched path can take it from there to lead it to the branched point.one may argue that i should cut down this variable and just leave it as 3 path types but having final path is important to properly get it steering to the branched point in the same frame.
     protected navToTarget(originalPath:THREE.Vector3,rotateAndMove:boolean):boolean {//targetpos is the player for example
         this.timeSinceLastFlipCheck += this.clockDelta || 0;
+        this.animationControls!.waitForSprintBeforeIdle = true;
+        
         const characterPos = this.character.position;
         const distToOriginalPath = characterPos.distanceTo(originalPath);//im using hypot dist here cuz i need the distance to reflect all the comp before deciding that its close to it cuz this is where it terminates the navigation but its not the sole factor used to determine that.i also included in the y level diff check
 
@@ -690,8 +692,8 @@ export abstract class Controller {
             if (finalDir !== null) this.rotateCharacterX(finalDir);
             this.moveAgent(finalPath.y);
         }else {//if its not walking around an obstacle,i want it to either rotate or move but not at the same time in the same frame.this is for precision
-            // if (finalDir !== null) this.rotateCharacterX(finalDir);
-            // else this.moveAgent(finalPath.y);
+            if (finalDir !== null) this.rotateCharacterX(finalDir);
+            else this.moveAgent(finalPath.y);
         }
         return false
     }

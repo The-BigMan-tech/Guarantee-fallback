@@ -20,6 +20,7 @@ export class AnimationControls {
     private animationsHaveLoaded:boolean = false;
 
     public animationToPlay:animations = 'idle';
+    public waitForSprintBeforeIdle:boolean = false;
 
     constructor(characterModel: THREE.Group) {
         this.mixer = new THREE.AnimationMixer(characterModel);
@@ -84,7 +85,11 @@ export class AnimationControls {
     private playIdleAnimation():void {//i made it public for use by classes composed by the entity
         //making the idle animation wait till the sprint is done means that the controller wont stop animating its sprint when the controller stops moving.Its acceptable because its better for the animation to interpolate smoothly than overriding each other.the benefit of this will be seen in the entity
         if (!(this.attackAction?.isRunning() || this.deathAction?.isRunning())) {
-            this.fadeToAnimation(this.idleAction!);
+            if (this.waitForSprintBeforeIdle) {
+                if (!this.sprintAction?.isRunning()) this.fadeToAnimation(this.idleAction!);
+            }else {
+                this.fadeToAnimation(this.idleAction!);
+            }
         }
     }
     private playAttackAnimation():void {
@@ -93,7 +98,9 @@ export class AnimationControls {
         } 
     }
     private playDeathAnimation():void {
-        this.fadeToAnimation(this.deathAction!);
+        if (!this.deathAction?.isRunning()) {
+            this.fadeToAnimation(this.deathAction!);
+        }
     }
     get attackTime() {
         return this.attackAction!.time;
