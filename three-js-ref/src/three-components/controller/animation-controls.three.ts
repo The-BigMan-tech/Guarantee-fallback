@@ -64,7 +64,7 @@ export class AnimationControls {
         }
     }
     private fadeToAnimation(newAction: THREE.AnimationAction):void {
-        if (newAction !== this.currentAction) {
+        if ((newAction !== this.currentAction) || !newAction.isRunning()) {
             newAction.reset();
             newAction.play();
             if (this.currentAction) this.currentAction.crossFadeTo(newAction, 0.4, false);
@@ -72,23 +72,23 @@ export class AnimationControls {
         }
     }
     private playJumpAnimation():void {
-        if (!this.attackAction!.isRunning()) {
+        if (!this.attackAction?.isRunning()) {
             this.fadeToAnimation(this.jumpAction!);
         }
     }
     private playSprintAnimation():void {
-        if (!this.attackAction!.isRunning()) {
+        if (!this.attackAction?.isRunning()) {
             this.fadeToAnimation(this.sprintAction!);
         }
     }
     private playIdleAnimation():void {//i made it public for use by classes composed by the entity
         //making the idle animation wait till the sprint is done means that the controller wont stop animating its sprint when the controller stops moving.Its acceptable because its better for the animation to interpolate smoothly than overriding each other.the benefit of this will be seen in the entity
-        if (!(this.attackAction!.isRunning() || this.sprintAction!.isRunning() || this.deathAction!.isRunning())) {
+        if (!(this.attackAction?.isRunning() || this.deathAction?.isRunning())) {
             this.fadeToAnimation(this.idleAction!);
         }
     }
     private playAttackAnimation():void {
-        if (! this.deathAction!.isRunning()) {
+        if (! this.deathAction?.isRunning()) {
             this.fadeToAnimation(this.attackAction!);
         } 
     }
@@ -128,6 +128,7 @@ export class AnimationControls {
         }
         //only update animations if they have loaded and if the mixer is still available.the reason why im checking the mixer state every frame instead of storing it in a variable to prevent reassigning its boolean like i did for animaion has loaded is because the mixer can be removed at any point in the controller when its no longer needed like upon death
         if (this.mixer && this.animationsHaveLoaded) {
+            console.log('playing an animation');
             this.playAnimation();
             this.mixer?.update(clockDelta || 0);
         }

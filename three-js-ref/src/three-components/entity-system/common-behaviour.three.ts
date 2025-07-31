@@ -127,7 +127,7 @@ export class CommonBehaviour {
         const targetEntity = this.entity._targetEntity;
         if (targetEntity) {
             const view = this.getView();
-            view.position.y -= 2.5;//to prevent it from looking downwards when target is at eye level
+            view.position.y -= 2;//to prevent it from looking downwards when target is at eye level
             const flatTargetPos = targetEntity.position.clone().setY(view.position.y)
             view.quaternion.multiply(EntityVecUtils.getRequiredQuat(view.position,view.quaternion,flatTargetPos));//to prevent the angle from increasing as the target goes to its back
 
