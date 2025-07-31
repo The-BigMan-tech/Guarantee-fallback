@@ -608,7 +608,7 @@ export abstract class Controller {
     protected navToTarget(originalPath:THREE.Vector3,rotateAndMove:boolean):boolean {//targetpos is the player for example
         this.timeSinceLastFlipCheck += this.clockDelta || 0;
         this.animationControls!.waitForSprintBeforeIdle = true;
-        
+
         const characterPos = this.character.position;
         const distToOriginalPath = characterPos.distanceTo(originalPath);//im using hypot dist here cuz i need the distance to reflect all the comp before deciding that its close to it cuz this is where it terminates the navigation but its not the sole factor used to determine that.i also included in the y level diff check
 
@@ -956,6 +956,9 @@ export abstract class Controller {
             }
         }
     }
+    private preservePrevAnimation() {
+        return  (this.animationControls!.animationToPlay === 'attack') ||  (this.animationControls!.animationToPlay === 'death')
+    }
      //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateCharacter(deltaTime:number):void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
         if (!this.characterRigidBody) return;
@@ -966,7 +969,7 @@ export abstract class Controller {
         this.updateVelJustAboveGround();
         this.animationControls!.animationToPlay = 'idle' as animations;//make all controllers idle by default
         this.onLoop();
-        if (this.isAirBorne() && (this.animationControls!.animationToPlay !== 'attack')) {//only ovverride the animation to jump if its airborne and its not doing an attack animation so that it can do an attack in the air.im doing this after the hook so that it checks on the controller's latest state
+        if (this.isAirBorne() && !this.preservePrevAnimation()) {//only ovverride the animation to jump if its airborne and its not doing an attack animation so that it can do an attack in the air.im doing this after the hook so that it checks on the controller's latest state
             this.animationControls!.animationToPlay = 'jump';
         }
         this.animationControls?.updateAnimations(deltaTime);//im updating the animation before the early return so that it stops naturally 

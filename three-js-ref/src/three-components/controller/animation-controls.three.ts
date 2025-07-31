@@ -105,6 +105,9 @@ export class AnimationControls {
     get attackTime() {
         return this.attackAction!.time;
     }
+    get deathTime() {
+        return this.deathAction!.time;
+    }
     private playAnimation():void {
         switch (this.animationToPlay) {
             case 'idle': {

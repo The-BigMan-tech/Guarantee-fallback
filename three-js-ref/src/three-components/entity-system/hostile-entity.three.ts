@@ -44,7 +44,7 @@ export class HostileEntity implements EntityContract  {
         this.commonBehaviour.rotateHeadVertically();
         this.originalTargetEntity = this.commonBehaviour.getValidHostileTarget(this.originalHostileTarget.subQueries.byThreat,'highest')
         const currentTarget = (
-            this.commonBehaviour.getValidHostileTarget(this.attackersOfEntityKind.subQueries.byAttackDamage,'lowest') || 
+            this.commonBehaviour.getValidHostileTarget(this.attackersOfEntityKind.subQueries.byAttackDamage,'highest') || 
             this.originalTargetEntity
         );
         if (currentTarget) {
