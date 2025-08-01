@@ -382,21 +382,23 @@ export class Player extends Controller implements EntityLike {
             this.health.takeDamage(this.health.value);//kill the player
         }
     }
-    private handleRespawn() {
+    private hasPlayedDeathAnimation = false
+    private handleDeath() {
         if (this.health.isDead) {
             this.respawnTimer += this.clockDelta || 0;
+            this.targetY = this.offsetY - this.playerHeight;
+            this.animationControls!.animationToPlay = null;//to prevent any other animation from playing when its dead
+            if (!this.hasPlayedDeathAnimation) {//this is to play the death animation only once
+                this.animationControls!.animationToPlay = 'death';
+                this.hasPlayedDeathAnimation = true;
+            }
             if (this.respawnTimer >= this.respawnDelay) {
                 this.respawn();
                 this.health.revive();
-                this.respawnTimer = 0;
                 this.targetY = this.offsetY;
+                this.hasPlayedDeathAnimation = false;
+                this.respawnTimer = 0;
             }
-        }
-    }
-    private updateCameraHeightBasedOnHealth() {
-        if (this.health.isDead) {
-            this.targetY = this.offsetY - this.playerHeight;
-            this.animationControls!.animationToPlay = 'death'
         }
     }
     get _groupID():string {
@@ -479,8 +481,7 @@ export class Player extends Controller implements EntityLike {
         //update camera must be called last to reflect the camera updates for this frame
         this.toggleCamPerspective();
         this.updateCamPosition();
-        this.updateCameraHeightBasedOnHealth();
-        this.handleRespawn();
+        this.handleDeath();
         this.camera.updateCamera(this.camRotationSpeed);
     }
 }
