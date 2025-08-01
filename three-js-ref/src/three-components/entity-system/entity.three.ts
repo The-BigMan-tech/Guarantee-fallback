@@ -119,13 +119,11 @@ export class Entity extends Controller implements EntityLike {
     private attack():void {
         if (!this.targetEntity?.health) return;
         this.attackTimer += this.clockDelta || 0;
-        const attackTime = this.attackCooldown - this.animationControls!.attackDuration;
+        const timeToPlayAnimation = this.attackCooldown - this.animationControls!.attackDuration;
 
-        if ((this.attackTimer > attackTime) && !this.hasPlayedAttackAnimation) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
+        if ((this.attackTimer > timeToPlayAnimation) && !this.hasPlayedAttackAnimation) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
             this.animationControls!.animationToPlay = 'attack';
             this.hasPlayedAttackAnimation = true;
-            console.log('attack. attack timer:',this.attackTimer);
-            console.log('attack. attack time to play: ',attackTime);
         }
         if (this.attackTimer > this.attackCooldown) {
             const YSign = Math.sign(this.position.y);
@@ -139,14 +137,19 @@ export class Entity extends Controller implements EntityLike {
             this.hasPlayedAttackAnimation = false;
         }
     }
+    private hasPlayedDeathAnimation = false
     public death():void {
         if (this.health.isDead && !this.isRemoved) {//I used to have a fadeout function to fade out the animation slowly as the entity dies but the problem is that it mutated the opacity of the materails directly which is fine as long as i reread the gltf file from disk for each entity.but if i only read it once and clone the model,it only clones the model not the material.each model clone even deep ones will still ref the same material in mem for perf.i didnt discover this till i reused models for my item clones.
-            this.cleanupTimer += this.clockDelta || 0;
-            if (this.cleanupTimer > (this.cleanupCooldown - this.animationControls!.deathDuration)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
+            this.animationControls!.animationToPlay = null;//to prevent any other animation from playing when its dead.This will make it remain at the dead animation because i clamped the dead animation at its end and this will prevent any other animation from overriding it
+            if (!this.hasPlayedDeathAnimation) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
                 this.animationControls!.animationToPlay = 'death'
+                this.hasPlayedDeathAnimation = true;
                 console.log('death. playing death animation');
             }
-            this.cleanUpResources();
+            this.cleanupTimer += this.clockDelta || 0;//this cleanup cooldown is particularly for effects before deah and as such,it should be handled here not in the free resources method.so dont move the timer handling there.
+            if (this.cleanupTimer > this.cleanupCooldown) {//the cooldown is here to allow playing of death animations or ending effects
+                this.freeResources();
+            }
         }
     }
 
@@ -194,51 +197,54 @@ export class Entity extends Controller implements EntityLike {
             this.health.takeDamage(this.health.value);
         }
     }
-    private cleanUpResources():void {
-        if (this.cleanupTimer > this.cleanupCooldown) {//the cooldown is here to allow playing of death animations or ending effects
-            //Remove the entity from the scene
-            this.points.clear();//clear the points array used for visual debugging
-            this.struct.group.remove(this.points)//remove them from the scene
-            this.struct.group.remove(this.char);//remove the controller from the scene
-            
-            //Remove the entity from gpu resources
-            disposeHierarchy(this.char);//remove the geometry data from the gpu
-            if (this.animationControls) {
-                this.animationControls.mixer = disposeMixer(this.animationControls.mixer);//to prevent animation updates
-            }
-
-            //Remove the entity from internal data structures
-            const index = this.struct.entityIndexMap.get(this)!;
-            const entityWrapper:EntityContract = this.struct.entities[index];
-            const wrapperName:string = entityWrapper.constructor.name
-            if (isEntityWrapper(wrapperName)) {//this operation must be done before deletion of the entry
-                this.decEntityCount(wrapperName);
-            }
-            //O(1) deletion from the entities array
-            if (index < (this.struct.entities.length - 1)) { // Swap with the last entity if not the last one
-                const lastEntity = this.struct.entities[this.struct.entities.length - 1];
-                this.struct.entities[index] = lastEntity; // Move last entity to the index of the one being removed
-                this.struct.entityIndexMap.set(lastEntity._entity, index); // Update the index map for the moved entity
-            }
-            this.struct.entities.pop(); // Remove the last element
-            this.struct.entityIndexMap.delete(this);// Remove from the index map
-
-            console.log('cleanUp. entities:',this.struct.entities);
-            console.log('cleanUp. entityIndexMap:',this.struct.entityIndexMap);
-
-            //Remove hooks and physics body
-            this.onTargetReached = undefined;//clear hook bindings to prevent ref to the entity from existing which will prevent garbage collection
-            this.updateInternalState = undefined;
-            if (this.characterRigidBody) {
-                physicsWorld.removeRigidBody(this.characterRigidBody);//remove its rigid body from the physics world
-                this.characterRigidBody = null;//this is a critical step for it to work.nullify the ref to the rigid body after removal.
-            }
-            this.isRemoved = true;
-            this.cleanupTimer = 0;//you actually dont need to reset this since the entity will no longer exist to use it again.so there is no need to woryy about an invalid state.but its good practice to still do this
+    private freeResources():void {
+        //Remove the entity from the scene
+        this.points.clear();//clear the points array used for visual debugging
+        this.struct.group.remove(this.points)//remove them from the scene
+        this.struct.group.remove(this.char);//remove the controller from the scene
+    
+        
+        //Remove the entity from gpu resources
+        disposeHierarchy(this.char);//remove the geometry data from the gpu
+        if (this.animationControls) {
+            this.animationControls.mixer = disposeMixer(this.animationControls.mixer);//to prevent animation updates
         }
+
+
+        //Remove the entity from internal data structures
+        const index = this.struct.entityIndexMap.get(this)!;
+        const entityWrapper:EntityContract = this.struct.entities[index];
+        const wrapperName:string = entityWrapper.constructor.name
+        if (isEntityWrapper(wrapperName)) {//this operation must be done before deletion of the entry
+            this.decEntityCount(wrapperName);
+        }
+
+
+        //O(1) deletion from the entities array
+        if (index < (this.struct.entities.length - 1)) { // Swap with the last entity if not the last one
+            const lastEntity = this.struct.entities[this.struct.entities.length - 1];
+            this.struct.entities[index] = lastEntity; // Move last entity to the index of the one being removed
+            this.struct.entityIndexMap.set(lastEntity._entity, index); // Update the index map for the moved entity
+        }
+        this.struct.entities.pop(); // Remove the last element
+        this.struct.entityIndexMap.delete(this);// Remove from the index map
+        console.log('cleanUp. entities:',this.struct.entities);
+        console.log('cleanUp. entityIndexMap:',this.struct.entityIndexMap);
+
+
+        //Remove hooks and physics body
+        this.onTargetReached = undefined;//clear hook bindings to prevent ref to the entity from existing which will prevent garbage collection
+        this.updateInternalState = undefined;
+        if (this.characterRigidBody) {
+            physicsWorld.removeRigidBody(this.characterRigidBody);//remove its rigid body from the physics world
+            this.characterRigidBody = null;//this is a critical step for it to work.nullify the ref to the rigid body after removal.
+        }
+        this.isRemoved = true;
+        this.cleanupTimer = 0;//you actually dont need to reset this since the entity will no longer exist to use it again.so there is no need to woryy about an invalid state.but its good practice to still do this
+        
     }
     get cleanUp():() => void {
-        return this.cleanUpResources;
+        return this.freeResources;
     }
     get _state():EntityStateMachine {
         return this.state
