@@ -1787,3 +1787,5 @@ vector distance
 dot distance
 
 there is a difference between increasing a timer every frame and increasing it discretly under function calls.the first ensures that the action always happen consistently at X seconds interval but the latter ensures that the action happens at X seconds after an event happened not consistently every X seconds
+
+*In my codebase,there is a difference between respecting the prev animation state and thus,not overriding it AND overriding the animation state but the animation action respects a previously running animation.The first one ensures that the controller doesnt override the prev animation state that was set to play if its one of high priority.The second one is used to retain overriding the animation state so that the controller always starts afresh with a default animation state every frame which prevents an animation state from lingering in an arbitrary value that may even be undesired if played repeatedly.but in addition,it also allows the prev animation to finish playing despite that the animation to play state has been overriden.

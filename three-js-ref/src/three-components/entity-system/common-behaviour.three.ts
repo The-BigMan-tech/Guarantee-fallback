@@ -132,7 +132,7 @@ export class CommonBehaviour {
         const isTargetInFront = EntityVecUtils.isTargetInfront(view.position,view.quaternion,targetPos)
         
         if (isTargetInFront) {
-            this.entity.headRotation.x = degToRad(THREE.MathUtils.clamp(angleDiff,-45,45));
+            this.entity.headRotation.x = degToRad(THREE.MathUtils.clamp(angleDiff,-30,30));
         }else {//i made the rotation 0 if the target is at the back of the entity because it wont make sense for the entity to look for example,up or down at the target if the target is behind it.its beterr its looking straight forward and only rotate when it actually looks at the target
             this.entity.headRotation.x = 0
         }
