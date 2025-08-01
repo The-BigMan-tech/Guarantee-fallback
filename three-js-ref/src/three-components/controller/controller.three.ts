@@ -967,7 +967,7 @@ export abstract class Controller {
         this.forceSleepIfIdle();
         this.updateKnockbackCooldown();
         this.updateVelJustAboveGround();
-        this.animationControls!.animationToPlay = 'idle' as animations;//make all controllers idle by default
+        this.animationControls!.animationToPlay = 'idle' as animations;//make all controllers idle by default.i dont have to check for the animation to play state to do this conditionally because its always nulla at the beginning of anew frame 
         this.onLoop();
         if (this.isAirBorne() && !this.preservePrevAnimation()) {//only ovverride the animation to jump if its airborne and its not doing an attack animation so that it can do an attack in the air.im doing this after the hook so that it checks on the controller's latest state
             this.animationControls!.animationToPlay = 'jump';

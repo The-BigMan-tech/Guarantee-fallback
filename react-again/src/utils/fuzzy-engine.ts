@@ -51,14 +51,13 @@ function getWeights(minThreshold: number) {
     const weightWindow = 0.4 - (0.4 * t); 
 
     const total = (weightDistance + weightSubsequence + weightWindow);
-    // Normalize weights so they sum to 1
     return {
         weightDistance: (weightDistance / total),
         weightSubsequence: (weightSubsequence / total),
         weightWindow: (weightWindow / total),
     };
 }
-export function getMatchScore(query:string,str:string,minThreshold:number):number {
+export function getFuzzyScore(query:string,str:string,minThreshold:number):number {
     const cacheKey = `${query}|${str}|${minThreshold}`;
     const cachedResult = fuzzyCache.get(cacheKey);
     if (cachedResult) {//utilize the cache
@@ -118,5 +117,5 @@ export function getMatchScore(query:string,str:string,minThreshold:number):numbe
 //10-30 moderately lenient
 //40 point of strictness
 //100 is absolutely strict
-
-console.log(getMatchScore('hello','h4lo',50));
+//the reason why my fuzzy engine doesnt have a leetmap to see some digits in their letter rep like 3 as e or 4 as A is because firstly,it can give false scores even at highly strict levels.so ill the have to decide which strictness level the leetmap should be applied and secondly,a leetmap is domain specific.if my fuzzy engine were to  be used in another domain,like checking for usernames not for english words,then numbers like 3 for E are more intentional than accidental.so using a leetmap to convert it to E can cause false reports for tha domain.so depending on the problem domain,you may wish to use a leetmap to preprocess the data before giving it to the fuzzy engine but the fuzzy engine will not by itself,do that for you.it performs entirely on the arbitrary data you provide it but doesnt assume the problem domain you are planning to use it for
+console.log(getFuzzyScore('hello','hllo',25));

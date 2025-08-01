@@ -33,7 +33,7 @@ function App() {
     
     
     return (
-        <div className='h-full w-full flex'>
+        <div className='h-full w-full flex overflow-hidden'>
             <div ref={containerRef} tabIndex={0}  className='w-full h-full z-0'/>
             <HealthStateRegistrar/>
             <ItemStateRegister/>

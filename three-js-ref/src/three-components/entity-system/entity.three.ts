@@ -94,7 +94,7 @@ export class Entity extends Controller implements EntityLike {
     }
 
     private idle():void {
-        this.animationControls!.animationToPlay = 'idle'
+        return
     }
     private patrol():void {
         if (this.patrolTimer >= this.patrolCooldown) {
@@ -115,11 +115,17 @@ export class Entity extends Controller implements EntityLike {
             }
         }
     }
+    private hasPlayedAttackAnimation:boolean = false;
     private attack():void {
         if (!this.targetEntity?.health) return;
         this.attackTimer += this.clockDelta || 0;
-        if (this.attackTimer > (this.attackCooldown - this.animationControls!.attackDuration)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
-            this.animationControls!.animationToPlay = 'attack'
+        const attackTime = this.attackCooldown - this.animationControls!.attackDuration;
+
+        if ((this.attackTimer > attackTime) && !this.hasPlayedAttackAnimation) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
+            this.animationControls!.animationToPlay = 'attack';
+            this.hasPlayedAttackAnimation = true;
+            console.log('attack. attack timer:',this.attackTimer);
+            console.log('attack. attack time to play: ',attackTime);
         }
         if (this.attackTimer > this.attackCooldown) {
             const YSign = Math.sign(this.position.y);
@@ -130,6 +136,7 @@ export class Entity extends Controller implements EntityLike {
             this.targetEntity.knockbackCharacter(srcPosition,this.knockback);
             this.targetEntity.health.takeDamage(this.attackDamage);
             this.attackTimer = 0;
+            this.hasPlayedAttackAnimation = false;
         }
     }
     public death():void {
