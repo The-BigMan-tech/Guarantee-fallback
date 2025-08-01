@@ -956,8 +956,8 @@ export abstract class Controller {
             }
         }
     }
-    private preservePrevAnimation() {
-        return  (this.animationControls!.animationToPlay === 'attack') ||  (this.animationControls!.animationToPlay === 'death')
+    private preservePrevAnimation() {//i have the null check because we dont want to allow the controller to play an animation when it shouldnt which is what null signifies
+        return (this.animationControls!.animationToPlay === null) || (this.animationControls!.animationToPlay === 'attack') ||  (this.animationControls!.animationToPlay === 'death')
     }
      //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateCharacter(deltaTime:number):void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only

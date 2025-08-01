@@ -343,10 +343,12 @@ export class Player extends Controller implements EntityLike {
             this.showNonPlayerHealthTimer = 0;
         }
     }
+    private hasPlayedAttackAnimation:boolean = false;
     private attack() {
-        const attackAnimationDuration = this.animationControls!.attackDuration;
-        if (this.attackTimer > (this.attackCooldown - attackAnimationDuration)) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
-            this.animationControls!.animationToPlay = 'attack'
+        const timeToPlayAnimation = this.attackCooldown - this.animationControls!.attackDuration;
+        if ((this.attackTimer > timeToPlayAnimation) && !this.hasPlayedAttackAnimation) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
+            this.animationControls!.animationToPlay = 'attack';
+            this.hasPlayedAttackAnimation = true
         }
         if ((this.attackTimer > this.attackCooldown)){
             const YSign = Math.sign(this.position.y);
@@ -363,7 +365,6 @@ export class Player extends Controller implements EntityLike {
                     targetHealth.takeDamage(this.attackDamage);
                     this.addRelationship(entity,relationshipManager.enemyOf[groupIDs.player]);
                     this.addRelationship(this,relationshipManager.attackerOf[entity._groupID!]);
-                    this.attackTimer = 0;
                 }
             }else if (this.lookedAtClone) {
                 console.log('attacked block');
@@ -372,9 +373,10 @@ export class Player extends Controller implements EntityLike {
                     this.lookedAtClone.knockbackClone(srcPosition,this.strength);
                     targetDurability.takeDamage(this.attackDamage);
                     console.log('targetDurability:', targetDurability.value);
-                    this.attackTimer = 0;
                 }
             }
+            this.attackTimer = 0;
+            this.hasPlayedAttackAnimation = false;
         }
     }
     private checkIfOutOfBounds() {

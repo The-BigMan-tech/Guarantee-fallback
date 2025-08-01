@@ -1,8 +1,6 @@
 TODO:
 *at times,the entity navigation system doesnt even notice im there till i get close at it.It could be that i didnt add the relationship properly under the refresh relationships methd or the nav method itself
 
-*the hostile entities just spam attack very quickly for some reason
-
 *sometimes,the container holding the item clones dont get removed from their parents upon cleanup
 
 *my entity controller at times,doesnt hit me when i get directly close at it.it will just be there until i rotate.its the nav method.i checked the logs.it believed that it didnt reach me yet until i rotated a little.
@@ -10,8 +8,6 @@ TODO:
 *with a long attack cooldown like 3 seconds,when entities get to me,they wait for the cooldown.but the problem is that even when i travelled far,it still taught it was at target and attacked me from that distance.not only that,it isnt even making any attempt to cover that distsnace.it still assumes that it is at target
 
 *entities dont give themselves space when attacking.they clog themselves
-
-*do the same thing i did for entity attack for the player.
 
 *entities jitter between sprinting and idle on reaching me
 
