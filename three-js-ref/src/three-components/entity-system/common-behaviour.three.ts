@@ -139,6 +139,7 @@ export class CommonBehaviour {
         console.log('head. angleDiff:', angleDiff);
         console.log('head. isTargetInFront:',isTargetInFront); 
     }
+    public hasPlayedThrowAnimation:boolean = false;
     public throwItem(itemWithID:ItemWithID,targetPos:THREE.Vector3) {
         const entityPos = this.entity.position;
         const entityQuat = this.entity.char.quaternion;
@@ -165,7 +166,7 @@ export class CommonBehaviour {
         if (shouldThrow) {
             const parabolicDist = minDist + 10;
             const useParabolicThrow = distToTarget > parabolicDist;//i can always make my entity perform a linear throw and it will always be on taregt but it wont be realistic because people usually aim higher to shoot at a farther target
-            const elevationWeight = (useParabolicThrow)?0.4:0.02;
+            const elevationWeight = (useParabolicThrow)?0.5:0.02;
             const elevationHeight = elevationWeight * distToTarget;
             const elevatedTargetPos = targetPos.clone();
             elevatedTargetPos.y += elevationHeight;//i elevated the target pos when deciding to perform a parabolic throw so that the view of the entity naturally looks upwards to this new position even though the target's actual position isnt elevated.
@@ -193,6 +194,12 @@ export class CommonBehaviour {
             console.log('item. useParabolicThrow:', useParabolicThrow);
             console.log('item. strength:',strength);
             console.log('item. test angleDiff:', angleDiff);
+            
+            const timeToPlayAnimation = this.entity.useItemCooldown - this.entity.animationControls!.throwDuration;
+            if ((this.entity.useItemTimer > timeToPlayAnimation) && !this.hasPlayedThrowAnimation) {
+                this.entity.animationControls!.animationToPlay = 'throw';
+                this.hasPlayedThrowAnimation = true
+            }
             this.useItem({view,...itemWithID,strength:strength});
         }else {
             this.itemHolder.holdItem(null);
@@ -221,6 +228,7 @@ export class CommonBehaviour {
                 userHorizontalQuaternion:this.entity.char.quaternion
             })
             this.entity.useItemTimer = 0;
+            this.hasPlayedThrowAnimation = false;
         }
     }
     public updateOrderInRelationship(target:RelationshipData | null) {

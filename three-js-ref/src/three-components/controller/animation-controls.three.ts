@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-export type animations = 'idle' | 'sprint' | 'jump' | 'attack' | 'death'
+export type animations = 'idle' | 'sprint' | 'jump' | 'attack' | 'death' | 'throw'
 
 interface AnimationFinishedEvent {
     type:'finished',
@@ -17,14 +17,16 @@ export class AnimationControls {
     private jumpAction:THREE.AnimationAction | null = null;
     private attackAction:THREE.AnimationAction | null = null;
     private deathAction:THREE.AnimationAction | null = null;
+    private throwAction:THREE.AnimationAction | null = null;
+
 
     private idleClip: THREE.AnimationClip | null = null;
     private sprintClip: THREE.AnimationClip | null = null;
     private attackClip: THREE.AnimationClip | null = null
     private deathClip: THREE.AnimationClip | null = null;
     private jumpClip: THREE.AnimationClip | null = null;
+    private throwClip: THREE.AnimationClip | null = null;
 
-    private animationsHaveLoaded:boolean = false;
     public animationToPlay:animations | null = null;
     public waitForSprintBeforeIdle:boolean = false;
 
@@ -46,7 +48,8 @@ export class AnimationControls {
         this.jumpClip = THREE.AnimationClip.findByName(gltf.animations, 'jumping'); 
         this.attackClip = THREE.AnimationClip.findByName(gltf.animations, 'attack'); 
         this.deathClip = THREE.AnimationClip.findByName(gltf.animations, 'death'); 
-        
+        this.throwClip = THREE.AnimationClip.findByName(gltf.animations, 'throw'); 
+
         if (this.sprintClip) {
             this.sprintAction = this.mixer.clipAction(this.sprintClip);
             this.sprintAction.setLoop(THREE.LoopOnce, 1);
@@ -60,6 +63,11 @@ export class AnimationControls {
             this.attackAction.setLoop(THREE.LoopOnce, 1);
             this.attackAction.clampWhenFinished = true;
         }
+        if (this.throwClip) {
+            this.throwAction = this.mixer.clipAction(this.throwClip);
+            this.throwAction.setLoop(THREE.LoopOnce, 1);
+            this.throwAction.clampWhenFinished = true;
+        }
         if (this.deathClip) {
             this.deathAction = this.mixer.clipAction(this.deathClip);
             this.deathAction.setLoop(THREE.LoopOnce, 1);
@@ -70,7 +78,8 @@ export class AnimationControls {
             this.currentAction = this.idleAction;
         }
     }
-    private fadeToAnimation(newAction: THREE.AnimationAction):void {
+    private fadeToAnimation(newAction: THREE.AnimationAction | null):void {
+        if (!newAction) return;
         if ((newAction !== this.currentAction) || !newAction.isRunning()) {
             newAction.reset();
             newAction.play();
@@ -80,39 +89,43 @@ export class AnimationControls {
     }
     private playJumpAnimation():void {
         if (!this.attackAction?.isRunning()) {
-            this.fadeToAnimation(this.jumpAction!);
+            this.fadeToAnimation(this.jumpAction);
         }
     }
     private playSprintAnimation():void {
         if (!this.attackAction?.isRunning()) {
-            this.fadeToAnimation(this.sprintAction!);
+            this.fadeToAnimation(this.sprintAction);
         }
     }
     private playIdleAnimation():void {//i made it public for use by classes composed by the entity
         //making the idle animation wait till the sprint is done means that the controller wont stop animating its sprint when the controller stops moving.Its acceptable because its better for the animation to interpolate smoothly than overriding each other.the benefit of this will be seen in the entity
-        if (!(this.attackAction?.isRunning() || this.deathAction?.isRunning())) {
+        if (!(this.attackAction?.isRunning() || this.deathAction?.isRunning() || this.throwAction?.isRunning())) {
             if (this.waitForSprintBeforeIdle) {
-                if (!this.sprintAction?.isRunning()) this.fadeToAnimation(this.idleAction!);
+                if (!this.sprintAction?.isRunning()) this.fadeToAnimation(this.idleAction);
             }else {
-                this.fadeToAnimation(this.idleAction!);
+                this.fadeToAnimation(this.idleAction);
             }
         }
     }
     private playAttackAnimation():void {
         if (!(this.deathAction?.isRunning() || this.attackAction?.isRunning())) {
-            this.fadeToAnimation(this.attackAction!);//i used null assertion here but optional chaining in the if condition to make the ! sign i used for negation clear.
+            this.fadeToAnimation(this.attackAction);//i used null assertion here but optional chaining in the if condition to make the ! sign i used for negation clear.
         } 
     }
     private playDeathAnimation():void {
-        if (!this.deathAction?.isRunning()) {
-            this.fadeToAnimation(this.deathAction!);
-        }
+        this.fadeToAnimation(this.deathAction);
     }
-    get attackDuration() {
-        return this.attackClip!.duration;
+    private playThrowAnimation():void {
+        this.fadeToAnimation(this.throwAction);
     }
-    get deathDuration() {
-        return this.deathClip!.duration;
+    get attackDuration():number {
+        return this.attackClip?.duration || 0;
+    }
+    get deathDuration():number {
+        return this.deathClip?.duration || 0;
+    }
+    get throwDuration():number {
+        return this.throwClip?.duration || 0;
     }
     private playAnimation():void {
         switch (this.animationToPlay) {
@@ -131,6 +144,10 @@ export class AnimationControls {
             case 'attack': {
                 this.playAttackAnimation();
                 break;
+            };
+            case 'throw': {
+                this.playThrowAnimation();
+                break;
             }
             case 'death': {
                 this.playDeathAnimation()
@@ -139,11 +156,7 @@ export class AnimationControls {
         }
     } 
     public updateAnimations(clockDelta:number) {
-        if (!this.animationsHaveLoaded) {
-            this.animationsHaveLoaded = Boolean(this.idleAction && this.attackAction && this.sprintAction  && this.jumpAction && this.deathAction);
-        }
-        //only update animations if they have loaded and if the mixer is still available.the reason why im checking the mixer state every frame instead of storing it in a variable to prevent reassigning its boolean like i did for animaion has loaded is because the mixer can be removed at any point in the controller when its no longer needed like upon death
-        if (this.mixer && this.animationsHaveLoaded) {
+        if (this.mixer) {//only update animations if the mixer is still available.the reason why im checking the mixer state every frame is because the mixer can be removed at any point in the controller when its no longer needed like upon death
             console.log('playing an animation');
             this.playAnimation();
             this.mixer?.update(clockDelta || 0);
