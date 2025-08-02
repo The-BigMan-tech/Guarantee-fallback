@@ -147,7 +147,7 @@ export class Entity extends Controller implements EntityLike {
                 console.log('death. playing death animation');
             }
             this.cleanupTimer += this.clockDelta || 0;//this cleanup cooldown is particularly for effects before deah and as such,it should be handled here not in the free resources method.so dont move the timer handling there.
-            if ((this.cleanupTimer > this.cleanupCooldown) && (this.characterRigidBody?.linvel().y == 0)) {//the cooldown is here to allow playing of death animations or ending effects
+            if (this.cleanupTimer > this.cleanupCooldown) {//the cooldown is here to allow playing of death animations or ending effects.I wanted to add a check where i only clean it up if it isnt falling so that it lands flat first before despawning but that can be a problem when the entities are dead but laucnhed so high in the air that they may never be cleaned up.so the timer alone as the single src of truth of how long it stays after detah is better
                 this.freeResources();
             }
         }

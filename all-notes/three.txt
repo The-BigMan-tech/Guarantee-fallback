@@ -1799,3 +1799,5 @@ mp4,m4v
 png,jpg,webv,svg
 
 *my state based pattern i sbetter than before where i directly exposed the emthods to play the various sounds and animations to every parts of the codebase that needs to play a sound ro animation.it wasnt controlled,not centralized and difficult to follow through which animation gets to play.by using a state even though there are suggestios to use a queue allows me to predict which animation transitions and overrides and it prevents race conditions where multiple sounds or animations are attempting to play in the same frame.so this one ensures that only one is played per frame but the design may not be the best
+
+*When you use pnpm link --global to link your local package globally and then link it into your project, the linked package maintains its own isolated dependency space, separate from your project's node_modules
