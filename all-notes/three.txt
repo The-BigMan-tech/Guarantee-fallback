@@ -1793,3 +1793,7 @@ there is a difference between increasing a timer every frame and increasing it d
 fuzzy error generator from word
 
 *There is a difference between the velocity vector of my controller and the linvel of the controller's rigid body.be sure to check the linvel of the rigid body after the velocity vector has been applied to it.else,youll receive a zero vector execpt when the rigid body is falling freely in air which is the exception to when you will want to check for the linvel of the rigid body before the velocity vector is applied to it at least for the y component.the reason for the zero is probably because i directly control vel of the body and not allowing physics simulation to take its place.so velocity is discrete so it will always be zero at the ebginning of a frame but with a value after it has been applied.but the reason why the Y component is an exception is because i restricted direct velocity control when the rigid body is in the air.The velocity vector of my controller gives information of the velocity i will want to use to control the rigidbody at any given point in time but it doesnt state the actual velocity of the rigid body.this means that i can have a velocity vector but that doesnt mean that the rigid body is moving.the velocity vector just states a desired velocity not strictly dictating the velocity of the rigid body
+
+mp3,ogg
+mp4,m4v
+png,jpg,webv,svg

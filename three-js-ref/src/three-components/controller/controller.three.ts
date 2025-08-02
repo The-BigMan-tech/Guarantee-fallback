@@ -7,7 +7,7 @@ import { getGroundDetectionDistance, VelCalcUtils } from "./helper";
 import { createBoxLine, createCapsuleLine } from "../item-system/behaviour/other-helpers.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { SoundControls } from "./sound-controls.three";
-import { AnimationControls,type animations } from "./animation-controls.three";
+import { AnimationControls,type Animation } from "./animation-controls.three";
 
 
 //this is data fpr the controller that cant or should not be changed after creation
@@ -844,10 +844,6 @@ export abstract class Controller {
         this.wakeUpBody();
         if (this.shouldStepUp) this.moveOverObstacle();
         else this.moveForward(this.dynamicData.horizontalVelocity);
-        if (!this.preservePrevAnimation()) {
-            this.animationControls!.animationToPlay = 'sprint'
-        }
-        this.soundControls!.soundToPlay = 'walk'
     }
     protected moveCharacterBackward():void {
         this.wakeUpBody()
@@ -855,7 +851,6 @@ export abstract class Controller {
         backward.applyQuaternion(this.character.quaternion);
         this.velocity.add(backward);
         this.forceCharacterDown();
-        this.soundControls!.soundToPlay = 'walk'
     }
     protected moveCharacterLeft():void {
         this.wakeUpBody()
@@ -863,7 +858,6 @@ export abstract class Controller {
         left.applyQuaternion(this.character.quaternion);
         this.velocity.add(left);
         this.forceCharacterDown();
-        this.soundControls!.soundToPlay = 'walk'
     }
     protected moveCharacterRight():void {
         this.wakeUpBody()
@@ -871,7 +865,6 @@ export abstract class Controller {
         right.applyQuaternion(this.character.quaternion);
         this.velocity.add(right);
         this.forceCharacterDown();
-        this.soundControls!.soundToPlay = 'walk'
     }
     protected moveCharacterUp(velocityDelta?:number):void {
         this.wakeUpBody();
@@ -958,11 +951,21 @@ export abstract class Controller {
             }
         }
     }
-    private preservePrevAnimation() {//i have the null check because we dont want to allow the controller to play an animation when it shouldnt which is what null signifies
+    private preservePrevAnimation() {
         return  (this.animationControls!.animationToPlay === null) || 
                 (this.animationControls!.animationToPlay === 'attack') ||  
                 (this.animationControls!.animationToPlay === 'death') ||  
                 (this.animationControls!.animationToPlay === 'throw')
+    }
+    private overrideAnimation() {
+        console.log('linVel:', this.velocity);
+        if (!this.preservePrevAnimation() && !this.isAirBorne() && !this.velocity.equals(Controller.zeroVector)) {//i used the velocity vector instead of the rigid body's actual velocity to show the desire to move.because the velocity vector can have a value which means a need for movement but the rigid body may be stuck that it cant actually move.so using a velocity vector here shows responsiveness even though the character cant actually move
+            this.animationControls!.animationToPlay = 'sprint';
+            this.soundControls.soundToPlay = 'walk';
+        }
+        else if (!this.preservePrevAnimation() && this.isAirBorne()) {//only ovverride the animation to jump if its airborne and its not doing an attack animation so that it can do an attack in the air.im doing this after the hook so that it checks on the controller's latest state
+            this.animationControls!.animationToPlay = 'jump';
+        }
     }
      //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateCharacter(deltaTime:number):void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
@@ -972,11 +975,9 @@ export abstract class Controller {
         this.forceSleepIfIdle();
         this.updateKnockbackCooldown();
         this.updateVelJustAboveGround();
-        this.animationControls!.animationToPlay = 'idle' as animations;//make all controllers idle by default.i dont have to check for the animation to play state to do this conditionally because its always nulla at the beginning of anew frame 
+        this.animationControls!.animationToPlay = 'idle' as Animation;//make all controllers play the idle animation by default.it overrides the animation state in the last frame.this ensures that animation states remain predictable by always starting at a defined state every frame and it prevents an arbritary state from lingering at every frame which can cause repeated playing animations that arent desired.
         this.onLoop();
-        if (this.isAirBorne() && !this.preservePrevAnimation()) {//only ovverride the animation to jump if its airborne and its not doing an attack animation so that it can do an attack in the air.im doing this after the hook so that it checks on the controller's latest state
-            this.animationControls!.animationToPlay = 'jump';
-        }
+        this.overrideAnimation();
         this.animationControls?.updateAnimations(deltaTime);//im updating the animation before the early return so that it stops naturally 
         this.soundControls?.playSelectedSound();
         this.updateHead();//we want to update the head after the animation so that the animation doesnt override this one

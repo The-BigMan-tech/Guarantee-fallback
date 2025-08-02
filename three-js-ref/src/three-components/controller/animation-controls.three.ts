@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-export type animations = 'idle' | 'sprint' | 'jump' | 'attack' | 'death' | 'throw'
+export type Animation = 'idle' | 'sprint' | 'jump' | 'attack' | 'death' | 'throw'
 
 interface AnimationFinishedEvent {
     type:'finished',
@@ -27,7 +27,7 @@ export class AnimationControls {
     private jumpClip: THREE.AnimationClip | null = null;
     private throwClip: THREE.AnimationClip | null = null;
 
-    public animationToPlay:animations | null = null;
+    public animationToPlay:Animation | null = null;//a null animation state is used to cancel out any previous animation state and thus have no new animation play again.its used to ensure whaterver animation is played on the model currently doesnt get changed by a new animation state and thus remains.like having the death animation to remain when an entity is dead
     public waitForSprintBeforeIdle:boolean = false;
 
     constructor(characterModel: THREE.Group) {
