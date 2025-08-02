@@ -13,6 +13,8 @@ TODO:
 
 *add lin vel check efore cleaning
 
+*the linvel of my controller isnt more than 0 even when im applying a velocity to move myself.i wonder if that can walk forward even works 
+
 Chest--Gui,carrying it physically because my item system doesnt allow reverse flow of item data from the world back into the inventory
 
 update pnpm
@@ -20,7 +22,7 @@ update pnpm
 nest js & webRTC for multiplayer
 
 *throw animation
-
+*the throw animation doesnt play fully
 *throwing for the player
 
 throw strength ranger---hold down the use key and release once youve accumulated enough strength.it starts from 0 and caps at the player's strength.
