@@ -925,23 +925,12 @@ export abstract class Controller {
     get controllerID() {//this is for testing purposes to clarify different controllers from the logs
         return this.controllerId
     }
-
-
-
     protected velBeforeHittingGround:number = 0;
-
     private updateVelJustAboveGround() {
         if (!this.characterRigidBody) return;
         this.velBeforeHittingGround = this.velCalcUtils.getVelJustAboveGround(this.characterRigidBody.linvel().y,this.isGrounded());
     }
 
-    protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
-    private forceSleepIfIdle() {
-        if (!this.characterRigidBody) return;
-        if (this.isGrounded() && !this.characterRigidBody.isSleeping() && !this.isKnockedBack) {// im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
-            this.characterRigidBody.sleep();
-        } 
-    }
     public headRotation:THREE.Euler = new THREE.Euler(0,0,0,'YXZ')//this state is only public so that entity wrappers can access them from within the entity.some other states too are also public because of the same reason
     private updateHead() {//this is to control the head bone programmatically.its useful for looking up and down.Its best with animations that dont animate the head bone to avoid conflicts
         if (this.head) {
@@ -968,6 +957,14 @@ export abstract class Controller {
         else if (!this.preservePrevAnimation() && this.isAirBorne()) {//only ovverride the animation to jump if its airborne and its not doing an attack animation so that it can do an attack in the air.im doing this after the hook so that it checks on the controller's latest state
             this.animationControls!.animationToPlay = 'jump';
         }
+    }
+
+    protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
+    private forceSleepIfIdle() {
+        if (!this.characterRigidBody) return;
+        if (this.isGrounded() && !this.characterRigidBody.isSleeping() && !this.isKnockedBack) {// im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
+            this.characterRigidBody.sleep();
+        } 
     }
      //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateCharacter(deltaTime:number):void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only

@@ -11,11 +11,9 @@ TODO:
 
 *entities jitter between sprinting and idle on reaching me
 
-*add lin vel check efore cleaning
-
 *the entities knockback sound isnt playing
 
-*my state based animation and sound system may not scale.i might end up siwtching to a queue based pattern
+*my state based sound system may not scale.i might end up siwtching to a queue based pattern but only for the sounds.but for animations,the state pattern looks robust enough.one may nt wish to play multiple animations at the same time.i think its mostly sounds that might require concurrent requests.so i may only use a queue pattern for the sounds
 
 Chest--Gui,carrying it physically because my item system doesnt allow reverse flow of item data from the world back into the inventory
 

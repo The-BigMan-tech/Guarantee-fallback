@@ -147,7 +147,7 @@ export class Entity extends Controller implements EntityLike {
                 console.log('death. playing death animation');
             }
             this.cleanupTimer += this.clockDelta || 0;//this cleanup cooldown is particularly for effects before deah and as such,it should be handled here not in the free resources method.so dont move the timer handling there.
-            if (this.cleanupTimer > this.cleanupCooldown) {//the cooldown is here to allow playing of death animations or ending effects
+            if ((this.cleanupTimer > this.cleanupCooldown) && (this.characterRigidBody?.linvel().y == 0)) {//the cooldown is here to allow playing of death animations or ending effects
                 this.freeResources();
             }
         }
