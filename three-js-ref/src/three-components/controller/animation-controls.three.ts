@@ -159,7 +159,7 @@ export class AnimationControls {
         if (this.mixer) {//only update animations if the mixer is still available.the reason why im checking the mixer state every frame is because the mixer can be removed at any point in the controller when its no longer needed like upon death
             console.log('playing an animation');
             this.playAnimation();
-            this.mixer?.update(clockDelta || 0);
+            this.mixer.update(clockDelta || 0);
         }
     }
 }

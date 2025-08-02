@@ -217,7 +217,7 @@ export abstract class Controller {
             console.log("Is character collider: ",isCharacterCollider);
             if (isCharacterCollider) return true;//skip the check for the player and contiune searching for other colliers at that point
 
-            if (this.playLandSound) {
+            if (this.playLandSound && !this.preservePrevSound()) {
                 this.soundControls.soundToPlay = 'land'
                 this.playLandSound = false
             }
@@ -534,7 +534,7 @@ export abstract class Controller {
     }
     private moveAgent(finalDestY:number) {
         if (!this.isFinalDestClose) {
-            // this.autoMoveForward(finalDestY);
+            this.autoMoveForward(finalDestY);
         }
     }
 
@@ -957,11 +957,13 @@ export abstract class Controller {
                 (this.animationControls!.animationToPlay === 'death') ||  
                 (this.animationControls!.animationToPlay === 'throw')
     }
+    private preservePrevSound() {
+        return (this.soundControls!.soundToPlay === "punch")
+    }
     private overrideAnimation() {
-        console.log('linVel:', this.velocity);
-        if (!this.preservePrevAnimation() && !this.isAirBorne() && !this.velocity.equals(Controller.zeroVector)) {//i used the velocity vector instead of the rigid body's actual velocity to show the desire to move.because the velocity vector can have a value which means a need for movement but the rigid body may be stuck that it cant actually move.so using a velocity vector here shows responsiveness even though the character cant actually move
+        if (!this.preservePrevAnimation() && !this.isAirBorne() && !this.velocity.clone().setY(0).equals(Controller.zeroVector)) {//i used the velocity vector instead of the rigid body's actual velocity to show the desire to move.because the velocity vector can have a value which means a need for movement but the rigid body may be stuck that it cant actually move.so using a velocity vector here shows responsiveness even though the character cant actually move.I set the y to 0 because i want it to be isensitive to the y component
             this.animationControls!.animationToPlay = 'sprint';
-            this.soundControls.soundToPlay = 'walk';
+            if (!this.preservePrevSound()) this.soundControls.soundToPlay = 'walk';
         }
         else if (!this.preservePrevAnimation() && this.isAirBorne()) {//only ovverride the animation to jump if its airborne and its not doing an attack animation so that it can do an attack in the air.im doing this after the hook so that it checks on the controller's latest state
             this.animationControls!.animationToPlay = 'jump';
@@ -976,7 +978,7 @@ export abstract class Controller {
         this.updateKnockbackCooldown();
         this.updateVelJustAboveGround();
         this.animationControls!.animationToPlay = 'idle' as Animation;//make all controllers play the idle animation by default.it overrides the animation state in the last frame.this ensures that animation states remain predictable by always starting at a defined state every frame and it prevents an arbritary state from lingering at every frame which can cause repeated playing animations that arent desired.
-        this.onLoop();
+        this.onLoop();//the child class custom hook which can play animations
         this.overrideAnimation();
         this.animationControls?.updateAnimations(deltaTime);//im updating the animation before the early return so that it stops naturally 
         this.soundControls?.playSelectedSound();

@@ -13,6 +13,8 @@ TODO:
 
 *add lin vel check efore cleaning
 
+*the entities knockback sound isnt playing
+
 Chest--Gui,carrying it physically because my item system doesnt allow reverse flow of item data from the world back into the inventory
 
 update pnpm
