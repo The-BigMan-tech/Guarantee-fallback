@@ -25,6 +25,8 @@ nest js & webRTC for multiplayer
 *the throw animation doesnt play fully for the entity when it runs
 *throwing for the player
 
+A good place to use rapier's joints is in vehicles that are made with separate physical components and you can enter and walk in the vehicle independently like vehicles made with the create mod not that you can only enter a vehcile through its seat.although,vehicles like that will still exist
+
 throw strength ranger---hold down the use key and release once youve accumulated enough strength.it starts from 0 and caps at the player's strength.
 
 make my ui compatible with tauri
