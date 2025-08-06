@@ -35,12 +35,10 @@ class UniqueList<T> {
         }
         return false; // Element does not exist
     }
-
-    // Access the last element
-    public last(): T | null{//returns the last element from the set at O(1) access
-        return this.array[this.array.length - 1] || null;
+    public get list():T[] {
+        return this.array;
     }
-    get length() {
+    public get length() {
         return this.array.length
     }
 }

@@ -1791,6 +1791,8 @@ there is a difference between increasing a timer every frame and increasing it d
 *In my codebase,there is a difference between respecting the prev animation state and thus,not overriding it AND overriding the animation state but the animation action respects a previously running animation.The first one ensures that the controller doesnt override the prev animation state that was set to play if its one of high priority.The second one is used to retain overriding the animation state so that the controller always starts afresh with a default animation state every frame which prevents an animation state from lingering in an arbitrary value that may even be undesired if played repeatedly.but in addition,it also allows the prev animation to finish playing despite that the animation to play state has been overriden.
 
 fuzzy error generator from word
+fuzzy engine to check if the fuzzy word isnt too far off the original
+loop from a dictionary,generate 10 fuzzy words that arent too far off from the original by using a fuzzy engine to check the score and then trying the word against the input
 
 *There is a difference between the velocity vector of my controller and the linvel of the controller's rigid body.be sure to check the linvel of the rigid body after the velocity vector has been applied to it.else,youll receive a zero vector execpt when the rigid body is falling freely in air which is the exception to when you will want to check for the linvel of the rigid body before the velocity vector is applied to it at least for the y component.the reason for the zero is probably because i directly control vel of the body and not allowing physics simulation to take its place.so velocity is discrete so it will always be zero at the ebginning of a frame but with a value after it has been applied.but the reason why the Y component is an exception is because i restricted direct velocity control when the rigid body is in the air.The velocity vector of my controller gives information of the velocity i will want to use to control the rigidbody at any given point in time but it doesnt state the actual velocity of the rigid body.this means that i can have a velocity vector but that doesnt mean that the rigid body is moving.the velocity vector just states a desired velocity not strictly dictating the velocity of the rigid body
 
@@ -1807,3 +1809,87 @@ png,jpg,webv,svg
 math js
 three js
 tensor flow js
+
+insertion order
+deterministic key order
+
+serialization and collision challenges
+
+*so a for..of loop is a cleaner and less error prone way of consuming generators over the manual method of looping,checking for its state and manually consuming it
+
+Null placeholder vs Arbitrary value generator
+*Use null placeholders primarily for direct fact lookup, where you want to efficiently retrieve facts partially matching known values without extra complexity.
+
+*For rule satisfaction (especially recursive or multi-variable rules), continue using your arbitrary member generator approach.Your rules stay focused on logical reasoning over concrete values.Your fact lookups stay efficient and simple with placeholders.You avoid the complexity of transforming all rules to consume and propagate facts with placeholders and bound variables.Coverage remains predictable and complete, because arbitrary member generation explores all necessary candidates with cycle detection.
+
+For direct fact lookups, using null placeholders in your isAFact queries is efficient and straightforward. It simply matches existing facts with partial patterns, requiring minimal logic and no recursion or complex state management.
+
+For rule satisfaction and recursive reasoning, relying on your arbitrary member generator to supply candidate values and testing those candidates explicitly in rules ensures full coverage of logical possibilities. While it may explore more combinations than strictly necessary, it avoids the significant complexity of implementing placeholder support and unification in recursive rules.
+
+*is yield* supposed to be used when a gen yields from a gen to ensure that it extracts out the value and not yield the gen itself because yield already wraps the return value under a generator.It essentially transfers the delegation of the value to be yielded to another generator
+
+logic maths
+combinatorial maths
+vector maths
+
+entry size based caching
+memory size based caching
+
+checkForFact returns the facts (concrete answers) for queries that have placeholders (null), enabling your rules to "bind" variables.
+
+factExists is optimized for quick checks when you only need yes/no.
+
+Why checking areValidMembers early makes sense:
+If at least one member (argument) is not present in the corresponding record’s members list, then no fact involving that invalid member can possibly exist in that relation.
+
+Therefore, continuing to search or evaluate rules with an invalid member will only waste computation cycles because the result is guaranteed to be false.
+
+Early validation short-circuits evaluation and prunes the search space for both direct and indirect rules.
+
+This aligns with how logic engines typically prune impossible branches early.
+
+Prolog does trial and error by searching a tree of possible solutions, using unification and backtracking to systematically explore and prune the search space.
+
+Your system does manual trial and error by enumerating candidates restricted to relevant predicate domains, which is a focused and efficient approach.
+
+So yes, your method achieves the same practical effect of exploring candidate bindings with fewer enumerations due to domain restriction, analogous in spirit to Prolog’s search automations but explicitly controlled.
+
+Your engine uses runtime enumeration over a reduced search space of relevant candidates (e.g., members from a particular predicate record) rather than enumerating all possible entities.
+
+It avoids redundant checks by heavily caching results of fact queries and rule evaluations with keys that encode the specific predicate and arguments, so repeated lookups hit the cache instead of recomputing.
+
+*in a graph,where nodes are bidirectionally connected,you may have to keep track of visited nodes to prevent cyclic recursion which is infinite and will lead to stack overflow
+
+*syntax sugar vs DSL
+*lexer,parser
+*package manager and a web bundler
+
+*Examples of preprocessors
+Sass
+Babel and Post css
+C macros
+
+*Examples of meta-programming constructs
+Decorators
+Hygienic macros--like those in rust
+
+*DSL parsers in js--use tagged template literals
+CSS in Js frameworks like styled components
+Lit framework
+
+*Examples of transpilers
+Vue
+Svelte
+Ts
+
+*
+DSL parser
+plugin
+preprocessor
+meta-programming constructs
+transpiler
+interpreter
+compiler
+jit compiler
+IR generator
+assembler
