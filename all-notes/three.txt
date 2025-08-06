@@ -1908,3 +1908,19 @@ parser
 semantic analyzer
 IR generator
 assembler
+
+so ive now made a Pattern type that im using in my fact checker method for type safety over an unknown[] and i have decided to use an * sign as the wild card because its more conventional and i used a symbol to prevent collisions
+
+so i believe that the member validator is flexible enough for most rules.it checks if a statement has a member that isnt in the record being checked against and having a non memeber will most likely make the fact false regardless.so having a validator infers this and stops it early.and wildcards are exempted since symbols are left out allowing rules to still have wildcards pass through.the src of an invalid memeber is when a rule or fact checker is called with a statement againts a record where the members in that statement didnt come from a src that guarantees that there wot be invalid members.for example,i got all those logs because i called a rule that had mike but mike isnt in the firneds record but if i called the rule with actual members,then i wint have gotten those logs because the rule itself only uses valid members cuz it generates arbitary members from the record that it wants to check against.
+
+Invalid members typically arise at query time because your system allows arbitrary queries for facts using any names. Not all queried members necessarily exist in the domain data (the records). So when a query references a member name that isn’t present in that record’s members, your validator flags it as invalid.
+
+it actually saves computation since this will prevent the stateement from being checked against a record of possibly dozens of facts.all i just do instead is to check membrship on a small arity tuple which can save computation than iterating through all facts in the record against a tuple statement that will fail
+
+so the candidate enumerator is best when the smallest record that can satisfy the rule is used to generate the candidates but the order of enum depends on how the facts are defined in the record.before,i got matt,john but now i got john matt because of the order the members were defined in those records but it doesnt matter.its just an interesting thing to know
+
+so my system unlike prolog that does unification and binding to fully optmize automatically,mine provides arbitrary values with enumeration and benefits more when the caller provides the best record to use which depends on his own knowloedge.and this explicitness can make my enumeration get potential candidates fatser than prolog if the caller tells it which record to pull them from.and my system will handle lazy permutation and cyclic detection as well as invalidation to save computation.
+
+so my inference engine when it comes to arbitrary values,lverages caller explicitness in the records to use to pull the candidates from.so the caller knows exactly where the candidates are gotten from and if the caller provides only the records he will be using for that rule,he will help the inference engine prune the space by picking the smallest one.so it may not be fully automatic like prolog that uses unification to provide that arbitary value out of nowhere like magic but its perf by only getting candidates from the smallest and most relevant record that can satisfy a domain and its lazy and does cycle detection automatically.and its far better than a global enumeration of all candidates across all records which will remove the explicitness but cost perf big time
+
+so i cant use a global heap for arbitrary subsets and i cant buid heaps at each function call either.so using reduce here is the most perf and callers wont likely need to decide to select candidates from like 10 recs.im sure it will be 4-7
