@@ -1861,7 +1861,6 @@ It avoids redundant checks by heavily caching results of fact queries and rule e
 *in a graph,where nodes are bidirectionally connected,you may have to keep track of visited nodes to prevent cyclic recursion which is infinite and will lead to stack overflow
 
 *syntax sugar vs DSL
-*lexer,parser
 *package manager and a web bundler
 
 *Examples of preprocessors
@@ -1870,19 +1869,30 @@ Babel and Post css
 C macros
 
 *Examples of meta-programming constructs
-Decorators
-Hygienic macros--like those in rust
+Decorators--runtime
+Hygienic macros(compile time)--like those in rust
 
-*DSL parsers in js--use tagged template literals
+*DSL parsers 
 CSS in Js frameworks like styled components
 Lit framework
+HTML
+CSS
+Sql
+Dockerfile
+Graph ql schema
+prisma schema
 
 *Examples of transpilers
 Vue
 Svelte
 Ts
 
-*
+*plugins
+post css plugins
+babel plugins
+es lint plugins
+
+*Src code mechanisms
 DSL parser
 plugin
 preprocessor
@@ -1891,5 +1901,10 @@ transpiler
 interpreter
 compiler
 jit compiler
+
+*Pipeline tools
+lexer
+parser
+semantic analyzer
 IR generator
 assembler
