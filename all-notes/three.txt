@@ -1944,8 +1944,7 @@ so babel is a preprocessor by rule but because it converts src from one version 
 
 *so aliases will be declared with #.so #delicious will help the parser and the writer know its an alias and it will look for which predicate it refers to.so an atom is a literal;'' for string,any number and [] or {} notations are atoms.#word stands for aliasses and *word is for predicates.everything else is a filler.and to prevent ambiguity with how aliases are included in the final structure,ill make an alias its own rec but it will refer to the record its aliasing.so delicious in the structure will refer to sweet like delicious:sweet where sweet is its own record like sweet:new Rec(....).for better type safety,i may have to have declarations at the top like let friends = [string,string].and use it in the sentences as *friends. 
 
-two parsing process
+*so partial predicate polymorphism comes with a constraint;all mebers must be of the same type.and ill probable have a third stage parsing process that resolves all polymorphic predicates to predicate calls with padding where appropriate so friend(ada,john) and friends(ada) from the secondstage will be turned to friend(ada,doc.pad) and friend(ada,john) before the final structure is built.so my parser uses a three stage process.the first is to turn a fact to a predicate call by discrading fillers,looking for predicates and resolving aliases,the second resolves polymorphisma nd the the third,generates the structure
 
-type definitions
-query alias
-polymorphic predicates
+three parsing process
+
