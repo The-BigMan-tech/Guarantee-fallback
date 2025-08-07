@@ -1863,10 +1863,6 @@ It avoids redundant checks by heavily caching results of fact queries and rule e
 *syntax sugar vs DSL
 *package manager and a web bundler
 
-*Examples of preprocessors
-Sass
-Babel and Post css
-C macros
 
 *Examples of meta-programming constructs
 Decorators--runtime
@@ -1892,20 +1888,32 @@ post css plugins
 babel plugins
 es lint plugins
 
+
 *Src code mechanisms
 DSL parser
-plugin
-preprocessor
 meta-programming constructs
-transpiler
+plugin
+preprocessor--homogenous src-src conversion
+transpiler--version to version  or heterogenous src to src
 interpreter
 compiler
 jit compiler
+
+*automation tools
+build tool
+package managers
+
+*Development tools
+debugger
+linter
+intellsisense
+static type checker
 
 *Pipeline tools
 lexer
 parser
 semantic analyzer
+post processor--mainly in css
 IR generator
 assembler
 
@@ -1924,3 +1932,9 @@ so my system unlike prolog that does unification and binding to fully optmize au
 so my inference engine when it comes to arbitrary values,lverages caller explicitness in the records to use to pull the candidates from.so the caller knows exactly where the candidates are gotten from and if the caller provides only the records he will be using for that rule,he will help the inference engine prune the space by picking the smallest one.so it may not be fully automatic like prolog that uses unification to provide that arbitary value out of nowhere like magic but its perf by only getting candidates from the smallest and most relevant record that can satisfy a domain and its lazy and does cycle detection automatically.and its far better than a global enumeration of all candidates across all records which will remove the explicitness but cost perf big time
 
 so i cant use a global heap for arbitrary subsets and i cant buid heaps at each function call either.so using reduce here is the most perf and callers wont likely need to decide to select candidates from like 10 recs.im sure it will be 4-7
+
+An interface applied via implements describes the instance side of the class by default, not the static side where your methods live. So implements cannot verify your static methods against the interface directly.
+
+i dont think ill ever have a predicate that will use a bool because the use of the predicate to make a fact alsready says if its true or false llike my male preicate.You don’t encode truth as a Boolean parameter to a predicate (like Male(ben, true)), but rather as presence or absence of facts:
+
+so babel is a preprocessor by rule but because it converts src from one version to another,its more of a transpiler because src-src even on the same language but on differet versions have different asts.so its a mix
