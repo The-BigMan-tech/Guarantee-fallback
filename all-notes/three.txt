@@ -1908,6 +1908,7 @@ debugger
 linter
 intellsisense
 static type checker
+test automation
 
 *Pipeline tools
 lexer
@@ -1938,3 +1939,13 @@ An interface applied via implements describes the instance side of the class by 
 i dont think ill ever have a predicate that will use a bool because the use of the predicate to make a fact alsready says if its true or false llike my male preicate.You don’t encode truth as a Boolean parameter to a predicate (like Male(ben, true)), but rather as presence or absence of facts:
 
 so babel is a preprocessor by rule but because it converts src from one version to another,its more of a transpiler because src-src even on the same language but on differet versions have different asts.so its a mix
+
+*so i want to make the rules of the facts syntax that will compile to my data structure.first,there are four types of tokens--atoms,fillers,predicates and predicate aliases.each fact ends with a full stop to terminate it.atoms are written in their literal form like 'ada' or 9 or [1,2,3].fillers are any word that are written plain as they are.no quotes.so is,and,or,then,are,etc will be discarded form the final structure.i dont have a fixed set of fillers.anything that isnt in a literal form is a filler.predicates will pre annotated with a *.so *friends,*male will be recognized as predicates.a predicate can appear anywhere in between atoms or fillers so there is nothing like iinfix or postfix.it can be 'ada' *friends and 'peter' or 'ada' and 'peter' are *friends and it will be interpreted as friend('ada','peter').so it means that ill have a two stage parsing.one will cut down fillers and break downthe sentence to the form predicate(...) where ill now use this to make the structure.predicate aliases are made to stand in place of other predicates for readbility like for synonyms where sweet and delicious can be interchanged.so i can have let delicious = *sweet. and anywhere it sees delicious,it replaces it with sweet so the final structure will only have sweet.the type of a predicate will be inferred from its first use case.so if i have friend(ada,john),the type will be [string,string].different predicate definitions of the same name wont be allowed to avoid collisions.
+
+*so aliases will be declared with #.so #delicious will help the parser and the writer know its an alias and it will look for which predicate it refers to.so an atom is a literal;'' for string,any number and [] or {} notations are atoms.#word stands for aliasses and *word is for predicates.everything else is a filler.and to prevent ambiguity with how aliases are included in the final structure,ill make an alias its own rec but it will refer to the record its aliasing.so delicious in the structure will refer to sweet like delicious:sweet where sweet is its own record like sweet:new Rec(....).for better type safety,i may have to have declarations at the top like let friends = [string,string].and use it in the sentences as *friends. 
+
+two parsing process
+
+type definitions
+query alias
+polymorphic predicates
