@@ -15,6 +15,12 @@ TODO:
 
 *my state based sound system may not scale.i might end up siwtching to a queue based pattern but only for the sounds.but for animations,the state pattern looks robust enough.one may nt wish to play multiple animations at the same time.i think its mostly sounds that might require concurrent requests.so i may only use a queue pattern for the sounds
 
+*Use insertion-insensitive objects when generating the groupIDS and weght arrays in my entity manager.else,it will produce mismatches if the insertion order of the objects arent the same.
+
+*Create a shouldReturn type alias and use it for the common behaviour methods that i call to know if i should reurn early.this is for clarity
+
+*Install the swc compiler for ts or the latest ts compiler
+
 Chest--Gui,carrying it physically because my item system doesnt allow reverse flow of item data from the world back into the inventory
 
 update pnpm

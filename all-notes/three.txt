@@ -1958,3 +1958,20 @@ two stage parsing process
 
 *so my structure allows users to write facts like full english senetences.'ada' and 'peter' are *friends. or 'ada' is *friends with 'peter'.  and it will still give the same thing.unlike prolog that to achive something similar,one will have to defined operators with speicifc positions like infix or postfix,mine allows the facts to be written as pure sentences and it will still create the prolog-like rep from the sentence like friends(ada,peter) by assembling relevant tokens
 
+*There are no conjuction keywords to join facts to form compound senetnces.conjuctions will be treated like filler like the rest.so it means that the facts must be a list of simple sentences
+
+*atoms can not be repeated in a sentence because my code uses unique elements per facts
+
+*My inference engine will only allow atoms in facts and not data structures.This is to avoid the compleity of recursion in different areas of the codebase
+
+?it may have its limits,but i dont want to start thinking how ill handle recursion cases in other parts of the codebase.i believe that many facts can be written flat.and if possible,i can make my facts takes arrays in the facts but its at the syntax level and my parser will convert them to flat facts before converting the facts to the predicate calls and finally the data structure
+
+?I punched npx swc.i hope it doesnt do anything
+
+electron--nodejs and browser js
+taur--rust and client js
+jsdom--node js with a lightweight dom
+
+tsc,nodemon
+swc
+deno
