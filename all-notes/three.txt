@@ -1968,7 +1968,9 @@ two stage parsing process
 
 *Ill make a syntax highlighter and provide dictionary intellisense for filler words by using a dictionary file and a spell engine.i got one for my file manager.so i can hook it up from there.
 
-?it may have its limits,but i dont want to start thinking how ill handle recursion cases in other parts of the codebase.i believe that many facts can be written flat.and if possible,i can make my facts takes arrays in the facts but its at the syntax level and my parser will convert them to flat facts before converting those facts to the predicate calls and finally the data structure.it will use cartesian product to turn many to many relationships to flat tuples one-many relationships.
+*Even if it looks tempting to compress all the facts into a single facts array for efficient computations,doing so may break encoded relationships and meaning.even if it semantically makes sense,facts should be kept distinct and separate to preserve their original meaning
+
+*it may have its limits,but i dont want to start thinking how ill handle recursion cases in other parts of the codebase.i believe that many facts can be written flat.and if possible,i can make my facts takes arrays in the facts but its at the syntax level and my parser will convert them to flat facts before converting those facts to the predicate calls and finally the data structure.it will use cartesian product impl like from the combinatorics package to turn many to many relationships to flat tuples one-many relationships.
 
 ?I punched npx swc.i hope it doesnt do anything
 
@@ -1979,3 +1981,13 @@ jsdom--node js with a lightweight dom
 tsc,nodemon
 swc
 deno
+
+unit tests--functions
+mock tests--oop
+
+matured std library
+lean std library
+built in lean std library
+mature third party library ecosystem
+
+linear scanning vs hashmap

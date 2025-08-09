@@ -161,7 +161,7 @@ Blockbench
 
 *3d rendering
 ^-----------
-todo: Three js
+Three js
 todo: Babylon js
 maybe: Blend4Web
 
@@ -376,6 +376,11 @@ uuid
 swc compiler
 Chalk
 math js
+heap js
+lezer js
+combinatorial-generators
+safe stable stringify
+my fuzzy engine
 Jest junit
 pino
 dotenv
