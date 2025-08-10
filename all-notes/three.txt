@@ -1891,10 +1891,10 @@ es lint plugins
 
 *Src code mechanisms
 DSL parser
-meta-programming constructs
+meta-programming
 plugin
-preprocessor--homogenous src-src conversion
-transpiler--version to version  or heterogenous src to src
+preprocessor--Src A-A compiler
+transpiler--Version-Version compiler or Src A-B compiler
 interpreter
 compiler
 jit compiler
@@ -1991,3 +1991,28 @@ built in lean std library
 mature third party library ecosystem
 
 linear scanning vs hashmap
+
+*porgramming language categories
+C dialects--C,C++,Rust,Zig,Go
+JVM dialects--Java,Scala,Kotlin
+Lisp dialects--Clojure,Common lisp
+System administration---Bash,Powershell,Perl,Applescript
+Database query languages--SQL,Postgres,Mongo DB
+Web dialects--Javascript,Typescript,PHP
+Scripting languages--Python,Ruby,Lua
+OS specific languages--Swift,C#
+
+*iteration vs enumeration vs consumption
+node js,v8
+
+machines run on C++
+The web runs on Javascript
+Ai runs on Python
+Entreprise applications run on Java
+The cloud runs on Go
+Desktop apps run on C# and Swift
+Mobile apps run on Kotlin
+
+?for some reason,deno interpretes decorators from the tsc compiler.it passes the method i decorated as the target whereas tsc passes the Class containing the method
+
+*Function definitions are bound to the function name becuse they are parsed at compile time while lambda functions/arrow functions/anonymous functions arent bound to any name and as such,they are only considered declared at runtime when its encountered.this difference in behaviour can bring interesting diff in how various language mechanisms interact with these functions such as how arrow fucntions cant be decorated
