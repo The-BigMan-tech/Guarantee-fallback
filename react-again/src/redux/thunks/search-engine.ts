@@ -2,7 +2,7 @@ import Heap from "heap-js";
 import { AppThunk } from "../store";
 import { selectQuickSearch } from "../selectors";
 import { FsNode,readDirectory,FsResult} from "../../utils/rust-fs-interface";
-import { getMatchScore } from "../../utils/fuzzy-engine";
+import { getFuzzyScore } from "../../utils/fuzzy-engine";
 import { setQuickSearch,setSearchTermination,clearNodeProgress,resetNodeProgress,setNodePath,saveNodeProgress,setSearchResults,spreadToSearch ,pushToSearch} from "../slice";
 import { normalizeString } from "../../utils/string-utils";
 import { longQueryArgs,UpdateSearchArgs,shouldSkip,ReuseQueryArgs,HeuristicsArgs,DirResult,Cache,searchInBreadthArgs,DeferredSearch, searchInModeArgs, SearchResult} from "../types";
@@ -26,10 +26,10 @@ function isLongQuery(searchQuery:string):boolean {
     return searchQuery.length >= 15;
 }
 function searchMatchScore(searchQuery:string,node:FsNode,minThreshold=15):number {
-    const score1 = getMatchScore(searchQuery,node.primary.nodeName,minThreshold);
+    const score1 = getFuzzyScore(searchQuery,node.primary.nodeName,minThreshold);
     let score2 = 0
     if (searchQuery.includes(".")) {
-        score2 = getMatchScore(searchQuery,(node.primary.fileExtension || ""),minThreshold);
+        score2 = getFuzzyScore(searchQuery,(node.primary.fileExtension || ""),minThreshold);
     }
     return (score2>score1)?score2:score1;
 }
@@ -157,7 +157,7 @@ async function heuristicsAnalysis(args:HeuristicsArgs):Promise<shouldSkip> {
     }else {
         for (const queryKey of Object.keys(cachedQueries)) {
             const similarityThreshold = 40
-            const querySimilarity = getMatchScore(searchQuery,queryKey,10)
+            const querySimilarity = getFuzzyScore(searchQuery,queryKey,10)
             console.log(' processingSlice.ts:636 => heuristicsAnalysis => querySimilarity:', querySimilarity);
             if (querySimilarity > similarityThreshold) {//reusing the heuristics of previous similar queries
                 return reuseQuery({...reuseQueryArgs,key:queryKey})
