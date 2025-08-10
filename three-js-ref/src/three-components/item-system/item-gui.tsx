@@ -118,7 +118,7 @@ export default function ItemGui() {
         });
         dragItem.current = null;
         dragOverItem.current = null;
-        setLoadProgressively(false)
+        setLoadProgressively(false);//progressive loading discards the old slice that was rendered to progressively create a new one which causes rendering memoization to be ineffective.So disabling it explicitly when reinserting items ensures that the items currently rendered ae preserved to allow for memoization 
     },[]);
 
 
@@ -135,7 +135,7 @@ export default function ItemGui() {
             }
             cells = [...cells, ...padding];
         }
-        setLoadProgressively(true)
+        setLoadProgressively(true)//load the cells progressively to spread rendering work across a period of time and thus,optimizing for performance
         setCellsArray(cells)
     },[cellNum,tab]) 
 

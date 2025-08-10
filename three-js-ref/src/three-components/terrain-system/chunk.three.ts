@@ -29,7 +29,7 @@ export class Chunk {
         chunkMesh.receiveShadow = true;
         
         const chunkCollider = RAPIER.ColliderDesc.cuboid(chunkSize/2,chunkHeight/2,chunkSize/2);
-        const chunkBody = RAPIER.RigidBodyDesc.fixed();
+        const chunkBody = RAPIER.RigidBodyDesc.fixed();//since the chunk is the platform where all content is added,it has to be a ffixed body and it also optimizes perf since static bodies only listen for collsiions with no heavy updates like dynamic ones
         this.chunkRigidBody = physicsWorld.createRigidBody(chunkBody);
         physicsWorld.createCollider(chunkCollider,this.chunkRigidBody);
         
@@ -53,12 +53,12 @@ export class Chunk {
         }
     }    
     public cleanUp():void {
+        if (this.distributions) {//this has to be done before clearing the hieararchy of the floor model
+            this.distributions.cleanUpClones();
+        }
         if (this.chunkRigidBody) {
             physicsWorld.removeRigidBody(this.chunkRigidBody);
             this.chunkRigidBody = null;
-        }
-        if (this.distributions) {//this has to be done before clearing the hieararchy of the floor model
-            this.distributions.cleanUpClones();
         }
         if (this.group) {
             disposeHierarchy(this.group);

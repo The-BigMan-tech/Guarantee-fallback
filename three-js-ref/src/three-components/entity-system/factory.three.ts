@@ -15,7 +15,6 @@ export class EntityFactory {
     private hostileEntityGLTF:GLTF | null = null;
     private npcGLTF:GLTF | null = null;
 
-
     private constructor() {
         gltfLoader.load(HostileEntity.modelPath,gltf=>{this.hostileEntityGLTF = gltf});
         gltfLoader.load(NPC.modelPath,gltf=>{this.npcGLTF = gltf});
@@ -27,8 +26,6 @@ export class EntityFactory {
         }
         return EntityFactory.factory;
     }
-
-
     public createHostileEntity(entityData:FullEntityData):EntityContract {
         const fixedData = entityData.fixedData;
         const dynamicData = entityData.dynamicData;

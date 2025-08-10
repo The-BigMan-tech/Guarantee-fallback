@@ -24,6 +24,7 @@ export class Health {
         this.isDead = false
     }
     private die() {// Trigger death logic like animations, disabling controls, etc.
+        this.currentHealth = 0;
         this.isDead = true;
     }
     public checkGroundDamage(velBeforeHittingGround:number) {

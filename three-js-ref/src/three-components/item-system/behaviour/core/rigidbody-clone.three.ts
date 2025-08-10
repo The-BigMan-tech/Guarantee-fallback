@@ -9,7 +9,7 @@ import { createBoxLine, rotateOnXBy180 } from "../other-helpers.three";
 import { RigidBodyClones } from "./rigidbody-clones.three";
 import { Player, player } from "../../../player/player.three";
 import { IntersectionRequest } from "../../../player/intersection-request.three";
-import { entities, type Entity, type EntityContract } from "../../../entity-system/entity.three";
+import { entities,type EntityContract } from "../../../entity-system/entity.three";
 import { relationshipManager } from "../../../entity-system/relationships.three";
 import type { seconds } from "../../../entity-system/global-types";
 import { groupIDs } from "../../../entity-system/entity-registry";
@@ -159,7 +159,7 @@ export class RigidBodyClone {
 
     private checkIfOutOfBounds() {
         if (this.rigidBody!.translation().y <= outOfBoundsY) {
-            this.durability.takeDamage(this.durability.value);//this will make it to be cleaned up because its durability is 0.i didnt use a direct cleanup here because another method in the update loop already calls cleanup directly and calling cleanup in that if block of the update loop will cause other methods that rely on the rigid body to fail.so direct cleanup inside the if block of the update loop that executes it should be called last.so why cant i just do this also in check for ownership?well,its just a taste
+            this.durability.takeDamage(this.durability.value);//this will make it to be cleaned up because its durability is 0.i didnt use a direct cleanup here because another method in the update loop may still need the resources for the current frame which is because they are defined under a block that assumes that these resources are available.so its unsafe to directly cleanup.so its cleanup will happen in the mext frame.its similar to how you can deem an object for gc by assigning it to null without directly freeing its memory at that point where it was done.
         }
     }
 
@@ -180,9 +180,9 @@ export class RigidBodyClone {
             self:this.group
         });
     }
-    private requestIntersectedEntityLike(maxDistance:number):Entity | Player | null {
-        const testObjects:THREE.Object3D[] = [player.char]
-        entities.forEach(e => testObjects.push(e._entity.char))
+    private requestIntersectedEntityLike(maxDistance:number):EntityLike | null {
+        const testObjects:THREE.Object3D[] = [player.char];
+        entities.forEach(e => testObjects.push(e._entity.char));
 
         const result:EntityContract | Player | null = this.intersectionRequest.requestObject({
             raycaster: this.raycaster,
@@ -234,7 +234,7 @@ export class RigidBodyClone {
             clone?.knockbackClone(knockbackSrcPos,knockbackImpulse);
             clone?.durability.takeDamage(mass);
             
-            const entityLike:Entity | Player | null = this.requestIntersectedEntityLike(maxDistance);
+            const entityLike:EntityLike | null = this.requestIntersectedEntityLike(maxDistance);
             entityLike?.knockbackCharacter(knockbackSrcPos,knockbackImpulse);
             entityLike?.health.takeDamage(mass);
 
@@ -252,13 +252,13 @@ export class RigidBodyClone {
     private checkForOwnership() {
         const doesPlayerOwnIt = this.isEntityLike(this.owner) && (this.owner._groupID === groupIDs.player);
         const isOwnerDead = this.isEntityLike(this.owner) && this.owner.health.isDead;
-        if (isOwnerDead) {
-            console.log('owner is dead');
-            this.owner = null//remove any reference to the entity when its dead to allow for garbage collection but we dont want to cleanup the body just because the entity is dead
-        }
         if (this.owner !== 'Game' && !doesPlayerOwnIt) {//im considering a clone spawned by any entity besides the player as temporary because entity spawned items can get a lot like when an entity throws a boulder at the player and the items arent really useful after that.The player's own is persistent until it gets cleaned up naturally because player spanwed bodies are a first priority cuz they can build something but they dont expect it to just get vanished.Any rigid body spawned by the game gets the same treatment as the player
+            if (isOwnerDead) {
+                console.log('owner is dead');
+                this.owner = null//remove any reference to the entity when its dead to allow for garbage collection but we dont want to cleanup the body just because the entity is dead
+            }
             if (this.removeTemporaryCloneTimer > this.removeTemporaryCloneCooldown) {
-                this.cleanUp();
+                this.durability.takeDamage(this.durability.value);//this will kill the clone and deem it for cleanup
                 this.removeTemporaryCloneTimer = 0;
             } 
         }
@@ -281,9 +281,8 @@ export class RigidBodyClone {
                 this.applySpin(onGround)
                 this.knockbackObjectsAlongPath(onGround);
                 this.applyGroundDamage(onGround);  
-                console.log('spin. is Body sleeping: ',this.rigidBody.isSleeping());
-                console.log('spin. is Body grounded: ',onGround);
                 this.checkForOwnership();//must be called last because it can call cleanup which will make other methods that rely on the rigid body to fail.so doing this last ensures that the next time the update loop runs,it stops execution without causing errors
+                console.log('spin. is Body sleeping: ',this.rigidBody.isSleeping(),' is Body grounded: ',onGround);
             }else{//i dont have a cleanup cooldown unlike my entities to simulate other things before cleanup because the cooldown may not be big enough to allow a physics simulation to happen on the body like a knockback before cleanup or it may be too big which will cause it to linger in memory longer after its supposed to be cleaned up.The reason why this was acceptable for my entity is because my entity has an animation that will complete before the cooldown runs out and cleans the entity.but for this class,since i dont have any death animation cuz they are just non living objects,i have to allow teh physics at that moment to simulate before cleanup which a timer cant do predictably.so by including is meh out of sync,i ensure i only clean a body only after all physics at that moment has simulated on the body by checking if the mesh is perfectly in sync with the body.this allows things like knockbackt to simulate before cleanup even though its durability has been damaged to zero.
                 this.cleanUp();
             }
