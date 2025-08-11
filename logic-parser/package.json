@@ -1,0 +1,40 @@
+{
+  "name": "lib-scaffold",
+  "version": "1.0.0",
+  "description": "A TypeScript library project scaffold providing ready-to-use build and debug tooling",
+  "scripts": {
+    "compile": "pnpm exec swc ./src -d build",
+    "bundle": "rollup -c",
+    "clean:intermediateBundle": "cmd /c del dist\\bundle.js && del dist\\bundle.js.map",
+    "minify": "terser dist/bundle.js -o dist/bundle-min.js --compress --mangle --source-map \"content=dist/bundle.js.map,url=bundle-min.js.map,includeSources\"",
+    "gen:types": "tsc",
+    "build": "pnpm run compile && pnpm run gen:types && pnpm run bundle && pnpm run minify && pnpm run clean:intermediateBundle",
+    "exec:main": "node ./build/src/main.js",
+    "exec:bundle": "node ./dist/bundle-min.js",
+    "start:main": "pnpm run compile && pnpm run exec:main",
+    "dev:main": "nodemon  --watch src --ext ts,json --exec \"pnpm run start:main\"",
+    "test":"vitest run",
+    "test:watch":"vitest watch"
+  },
+  "main": "./dist/bundle-min.js",
+  "types": "./dist/bundle-min.d.ts",
+  "files": [
+    "dist",
+    "build"
+  ],
+  "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@rollup/plugin-alias": "^5.1.1",
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "rollup-plugin-dts": "^6.2.1",
+    "rollup-plugin-typescript-paths": "^1.5.0",
+    "vite-tsconfig-paths": "^5.1.4"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

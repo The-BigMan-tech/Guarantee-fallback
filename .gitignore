@@ -2,6 +2,7 @@
 **/node_modules/
 **/.parcel-cache/
 **/dist/
+**/build/
 **/target/debug
 **/target/release
 **/logs/
