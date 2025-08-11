@@ -28,7 +28,6 @@ interface DiskEntry {//for batching
     key:string,
     item:DiskCache
 }
-
 const maxCacheSize = 100;
 const maxPassiveCacheSize = 200;
 

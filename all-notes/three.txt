@@ -1900,11 +1900,13 @@ compiler
 jit compiler
 
 *automation tools
+minifiers
 build tool
 package managers
 
 *Development tools
 debugger
+src maps
 linter
 intellsisense
 static type checker
@@ -1978,9 +1980,16 @@ electron--nodejs and browser js
 taur--rust and client js
 jsdom--node js with a lightweight dom
 
-tsc,nodemon
-swc
-deno
+tsc
+Swc
+Babel
+Deno
+
+node
+nodemon
+Browser
+Web view
+Js dom--A lightweight virtual dom for js
 
 unit tests--functions
 mock tests--oop
@@ -2016,3 +2025,51 @@ Mobile apps run on Kotlin
 ?for some reason,deno interpretes decorators from the tsc compiler.it passes the method i decorated as the target whereas tsc passes the Class containing the method
 
 *Function definitions are bound to the function name becuse they are parsed at compile time while lambda functions/arrow functions/anonymous functions arent bound to any name and as such,they are only considered declared at runtime when its encountered.this difference in behaviour can bring interesting diff in how various language mechanisms interact with these functions such as how arrow fucntions cant be decorated
+
+*so to distribute my ts code to run standalone,i deploy it to a platform service like vercel or netlify where they will have a dev server that serves my code to clients on the web where their browsers execute my code,for backend,its docker ill use to package my softawre as a container,for desktop apps with tauri,tauri compiles it to an exe file but to distribute vanilla ts code that isnt an app or a web or a backend server,i can distribte it as a package which is self contained with all the dependencies included but it isnt directly executable on the target machine without downloading the js runtime.
+
+*Hunspell dictionary files
+
+*My TS Build process
+package manager--Pnpm
+Compiler--Swc
+Type generator--Tsc
+bundler--Rollup
+Minifier--Terser
+Desktop app tooling--Tauri
+Runtime software--node js
+Script watcher--nodemon
+Version control--Git
+Test tooling
+Scaffolder
+
+*JS formats
+Es modules--modern js environment
+Common js--node js environment
+UMD--both node js and browser environments
+IIFE--for scripts embedded in html
+AMD--async loading of scripts in the browser
+
+*Apps ill build
+Standalone projects
+Frontend app
+Desktop app
+
+*Building CLIs with commander js
+
+^Make sure to sync aliases in the swc,rollup and ts config
+?how to use src maps
+
+*I can only use aliases for bundle builds not direct compiled builds
+
+minifying your JavaScript bundle reduces the file size, which makes the library less heavy to download and load into memory. This leads to faster download times and quicker parsing/loading by the runtime environment, improving the overall loading performance.However, minification does not significantly increase the CPU execution speed of the code once it’s loaded.
+
+*so my package will only include the final bundle and the package.json file for metadata.other files like rollup and swc configs will be ignored cuz they are not needed for usage.they are more like dev dependencies
+
+*so comments may be stripped off in the minified bundle,but ts preserves jsdocs from my scripts and saves it as part of the .d.ts file
+
+*source maps
+
+*if i wanted,i could have just generated my dist folder with only the minified bundle ad the d.ts file for usage with no debugging so that i dont include the build folder and thus,protect my code but i belive its normal for devs to find themselves digging deeper into how a library works and since a library isnt just downloadbale code but also a service,then the dev should have a good exp to debug.if anything,it should be an application that should be minified with no src maps cuz its purely for use not for use in dev.so it should be protected
+
+*My custom ts build process emits compiled source files (build folder) in a different structure, which can make alias resolution tricky because source files and outputs live separately and the runtime may not resolve aliases properly unless configured for those paths.but Vitest reads the TypeScript source files directly and relies on Vite’s native resolution which naturally handles imports with aliases in tests without extra complications, unlike my build pipeline which handles compiled outputs and may require additional resolver plugins or configuration.
