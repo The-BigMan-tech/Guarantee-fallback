@@ -1906,7 +1906,7 @@ package managers
 *Development tools
 debugger,src maps
 code navigations
-linter
+linter--Eslint with Error lens
 intellsisense
 syntax highlighters
 static type checker
