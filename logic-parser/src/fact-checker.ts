@@ -6,7 +6,7 @@ import { AddUnionToElements,Tuple } from "./type-helper.js"
 import {stringify} from "safe-stable-stringify"
 
 type Atom = string | number
-type Atoms = Atom[];
+export type Atoms = Atom[];
 type PatternedAtoms = AddUnionToElements<Atoms,typeof Doc.wildCard>
 type UniqueAtoms = UniqueList<Atom>
 type Facts = Array<Atom[]>;//i typed it like this over Atoms[] is to prevent any for of ambiguity when reading it.Atoms[] may be read as an array of atoms by mistake instead of an array of atom arrays.
