@@ -1888,11 +1888,11 @@ post css plugins
 babel plugins
 es lint plugins
 
-
-*Src code mechanisms
-DSL parser
+*Src code processing
 meta-programming
-plugin
+plugins
+parser generator
+DSL parser
 preprocessor--Src A-A compiler
 transpiler--Version-Version compiler or Src A-B compiler
 interpreter
@@ -1905,20 +1905,20 @@ build tool
 package managers
 
 *Development tools
-debugger
-src maps
+debugger,src maps
+code navigations
 linter
 intellsisense
+syntax highlighters
 static type checker
 test automation
 
-*Pipeline tools
+*Src code pipeline tools
 lexer
 parser
 semantic analyzer
-post processor--mainly in css
-IR generator
-assembler
+generator
+
 
 so ive now made a Pattern type that im using in my fact checker method for type safety over an unknown[] and i have decided to use an * sign as the wild card because its more conventional and i used a symbol to prevent collisions
 
@@ -2098,11 +2098,40 @@ constraints
 
 lexer,parser,analyzer,representation,builder,runtime
 
-Regex lexer
-PEG lexer
-LR lexer
+*Grammar formats
+PEG 
+LR 
 
-CST parser
-AST parser
+*Syntax tree formats
+CST 
+AST 
+
+^The Src code pipeline
+*The lexer breaks down the src into tokens using regex and organize them according to their type
+*the parser takes these sorted tokens and uses the grammar file to generate a syntax tree
+*the semantic analyzer reads the syntax tree and checks for correctness and optionally emit an enriched tree
+*a generator takes the tree and outputs another syntax tree,data structures or an IR representation
+
 
 Html is a DSL to create a scene tree.
+*Program vs Software
+
+*so there is usually something after a semantic analyzer that generates something-either is another syntax tree,an ir or data structures for dsl.the semantic analyzer is used to enforce rules and optionally enrich the original syntax tree.
+
+*so a preprocessor turns a syntax tree++ into the regular syntax tree.the syntax tree++ as i termed it,is an extension of the original with new grammars and tokens not an entirely new tree construct like those of transpilers.
+
+*while a version-version transpiler unlike a src-src traspiler,convverts the syntx tree of a new version to an older one.we can say this is a preprocessor cuz the new version tree is just an extension of the old one but thats not always the case.the grammars can be different strikingly although not entirely,across versions which is why its more like a transpiler than a preproecssor.the difference is that its working on a syntax tree that may or may not be strikingly different from the target tree.but preprocessors always work on extensions on the original syntax tree.
+
+*Babel is a prime example of a version-to-version transpiler. ES6+ adds many new language features extending syntax beyond ES5. Babel lowers (transpiles) these features to backward-compatible ES5 code, but the grammars are not a simple extension but have notable differences.
+
+*In contrast, Sass extends CSS grammar but the core CSS syntax remains, so Sass is closer to a preprocessor transforming an extended syntax tree back to the base syntax tree.
+
+*so ts is its own programming language but not just with its own runtime.transpilers run the src code on an existing runtime(compiler,interpreter or jit compiler) by emitting approximatable syntax trees from theirs.but preoprocessors dont write a new syntax tree.they instead lower theirs to conform to the original.
+
+*some just have lexers and stop there while others have parsers included or others just read the tree directly using the already existing lexer and parser that came with the language.so they are src code utility software.they have close coupling with the src code execution pipeline but they do not themselves,interprete or execute the src but rather use the information for utility related tasks
+
+*so src code utilities can only effectively reuse existing parser and lexer implementations if the src language exposes it neatly to the program.else,theyll have to make theirs which is why making python src code utilities doesnt require custom tools.but for languages like js,custom lexers and parser have to be made for utilities.so vscode has its own,babel too,eslint and so on.
+
+*A parser generator like ANTLR4 is a tool that helps you create programs that process source code (or any structured text) without writing the lexer and parser manually yourself. Instead of hand-coding the complex logic to break input into tokens (lexing) and to analyze the syntactic structure (parsing), you write a formal grammar describing the language syntax. The parser generator then automatically produces the lexer and parser code based on that grammar.
+
+*so a parser generator can be used to build preprocessors,transpilers,dsls etc.so there are two tools now to automate the process of extending a language syntax or creating a dsl one.i can use a plugin for any preprocessor or transpiler that supports it or a parser generator that takes in the grammar files of the original src language and directly extend that grammar with new syntax that wont break existing ones and i can then make a generator to transofrm this tree to the original skipping the lexer and parse process.there is even lezzer javascript ext that builds on lezzer that allows me to parse js grammar allowing me to create js src code utilities or even extend it
