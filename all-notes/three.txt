@@ -1987,6 +1987,8 @@ tsc
 Swc
 Babel
 Deno
+jiti
+
 
 node
 nodemon
@@ -2074,6 +2076,8 @@ minifying your JavaScript bundle reduces the file size, which makes the library 
 
 *My custom ts build process emits compiled source files (build folder) in a different structure, which can make alias resolution tricky because source files and outputs live separately and the runtime may not resolve aliases properly unless configured for those paths.but Vitest reads the TypeScript source files directly and relies on Vite’s native resolution which naturally handles imports with aliases in tests without extra complications, unlike my build pipeline which handles compiled outputs and may require additional resolver plugins or configuration.
 
+*Use an Eslint plugin to create linting rules.this also means that the facts must be defined in a template string variable inside js.
+
 *Msys2 is a very powerful package manager fo C++
 
 *so the semantic step is to travreser the tree to enforce constraints and build an intermediate representaion while the build step resolves aliases and builds the final structure
@@ -2136,3 +2140,27 @@ Html is a DSL to create a scene tree.
 *so a parser generator can be used to build preprocessors,transpilers,dsls etc.so there are two tools now to automate the process of extending a language syntax or creating a dsl one.i can use a plugin for any preprocessor or transpiler that supports it or a parser generator that takes in the grammar files of the original src language and directly extend that grammar with new syntax that wont break existing ones and i can then make a generator to transofrm this tree to the original skipping the lexer and parse process.there is even lezzer javascript ext that builds on lezzer that allows me to parse js grammar allowing me to create js src code utilities or even extend it
 
 ^A PROJECT TO NOTE:so a project to note for later is a src code utility for js that uses lezzer/javascript to analyze js code and stores a bank of widely-known js optimizations and with editor support,can suggest optimizations for highlighted snippets of a small sizes as tooltips because its more difficult to look for optimizations for an entire codebase unless the utility suggests optimizations for the whole highlighted codebase but in batches of mini-snippets.and it can go further to search npm and suggest already existing solutions.like you may wish to try lru cache on npm.it can do this by checking if ur src code matches common existing algorithm patterns.
+
+
+^Important note on passing command flags in quotes
+*Passing command-line flags or arguments in quotes is a common and generally safe practice when dealing with values that contain spaces or special characters. This practice ensures that the entire quoted string is treated as a single argument by the shell or the target program, preventing misinterpretation of the input.
+
+*Different shells and operating systems have varying rules for how they interpret and parse quoted arguments and handle escape characters. Understanding these specific rules is crucial.
+
+*The program receiving the arguments must also be designed to correctly parse quoted strings. Many programs use standard libraries or functions that correctly handle quoted arguments. However, custom parsing logic in some programs might not handle all quoting scenarios consistently.
+
+*Many env dont forward flags dynamically directly but in other various ways for security.so to get dynamic forwarding done,the flag must be quoted and escaped as a singe unit to prevent the env from splitting or misinterpreting it preventing 
+
+*Forwarding flags in npm/pnpm is done with the double-hypen(--).Without it, npm/pnpm will interpret flags as flags for npm/pnpm itself or the run command rather than forwarding them to your script.Using -- stops argument parsing by npm/pnpm and forwards all subsequent arguments to the script.This prevents flags from being split, dropped, or misinterpreted.
+
+*Forwarding flags is the standard and correct way for passing additional arguments dynamically in npm/pnpm scripts. but depending on the script or the particular npm version,forwarding becomes tricky and can lead to unexpected or inconsistent behaviour of command execution.so the best thing in my case is to directly pass the flag in the string but pass the args to that flag in quotes to keep it as a single unit
+^------
+
+
+*By configuring your lint script to only lint the src and test directories, ESLint will ignore your build folder.Lint errors will only be reported for your source files and tests, not the compiled output in build/ *Since build files are generated artifacts, they typically don’t need linting—the source files should be the focus.
+*If there’s an error in the generated build files, it usually indicates a compile/transpile problem or outdated build output.
+*To fix such issues, you just need to recompile the fixed source files, and the build files will get regenerated correctly.
+*You don’t need to lint or fix the build files directly, as they should be treated as generated code
+
+
+*a lib scaffold for any ts project that isnt a desktop,web or server app but any ts code thats not meant to be interacted with directly by users but by other or no code.like a ts project that does that does m:n scheduling of tasks will require the project as a ts library i believe or a fuzzy matcher
