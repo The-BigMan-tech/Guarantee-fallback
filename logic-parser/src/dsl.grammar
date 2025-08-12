@@ -7,7 +7,18 @@ Sentence {
 }
 
 SentenceContent {
-    (Atom | Predicate | Alias | Filler)+
+    (
+        Atom | 
+        Predicate | 
+        Alias | 
+        Filler | 
+        Comma | 
+        Period | 
+        Semicolon | 
+        Colon | 
+        Exclamation | 
+        Question | 
+        Hyphen)+
 }
 
 Atom {
@@ -17,14 +28,23 @@ Atom {
 @tokens {
     space { @whitespace+ }
     
-    AtomString { "'" $[^']* "'" }
     AtomNumber { $[0-9]+ }
+    AtomString {
+        ("'" $([^'\\] | "\\'")* "'") |    
+        ('"' $([^"\\] | '\\"')* '"')     
+    }
 
     Predicate { "*" $[a-zA-Z_]+ }
     Alias { "#" $[a-zA-Z_]+ }
     Filler { $[a-zA-Z_]+ }
     
     FullStop { "." }
+    Comma { "," }
+    Semicolon { ";" }
+    Colon { ":" }
+    Exclamation { "!" }
+    Question { "?" }
+    Hyphen { "-" }
 }
 
 @skip { space }

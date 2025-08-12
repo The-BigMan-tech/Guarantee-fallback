@@ -2,19 +2,19 @@ import { Atoms } from "./fact-checker.ts";
 import { parser } from "./parser.js";  // your generated parser
 import { Tree } from "@lezer/common";
 
-export function runAnalyzer() {
-    const inputText = `
-        'ada' and 'peter' are *friends.
-        'peter','jane' and 'billy' are *friends.
-    `;  // example input
-    const tree:Tree = parser.parse(inputText);
-    console.log('🚀 => :5 => tree:', tree);
-    extractFacts(tree,inputText)
-}
+
 interface SemanticRep {
     predicate:string,
     atoms:Atoms,
     aliases:string[]
+}
+export function runAnalyzer() {
+    const inputText = `
+        'ada' and 'peter' are *friends.
+        'peter','jane' and 'billy' are *friends.
+    `; 
+    const tree:Tree = parser.parse(inputText);
+    console.log(extractFacts(tree,inputText))
 }
 function extractFacts(tree:Tree, input:string) {
     const cursor = tree.cursor();
@@ -29,9 +29,11 @@ function extractFacts(tree:Tree, input:string) {
             
             if (cursor.firstChild()) { // enter SentenceContent + FullStop
                 do {
-                    if (cursor.firstChild() && (cursor.type.name === "SentenceContent")) {
+                    if ((cursor.type.name as string) === "SentenceContent") {
+                        if (!cursor.firstChild()) continue;
                         do {
-                            const type = cursor.type.name;
+                            console.log("Token type:", cursor.type.name, "Text:", input.slice(cursor.from, cursor.to));
+                            const type = cursor.type.name as string;
                             const text = input.slice(cursor.from, cursor.to);
                             if (type === "Predicate") {
                                 if (predicate) throw new Error("Multiple predicates in one sentence");
@@ -39,10 +41,12 @@ function extractFacts(tree:Tree, input:string) {
                             }else if (type === "Alias") {
                                 aliases.push(text.slice(1)); // remove '#'
                             }else if (type === "AtomString") {
+                                console.log('string detected');
                                 atoms.push(text.slice(1, -1)); // strip quotes
                             }else if (type === "AtomNumber") {
+                                console.log('number detected');
                                 atoms.push(text);
-                            } else if (type === "Filler") {
+                            }else {//skip fillers and punctuations
                                 continue;
                             }
                         } while (cursor.nextSibling());
@@ -57,6 +61,5 @@ function extractFacts(tree:Tree, input:string) {
     } while (cursor.nextSibling());
     return representation;
 }
-
 
 

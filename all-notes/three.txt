@@ -2078,3 +2078,31 @@ minifying your JavaScript bundle reduces the file size, which makes the library 
 *Msys2 is a very powerful package manager fo C++
 
 *so the semantic step is to travreser the tree to enforce constraints and build an intermediate representaion while the build step resolves aliases and builds the final structure
+
+
+*Runtime type casting
+Involves explicit conversions or checks that affect runtime behavior
+It is safer at runtime because it actively checks or converts types during execution.
+
+*Compile-time type casting
+It instructs the compiler to treat a value as a certain type.
+It does not generate any runtime code or checks.
+At runtime, the JavaScript simply runs without type information or validation, so no safety is guaranteed at runtime.
+They are safer during development because they enable static analysis and editor tooling checks to catch errors before running code.
+
+*so its inline control flow nesting and it can lead to elegant syntax but also spaghetti if verbosly done
+
+proper alias resolution
+type safety
+constraints
+
+lexer,parser,analyzer,representation,builder,runtime
+
+Regex lexer
+PEG lexer
+LR lexer
+
+CST parser
+AST parser
+
+Html is a DSL to create a scene tree.
