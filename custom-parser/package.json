@@ -1,21 +1,24 @@
 {
-  "name": "logic-parser",
+  "name": "lib-scaffold",
   "version": "1.0.0",
-  "description": "",
+  "description": "A TypeScript library project scaffold providing ready-to-use build and debug tooling",
   "scripts": {
     "compile": "pnpm exec swc ./src -d build",
     "bundle": "rollup -c",
     "clean:intermediateBundle": "cmd /c del dist\\bundle.js && del dist\\bundle.js.map",
     "minify": "terser dist/bundle.js -o dist/bundle-min.js --compress --mangle --source-map \"content=dist/bundle.js.map,url=bundle-min.js.map,includeSources\"",
     "gen:types": "tsc",
+    "watch:src": "nodemon --watch src --ext ts,json",
     "build": "pnpm run compile && pnpm run gen:types && pnpm run bundle && pnpm run minify && pnpm run clean:intermediateBundle",
     "exec:main": "node ./build/src/main.js",
     "exec:bundle": "node ./dist/bundle-min.js",
     "start:main": "pnpm run compile && pnpm run exec:main",
-    "dev:main": "nodemon  --watch src --ext ts,json --exec \"pnpm run start:main\"",
+    "dev:main": "pnpm run watch:src --exec \"pnpm run start:main\"",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "lezer:prepare": "lezer-generator src/dsl.grammar -o src/parser.ts"
+    "lint:src":"eslint \"src/**/*.{ts,tsx,js}\" \"tests/**/*.{ts,tsx,js}\"",
+    "lint:watch": "pnpm run watch:src --exec \"pnpm run lint:src\"",
+    "lint:fix": "pnpm run lint:src --fix"
   },
   "main": "./dist/bundle-min.js",
   "types": "./dist/bundle-min.d.ts",
@@ -32,21 +35,26 @@
     "@lezer/generator": "^1.8.0",
     "@lezer/javascript": "^1.5.1",
     "@lezer/lr": "^1.4.2",
-    "@rollup/plugin-alias": "^5.1.1",
-    "@rollup/plugin-commonjs": "^28.0.6",
-    "@rollup/plugin-node-resolve": "^16.0.1",
-    "@types/deep-equal": "^1.0.4",
     "combinatorial-generators": "^1.1.2",
+    "@types/deep-equal": "^1.0.4",
     "deep-equal": "^2.2.3",
     "heap-js": "^2.6.0",
     "lru-cache": "^11.1.0",
-    "rollup-plugin-dts": "^6.2.1",
-    "rollup-plugin-typescript-paths": "^1.5.0",
     "safe-stable-stringify": "^2.5.0",
-    "uuid": "^11.1.0",
-    "vite-tsconfig-paths": "^5.1.4"
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@rollup/plugin-alias": "^5.1.1",
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "jiti": "^2.5.1",
+    "rollup-plugin-dts": "^6.2.1",
+    "rollup-plugin-typescript-paths": "^1.5.0",
+    "vite-tsconfig-paths": "^5.1.4",
+    "@eslint/js": "^9.33.0",
+    "eslint": "^9.33.0",
+    "globals": "^16.3.0",
+    "typescript-eslint": "^8.39.1",
     "vitest": "^3.2.4"
   }
 }

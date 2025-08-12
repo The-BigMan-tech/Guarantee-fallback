@@ -9,7 +9,7 @@ type Atom = string | number
 export type Atoms = Atom[];
 type PatternedAtoms = AddUnionToElements<Atoms,typeof Doc.wildCard>
 type UniqueAtoms = UniqueList<Atom>
-type Facts = Array<Atom[]>;//i typed it like this over Atoms[] is to prevent any for of ambiguity when reading it.Atoms[] may be read as an array of atoms by mistake instead of an array of atom arrays.
+type Facts = (Atom[])[];//i typed it like this over Atoms[] is to prevent any for of ambiguity when reading it.Atoms[] may be read as an array of atoms by mistake instead of an array of atom arrays.
 
 type Rule<T extends Atoms> = (doc:Doc,statement:T)=>boolean;
 type RecursiveRule<T extends Atoms> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
@@ -28,7 +28,7 @@ export interface Records {
 }
 export class Rec<T extends Facts = Facts> {
     public members:UniqueAtoms = new UniqueList();//i used a unique list to prevent duplicate entries which prevents the number of iterations when testing for a fact against an arbitrary member.its a list but uses a set to ensure that elements are unique which allows me to benefit from list iteration and uniqueness at the same time.I also localized this structure to per fact to only test against arbotrary members that are atually involved in a fact
-    public container:Array<UniqueAtoms> = [];
+    public container:UniqueAtoms[] = [];
     public recID:string = uniqueID();
 
     public constructor(facts:T) {

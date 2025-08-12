@@ -2,7 +2,7 @@ LIB-SCAFFOLD
 -------------
 A reusable scaffold for building TypeScript libraries with modern tooling and optimized bundles.
 
-Note: This scaffold should be opened in VSCode as the root workspace folder for proper debugging and path resolution.The tooling expects all your src files to be under the src folder and main.ts to be the entrypoint of your program.Import aliases must be consistent in both the rollup and tsconfig.@alias imports will only work in ts src files when running the bundle not the build file directly because aliases are resolved at bundling time because of compiler limitations to resolve paths at compile time for the emitted files.@alias imports will work seamlessly in test files because they directly read ts src files
+Note: This scaffold should be opened in VSCode as the root workspace folder for proper debugging and path resolution.The tooling expects all your src files to be under the src folder and main.ts to be the entrypoint of your program.Import aliases must be consistent in both the rollup and tsconfig.@alias imports will only work in ts src files when running the bundle not the build file directly because aliases are resolved at bundling time because of compiler limitations to resolve paths at compile time for the emitted files.@alias imports will work seamlessly in test files because they directly read ts src files.Make sure to set insert spaces on tab to false in vscode to prevent false error flags about indentation from eslint.
 
 
 USAGE
@@ -42,7 +42,11 @@ This scaffold assumes you have the following software and packages installed glo
 
 - Git — for version control.
 
-- Vitest for testing the library to ensure features arent broken during development
+
+OPTIONAL VSCODE EXT(For Better Developer Experience)
+--------------------
+- Eslint 
+- Error lens
 
 
 FEATURES
@@ -54,7 +58,9 @@ FEATURES
 
 - Tunable configuration files (rollup.config.js, SWC config, tsconfig.json, etc.) ready for customization.
 
-- Testing environment
+- Testing environment to ensure features arent broken during development
+
+- Configurable project linting
 
 - Generates two output folders on build:
 
