@@ -1966,13 +1966,17 @@ two stage parsing process
 
 *My inference engine will only allow atoms in facts and not data structures.So a fact will only hold strings or numbers.This is to avoid the compleity of recursion in different areas of the codebase.One-many relationships in facts can still be represented in a flat tuple by having a rule interprete the first element as the subject and the res after as the collection of the atoms.but it wont support deeply nested collections.
 
-*The name of my logic framework and parser is 'Verb'.
+*so ive made the inference code and whats left is the DSL.so the DSL parsing will happen in three stages;tokenization,then ill get the tree from the parser,then the semantic step is to build intermediate objects that represents the sentences in the form of objects or predicate calls and a build stage where a data structure like this is buil
+
+*The name of my logic framework and parser is 'Colon' if that will fit
 
 *Ill make a syntax highlighter and provide dictionary intellisense for filler words by using a dictionary file and a spell engine.i got one for my file manager.so i can hook it up from there.
 
 *Even if it looks tempting to compress all the facts into a single facts array for efficient computations,doing so may break encoded relationships and meaning.even if it semantically makes sense,facts should be kept distinct and separate to preserve their original meaning
 
 *it may have its limits,but i dont want to start thinking how ill handle recursion cases in other parts of the codebase.i believe that many facts can be written flat.and if possible,i can make my facts takes arrays in the facts but its at the syntax level and my parser will convert them to flat facts before converting those facts to the predicate calls and finally the data structure.it will use cartesian product impl like from the combinatorics package to turn many to many relationships to flat tuples one-many relationships.
+
+tokenization,semantism,building
 
 ?I punched npx swc.i hope it doesnt do anything
 
@@ -2072,3 +2076,5 @@ minifying your JavaScript bundle reduces the file size, which makes the library 
 *My custom ts build process emits compiled source files (build folder) in a different structure, which can make alias resolution tricky because source files and outputs live separately and the runtime may not resolve aliases properly unless configured for those paths.but Vitest reads the TypeScript source files directly and relies on Vite’s native resolution which naturally handles imports with aliases in tests without extra complications, unlike my build pipeline which handles compiled outputs and may require additional resolver plugins or configuration.
 
 *Msys2 is a very powerful package manager fo C++
+
+*so the semantic step is to travreser the tree to enforce constraints and build an intermediate representaion while the build step resolves aliases and builds the final structure

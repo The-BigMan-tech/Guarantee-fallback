@@ -1,0 +1,30 @@
+@top Document {
+    Sentence*
+}
+
+Sentence {
+    SentenceContent FullStop
+}
+
+SentenceContent {
+    (Atom | Predicate | Alias | Filler)+
+}
+
+Atom {
+    AtomString | AtomNumber 
+}
+
+@tokens {
+    space { @whitespace+ }
+    
+    AtomString { "'" $[^']* "'" }
+    AtomNumber { $[0-9]+ }
+
+    Predicate { "*" $[a-zA-Z_]+ }
+    Alias { "#" $[a-zA-Z_]+ }
+    Filler { $[a-zA-Z_]+ }
+    
+    FullStop { "." }
+}
+
+@skip { space }

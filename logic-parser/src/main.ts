@@ -35,15 +35,15 @@ console.log(Rules.areFriends(doc,['ada','jane']));
 for (const fact of doc.findAllFacts(doc.records.allies!,['cole',Doc.wildCard])) {//i used the allies alias
     if (fact) console.log(fact);
 }
-// const smallestRecord = doc.selectSmallestRecord(doc.records.male,doc.records.friends,doc.records.parent)
-// const candidates = doc.genCandidates(1,smallestRecord,[],new Set());
-// for (const [A] of candidates as Generator<string,void,unknown>) {
-//     if (Rules.isFriend(doc,['ada',A]) && Rules.areBrothers(doc,[A,'ben'])) {
-//         console.log(A);
-//     }
-// }
-// console.log(doc.areMembersInSet(['ada','leo'],doc.records.parent.members.set));
+const smallestRecord = doc.selectSmallestRecord(doc.records.male,doc.records.friends,doc.records.parent)
+const candidates = doc.genCandidates(1,smallestRecord,[],new Set());
+for (const [A] of candidates as Generator<string,void,unknown>) {
+    if (Rules.areFriends(doc,['ada',A]) && Rules.areBrothers(doc,[A,'ben'])) {
+        console.log(A);
+    }
+}
+console.log(doc.areMembersInSet(['ada','leo'],doc.records.parent.members.set));
 
-// for (const fact of doc.findAllFacts(doc.records.eats,['ada',Doc.wildCard])) {
-//     if (fact) console.log(fact);
-// }
+for (const fact of doc.findAllFacts(doc.records.eats,['ada',Doc.wildCard])) {
+    if (fact) console.log(fact);
+}
