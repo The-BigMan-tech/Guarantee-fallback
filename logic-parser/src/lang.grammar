@@ -1,0 +1,26 @@
+@top Expression {
+    OrExpr
+}
+
+OrExpr {
+    AndExpr ("or" AndExpr)*
+}
+
+AndExpr {
+    NotExpr ("and" NotExpr)*
+}
+
+NotExpr {
+    "not"? Atom
+}
+
+Atom {
+    Identifier | "(" Expression ")"
+}
+
+@tokens {
+    space { @whitespace+ }
+    Identifier { $[a-zA-Z_]+ }
+}
+
+@skip { space }

@@ -2057,9 +2057,6 @@ Desktop app
 
 *Building CLIs with commander js
 
-^Make sure to sync aliases in the swc,rollup and ts config
-?how to use src maps
-
 *I can only use aliases for bundle builds not direct compiled builds
 
 minifying your JavaScript bundle reduces the file size, which makes the library less heavy to download and load into memory. This leads to faster download times and quicker parsing/loading by the runtime environment, improving the overall loading performance.However, minification does not significantly increase the CPU execution speed of the code once it’s loaded.
@@ -2073,3 +2070,5 @@ minifying your JavaScript bundle reduces the file size, which makes the library 
 *if i wanted,i could have just generated my dist folder with only the minified bundle ad the d.ts file for usage with no debugging so that i dont include the build folder and thus,protect my code but i belive its normal for devs to find themselves digging deeper into how a library works and since a library isnt just downloadbale code but also a service,then the dev should have a good exp to debug.if anything,it should be an application that should be minified with no src maps cuz its purely for use not for use in dev.so it should be protected
 
 *My custom ts build process emits compiled source files (build folder) in a different structure, which can make alias resolution tricky because source files and outputs live separately and the runtime may not resolve aliases properly unless configured for those paths.but Vitest reads the TypeScript source files directly and relies on Vite’s native resolution which naturally handles imports with aliases in tests without extra complications, unlike my build pipeline which handles compiled outputs and may require additional resolver plugins or configuration.
+
+*Msys2 is a very powerful package manager fo C++

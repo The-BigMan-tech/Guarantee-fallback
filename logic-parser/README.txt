@@ -4,6 +4,21 @@ A reusable scaffold for building TypeScript libraries with modern tooling and op
 
 Note: This scaffold should be opened in VSCode as the root workspace folder for proper debugging and path resolution.The tooling expects all your src files to be under the src folder and main.ts to be the entrypoint of your program.Import aliases must be consistent in both the rollup and tsconfig.@alias imports will only work in ts src files when running the bundle not the build file directly because aliases are resolved at bundling time because of compiler limitations to resolve paths at compile time for the emitted files.@alias imports will work seamlessly in test files because they directly read ts src files
 
+
+USAGE
+-----
+
+1. Clone or download this scaffold.
+
+2. Ensure you remove the .git folder to prevent accidental writes to the original repository
+
+3. Install dependencies via `pnpm install`.
+
+4. Use the provided npm scripts in package.json to build, bundle, minify, and debug your library.
+
+5. Open the folder as the workspace root in VSCode to ensure proper debugging with source maps.
+
+
 PREREQUISITES
 -------------
 
@@ -29,6 +44,7 @@ This scaffold assumes you have the following software and packages installed glo
 
 - Vitest for testing the library to ensure features arent broken during development
 
+
 FEATURES
 --------
 
@@ -38,6 +54,8 @@ FEATURES
 
 - Tunable configuration files (rollup.config.js, SWC config, tsconfig.json, etc.) ready for customization.
 
+- Testing environment
+
 - Generates two output folders on build:
 
   - dist/ — contains the production-ready minified bundle.
@@ -45,14 +63,3 @@ FEATURES
   - build/ — contains compiled JavaScript files for debugging purposes.
 
 - On publishing, only dist and build folders are included.
-
-USAGE
------
-
-1. Clone or download this scaffold.
-
-2. Install dependencies via `pnpm install`.
-
-3. Use the provided npm scripts in package.json to build, bundle, minify, and debug your library.
-
-4. Open the folder as the workspace root in VSCode to ensure proper debugging with source maps.

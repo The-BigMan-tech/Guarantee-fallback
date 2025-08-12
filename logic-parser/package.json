@@ -1,7 +1,7 @@
 {
-  "name": "lib-scaffold",
+  "name": "logic-parser",
   "version": "1.0.0",
-  "description": "A TypeScript library project scaffold providing ready-to-use build and debug tooling",
+  "description": "",
   "scripts": {
     "compile": "pnpm exec swc ./src -d build",
     "bundle": "rollup -c",
@@ -14,7 +14,8 @@
     "start:main": "pnpm run compile && pnpm run exec:main",
     "dev:main": "nodemon  --watch src --ext ts,json --exec \"pnpm run start:main\"",
     "test":"vitest run",
-    "test:watch":"vitest watch"
+    "test:watch":"vitest watch",
+    "prepare": "lezer-generator src/lang.grammar -o src/parser.js"
   },
   "main": "./dist/bundle-min.js",
   "types": "./dist/bundle-min.d.ts",
@@ -32,7 +33,16 @@
     "@rollup/plugin-node-resolve": "^16.0.1",
     "rollup-plugin-dts": "^6.2.1",
     "rollup-plugin-typescript-paths": "^1.5.0",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "@lezer/generator": "^1.8.0",
+    "@lezer/lr": "^1.4.2",
+    "@types/deep-equal": "^1.0.4",
+    "combinatorial-generators": "^1.1.2",
+    "deep-equal": "^2.2.3",
+    "heap-js": "^2.6.0",
+    "lru-cache": "^11.1.0",
+    "safe-stable-stringify": "^2.5.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "vitest": "^3.2.4"
