@@ -15,7 +15,7 @@
     "dev:main": "nodemon  --watch src --ext ts,json --exec \"pnpm run start:main\"",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "prepare": "lezer-generator src/dsl.grammar -o src/parser.ts"
+    "lezer:prepare": "lezer-generator src/dsl.grammar -o src/parser.ts"
   },
   "main": "./dist/bundle-min.js",
   "types": "./dist/bundle-min.d.ts",
@@ -30,6 +30,7 @@
   "dependencies": {
     "@lezer/common": "^1.2.3",
     "@lezer/generator": "^1.8.0",
+    "@lezer/javascript": "^1.5.1",
     "@lezer/lr": "^1.4.2",
     "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-commonjs": "^28.0.6",

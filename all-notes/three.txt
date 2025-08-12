@@ -1889,11 +1889,10 @@ babel plugins
 es lint plugins
 
 *Src code processing
-meta-programming
 plugins
-parser generator
+parser generator--Ohm js,lezzer js,Antlr4
 DSL parser
-preprocessor--Src A-A compiler
+preprocessor--Src A-A compiler,meta programming constructs
 transpiler--Version-Version compiler or Src A-B compiler
 interpreter
 compiler
@@ -2135,3 +2134,5 @@ Html is a DSL to create a scene tree.
 *A parser generator like ANTLR4 is a tool that helps you create programs that process source code (or any structured text) without writing the lexer and parser manually yourself. Instead of hand-coding the complex logic to break input into tokens (lexing) and to analyze the syntactic structure (parsing), you write a formal grammar describing the language syntax. The parser generator then automatically produces the lexer and parser code based on that grammar.
 
 *so a parser generator can be used to build preprocessors,transpilers,dsls etc.so there are two tools now to automate the process of extending a language syntax or creating a dsl one.i can use a plugin for any preprocessor or transpiler that supports it or a parser generator that takes in the grammar files of the original src language and directly extend that grammar with new syntax that wont break existing ones and i can then make a generator to transofrm this tree to the original skipping the lexer and parse process.there is even lezzer javascript ext that builds on lezzer that allows me to parse js grammar allowing me to create js src code utilities or even extend it
+
+^A PROJECT TO NOTE:so a project to note for later is a src code utility for js that uses lezzer/javascript to analyze js code and stores a bank of widely-known js optimizations and with editor support,can suggest optimizations for highlighted snippets of a small sizes as tooltips because its more difficult to look for optimizations for an entire codebase unless the utility suggests optimizations for the whole highlighted codebase but in batches of mini-snippets.and it can go further to search npm and suggest already existing solutions.like you may wish to try lru cache on npm.it can do this by checking if ur src code matches common existing algorithm patterns.
