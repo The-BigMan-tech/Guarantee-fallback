@@ -16,7 +16,7 @@
     "dev:main": "pnpm run watch:src --exec \"pnpm run start:main\"",
     "test": "vitest run",
     "test:watch": "vitest watch",
-    "lint:src":"eslint \"src/**/*.{ts,tsx,js}\" \"tests/**/*.{ts,tsx,js}\"",
+    "lint:src": "eslint \"src/**/*.{ts,tsx,js}\" \"tests/**/*.{ts,tsx,js}\"",
     "lint:watch": "pnpm run watch:src --exec \"pnpm run lint:src\"",
     "lint:fix": "pnpm run lint:src --fix"
   },
@@ -35,8 +35,8 @@
     "@lezer/generator": "^1.8.0",
     "@lezer/javascript": "^1.5.1",
     "@lezer/lr": "^1.4.2",
-    "combinatorial-generators": "^1.1.2",
     "@types/deep-equal": "^1.0.4",
+    "combinatorial-generators": "^1.1.2",
     "deep-equal": "^2.2.3",
     "heap-js": "^2.6.0",
     "lru-cache": "^11.1.0",
@@ -44,17 +44,18 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.33.0",
     "@rollup/plugin-alias": "^5.1.1",
     "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-node-resolve": "^16.0.1",
+    "eslint": "^9.33.0",
+    "eslint-plugin-import": "^2.32.0",
+    "globals": "^16.3.0",
     "jiti": "^2.5.1",
     "rollup-plugin-dts": "^6.2.1",
     "rollup-plugin-typescript-paths": "^1.5.0",
-    "vite-tsconfig-paths": "^5.1.4",
-    "@eslint/js": "^9.33.0",
-    "eslint": "^9.33.0",
-    "globals": "^16.3.0",
     "typescript-eslint": "^8.39.1",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.4"
   }
 }

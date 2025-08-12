@@ -1,6 +1,7 @@
 import eslint from '@eslint/js';
 import tsEslint from 'typescript-eslint';
 import globals from 'globals'; // npm package that exports common global vars
+import importPlugin from "eslint-plugin-import";
 
 const config = tsEslint.config(
   eslint.configs.recommended,
@@ -62,6 +63,29 @@ const config = tsEslint.config(
           "format": ["UPPER_CASE"]
         }
       ]
+    }
+  },
+  {
+    plugins: {
+      import: importPlugin,
+    },
+    rules: {
+      "import/extensions": [
+        "error",
+        "ignorePackages",
+        {
+          "js": "always",
+          "ts": "never",
+          "tsx": "never"
+        }
+      ]
+    },
+    settings: {
+      "import/resolver": {
+        "node": {
+          "extensions": [".js", ".jsx", ".ts", ".tsx"]
+        }
+      }
     }
   }
 );
