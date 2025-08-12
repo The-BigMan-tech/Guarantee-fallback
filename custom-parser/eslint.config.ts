@@ -30,12 +30,17 @@ const config = tsEslint.config(
   {
     files: ['**/*.ts', '**/*.tsx','**/*.js', '**/*.jsx'], // Apply only for TS files
     rules: {
+      "@typescript-eslint/no-extraneous-class": [
+        "warn", { 
+          "allowStaticOnly": true 
+        }
+      ],
       "@typescript-eslint/naming-convention": [
         "warn",
         {
           "selector": "variable",
           "modifiers": ["const"],
-          "format": ["UPPER_CASE"]
+          "format": ["camelCase", "UPPER_CASE"]
         },
         {
           "selector": "variable",
