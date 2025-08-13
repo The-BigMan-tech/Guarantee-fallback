@@ -8,6 +8,8 @@ const srcFiles =  [
     'src/**/*.tsx',
     'src/**/*.js', 
     'src/**/*.jsx',
+]
+const testFiles =  [
     'tests/**/*.ts', 
     'tests/**/*.tsx',
     'tests/**/*.js', 
@@ -31,7 +33,7 @@ const config = tsEslint.config(
         },  
     },
     {
-        files:srcFiles, 
+        files:[...srcFiles,...testFiles],
         rules:{//i used warnings to prevent noise that can distract the dev from actual type errors
             'indent':['warn',4],
             'no-mixed-spaces-and-tabs': 'warn',
@@ -39,7 +41,7 @@ const config = tsEslint.config(
         },
     },
     {
-        files:srcFiles, 
+        files:[...srcFiles,...testFiles], 
         rules: {
             "@typescript-eslint/explicit-function-return-type": "error",
             "@typescript-eslint/no-non-null-assertion": "off",
@@ -84,7 +86,7 @@ const config = tsEslint.config(
         }
     },
     {
-        files:srcFiles,
+        files:srcFiles,//test files are allowed to import ts files directly because they use jiti
         plugins: {
             import: importPlugin,
         },

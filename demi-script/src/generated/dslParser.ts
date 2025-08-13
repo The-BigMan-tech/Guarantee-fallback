@@ -4,7 +4,7 @@ import { Token } from "antlr4ng";
 
 import { dslListener } from "./dslListener.js";
 // for running tests with parameters, TODO: discuss strategy for typed parameters in CI
-// eslint-disable-next-line no-unused-vars
+ 
 type int = number;
 
 
@@ -52,7 +52,7 @@ export class dslParser extends antlr.Parser {
         this.interpreter = new antlr.ParserATNSimulator(this, dslParser._ATN, dslParser.decisionsToDFA, new antlr.PredictionContextCache());
     }
     public start(): StartContext {
-        let localContext = new StartContext(this.context, this.state);
+        const localContext = new StartContext(this.context, this.state);
         this.enterRule(localContext, 0, dslParser.RULE_start);
         try {
             this.state = 18;
@@ -61,29 +61,29 @@ export class dslParser extends antlr.Parser {
             case 1:
                 this.enterOuterAlt(localContext, 1);
                 {
-                this.state = 14;
-                this.multiply();
+                    this.state = 14;
+                    this.multiply();
                 }
                 break;
             case 2:
                 this.enterOuterAlt(localContext, 2);
                 {
-                this.state = 15;
-                this.divide();
+                    this.state = 15;
+                    this.divide();
                 }
                 break;
             case 3:
                 this.enterOuterAlt(localContext, 3);
                 {
-                this.state = 16;
-                this.add();
+                    this.state = 16;
+                    this.add();
                 }
                 break;
             case 4:
                 this.enterOuterAlt(localContext, 4);
                 {
-                this.state = 17;
-                this.subtract();
+                    this.state = 17;
+                    this.subtract();
                 }
                 break;
             }
@@ -102,7 +102,7 @@ export class dslParser extends antlr.Parser {
         return localContext;
     }
     public expression(): ExpressionContext {
-        let localContext = new ExpressionContext(this.context, this.state);
+        const localContext = new ExpressionContext(this.context, this.state);
         this.enterRule(localContext, 2, dslParser.RULE_expression);
         try {
             this.state = 25;
@@ -111,19 +111,19 @@ export class dslParser extends antlr.Parser {
             case dslParser.T__0:
                 this.enterOuterAlt(localContext, 1);
                 {
-                this.state = 20;
-                this.match(dslParser.T__0);
-                this.state = 21;
-                this.expression();
-                this.state = 22;
-                this.match(dslParser.T__1);
+                    this.state = 20;
+                    this.match(dslParser.T__0);
+                    this.state = 21;
+                    this.expression();
+                    this.state = 22;
+                    this.match(dslParser.T__1);
                 }
                 break;
             case dslParser.NUMBER:
                 this.enterOuterAlt(localContext, 2);
                 {
-                this.state = 24;
-                this.number_();
+                    this.state = 24;
+                    this.number_();
                 }
                 break;
             default:
@@ -144,17 +144,17 @@ export class dslParser extends antlr.Parser {
         return localContext;
     }
     public multiply(): MultiplyContext {
-        let localContext = new MultiplyContext(this.context, this.state);
+        const localContext = new MultiplyContext(this.context, this.state);
         this.enterRule(localContext, 4, dslParser.RULE_multiply);
         try {
             this.enterOuterAlt(localContext, 1);
             {
-            this.state = 27;
-            this.expression();
-            this.state = 28;
-            this.match(dslParser.T__2);
-            this.state = 29;
-            this.expression();
+                this.state = 27;
+                this.expression();
+                this.state = 28;
+                this.match(dslParser.T__2);
+                this.state = 29;
+                this.expression();
             }
         }
         catch (re) {
@@ -171,17 +171,17 @@ export class dslParser extends antlr.Parser {
         return localContext;
     }
     public divide(): DivideContext {
-        let localContext = new DivideContext(this.context, this.state);
+        const localContext = new DivideContext(this.context, this.state);
         this.enterRule(localContext, 6, dslParser.RULE_divide);
         try {
             this.enterOuterAlt(localContext, 1);
             {
-            this.state = 31;
-            this.expression();
-            this.state = 32;
-            this.match(dslParser.T__3);
-            this.state = 33;
-            this.expression();
+                this.state = 31;
+                this.expression();
+                this.state = 32;
+                this.match(dslParser.T__3);
+                this.state = 33;
+                this.expression();
             }
         }
         catch (re) {
@@ -198,17 +198,17 @@ export class dslParser extends antlr.Parser {
         return localContext;
     }
     public add(): AddContext {
-        let localContext = new AddContext(this.context, this.state);
+        const localContext = new AddContext(this.context, this.state);
         this.enterRule(localContext, 8, dslParser.RULE_add);
         try {
             this.enterOuterAlt(localContext, 1);
             {
-            this.state = 35;
-            this.expression();
-            this.state = 36;
-            this.match(dslParser.T__4);
-            this.state = 37;
-            this.expression();
+                this.state = 35;
+                this.expression();
+                this.state = 36;
+                this.match(dslParser.T__4);
+                this.state = 37;
+                this.expression();
             }
         }
         catch (re) {
@@ -225,17 +225,17 @@ export class dslParser extends antlr.Parser {
         return localContext;
     }
     public subtract(): SubtractContext {
-        let localContext = new SubtractContext(this.context, this.state);
+        const localContext = new SubtractContext(this.context, this.state);
         this.enterRule(localContext, 10, dslParser.RULE_subtract);
         try {
             this.enterOuterAlt(localContext, 1);
             {
-            this.state = 39;
-            this.expression();
-            this.state = 40;
-            this.match(dslParser.T__5);
-            this.state = 41;
-            this.expression();
+                this.state = 39;
+                this.expression();
+                this.state = 40;
+                this.match(dslParser.T__5);
+                this.state = 41;
+                this.expression();
             }
         }
         catch (re) {
@@ -252,13 +252,13 @@ export class dslParser extends antlr.Parser {
         return localContext;
     }
     public number_(): NumberContext {
-        let localContext = new NumberContext(this.context, this.state);
+        const localContext = new NumberContext(this.context, this.state);
         this.enterRule(localContext, 12, dslParser.RULE_number);
         try {
             this.enterOuterAlt(localContext, 1);
             {
-            this.state = 43;
-            this.match(dslParser.NUMBER);
+                this.state = 43;
+                this.match(dslParser.NUMBER);
             }
         }
         catch (re) {
@@ -331,12 +331,12 @@ export class StartContext extends antlr.ParserRuleContext {
     }
     public override enterRule(listener: dslListener): void {
         if(listener.enterStart) {
-             listener.enterStart(this);
+            listener.enterStart(this);
         }
     }
     public override exitRule(listener: dslListener): void {
         if(listener.exitStart) {
-             listener.exitStart(this);
+            listener.exitStart(this);
         }
     }
 }
@@ -357,12 +357,12 @@ export class ExpressionContext extends antlr.ParserRuleContext {
     }
     public override enterRule(listener: dslListener): void {
         if(listener.enterExpression) {
-             listener.enterExpression(this);
+            listener.enterExpression(this);
         }
     }
     public override exitRule(listener: dslListener): void {
         if(listener.exitExpression) {
-             listener.exitExpression(this);
+            listener.exitExpression(this);
         }
     }
 }
@@ -386,12 +386,12 @@ export class MultiplyContext extends antlr.ParserRuleContext {
     }
     public override enterRule(listener: dslListener): void {
         if(listener.enterMultiply) {
-             listener.enterMultiply(this);
+            listener.enterMultiply(this);
         }
     }
     public override exitRule(listener: dslListener): void {
         if(listener.exitMultiply) {
-             listener.exitMultiply(this);
+            listener.exitMultiply(this);
         }
     }
 }
@@ -415,12 +415,12 @@ export class DivideContext extends antlr.ParserRuleContext {
     }
     public override enterRule(listener: dslListener): void {
         if(listener.enterDivide) {
-             listener.enterDivide(this);
+            listener.enterDivide(this);
         }
     }
     public override exitRule(listener: dslListener): void {
         if(listener.exitDivide) {
-             listener.exitDivide(this);
+            listener.exitDivide(this);
         }
     }
 }
@@ -444,12 +444,12 @@ export class AddContext extends antlr.ParserRuleContext {
     }
     public override enterRule(listener: dslListener): void {
         if(listener.enterAdd) {
-             listener.enterAdd(this);
+            listener.enterAdd(this);
         }
     }
     public override exitRule(listener: dslListener): void {
         if(listener.exitAdd) {
-             listener.exitAdd(this);
+            listener.exitAdd(this);
         }
     }
 }
@@ -473,12 +473,12 @@ export class SubtractContext extends antlr.ParserRuleContext {
     }
     public override enterRule(listener: dslListener): void {
         if(listener.enterSubtract) {
-             listener.enterSubtract(this);
+            listener.enterSubtract(this);
         }
     }
     public override exitRule(listener: dslListener): void {
         if(listener.exitSubtract) {
-             listener.exitSubtract(this);
+            listener.exitSubtract(this);
         }
     }
 }
@@ -496,12 +496,12 @@ export class NumberContext extends antlr.ParserRuleContext {
     }
     public override enterRule(listener: dslListener): void {
         if(listener.enterNumber) {
-             listener.enterNumber(this);
+            listener.enterNumber(this);
         }
     }
     public override exitRule(listener: dslListener): void {
         if(listener.exitNumber) {
-             listener.exitNumber(this);
+            listener.exitNumber(this);
         }
     }
 }
