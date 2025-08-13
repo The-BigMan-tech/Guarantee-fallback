@@ -19,7 +19,8 @@
     "lint:src": "eslint \"src/**/*.{ts,tsx,js}\" \"tests/**/*.{ts,tsx,js}\"",
     "lint:watch": "pnpm run watch:src --exec \"pnpm run lint:src\"",
     "lint:fix": "pnpm run lint:src --fix",
-    "gen:grammar":"antlr-ng -Dlanguage=TypeScript -o src/generated/ src/grammars/dsl.g4"
+    "grammar:gen":"antlr-ng -Dlanguage=TypeScript -o src/generated/ src/grammars/dsl.g4",
+    "grammar:watch": "nodemon --watch src/grammars --ext g4 --exec \"pnpm run grammar:gen\""
 
   }, 
   "main": "./dist/bundle-min.js",
