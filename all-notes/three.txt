@@ -2164,3 +2164,19 @@ Html is a DSL to create a scene tree.
 
 
 *a lib scaffold for any ts project that isnt a desktop,web or server app but any ts code thats not meant to be interacted with directly by users but by other or no code.like a ts project that does that does m:n scheduling of tasks will require the project as a ts library i believe or a fuzzy matcher
+
+do pnpm link --global for global linking
+
+*so a lib scaffold is also for executables in addition to libraries.which are standalone self contained ts project that run on the node js runtime instead of the browser.is this correct
+
+*As a library:
+Intended to be consumed as an importable package by other projects.
+It exposes APIs or modules that users can import using the package name (e.g., import { someFunc } from 'lib-scaffold').
+Runs on Node.js or browser environments
+The compiled output typically targets a format suitable for reuse as a library, such as CommonJS or ESM.
+
+*As an executable CLI:
+The package can also provide a standalone command-line executable that runs directly in a Node.js runtime.
+This executable is self-contained, often bundled into a single file including all dependencies, so users can run it as a CLI tool without any setup beyond installing (or linking) the package globally.
+The executable runs on Node.js (server/runtime environment) typically, not in browsers, since browser environments do not support running Node.js style CLIs.
+In your setup, the executable file is indicated in the "bin" field of your package.json, which maps a CLI command name to the executable bundle.
