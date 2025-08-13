@@ -2165,7 +2165,17 @@ Html is a DSL to create a scene tree.
 
 *a lib scaffold for any ts project that isnt a desktop,web or server app but any ts code thats not meant to be interacted with directly by users but by other or no code.like a ts project that does that does m:n scheduling of tasks will require the project as a ts library i believe or a fuzzy matcher
 
-do pnpm link --global for global linking
+*DO
+pnpm link --global for linking the package globally
+pnpm link --global pkg-name for linking the global package as a dep of a project.it uses symlink
+pnpm unlink pkg-name
+
+pnpm add for fetching published packages
+pnpm remove
+pnpm install
+The -D and -g flag
+
+^include lock files for version control but not in the distributed pkg
 
 *so a lib scaffold is also for executables in addition to libraries.which are standalone self contained ts project that run on the node js runtime instead of the browser.is this correct
 
@@ -2182,3 +2192,27 @@ The executable runs on Node.js (server/runtime environment) typically, not in br
 In your setup, the executable file is indicated in the "bin" field of your package.json, which maps a CLI command name to the executable bundle.
 
 *while applications use auto-build tools specific to a particular application domain like vite for react apps,tauri for desktop apss which can be used in addition to vite.next js for ssr web apps and nest js for backend apps.but for libraries or standalone executables,a lib scaffold is the best tooling and its manual and tedious because it has to be designed to target environments that might only have just the js runtime wih optionally other abritrary environment tooling but applications run in controlled environments.like the browser,webview or a container.is this correct
+
+*Automated build tools help applications run efficiently in controlled environments—browsers, webviews, server runtimes—by reducing the need for manual config. They offer fast builds, good defaults, developer-friendly features, and optimized output suited for the target platform.
+
+*On the other hand, libraries and standalone CLI tools often require more custom, manual setups and careful tooling due to their need to run in minimal Node.js or arbitrary runtime environments.
+
+*so my scaffold is a project that is pushed on github,so my cli will just call the git clone command with the passed name.remove the .git folder from it to prevent writing to the original repo and run pnpm install in it.
+
+*in the first place,its only in library development that watch based commands will be used.in the final output for use in the browser,this wont even be included in the final build so i can skip checking the env.if browsers use it,theyll only use the env agnostic bundle--no watchers or anything node js included.but during lib development,which runs on a node js runtime,the watchers can be utilized
+
+*Tooling
+*Debugging
+
+^Verdaccio
+
+*Bundlers
+Rollup
+Tsup
+Esbuild
+Vite
+Webpack
+Parcel
+Turbopack
+
+*so what this means is that i have two ways of sharing local lib or cli projects in my system.for clis,i choose to use global linking because with that,i can straight up call my cli like as if it were an exe on my system by its name.it also reflects live,any changes i made to the scaffolder's code since its a link.but for publishing my pkg locally like an util to use in another project of mine,ill use verdaccio and pubslish it there and under the verdaccio registry,i can then add it intuiively to my project as a local dependency

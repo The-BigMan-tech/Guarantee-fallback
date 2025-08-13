@@ -365,6 +365,7 @@ todo: Commander js
 ^UTILITIES,EXTRAS & RENDERING PATTERNS
 *Utilities
 ^---------
+verdaccio
 eslint
 Magic regexp
 Winston
