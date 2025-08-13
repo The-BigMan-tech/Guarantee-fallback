@@ -1,10 +1,8 @@
 {
-  "name": "lib-scaffold",
+  "name": "demi-script",
   "main": "./dist/bundle-min.js",
   "types": "./dist/bundle-min.d.ts",
-  "bin": {
-    "ts-scaff": "./dist/bundle-min.js"
-  },
+  "bin": {},
   "version": "1.0.0",
   "description": "A TypeScript library project scaffold providing ready-to-use build and debug tooling",
   "scripts": {

@@ -1,6 +1,6 @@
-import { Doc, Rec, Records, Rules } from "./fact-checker.ts";
+import { Doc, Rec, Records, Rules } from "./fact-checker.js";
 
-export function runExamples() {
+export function runExamples():void {
     const records:Records = {
         friends:new Rec([
             ['ada','ben'],
@@ -49,3 +49,6 @@ export function runExamples() {
         if (fact) console.log(fact);
     }
 }
+interface A  {a:string}
+interface B {b:number};
+type C = A | B;
