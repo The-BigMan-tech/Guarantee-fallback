@@ -30,6 +30,7 @@ const config = tsEslint.config(
   {
     files: ['**/*.ts', '**/*.tsx','**/*.js', '**/*.jsx'], // Apply only for TS files
     rules: {
+      "@typescript-eslint/no-non-null-assertion": "off",
       "@typescript-eslint/no-extraneous-class": [
         "warn", { 
           "allowStaticOnly": true 

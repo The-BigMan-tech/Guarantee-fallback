@@ -1,4 +1,4 @@
-grammar f;
+grammar dsl;
 
 start: multiply | divide | add | subtract;
 
@@ -8,7 +8,6 @@ multiply: expression '*' expression;
 divide: expression '/' expression;
 add: expression '+' expression;
 subtract: expression '-' expression;
-
 number: NUMBER;
 
 NUMBER: [0-9]+;
