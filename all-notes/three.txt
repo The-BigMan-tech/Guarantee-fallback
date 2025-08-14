@@ -2232,3 +2232,5 @@ Turbopack
 *The TypeScript error "The operand of a 'delete' operator must be optional" happens because when using delete on a property of a strongly typed object, TypeScript expects that property to be optional in the type definition to allow its removal safely.
 
 *There is something called import attributes and js allows you to import json files
+
+*its a normal computation principle of race conditions that a src must not be written to and read simultaneously.else,it will lead to undefined behaviour.its a principle in developing software but it also applies anywhere that performs computation including reading and writing to the fs.so in the case of servers,its unsafe to write to the src while the server is running.
