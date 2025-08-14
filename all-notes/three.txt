@@ -2104,6 +2104,8 @@ lexer,parser,analyzer,representation,builder,runtime
 *Grammar formats
 PEG 
 LR 
+antlr4
+Textmate
 
 *Syntax tree formats
 CST 
@@ -2216,3 +2218,9 @@ Parcel
 Turbopack
 
 *so what this means is that i have two ways of sharing local lib or cli projects in my system.for clis,i choose to use global linking because with that,i can straight up call my cli like as if it were an exe on my system by its name.it also reflects live,any changes i made to the scaffolder's code since its a link.but for publishing my pkg locally like an util to use in another project of mine,ill use verdaccio and pubslish it there and under the verdaccio registry,i can then add it intuiively to my project as a local dependency
+
+* a plugin architecture is fundamentally about interface structure, not implementation structure
+
+*The host application defines a set of interfaces, methods, events, or contracts—this is the plugin API or plugin interface. Plugins must conform to this interface so the host can load and interact with them consistently. This interface defines "what" plugins should do and "how" they communicate with the host.
+
+*Plugins can be internally designed however the developers want—using classes, functions, modules, mixins, or any architectural pattern. The host app only cares that the plugin respects the API interface. This means no rigid internal structure constraints exist on the plugin except to honor the interface contract.
