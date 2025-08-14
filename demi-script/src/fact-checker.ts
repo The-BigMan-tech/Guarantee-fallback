@@ -1,8 +1,8 @@
-import {UniqueList} from "./unique-list.ts";
+import {UniqueList} from "./unique-list.js";
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
 import {v4 as uniqueID} from "uuid";
-import { AddUnionToElements,Tuple } from "./type-helper.ts";
+import { AddUnionToElements,Tuple } from "./type-helper.js";
 import {stringify} from "safe-stable-stringify";
 
 type Atom = string | number
@@ -61,7 +61,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         }
         return false;//a quick check to save computation.it infers that if the arrays arent of the same length,then they arent the same
     }
-    public saveToFactsCache(key:string,facts:Facts) {
+    public saveToFactsCache(key:string,facts:Facts):void {
         if (facts.length === 0) {
             this.factCheckerCache.set(key,stringify(false));
         }else {
@@ -102,7 +102,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         if (matchedFacts.length===0) yield false;
         this.saveToFactsCache(cacheKey,matchedFacts);
     }
-    public getCombinationKey(...inputCombination:unknown[]) {
+    public getCombinationKey(...inputCombination:unknown[]):string {
         return inputCombination.map(element => stringify(element)).join('|');
     }
     //the checked facts is just a record to maintain recursion so the facts checked in a function call is not meant to persist across rules,else,subsequent calls to the same rule wont work as expected

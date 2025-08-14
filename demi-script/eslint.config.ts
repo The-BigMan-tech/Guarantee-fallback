@@ -21,7 +21,7 @@ const config = tsEslint.config(
     tsEslint.configs.strict,
     tsEslint.configs.stylistic,
     {
-        ignores: ["eslint.config.ts","vitest.config.ts","./build/**","./dist/**"],
+        ignores: ["eslint.config.ts","vitest.config.ts","./build/**","./dist/**","./src/generated/**"],
     },
     { // Apply environment globals for JavaScript files
         files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
@@ -43,7 +43,7 @@ const config = tsEslint.config(
     {
         files:[...srcFiles,...testFiles], 
         rules: {
-            "@typescript-eslint/explicit-function-return-type": "error",
+            "@typescript-eslint/explicit-function-return-type": "warn",
             "@typescript-eslint/no-non-null-assertion": "off",
             "@typescript-eslint/no-extraneous-class": [
                 "warn", { 
