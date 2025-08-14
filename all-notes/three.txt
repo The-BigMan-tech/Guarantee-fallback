@@ -2224,3 +2224,11 @@ Turbopack
 *The host application defines a set of interfaces, methods, events, or contracts—this is the plugin API or plugin interface. Plugins must conform to this interface so the host can load and interact with them consistently. This interface defines "what" plugins should do and "how" they communicate with the host.
 
 *Plugins can be internally designed however the developers want—using classes, functions, modules, mixins, or any architectural pattern. The host app only cares that the plugin respects the API interface. This means no rigid internal structure constraints exist on the plugin except to honor the interface contract.
+
+*running js executables with pnpm uses the local installation while directly using it in the terminal uses the system-wide/global installation.so pnpm doesnt fallback to the global installation when the local one isnt available but the shell has a command resolution where it searches all PATH variables for a specifc executable.so if pnpm doesnt find the local executable to make as the PATH,the system-wide one is what remains as the PATH variable which is what the shell uses.so the PATH by default is system-wdie unless overriden by pnpm
+
+*nodenext is best for node js projects while esnext is best for browser environments
+
+*The TypeScript error "The operand of a 'delete' operator must be optional" happens because when using delete on a property of a strongly typed object, TypeScript expects that property to be optional in the type definition to allow its removal safely.
+
+*There is something called import attributes and js allows you to import json files
