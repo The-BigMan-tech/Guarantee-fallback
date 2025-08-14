@@ -2234,3 +2234,6 @@ Turbopack
 *There is something called import attributes and js allows you to import json files
 
 *its a normal computation principle of race conditions that a src must not be written to and read simultaneously.else,it will lead to undefined behaviour.its a principle in developing software but it also applies anywhere that performs computation including reading and writing to the fs.so in the case of servers,its unsafe to write to the src while the server is running.
+
+^Meta languages/Syntax notation
+*It is a language whose purpose is to describe another language like BFN notation,SGML
