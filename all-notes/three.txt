@@ -2237,3 +2237,14 @@ Turbopack
 
 ^Meta languages/Syntax notation
 *It is a language whose purpose is to describe another language like BFN notation,SGML
+
+
+^Stryker config
+*disableTypeChecks: true lets mutation testing run without getting blocked by TS compile errors caused by mutants.
+
+*TypeScript checker plugin ensures these type-breaking mutants are discovered early and excluded from mutation score and test runs.
+
+*Stryker’s coverage analysis is about test execution on mutants, not mutant generation.Uncovered mutants will appear but no tests run on them, marking them as NoCoverage.
+*It does not dynamically infer and restrict the mutate array from coverage at runtime by default.
+*Coverage analysis limits test execution on mutants, but mutants are generated for all files listed in mutate.
+
