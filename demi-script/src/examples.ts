@@ -49,6 +49,3 @@ export function runExamples():void {
         if (fact) console.log(fact);
     }
 }
-interface A  {a:string}
-interface B {b:number};
-type C = A | B;

@@ -133,7 +133,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         return firstFact;
     }
     //it returns true if all the elements in args are also present in the set and it returns false otherwise
-    public areMembersInSet<T>(args:T[],set:Set<T>) {
+    public areMembersInSet<T>(args:T[],set:Set<T>):boolean {
         for (const arg of args) {
             if (!this.isSymbol(arg) && !this.isWildCard(arg) && !set.has(arg) ) {
                 return false;//return early if the inputs arent even members to save computation.

@@ -2,46 +2,47 @@
 import * as antlr from "antlr4ng";
 import { Token } from "antlr4ng";
 
-import { dslListener } from "./dslListener.js";
+import { DSLListener } from "./DSLListener.js";
+import { DSLVisitor } from "./DSLVisitor.js";
+
 // for running tests with parameters, TODO: discuss strategy for typed parameters in CI
- 
+// eslint-disable-next-line no-unused-vars
 type int = number;
 
 
-export class dslParser extends antlr.Parser {
-    public static readonly T__0 = 1;
-    public static readonly T__1 = 2;
-    public static readonly T__2 = 3;
-    public static readonly T__3 = 4;
-    public static readonly T__4 = 5;
-    public static readonly T__5 = 6;
-    public static readonly NUMBER = 7;
-    public static readonly WS = 8;
-    public static readonly RULE_start = 0;
-    public static readonly RULE_expression = 1;
-    public static readonly RULE_multiply = 2;
-    public static readonly RULE_divide = 3;
-    public static readonly RULE_add = 4;
-    public static readonly RULE_subtract = 5;
-    public static readonly RULE_number = 6;
+export class DSLParser extends antlr.Parser {
+    public static readonly ATOM = 1;
+    public static readonly PREDICATE = 2;
+    public static readonly ALIAS = 3;
+    public static readonly FILLER = 4;
+    public static readonly STRING_LITERAL = 5;
+    public static readonly NUMBER = 6;
+    public static readonly IDENTIFIER = 7;
+    public static readonly TERMINATOR = 8;
+    public static readonly WS = 9;
+    public static readonly COMMENT = 10;
+    public static readonly RULE_program = 0;
+    public static readonly RULE_fact = 1;
+    public static readonly RULE_sentence = 2;
+    public static readonly RULE_token = 3;
 
     public static readonly literalNames = [
-        null, "'('", "')'", "'*'", "'/'", "'+'", "'-'"
+        null, null, null, null, null, null, null, null, "'.'"
     ];
 
     public static readonly symbolicNames = [
-        null, null, null, null, null, null, null, "NUMBER", "WS"
+        null, "ATOM", "PREDICATE", "ALIAS", "FILLER", "STRING_LITERAL", 
+        "NUMBER", "IDENTIFIER", "TERMINATOR", "WS", "COMMENT"
     ];
     public static readonly ruleNames = [
-        "start", "expression", "multiply", "divide", "add", "subtract", 
-        "number",
+        "program", "fact", "sentence", "token",
     ];
 
-    public get grammarFileName(): string { return "dsl.g4"; }
-    public get literalNames(): (string | null)[] { return dslParser.literalNames; }
-    public get symbolicNames(): (string | null)[] { return dslParser.symbolicNames; }
-    public get ruleNames(): string[] { return dslParser.ruleNames; }
-    public get serializedATN(): number[] { return dslParser._serializedATN; }
+    public get grammarFileName(): string { return "DSL.g4"; }
+    public get literalNames(): (string | null)[] { return DSLParser.literalNames; }
+    public get symbolicNames(): (string | null)[] { return DSLParser.symbolicNames; }
+    public get ruleNames(): string[] { return DSLParser.ruleNames; }
+    public get serializedATN(): number[] { return DSLParser._serializedATN; }
 
     protected createFailedPredicateException(predicate?: string, message?: string): antlr.FailedPredicateException {
         return new antlr.FailedPredicateException(this, predicate, message);
@@ -49,43 +50,31 @@ export class dslParser extends antlr.Parser {
 
     public constructor(input: antlr.TokenStream) {
         super(input);
-        this.interpreter = new antlr.ParserATNSimulator(this, dslParser._ATN, dslParser.decisionsToDFA, new antlr.PredictionContextCache());
+        this.interpreter = new antlr.ParserATNSimulator(this, DSLParser._ATN, DSLParser.decisionsToDFA, new antlr.PredictionContextCache());
     }
-    public start(): StartContext {
-        const localContext = new StartContext(this.context, this.state);
-        this.enterRule(localContext, 0, dslParser.RULE_start);
+    public program(): ProgramContext {
+        let localContext = new ProgramContext(this.context, this.state);
+        this.enterRule(localContext, 0, DSLParser.RULE_program);
+        let _la: number;
         try {
-            this.state = 18;
+            this.enterOuterAlt(localContext, 1);
+            {
+            this.state = 9;
             this.errorHandler.sync(this);
-            switch (this.interpreter.adaptivePredict(this.tokenStream, 0, this.context) ) {
-            case 1:
-                this.enterOuterAlt(localContext, 1);
+            _la = this.tokenStream.LA(1);
+            do {
                 {
-                    this.state = 14;
-                    this.multiply();
-                }
-                break;
-            case 2:
-                this.enterOuterAlt(localContext, 2);
                 {
-                    this.state = 15;
-                    this.divide();
+                this.state = 8;
+                this.fact();
                 }
-                break;
-            case 3:
-                this.enterOuterAlt(localContext, 3);
-                {
-                    this.state = 16;
-                    this.add();
                 }
-                break;
-            case 4:
-                this.enterOuterAlt(localContext, 4);
-                {
-                    this.state = 17;
-                    this.subtract();
-                }
-                break;
+                this.state = 11;
+                this.errorHandler.sync(this);
+                _la = this.tokenStream.LA(1);
+            } while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 30) !== 0));
+            this.state = 13;
+            this.match(DSLParser.EOF);
             }
         }
         catch (re) {
@@ -101,164 +90,86 @@ export class dslParser extends antlr.Parser {
         }
         return localContext;
     }
-    public expression(): ExpressionContext {
-        const localContext = new ExpressionContext(this.context, this.state);
-        this.enterRule(localContext, 2, dslParser.RULE_expression);
+    public fact(): FactContext {
+        let localContext = new FactContext(this.context, this.state);
+        this.enterRule(localContext, 2, DSLParser.RULE_fact);
         try {
+            this.enterOuterAlt(localContext, 1);
+            {
+            this.state = 15;
+            this.sentence();
+            this.state = 16;
+            this.match(DSLParser.TERMINATOR);
+            }
+        }
+        catch (re) {
+            if (re instanceof antlr.RecognitionException) {
+                this.errorHandler.reportError(this, re);
+                this.errorHandler.recover(this, re);
+            } else {
+                throw re;
+            }
+        }
+        finally {
+            this.exitRule();
+        }
+        return localContext;
+    }
+    public sentence(): SentenceContext {
+        let localContext = new SentenceContext(this.context, this.state);
+        this.enterRule(localContext, 4, DSLParser.RULE_sentence);
+        let _la: number;
+        try {
+            this.enterOuterAlt(localContext, 1);
+            {
+            this.state = 19;
+            this.errorHandler.sync(this);
+            _la = this.tokenStream.LA(1);
+            do {
+                {
+                {
+                this.state = 18;
+                this.token();
+                }
+                }
+                this.state = 21;
+                this.errorHandler.sync(this);
+                _la = this.tokenStream.LA(1);
+            } while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 30) !== 0));
+
+                      // Action placeholder: Validate exactly one predicate and parse atoms/predicate into structure
+                    
+            }
+        }
+        catch (re) {
+            if (re instanceof antlr.RecognitionException) {
+                this.errorHandler.reportError(this, re);
+                this.errorHandler.recover(this, re);
+            } else {
+                throw re;
+            }
+        }
+        finally {
+            this.exitRule();
+        }
+        return localContext;
+    }
+    public token(): TokenContext {
+        let localContext = new TokenContext(this.context, this.state);
+        this.enterRule(localContext, 6, DSLParser.RULE_token);
+        let _la: number;
+        try {
+            this.enterOuterAlt(localContext, 1);
+            {
             this.state = 25;
-            this.errorHandler.sync(this);
-            switch (this.tokenStream.LA(1)) {
-            case dslParser.T__0:
-                this.enterOuterAlt(localContext, 1);
-                {
-                    this.state = 20;
-                    this.match(dslParser.T__0);
-                    this.state = 21;
-                    this.expression();
-                    this.state = 22;
-                    this.match(dslParser.T__1);
-                }
-                break;
-            case dslParser.NUMBER:
-                this.enterOuterAlt(localContext, 2);
-                {
-                    this.state = 24;
-                    this.number_();
-                }
-                break;
-            default:
-                throw new antlr.NoViableAltException(this);
+            _la = this.tokenStream.LA(1);
+            if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 30) !== 0))) {
+            this.errorHandler.recoverInline(this);
             }
-        }
-        catch (re) {
-            if (re instanceof antlr.RecognitionException) {
-                this.errorHandler.reportError(this, re);
-                this.errorHandler.recover(this, re);
-            } else {
-                throw re;
+            else {
+                this.errorHandler.reportMatch(this);
+                this.consume();
             }
-        }
-        finally {
-            this.exitRule();
-        }
-        return localContext;
-    }
-    public multiply(): MultiplyContext {
-        const localContext = new MultiplyContext(this.context, this.state);
-        this.enterRule(localContext, 4, dslParser.RULE_multiply);
-        try {
-            this.enterOuterAlt(localContext, 1);
-            {
-                this.state = 27;
-                this.expression();
-                this.state = 28;
-                this.match(dslParser.T__2);
-                this.state = 29;
-                this.expression();
-            }
-        }
-        catch (re) {
-            if (re instanceof antlr.RecognitionException) {
-                this.errorHandler.reportError(this, re);
-                this.errorHandler.recover(this, re);
-            } else {
-                throw re;
-            }
-        }
-        finally {
-            this.exitRule();
-        }
-        return localContext;
-    }
-    public divide(): DivideContext {
-        const localContext = new DivideContext(this.context, this.state);
-        this.enterRule(localContext, 6, dslParser.RULE_divide);
-        try {
-            this.enterOuterAlt(localContext, 1);
-            {
-                this.state = 31;
-                this.expression();
-                this.state = 32;
-                this.match(dslParser.T__3);
-                this.state = 33;
-                this.expression();
-            }
-        }
-        catch (re) {
-            if (re instanceof antlr.RecognitionException) {
-                this.errorHandler.reportError(this, re);
-                this.errorHandler.recover(this, re);
-            } else {
-                throw re;
-            }
-        }
-        finally {
-            this.exitRule();
-        }
-        return localContext;
-    }
-    public add(): AddContext {
-        const localContext = new AddContext(this.context, this.state);
-        this.enterRule(localContext, 8, dslParser.RULE_add);
-        try {
-            this.enterOuterAlt(localContext, 1);
-            {
-                this.state = 35;
-                this.expression();
-                this.state = 36;
-                this.match(dslParser.T__4);
-                this.state = 37;
-                this.expression();
-            }
-        }
-        catch (re) {
-            if (re instanceof antlr.RecognitionException) {
-                this.errorHandler.reportError(this, re);
-                this.errorHandler.recover(this, re);
-            } else {
-                throw re;
-            }
-        }
-        finally {
-            this.exitRule();
-        }
-        return localContext;
-    }
-    public subtract(): SubtractContext {
-        const localContext = new SubtractContext(this.context, this.state);
-        this.enterRule(localContext, 10, dslParser.RULE_subtract);
-        try {
-            this.enterOuterAlt(localContext, 1);
-            {
-                this.state = 39;
-                this.expression();
-                this.state = 40;
-                this.match(dslParser.T__5);
-                this.state = 41;
-                this.expression();
-            }
-        }
-        catch (re) {
-            if (re instanceof antlr.RecognitionException) {
-                this.errorHandler.reportError(this, re);
-                this.errorHandler.recover(this, re);
-            } else {
-                throw re;
-            }
-        }
-        finally {
-            this.exitRule();
-        }
-        return localContext;
-    }
-    public number_(): NumberContext {
-        const localContext = new NumberContext(this.context, this.state);
-        this.enterRule(localContext, 12, dslParser.RULE_number);
-        try {
-            this.enterOuterAlt(localContext, 1);
-            {
-                this.state = 43;
-                this.match(dslParser.NUMBER);
             }
         }
         catch (re) {
@@ -276,232 +187,177 @@ export class dslParser extends antlr.Parser {
     }
 
     public static readonly _serializedATN: number[] = [
-        4,1,8,46,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,
-        1,0,1,0,1,0,1,0,3,0,19,8,0,1,1,1,1,1,1,1,1,1,1,3,1,26,8,1,1,2,1,
-        2,1,2,1,2,1,3,1,3,1,3,1,3,1,4,1,4,1,4,1,4,1,5,1,5,1,5,1,5,1,6,1,
-        6,1,6,0,0,7,0,2,4,6,8,10,12,0,0,42,0,18,1,0,0,0,2,25,1,0,0,0,4,27,
-        1,0,0,0,6,31,1,0,0,0,8,35,1,0,0,0,10,39,1,0,0,0,12,43,1,0,0,0,14,
-        19,3,4,2,0,15,19,3,6,3,0,16,19,3,8,4,0,17,19,3,10,5,0,18,14,1,0,
-        0,0,18,15,1,0,0,0,18,16,1,0,0,0,18,17,1,0,0,0,19,1,1,0,0,0,20,21,
-        5,1,0,0,21,22,3,2,1,0,22,23,5,2,0,0,23,26,1,0,0,0,24,26,3,12,6,0,
-        25,20,1,0,0,0,25,24,1,0,0,0,26,3,1,0,0,0,27,28,3,2,1,0,28,29,5,3,
-        0,0,29,30,3,2,1,0,30,5,1,0,0,0,31,32,3,2,1,0,32,33,5,4,0,0,33,34,
-        3,2,1,0,34,7,1,0,0,0,35,36,3,2,1,0,36,37,5,5,0,0,37,38,3,2,1,0,38,
-        9,1,0,0,0,39,40,3,2,1,0,40,41,5,6,0,0,41,42,3,2,1,0,42,11,1,0,0,
-        0,43,44,5,7,0,0,44,13,1,0,0,0,2,18,25
+        4,1,10,28,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,1,0,4,0,10,8,0,11,0,12,
+        0,11,1,0,1,0,1,1,1,1,1,1,1,2,4,2,20,8,2,11,2,12,2,21,1,2,1,2,1,3,
+        1,3,1,3,0,0,4,0,2,4,6,0,1,1,0,1,4,25,0,9,1,0,0,0,2,15,1,0,0,0,4,
+        19,1,0,0,0,6,25,1,0,0,0,8,10,3,2,1,0,9,8,1,0,0,0,10,11,1,0,0,0,11,
+        9,1,0,0,0,11,12,1,0,0,0,12,13,1,0,0,0,13,14,5,0,0,1,14,1,1,0,0,0,
+        15,16,3,4,2,0,16,17,5,8,0,0,17,3,1,0,0,0,18,20,3,6,3,0,19,18,1,0,
+        0,0,20,21,1,0,0,0,21,19,1,0,0,0,21,22,1,0,0,0,22,23,1,0,0,0,23,24,
+        6,2,-1,0,24,5,1,0,0,0,25,26,7,0,0,0,26,7,1,0,0,0,2,11,21
     ];
 
     private static __ATN: antlr.ATN;
     public static get _ATN(): antlr.ATN {
-        if (!dslParser.__ATN) {
-            dslParser.__ATN = new antlr.ATNDeserializer().deserialize(dslParser._serializedATN);
+        if (!DSLParser.__ATN) {
+            DSLParser.__ATN = new antlr.ATNDeserializer().deserialize(DSLParser._serializedATN);
         }
 
-        return dslParser.__ATN;
+        return DSLParser.__ATN;
     }
 
 
-    private static readonly vocabulary = new antlr.Vocabulary(dslParser.literalNames, dslParser.symbolicNames, []);
+    private static readonly vocabulary = new antlr.Vocabulary(DSLParser.literalNames, DSLParser.symbolicNames, []);
 
     public override get vocabulary(): antlr.Vocabulary {
-        return dslParser.vocabulary;
+        return DSLParser.vocabulary;
     }
 
-    private static readonly decisionsToDFA = dslParser._ATN.decisionToState.map( (ds: antlr.DecisionState, index: number) => new antlr.DFA(ds, index) );
+    private static readonly decisionsToDFA = DSLParser._ATN.decisionToState.map( (ds: antlr.DecisionState, index: number) => new antlr.DFA(ds, index) );
 }
 
-export class StartContext extends antlr.ParserRuleContext {
+export class ProgramContext extends antlr.ParserRuleContext {
     public constructor(parent: antlr.ParserRuleContext | null, invokingState: number) {
         super(parent, invokingState);
     }
-    public multiply(): MultiplyContext | null {
-        return this.getRuleContext(0, MultiplyContext);
+    public EOF(): antlr.TerminalNode {
+        return this.getToken(DSLParser.EOF, 0)!;
     }
-    public divide(): DivideContext | null {
-        return this.getRuleContext(0, DivideContext);
-    }
-    public add(): AddContext | null {
-        return this.getRuleContext(0, AddContext);
-    }
-    public subtract(): SubtractContext | null {
-        return this.getRuleContext(0, SubtractContext);
-    }
-    public override get ruleIndex(): number {
-        return dslParser.RULE_start;
-    }
-    public override enterRule(listener: dslListener): void {
-        if(listener.enterStart) {
-            listener.enterStart(this);
-        }
-    }
-    public override exitRule(listener: dslListener): void {
-        if(listener.exitStart) {
-            listener.exitStart(this);
-        }
-    }
-}
-
-
-export class ExpressionContext extends antlr.ParserRuleContext {
-    public constructor(parent: antlr.ParserRuleContext | null, invokingState: number) {
-        super(parent, invokingState);
-    }
-    public expression(): ExpressionContext | null {
-        return this.getRuleContext(0, ExpressionContext);
-    }
-    public number(): NumberContext | null {
-        return this.getRuleContext(0, NumberContext);
-    }
-    public override get ruleIndex(): number {
-        return dslParser.RULE_expression;
-    }
-    public override enterRule(listener: dslListener): void {
-        if(listener.enterExpression) {
-            listener.enterExpression(this);
-        }
-    }
-    public override exitRule(listener: dslListener): void {
-        if(listener.exitExpression) {
-            listener.exitExpression(this);
-        }
-    }
-}
-
-
-export class MultiplyContext extends antlr.ParserRuleContext {
-    public constructor(parent: antlr.ParserRuleContext | null, invokingState: number) {
-        super(parent, invokingState);
-    }
-    public expression(): ExpressionContext[];
-    public expression(i: number): ExpressionContext | null;
-    public expression(i?: number): ExpressionContext[] | ExpressionContext | null {
+    public fact(): FactContext[];
+    public fact(i: number): FactContext | null;
+    public fact(i?: number): FactContext[] | FactContext | null {
         if (i === undefined) {
-            return this.getRuleContexts(ExpressionContext);
+            return this.getRuleContexts(FactContext);
         }
 
-        return this.getRuleContext(i, ExpressionContext);
+        return this.getRuleContext(i, FactContext);
     }
     public override get ruleIndex(): number {
-        return dslParser.RULE_multiply;
+        return DSLParser.RULE_program;
     }
-    public override enterRule(listener: dslListener): void {
-        if(listener.enterMultiply) {
-            listener.enterMultiply(this);
+    public override enterRule(listener: DSLListener): void {
+        if(listener.enterProgram) {
+             listener.enterProgram(this);
         }
     }
-    public override exitRule(listener: dslListener): void {
-        if(listener.exitMultiply) {
-            listener.exitMultiply(this);
+    public override exitRule(listener: DSLListener): void {
+        if(listener.exitProgram) {
+             listener.exitProgram(this);
+        }
+    }
+    public override accept<Result>(visitor: DSLVisitor<Result>): Result | null {
+        if (visitor.visitProgram) {
+            return visitor.visitProgram(this);
+        } else {
+            return visitor.visitChildren(this);
         }
     }
 }
 
 
-export class DivideContext extends antlr.ParserRuleContext {
+export class FactContext extends antlr.ParserRuleContext {
     public constructor(parent: antlr.ParserRuleContext | null, invokingState: number) {
         super(parent, invokingState);
     }
-    public expression(): ExpressionContext[];
-    public expression(i: number): ExpressionContext | null;
-    public expression(i?: number): ExpressionContext[] | ExpressionContext | null {
+    public sentence(): SentenceContext {
+        return this.getRuleContext(0, SentenceContext)!;
+    }
+    public TERMINATOR(): antlr.TerminalNode {
+        return this.getToken(DSLParser.TERMINATOR, 0)!;
+    }
+    public override get ruleIndex(): number {
+        return DSLParser.RULE_fact;
+    }
+    public override enterRule(listener: DSLListener): void {
+        if(listener.enterFact) {
+             listener.enterFact(this);
+        }
+    }
+    public override exitRule(listener: DSLListener): void {
+        if(listener.exitFact) {
+             listener.exitFact(this);
+        }
+    }
+    public override accept<Result>(visitor: DSLVisitor<Result>): Result | null {
+        if (visitor.visitFact) {
+            return visitor.visitFact(this);
+        } else {
+            return visitor.visitChildren(this);
+        }
+    }
+}
+
+
+export class SentenceContext extends antlr.ParserRuleContext {
+    public constructor(parent: antlr.ParserRuleContext | null, invokingState: number) {
+        super(parent, invokingState);
+    }
+    public token(): TokenContext[];
+    public token(i: number): TokenContext | null;
+    public token(i?: number): TokenContext[] | TokenContext | null {
         if (i === undefined) {
-            return this.getRuleContexts(ExpressionContext);
+            return this.getRuleContexts(TokenContext);
         }
 
-        return this.getRuleContext(i, ExpressionContext);
+        return this.getRuleContext(i, TokenContext);
     }
     public override get ruleIndex(): number {
-        return dslParser.RULE_divide;
+        return DSLParser.RULE_sentence;
     }
-    public override enterRule(listener: dslListener): void {
-        if(listener.enterDivide) {
-            listener.enterDivide(this);
+    public override enterRule(listener: DSLListener): void {
+        if(listener.enterSentence) {
+             listener.enterSentence(this);
         }
     }
-    public override exitRule(listener: dslListener): void {
-        if(listener.exitDivide) {
-            listener.exitDivide(this);
+    public override exitRule(listener: DSLListener): void {
+        if(listener.exitSentence) {
+             listener.exitSentence(this);
+        }
+    }
+    public override accept<Result>(visitor: DSLVisitor<Result>): Result | null {
+        if (visitor.visitSentence) {
+            return visitor.visitSentence(this);
+        } else {
+            return visitor.visitChildren(this);
         }
     }
 }
 
 
-export class AddContext extends antlr.ParserRuleContext {
+export class TokenContext extends antlr.ParserRuleContext {
     public constructor(parent: antlr.ParserRuleContext | null, invokingState: number) {
         super(parent, invokingState);
     }
-    public expression(): ExpressionContext[];
-    public expression(i: number): ExpressionContext | null;
-    public expression(i?: number): ExpressionContext[] | ExpressionContext | null {
-        if (i === undefined) {
-            return this.getRuleContexts(ExpressionContext);
-        }
-
-        return this.getRuleContext(i, ExpressionContext);
+    public ATOM(): antlr.TerminalNode | null {
+        return this.getToken(DSLParser.ATOM, 0);
+    }
+    public PREDICATE(): antlr.TerminalNode | null {
+        return this.getToken(DSLParser.PREDICATE, 0);
+    }
+    public ALIAS(): antlr.TerminalNode | null {
+        return this.getToken(DSLParser.ALIAS, 0);
+    }
+    public FILLER(): antlr.TerminalNode | null {
+        return this.getToken(DSLParser.FILLER, 0);
     }
     public override get ruleIndex(): number {
-        return dslParser.RULE_add;
+        return DSLParser.RULE_token;
     }
-    public override enterRule(listener: dslListener): void {
-        if(listener.enterAdd) {
-            listener.enterAdd(this);
+    public override enterRule(listener: DSLListener): void {
+        if(listener.enterToken) {
+             listener.enterToken(this);
         }
     }
-    public override exitRule(listener: dslListener): void {
-        if(listener.exitAdd) {
-            listener.exitAdd(this);
+    public override exitRule(listener: DSLListener): void {
+        if(listener.exitToken) {
+             listener.exitToken(this);
         }
     }
-}
-
-
-export class SubtractContext extends antlr.ParserRuleContext {
-    public constructor(parent: antlr.ParserRuleContext | null, invokingState: number) {
-        super(parent, invokingState);
-    }
-    public expression(): ExpressionContext[];
-    public expression(i: number): ExpressionContext | null;
-    public expression(i?: number): ExpressionContext[] | ExpressionContext | null {
-        if (i === undefined) {
-            return this.getRuleContexts(ExpressionContext);
-        }
-
-        return this.getRuleContext(i, ExpressionContext);
-    }
-    public override get ruleIndex(): number {
-        return dslParser.RULE_subtract;
-    }
-    public override enterRule(listener: dslListener): void {
-        if(listener.enterSubtract) {
-            listener.enterSubtract(this);
-        }
-    }
-    public override exitRule(listener: dslListener): void {
-        if(listener.exitSubtract) {
-            listener.exitSubtract(this);
-        }
-    }
-}
-
-
-export class NumberContext extends antlr.ParserRuleContext {
-    public constructor(parent: antlr.ParserRuleContext | null, invokingState: number) {
-        super(parent, invokingState);
-    }
-    public NUMBER(): antlr.TerminalNode {
-        return this.getToken(dslParser.NUMBER, 0)!;
-    }
-    public override get ruleIndex(): number {
-        return dslParser.RULE_number;
-    }
-    public override enterRule(listener: dslListener): void {
-        if(listener.enterNumber) {
-            listener.enterNumber(this);
-        }
-    }
-    public override exitRule(listener: dslListener): void {
-        if(listener.exitNumber) {
-            listener.exitNumber(this);
+    public override accept<Result>(visitor: DSLVisitor<Result>): Result | null {
+        if (visitor.visitToken) {
+            return visitor.visitToken(this);
+        } else {
+            return visitor.visitChildren(this);
         }
     }
 }

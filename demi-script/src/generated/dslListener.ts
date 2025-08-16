@@ -2,90 +2,57 @@
 import { ErrorNode, ParseTreeListener, ParserRuleContext, TerminalNode } from "antlr4ng";
 
 
-import { StartContext } from "./dslParser.js";
-import { ExpressionContext } from "./dslParser.js";
-import { MultiplyContext } from "./dslParser.js";
-import { DivideContext } from "./dslParser.js";
-import { AddContext } from "./dslParser.js";
-import { SubtractContext } from "./dslParser.js";
-import { NumberContext } from "./dslParser.js";
+import { ProgramContext } from "./DSLParser.js";
+import { FactContext } from "./DSLParser.js";
+import { SentenceContext } from "./DSLParser.js";
+import { TokenContext } from "./DSLParser.js";
 
 
 /**
  * This interface defines a complete listener for a parse tree produced by
- * `dslParser`.
+ * `DSLParser`.
  */
-export class dslListener implements ParseTreeListener {
+export class DSLListener implements ParseTreeListener {
     /**
-     * Enter a parse tree produced by `dslParser.start`.
+     * Enter a parse tree produced by `DSLParser.program`.
      * @param ctx the parse tree
      */
-    enterStart?: (ctx: StartContext) => void;
+    enterProgram?: (ctx: ProgramContext) => void;
     /**
-     * Exit a parse tree produced by `dslParser.start`.
+     * Exit a parse tree produced by `DSLParser.program`.
      * @param ctx the parse tree
      */
-    exitStart?: (ctx: StartContext) => void;
+    exitProgram?: (ctx: ProgramContext) => void;
     /**
-     * Enter a parse tree produced by `dslParser.expression`.
+     * Enter a parse tree produced by `DSLParser.fact`.
      * @param ctx the parse tree
      */
-    enterExpression?: (ctx: ExpressionContext) => void;
+    enterFact?: (ctx: FactContext) => void;
     /**
-     * Exit a parse tree produced by `dslParser.expression`.
+     * Exit a parse tree produced by `DSLParser.fact`.
      * @param ctx the parse tree
      */
-    exitExpression?: (ctx: ExpressionContext) => void;
+    exitFact?: (ctx: FactContext) => void;
     /**
-     * Enter a parse tree produced by `dslParser.multiply`.
+     * Enter a parse tree produced by `DSLParser.sentence`.
      * @param ctx the parse tree
      */
-    enterMultiply?: (ctx: MultiplyContext) => void;
+    enterSentence?: (ctx: SentenceContext) => void;
     /**
-     * Exit a parse tree produced by `dslParser.multiply`.
+     * Exit a parse tree produced by `DSLParser.sentence`.
      * @param ctx the parse tree
      */
-    exitMultiply?: (ctx: MultiplyContext) => void;
+    exitSentence?: (ctx: SentenceContext) => void;
     /**
-     * Enter a parse tree produced by `dslParser.divide`.
+     * Enter a parse tree produced by `DSLParser.token`.
      * @param ctx the parse tree
      */
-    enterDivide?: (ctx: DivideContext) => void;
+    enterToken?: (ctx: TokenContext) => void;
     /**
-     * Exit a parse tree produced by `dslParser.divide`.
+     * Exit a parse tree produced by `DSLParser.token`.
      * @param ctx the parse tree
      */
-    exitDivide?: (ctx: DivideContext) => void;
-    /**
-     * Enter a parse tree produced by `dslParser.add`.
-     * @param ctx the parse tree
-     */
-    enterAdd?: (ctx: AddContext) => void;
-    /**
-     * Exit a parse tree produced by `dslParser.add`.
-     * @param ctx the parse tree
-     */
-    exitAdd?: (ctx: AddContext) => void;
-    /**
-     * Enter a parse tree produced by `dslParser.subtract`.
-     * @param ctx the parse tree
-     */
-    enterSubtract?: (ctx: SubtractContext) => void;
-    /**
-     * Exit a parse tree produced by `dslParser.subtract`.
-     * @param ctx the parse tree
-     */
-    exitSubtract?: (ctx: SubtractContext) => void;
-    /**
-     * Enter a parse tree produced by `dslParser.number`.
-     * @param ctx the parse tree
-     */
-    enterNumber?: (ctx: NumberContext) => void;
-    /**
-     * Exit a parse tree produced by `dslParser.number`.
-     * @param ctx the parse tree
-     */
-    exitNumber?: (ctx: NumberContext) => void;
+    exitToken?: (ctx: TokenContext) => void;
 
     visitTerminal(node: TerminalNode): void {}
     visitErrorNode(node: ErrorNode): void {}
