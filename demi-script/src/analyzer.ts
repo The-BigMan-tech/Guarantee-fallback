@@ -9,8 +9,8 @@ import { Atoms, Rec } from "./fact-checker.js";
 export function runAnalyzer():void {
     // The input DSL text to parse
     const input = `
-      'ada' and 'peter' are *friends.
-      'cole' is a *male.
+        'ada' and 'peter' are *friends.
+        'cole' is a *male.
     `;
 
     const inputStream = CharStream.fromString(input);
@@ -72,5 +72,5 @@ export function runAnalyzer():void {
     }
     const visitor = new MyDSLVisitor();
     const resultRecords = visitor.visit(tree);
-    console.log(resultRecords);
+    console.log('Results: ',resultRecords);
 }
