@@ -1,3 +1,4 @@
+import { genStruct } from "./analyzer.js";
 import { Doc, Rec, Records, Rules } from "./fact-checker.js";
 
 export function runExamples():void {
@@ -27,8 +28,11 @@ export function runExamples():void {
         ...records,
         allies:records.friends
     };
-
-    const doc = new Doc(recordsWithAliases);
+    const facts = `
+        'ada' and 'jane' are *friends.
+        'cole' is a *male.
+    `;
+    const doc = new Doc(genStruct(facts));
     console.log(Rules.areFriends(doc,['ada','jane']));
     // console.log(Rules.areBrothers(doc,['ben','ben']));
 

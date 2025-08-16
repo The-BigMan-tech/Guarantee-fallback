@@ -4,23 +4,23 @@ import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
 import { Atoms, Rec } from "./fact-checker.js";
 
+class Essentials {
+    public static inputStream:CharStream;
+    public static lexer:DSLLexer;
+    public static tokenStream:CommonTokenStream;
+    public static parser:DSLParser;
+    public static tree:ProgramContext;
 
-
-export function runAnalyzer():void {
-    // The input DSL text to parse
-    const input = `
-        'ada' and 'peter' are *friends.
-        'cole' is a *male.
-    `;
-
-    const inputStream = CharStream.fromString(input);
-    const lexer = new DSLLexer(inputStream);
-    const tokenStream = new CommonTokenStream(lexer);
-    const parser = new DSLParser(tokenStream);
-    const tree = parser.program();
-
-    // Helper to remove fillers, extract atoms and predicates from tokens in a fact
-    function extractFactData(tokens:Token[]):{predicate: string;atoms:Atoms} {
+    public static loadEssentials(input:string):void {
+        Essentials.inputStream = CharStream.fromString(input);
+        Essentials.lexer = new DSLLexer(Essentials.inputStream);
+        Essentials.tokenStream = new CommonTokenStream(Essentials.lexer);
+        Essentials.parser = new DSLParser(Essentials.tokenStream);
+        Essentials.tree = Essentials.parser.program();
+    }
+}
+class StructBuilder {
+    public static buildFactData(tokens:Token[]):{predicate: string;atoms:Atoms} {
         const atoms: string[] = [];
         let predicate = "";
         
@@ -31,46 +31,50 @@ export function runAnalyzer():void {
             if (type === DSLLexer.PREDICATE) {
                 predicate = text.slice(1); // Remove the leading '*'
             }else if (type === DSLLexer.ATOM) {
-                atoms.push(stripQuotes(text));
+                atoms.push(StructBuilder.stripQuotes(text));
             } else if (type === DSLLexer.ALIAS) {
                 //
             }
         });
         return { predicate, atoms };
     }
-    function stripQuotes<T>(value:T):string | T {
-        if (typeof value === "string") {
+    private static stripQuotes(value:string):string  {
+        if (value.startsWith("'") || value.endsWith("'") || value.startsWith('"') || value.startsWith('"')) {
             return value.slice(1, -1);
         }
         return value;
     }
+}
 
-    class MyDSLVisitor extends DSLVisitor<void> {
-        /* eslint-disable @typescript-eslint/explicit-function-return-type */
-        public records:Record<string,Rec> = {};
+class CustomVisitor extends DSLVisitor<void> {
+    /* eslint-disable @typescript-eslint/explicit-function-return-type */
+    public records:Record<string,Rec> = {};
 
-        public visitProgram = (ctx:ProgramContext)=> {
-            ctx.fact().forEach(factCtx => this.visitFact(factCtx));// Visit each fact (sentence) under program
-            return this.records;
-        };
-        public visitFact = (ctx:FactContext)=> {
-            // Collect tokens in this fact
-            const tokens = tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-            const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
-            console.log('Tokens for fact:',tokenDebug);
-            const { predicate, atoms } = extractFactData(tokens);
+    public visitProgram = (ctx:ProgramContext)=> {
+        ctx.fact().forEach(factCtx => this.visitFact(factCtx));// Visit each fact (sentence) under program
+        return this.records;
+    };
+    public visitFact = (ctx:FactContext)=> {
+        // Collect tokens in this fact
+        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
+        console.log('Tokens for fact:',tokenDebug);
+        const { predicate, atoms } = StructBuilder.buildFactData(tokens);
 
-            if (!predicate || atoms.length === 0) {
-                throw new Error("Each fact must have exactly one predicate and at least one atom.");
-            }
-            if (!this.records[predicate]) {
-                this.records[predicate] = new Rec([]);
-            }
-            this.records[predicate].add(atoms);
-            atoms.forEach(atom => this.records[predicate].members.add(atom));
-        };
-    }
-    const visitor = new MyDSLVisitor();
-    const resultRecords = visitor.visit(tree);
-    console.log('Results: ',resultRecords);
+        if (!predicate || atoms.length === 0) {
+            throw new Error("Each fact must have exactly one predicate and at least one atom.");
+        }
+        if (!this.records[predicate]) {
+            this.records[predicate] = new Rec([]);
+        }
+        this.records[predicate].add(atoms);
+        atoms.forEach(atom => this.records[predicate].members.add(atom));
+    };
+}
+export function genStruct(input:string):Record<string,Rec> {
+    Essentials.loadEssentials(input);
+    const visitor = new CustomVisitor();
+    visitor.visit(Essentials.tree);
+    console.log('Results: ',visitor.records);
+    return visitor.records;
 }

@@ -48,11 +48,11 @@ export class Rec<T extends Facts = Facts> {
     }
 }
 export class Doc {//I named it Doc instead of Document to avoid ambiguity with the default Document class which is for the DOM
-    public records:Records;
+    public records:Record<string,Rec>;
     public static wildCard = Symbol('*');//i placed it behind a symbol to avoid collisions
     private factCheckerCache = new LRUCache<string,string>({max:100});
 
-    public constructor(records:Records) {
+    public constructor(records:Record<string,Rec>) {
         this.records = records;
     }
     //compare the subject array against the target.
@@ -166,7 +166,7 @@ export class Rules {//i had the rules as a seprate class to decouple it from the
     };
     public static isIndirectFriend:RecursiveRule<[string,string]> = (doc,statement,visitedCombinations)=> {
         const [X,Y] = statement;
-        const candidates = doc.genCandidates(1,doc.records.friends,statement,visitedCombinations);
+        const candidates = doc.genCandidates<string[],1>(1,doc.records.friends,statement,visitedCombinations);
         for (const [A] of candidates) {
             if (Rules.isDirectFriend(doc,[X,A])) {
                 if (Rules.isDirectFriend(doc,[A,Y]) || Rules.isIndirectFriend(doc,[A,Y],visitedCombinations)) {
