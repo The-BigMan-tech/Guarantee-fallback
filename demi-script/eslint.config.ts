@@ -76,19 +76,18 @@ const config = tsEslint.config(
                 },
                 {
                     "selector": "classProperty",
-                    "format": ["camelCase"]
+                    "format": ["camelCase"],
                 },
                 {
                     "selector": "classProperty",
                     "modifiers": ["readonly"],
                     "format": ["UPPER_CASE"],
-                    "leadingUnderscore": "allow"
                 },
                 {
-                    "selector": "memberLike",
+                    "selector": "classProperty",
                     "modifiers": ["private"],
-                    "format": ["camelCase"],
-                    "leadingUnderscore": "require"
+                    "format": ["camelCase","UPPER_CASE"],
+                    "leadingUnderscore": "allow"
                 },
             ]   
         }
