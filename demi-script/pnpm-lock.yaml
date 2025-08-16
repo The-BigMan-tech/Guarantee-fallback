@@ -41,6 +41,9 @@ importers:
       heap-js:
         specifier: ^2.6.0
         version: 2.6.0
+      json-colorizer:
+        specifier: ^3.0.1
+        version: 3.0.1
       lru-cache:
         specifier: ^11.1.0
         version: 11.1.0
@@ -725,6 +728,9 @@ packages:
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
 
+  colorette@2.0.20:
+    resolution: {integrity: sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==}
+
   combinatorial-generators@1.1.2:
     resolution: {integrity: sha512-3dMye87xRejFz2ZySj1TMIBavMy792v0Dnwzjn8kuxN1tTPKA7Joh3V8i5UyxWJOCmKygSVSClJUeAh6+Cy+1g==}
 
@@ -1230,6 +1236,9 @@ packages:
 
   json-buffer@3.0.1:
     resolution: {integrity: sha512-4bV5BfR2mqfQTJm+V5tPPdf+ZpuhiIvTuAB5g8kcrXOZpTT/QwwVRWBywX1ozr6lEuPdbHxwaJlm9G6mI2sfSQ==}
+
+  json-colorizer@3.0.1:
+    resolution: {integrity: sha512-4YyRAbD6eHeRnJD9vo0zjiU5fyY9QR6T+iYuH5DpO0XPThKWozpD4MaeY/8nLZIkHC3yEQMFLL+6P94E+JekDw==}
 
   json-schema-traverse@0.4.1:
     resolution: {integrity: sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==}
@@ -2354,6 +2363,8 @@ snapshots:
 
   color-name@1.1.4: {}
 
+  colorette@2.0.20: {}
+
   combinatorial-generators@1.1.2: {}
 
   commander@13.1.0: {}
@@ -2984,6 +2995,10 @@ snapshots:
       argparse: 2.0.1
 
   json-buffer@3.0.1: {}
+
+  json-colorizer@3.0.1:
+    dependencies:
+      colorette: 2.0.20
 
   json-schema-traverse@0.4.1: {}
 

@@ -3,6 +3,7 @@ import { DSLParser, FactContext, ProgramContext } from "./generated/DSLParser.js
 import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
 import { Atoms, Rec } from "./fact-checker.js";
+import { colorize } from 'json-colorizer';
 
 class Essentials {
     public static inputStream:CharStream;
@@ -75,6 +76,6 @@ export function genStruct(input:string):Record<string,Rec> {
     Essentials.loadEssentials(input);
     const visitor = new CustomVisitor();
     visitor.visit(Essentials.tree);
-    console.log('Results: ',visitor.records);
+    console.log('Results: ',colorize(visitor.records, { indent: 2 }));
     return visitor.records;
 }

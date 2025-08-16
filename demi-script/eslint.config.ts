@@ -81,8 +81,15 @@ const config = tsEslint.config(
                 {
                     "selector": "classProperty",
                     "modifiers": ["readonly"],
-                    "format": ["UPPER_CASE"]
-                }
+                    "format": ["UPPER_CASE"],
+                    "leadingUnderscore": "allow"
+                },
+                {
+                    "selector": "memberLike",
+                    "modifiers": ["private"],
+                    "format": ["camelCase"],
+                    "leadingUnderscore": "require"
+                },
             ]   
         }
     },

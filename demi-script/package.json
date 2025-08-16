@@ -22,7 +22,7 @@
     "lint:src": "eslint \"src/**/*.{ts,tsx,js}\" \"tests/**/*.{ts,tsx,js}\"",
     "lint:watch": "pnpm run watch:src --exec \"pnpm run lint:src\"",
     "lint:fix": "pnpm run lint:src --fix",
-    "grammar:gen":"antlr-ng -Dlanguage=TypeScript -v -o src/generated/ src/grammars/DSL.g4",
+    "grammar:gen": "antlr-ng -Dlanguage=TypeScript -v -o src/generated/ src/grammars/DSL.g4",
     "grammar:watch": "nodemon --watch src/grammars --ext g4 --exec \"pnpm run grammar:gen\""
   },
   "files": [
@@ -51,7 +51,6 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "commander": "^14.0.0",
     "@lezer/common": "^1.2.3",
     "@lezer/generator": "^1.8.0",
     "@lezer/javascript": "^1.5.1",
@@ -60,8 +59,10 @@
     "antlr-ng": "^1.0.10",
     "antlr4ng": "^3.0.16",
     "combinatorial-generators": "^1.1.2",
+    "commander": "^14.0.0",
     "deep-equal": "^2.2.3",
     "heap-js": "^2.6.0",
+    "json-colorizer": "^3.0.1",
     "lru-cache": "^11.1.0",
     "safe-stable-stringify": "^2.5.0",
     "uuid": "^11.1.0"

@@ -1,5 +1,5 @@
 export class UniqueList<T> {
-    private _set: Set<T>; // Hash Set for uniqueness
+    private readonly _set: Set<T>; // Hash Set for uniqueness
     private array: T[];   // Dynamic Array to access last element
     private indexMap: Map<T, number>;//a map to keep track of indexes for efficient deleteion
 
@@ -45,7 +45,7 @@ export class UniqueList<T> {
     public get set():Set<T> {
         return this._set;
     }
-    public get length() {
+    public get length():number {
         return this.array.length;
     }
 }
