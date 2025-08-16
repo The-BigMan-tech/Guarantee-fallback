@@ -2248,3 +2248,9 @@ Turbopack
 *It does not dynamically infer and restrict the mutate array from coverage at runtime by default.
 *Coverage analysis limits test execution on mutants, but mutants are generated for all files listed in mutate.
 
+*i made my compile watch command to first do a full compile before proceeding to watching because watch compile only  compiles files that have changed but at the time of running it initally,nothing is detected so files wont compile as they should:.so i did this  "scripts": {
+*"compile:full": "swc ./src -d build",
+*"compile:watch": "pnpm run compile:full && jiti ./watch-compile.ts",.
+
+*use path.join() for platform independent path joining
+*use the path and fs module and its methods for platform independent path and disk io

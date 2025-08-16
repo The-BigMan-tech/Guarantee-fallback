@@ -33,12 +33,18 @@ export class Rec<T extends Facts = Facts> {
 
     public constructor(facts:T) {
         for (const atoms of facts) {
-            const uniqueAtoms:UniqueAtoms = new UniqueList(atoms);
-            this.container.push(uniqueAtoms);
-            for (const member of uniqueAtoms.list) {
-                this.members.add(member);
-            }
+            this.build(atoms);
         }
+    }
+    public build(atoms:Atoms):void {
+        const uniqueAtoms:UniqueAtoms = new UniqueList(atoms);
+        this.container.push(uniqueAtoms);
+        for (const member of uniqueAtoms.list) {
+            this.members.add(member);
+        }
+    }
+    public add(atoms:Atoms):void {
+        this.build(atoms);
     }
 }
 export class Doc {//I named it Doc instead of Document to avoid ambiguity with the default Document class which is for the DOM

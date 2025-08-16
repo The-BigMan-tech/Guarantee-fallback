@@ -45,6 +45,7 @@ const config = tsEslint.config(
         rules: {
             "@typescript-eslint/explicit-function-return-type": "warn",
             "@typescript-eslint/no-non-null-assertion": "off",
+            '@typescript-eslint/no-explicit-any': 'off',
             "@typescript-eslint/no-extraneous-class": [
                 "warn", { 
                     "allowStaticOnly": true 

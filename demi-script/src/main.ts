@@ -1,4 +1,8 @@
-import { runExamples } from "./examples.ts";
+// import { runExamples } from "./examples.js";
+// runExamples();
 
-runExamples();
+import { runAnalyzer } from "./analyzer.js";
+runAnalyzer();
+
+
 

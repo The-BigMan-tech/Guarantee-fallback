@@ -7,7 +7,7 @@
   "description": "A TypeScript library project scaffold providing ready-to-use build and debug tooling",
   "scripts": {
     "compile:full": "pnpm exec swc ./src -d build",
-    "compile:watch": "jiti ./watch-compile.ts",
+    "compile:watch": "pnpm run compile:full && jiti ./watch-compile.ts",
     "bundle": "rollup -c",
     "clean:intermediateBundle": "powershell -Command \"Remove-Item -Path dist\\bundle.js,dist\\bundle.js.map -Force\"",
     "clean:build": "powershell -Command \"Remove-Item -Path build\\* -Recurse -Force; Remove-Item -Path dist\\* -Recurse -Force\"",
