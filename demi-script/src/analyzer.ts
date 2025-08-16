@@ -1,15 +1,16 @@
-import { CharStream, CommonTokenStream } from "antlr4ng";
-import { DSLParser, FactContext, ProgramContext, TokenContext} from "./generated/DSLParser.js";
+import { CharStream, CommonTokenStream, Token } from "antlr4ng";
+import { DSLParser, FactContext, ProgramContext } from "./generated/DSLParser.js";
 import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
 import { Atoms, Rec } from "./fact-checker.js";
 
 
+
 export function runAnalyzer():void {
     // The input DSL text to parse
     const input = `
-      'ada' *friends and 'peter'.
-      'cole' is *male.
+      'ada' and 'peter' are *friends.
+      'cole' is a *male.
     `;
 
     const inputStream = CharStream.fromString(input);
@@ -19,13 +20,13 @@ export function runAnalyzer():void {
     const tree = parser.program();
 
     // Helper to remove fillers, extract atoms and predicates from tokens in a fact
-    function extractFactData(tokens:TokenContext[]):{predicate: string;atoms:Atoms} {
+    function extractFactData(tokens:Token[]):{predicate: string;atoms:Atoms} {
         const atoms: string[] = [];
         let predicate = "";
         
         tokens.forEach((token) => {
-            const text = token.getText();
-            const type = token.;
+            const text = token.text!;
+            const type = token.type;
             
             if (type === DSLLexer.PREDICATE) {
                 predicate = text.slice(1); // Remove the leading '*'
@@ -37,11 +38,11 @@ export function runAnalyzer():void {
         });
         return { predicate, atoms };
     }
-    function stripQuotes(str: string): string {
-        if (str.startsWith("'") && str.endsWith("'")) {
-            return str.slice(1, -1);
+    function stripQuotes<T>(value:T):string | T {
+        if (typeof value === "string") {
+            return value.slice(1, -1);
         }
-        return str;
+        return value;
     }
 
     class MyDSLVisitor extends DSLVisitor<void> {
@@ -54,7 +55,9 @@ export function runAnalyzer():void {
         };
         public visitFact = (ctx:FactContext)=> {
             // Collect tokens in this fact
-            const tokens = ctx.sentence().token();
+            const tokens = tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+            const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
+            console.log('Tokens for fact:',tokenDebug);
             const { predicate, atoms } = extractFactData(tokens);
 
             if (!predicate || atoms.length === 0) {
