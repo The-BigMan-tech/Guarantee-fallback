@@ -3,20 +3,26 @@ grammar DSL;
 fragment LETTER: [a-zA-Z];
 fragment DIGIT: [0-9];
 fragment LIST: '[' (ATOM (',' ATOM)*)? ']';
+
+
 // The entry point: a list of facts (simple sentences) terminated by full stops.
-program: fact+ EOF;
+program: (fact)+ EOF;
 
 // A fact consists of multiple tokens containing exactly one predicate and atoms interspersed with fillers.
 fact
     : sentence TERMINATOR
     ;
 
+// aliasDeclaration
+//     : LET ALIAS '=' PREDICATE TERMINATOR
+//     ;
+
+// LET: 'let';
+
+
 // A sentence is a sequence of tokens containing exactly one predicate with atoms and fillers around it.
 sentence
     : token+ 
-        {
-          // Action placeholder: Validate exactly one predicate and parse atoms/predicate into structure
-        }
     ;
 
 // Tokens can be atoms, predicates, aliases or fillers.
@@ -44,11 +50,6 @@ ALIAS
     : '#' IDENTIFIER
     ;
 
-// Fillers are any plain words that do not start with *, #, or quotes and are NOT numbers.
-FILLER
-    : (LETTER | '_') (LETTER | DIGIT | '_')*
-    ;
-
 // String literal supporting single quotes as per your example
 STRING_LITERAL
     : '\'' (~['\\] | '\\' .)* '\''
@@ -58,12 +59,15 @@ STRING_LITERAL
 NUMBER
     : '-'? DIGIT+ ('.' DIGIT+)?
     ;
+// Fillers are any plain words that do not start with *, #, or quotes and are NOT numbers.
+FILLER//the filler must be defined before the identifier
+    : (LETTER | '_') (LETTER | DIGIT | '_')*
+    ;
 
 // Identifier for predicates and aliases
 IDENTIFIER
     : LETTER (LETTER | DIGIT | '_')*
     ;
-
 // Full stop terminates a fact
 TERMINATOR
     : '.'
