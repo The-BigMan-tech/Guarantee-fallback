@@ -4,6 +4,7 @@ import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
 import { Atoms, Rec } from "./fact-checker.js";
 import { colorize } from 'json-colorizer';
+import stringify from "safe-stable-stringify";
 
 class Essentials {
     public static inputStream:CharStream;
@@ -69,13 +70,12 @@ class CustomVisitor extends DSLVisitor<void> {
             this.records[predicate] = new Rec([]);
         }
         this.records[predicate].add(atoms);
-        atoms.forEach(atom => this.records[predicate].members.add(atom));
     };
 }
 export function genStruct(input:string):Record<string,Rec> {
     Essentials.loadEssentials(input);
     const visitor = new CustomVisitor();
     visitor.visit(Essentials.tree);
-    console.log('Results: ',colorize(visitor.records, { indent: 2 }));
+    console.log('Results: ',colorize(stringify(visitor.records,null,2)));
     return visitor.records;
 }
