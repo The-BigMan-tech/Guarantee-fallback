@@ -40,6 +40,7 @@ class StructBuilder {
         });
         return { predicate, atoms };
     }
+
     private static stripQuotes(value:string):string  {
         if (value.startsWith(":")) {
             return value.slice(1);
