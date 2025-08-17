@@ -2255,4 +2255,23 @@ Turbopack
 *use path.join() for platform independent path joining
 *use the path and fs module and its methods for platform independent path and disk io
 
+
+^Useful notes on grammar files
 * In ANTLR grammars, broader lexer rules like your FILLER must be placed last among lexer rules because ANTLR matches tokens by trying lexer rules in the order they are defined, and takes the first matching rule.
+
+*Uppercase names (e.g., ATOM, PREDICATE, NUMBER) are lexer tokens: atomic sequences matched directly to input.
+
+*Lowercase names (e.g., list, atom, sentence) are parser rules: they describe how tokens combine.
+
+*Fragments are helper lexer rules (lowercase or uppercase) used internally to build tokens, never produce tokens themselves.They are lexer rules that dont get included in the final stream
+
+*so arrow rules are directives to how the lexer should handle the token when building the token stream
+
+*You cannot have a list as a lexer token because of how lexers and parsers fundamentally work in ANTLR and most parsing frameworks:
+*Lexer tokens must match contiguous character sequences without internal token structure.
+*A lexer token is a flat sequence of characters produced by applying patterns (regular expressions) to the input.
+*A list like [ :ben, :leo ] contains multiple meaningful elements (:ben, comma, :leo) separated by delimiters and the whole needs to be interpreted structurally.
+*This structure requires nested parsing that tokens alone cannot represent.
+
+^----
+
