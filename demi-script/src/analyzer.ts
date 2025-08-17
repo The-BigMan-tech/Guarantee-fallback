@@ -41,8 +41,8 @@ class StructBuilder {
         return { predicate, atoms };
     }
     private static stripQuotes(value:string):string  {
-        if (value.startsWith("'") || value.endsWith("'") || value.startsWith('"') || value.startsWith('"')) {
-            return value.slice(1, -1);
+        if (value.startsWith(":")) {
+            return value.slice(1);
         }
         return value;
     }

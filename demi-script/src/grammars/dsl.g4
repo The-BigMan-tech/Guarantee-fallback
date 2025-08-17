@@ -30,42 +30,37 @@ token
     : ATOM
     | PREDICATE
     | ALIAS
-    | FILLER
+    | PLAIN_WORD
     ;
 
 // Atoms are either quoted strings, numbers, or list of numbers/strings.
 ATOM
-    : STRING_LITERAL
+    : NAME
     | NUMBER
     | LIST
     ;
 
 // Predicate tokens start with '*', followed by an identifier (no whitespace allowed inside).
 PREDICATE
-    : '*' IDENTIFIER
+    : '*' PLAIN_WORD
     ;
 
 // Aliases start with '#', followed by an identifier.
 ALIAS
-    : '#' IDENTIFIER
+    : '#' PLAIN_WORD
     ;
 
 // String literal supporting single quotes as per your example
-STRING_LITERAL
-    : '\'' (~['\\] | '\\' .)* '\''
+NAME
+    : ':' PLAIN_WORD
     ;
 
 // Number: integers or decimals (optional minus sign)
 NUMBER
     : '-'? DIGIT+ ('.' DIGIT+)?
     ;
-// Fillers are any plain words that do not start with *, #, or quotes and are NOT numbers.
-FILLER//the filler must be defined before the identifier
-    : (LETTER | '_') (LETTER | DIGIT | '_')*
-    ;
-
 // Identifier for predicates and aliases
-IDENTIFIER
+PLAIN_WORD
     : LETTER (LETTER | DIGIT | '_')*
     ;
 // Full stop terminates a fact

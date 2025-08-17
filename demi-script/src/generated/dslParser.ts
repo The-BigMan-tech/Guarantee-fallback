@@ -16,13 +16,12 @@ export class DSLParser extends antlr.Parser {
     public static readonly ATOM = 3;
     public static readonly PREDICATE = 4;
     public static readonly ALIAS = 5;
-    public static readonly STRING_LITERAL = 6;
+    public static readonly NAME = 6;
     public static readonly NUMBER = 7;
-    public static readonly FILLER = 8;
-    public static readonly IDENTIFIER = 9;
-    public static readonly TERMINATOR = 10;
-    public static readonly WS = 11;
-    public static readonly COMMENT = 12;
+    public static readonly PLAIN_WORD = 8;
+    public static readonly TERMINATOR = 9;
+    public static readonly WS = 10;
+    public static readonly COMMENT = 11;
     public static readonly RULE_program = 0;
     public static readonly RULE_fact = 1;
     public static readonly RULE_aliasDeclaration = 2;
@@ -30,13 +29,12 @@ export class DSLParser extends antlr.Parser {
     public static readonly RULE_token = 4;
 
     public static readonly literalNames = [
-        null, "'='", "'let'", null, null, null, null, null, null, null, 
-        "'.'"
+        null, "'='", "'let'", null, null, null, null, null, null, "'.'"
     ];
 
     public static readonly symbolicNames = [
-        null, null, "LET", "ATOM", "PREDICATE", "ALIAS", "STRING_LITERAL", 
-        "NUMBER", "FILLER", "IDENTIFIER", "TERMINATOR", "WS", "COMMENT"
+        null, null, "LET", "ATOM", "PREDICATE", "ALIAS", "NAME", "NUMBER", 
+        "PLAIN_WORD", "TERMINATOR", "WS", "COMMENT"
     ];
     public static readonly ruleNames = [
         "program", "fact", "aliasDeclaration", "sentence", "token",
@@ -74,7 +72,7 @@ export class DSLParser extends antlr.Parser {
                 case DSLParser.ATOM:
                 case DSLParser.PREDICATE:
                 case DSLParser.ALIAS:
-                case DSLParser.FILLER:
+                case DSLParser.PLAIN_WORD:
                     {
                     this.state = 10;
                     this.fact();
@@ -236,17 +234,17 @@ export class DSLParser extends antlr.Parser {
     }
 
     public static readonly _serializedATN: number[] = [
-        4,1,12,35,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,1,0,1,0,4,0,13,
+        4,1,11,35,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,1,0,1,0,4,0,13,
         8,0,11,0,12,0,14,1,0,1,0,1,1,1,1,1,1,1,2,1,2,1,2,1,2,1,2,1,2,1,3,
         4,3,29,8,3,11,3,12,3,30,1,4,1,4,1,4,0,0,5,0,2,4,6,8,0,1,2,0,3,5,
         8,8,32,0,12,1,0,0,0,2,18,1,0,0,0,4,21,1,0,0,0,6,28,1,0,0,0,8,32,
         1,0,0,0,10,13,3,2,1,0,11,13,3,4,2,0,12,10,1,0,0,0,12,11,1,0,0,0,
         13,14,1,0,0,0,14,12,1,0,0,0,14,15,1,0,0,0,15,16,1,0,0,0,16,17,5,
-        0,0,1,17,1,1,0,0,0,18,19,3,6,3,0,19,20,5,10,0,0,20,3,1,0,0,0,21,
-        22,5,2,0,0,22,23,5,5,0,0,23,24,5,1,0,0,24,25,5,4,0,0,25,26,5,10,
-        0,0,26,5,1,0,0,0,27,29,3,8,4,0,28,27,1,0,0,0,29,30,1,0,0,0,30,28,
-        1,0,0,0,30,31,1,0,0,0,31,7,1,0,0,0,32,33,7,0,0,0,33,9,1,0,0,0,3,
-        12,14,30
+        0,0,1,17,1,1,0,0,0,18,19,3,6,3,0,19,20,5,9,0,0,20,3,1,0,0,0,21,22,
+        5,2,0,0,22,23,5,5,0,0,23,24,5,1,0,0,24,25,5,4,0,0,25,26,5,9,0,0,
+        26,5,1,0,0,0,27,29,3,8,4,0,28,27,1,0,0,0,29,30,1,0,0,0,30,28,1,0,
+        0,0,30,31,1,0,0,0,31,7,1,0,0,0,32,33,7,0,0,0,33,9,1,0,0,0,3,12,14,
+        30
     ];
 
     private static __ATN: antlr.ATN;
@@ -437,8 +435,8 @@ export class TokenContext extends antlr.ParserRuleContext {
     public ALIAS(): antlr.TerminalNode | null {
         return this.getToken(DSLParser.ALIAS, 0);
     }
-    public FILLER(): antlr.TerminalNode | null {
-        return this.getToken(DSLParser.FILLER, 0);
+    public PLAIN_WORD(): antlr.TerminalNode | null {
+        return this.getToken(DSLParser.PLAIN_WORD, 0);
     }
     public override get ruleIndex(): number {
         return DSLParser.RULE_token;

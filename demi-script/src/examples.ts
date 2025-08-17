@@ -76,23 +76,22 @@ export function runExamples():void {
     //DSL form
     const facts = `
         let #allies = *friends.
-        'ada' and 'ben' are *friends.
-        
-        let #enemies = *friends.
-        'ben' and 'zane' are *friends.
-        'zane' and 'cole' are *friends.
-        'cole','matt' and 'jane' are *friends.
-        'matt' and 'john' are *friends.
 
-        'ben'  is a *male.
-        'john' is a *male.
-        'matt' is a *male.
+        :ada and :ben are *friends.
+        :ben and :zane are *friends.
+        :zane and :cole are *friends.
+        :cole, :matt and :jane are *friends.
+        :matt and :john are *friends.
 
-        'leo' is the *parent of 'ben'.
-        'leo' is the *parent of 'john'.
-        'leo' is the *parent of 'matt'.
+        :ben  is a *male.
+        :john is a *male.
+        :matt is a *male.
 
-        'ada' *eats 'meat' and 'pork'.
+        :leo is the *parent of :ben.
+        :leo is the *parent of :john.
+        :leo is the *parent of :matt.
+
+        :ada *eats :meat and :pork.
     `;
     const doc = new Doc(genStruct(facts));
     // const doc = new Doc(recordsWithAliases);
