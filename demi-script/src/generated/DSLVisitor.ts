@@ -4,6 +4,7 @@ import { AbstractParseTreeVisitor } from "antlr4ng";
 
 import { ProgramContext } from "./DSLParser.js";
 import { FactContext } from "./DSLParser.js";
+import { AliasDeclarationContext } from "./DSLParser.js";
 import { SentenceContext } from "./DSLParser.js";
 import { TokenContext } from "./DSLParser.js";
 
@@ -28,6 +29,12 @@ export class DSLVisitor<Result> extends AbstractParseTreeVisitor<Result> {
      * @return the visitor result
      */
     visitFact?: (ctx: FactContext) => Result;
+    /**
+     * Visit a parse tree produced by `DSLParser.aliasDeclaration`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitAliasDeclaration?: (ctx: AliasDeclarationContext) => Result;
     /**
      * Visit a parse tree produced by `DSLParser.sentence`.
      * @param ctx the parse tree

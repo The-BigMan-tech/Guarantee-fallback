@@ -1,5 +1,5 @@
 import { CharStream, CommonTokenStream, Token } from "antlr4ng";
-import { DSLParser, FactContext, ProgramContext } from "./generated/DSLParser.js";
+import { AliasDeclarationContext,DSLParser, FactContext, ProgramContext } from "./generated/DSLParser.js";
 import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
 import { Atoms, Rec } from "./fact-checker.js";
@@ -53,15 +53,20 @@ class CustomVisitor extends DSLVisitor<void> {
     public records:Record<string,Rec> = {};
 
     public visitProgram = (ctx:ProgramContext)=> {
-        ctx.fact().forEach(factCtx => this.visitFact(factCtx));// Visit each fact (sentence) under program
+        for (const child of ctx.children) {
+            if (child instanceof FactContext) {
+                this.visitFact(child);
+            } else if (child instanceof AliasDeclarationContext) {
+                //
+            }
+        }
         return this.records;
     };
     public visitFact = (ctx:FactContext)=> {
-        // Collect tokens in this fact
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
-        console.log('Tokens for fact:',tokenDebug);
         const { predicate, atoms } = StructBuilder.buildFactData(tokens);
+        console.log('Tokens for fact:',tokenDebug);
 
         if (!predicate || atoms.length === 0) {
             throw new Error("Each fact must have exactly one predicate and at least one atom.");

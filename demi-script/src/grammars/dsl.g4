@@ -6,18 +6,18 @@ fragment LIST: '[' (ATOM (',' ATOM)*)? ']';
 
 
 // The entry point: a list of facts (simple sentences) terminated by full stops.
-program: (fact)+ EOF;
+program: (fact | aliasDeclaration)+ EOF;
 
 // A fact consists of multiple tokens containing exactly one predicate and atoms interspersed with fillers.
 fact
     : sentence TERMINATOR
     ;
 
-// aliasDeclaration
-//     : LET ALIAS '=' PREDICATE TERMINATOR
-//     ;
+aliasDeclaration
+    : LET ALIAS '=' PREDICATE TERMINATOR
+    ;
 
-// LET: 'let';
+LET: 'let';
 
 
 // A sentence is a sequence of tokens containing exactly one predicate with atoms and fillers around it.

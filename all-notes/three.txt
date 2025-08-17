@@ -2254,3 +2254,5 @@ Turbopack
 
 *use path.join() for platform independent path joining
 *use the path and fs module and its methods for platform independent path and disk io
+
+* In ANTLR grammars, broader lexer rules like your FILLER must be placed last among lexer rules because ANTLR matches tokens by trying lexer rules in the order they are defined, and takes the first matching rule.

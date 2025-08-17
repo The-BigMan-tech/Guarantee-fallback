@@ -75,13 +75,16 @@ export function runExamples():void {
     };
     //DSL form
     const facts = `
+        let #allies = *friends.
         'ada' and 'ben' are *friends.
+        
+        let #enemies = *friends.
         'ben' and 'zane' are *friends.
         'zane' and 'cole' are *friends.
         'cole','matt' and 'jane' are *friends.
         'matt' and 'john' are *friends.
 
-        'ben' is a *male.
+        'ben'  is a *male.
         'john' is a *male.
         'matt' is a *male.
 

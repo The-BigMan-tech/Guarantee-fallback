@@ -4,6 +4,7 @@ import { ErrorNode, ParseTreeListener, ParserRuleContext, TerminalNode } from "a
 
 import { ProgramContext } from "./DSLParser.js";
 import { FactContext } from "./DSLParser.js";
+import { AliasDeclarationContext } from "./DSLParser.js";
 import { SentenceContext } from "./DSLParser.js";
 import { TokenContext } from "./DSLParser.js";
 
@@ -33,6 +34,16 @@ export class DSLListener implements ParseTreeListener {
      * @param ctx the parse tree
      */
     exitFact?: (ctx: FactContext) => void;
+    /**
+     * Enter a parse tree produced by `DSLParser.aliasDeclaration`.
+     * @param ctx the parse tree
+     */
+    enterAliasDeclaration?: (ctx: AliasDeclarationContext) => void;
+    /**
+     * Exit a parse tree produced by `DSLParser.aliasDeclaration`.
+     * @param ctx the parse tree
+     */
+    exitAliasDeclaration?: (ctx: AliasDeclarationContext) => void;
     /**
      * Enter a parse tree produced by `DSLParser.sentence`.
      * @param ctx the parse tree
