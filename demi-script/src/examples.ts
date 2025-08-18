@@ -47,7 +47,19 @@ export class Rules {//i had the rules as a seprate class to decouple it from the
 }
 export function runExamples():void {
     //Data structure form
-    const records:Record<string,Rec> = {
+    type Friends = string[];
+    type Male = [string];
+    type ParentToChild = [string,string];
+    type Eats = string[];
+
+    interface Records {
+        friends:Rec<Friends[]>//a predicate of two elements
+        male:Rec<Male[]>,
+        parent:Rec<ParentToChild[]>,
+        eats:Rec<Eats[]>,
+        friend?:Rec<Friends[]>//this is an alias to friends so its optional
+    }
+    const records:Records = {
         friends:new Rec([
             ['ada','ben'],
             ['ben','zane'],
@@ -77,12 +89,12 @@ export function runExamples():void {
     const facts = `
         let friend = *friends.
 
-        :ada and :peter are *friends.
-        :peter is :cole's #friend.
-        :ada is *friends with [:jane ,:john ,:boy].
+        *friends.
+        :ada is *friends with [:jane ,:john ,:boy,[:zane,:cole]].
+        :ada *eats :meat.
     `;
     const doc = new Doc(genStruct(facts));
-    console.log('are they friends: ',Rules.areFriends(doc,['ada','cole']));
+    console.log('are they friends: ',Rules.areFriends(doc,['zane','cole']));
     // console.log(Rules.areBrothers(doc,['ben','ben']));
 
     //this gets all the facts that answers what the widcard can be

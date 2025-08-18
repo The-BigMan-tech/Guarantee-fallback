@@ -5,7 +5,7 @@ import {v4 as uniqueID} from "uuid";
 import { AddUnionToElements,Tuple } from "./type-helper.js";
 import {stringify} from "safe-stable-stringify";
 
-type Atom = string | number | Atom[];
+export type Atom = string | number;
 export type Atoms = Atom[];
 type PatternedAtoms = AddUnionToElements<Atoms,typeof Doc.wildCard>
 type UniqueAtoms = UniqueList<Atom>
@@ -14,18 +14,7 @@ export type Facts = (Atom[])[];//i typed it like this over Atoms[] is to prevent
 export type Rule<T extends Atoms> = (doc:Doc,statement:T)=>boolean;
 export type RecursiveRule<T extends Atoms> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
 
-type Friends = string[];
-type Male = [string];
-type ParentToChild = [string,string];
-type Eats = string[];
 
-export interface Records {
-    friends:Rec<Friends[]>//a predicate of two elements
-    male:Rec<Male[]>,
-    parent:Rec<ParentToChild[]>,
-    eats:Rec<Eats[]>,
-    allies?:Rec<Friends[]>//this is an alias to friends so its optional
-}
 export class Rec<T extends Facts = Facts> {
     public members:UniqueAtoms = new UniqueList();//i used a unique list to prevent duplicate entries which prevents the number of iterations when testing for a fact against an arbitrary member.its a list but uses a set to ensure that elements are unique which allows me to benefit from list iteration and uniqueness at the same time.I also localized this structure to per fact to only test against arbotrary members that are atually involved in a fact
     public container:UniqueAtoms[] = [];

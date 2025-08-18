@@ -8,6 +8,7 @@ import stringify from "safe-stable-stringify";
 import Denque from "denque";
 import { cartesianProduct } from "combinatorial-generators";
 
+//todo:Make the fuctions more typesafe by replacing all the type shortcuts i made with the any type to concrete ones.and also try to make the predicates typed instead of dynamically sized arrays of either string or number.This has to be done in the dsl if possible.
 function printTokens(tokens:Token[]):void {
     const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
     console.log('\n Tokens:',tokenDebug);
@@ -39,9 +40,7 @@ class CustomVisitor extends DSLVisitor<void> {
         for (const product of cartesianProduct(...input)) {
             if (product.some(value=>value instanceof Array)) {
                 const boxedProduct = product.map(value=>{
-                    if (!(value instanceof Array)) {
-                        return [value];
-                    }
+                    if (!(value instanceof Array)) return [value];
                     return value;
                 });
                 this.flattenRecursively(boxedProduct,flatSequences);
@@ -123,7 +122,7 @@ class CustomVisitor extends DSLVisitor<void> {
         }
     }
     private extractLists(tokens:Denque<Token>) {
-        const parts:Atoms[] = [];
+        const parts:any[] = [];
         const list = [];
         let inList:boolean = false;
 

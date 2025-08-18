@@ -22,9 +22,9 @@ export class DSLParser extends antlr.Parser {
     public static readonly EXCLAMATION = 9;
     public static readonly APOSTROPHE = 10;
     public static readonly EQUALS = 11;
-    public static readonly ATOM = 12;
-    public static readonly LET = 13;
-    public static readonly TERMINATOR = 14;
+    public static readonly LET = 12;
+    public static readonly TERMINATOR = 13;
+    public static readonly ATOM = 14;
     public static readonly PREDICATE = 15;
     public static readonly ALIAS = 16;
     public static readonly NAME = 17;
@@ -41,13 +41,13 @@ export class DSLParser extends antlr.Parser {
 
     public static readonly literalNames = [
         null, "','", "':'", "'('", "')'", "'['", "']'", "';'", "'?'", "'!'", 
-        "'''", "'='", null, "'let'", "'.'"
+        "'''", "'='", "'let'", "'.'"
     ];
 
     public static readonly symbolicNames = [
         null, "COMMA", "COLON", "LPAREN", "RPAREN", "LSQUARE", "RSQUARE", 
         "SEMICOLON", "QUESTION", "EXCLAMATION", "APOSTROPHE", "EQUALS", 
-        "ATOM", "LET", "TERMINATOR", "PREDICATE", "ALIAS", "NAME", "NUMBER", 
+        "LET", "TERMINATOR", "ATOM", "PREDICATE", "ALIAS", "NAME", "NUMBER", 
         "PLAIN_WORD", "WS", "COMMENT"
     ];
     public static readonly ruleNames = [
@@ -115,7 +115,7 @@ export class DSLParser extends antlr.Parser {
                 this.state = 16;
                 this.errorHandler.sync(this);
                 _la = this.tokenStream.LA(1);
-            } while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 636926) !== 0));
+            } while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 645118) !== 0));
             this.state = 18;
             this.match(DSLParser.EOF);
             }
@@ -209,7 +209,7 @@ export class DSLParser extends antlr.Parser {
                 this.state = 32;
                 this.errorHandler.sync(this);
                 _la = this.tokenStream.LA(1);
-            } while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 628734) !== 0));
+            } while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 641022) !== 0));
             }
         }
         catch (re) {
@@ -309,7 +309,7 @@ export class DSLParser extends antlr.Parser {
             this.state = 51;
             this.errorHandler.sync(this);
             _la = this.tokenStream.LA(1);
-            if (_la === 12) {
+            if (_la === 14) {
                 {
                 this.state = 43;
                 this.match(DSLParser.ATOM);
@@ -359,13 +359,13 @@ export class DSLParser extends antlr.Parser {
         0,4,23,1,0,0,0,6,30,1,0,0,0,8,40,1,0,0,0,10,42,1,0,0,0,12,15,3,2,
         1,0,13,15,3,4,2,0,14,12,1,0,0,0,14,13,1,0,0,0,15,16,1,0,0,0,16,14,
         1,0,0,0,16,17,1,0,0,0,17,18,1,0,0,0,18,19,5,0,0,1,19,1,1,0,0,0,20,
-        21,3,6,3,0,21,22,5,14,0,0,22,3,1,0,0,0,23,24,5,13,0,0,24,25,5,19,
-        0,0,25,26,5,11,0,0,26,27,5,15,0,0,27,28,5,14,0,0,28,5,1,0,0,0,29,
+        21,3,6,3,0,21,22,5,13,0,0,22,3,1,0,0,0,23,24,5,12,0,0,24,25,5,19,
+        0,0,25,26,5,11,0,0,26,27,5,15,0,0,27,28,5,13,0,0,28,5,1,0,0,0,29,
         31,3,8,4,0,30,29,1,0,0,0,31,32,1,0,0,0,32,30,1,0,0,0,32,33,1,0,0,
-        0,33,7,1,0,0,0,34,41,5,12,0,0,35,41,3,10,5,0,36,41,5,15,0,0,37,41,
+        0,33,7,1,0,0,0,34,41,5,14,0,0,35,41,3,10,5,0,36,41,5,15,0,0,37,41,
         5,16,0,0,38,41,5,19,0,0,39,41,7,0,0,0,40,34,1,0,0,0,40,35,1,0,0,
         0,40,36,1,0,0,0,40,37,1,0,0,0,40,38,1,0,0,0,40,39,1,0,0,0,41,9,1,
-        0,0,0,42,51,5,5,0,0,43,48,5,12,0,0,44,45,5,1,0,0,45,47,5,12,0,0,
+        0,0,0,42,51,5,5,0,0,43,48,5,14,0,0,44,45,5,1,0,0,45,47,5,14,0,0,
         46,44,1,0,0,0,47,50,1,0,0,0,48,46,1,0,0,0,48,49,1,0,0,0,49,52,1,
         0,0,0,50,48,1,0,0,0,51,43,1,0,0,0,51,52,1,0,0,0,52,53,1,0,0,0,53,
         54,5,6,0,0,54,11,1,0,0,0,6,14,16,32,40,48,51
