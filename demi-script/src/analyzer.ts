@@ -93,22 +93,28 @@ class CustomVisitor extends DSLVisitor<void> {
         }
     }
     private buildFact(tokens:Token[]) {
-        let predicate:string = "";
+        let predicate:string | null = null;
         tokens.forEach(token => {
             const text = token.text!;
             const type = token.type;
             if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS)) {
+                if (predicate !== null) {
+                    throw new Error('You can only have one predicate or alias in a sentence');
+                }
                 this.validatePredicateType(token);
                 predicate = this.stripMark(text);
             }
         });
+        if (predicate === null) {
+            throw new Error("You must include one predicate or alias in the sentence")
+        }
         const groupingData = this.extractLists(new Denque(tokens));
         const flattenedData = this.flattenRecursively(groupingData);
         for (const flatData of flattenedData) {
             const atoms = flatData.map(atom=>atom.startsWith(":")?this.stripMark(atom):atom);
             console.log('flattened atoms: ',stringify(atoms));
-            if (!predicate || atoms.length === 0) {
-                throw new Error("Each fact must have exactly one predicate and at least one atom.");
+            if (atoms.length === 0) {
+                throw new Error("Each fact must have at least one atom in a sentence.");
             }
             if (!this.records[predicate]) {
                 this.records[predicate] = new Rec([]);
