@@ -120,13 +120,11 @@ export function genStruct(input:string):Record<string,Rec> {
 }
 class ListFlattenerVisitor extends DSLVisitor<void> {
     public flattenedSentences = [];
-    public factPartsArrays: string[][][] = []; 
-
     private buildLists(tokens:Denque<Token>) {
         const parts:Atoms[] = [];
         const list = [];
         let inList:boolean = false;
-        let predicate:string = "";
+        let keyword:string = "";
 
         while (tokens.length !== 0) {
             const token = tokens.shift()!;
@@ -138,7 +136,7 @@ class ListFlattenerVisitor extends DSLVisitor<void> {
                 }
                 else if (type === DSLLexer.LSQUARE) {
                     tokens.unshift(token);//to add back the lsquare so that it can enter into the list
-                    list.push(this.buildLists(tokens))
+                    list.push(this.buildLists(tokens).parts)
                 }
                 else if (type === DSLLexer.RSQUARE) {
                     parts.push(structuredClone(list));
@@ -151,22 +149,28 @@ class ListFlattenerVisitor extends DSLVisitor<void> {
             else if (type === DSLLexer.ATOM) {
                 parts.push([text])
             }
+            else if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS)) {
+                if (keyword.length > 0) {
+                    throw new Error('Each fact must exactly have one predicate')
+                }
+                keyword = text;
+            }
         };
-        return parts;
+        return {keyword,parts};
     }
-    visitFact = (ctx: FactContext):Atoms[]=> {
+    visitFact = (ctx: FactContext) => {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         printTokens(tokens);
-        const parts = this.buildLists(new Denque(tokens));
-        console.log('parts: ',stringify(parts));
-        return parts;
+        const partsData = this.buildLists(new Denque(tokens));
+        return partsData;
     };
     public visitProgram = (ctx:ProgramContext)=> {
+        const factPartsArrays = []; 
         for (const child of ctx.children) {
             if (child instanceof FactContext) {
-                this.visitFact(child);
+                factPartsArrays.push(this.visitFact(child));
             }
         }
-        return this.records;
+        console.log('fact parts array: ',stringify(factPartsArrays));
     };
 }
