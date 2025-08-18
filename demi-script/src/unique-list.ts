@@ -49,3 +49,24 @@ export class UniqueList<T> {
         return this.array.length;
     }
 }
+import { cartesianProduct } from "combinatorial-generators";
+
+const input = [[':ada',':mike'], [':zane',':peter',':jane',['h','j']]];
+
+function flattenRecursively(input:any[][],flatSequences:any[][] = []):any[][] {
+    for (const product of cartesianProduct(...input)) {
+        if (product.some(value=>value instanceof Array)) {
+            const boxedProduct = product.map(value=>{
+                if (!(value instanceof Array)) {
+                    return [value];
+                }
+                return value;
+            });
+            flattenRecursively(boxedProduct,flatSequences);
+        }else {
+            flatSequences.push(product);
+        }
+    } 
+    return flatSequences;
+}
+console.log(flattenRecursively(input));

@@ -120,11 +120,10 @@ export function genStruct(input:string):Record<string,Rec> {
 }
 class ListFlattenerVisitor extends DSLVisitor<void> {
     public flattenedSentences = [];
-    private buildLists(tokens:Denque<Token>) {
+    private extractLists(tokens:Denque<Token>) {
         const parts:Atoms[] = [];
         const list = [];
         let inList:boolean = false;
-        let keyword:string = "";
 
         while (tokens.length !== 0) {
             const token = tokens.shift()!;
@@ -136,7 +135,7 @@ class ListFlattenerVisitor extends DSLVisitor<void> {
                 }
                 else if (type === DSLLexer.LSQUARE) {
                     tokens.unshift(token);//to add back the lsquare so that it can enter into the list
-                    list.push(this.buildLists(tokens).parts)
+                    list.push(this.extractLists(tokens))
                 }
                 else if (type === DSLLexer.RSQUARE) {
                     parts.push(structuredClone(list));
@@ -149,19 +148,13 @@ class ListFlattenerVisitor extends DSLVisitor<void> {
             else if (type === DSLLexer.ATOM) {
                 parts.push([text])
             }
-            else if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS)) {
-                if (keyword.length > 0) {
-                    throw new Error('Each fact must exactly have one predicate')
-                }
-                keyword = text;
-            }
         };
-        return {keyword,parts};
+        return parts;
     }
     visitFact = (ctx: FactContext) => {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         printTokens(tokens);
-        const partsData = this.buildLists(new Denque(tokens));
+        const partsData = this.extractLists(new Denque(tokens));
         return partsData;
     };
     public visitProgram = (ctx:ProgramContext)=> {
@@ -169,6 +162,7 @@ class ListFlattenerVisitor extends DSLVisitor<void> {
         for (const child of ctx.children) {
             if (child instanceof FactContext) {
                 factPartsArrays.push(this.visitFact(child));
+                factPartsArrays.push('\n');
             }
         }
         console.log('fact parts array: ',stringify(factPartsArrays));
