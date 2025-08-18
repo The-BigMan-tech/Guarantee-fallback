@@ -11,7 +11,7 @@ aliasDeclaration: LET PLAIN_WORD EQUALS PREDICATE TERMINATOR;
 
 sentence: token+ ;
 
-token: ATOM | list | PREDICATE | ALIAS | PLAIN_WORD | 
+token: ATOM | list | PREDICATE | ALIAS | PLAIN_WORD |
     (
         COMMA |
         COLON |
@@ -40,16 +40,12 @@ EXCLAMATION: '!';
 APOSTROPHE:'\'';
 
 EQUALS: '=';
-
-ATOM: NAME | NUMBER;
-
 LET: 'let';
 TERMINATOR:'.';
 
-
+ATOM: NAME | NUMBER;
 PREDICATE: '*' PLAIN_WORD;
 ALIAS: '#' PLAIN_WORD;
-
 
 NAME: ':' PLAIN_WORD;
 NUMBER: '-'? DIGIT+ ('.' DIGIT+)?;
