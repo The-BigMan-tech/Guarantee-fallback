@@ -2,9 +2,10 @@ import { CharStream, CommonTokenStream, Token } from "antlr4ng";
 import { AliasDeclarationContext,DSLParser, FactContext, ListContext, ProgramContext } from "./generated/DSLParser.js";
 import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
-import { Atoms, Rec } from "./fact-checker.js";
+import { Atom, Atoms, Rec } from "./fact-checker.js";
 import {colorize} from "json-colorizer";
 import stringify from "safe-stable-stringify";
+import Denque from "denque";
 
 
 function printTokens(tokens:Token[]):void {
@@ -121,40 +122,51 @@ class ListFlattenerVisitor extends DSLVisitor<void> {
     public flattenedSentences = [];
     public factPartsArrays: string[][][] = []; 
 
-    private walkList(tokens:Token[]) {
-        const parts:Atoms[] = []
+    private buildLists(tokens:Denque<Token>) {
+        const parts:Atoms[] = [];
+        const list = [];
         let inList:boolean = false;
-        const list:string[] = [];
+        let predicate:string = "";
 
-        tokens.map(token=>{
+        while (tokens.length !== 0) {
+            const token = tokens.shift()!;
             const type = token.type;
             const text = token.text!;
             if (inList) {
                 if (type === DSLLexer.ATOM) {
                     list.push(text);
-                }else if (type === DSLLexer.RSQUARE) {
-                    inList = false;
-                    parts.push(structuredClone(list));
-                    list.length = 0;
-                }else if (type === DSLLexer.LSQUARE) {
-                    
                 }
-            }else if (type === DSLLexer.LSQUARE) {
-                console.log('in list');
-                inList = true;
-            }else {
-                if (type === DSLLexer.ATOM) {
-                    parts.push([text])
+                else if (type === DSLLexer.LSQUARE) {
+                    tokens.unshift(token);//to add back the lsquare so that it can enter into the list
+                    list.push(this.buildLists(tokens))
+                }
+                else if (type === DSLLexer.RSQUARE) {
+                    parts.push(structuredClone(list));
+                    break;
                 }
             }
-        });
+            else if (type === DSLLexer.LSQUARE) {
+                inList = true;
+            }
+            else if (type === DSLLexer.ATOM) {
+                parts.push([text])
+            }
+        };
         return parts;
     }
     visitFact = (ctx: FactContext):Atoms[]=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         printTokens(tokens);
-        const parts = this.walkList(tokens);
-        console.log('parts: ',parts);
+        const parts = this.buildLists(new Denque(tokens));
+        console.log('parts: ',stringify(parts));
         return parts;
+    };
+    public visitProgram = (ctx:ProgramContext)=> {
+        for (const child of ctx.children) {
+            if (child instanceof FactContext) {
+                this.visitFact(child);
+            }
+        }
+        return this.records;
     };
 }
