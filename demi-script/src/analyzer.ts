@@ -10,7 +10,7 @@ import { cartesianProduct } from "combinatorial-generators";
 
 function printTokens(tokens:Token[]):void {
     const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
-    console.log('Tokens:',tokenDebug);
+    console.log('\n Tokens:',tokenDebug);
 }
 class Essentials {
     public static inputStream:CharStream;
@@ -92,8 +92,7 @@ class CustomVisitor extends DSLVisitor<void> {
             throw new Error(`Predicates are meant to be prefixed with '*' but you typed: ${token.text}`);
         }
     }
-    private buildFact(tokens:Token[]):{predicate: string;atoms:Atoms} {
-        const atoms: string[] = [];
+    private buildFact(tokens:Token[]) {
         let predicate:string = "";
         tokens.forEach(token => {
             const text = token.text!;
@@ -102,14 +101,20 @@ class CustomVisitor extends DSLVisitor<void> {
                 this.validatePredicateType(token);
                 predicate = this.stripMark(text);
             }
-            // else if (type === DSLLexer.ATOM) {
-            //     atoms.push(text.startsWith(":")?this.stripMark(text):text);//to strip the colon
-            // }
         });
         const groupingData = this.extractLists(new Denque(tokens));
         const flattenedData = this.flattenRecursively(groupingData);
-        console.log('flattened array: ',stringify(flattenedData));
-        return { predicate, atoms };
+        for (const flatData of flattenedData) {
+            const atoms = flatData.map(atom=>atom.startsWith(":")?this.stripMark(atom):atom);
+            console.log('flattened atoms: ',stringify(atoms));
+            if (!predicate || atoms.length === 0) {
+                throw new Error("Each fact must have exactly one predicate and at least one atom.");
+            }
+            if (!this.records[predicate]) {
+                this.records[predicate] = new Rec([]);
+            }
+            this.records[predicate].add(atoms);
+        }
     }
     private extractLists(tokens:Denque<Token>) {
         const parts:Atoms[] = [];
@@ -144,16 +149,8 @@ class CustomVisitor extends DSLVisitor<void> {
     }
     public visitFact = (ctx:FactContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        const { predicate, atoms } = this.buildFact(tokens);
         printTokens(tokens);
-
-        if (!predicate || atoms.length === 0) {
-            throw new Error("Each fact must have exactly one predicate and at least one atom.");
-        }
-        if (!this.records[predicate]) {
-            this.records[predicate] = new Rec([]);
-        }
-        this.records[predicate].add(atoms);
+        this.buildFact(tokens);
     };
 }
 export function genStruct(input:string):Record<string,Rec> {
