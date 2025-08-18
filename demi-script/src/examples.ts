@@ -75,12 +75,14 @@ export function runExamples():void {
     };
     //DSL form
     const facts = `
-        let #friend = *friends.
-        :ada and :peter are #friend.
+        let friend = *friends.
+
+        :ada and :peter are *friends.
+        :peter is :cole's #friend.
     `;
     const doc = new Doc(genStruct(facts));
     // const doc = new Doc(recordsWithAliases);
-    console.log('are they friends: ',Rules.areFriends(doc,['ada','peter']));
+    console.log('are they friends: ',Rules.areFriends(doc,['ada','cole']));
     // console.log(Rules.areBrothers(doc,['ben','ben']));
 
     //this gets all the facts that answers what the widcard can be

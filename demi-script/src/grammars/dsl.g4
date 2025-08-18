@@ -7,7 +7,7 @@ program: (fact | aliasDeclaration)+ EOF;
 
 fact: sentence TERMINATOR;
 
-aliasDeclaration: LET ALIAS EQUALS PREDICATE TERMINATOR;
+aliasDeclaration: LET PLAIN_WORD EQUALS PREDICATE TERMINATOR;
 
 sentence: token+ ;
 

@@ -51,8 +51,8 @@ class CustomVisitor extends DSLVisitor<void> {
             const text = token.text!;
             const type = token.type;
 
-            if (type === DSLLexer.ALIAS) {
-                alias = this.stripMark(text);
+            if (type === DSLLexer.PLAIN_WORD) {
+                alias = text;
             }else if (type === DSLLexer.PREDICATE) {
                 const predicate = this.stripMark(text);
                 if (!this.records[predicate]) {

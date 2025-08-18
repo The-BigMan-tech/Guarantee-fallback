@@ -167,7 +167,7 @@ export class DSLParser extends antlr.Parser {
             this.state = 23;
             this.match(DSLParser.LET);
             this.state = 24;
-            this.match(DSLParser.ALIAS);
+            this.match(DSLParser.PLAIN_WORD);
             this.state = 25;
             this.match(DSLParser.EQUALS);
             this.state = 26;
@@ -359,7 +359,7 @@ export class DSLParser extends antlr.Parser {
         0,4,23,1,0,0,0,6,30,1,0,0,0,8,40,1,0,0,0,10,42,1,0,0,0,12,15,3,2,
         1,0,13,15,3,4,2,0,14,12,1,0,0,0,14,13,1,0,0,0,15,16,1,0,0,0,16,14,
         1,0,0,0,16,17,1,0,0,0,17,18,1,0,0,0,18,19,5,0,0,1,19,1,1,0,0,0,20,
-        21,3,6,3,0,21,22,5,14,0,0,22,3,1,0,0,0,23,24,5,13,0,0,24,25,5,16,
+        21,3,6,3,0,21,22,5,14,0,0,22,3,1,0,0,0,23,24,5,13,0,0,24,25,5,19,
         0,0,25,26,5,11,0,0,26,27,5,15,0,0,27,28,5,14,0,0,28,5,1,0,0,0,29,
         31,3,8,4,0,30,29,1,0,0,0,31,32,1,0,0,0,32,30,1,0,0,0,32,33,1,0,0,
         0,33,7,1,0,0,0,34,41,5,12,0,0,35,41,3,10,5,0,36,41,5,15,0,0,37,41,
@@ -478,8 +478,8 @@ export class AliasDeclarationContext extends antlr.ParserRuleContext {
     public LET(): antlr.TerminalNode {
         return this.getToken(DSLParser.LET, 0)!;
     }
-    public ALIAS(): antlr.TerminalNode {
-        return this.getToken(DSLParser.ALIAS, 0)!;
+    public PLAIN_WORD(): antlr.TerminalNode {
+        return this.getToken(DSLParser.PLAIN_WORD, 0)!;
     }
     public EQUALS(): antlr.TerminalNode {
         return this.getToken(DSLParser.EQUALS, 0)!;
