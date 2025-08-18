@@ -110,7 +110,10 @@ class CustomVisitor extends DSLVisitor<void> {
         const groupingData = this.extractLists(new Denque(tokens));
         const flattenedData = this.flattenRecursively(groupingData);
         for (const flatData of flattenedData) {
-            const atoms = flatData.map(atom=>atom.startsWith(":")?this.stripMark(atom):atom);
+            const atoms:Atoms = flatData.map(atom=>(
+                ((typeof atom === "string") && atom.startsWith(":"))
+                ?this.stripMark(atom):atom
+            ));
             console.log('flattened atoms: ',stringify(atoms));
             if (atoms.length === 0) {
                 throw new Error("Each fact must have at least one atom in a sentence.");
@@ -131,8 +134,11 @@ class CustomVisitor extends DSLVisitor<void> {
             const type = token.type;
             const text = token.text!;
             if (inList) {
-                if (type === DSLLexer.ATOM) {
+                if (type === DSLLexer.NAME) {
                     list.push(text);
+                }
+                else if (type === DSLLexer.NUMBER) {
+                    list.push(Number(text));
                 }
                 else if (type === DSLLexer.LSQUARE) {
                     tokens.unshift(token);//to add back the lsquare so that it can enter into the list
@@ -146,8 +152,11 @@ class CustomVisitor extends DSLVisitor<void> {
             else if (type === DSLLexer.LSQUARE) {
                 inList = true;
             }
-            else if (type === DSLLexer.ATOM) {
+            else if (type === DSLLexer.NAME) {
                 parts.push([text])
+            }
+            else if (type === DSLLexer.NUMBER) {
+                parts.push([Number(text)])
             }
         };
         return parts;
