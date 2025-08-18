@@ -78,10 +78,9 @@ export function runExamples():void {
         let friend = *friends.
 
         :ada and :peter are *friends.
-        :peter is :cole's #friend.
+        :peter is :cole's *friend.
     `;
     const doc = new Doc(genStruct(facts));
-    // const doc = new Doc(recordsWithAliases);
     console.log('are they friends: ',Rules.areFriends(doc,['ada','cole']));
     // console.log(Rules.areBrothers(doc,['ben','ben']));
 

@@ -24,12 +24,13 @@ class Essentials {
 class CustomVisitor extends DSLVisitor<void> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public records:Record<string,Rec> = {};
+    private aliases = new Set<string>();
 
-    public printTokens(tokens:Token[]):void {
+    private printTokens(tokens:Token[]):void {
         const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
         console.log('Tokens:',tokenDebug);
     }
-    public stripMark(text:string) {
+    private stripMark(text:string) {
         return text.slice(1);// Remove the leading '*' or '#'
     }
     public visitProgram = (ctx:ProgramContext)=> {
@@ -62,8 +63,18 @@ class CustomVisitor extends DSLVisitor<void> {
             }
         });
         this.records[alias] = predicateRec;
+        this.aliases.add(alias);
     };
-    public buildFact(tokens:Token[]):{predicate: string;atoms:Atoms} {
+    private validatePredicateType(token:Token) {
+        const isAlias = this.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
+        if (isAlias && ! token.text!.startsWith('#')) {
+            throw new Error(`Aliases are meant to be prefixed with '#' but you typed: ${token.text}`);
+        }
+        if (!isAlias && ! token.text!.startsWith("*")) {
+            throw new Error(`Predicates are meant to be prefixed with '*' but you typed: ${token.text}`);
+        }
+    }
+    private buildFact(tokens:Token[]):{predicate: string;atoms:Atoms} {
         const atoms: string[] = [];
         let predicate = "";
         tokens.forEach(token => {
@@ -71,6 +82,7 @@ class CustomVisitor extends DSLVisitor<void> {
             const type = token.type;
 
             if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS)) {
+                this.validatePredicateType(token);
                 predicate = this.stripMark(text);
             }else if (type === DSLLexer.ATOM) {
                 atoms.push(text.startsWith(":")?this.stripMark(text):text);//to strip the colon
