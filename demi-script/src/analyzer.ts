@@ -6,7 +6,7 @@ import { Atom, Atoms, Rec } from "./fact-checker.js";
 import {colorize} from "json-colorizer";
 import stringify from "safe-stable-stringify";
 import Denque from "denque";
-
+import { cartesianProduct } from "combinatorial-generators";
 
 function printTokens(tokens:Token[]):void {
     const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
@@ -34,6 +34,22 @@ class CustomVisitor extends DSLVisitor<void> {
 
     private stripMark(text:string) {
         return text.slice(1);// Remove the leading '*' or '#'
+    }
+    private flattenRecursively(input:any[][],flatSequences:any[][] = []):any[][] {
+        for (const product of cartesianProduct(...input)) {
+            if (product.some(value=>value instanceof Array)) {
+                const boxedProduct = product.map(value=>{
+                    if (!(value instanceof Array)) {
+                        return [value];
+                    }
+                    return value;
+                });
+                this.flattenRecursively(boxedProduct,flatSequences);
+            }else {
+                flatSequences.push(product);
+            }
+        } 
+        return flatSequences;
     }
     public visitProgram = (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
@@ -82,44 +98,19 @@ class CustomVisitor extends DSLVisitor<void> {
         tokens.forEach(token => {
             const text = token.text!;
             const type = token.type;
-
             if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS)) {
                 this.validatePredicateType(token);
                 predicate = this.stripMark(text);
-            }else if (type === DSLLexer.ATOM) {
-                atoms.push(text.startsWith(":")?this.stripMark(text):text);//to strip the colon
             }
+            // else if (type === DSLLexer.ATOM) {
+            //     atoms.push(text.startsWith(":")?this.stripMark(text):text);//to strip the colon
+            // }
         });
+        const groupingData = this.extractLists(new Denque(tokens));
+        const flattenedData = this.flattenRecursively(groupingData);
+        console.log('flattened array: ',stringify(flattenedData));
         return { predicate, atoms };
     }
-    public visitFact = (ctx:FactContext)=> {
-        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        const { predicate, atoms } = this.buildFact(tokens);
-        printTokens(tokens);
-
-        if (!predicate || atoms.length === 0) {
-            throw new Error("Each fact must have exactly one predicate and at least one atom.");
-        }
-        if (!this.records[predicate]) {
-            this.records[predicate] = new Rec([]);
-        }
-        this.records[predicate].add(atoms);
-    };
-}
-export function genStruct(input:string):Record<string,Rec> {
-    Essentials.loadEssentials(input);
-    const flattener = new ListFlattenerVisitor();
-    flattener.visit(Essentials.tree);
-    const flattenedInput = flattener.flattenedSentences.join('\n');
-
-    Essentials.loadEssentials(flattenedInput);
-    const visitor = new CustomVisitor();
-    visitor.visit(Essentials.tree);
-    console.log('Results: ',colorize(stringify(visitor.records,null,2)));
-    return visitor.records;
-}
-class ListFlattenerVisitor extends DSLVisitor<void> {
-    public flattenedSentences = [];
     private extractLists(tokens:Denque<Token>) {
         const parts:Atoms[] = [];
         const list = [];
@@ -151,20 +142,24 @@ class ListFlattenerVisitor extends DSLVisitor<void> {
         };
         return parts;
     }
-    visitFact = (ctx: FactContext) => {
+    public visitFact = (ctx:FactContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        const { predicate, atoms } = this.buildFact(tokens);
         printTokens(tokens);
-        const partsData = this.extractLists(new Denque(tokens));
-        return partsData;
-    };
-    public visitProgram = (ctx:ProgramContext)=> {
-        const factPartsArrays = []; 
-        for (const child of ctx.children) {
-            if (child instanceof FactContext) {
-                factPartsArrays.push(this.visitFact(child));
-                factPartsArrays.push('\n');
-            }
+
+        if (!predicate || atoms.length === 0) {
+            throw new Error("Each fact must have exactly one predicate and at least one atom.");
         }
-        console.log('fact parts array: ',stringify(factPartsArrays));
+        if (!this.records[predicate]) {
+            this.records[predicate] = new Rec([]);
+        }
+        this.records[predicate].add(atoms);
     };
+}
+export function genStruct(input:string):Record<string,Rec> {
+    Essentials.loadEssentials(input);
+    const visitor = new CustomVisitor();
+    visitor.visit(Essentials.tree);
+    console.log('Results: ',colorize(stringify(visitor.records,null,2)));
+    return visitor.records;
 }
