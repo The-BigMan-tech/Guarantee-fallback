@@ -71,14 +71,15 @@ export function runExamples():void {
     };
     const recordsWithAliases:typeof records = {
         ...records,
-        allies:records.friends
+        friend:records.friends
     };
     //DSL form
     const facts = `
         let friend = *friends.
 
         :ada and :peter are *friends.
-        :peter is :cole's *friend.
+        :peter is :cole's #friend.
+        :ada is *friends with [:jane ,:john ,:boy].
     `;
     const doc = new Doc(genStruct(facts));
     console.log('are they friends: ',Rules.areFriends(doc,['ada','cole']));
