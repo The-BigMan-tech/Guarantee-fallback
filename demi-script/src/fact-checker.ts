@@ -5,7 +5,7 @@ import {v4 as uniqueID} from "uuid";
 import { AddUnionToElements,Tuple } from "./type-helper.js";
 import {stringify} from "safe-stable-stringify";
 
-type Atom = string | number
+type Atom = string | number | Atom[];
 export type Atoms = Atom[];
 type PatternedAtoms = AddUnionToElements<Atoms,typeof Doc.wildCard>
 type UniqueAtoms = UniqueList<Atom>

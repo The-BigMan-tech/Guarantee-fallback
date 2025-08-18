@@ -2275,3 +2275,9 @@ Turbopack
 
 ^----
 
+*comments,JsDoc,Journals,Readmes
+
+language server
+syntax highlighter
+linter rules
+debugger
