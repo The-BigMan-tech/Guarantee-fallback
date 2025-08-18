@@ -159,6 +159,14 @@ class CustomVisitor extends DSLVisitor<void> {
     };
 }
 export function genStruct(input:string):Record<string,Rec> {
+    const inputArr = input.split('\n');
+    console.log('input arr: ',inputArr);
+    inputArr.forEach(str=>{
+        str = str.trim();
+        if ((str.length > 0) && (!str.endsWith('.'))) {
+            throw new Error(`You cannot start a new line without terminating the previous one: ${str}`)
+        }
+    })
     Essentials.loadEssentials(input);
     const visitor = new CustomVisitor();
     visitor.visit(Essentials.tree);

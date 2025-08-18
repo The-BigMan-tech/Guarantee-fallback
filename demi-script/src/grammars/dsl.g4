@@ -51,6 +51,5 @@ NAME: ':' PLAIN_WORD;
 NUMBER: '-'? DIGIT+ ('.' DIGIT+)?;
 PLAIN_WORD: LETTER (LETTER | DIGIT | '_')*;
 
-
 WS: [ \t\r\n]+ -> skip ;
 COMMENT: '//' ~[\r\n]* -> skip;
