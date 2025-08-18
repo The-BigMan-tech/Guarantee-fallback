@@ -8,7 +8,6 @@ import { AliasDeclarationContext } from "./DSLParser.js";
 import { SentenceContext } from "./DSLParser.js";
 import { TokenContext } from "./DSLParser.js";
 import { ListContext } from "./DSLParser.js";
-import { AtomContext } from "./DSLParser.js";
 
 
 /**
@@ -76,16 +75,6 @@ export class DSLListener implements ParseTreeListener {
      * @param ctx the parse tree
      */
     exitList?: (ctx: ListContext) => void;
-    /**
-     * Enter a parse tree produced by `DSLParser.atom`.
-     * @param ctx the parse tree
-     */
-    enterAtom?: (ctx: AtomContext) => void;
-    /**
-     * Exit a parse tree produced by `DSLParser.atom`.
-     * @param ctx the parse tree
-     */
-    exitAtom?: (ctx: AtomContext) => void;
 
     visitTerminal(node: TerminalNode): void {}
     visitErrorNode(node: ErrorNode): void {}

@@ -3,6 +3,8 @@ import { AliasDeclarationContext,DSLParser, FactContext, ProgramContext } from "
 import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
 import { Atoms, Rec } from "./fact-checker.js";
+import {colorize} from "json-colorizer";
+import stringify from "safe-stable-stringify";
 
 class Essentials {
     public static inputStream:CharStream;
@@ -27,6 +29,9 @@ class CustomVisitor extends DSLVisitor<void> {
         const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
         console.log('Tokens:',tokenDebug);
     }
+    public stripMark(text:string) {
+        return text.slice(1);// Remove the leading '*' or '#'
+    }
     public visitProgram = (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
             if (child instanceof FactContext) {
@@ -47,9 +52,13 @@ class CustomVisitor extends DSLVisitor<void> {
             const type = token.type;
 
             if (type === DSLLexer.ALIAS) {
-                alias = text;
+                alias = this.stripMark(text);
             }else if (type === DSLLexer.PREDICATE) {
-                predicateRec = this.records[text.slice(1)];
+                const predicate = this.stripMark(text);
+                if (!this.records[predicate]) {
+                    this.records[predicate] = new Rec([]);
+                }
+                predicateRec = this.records[predicate];
             }
         });
         this.records[alias] = predicateRec;
@@ -62,9 +71,9 @@ class CustomVisitor extends DSLVisitor<void> {
             const type = token.type;
 
             if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS)) {
-                predicate = text.slice(1); // Remove the leading '*' or '#'
+                predicate = this.stripMark(text);
             }else if (type === DSLLexer.ATOM) {
-                atoms.push(text.startsWith(":")?text.slice(1):text);//to strip the colon
+                atoms.push(text.startsWith(":")?this.stripMark(text):text);//to strip the colon
             }
         });
         return { predicate, atoms };
@@ -87,5 +96,6 @@ export function genStruct(input:string):Record<string,Rec> {
     Essentials.loadEssentials(input);
     const visitor = new CustomVisitor();
     visitor.visit(Essentials.tree);
+    console.log('Results: ',colorize(stringify(visitor.records,null,2)));
     return visitor.records;
 }

@@ -11,11 +11,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/dist/bundle-min.js",
-            "outFiles": [
-                "${workspaceFolder}/dist/**/*.js",
-                "${workspaceFolder}/build/**/*.js"
-            ], // where compiled JS with source maps exist
+            "program": "${workspaceFolder}/build/src/main.js",
             "sourceMaps": true
         }
     ]
