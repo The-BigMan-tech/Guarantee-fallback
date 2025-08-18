@@ -3,8 +3,6 @@ import { AliasDeclarationContext,DSLParser, FactContext, ProgramContext } from "
 import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
 import { Atoms, Rec } from "./fact-checker.js";
-import { colorize } from 'json-colorizer';
-import stringify from "safe-stable-stringify";
 
 class Essentials {
     public static inputStream:CharStream;
@@ -21,53 +19,60 @@ class Essentials {
         Essentials.tree = Essentials.parser.program();
     }
 }
-class StructBuilder {
-    public static buildFactData(tokens:Token[]):{predicate: string;atoms:Atoms} {
-        const atoms: string[] = [];
-        let predicate = "";
-        
-        tokens.forEach((token) => {
-            const text = token.text!;
-            const type = token.type;
-            
-            if (type === DSLLexer.PREDICATE) {
-                predicate = text.slice(1); // Remove the leading '*'
-            }else if (type === DSLLexer.ATOM) {
-                atoms.push(StructBuilder.stripQuotes(text));
-            } else if (type === DSLLexer.ALIAS) {
-                //
-            }
-        });
-        return { predicate, atoms };
-    }
-
-    private static stripQuotes(value:string):string  {
-        if (value.startsWith(":")) {
-            return value.slice(1);
-        }
-        return value;
-    }
-}
-
 class CustomVisitor extends DSLVisitor<void> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public records:Record<string,Rec> = {};
 
+    public printTokens(tokens:Token[]):void {
+        const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
+        console.log('Tokens:',tokenDebug);
+    }
     public visitProgram = (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
             if (child instanceof FactContext) {
                 this.visitFact(child);
             } else if (child instanceof AliasDeclarationContext) {
-                //
+                this.visitAliasDeclaration(child);
             }
         }
         return this.records;
     };
+    public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
+        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        this.printTokens(tokens);
+        let alias = '';
+        let predicateRec:Rec = new Rec([]);
+        tokens.forEach(token=>{
+            const text = token.text!;
+            const type = token.type;
+
+            if (type === DSLLexer.ALIAS) {
+                alias = text;
+            }else if (type === DSLLexer.PREDICATE) {
+                predicateRec = this.records[text.slice(1)];
+            }
+        });
+        this.records[alias] = predicateRec;
+    };
+    public buildFact(tokens:Token[]):{predicate: string;atoms:Atoms} {
+        const atoms: string[] = [];
+        let predicate = "";
+        tokens.forEach(token => {
+            const text = token.text!;
+            const type = token.type;
+
+            if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS)) {
+                predicate = text.slice(1); // Remove the leading '*' or '#'
+            }else if (type === DSLLexer.ATOM) {
+                atoms.push(text.startsWith(":")?text.slice(1):text);//to strip the colon
+            }
+        });
+        return { predicate, atoms };
+    }
     public visitFact = (ctx:FactContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
-        const { predicate, atoms } = StructBuilder.buildFactData(tokens);
-        console.log('Tokens for fact:',tokenDebug);
+        const { predicate, atoms } = this.buildFact(tokens);
+        this.printTokens(tokens);
 
         if (!predicate || atoms.length === 0) {
             throw new Error("Each fact must have exactly one predicate and at least one atom.");
@@ -82,6 +87,5 @@ export function genStruct(input:string):Record<string,Rec> {
     Essentials.loadEssentials(input);
     const visitor = new CustomVisitor();
     visitor.visit(Essentials.tree);
-    console.log('Results: ',colorize(stringify(visitor.records,null,2)));
     return visitor.records;
 }

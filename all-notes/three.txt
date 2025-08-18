@@ -2257,6 +2257,7 @@ Turbopack
 
 
 ^Useful notes on grammar files
+*Tokens are caught into token rules in the order the rules were defined meaning that the first defined token rule to catch the token encloses that token into its category.
 * In ANTLR grammars, broader lexer rules like your FILLER must be placed last among lexer rules because ANTLR matches tokens by trying lexer rules in the order they are defined, and takes the first matching rule.
 
 *Uppercase names (e.g., ATOM, PREDICATE, NUMBER) are lexer tokens: atomic sequences matched directly to input.

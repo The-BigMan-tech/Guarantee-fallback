@@ -7,7 +7,7 @@ program: (fact | aliasDeclaration)+ EOF;
 
 fact: sentence TERMINATOR;
 
-aliasDeclaration: LET ALIAS '=' PREDICATE TERMINATOR;
+aliasDeclaration: LET ALIAS EQUALS PREDICATE TERMINATOR;
 
 sentence: token+ ;
 
@@ -21,7 +21,8 @@ token: ATOM | list | PREDICATE | ALIAS | PLAIN_WORD |
         RSQUARE |
         SEMICOLON |
         QUESTION |
-        EXCLAMATION
+        EXCLAMATION |
+        APOSTROPHE
     );
 
 list: LSQUARE (ATOM (COMMA ATOM)*)? RSQUARE;
@@ -36,7 +37,9 @@ RSQUARE: ']';
 SEMICOLON: ';';
 QUESTION: '?';
 EXCLAMATION: '!';
+APOSTROPHE:'\'';
 
+EQUALS: '=';
 
 ATOM: NAME | NUMBER;
 
