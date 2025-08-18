@@ -11,22 +11,20 @@ aliasDeclaration: LET ALIAS '=' PREDICATE TERMINATOR;
 
 sentence: token+ ;
 
-token: ATOM | list | PREDICATE | ALIAS | PLAIN_WORD | PUNCTUATION;
+token: ATOM | list | PREDICATE | ALIAS | PLAIN_WORD | 
+    (
+        COMMA |
+        COLON |
+        LPAREN |
+        RPAREN |
+        LSQUARE |
+        RSQUARE |
+        SEMICOLON |
+        QUESTION |
+        EXCLAMATION
+    );
 
 list: LSQUARE (ATOM (COMMA ATOM)*)? RSQUARE;
-
-
-PUNCTUATION: (
-    COMMA |
-    COLON |
-    LPAREN |
-    RPAREN |
-    LSQUARE |
-    RSQUARE |
-    SEMICOLON |
-    QUESTION |
-    EXCLAMATION 
-);
 
 
 COMMA: ',';
