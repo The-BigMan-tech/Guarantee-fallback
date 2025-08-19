@@ -1,8 +1,8 @@
 import { CharStream, CommonTokenStream, Token } from "antlr4ng";
-import { AliasDeclarationContext,DSLParser, FactContext, ListContext, ProgramContext } from "./generated/DSLParser.js";
+import { AliasDeclarationContext,DSLParser, FactContext,ProgramContext } from "./generated/DSLParser.js";
 import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
-import { Atom, Atoms, Rec } from "./fact-checker.js";
+import { Rec } from "./fact-checker.js";
 import {colorize} from "json-colorizer";
 import stringify from "safe-stable-stringify";
 import Denque from "denque";
@@ -33,23 +33,6 @@ class CustomVisitor extends DSLVisitor<void> {
     public records:Record<string,Rec> = {};
     private aliases = new Set<string>();
 
-    private stripMark(text:string) {
-        return text.slice(1);// Remove the leading '*' or '#'
-    }
-    private flattenRecursively(input:any[][],flatSequences:any[][] = []):any[][] {
-        for (const product of cartesianProduct(...input)) {
-            if (product.some(value=>value instanceof Array)) {
-                const boxedProduct = product.map(value=>{
-                    if (!(value instanceof Array)) return [value];
-                    return value;
-                });
-                this.flattenRecursively(boxedProduct,flatSequences);
-            }else {
-                flatSequences.push(product);
-            }
-        } 
-        return flatSequences;
-    }
     public visitProgram = (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
             if (child instanceof FactContext) {
@@ -59,6 +42,11 @@ class CustomVisitor extends DSLVisitor<void> {
             }
         }
         return this.records;
+    };
+    public visitFact = (ctx:FactContext)=> {
+        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        printTokens(tokens);
+        this.buildFact(tokens);
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
@@ -82,6 +70,23 @@ class CustomVisitor extends DSLVisitor<void> {
         this.records[alias] = predicateRec;
         this.aliases.add(alias);
     };
+    private stripMark(text:string) {
+        return text.slice(1);// Remove the leading '*' or '#'
+    }
+    private flattenRecursively(input:any[][],flatSequences:any[][] = []):any[][] {
+        for (const product of cartesianProduct(...input)) {
+            if (product.some(value=>value instanceof Array)) {
+                const boxedProduct = product.map(value=>{
+                    if (!(value instanceof Array)) return [value];
+                    return value;
+                });
+                this.flattenRecursively(boxedProduct,flatSequences);
+            }else {
+                flatSequences.push(product);
+            }
+        } 
+        return flatSequences;
+    }
     private validatePredicateType(token:Token) {
         const isAlias = this.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
         if (isAlias && ! token.text!.startsWith('#')) {
@@ -91,7 +96,7 @@ class CustomVisitor extends DSLVisitor<void> {
             throw new Error(`Predicates are meant to be prefixed with '*' but you typed: ${token.text}`);
         }
     }
-    private buildFact(tokens:Token[]) {
+    private getPredicate(tokens:Token[]):string {
         let predicate:string | null = null;
         tokens.forEach(token => {
             const text = token.text!;
@@ -107,11 +112,15 @@ class CustomVisitor extends DSLVisitor<void> {
         if (predicate === null) {
             throw new Error("You must include one predicate or alias in the sentence");
         }
+        return predicate;
+    }
+    private buildFact(tokens:Token[]) {
+        const predicate = this.getPredicate(tokens);
         const tokenQueue = new Denque(tokens);
-        const groupingData = this.getMembersInBoxes(tokenQueue);
-
-        console.log('🚀 => :111 => buildFact => groupingData:', groupingData);
-        const flattenedData = this.flattenRecursively(groupingData);
+        const groupedData = this.getMembersInBoxes(tokenQueue);
+        const flattenedData = this.flattenRecursively(groupedData);
+        
+        console.log('🚀 => :111 => buildFact => groupedData:', groupedData);
         for (const atoms of flattenedData) {
             console.log('🚀 => :116 => buildFact => flatData:', atoms);
             if (atoms.length === 0) {
@@ -148,13 +157,8 @@ class CustomVisitor extends DSLVisitor<void> {
         };
         return list;
     }
-    public visitFact = (ctx:FactContext)=> {
-        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        printTokens(tokens);
-        this.buildFact(tokens);
-    };
 }
-export function genStruct(input:string):Record<string,Rec> {
+function validateInput(input:string) {
     const inputArr = input.split('\n');
     console.log('input arr: ',inputArr);
     inputArr.forEach(str=>{
@@ -163,6 +167,9 @@ export function genStruct(input:string):Record<string,Rec> {
             throw new Error(`You cannot start a new line without terminating the previous one: ${str}`);
         }
     });
+}
+export function genStruct(input:string):Record<string,Rec> {
+    validateInput(input);
     Essentials.loadEssentials(input);
     const visitor = new CustomVisitor();
     visitor.visit(Essentials.tree);
