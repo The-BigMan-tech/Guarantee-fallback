@@ -11,7 +11,7 @@ aliasDeclaration: LET PLAIN_WORD EQUALS PREDICATE TERMINATOR;
 
 sentence: token+ ;
 
-token: (NAME | NUMBER) | list | PREDICATE | ALIAS | PLAIN_WORD |
+token: (NAME | NUMBER) | SINGLE_REF | GROUP_REF | list | PREDICATE | ALIAS | PLAIN_WORD |
     (
         COMMA |
         LPAREN |
@@ -47,6 +47,12 @@ ALIAS: '#' PLAIN_WORD;
 NAME: ':' PLAIN_WORD;
 NUMBER: '-'? DIGIT+ ('.' DIGIT+)?;
 PLAIN_WORD: LETTER (LETTER | DIGIT | '_')*;
+
+SINGLE_REF:'<' SINGLE_NOUN_REF '>';
+GROUP_REF:'<' GROUP_NOUN_REF '>';
+
+fragment SINGLE_NOUN_REF:'He' | 'She' | 'It';
+fragment GROUP_NOUN_REF:'They';
 
 NEW_LINE:('\r\n' | '\r' | '\n');
 WS: [ \t]+ -> skip ;

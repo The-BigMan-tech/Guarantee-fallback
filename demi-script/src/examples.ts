@@ -87,7 +87,11 @@ export function runExamples():void {
     };
     //DSL form
     const facts = `
-        :ada *eats .
+        let friends = *friend.
+        :ada is :ben's *friend.
+        :ben is :zane's *friend.
+        :zane,:jane and :zac are #friends.
+        <He> *eats :meat.
     `;
     
     const struct = genStruct(facts);
