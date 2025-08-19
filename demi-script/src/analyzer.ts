@@ -3,16 +3,19 @@ import { AliasDeclarationContext,DSLParser, FactContext,ProgramContext } from ".
 import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
 import { Rec } from "./fact-checker.js";
-import {colorize} from "json-colorizer";
-import stringify from "safe-stable-stringify";
+import chalk from "chalk";
 import Denque from "denque";
 import { cartesianProduct } from "combinatorial-generators";
+// import stringify from "safe-stable-stringify";
+// import {colorize} from "json-colorizer";
+
 
 //todo:Make the fuctions more typesafe by replacing all the type shortcuts i made with the any type to concrete ones.and also try to make the predicates typed instead of dynamically sized arrays of either string or number.This has to be done in the dsl if possible.
-function printTokens(tokens:Token[]):void {
-    const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
-    console.log('\n Tokens:',tokenDebug);
+interface BracketCount {
+    left: number;
+    right: number;
 }
+
 class Essentials {
     public static inputStream:CharStream;
     public static lexer:DSLLexer;
@@ -32,7 +35,12 @@ class CustomVisitor extends DSLVisitor<void> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public records:Record<string,Rec> = {};
     private aliases = new Set<string>();
+    private tokensCount:number = 0;
 
+    private printTokens(tokens:Token[]):void {
+        const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
+        console.log('\n Tokens:',tokenDebug);
+    }
     public visitProgram = (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
             if (child instanceof FactContext) {
@@ -40,17 +48,18 @@ class CustomVisitor extends DSLVisitor<void> {
             } else if (child instanceof AliasDeclarationContext) {
                 this.visitAliasDeclaration(child);
             }
+            this.tokensCount += 1;
         }
         return this.records;
     };
     public visitFact = (ctx:FactContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        printTokens(tokens);
+        this.printTokens(tokens);
         this.buildFact(tokens);
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        printTokens(tokens);
+        this.printTokens(tokens);
         let alias = '';
         let predicateRec:Rec = new Rec([]);
         tokens.forEach(token=>{
@@ -132,7 +141,7 @@ class CustomVisitor extends DSLVisitor<void> {
             this.records[predicate].add(atoms);
         }
     }
-    private getMembersInBoxes(tokens:Denque<Token>,inRoot:boolean=true) {
+    private getMembersInBoxes(tokens:Denque<Token>,inRoot:boolean=true,bracketCount:BracketCount={left:0,right:0}) {
         const list:any[] = [];
 
         while (tokens.length !== 0) {
@@ -149,22 +158,25 @@ class CustomVisitor extends DSLVisitor<void> {
             }
             else if (type === DSLLexer.LSQUARE) {
                 inRoot = false;
-                list.push(this.getMembersInBoxes(tokens,inRoot));
+                bracketCount.left += 1;
+                list.push(this.getMembersInBoxes(tokens,inRoot,bracketCount));
             }
             else if (type === DSLLexer.RSQUARE) {
-                return list;
+                bracketCount.right += 1;
+                break;
             }
         };
+        console.log('🚀 => :166 => getMembersInBoxes => bracketCount:', bracketCount);
         return list;
     }
 }
 function validateInput(input:string) {
     const inputArr = input.split('\n');
     console.log('input arr: ',inputArr);
-    inputArr.forEach(str=>{
+    inputArr.forEach((str,index)=>{
         str = str.trim();
         if ((str.length > 0) && (!str.endsWith('.'))) {
-            throw new Error(`You cannot start a new line without terminating the previous one: ${str}`);
+            throw new Error(`${chalk.red(`line ${index} must be terminated: `)} ${str}`);
         }
     });
 }
