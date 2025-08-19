@@ -18,10 +18,9 @@ class Essentials {
     public static parser:DSLParser;
     public static tree:ProgramContext;
 
-    public static terminate:boolean = false;
     public static terminateWithError(errorType:string,lineCount:number,msg:string):void {
-        Essentials.terminate = true;
-        console.error(`${chalk.red(`${errorType} Error at line ${lineCount}. ${msg}.\nPlease recheck:`)}${chalk.yellow(Analyzer.inputArr[lineCount-1])} \n`);
+        console.error(`${chalk.red(`${errorType} Error at line ${lineCount}. ${msg}.\nPlease check: `)}${chalk.yellow(Analyzer.inputArr[lineCount-1].trim())} \n`);
+        process.exit(0);
     }
     public static loadEssentials(input:string):void {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:any, msg: string): void =>{
@@ -51,7 +50,6 @@ class Analyzer extends DSLVisitor<void> {
             } else if (child instanceof AliasDeclarationContext) {
                 this.visitAliasDeclaration(child);
             }
-            if (Essentials.terminate) return;
             this.lineCount += 1;
         }
         return this.records;
@@ -173,14 +171,12 @@ class Analyzer extends DSLVisitor<void> {
     public static inputArr:string[] = [];
     public createSentenceArray(input:string) {
         Analyzer.inputArr = input.split('\n');
-        console.log('input arr: ',Analyzer.inputArr);
     }
 }
 export function genStruct(input:string):Record<string,Rec> | undefined {
     const visitor = new Analyzer();
     visitor.createSentenceArray(input);
     Essentials.loadEssentials(input);
-    if (Essentials.terminate) return;
     visitor.visit(Essentials.tree);
     return visitor.records;
 }
