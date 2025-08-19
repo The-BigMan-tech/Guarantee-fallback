@@ -43,7 +43,7 @@ class Analyzer extends DSLVisitor<void> {
     public  records:Record<string,Rec> = {};
     private aliases = new Set<string>();
     private lineCount:number = 1;
-    private lastToken:Token | null = null;
+    private lastTokens:Token[] | null = null;
     public static terminate:boolean = false;
 
     private printTokens(tokens:Token[]):void {
@@ -67,11 +67,11 @@ class Analyzer extends DSLVisitor<void> {
         for (const [index,token] of tokens.entries()){
             const type = token.type;
             if (type === DSLLexer.SINGLE_REF) {
-                tokens[index] = this.lastToken || token;
+                tokens.splice(index,1,this.lastTokens?.find(token=>token.type===DSLLexer.NAME) || token);
                 break;
             }
             if (type === DSLLexer.NAME) {
-                this.lastToken = token;
+                this.lastTokens = tokens;
                 break;
             };
         };
