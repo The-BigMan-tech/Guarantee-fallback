@@ -43,6 +43,7 @@ class Analyzer extends DSLVisitor<void> {
     public  records:Record<string,Rec> = {};
     private aliases = new Set<string>();
     private lineCount:number = 1;
+    private sentences = new Map<number,Token[]>();
     public static terminate:boolean = false;
 
     private printTokens(tokens:Token[]):void {
@@ -108,10 +109,10 @@ class Analyzer extends DSLVisitor<void> {
     private validatePredicateType(token:Token):void {
         const isAlias = this.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
         if (isAlias && ! token.text!.startsWith('#')) {
-            Essentials.terminateWithError('Semantic',this.lineCount,`Aliases are meant to be prefixed with '#' but you typed: ${token.text}.`);
+            Essentials.terminateWithError('Semantic',this.lineCount,`Aliases are meant to be prefixed with '#' but found: ${token.text}.`);
         }
         if (!isAlias && ! token.text!.startsWith("*")) {
-            Essentials.terminateWithError('Semantic',this.lineCount,`Predicates are meant to be prefixed with '*' but you typed: ${token.text}.`);
+            Essentials.terminateWithError('Semantic',this.lineCount,`Predicates are meant to be prefixed with '*' but found: ${token.text}.`);
         }
     }
     private getPredicate(tokens:Token[]):string | null {
@@ -121,7 +122,7 @@ class Analyzer extends DSLVisitor<void> {
             const type = token.type;
             if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS) ) {
                 if (predicate !== null) {
-                    Essentials.terminateWithError('Semantic',this.lineCount,`You can only have one alias or predicate in a sentence but you used *${predicate} and ${text} at the same time.`);
+                    Essentials.terminateWithError('Semantic',this.lineCount,`A sentence can only have one alias or predicate in a sentence but found *${predicate} and ${text} used at the same time.`);
                 }
                 this.validatePredicateType(token);
                 predicate = this.stripMark(text);
