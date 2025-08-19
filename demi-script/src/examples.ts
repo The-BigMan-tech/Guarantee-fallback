@@ -87,7 +87,7 @@ export function runExamples():void {
     };
     //DSL form
     const facts = `
-        [:ada,:billy,[:daisy]] is *friends with [:jane ,:john ,:boy,[:zane,:cole]].
+        :ada *eats [:meat,:fish].
     `;
     const doc = new Doc(genStruct(facts));
     console.log('are they friends: ',Rules.areFriends(doc,['zane','cole']));

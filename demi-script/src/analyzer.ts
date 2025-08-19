@@ -24,6 +24,9 @@ class Essentials {
     public static tree:ProgramContext;
 
     public static loadEssentials(input:string):void {
+        ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:any, msg: string): void =>{
+            throw new Error(`${chalk.red(`Error in line ${line}:`)} ${msg}`);
+        };
         Essentials.inputStream = CharStream.fromString(input);
         Essentials.lexer = new DSLLexer(Essentials.inputStream);
         Essentials.tokenStream = new CommonTokenStream(Essentials.lexer);
@@ -127,12 +130,8 @@ class CustomVisitor extends DSLVisitor<void> {
         const predicate = this.getPredicate(tokens);
         const tokenQueue = new Denque(tokens);
         const groupedData = this.getMembersInBoxes(tokenQueue);
-        const flattenedData = this.flattenRecursively(groupedData.list);
-        const bracketCount = groupedData.bracketCount;
+        const flattenedData = this.flattenRecursively(groupedData);
 
-        if (bracketCount.left !== bracketCount.right) {
-            throw new Error(`${chalk.red(`An array at line ${this.tokensCount} isnt enclosed properly: `)}`);
-        }
         for (const atoms of flattenedData) {
             console.log('🚀 => :116 => buildFact => flatData:', atoms);
             if (atoms.length === 0) {
@@ -162,14 +161,14 @@ class CustomVisitor extends DSLVisitor<void> {
             else if (type === DSLLexer.LSQUARE) {
                 inRoot = false;
                 bracketCount.left += 1;
-                list.push(this.getMembersInBoxes(tokens,inRoot,bracketCount).list);
+                list.push(this.getMembersInBoxes(tokens,inRoot,bracketCount));
             }
             else if (type === DSLLexer.RSQUARE) {
                 bracketCount.right += 1;
                 break;
             }
         };
-        return {list,bracketCount};
+        return list;
     }
 }
 function validateInput(input:string) {
