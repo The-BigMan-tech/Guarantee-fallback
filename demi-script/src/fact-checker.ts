@@ -98,6 +98,17 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         if (matchedFacts.length===0) yield false;
         this.saveToFactsCache(cacheKey,matchedFacts);
     }
+    public findFirstFact(record: Rec, args:PatternedAtoms,byMembership=false):false | Atoms {
+        const facts = this.findAllFacts(record, args,byMembership);
+        const firstFact = facts.next().value as false | Atoms;
+        facts.next(true);//save to cache without finishing the generator because since this function only collects the first fact,the generator may not have a chance to save results to the cache if there is ore than one matching fact.
+        return firstFact;
+    }
+    public isItAFact(record: Rec, args:PatternedAtoms,byMembership=false):boolean {
+        return Boolean(this.findFirstFact(record,args,byMembership));
+    }
+
+
     public getCombinationKey(...inputCombination:unknown[]):string {
         return inputCombination.map(element => stringify(element)).join('|');
     }
@@ -123,14 +134,9 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         }
         return false;
     }
-    public findFirstFact(record: Rec, args:PatternedAtoms,byMembership=false):false | Atoms {
-        const facts = this.findAllFacts(record, args,byMembership);
-        const firstFact = facts.next().value as false | Atoms;
-        facts.next(true);//save to cache without finishing the generator because since this function only collects the first fact,the generator may not have a chance to save results to the cache if there is ore than one matching fact.
-        return firstFact;
-    }
     //it returns true if all the elements in args are also present in the set and it returns false otherwise
     public areMembersInSet<T>(args:T[],set:Set<T>):boolean {
+        if (!set) return false;
         for (const arg of args) {
             if (!this.isSymbol(arg) && !this.isWildCard(arg) && !set.has(arg) ) {
                 return false;//return early if the inputs arent even members to save computation.
