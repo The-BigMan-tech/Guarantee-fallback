@@ -19,7 +19,7 @@ class Essentials {
     public static tree:ProgramContext;
 
     public static terminateWithError(errorType:string,lineCount:number,msg:string):void {
-        console.error(`${chalk.red(`${errorType} Error at line ${lineCount}. ${msg}.\nPlease check: `)}${chalk.yellow(Analyzer.inputArr[lineCount-1].trim())} \n`);
+        console.error(`${chalk.red(`${errorType} Error at line ${lineCount}: ${msg}.\nPlease check -> `)}${chalk.yellow(Analyzer.inputArr[lineCount-1].trim())} \n`);
         Analyzer.terminate = true;
     }
     public static loadEssentials(input:string):void {
