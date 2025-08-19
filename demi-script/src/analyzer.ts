@@ -20,10 +20,10 @@ class Essentials {
 
     public static terminateWithError(errorType:string,lineCount:number,msg:string):void {
         console.error(
-            chalk.red(`\n${errorType} Error at line ${lineCount}:`),
-            chalk.white(`${msg}`),
-            chalk.green('\nPlease check ->'),
-            chalk.yellow(Analyzer.inputArr[lineCount-1].trim() + '\n')
+            chalk.red.underline(`\n${errorType} Error at line ${lineCount}:`),
+            chalk.white(`\n${msg}`),
+            chalk.magenta('\nPlease Check ->'),
+            chalk.green(Analyzer.inputArr[lineCount-1].trim() + '\n')
         );
         Analyzer.terminate = true;
     }
