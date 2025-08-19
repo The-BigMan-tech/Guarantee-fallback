@@ -20,7 +20,7 @@ class Essentials {
 
     public static terminateWithError(errorType:string,lineCount:number,msg:string):void {
         console.error(`${chalk.red(`${errorType} Error at line ${lineCount}. ${msg}.\nPlease check: `)}${chalk.yellow(Analyzer.inputArr[lineCount-1].trim())} \n`);
-        process.exit(0);
+        Analyzer.terminate = true;
     }
     public static loadEssentials(input:string):void {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:any, msg: string): void =>{
@@ -35,9 +35,10 @@ class Essentials {
 }
 class Analyzer extends DSLVisitor<void> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
-    public records:Record<string,Rec> = {};
+    public  records:Record<string,Rec> = {};
     private aliases = new Set<string>();
     private lineCount:number = 1;
+    public static terminate:boolean = false;
 
     private printTokens(tokens:Token[]):void {
         const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
@@ -45,9 +46,10 @@ class Analyzer extends DSLVisitor<void> {
     }
     public visitProgram = (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
+            if (Analyzer.terminate) return;
             if (child instanceof FactContext) {
                 this.visitFact(child);
-            } else if (child instanceof AliasDeclarationContext) {
+            }else if (child instanceof AliasDeclarationContext) {
                 this.visitAliasDeclaration(child);
             }
             this.lineCount += 1;
