@@ -105,16 +105,19 @@ class CustomVisitor extends DSLVisitor<void> {
             }
         });
         if (predicate === null) {
-            throw new Error("You must include one predicate or alias in the sentence")
+            throw new Error("You must include one predicate or alias in the sentence");
         }
-        const groupingData = this.extractLists(new Denque(tokens));
+        const tokenQueue = new Denque(tokens);
+        const groupingData = this.extractLists(tokenQueue);
+        console.log('🚀 => :112 => buildFact => tokenQueue:', tokenQueue.length);
+        console.log('🚀 => :111 => buildFact => groupingData:', groupingData);
         const flattenedData = this.flattenRecursively(groupingData);
         for (const flatData of flattenedData) {
             const atoms:Atoms = flatData.map(atom=>(
                 ((typeof atom === "string") && atom.startsWith(":"))
-                ?this.stripMark(atom):atom
+                    ?this.stripMark(atom):atom
             ));
-            console.log('flattened atoms: ',stringify(atoms));
+            // console.log('flattened atoms: ',stringify(atoms));
             if (atoms.length === 0) {
                 throw new Error("Each fact must have at least one atom in a sentence.");
             }
@@ -125,41 +128,26 @@ class CustomVisitor extends DSLVisitor<void> {
         }
     }
     private extractLists(tokens:Denque<Token>) {
-        const parts:any[] = [];
-        const list = [];
-        let inList:boolean = false;
-
+        const list:any[] = [];
         while (tokens.length !== 0) {
             const token = tokens.shift()!;
             const type = token.type;
             const text = token.text!;
-            if (inList) {
-                if (type === DSLLexer.NAME) {
-                    list.push(text);
-                }
-                else if (type === DSLLexer.NUMBER) {
-                    list.push(Number(text));
-                }
-                else if (type === DSLLexer.LSQUARE) {
-                    tokens.unshift(token);//to add back the lsquare so that it can enter into the list
-                    list.push(this.extractLists(tokens))
-                }
-                else if (type === DSLLexer.RSQUARE) {
-                    parts.push(structuredClone(list));
-                    break;
-                }
-            }
-            else if (type === DSLLexer.LSQUARE) {
-                inList = true;
-            }
-            else if (type === DSLLexer.NAME) {
-                parts.push([text])
+            if (type === DSLLexer.NAME) {
+                list.push(text);
             }
             else if (type === DSLLexer.NUMBER) {
-                parts.push([Number(text)])
+                list.push(Number(text));
+            }
+            else if (type === DSLLexer.LSQUARE) {
+                list.push(this.extractLists(tokens));
+            }
+            else if (type === DSLLexer.RSQUARE) {
+                return list;
             }
         };
-        return parts;
+        console.log('the main: ',stringify(list));
+        return list;
     }
     public visitFact = (ctx:FactContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
@@ -173,12 +161,12 @@ export function genStruct(input:string):Record<string,Rec> {
     inputArr.forEach(str=>{
         str = str.trim();
         if ((str.length > 0) && (!str.endsWith('.'))) {
-            throw new Error(`You cannot start a new line without terminating the previous one: ${str}`)
+            throw new Error(`You cannot start a new line without terminating the previous one: ${str}`);
         }
-    })
+    });
     Essentials.loadEssentials(input);
     const visitor = new CustomVisitor();
     visitor.visit(Essentials.tree);
-    console.log('Results: ',colorize(stringify(visitor.records,null,2)));
+    // console.log('Results: ',colorize(stringify(visitor.records,null,2)));
     return visitor.records;
 }
