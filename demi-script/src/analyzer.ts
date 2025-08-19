@@ -127,9 +127,12 @@ class CustomVisitor extends DSLVisitor<void> {
         const predicate = this.getPredicate(tokens);
         const tokenQueue = new Denque(tokens);
         const groupedData = this.getMembersInBoxes(tokenQueue);
-        const flattenedData = this.flattenRecursively(groupedData);
-        
-        console.log('🚀 => :111 => buildFact => groupedData:', groupedData);
+        const flattenedData = this.flattenRecursively(groupedData.list);
+        const bracketCount = groupedData.bracketCount;
+
+        if (bracketCount.left !== bracketCount.right) {
+            throw new Error(`${chalk.red(`An array at line ${this.tokensCount} isnt properly enclosed: `)}`);
+        }
         for (const atoms of flattenedData) {
             console.log('🚀 => :116 => buildFact => flatData:', atoms);
             if (atoms.length === 0) {
@@ -159,15 +162,14 @@ class CustomVisitor extends DSLVisitor<void> {
             else if (type === DSLLexer.LSQUARE) {
                 inRoot = false;
                 bracketCount.left += 1;
-                list.push(this.getMembersInBoxes(tokens,inRoot,bracketCount));
+                list.push(this.getMembersInBoxes(tokens,inRoot,bracketCount).list);
             }
             else if (type === DSLLexer.RSQUARE) {
                 bracketCount.right += 1;
                 break;
             }
         };
-        console.log('🚀 => :166 => getMembersInBoxes => bracketCount:', bracketCount);
-        return list;
+        return {list,bracketCount};
     }
 }
 function validateInput(input:string) {
