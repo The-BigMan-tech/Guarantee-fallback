@@ -43,7 +43,7 @@ class Analyzer extends DSLVisitor<void> {
     public  records:Record<string,Rec> = {};
     private aliases = new Set<string>();
     private lineCount:number = 1;
-    private sentences = new Map<number,Token[]>();
+    private lastToken:Token | null = null;
     public static terminate:boolean = false;
 
     private printTokens(tokens:Token[]):void {
@@ -64,6 +64,17 @@ class Analyzer extends DSLVisitor<void> {
     };
     public visitFact = (ctx:FactContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        for (const [index,token] of tokens.entries()){
+            const type = token.type;
+            if (type === DSLLexer.SINGLE_REF) {
+                tokens[index] = this.lastToken || token;
+                break;
+            }
+            if (type === DSLLexer.NAME) {
+                this.lastToken = token;
+                break;
+            };
+        };
         this.printTokens(tokens);
         this.buildFact(tokens);
     };
@@ -139,7 +150,6 @@ class Analyzer extends DSLVisitor<void> {
         const tokenQueue = new Denque(tokens);
         const groupedData = this.getMembersInBoxes(tokenQueue);
         const flattenedData = this.flattenRecursively(groupedData);
-
         for (const atoms of flattenedData) {
             console.log('🚀 => :116 => buildFact => flatData:', atoms);
             if (atoms.length === 0) {
