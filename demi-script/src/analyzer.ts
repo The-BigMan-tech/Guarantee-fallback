@@ -62,15 +62,39 @@ class Analyzer extends DSLVisitor<void> {
         }
         return this.records;
     };
+    private getArrayTokens(tokens:Denque<Token>):Token[] {
+        let list:Token[] = [];
+        while (tokens.length !== 0) {
+            const token = tokens.shift()!;
+            const type = token.type;
+            if (type === DSLLexer.LSQUARE) {
+                list.push(token);
+                list = [...list,...this.getArrayTokens(tokens)];
+            }
+            else if (type === DSLLexer.RSQUARE) {
+                list.push(token);
+                break;
+            }
+        };
+        return list;
+    }
     public visitFact = (ctx:FactContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         for (const [index,token] of tokens.entries()){
             const type = token.type;
             if (type === DSLLexer.SINGLE_REF) {
-                tokens.splice(index,1,this.lastTokens?.find(token=>token.type===DSLLexer.NAME) || token);
+                tokens[index] = this.lastTokens?.find(token=>token.type===DSLLexer.NAME) || token;
                 break;
             }
-            if (type === DSLLexer.NAME) {
+            if (type === DSLLexer.GROUP_REF) {
+                if (this.lastTokens) {
+                    const lastArrTokens = this.getArrayTokens(new Denque(this.lastTokens));
+                    console.log('last tokens:',this.printTokens(lastArrTokens));
+                    // tokens.splice(index,1,...this.lastTokens);
+                }
+                break;
+            }
+            if ((type === DSLLexer.NAME) || (type === DSLLexer.LSQUARE)) {
                 this.lastTokens = tokens;
                 break;
             };
