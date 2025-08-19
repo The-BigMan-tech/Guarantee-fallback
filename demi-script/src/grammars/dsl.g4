@@ -22,8 +22,7 @@ token: (NAME | NUMBER) | SINGLE_REF | GROUP_REF | list | PREDICATE | ALIAS | PLA
         APOSTROPHE
     );
 
-list: LSQUARE ((NAME | NUMBER) (COMMA (NAME | NUMBER))*)? RSQUARE;
-
+list: LSQUARE ((NAME | NUMBER | list) (COMMA (NAME | NUMBER | list))*)? RSQUARE;
 
 COMMA: ',';
 LPAREN: '(';
