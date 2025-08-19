@@ -108,12 +108,12 @@ class CustomVisitor extends DSLVisitor<void> {
             throw new Error("You must include one predicate or alias in the sentence");
         }
         const tokenQueue = new Denque(tokens);
-        const groupingData = this.extractLists(tokenQueue);
+        const groupingData = this.getMembersInBoxes(tokenQueue);
         console.log('🚀 => :112 => buildFact => tokenQueue:', tokenQueue.length);
         console.log('🚀 => :111 => buildFact => groupingData:', groupingData);
         const flattenedData = this.flattenRecursively(groupingData);
         for (const flatData of flattenedData) {
-            const atoms:Atoms = flatData.map(atom=>(
+            flatData.map(atom=>(
                 ((typeof atom === "string") && atom.startsWith(":"))
                     ?this.stripMark(atom):atom
             ));
@@ -127,26 +127,28 @@ class CustomVisitor extends DSLVisitor<void> {
             this.records[predicate].add(atoms);
         }
     }
-    private extractLists(tokens:Denque<Token>) {
+    private getMembersInBoxes(tokens:Denque<Token>,inRoot:boolean=true) {
         const list:any[] = [];
+
         while (tokens.length !== 0) {
             const token = tokens.shift()!;
             const type = token.type;
             const text = token.text!;
             if (type === DSLLexer.NAME) {
-                list.push(text);
+                list.push((inRoot)?[text]:text);
             }
             else if (type === DSLLexer.NUMBER) {
-                list.push(Number(text));
+                const num = Number(text);
+                list.push((inRoot)?[num]:num);
             }
             else if (type === DSLLexer.LSQUARE) {
-                list.push(this.extractLists(tokens));
+                inRoot = false;
+                list.push(this.getMembersInBoxes(tokens,inRoot));
             }
             else if (type === DSLLexer.RSQUARE) {
                 return list;
             }
         };
-        console.log('the main: ',stringify(list));
         return list;
     }
     public visitFact = (ctx:FactContext)=> {
