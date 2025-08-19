@@ -23,9 +23,12 @@ class Essentials {
     public static parser:DSLParser;
     public static tree:ProgramContext;
 
+    public static throwError(errorType:string,lineCount:number,msg:string):never {
+        throw new Error(`${chalk.red(`${errorType} Error at line ${lineCount}. ${msg}.\nPlease recheck:`)}${chalk.yellow(Analyzer.inputArr[lineCount-1])} \n`);
+    }
     public static loadEssentials(input:string):void {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:any, msg: string): void =>{
-            throw new Error(`${chalk.red(`Syntax Error at line ${line}:${chalk.redBright(msg)}\nPlease recheck:`)} ${chalk.yellow(Analyzer.inputArr[line-1])}\n`);
+            Essentials.throwError('Syntax',line,msg);
         };
         Essentials.inputStream = CharStream.fromString(input);
         Essentials.lexer = new DSLLexer(Essentials.inputStream);
@@ -102,10 +105,10 @@ class Analyzer extends DSLVisitor<void> {
     private validatePredicateType(token:Token) {
         const isAlias = this.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
         if (isAlias && ! token.text!.startsWith('#')) {
-            throw new Error(`${chalk.red(`Semantic Error at line ${this.lineCount}.Aliases are meant to be prefixed with '#' but you typed:`)} ${token.text}`);
+            Essentials.throwError('Semantic',this.lineCount,`Aliases are meant to be prefixed with '#' but you typed: ${token.text}`);
         }
         if (!isAlias && ! token.text!.startsWith("*")) {
-            throw new Error(`${chalk.red(`Semantic Error at line ${this.lineCount}.Predicates are meant to be prefixed with '*' but you typed:`)} ${token.text}`);
+            Essentials.throwError('Semantic',this.lineCount,`Predicates are meant to be prefixed with '*' but you typed: ${token.text}`);
         }
     }
     private getPredicate(tokens:Token[]):string {
@@ -115,14 +118,14 @@ class Analyzer extends DSLVisitor<void> {
             const type = token.type;
             if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS) ) {
                 if (predicate !== null) {
-                    throw new Error(`${chalk.red(`Semantic Error at line ${this.lineCount}.You can only have one alias or predicate in a sentence.\nPlease recheck:`)}${chalk.yellow(Analyzer.inputArr[this.lineCount-1])} \n`);
+                    Essentials.throwError('Semantic',this.lineCount,'You can only have one alias or predicate in a sentence');
                 }
                 this.validatePredicateType(token);
                 predicate = this.stripMark(text);
             }
         });
         if (predicate === null) {
-            throw new Error(`${chalk.red(`Semantic Error at line ${this.lineCount}.A sentence must have one alias or predicate: `)}`);
+            Essentials.throwError('Semantic',this.lineCount,'A sentence must have at least one atom or predicate');
         }
         return predicate;
     }
@@ -135,7 +138,7 @@ class Analyzer extends DSLVisitor<void> {
         for (const atoms of flattenedData) {
             console.log('🚀 => :116 => buildFact => flatData:', atoms);
             if (atoms.length === 0) {
-                throw new Error(`${chalk.red(`Semantic Error at line ${this.lineCount}.Each sentence must contain at least one atom: `)}`);
+                Essentials.throwError('Semantic',this.lineCount,'A sentence must contain at least one atom');
             }
             if (!this.records[predicate]) {
                 this.records[predicate] = new Rec([]);
