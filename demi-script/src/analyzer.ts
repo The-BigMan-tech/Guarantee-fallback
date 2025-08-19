@@ -11,11 +11,6 @@ import { cartesianProduct } from "combinatorial-generators";
 
 
 //todo:Make the fuctions more typesafe by replacing all the type shortcuts i made with the any type to concrete ones.and also try to make the predicates typed instead of dynamically sized arrays of either string or number.This has to be done in the dsl if possible.
-interface BracketCount {
-    left: number;
-    right: number;
-}
-
 class Essentials {
     public static inputStream:CharStream;
     public static lexer:DSLLexer;
@@ -23,12 +18,14 @@ class Essentials {
     public static parser:DSLParser;
     public static tree:ProgramContext;
 
-    public static throwError(errorType:string,lineCount:number,msg:string):never {
-        throw new Error(`${chalk.red(`${errorType} Error at line ${lineCount}. ${msg}.\nPlease recheck:`)}${chalk.yellow(Analyzer.inputArr[lineCount-1])} \n`);
+    public static terminate:boolean = false;
+    public static terminateWithError(errorType:string,lineCount:number,msg:string):void {
+        Essentials.terminate = true;
+        console.error(`${chalk.red(`${errorType} Error at line ${lineCount}. ${msg}.\nPlease recheck:`)}${chalk.yellow(Analyzer.inputArr[lineCount-1])} \n`);
     }
     public static loadEssentials(input:string):void {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:any, msg: string): void =>{
-            Essentials.throwError('Syntax',line,msg);
+            Essentials.terminateWithError('Syntax',line,msg);
         };
         Essentials.inputStream = CharStream.fromString(input);
         Essentials.lexer = new DSLLexer(Essentials.inputStream);
@@ -54,6 +51,7 @@ class Analyzer extends DSLVisitor<void> {
             } else if (child instanceof AliasDeclarationContext) {
                 this.visitAliasDeclaration(child);
             }
+            if (Essentials.terminate) return;
             this.lineCount += 1;
         }
         return this.records;
@@ -102,35 +100,36 @@ class Analyzer extends DSLVisitor<void> {
         } 
         return flatSequences;
     }
-    private validatePredicateType(token:Token) {
+    private validatePredicateType(token:Token):void {
         const isAlias = this.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
         if (isAlias && ! token.text!.startsWith('#')) {
-            Essentials.throwError('Semantic',this.lineCount,`Aliases are meant to be prefixed with '#' but you typed: ${token.text}`);
+            Essentials.terminateWithError('Semantic',this.lineCount,`Aliases are meant to be prefixed with '#' but you typed: ${token.text}`);
         }
         if (!isAlias && ! token.text!.startsWith("*")) {
-            Essentials.throwError('Semantic',this.lineCount,`Predicates are meant to be prefixed with '*' but you typed: ${token.text}`);
+            Essentials.terminateWithError('Semantic',this.lineCount,`Predicates are meant to be prefixed with '*' but you typed: ${token.text}`);
         }
     }
-    private getPredicate(tokens:Token[]):string {
+    private getPredicate(tokens:Token[]):string | null {
         let predicate:string | null = null;
         tokens.forEach(token => {
             const text = token.text!;
             const type = token.type;
             if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS) ) {
                 if (predicate !== null) {
-                    Essentials.throwError('Semantic',this.lineCount,'You can only have one alias or predicate in a sentence');
+                    Essentials.terminateWithError('Semantic',this.lineCount,'You can only have one alias or predicate in a sentence');
                 }
                 this.validatePredicateType(token);
                 predicate = this.stripMark(text);
             }
         });
         if (predicate === null) {
-            Essentials.throwError('Semantic',this.lineCount,'A sentence must have at least one atom or predicate');
+            Essentials.terminateWithError('Semantic',this.lineCount,'A sentence must have at least one atom or predicate');
         }
         return predicate;
     }
     private buildFact(tokens:Token[]) {
         const predicate = this.getPredicate(tokens);
+        if (predicate === null) return;
         const tokenQueue = new Denque(tokens);
         const groupedData = this.getMembersInBoxes(tokenQueue);
         const flattenedData = this.flattenRecursively(groupedData);
@@ -138,7 +137,7 @@ class Analyzer extends DSLVisitor<void> {
         for (const atoms of flattenedData) {
             console.log('🚀 => :116 => buildFact => flatData:', atoms);
             if (atoms.length === 0) {
-                Essentials.throwError('Semantic',this.lineCount,'A sentence must contain at least one atom');
+                Essentials.terminateWithError('Semantic',this.lineCount,'A sentence must contain at least one atom');
             }
             if (!this.records[predicate]) {
                 this.records[predicate] = new Rec([]);
@@ -146,7 +145,7 @@ class Analyzer extends DSLVisitor<void> {
             this.records[predicate].add(atoms);
         }
     }
-    private getMembersInBoxes(tokens:Denque<Token>,inRoot:boolean=true,bracketCount:BracketCount={left:0,right:0}) {
+    private getMembersInBoxes(tokens:Denque<Token>,inRoot:boolean=true) {
         const list:any[] = [];
 
         while (tokens.length !== 0) {
@@ -163,11 +162,9 @@ class Analyzer extends DSLVisitor<void> {
             }
             else if (type === DSLLexer.LSQUARE) {
                 inRoot = false;
-                bracketCount.left += 1;
-                list.push(this.getMembersInBoxes(tokens,inRoot,bracketCount));
+                list.push(this.getMembersInBoxes(tokens,inRoot));
             }
             else if (type === DSLLexer.RSQUARE) {
-                bracketCount.right += 1;
                 break;
             }
         };
@@ -179,10 +176,11 @@ class Analyzer extends DSLVisitor<void> {
         console.log('input arr: ',Analyzer.inputArr);
     }
 }
-export function genStruct(input:string):Record<string,Rec> {
+export function genStruct(input:string):Record<string,Rec> | undefined {
     const visitor = new Analyzer();
     visitor.createSentenceArray(input);
     Essentials.loadEssentials(input);
+    if (Essentials.terminate) return;
     visitor.visit(Essentials.tree);
     return visitor.records;
 }
