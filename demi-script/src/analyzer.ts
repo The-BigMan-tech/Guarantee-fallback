@@ -25,7 +25,7 @@ class Essentials {
 
     public static loadEssentials(input:string):void {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:any, msg: string): void =>{
-            throw new Error(`${chalk.red(`Error in line ${line}:`)} ${msg}`);
+            throw new Error(`${chalk.red(`Syntax Error at line ${line}:`)} ${msg}`);
         };
         Essentials.inputStream = CharStream.fromString(input);
         Essentials.lexer = new DSLLexer(Essentials.inputStream);
@@ -38,7 +38,7 @@ class CustomVisitor extends DSLVisitor<void> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public records:Record<string,Rec> = {};
     private aliases = new Set<string>();
-    private tokensCount:number = 0;
+    private tokensCount:number = 1;
 
     private printTokens(tokens:Token[]):void {
         const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
@@ -102,10 +102,10 @@ class CustomVisitor extends DSLVisitor<void> {
     private validatePredicateType(token:Token) {
         const isAlias = this.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
         if (isAlias && ! token.text!.startsWith('#')) {
-            throw new Error(`Aliases are meant to be prefixed with '#' but you typed: ${token.text}`);
+            throw new Error(`${chalk.red(`Semantic Error at line ${this.tokensCount}.Aliases are meant to be prefixed with '#' but you typed:`)} ${token.text}`);
         }
         if (!isAlias && ! token.text!.startsWith("*")) {
-            throw new Error(`Predicates are meant to be prefixed with '*' but you typed: ${token.text}`);
+            throw new Error(`${chalk.red(`Semantic Error at line ${this.tokensCount}.Predicates are meant to be prefixed with '*' but you typed:`)} ${token.text}`);
         }
     }
     private getPredicate(tokens:Token[]):string {
@@ -115,14 +115,14 @@ class CustomVisitor extends DSLVisitor<void> {
             const type = token.type;
             if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS) ) {
                 if (predicate !== null) {
-                    throw new Error('You can only have one predicate or alias in a sentence');
+                    throw new Error(`${chalk.red(`Semantic Error at line ${this.tokensCount}.You can only have one alias or predicate in a sentence: `)} ${token.text}`);
                 }
                 this.validatePredicateType(token);
                 predicate = this.stripMark(text);
             }
         });
         if (predicate === null) {
-            throw new Error("You must include one predicate or alias in the sentence");
+            throw new Error(`${chalk.red(`Semantic Error at line ${this.tokensCount}.A sentence must have one alias or predicate: `)}`);
         }
         return predicate;
     }
@@ -135,7 +135,7 @@ class CustomVisitor extends DSLVisitor<void> {
         for (const atoms of flattenedData) {
             console.log('🚀 => :116 => buildFact => flatData:', atoms);
             if (atoms.length === 0) {
-                throw new Error("Each fact must have at least one atom in a sentence.");
+                throw new Error(`${chalk.red(`Semantic Error at line ${this.tokensCount}.Each sentence must contain at least one atom: `)}`);
             }
             if (!this.records[predicate]) {
                 this.records[predicate] = new Rec([]);
@@ -170,22 +170,16 @@ class CustomVisitor extends DSLVisitor<void> {
         };
         return list;
     }
-}
-function validateInput(input:string) {
-    const inputArr = input.split('\n');
-    console.log('input arr: ',inputArr);
-    inputArr.forEach((str,index)=>{
-        str = str.trim();
-        if ((str.length > 0) && (!str.endsWith('.'))) {
-            throw new Error(`${chalk.red(`line ${index} must be terminated: `)} ${str}`);
-        }
-    });
+    private inputArr:string[] = [];
+    public createSentenceArray(input:string) {
+        this.inputArr = input.split('\n');
+        console.log('input arr: ',this.inputArr);
+    }
 }
 export function genStruct(input:string):Record<string,Rec> {
-    validateInput(input);
-    Essentials.loadEssentials(input);
     const visitor = new CustomVisitor();
+    visitor.createSentenceArray(input);
+    Essentials.loadEssentials(input);
     visitor.visit(Essentials.tree);
-    // console.log('Results: ',colorize(stringify(visitor.records,null,2)));
     return visitor.records;
 }
