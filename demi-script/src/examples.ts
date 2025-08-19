@@ -6,7 +6,7 @@ export class Rules {//i had the rules as a seprate class to decouple it from the
     public static isDirectFriend:Rule<[string,string]> = (doc,statement)=> {
         const [X,Y] = statement;
         return (//the reason why we are querying only for the first fact cuz we want to know if tey are direct friends or not without caring abut all the facts that makes this true
-            Boolean(doc.findFirstFact(doc.records.friends,[X,Y],true)) 
+            doc.isItAFact(doc.records.friends,[X,Y],true)
         );
     };
     public static isIndirectFriend:RecursiveRule<[string,string]> = (doc,statement,visitedCombinations)=> {
@@ -39,8 +39,8 @@ export class Rules {//i had the rules as a seprate class to decouple it from the
         const [X,Y] = statement;
         if (X === Y) return false;
         const maleRec = doc.records.male;
-        const isMaleX = Boolean(doc.findFirstFact(maleRec,[X]));
-        const isMaleY = Boolean(doc.findFirstFact(maleRec,[Y]));
+        const isMaleX = doc.isItAFact(maleRec,[X]);
+        const isMaleY = doc.isItAFact(maleRec,[Y]);
         if (isMaleX && isMaleY && Rules.sameParent(doc,[X,Y])) return true;
         return false;
     };
@@ -87,9 +87,15 @@ export function runExamples():void {
     };
     //DSL form
     const facts = `
-        :ada *eats [:meat,:fish].
+        :ada *eats .
     `;
-    const doc = new Doc(genStruct(facts));
+    
+    const struct = genStruct(facts);
+    if (!struct) return;
+
+    const doc = new Doc(struct);
+    console.log();
+
     console.log('are they friends: ',Rules.areFriends(doc,['zane','cole']));
     // console.log(Rules.areBrothers(doc,['ben','ben']));
 
@@ -104,7 +110,7 @@ export function runExamples():void {
             console.log('The friend of ada who is also the brother of ben:',A);
         }
     }
-    console.log(doc.areMembersInSet(['ada','leo'],doc.records.parent.members.set));
+    console.log(doc.areMembersInSet(['ada','leo'],doc.records.parent?.members.set));
 
     for (const fact of doc.findAllFacts(doc.records.eats,['ada',Doc.wildCard])) {
         if (fact) console.log(fact);
