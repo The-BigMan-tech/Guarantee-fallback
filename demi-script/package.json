@@ -6,7 +6,7 @@
   "version": "1.0.0",
   "description": "A TypeScript library project scaffold providing ready-to-use build and debug tooling",
   "scripts": {
-    "compile:full": "pnpm exec swc ./src -d build",
+    "compile:full": "swc ./src -d build --delete-dir-on-start",
     "compile:watch": "pnpm run compile:full && jiti ./watch-compile.ts",
     "bundle": "rollup -c",
     "clean:intermediateBundle": "powershell -Command \"Remove-Item -Path dist\\bundle.js,dist\\bundle.js.map -Force\"",
@@ -15,7 +15,7 @@
     "gen:types": "tsc",
     "watch:src": "nodemon --watch src --ext ts,json",
     "watch:build": "nodemon --watch build --ext js,json",
-    "build": "pnpm run lint:src && pnpm run test && pnpm run clean:build && pnpm run compile:full && pnpm run gen:types && pnpm run bundle && pnpm run minify && pnpm run clean:intermediateBundle",
+    "build": "pnpm run lint:src && pnpm run test && pnpm run clean:build && pnpm run compile:full -s false && pnpm run gen:types && pnpm run bundle && pnpm run minify && pnpm run clean:intermediateBundle",
     "exec:main": "node ./build/src/main.js",
     "exec:bundle": "node ./dist/bundle-min.js",
     "exec:main:watch": "pnpm run watch:build --exec \"pnpm run exec:main\"",

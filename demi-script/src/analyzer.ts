@@ -1,4 +1,4 @@
-import { CharStream, CommonTokenStream, Token } from "antlr4ng";
+import { CharStream, CommonTokenStream, ConsoleErrorListener,Token } from "antlr4ng";
 import { AliasDeclarationContext,DSLParser, FactContext,ProgramContext } from "./generated/DSLParser.js";
 import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
@@ -110,7 +110,7 @@ class CustomVisitor extends DSLVisitor<void> {
         tokens.forEach(token => {
             const text = token.text!;
             const type = token.type;
-            if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS)) {
+            if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS) ) {
                 if (predicate !== null) {
                     throw new Error('You can only have one predicate or alias in a sentence');
                 }
@@ -131,7 +131,7 @@ class CustomVisitor extends DSLVisitor<void> {
         const bracketCount = groupedData.bracketCount;
 
         if (bracketCount.left !== bracketCount.right) {
-            throw new Error(`${chalk.red(`An array at line ${this.tokensCount} isnt properly enclosed: `)}`);
+            throw new Error(`${chalk.red(`An array at line ${this.tokensCount} isnt enclosed properly: `)}`);
         }
         for (const atoms of flattenedData) {
             console.log('🚀 => :116 => buildFact => flatData:', atoms);

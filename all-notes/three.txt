@@ -1949,8 +1949,6 @@ so babel is a preprocessor by rule but because it converts src from one version 
 
 *so predicate polymorphism will only be allowed by arity but the predicate must have homogenous types for easy type compatbility across differet variants and the output will be an array of that type and rules may or may not handle variable length inputs but will still work on the variable length facts.for example,indirect friend may choose to only accept two friends to reduce combinatorial explosion and allow for simplicity.and querying for a fact like eats(cole,meat) will give false cuz the fact is eat(cole,meat,pork).so i may also get a helper to fill the rest of the fact with wild cards.
 
-*Provide a helper to pad queries with wildcards to allow partial matching of facts with higher arities; e.g., querying eats('cole', 'meat') can internally be padded to eats('cole', 'meat', Document.wildCard).
-
 two stage parsing process
 
 *and also,a predicate can only be used once in a sentence and it doesnt atter where the predicate is in the sentence.in the end,it will give the same predicate call.what matters is how the members are defined
