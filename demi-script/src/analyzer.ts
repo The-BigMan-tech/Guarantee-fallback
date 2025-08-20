@@ -10,12 +10,12 @@ import {distance} from "fastest-levenshtein";
 // import stringify from "safe-stable-stringify";
 // import {colorize} from "json-colorizer";
 
-interface ResolvedSingleTokenRef {
-    indices:(number | null)[],//i used an array because they may be multiple refs in a sentence to resolve
-    token:Map<number,null | Token>//i used a map here to localize the tokens that resolves each ref
+interface ResolvedSingleTokens {
+    indices:number[],//i used an array because they may be multiple refs in a sentence to resolve
+    tokens:Map<number,null | Token>//i used a map here to localize the tokens that resolves each ref
 }
-interface ResolvedTokensRef {
-    indices:(number | null)[],
+interface ResolvedGroupedTokens {
+    indices:number[],
     tokens:Map<number,(null | Token[])>
 }
 enum DslError{
@@ -98,7 +98,7 @@ class Analyzer extends DSLVisitor<void> {
             }else{
                 const payload = child.getPayload();
                 const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
-                if (isNewLine) this.lineCount += 1;
+                if (isNewLine) this.lineCount += 1;//increment the line count at every empty new line
             }
         }
         return this.records;
@@ -115,7 +115,7 @@ class Analyzer extends DSLVisitor<void> {
         this.resolveAlias(tokens);
     };
 
-    private getListTokensBlock(tokens:Denque<Token>) {
+    private getListTokensBlock(tokens:Denque<Token>):Token[] | null {
         const list:Token[] = [];
         let lBrackets:number = 0;
         let rBrackets:number = 0;
@@ -139,20 +139,22 @@ class Analyzer extends DSLVisitor<void> {
                 }
             }
         };
-        return list;
+        return (list.length > 0)?list:null;
     }
     private resolveRefs(tokens: Token[]) {
-        const resolvedSingleTokenRef:ResolvedSingleTokenRef = {indices:[],token:new Map()};
-        const resolvedTokensRef:ResolvedTokensRef = {indices:[],tokens:new Map()};
+        const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
+        const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:[],tokens:new Map()};
 
         const objectRefs = new Set(['him','her','it','them']);
         const nounRefs = ['He','She','It','They',...objectRefs];
 
         let encounteredSubject = false;
 
-        function allowRef(lineCount:number):boolean {
+        function allowRef(lineCount:number,refAsText:string,resTokenAsText?:string):boolean {
             if (encounteredSubject) {//i added this here because its possible that the ref is in the same senetnce as the subject that its pointing to.and since they can only be one predicate in a sentece,it wil be difficult to meaningfully use the ref in the same sentence with the subject to make another sentence in conjuction with it.Anything that requires joining for readability should require a fullstop to separate the senetnces not using the ref in the same sentence.so :ada is *strong and <He> is *ggod should rsther be separate sentences in the same line
-                Essentials.terminateWithError(DslError.Semantic,lineCount,`A reference cannot be used to point to a subject in the same sentence.`);
+                let message = "A reference cannot be used to point to a subject in the same sentence";
+                message += (resTokenAsText)?`.\nIs ${chalk.bold(refAsText)} supposed to point to ${chalk.bold(resTokenAsText)}? If so,separate it as its own sentence.`:'';
+                Essentials.terminateWithError(DslError.Semantic,lineCount,message);
                 return false;
             }
             return true;
@@ -160,16 +162,17 @@ class Analyzer extends DSLVisitor<void> {
         for (const [index,token] of tokens.entries()){//I did no breaks here to allow all refs in the sentence to resolve
             const text = token.text!;
             const type = token.type;
-            if (type === DSLLexer.SINGLE_SUBJECT_REF) { 
-                if (!allowRef(this.lineCount)) return;
-                resolvedSingleTokenRef.indices.push(index);
-                resolvedSingleTokenRef.token.set(index,this.lastTokensForSingle?.find(token=>token.type===DSLLexer.NAME) || null);
+            if (type === DSLLexer.SINGLE_SUBJECT_REF) {
+                const resolvedToken = this.lastTokensForSingle?.find(token=>token.type===DSLLexer.NAME) || null; 
+                if (!allowRef(this.lineCount,text,resolvedToken?.text)) return;
+                resolvedSingleTokens.indices.push(index);
+                resolvedSingleTokens.tokens.set(index,resolvedToken);
             }
             else if (type === DSLLexer.GROUP_SUBJECT_REF) {
-                if (!allowRef(this.lineCount)) return;
-                resolvedTokensRef.indices.push(index);
-                resolvedTokensRef.tokens.set(index,this.getListTokensBlock(new Denque(this.lastTokensForGroup || [])));
-                console.log('last array tokens:');this.printTokens(resolvedTokensRef.tokens.get(index) || []);
+                if (!allowRef(this.lineCount,text)) return;
+                resolvedGroupedTokens.indices.push(index);
+                resolvedGroupedTokens.tokens.set(index,this.getListTokensBlock(new Denque(this.lastTokensForGroup || [])));
+                console.log('last array tokens:');this.printTokens(resolvedGroupedTokens.tokens.get(index) || []);
             }
             else if ((type === DSLLexer.NAME) && !encounteredSubject) {//the second check is necessary for correctness because the operation is indempotent.it always assigns the same tokens array to the same variable whenever its called.but its good to prevent the extra computation
                 this.lastTokensForSingle = tokens;
@@ -191,22 +194,20 @@ class Analyzer extends DSLVisitor<void> {
                 }
             }
         };
-        for (const index of resolvedSingleTokenRef.indices) {
-            if (index === null) return;//no resolution required
-            const resolvedToken = resolvedSingleTokenRef.token.get(index) || null;
+        for (const index of resolvedSingleTokens.indices) {
+            const resolvedToken = resolvedSingleTokens.tokens.get(index) || null;
             if (resolvedToken !== null) {//resolve the single ref
                 tokens[index] = resolvedToken;
             }else {
                 Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the singular reference,${chalk.bold(tokens[index].text)}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
             }
         }
-        for (const index of resolvedTokensRef.indices) {
-            if (index === null) return;//no resolution required
-            const resolvedTokens = resolvedTokensRef.tokens.get(index) || null;
+        for (const index of resolvedGroupedTokens.indices) {
+            const resolvedTokens = resolvedGroupedTokens.tokens.get(index) || null;
             if (resolvedTokens !== null) {//resolve the single ref
-                tokens.splice(index!,1,...resolvedTokens);
+                tokens.splice(index,1,...resolvedTokens);
             }else {
-                Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the singular reference,${chalk.bold(tokens[index].text)}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
+                Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the group reference,${chalk.bold(tokens[index].text)}.Could not find an array to point it to.`,[this.lineCount-1,this.lineCount]);
             }
         }
     }
@@ -319,6 +320,8 @@ class Analyzer extends DSLVisitor<void> {
                 if (text.startsWith(capitalLetter)) {
                     Essentials.terminateWithError(DslError.DoubleCheck,this.lineCount,`Did you mean to write the name,${chalk.bold(":"+text)} instead of the filler,${chalk.bold(text)}?`);
                 }
+            }else if (type === DSLLexer.TERMINATOR) {
+                if (text.endsWith('\n')) this.lineCount += 1;//increment the count at every new line created at the end of the sentence
             }
         };
         return list;
