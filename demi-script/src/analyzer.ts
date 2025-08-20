@@ -19,16 +19,20 @@ class Essentials {
     public static tree:ProgramContext;
 
     public static terminateWithError(errorType:string,lineCount:number,msg:string,checkLines?:number[]):void {
+        function pushLine(line:number):void {
+            messages.push(chalk.green(Analyzer.inputArr[line-1].trim() + '\n'));
+        }
         const messages = [
             chalk.red.underline(`\n${errorType} Error at line ${lineCount}:`),
             chalk.white(`\n${msg}`),
-            chalk.magenta('\nPlease Check ->'),
         ];
         if (!checkLines) {
-            messages.push(chalk.green(Analyzer.inputArr[lineCount-1].trim() + '\n'));
+            messages.push(chalk.magenta('\nPlease Check ->'));
+            pushLine(lineCount);
         }else {
+            messages.push(chalk.magenta.underline('\nCheck these lines\n'));
             for (const line of checkLines) {
-                messages.push(chalk.green(Analyzer.inputArr[line-1].trim() + ',\n'));
+                pushLine(line);
             }
         }
         console.error(...messages);
