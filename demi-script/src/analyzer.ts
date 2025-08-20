@@ -23,7 +23,7 @@ class Essentials {
             messages.push(chalk.green(Analyzer.inputArr[line-1].trim() + '\n'));
         }
         const messages = [
-            chalk.red.underline(`\n${errorType} Error at line ${lineCount}:`),
+            chalk.red.underline(`\n${errorType} at line ${lineCount}:`),
             chalk.white(`\n${msg}`),
         ];
         if (!checkLines) {
@@ -41,7 +41,7 @@ class Essentials {
     }
     public static loadEssentials(input:string):void {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:any, msg: string): void =>{
-            Essentials.terminateWithError('Syntax',line,msg);
+            Essentials.terminateWithError('Syntax Error',line,msg);
         };
         Essentials.inputStream = CharStream.fromString(input);
         Essentials.lexer = new DSLLexer(Essentials.inputStream);
@@ -87,8 +87,8 @@ class Analyzer extends DSLVisitor<void> {
     };
     public visitFact = (ctx:FactContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        this.resolveRefs(tokens);
         this.printTokens(tokens);
+        this.resolveRefs(tokens);
         if (!Analyzer.terminate) this.buildFact(tokens);//i checked for termination here because ref resolution can fail
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
@@ -126,10 +126,19 @@ class Analyzer extends DSLVisitor<void> {
     private resolveRefs(tokens: Token[]) {
         const resolvedTokenRef:ResolvedTokenRef = {index:null,token:null};
         const resolvedTokensRef:ResolvedTokensRef = {index:null,tokens:null};
+        const subjectRefs = ['He','She','It','They'];
 
         for (const [index,token] of tokens.entries()){
+            const text = token.text!;
             const type = token.type;
-            if (type === DSLLexer.SINGLE_REF) {
+            if (type === DSLLexer.PLAIN_WORD) {
+                for (const subjectRef of subjectRefs) {
+                    if (text.toLowerCase()===subjectRef.toLowerCase()) {
+                        Essentials.terminateWithError('Warning',this.lineCount,`Did you mean to use ${chalk.bold('<'+subjectRef+'>')} instead of ${chalk.bold(text)}?`);
+                    }
+                }
+            }
+            else if (type === DSLLexer.SINGLE_REF) {
                 resolvedTokenRef.index = index;
                 resolvedTokenRef.token = this.lastTokensForSingle?.find(token=>token.type===DSLLexer.NAME) || null;
                 break;
@@ -157,14 +166,14 @@ class Analyzer extends DSLVisitor<void> {
             if (resolvedTokenRef.token !== null) {//resolve the single ref
                 tokens[resolvedTokenRef.index] = resolvedTokenRef.token;
             }else {
-                Essentials.terminateWithError('Semantic',this.lineCount,`Failed to resolve the singular reference,${tokens[resolvedTokenRef.index].text}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
+                Essentials.terminateWithError('Semantic Error',this.lineCount,`Failed to resolve the singular reference,${chalk.bold(tokens[resolvedTokenRef.index].text)}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
             }
         }
         if (resolvedTokensRef.index !== null) {
             if (resolvedTokensRef.tokens !== null) {//resolve the group ref
                 tokens.splice(resolvedTokensRef.index!,1,...resolvedTokensRef.tokens);
             }else {
-                Essentials.terminateWithError('Semantic',this.lineCount,`Failed to resolve the group reference,${tokens[resolvedTokensRef.index].text}.Could not find an array to point it to.`,[this.lineCount-1,this.lineCount]);
+                Essentials.terminateWithError('Semantic Error',this.lineCount,`Failed to resolve the group reference,${chalk.bold(tokens[resolvedTokensRef.index].text)}.Could not find an array to point it to.`,[this.lineCount-1,this.lineCount]);
             }
         }
     }
@@ -208,10 +217,10 @@ class Analyzer extends DSLVisitor<void> {
     private validatePredicateType(token:Token):void {
         const isAlias = this.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
         if (isAlias && ! token.text!.startsWith('#')) {
-            Essentials.terminateWithError('Semantic',this.lineCount,`Aliases are meant to be prefixed with '#' but found: ${token.text}.Did you mean: #${this.stripMark(token.text!)}?`);
+            Essentials.terminateWithError('Semantic Error',this.lineCount,`Aliases are meant to be prefixed with  ${chalk.bold('#')} but found: ${chalk.bold(token.text)}.Did you mean: #${chalk.bold(this.stripMark(token.text!))}?`);
         }
         if (!isAlias && ! token.text!.startsWith("*")) {
-            Essentials.terminateWithError('Semantic',this.lineCount,`Predicates are meant to be prefixed with '*' but found: ${token.text}.Did you forget to declare it as an alias?`);
+            Essentials.terminateWithError('Semantic Error',this.lineCount,`Predicates are meant to be prefixed with ${chalk.bold('*')} but found: ${chalk.bold(token.text)}.Did you forget to declare it as an alias?`);
         }
     }
     private getPredicate(tokens:Token[]):string | null {
@@ -221,14 +230,14 @@ class Analyzer extends DSLVisitor<void> {
             const type = token.type;
             if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS) ) {
                 if (predicate !== null) {
-                    Essentials.terminateWithError('Semantic',this.lineCount,`They can only be one alias or predicate in a sentence but found *${predicate} and ${text} being used at the same time.`);
+                    Essentials.terminateWithError('Semantic Error',this.lineCount,`They can only be one alias or predicate in a sentence but found ${chalk.bold('*'+predicate)} and ${chalk.bold(text)} being used at the same time.`);
                 }
                 this.validatePredicateType(token);
                 predicate = this.stripMark(text);
             }
         });
         if (predicate === null) {
-            Essentials.terminateWithError('Semantic',this.lineCount,'A sentence must have one predicate.');
+            Essentials.terminateWithError('Semantic Error',this.lineCount,'A sentence must have one predicate.');
         }
         return predicate;
     }
@@ -242,7 +251,7 @@ class Analyzer extends DSLVisitor<void> {
         for (const atoms of flattenedData) {
             console.log('🚀 => :116 => buildFact => flatData:', atoms);
             if (atoms.length === 0) {
-                Essentials.terminateWithError('Semantic',this.lineCount,'A sentence must contain at least one atom.');
+                Essentials.terminateWithError('Semantic Error',this.lineCount,'A sentence must contain at least one atom.');
             }
             if (!this.records[predicate]) {
                 this.records[predicate] = new Rec([]);
