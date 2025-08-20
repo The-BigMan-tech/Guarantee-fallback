@@ -322,9 +322,9 @@ class Analyzer extends DSLVisitor<void> {
                     console.log('mutating');
                     const isStrict = text.startsWith('!');
                     if (isStrict && !(str in this.usedNames)) {
-                        Essentials.report(DslError.Semantic,this.lineCount,`Could not find an existing usage of the name ${chalk.bold(str)} in the document unless this is the first time that it is used and you meant to type: ${chalk.bold(':'+str)} instead.`);
+                        Essentials.report(DslError.Semantic,this.lineCount,`Could not find an existing usage of the name ${chalk.bold(str)}.\nDid you meant to type: ${chalk.bold(':'+str)} instead? assuming that this is the first time it is used.`);
                     }else if (!isStrict && this.usedNames[str] > 0) {//only recommend it if this is not the first time it is used
-                        Essentials.report(DslError.DoubleCheck,this.lineCount,`You may wish to type the name,${chalk.bold(str)} strictly as ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \nIt signals that it has been defined else where and it helps to prevent errors early.`);
+                        Essentials.report(DslError.DoubleCheck,this.lineCount,`You may wish to type the name; ${chalk.bold(str)} strictly as ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \nIt signals that it has been used before here and it prevents errors early.`);
                     }
                     if (str in this.usedNames) {
                         this.usedNames[str] += 1;
