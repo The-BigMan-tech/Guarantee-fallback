@@ -51,7 +51,10 @@ class Analyzer extends DSLVisitor<void> {
     public  records:Record<string,Rec> = {};
     private aliases = new Set<string>();
     private lineCount:number = 1;
-    private lastTokens:Token[] | null = null;
+
+    private lastTokensForSingle:Token[] | null = null;
+    private lastTokensForGroup:Token[] | null = null;
+
     public static terminate:boolean = false;
 
     private printTokens(tokens:Token[]):void {
@@ -116,28 +119,41 @@ class Analyzer extends DSLVisitor<void> {
             const type = token.type;
             if (type === DSLLexer.SINGLE_REF) {
                 resolvedTokenRef.index = index;
-                resolvedTokenRef.token = this.lastTokens?.find(token=>token.type===DSLLexer.NAME) || token;
+                resolvedTokenRef.token = this.lastTokensForSingle?.find(token=>token.type===DSLLexer.NAME) || null;
                 break;
             }
             else if (type === DSLLexer.GROUP_REF) {
-                if (this.lastTokens) {
-                    resolvedTokensRef.index = index;
-                    resolvedTokensRef.tokens = this.getListTokensBlock(new Denque(this.lastTokens));
+                resolvedTokensRef.index = index;
+                if (this.lastTokensForGroup) {
+                    resolvedTokensRef.tokens = this.getListTokensBlock(new Denque(this.lastTokensForGroup));
                     console.log('last array tokens:');
                     this.printTokens(resolvedTokensRef.tokens);
                 }
                 break;
             }
-            else if ((type === DSLLexer.NAME) || (type === DSLLexer.LSQUARE)) {
-                this.lastTokens = tokens;
+            else if (type === DSLLexer.NAME) {
+                this.lastTokensForSingle = tokens;
                 break;
-            };
+            }
+            else if (type === DSLLexer.LSQUARE) {
+                this.lastTokensForGroup = tokens;
+                break;
+            }
         };
-        if (resolvedTokenRef.index !== null) {//resolve the single ref
-            tokens[resolvedTokenRef.index] = resolvedTokenRef.token!;
+
+        if (resolvedTokenRef.index !== null) {
+            if (resolvedTokenRef.token !== null) {//resolve the single ref
+                tokens[resolvedTokenRef.index] = resolvedTokenRef.token;
+            }else {
+                Essentials.terminateWithError('Semantic',this.lineCount,`The singular reference, ${tokens[resolvedTokenRef.index].text} could not be resolved.Could not find a name to point it to.`);
+            }
         }
-        if (resolvedTokensRef.index !== null) {//resolve the group ref
-            tokens.splice(resolvedTokensRef.index,1,...resolvedTokensRef.tokens!);
+        if (resolvedTokensRef.index !== null) {
+            if (resolvedTokensRef.tokens !== null) {//resolve the group ref
+                tokens.splice(resolvedTokensRef.index!,1,...resolvedTokensRef.tokens);
+            }else {
+                Essentials.terminateWithError('Semantic',this.lineCount,`The group reference, ${tokens[resolvedTokensRef.index].text} could not be resolved.Could not find an array to point it to.`);
+            }
         }
     }
     private stripMark(text:string) {
