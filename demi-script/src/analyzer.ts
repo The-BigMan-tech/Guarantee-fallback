@@ -119,12 +119,13 @@ class Analyzer extends DSLVisitor<void> {
         this.resolveAlias(tokens);
     };
 
-    private getListTokensBlock(tokens:Denque<Token>):Token[] | null {
-        const list:Token[] = [];
+    private getListTokensBlock(tokens:Denque<Token>,nList:number):Token[] | null {
+        let list:Token[] = [];
         let lBrackets:number = 0;
         let rBrackets:number = 0;
 
         while (tokens.length !== 0) {
+            console.log('l:',lBrackets,'r:',rBrackets);
             const token = tokens.shift()!;
             const type = token.type;
             if (type === DSLLexer.LSQUARE) {
@@ -134,15 +135,12 @@ class Analyzer extends DSLVisitor<void> {
             else if (type === DSLLexer.RSQUARE) {
                 list.push(token);
                 rBrackets += 1;
-            }else {
-                if (lBrackets !== rBrackets) {
-                    console.log('l:',lBrackets,'r:',rBrackets);
-                    list.push(token);
-                }else {
-                    break;
-                }
+                if (lBrackets === rBrackets) break;
+            }else if (lBrackets > 0) {
+                list.push(token);
             }
         };
+        console.log('left over');this.printTokens(tokens.toArray());
         return (list.length > 0)?list:null;
     }
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
@@ -179,7 +177,7 @@ class Analyzer extends DSLVisitor<void> {
                 if (Analyzer.terminate) return;
                 if (!allowRef(encounteredList,this.lineCount,text,groupedTokens!.at(0))) return;
 
-                const resolvedTokens = this.getListTokensBlock(new Denque(this.lastTokensForGroup || []));
+                const resolvedTokens = this.getListTokensBlock(new Denque(this.lastTokensForGroup || []),1);
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
                 console.log('last array tokens:');this.printTokens(resolvedGroupedTokens.tokens.get(index) || []);
@@ -299,10 +297,8 @@ class Analyzer extends DSLVisitor<void> {
         if (Analyzer.terminate) return;
 
         const flattenedData = this.flattenRecursively(groupedData!);
-        console.log('🚀 => :176 => buildFact => groupedData:', groupedData);
 
-        for (const atoms of flattenedData) {
-            console.log('🚀 => :116 => buildFact => flatData:', atoms);
+        for (const atoms of flattenedData) {;
             if (atoms.length === 0) {
                 Essentials.report(DslError.Semantic,this.lineCount,'A sentence must contain at least one atom.');
             }
@@ -313,7 +309,6 @@ class Analyzer extends DSLVisitor<void> {
         }
     }
     private validateNameByPrefix(token:Token) {
-        console.log('mutating');
         const text = token.text!;
         const isStrict = text.startsWith('!');
         const str = this.stripMark(text);
@@ -335,7 +330,6 @@ class Analyzer extends DSLVisitor<void> {
             const type = token.type;
             const text = token.text!;
             if (type === DSLLexer.NAME) {
-                console.log('names 2: ',this.usedNames);
                 const str = this.stripMark(text);
                 if (!readOnly) {
                     if (visitedNames.has(str)) {
