@@ -175,8 +175,9 @@ class Analyzer extends DSLVisitor<void> {
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
             }
             else if (type === DSLLexer.GROUP_SUBJECT_REF) {
-                const printOnError = this.inspectRelevantTokens(new Denque(this.lastTokensForGroup || [])).at(0);
-                if (!allowRef(encounteredList,this.lineCount,text,printOnError)) return;
+                const groupedTokens = this.inspectRelevantTokens(new Denque(this.lastTokensForGroup || []));
+                if (Analyzer.terminate) return;
+                if (!allowRef(encounteredList,this.lineCount,text,groupedTokens!.at(0))) return;
 
                 const resolvedTokens = this.getListTokensBlock(new Denque(this.lastTokensForGroup || []));
                 resolvedGroupedTokens.indices.push(index);
@@ -227,7 +228,7 @@ class Analyzer extends DSLVisitor<void> {
         }
     }
     private stripMark(text:string) {
-        return text.slice(1);// Remove the leading '*' or '#'
+        return text.slice(1);// Remove the leading '*' or '#' or : or !
     }
     private resolveAlias(tokens:Token[]) {
         let alias = '';
@@ -295,8 +296,11 @@ class Analyzer extends DSLVisitor<void> {
         if (predicate === null) return;
         const tokenQueue = new Denque(tokens);
         const groupedData = this.inspectRelevantTokens(tokenQueue,false);
+        if (Analyzer.terminate) return;
+
+        const flattenedData = this.flattenRecursively(groupedData!);
         console.log('🚀 => :176 => buildFact => groupedData:', groupedData);
-        const flattenedData = this.flattenRecursively(groupedData);
+
         for (const atoms of flattenedData) {
             console.log('🚀 => :116 => buildFact => flatData:', atoms);
             if (atoms.length === 0) {
@@ -314,15 +318,16 @@ class Analyzer extends DSLVisitor<void> {
         const isStrict = text.startsWith('!');
         const str = this.stripMark(text);
         if (isStrict && !(str in this.usedNames)) {
-            Essentials.report(DslError.Semantic,this.lineCount,`Could not find an existing usage of the name ${chalk.bold(str)}.\nDid you meant to type: ${chalk.bold(':'+str)} instead? assuming that this is the first time it is used.`);
+            Essentials.report(DslError.Semantic,this.lineCount,`Could not find an existing usage of the name; ${chalk.bold(str)}.\nDid you meant to type: ${chalk.bold(':'+str)} instead? assuming that this is the first time it is used.`);
         }else if (!isStrict && this.usedNames[str] > 0) {//only recommend it if this is not the first time it is used
-            Essentials.report(DslError.DoubleCheck,this.lineCount,`You may wish to type the name; ${chalk.bold(str)} strictly as ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \nIt signals that it has been used before here and it prevents errors early.`);
+            Essentials.report(DslError.DoubleCheck,this.lineCount,`You may wish to type the name; ${chalk.bold(str)} strictly as; ${chalk.bold("!"+str)} rather than loosely as; ${chalk.bold(":"+str)}. \nIt signals that it has been used before here and it prevents errors early.`);
         }
         if (str in this.usedNames) {
             this.usedNames[str] += 1;
         }
     }
-    private inspectRelevantTokens(tokens:Denque<Token>,readOnly:boolean=true,level:[number]=[0],visitedNames:string[]=[]) {
+    private inspectRelevantTokens(tokens:Denque<Token>,readOnly:boolean=true,level:[number]=[0],visitedNames=new Set<string>()) {
+        if (Analyzer.terminate) return;
         const list:any[] = [];
         const inRoot = level[0] === 0;
         while (tokens.length !== 0) {
@@ -330,9 +335,17 @@ class Analyzer extends DSLVisitor<void> {
             const type = token.type;
             const text = token.text!;
             if (type === DSLLexer.NAME) {
-                const str = this.stripMark(text);
                 console.log('names 2: ',this.usedNames);
-                if (!readOnly) this.validateNameByPrefix(token);
+                const str = this.stripMark(text);
+                if (!readOnly) {
+                    if (visitedNames.has(str)) {
+                        Essentials.report(DslError.Semantic,this.lineCount,`The same name cannot be used more than once in a sentence but found; ${chalk.bold(text)} used again.`);
+                        if (Analyzer.terminate) return;
+                    }
+                    visitedNames.add(str);
+                    this.validateNameByPrefix(token);
+                    if (Analyzer.terminate) return;
+                }
                 list.push((inRoot)?[str]:str);
             }
             else if (type === DSLLexer.NUMBER) {
