@@ -21,7 +21,7 @@ export class DSLParser extends antlr.Parser {
     public static readonly EXCLAMATION = 8;
     public static readonly APOSTROPHE = 9;
     public static readonly EQUALS = 10;
-    public static readonly LET = 11;
+    public static readonly ALIAS_KW = 11;
     public static readonly TERMINATOR = 12;
     public static readonly PREDICATE = 13;
     public static readonly ALIAS = 14;
@@ -42,12 +42,12 @@ export class DSLParser extends antlr.Parser {
 
     public static readonly literalNames = [
         null, "','", "'('", "')'", "'['", "']'", "';'", "'?'", "'!'", "'''", 
-        "'='", "'let'"
+        "'='", "'alias'"
     ];
 
     public static readonly symbolicNames = [
         null, "COMMA", "LPAREN", "RPAREN", "LSQUARE", "RSQUARE", "SEMICOLON", 
-        "QUESTION", "EXCLAMATION", "APOSTROPHE", "EQUALS", "LET", "TERMINATOR", 
+        "QUESTION", "EXCLAMATION", "APOSTROPHE", "EQUALS", "ALIAS_KW", "TERMINATOR", 
         "PREDICATE", "ALIAS", "NAME", "NUMBER", "PLAIN_WORD", "SINGLE_REF", 
         "GROUP_REF", "NEW_LINE", "WS", "COMMENT"
     ];
@@ -110,7 +110,7 @@ export class DSLParser extends antlr.Parser {
                     this.fact();
                     }
                     break;
-                case DSLParser.LET:
+                case DSLParser.ALIAS_KW:
                     {
                     this.state = 14;
                     this.aliasDeclaration();
@@ -173,7 +173,7 @@ export class DSLParser extends antlr.Parser {
             this.enterOuterAlt(localContext, 1);
             {
             this.state = 24;
-            this.match(DSLParser.LET);
+            this.match(DSLParser.ALIAS_KW);
             this.state = 25;
             this.match(DSLParser.PLAIN_WORD);
             this.state = 26;
@@ -571,8 +571,8 @@ export class AliasDeclarationContext extends antlr.ParserRuleContext {
     public constructor(parent: antlr.ParserRuleContext | null, invokingState: number) {
         super(parent, invokingState);
     }
-    public LET(): antlr.TerminalNode {
-        return this.getToken(DSLParser.LET, 0)!;
+    public ALIAS_KW(): antlr.TerminalNode {
+        return this.getToken(DSLParser.ALIAS_KW, 0)!;
     }
     public PLAIN_WORD(): antlr.TerminalNode {
         return this.getToken(DSLParser.PLAIN_WORD, 0)!;
