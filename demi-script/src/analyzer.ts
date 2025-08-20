@@ -185,7 +185,8 @@ class Analyzer extends DSLVisitor<void> {
             }
             else if (type === DSLLexer.NAME) {//this must be called for every name to capture them
                 const isLoose = text.startsWith(':');
-                if (isLoose) this.usedNames[this.stripMark(text)] = 0;//it hase been seen by initiating its record but no increments because this is the preprocessing step
+                const str = this.stripMark(text);
+                if (isLoose && !(str in this.usedNames)) this.usedNames[str] = 0;
                 this.lastTokensForSingle = tokens;
                 encounteredName = true;
             }
@@ -316,12 +317,13 @@ class Analyzer extends DSLVisitor<void> {
             const text = token.text!;
             if (type === DSLLexer.NAME) {
                 const str = this.stripMark(text);
-                const isStrict = text.startsWith('!');
+                console.log('names 2: ',this.usedNames);
                 if (!readOnly) {
-                    if (isStrict && (str in this.usedNames)) {
+                    console.log('mutating');
+                    const isStrict = text.startsWith('!');
+                    if (isStrict && !(str in this.usedNames)) {
                         Essentials.report(DslError.Semantic,this.lineCount,`Could not find an existing usage of the name ${chalk.bold(str)} in the document unless this is the first time that it is used and you meant to type: ${chalk.bold(':'+str)} instead.`);
                     }else if (!isStrict && this.usedNames[str] > 0) {//only recommend it if this is not the first time it is used
-                        console.log('names 2: ',this.usedNames);
                         Essentials.report(DslError.DoubleCheck,this.lineCount,`You may wish to type the name,${chalk.bold(str)} strictly as ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \nIt signals that it has been defined else where and it helps to prevent errors early.`);
                     }
                     if (str in this.usedNames) {
