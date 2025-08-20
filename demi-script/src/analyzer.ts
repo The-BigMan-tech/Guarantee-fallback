@@ -151,10 +151,11 @@ class Analyzer extends DSLVisitor<void> {
         const objectRefs = new Set(['him','her','it','them']);
         const nounRefs = ['He','She','It','They',...objectRefs];
 
-        let encounteredSubject = false;
+        let encounteredName = false;
+        let encounteredList = false;
 
-        function allowRef(lineCount:number,refAsText:string,resTokenAsText?:string):boolean {
-            if (encounteredSubject) {//i added this here because its possible that the ref is in the same senetnce as the subject that its pointing to.and since they can only be one predicate in a sentece,it wil be difficult to meaningfully use the ref in the same sentence with the subject to make another sentence in conjuction with it.Anything that requires joining for readability should require a fullstop to separate the senetnces not using the ref in the same sentence.so :ada is *strong and <He> is *ggod should rsther be separate sentences in the same line
+        function allowRef(encounteredX:boolean,lineCount:number,refAsText:string,resTokenAsText?:string):boolean {
+            if (encounteredX) {//i added this here because its possible that the ref is in the same senetnce as the subject that its pointing to.and since they can only be one predicate in a sentece,it wil be difficult to meaningfully use the ref in the same sentence with the subject to make another sentence in conjuction with it.Anything that requires joining for readability should require a fullstop to separate the senetnces not using the ref in the same sentence.so :ada is *strong and <He> is *ggod should rsther be separate sentences in the same line
                 let message = "A reference cannot be used to point to a subject in the same sentence";
                 message += (resTokenAsText)?`.\nIs ${chalk.bold(refAsText)} supposed to point to ${chalk.bold(resTokenAsText)}? If so,separate it as its own sentence.`:'';
                 Essentials.terminateWithError(DslError.Semantic,lineCount,message);
@@ -167,23 +168,23 @@ class Analyzer extends DSLVisitor<void> {
             const type = token.type;
             if (type === DSLLexer.SINGLE_SUBJECT_REF) {
                 const resolvedToken = this.lastTokensForSingle?.find(token=>token.type===DSLLexer.NAME) || null; 
-                if (!allowRef(this.lineCount,text,resolvedToken?.text)) return;
+                if (!allowRef(encounteredName,this.lineCount,text,resolvedToken?.text)) return;
                 resolvedSingleTokens.indices.push(index);
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
             }
             else if (type === DSLLexer.GROUP_SUBJECT_REF) {
-                if (!allowRef(this.lineCount,text)) return;
+                if (!allowRef(encounteredList,this.lineCount,text)) return;
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,this.getListTokensBlock(new Denque(this.lastTokensForGroup || [])));
                 console.log('last array tokens:');this.printTokens(resolvedGroupedTokens.tokens.get(index) || []);
             }
-            else if ((type === DSLLexer.NAME) && !encounteredSubject) {//the second check is necessary for correctness because the operation is indempotent.it always assigns the same tokens array to the same variable whenever its called.but its good to prevent the extra computation
+            else if ((type === DSLLexer.NAME) && !encounteredName) {//the second check is necessary for correctness because the operation is indempotent.it always assigns the same tokens array to the same variable whenever its called.but its good to prevent the extra computation
                 this.lastTokensForSingle = tokens;
-                encounteredSubject = true;
+                encounteredName = true;
             }
-            else if ((type === DSLLexer.LSQUARE) && !encounteredSubject) {//notice that even though the branches look identical,they are mutating different arrays
+            else if ((type === DSLLexer.LSQUARE) && !encounteredList) {//notice that even though the branches look identical,they are mutating different arrays
                 this.lastTokensForGroup = tokens;
-                encounteredSubject = true;
+                encounteredList = true;
             }
             else if (type === DSLLexer.PLAIN_WORD) {//this branch is to warn users if they forgot to place angle brackets around the ref and may have also added a typo on top of that.If they made a typo within the angle brackets,it will be caught as a syntax error.This one catches typos not within the bracket as a warning
                 for (const nounRef of nounRefs) {
