@@ -160,7 +160,7 @@ class Analyzer extends DSLVisitor<void> {
                     const normNounRef = nounRef.toLowerCase();
                     const dist = distance(normText,normNounRef);
                     if (dist < 2) {
-                        const suggestion = chalk.bold('<'+nounRef+'>');
+                        const suggestion = chalk.bold( (objectRefs.has(nounRef))?'<'+nounRef+':number>':'<'+nounRef+'>');
                         Essentials.terminateWithError(DslError.DoubleCheck,this.lineCount,`Did you mean to use the ref,${suggestion} instead of the filler,${chalk.bold(text)}?`);
                     }
                 }
