@@ -145,6 +145,7 @@ class Analyzer extends DSLVisitor<void> {
         };
         return (list.length > 0)?list:null;
     }
+    private usedNames = new Set<string>();
     private resolveRefs(tokens: Token[]) {
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
         const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:[],tokens:new Map()};
@@ -182,11 +183,13 @@ class Analyzer extends DSLVisitor<void> {
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
                 console.log('last array tokens:');this.printTokens(resolvedGroupedTokens.tokens.get(index) || []);
             }
-            else if ((type === DSLLexer.NAME) && !encounteredName) {//the second check is necessary for correctness because the operation is indempotent.it always assigns the same tokens array to the same variable whenever its called.but its good to prevent the extra computation
+            else if (type === DSLLexer.NAME) {
+                const isLoose = text.startsWith(':');
+                if (isLoose) this.usedNames.add(this.stripMark(text));
                 this.lastTokensForSingle = tokens;
                 encounteredName = true;
             }
-            else if ((type === DSLLexer.LSQUARE) && !encounteredList) {//notice that even though the branches look identical,they are mutating different arrays
+            else if (type === DSLLexer.LSQUARE) {//notice that even though the branches look identical,they are mutating different arrays
                 this.lastTokensForGroup = tokens;
                 encounteredList = true;
             }
@@ -312,7 +315,12 @@ class Analyzer extends DSLVisitor<void> {
             const type = token.type;
             const text = token.text!;
             if (type === DSLLexer.NAME) {
+                console.log('Inspecting name: ',text);
                 const str = this.stripMark(text);
+                const isStrict = text.startsWith('!');
+                if (isStrict && !this.usedNames.has(str)) {
+                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Could not find an existing usage of the name ${chalk.bold(str)} in the document unless this is the first time that it is used and you meant to type: ${chalk.bold(':'+str)} instead.`);
+                }
                 list.push((inRoot)?[str]:str);
             }
             else if (type === DSLLexer.NUMBER) {

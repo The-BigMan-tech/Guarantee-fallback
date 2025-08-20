@@ -1977,6 +1977,8 @@ two stage parsing process
 
 *I would have loved to use a fuzzy engine to detect small and obvious typos like Thy for <They> but spinning a full fuzzy engine on every document build will just for typos will be very slow.so ill just use fastest leveinstein
 
+*so my dsl is largely focused on safety,expressivenss and convenience.The syntax is declarative,the analyzer ensres safety and the auto-managed refs and the array for auto expansion are conveiences not even available in prolog
+
 tokenization,semantism,building
 
 ?I punched npx swc.i hope it doesnt do anything
