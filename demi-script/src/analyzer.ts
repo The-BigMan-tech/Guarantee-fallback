@@ -308,7 +308,21 @@ class Analyzer extends DSLVisitor<void> {
             this.records[predicate].add(atoms);
         }
     }
-    private inspectRelevantTokens(tokens:Denque<Token>,readOnly:boolean=true,level:[number]=[0]) {
+    private validateNameByPrefix(token:Token) {
+        console.log('mutating');
+        const text = token.text!;
+        const isStrict = text.startsWith('!');
+        const str = this.stripMark(text);
+        if (isStrict && !(str in this.usedNames)) {
+            Essentials.report(DslError.Semantic,this.lineCount,`Could not find an existing usage of the name ${chalk.bold(str)}.\nDid you meant to type: ${chalk.bold(':'+str)} instead? assuming that this is the first time it is used.`);
+        }else if (!isStrict && this.usedNames[str] > 0) {//only recommend it if this is not the first time it is used
+            Essentials.report(DslError.DoubleCheck,this.lineCount,`You may wish to type the name; ${chalk.bold(str)} strictly as ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \nIt signals that it has been used before here and it prevents errors early.`);
+        }
+        if (str in this.usedNames) {
+            this.usedNames[str] += 1;
+        }
+    }
+    private inspectRelevantTokens(tokens:Denque<Token>,readOnly:boolean=true,level:[number]=[0],visitedNames:string[]=[]) {
         const list:any[] = [];
         const inRoot = level[0] === 0;
         while (tokens.length !== 0) {
@@ -318,18 +332,7 @@ class Analyzer extends DSLVisitor<void> {
             if (type === DSLLexer.NAME) {
                 const str = this.stripMark(text);
                 console.log('names 2: ',this.usedNames);
-                if (!readOnly) {
-                    console.log('mutating');
-                    const isStrict = text.startsWith('!');
-                    if (isStrict && !(str in this.usedNames)) {
-                        Essentials.report(DslError.Semantic,this.lineCount,`Could not find an existing usage of the name ${chalk.bold(str)}.\nDid you meant to type: ${chalk.bold(':'+str)} instead? assuming that this is the first time it is used.`);
-                    }else if (!isStrict && this.usedNames[str] > 0) {//only recommend it if this is not the first time it is used
-                        Essentials.report(DslError.DoubleCheck,this.lineCount,`You may wish to type the name; ${chalk.bold(str)} strictly as ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \nIt signals that it has been used before here and it prevents errors early.`);
-                    }
-                    if (str in this.usedNames) {
-                        this.usedNames[str] += 1;
-                    }
-                }
+                if (!readOnly) this.validateNameByPrefix(token);
                 list.push((inRoot)?[str]:str);
             }
             else if (type === DSLLexer.NUMBER) {
@@ -338,7 +341,7 @@ class Analyzer extends DSLVisitor<void> {
             }
             else if (type === DSLLexer.LSQUARE) {
                 level[0] += 1;
-                list.push(this.inspectRelevantTokens(tokens,readOnly,level));
+                list.push(this.inspectRelevantTokens(tokens,readOnly,level,visitedNames));
             }
             else if (type === DSLLexer.RSQUARE) {
                 level[0] -= 1;
