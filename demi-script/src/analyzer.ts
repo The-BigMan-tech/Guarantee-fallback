@@ -6,11 +6,23 @@ import { Rec } from "./fact-checker.js";
 import chalk from "chalk";
 import Denque from "denque";
 import { cartesianProduct } from "combinatorial-generators";
-import {distance} from "fastest-levenshtein"
+import {distance} from "fastest-levenshtein";
 // import stringify from "safe-stable-stringify";
 // import {colorize} from "json-colorizer";
 
-
+interface ResolvedTokenRef {
+    index:number | null,
+    token:Token | null
+}
+interface ResolvedTokensRef {
+    index:number | null,
+    tokens:Token[] | null
+}
+enum DslError{
+    Semantic="Semantic Error",
+    Syntax="Syntax Error",
+    Warning="Warning"
+}
 //todo:Make the fuctions more typesafe by replacing all the type shortcuts i made with the any type to concrete ones.and also try to make the predicates typed instead of dynamically sized arrays of either string or number.This has to be done in the dsl if possible.
 class Essentials {
     public static inputStream:CharStream;
@@ -42,7 +54,7 @@ class Essentials {
     }
     public static loadEssentials(input:string):void {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:any, msg: string): void =>{
-            Essentials.terminateWithError('Syntax Error',line,msg);
+            Essentials.terminateWithError(DslError.Syntax,line,msg);
         };
         Essentials.inputStream = CharStream.fromString(input);
         Essentials.lexer = new DSLLexer(Essentials.inputStream);
@@ -50,14 +62,6 @@ class Essentials {
         Essentials.parser = new DSLParser(Essentials.tokenStream);
         Essentials.tree = Essentials.parser.program();
     }
-}
-interface ResolvedTokenRef {
-    index:number | null,
-    token:Token | null
-}
-interface ResolvedTokensRef {
-    index:number | null,
-    tokens:Token[] | null
 }
 class Analyzer extends DSLVisitor<void> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
@@ -132,13 +136,13 @@ class Analyzer extends DSLVisitor<void> {
         for (const [index,token] of tokens.entries()){
             const text = token.text!;
             const type = token.type;
-            if (type === DSLLexer.PLAIN_WORD) {
+            if (type === DSLLexer.PLAIN_WORD) {//this branch is to warn users if they forgot to place angle brackets around the ref and may have also added a typo on top of that.If they made a typo within the angle brackets,it will be caught as a syntax error.This one catches typos not within the bracket as a warning
                 for (const subjectRef of subjectRefs) {
                     const normText = text.toLowerCase();
                     const normSubjectRef = subjectRef.toLowerCase();
                     const dist = distance(normText,normSubjectRef);
                     if (dist < 2) {
-                        Essentials.terminateWithError('Warning',this.lineCount,`Did you mean to use ${chalk.bold('<'+subjectRef+'>')} instead of ${chalk.bold(text)}?`);
+                        Essentials.terminateWithError(DslError.Warning,this.lineCount,`Did you mean to use ${chalk.bold('<'+subjectRef+'>')} instead of ${chalk.bold(text)}?`);
                     }
                 }
             }
@@ -170,14 +174,14 @@ class Analyzer extends DSLVisitor<void> {
             if (resolvedTokenRef.token !== null) {//resolve the single ref
                 tokens[resolvedTokenRef.index] = resolvedTokenRef.token;
             }else {
-                Essentials.terminateWithError('Semantic Error',this.lineCount,`Failed to resolve the singular reference,${chalk.bold(tokens[resolvedTokenRef.index].text)}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
+                Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the singular reference,${chalk.bold(tokens[resolvedTokenRef.index].text)}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
             }
         }
         if (resolvedTokensRef.index !== null) {
             if (resolvedTokensRef.tokens !== null) {//resolve the group ref
                 tokens.splice(resolvedTokensRef.index!,1,...resolvedTokensRef.tokens);
             }else {
-                Essentials.terminateWithError('Semantic Error',this.lineCount,`Failed to resolve the group reference,${chalk.bold(tokens[resolvedTokensRef.index].text)}.Could not find an array to point it to.`,[this.lineCount-1,this.lineCount]);
+                Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the group reference,${chalk.bold(tokens[resolvedTokensRef.index].text)}.Could not find an array to point it to.`,[this.lineCount-1,this.lineCount]);
             }
         }
     }
@@ -221,10 +225,10 @@ class Analyzer extends DSLVisitor<void> {
     private validatePredicateType(token:Token):void {
         const isAlias = this.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
         if (isAlias && ! token.text!.startsWith('#')) {
-            Essentials.terminateWithError('Semantic Error',this.lineCount,`Aliases are meant to be prefixed with  ${chalk.bold('#')} but found: ${chalk.bold(token.text)}.Did you mean: #${chalk.bold(this.stripMark(token.text!))}?`);
+            Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Aliases are meant to be prefixed with  ${chalk.bold('#')} but found: ${chalk.bold(token.text)}.Did you mean: #${chalk.bold(this.stripMark(token.text!))}?`);
         }
         if (!isAlias && ! token.text!.startsWith("*")) {
-            Essentials.terminateWithError('Semantic Error',this.lineCount,`Predicates are meant to be prefixed with ${chalk.bold('*')} but found: ${chalk.bold(token.text)}.Did you forget to declare it as an alias?`);
+            Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Predicates are meant to be prefixed with ${chalk.bold('*')} but found: ${chalk.bold(token.text)}.Did you forget to declare it as an alias?`);
         }
     }
     private getPredicate(tokens:Token[]):string | null {
@@ -234,14 +238,14 @@ class Analyzer extends DSLVisitor<void> {
             const type = token.type;
             if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS) ) {
                 if (predicate !== null) {
-                    Essentials.terminateWithError('Semantic Error',this.lineCount,`They can only be one alias or predicate in a sentence but found ${chalk.bold('*'+predicate)} and ${chalk.bold(text)} being used at the same time.`);
+                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`They can only be one alias or predicate in a sentence but found ${chalk.bold('*'+predicate)} and ${chalk.bold(text)} being used at the same time.`);
                 }
                 this.validatePredicateType(token);
                 predicate = this.stripMark(text);
             }
         });
         if (predicate === null) {
-            Essentials.terminateWithError('Semantic Error',this.lineCount,'A sentence must have one predicate.');
+            Essentials.terminateWithError(DslError.Semantic,this.lineCount,'A sentence must have one predicate.');
         }
         return predicate;
     }
@@ -255,7 +259,7 @@ class Analyzer extends DSLVisitor<void> {
         for (const atoms of flattenedData) {
             console.log('🚀 => :116 => buildFact => flatData:', atoms);
             if (atoms.length === 0) {
-                Essentials.terminateWithError('Semantic Error',this.lineCount,'A sentence must contain at least one atom.');
+                Essentials.terminateWithError(DslError.Semantic,this.lineCount,'A sentence must contain at least one atom.');
             }
             if (!this.records[predicate]) {
                 this.records[predicate] = new Rec([]);
