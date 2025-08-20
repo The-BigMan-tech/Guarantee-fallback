@@ -38,6 +38,14 @@ class Essentials {
         Essentials.tree = Essentials.parser.program();
     }
 }
+interface ResolvedTokenRef {
+    index:number | null,
+    token:Token | null
+}
+interface ResolvedTokensRef {
+    index:number | null,
+    tokens:Token[] | null
+}
 class Analyzer extends DSLVisitor<void> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public  records:Record<string,Rec> = {};
@@ -90,17 +98,22 @@ class Analyzer extends DSLVisitor<void> {
     }
     public visitFact = (ctx:FactContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        const resolvedTokenRef:ResolvedTokenRef = {index:null,token:null};
+        const resolvedTokensRef:ResolvedTokensRef = {index:null,tokens:null};
+
         for (const [index,token] of tokens.entries()){
             const type = token.type;
             if (type === DSLLexer.SINGLE_REF) {
-                tokens[index] = this.lastTokens?.find(token=>token.type===DSLLexer.NAME) || token;
+                resolvedTokenRef.index = index;
+                resolvedTokenRef.token = this.lastTokens?.find(token=>token.type===DSLLexer.NAME) || token;
                 break;
             }
             if (type === DSLLexer.GROUP_REF) {
                 if (this.lastTokens) {
-                    const lastArrTokens = this.getListTokensBounds(new Denque(this.lastTokens));
-                    console.log('last tokens:',this.printTokens(lastArrTokens));
-                    // tokens.splice(index,1,...this.lastTokens);
+                    resolvedTokensRef.index = index;
+                    resolvedTokensRef.tokens = this.getListTokensBounds(new Denque(this.lastTokens));
+                    console.log('last array tokens:');
+                    this.printTokens(resolvedTokensRef.tokens);
                 }
                 break;
             }
@@ -109,6 +122,12 @@ class Analyzer extends DSLVisitor<void> {
                 break;
             };
         };
+        if (resolvedTokenRef.index !== null) {
+            tokens[resolvedTokenRef.index] = resolvedTokenRef.token!;
+        }
+        if (resolvedTokensRef.index !== null) {
+            tokens.splice(resolvedTokensRef.index,1,...resolvedTokensRef.tokens!);
+        }
         this.printTokens(tokens);
         this.buildFact(tokens);
     };
