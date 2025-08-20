@@ -1,5 +1,5 @@
 import { CharStream, CommonTokenStream, ConsoleErrorListener,Token } from "antlr4ng";
-import { AliasDeclarationContext,DSLParser, FactContext,ProgramContext, TokenContext } from "./generated/DSLParser.js";
+import { AliasDeclarationContext,DSLParser, FactContext,ProgramContext } from "./generated/DSLParser.js";
 import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
 import { Rec } from "./fact-checker.js";
@@ -11,11 +11,11 @@ import {distance} from "fastest-levenshtein";
 // import {colorize} from "json-colorizer";
 
 interface ResolvedTokenRef {
-    index:number | null,
+    indices:number[] | null,
     token:Token | null
 }
 interface ResolvedTokensRef {
-    index:number | null,
+    indices:number[] | null,//i used an array because they may be multiple refs in a sentence to resolve
     tokens:Token[] | null
 }
 enum DslError{
@@ -143,8 +143,8 @@ class Analyzer extends DSLVisitor<void> {
         return list;
     }
     private resolveRefs(tokens: Token[]) {
-        const resolvedTokenRef:ResolvedTokenRef = {index:null,token:null};
-        const resolvedTokensRef:ResolvedTokensRef = {index:null,tokens:null};
+        const resolvedTokenRef:ResolvedTokenRef = {indices:null,token:null};
+        const resolvedTokensRef:ResolvedTokensRef = {indices:null,tokens:null};
 
         const objectRefs = new Set(['him','her','it','them']);
         const nounRefs = ['He','She','It','They',...objectRefs];
@@ -166,18 +166,20 @@ class Analyzer extends DSLVisitor<void> {
                 }
             }
             else if (type === DSLLexer.SINGLE_SUBJECT_REF) {
-                if (encounteredSubject) {
-                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`A reference cannot be used in the same sentence of the subject that it is pointing to.`);
+                if (encounteredSubject) {//i added this here because its possible that the ref is in the same senetnce as the subject that its pointing to.and since they can only be one predicate in a sentece,it wil be difficult to meaningfully use the ref in the same sentence with the subject to make another sentence in conjuction with it.Anything that requires joining for readability should require a fullstop to separate the senetnces not using the ref in the same sentence.so :ada is *strong and <He> is *ggod should rsther be separate sentences in the same line
+                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`A reference cannot be used to point to a subject in the same sentence.`);
                 }
-                resolvedTokenRef.index = index;
+                resolvedTokenRef.indices ||= [];
+                resolvedTokenRef.indices.push(index);
                 resolvedTokenRef.token = this.lastTokensForSingle?.find(token=>token.type===DSLLexer.NAME) || null;
                 //I didnt break here to allow all refs in the sentence to resolve
             }
             else if (type === DSLLexer.GROUP_SUBJECT_REF) {
                 if (encounteredSubject) {
-                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`A reference cannot be used in the same sentence of the subject that it is pointing to.`);
+                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`A reference cannot be used to point to a subject in the same sentence.`);
                 }
-                resolvedTokensRef.index = index;
+                resolvedTokensRef.indices ||= [];
+                resolvedTokensRef.indices.push(index);
                 if (this.lastTokensForGroup) {
                     resolvedTokensRef.tokens = this.getListTokensBlock(new Denque(this.lastTokensForGroup));
                     console.log('last array tokens:');
@@ -187,7 +189,7 @@ class Analyzer extends DSLVisitor<void> {
             else if (type === DSLLexer.NAME) {
                 if (!encounteredSubject) {//This ensures that only the first name thats encountered is registered and not overrided by others
                     this.lastTokensForSingle = tokens;
-                    encounteredSubject = true;//i added this here because its possible that the ref is in the same senetnce as the subject its pointing to.and since they can only be one predicate in a sentece,it wil be difficult to meaningfully use the ref in the same sentence with the subject to make another sentence in conjuction with this one.Its required that two sentences should be joined with fullstop
+                    encounteredSubject = true;
                 }
             }
             else if (type === DSLLexer.LSQUARE) {
@@ -198,18 +200,22 @@ class Analyzer extends DSLVisitor<void> {
             }
         };
 
-        if (resolvedTokenRef.index !== null) {
-            if (resolvedTokenRef.token !== null) {//resolve the single ref
-                tokens[resolvedTokenRef.index] = resolvedTokenRef.token;
-            }else {
-                Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the singular reference,${chalk.bold(tokens[resolvedTokenRef.index].text)}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
+        if (resolvedTokenRef.indices !== null) {
+            for (const index of resolvedTokenRef.indices) {
+                if (resolvedTokenRef.token !== null) {//resolve the single ref
+                    tokens[index] = resolvedTokenRef.token;
+                }else {
+                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the singular reference,${chalk.bold(tokens[index].text)}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
+                }
             }
         }
-        if (resolvedTokensRef.index !== null) {
-            if (resolvedTokensRef.tokens !== null) {//resolve the group ref
-                tokens.splice(resolvedTokensRef.index!,1,...resolvedTokensRef.tokens);
-            }else {
-                Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the group reference,${chalk.bold(tokens[resolvedTokensRef.index].text)}.Could not find an array to point it to.`,[this.lineCount-1,this.lineCount]);
+        if (resolvedTokensRef.indices !== null) {
+            for (const index of resolvedTokensRef.indices) {
+                if (resolvedTokensRef.tokens !== null) {//resolve the group ref
+                    tokens.splice(index!,1,...resolvedTokensRef.tokens);
+                }else {
+                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the group reference,${chalk.bold(tokens[index].text)}.Could not find an array to point it to.`,[this.lineCount-1,this.lineCount]);
+                }
             }
         }
     }

@@ -53,5 +53,5 @@ fragment SINGLE_NOUN_REF:'He' | 'She' | 'It';
 fragment GROUP_NOUN_REF:'They';
 
 NEW_LINE:('\r\n' | '\r' | '\n');
-WS: [ \t]+ -> skip ;
+WS:[ \t]+ -> skip ;
 COMMENT: '//' ~[\r\n]* -> skip;
