@@ -1,5 +1,5 @@
 import { CharStream, CommonTokenStream, ConsoleErrorListener,Token } from "antlr4ng";
-import { AliasDeclarationContext,DSLParser, FactContext,ProgramContext } from "./generated/DSLParser.js";
+import { AliasDeclarationContext,DSLParser, FactContext,ProgramContext, TokenContext } from "./generated/DSLParser.js";
 import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
 import { Rec } from "./fact-checker.js";
@@ -95,8 +95,12 @@ class Analyzer extends DSLVisitor<void> {
                 this.visitFact(child);
             }else if (child instanceof AliasDeclarationContext) {
                 this.visitAliasDeclaration(child);
+            }else{
+                const payload = child.getPayload();
+                const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
+                if (isNewLine) this.lineCount += 1;
+                console.log('inc line count',isNewLine);
             }
-            this.lineCount += 1;
         }
         return this.records;
     };
@@ -141,42 +145,56 @@ class Analyzer extends DSLVisitor<void> {
     private resolveRefs(tokens: Token[]) {
         const resolvedTokenRef:ResolvedTokenRef = {index:null,token:null};
         const resolvedTokensRef:ResolvedTokensRef = {index:null,tokens:null};
-        const subjectRefs = ['He','She','It','They'];
+
+        const objectRefs = new Set(['him','her','it','them']);
+        const nounRefs = ['He','She','It','They',...objectRefs];
+
+        let encounteredSubject = false;
 
         for (const [index,token] of tokens.entries()){
             const text = token.text!;
             const type = token.type;
             if (type === DSLLexer.PLAIN_WORD) {//this branch is to warn users if they forgot to place angle brackets around the ref and may have also added a typo on top of that.If they made a typo within the angle brackets,it will be caught as a syntax error.This one catches typos not within the bracket as a warning
-                for (const subjectRef of subjectRefs) {
+                for (const nounRef of nounRefs) {
                     const normText = text.toLowerCase();
-                    const normSubjectRef = subjectRef.toLowerCase();
-                    const dist = distance(normText,normSubjectRef);
+                    const normNounRef = nounRef.toLowerCase();
+                    const dist = distance(normText,normNounRef);
                     if (dist < 2) {
-                        Essentials.terminateWithError(DslError.DoubleCheck,this.lineCount,`Did you mean to use the ref,${chalk.bold('<'+subjectRef+'>')} instead of the filler,${chalk.bold(text)}?`);
+                        const suggestion = chalk.bold('<'+nounRef+'>');
+                        Essentials.terminateWithError(DslError.DoubleCheck,this.lineCount,`Did you mean to use the ref,${suggestion} instead of the filler,${chalk.bold(text)}?`);
                     }
                 }
             }
             else if (type === DSLLexer.SINGLE_SUBJECT_REF) {
+                if (encounteredSubject) {
+                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`A reference cannot be used in the same sentence of the subject that it is pointing to.`);
+                }
                 resolvedTokenRef.index = index;
                 resolvedTokenRef.token = this.lastTokensForSingle?.find(token=>token.type===DSLLexer.NAME) || null;
-                break;
+                //I didnt break here to allow all refs in the sentence to resolve
             }
             else if (type === DSLLexer.GROUP_SUBJECT_REF) {
+                if (encounteredSubject) {
+                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`A reference cannot be used in the same sentence of the subject that it is pointing to.`);
+                }
                 resolvedTokensRef.index = index;
                 if (this.lastTokensForGroup) {
                     resolvedTokensRef.tokens = this.getListTokensBlock(new Denque(this.lastTokensForGroup));
                     console.log('last array tokens:');
                     this.printTokens(resolvedTokensRef.tokens);
                 }
-                break;
             }
             else if (type === DSLLexer.NAME) {
-                this.lastTokensForSingle = tokens;
-                break;
+                if (!encounteredSubject) {//This ensures that only the first name thats encountered is registered and not overrided by others
+                    this.lastTokensForSingle = tokens;
+                    encounteredSubject = true;//i added this here because its possible that the ref is in the same senetnce as the subject its pointing to.and since they can only be one predicate in a sentece,it wil be difficult to meaningfully use the ref in the same sentence with the subject to make another sentence in conjuction with this one.Its required that two sentences should be joined with fullstop
+                }
             }
             else if (type === DSLLexer.LSQUARE) {
-                this.lastTokensForGroup = tokens;
-                break;
+                if (!encounteredSubject) {
+                    this.lastTokensForGroup = tokens;
+                    encounteredSubject = true;
+                }
             }
         };
 
@@ -263,7 +281,7 @@ class Analyzer extends DSLVisitor<void> {
         const predicate = this.getPredicate(tokens);
         if (predicate === null) return;
         const tokenQueue = new Denque(tokens);
-        const groupedData = this.getMembersInBoxes(tokenQueue);
+        const groupedData = this.inspectRelevantTokens(tokenQueue);
         console.log('🚀 => :176 => buildFact => groupedData:', groupedData);
         const flattenedData = this.flattenRecursively(groupedData);
         for (const atoms of flattenedData) {
@@ -277,7 +295,7 @@ class Analyzer extends DSLVisitor<void> {
             this.records[predicate].add(atoms);
         }
     }
-    private getMembersInBoxes(tokens:Denque<Token>,level:[number]=[0]) {
+    private inspectRelevantTokens(tokens:Denque<Token>,level:[number]=[0]) {
         const list:any[] = [];
         const inRoot = level[0] === 0;
         while (tokens.length !== 0) {
@@ -294,7 +312,7 @@ class Analyzer extends DSLVisitor<void> {
             }
             else if (type === DSLLexer.LSQUARE) {
                 level[0] += 1;
-                list.push(this.getMembersInBoxes(tokens,level));
+                list.push(this.inspectRelevantTokens(tokens,level));
             }
             else if (type === DSLLexer.RSQUARE) {
                 level[0] -= 1;
@@ -311,6 +329,7 @@ class Analyzer extends DSLVisitor<void> {
     public static inputArr:string[] = [];
     public createSentenceArray(input:string) {
         Analyzer.inputArr = input.split('\n');
+        console.log('🚀 => :329 => createSentenceArray => Analyzer.inputArr:', Analyzer.inputArr);
     }
 }
 export function genStruct(input:string):Record<string,Rec> | undefined {
