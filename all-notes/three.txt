@@ -1975,6 +1975,8 @@ two stage parsing process
 
 *I have singular refs:He,She and It which points to the first name of the nearest fact while They points to the first array of the nearest fact.Its more declarative,less error prone and automatic than directly alloing variable declarations like: let He = :john .This variable will need to be updated manually on every sentence where the subject changes to ensure it properly references the subject.but this is error prone which is why i have them as in built refs like:<He> which requires no management as it always points to the correct subject.The reason why i dont refs pointing to objects like in :ada *eats :meat,where <It> can ref meat is because unlike the subject,there can be more than one objects in a sentence and its not possible without any context-specific information to know what the ref should point to.
 
+*I would have loved to use a fuzzy engine to detect small and obvious typos like Thy for <They> but spinning a full fuzzy engine on every document build will just for typos will be very slow.so ill just use fastest leveinstein
+
 tokenization,semantism,building
 
 ?I punched npx swc.i hope it doesnt do anything
