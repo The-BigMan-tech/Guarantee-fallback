@@ -21,7 +21,7 @@ interface ResolvedTokensRef {
 enum DslError{
     Semantic="Semantic Error at",
     Syntax="Syntax Error at",
-    DoubleCheck="Double check"
+    DoubleCheck="This is safe to ignore but double check"
 }
 //todo:Make the fuctions more typesafe by replacing all the type shortcuts i made with the any type to concrete ones.and also try to make the predicates typed instead of dynamically sized arrays of either string or number.This has to be done in the dsl if possible.
 class Essentials {
