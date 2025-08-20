@@ -63,19 +63,27 @@ class Analyzer extends DSLVisitor<void> {
         return this.records;
     };
     private getListTokensBounds(tokens:Denque<Token>) {
-        let list:Token[] = [];
+        const list:Token[] = [];
+        let lBrackets:number = 0;
+        let rBrackets:number = 0;
+
         while (tokens.length !== 0) {
             const token = tokens.shift()!;
             const type = token.type;
             if (type === DSLLexer.LSQUARE) {
                 list.push(token);
-                list = [...list,...this.getListTokensBounds(tokens)];
+                lBrackets += 1;
             }
             else if (type === DSLLexer.RSQUARE) {
                 list.push(token);
-                break;
-            }else{
-                list.push(token);
+                rBrackets += 1;
+            }else {
+                if (lBrackets !== rBrackets) {
+                    console.log('l:',lBrackets,'r:',rBrackets);
+                    list.push(token);
+                }else {
+                    break;
+                }
             }
         };
         return list;
