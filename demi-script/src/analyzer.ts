@@ -214,6 +214,9 @@ class Analyzer extends DSLVisitor<void> {
                 Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the group reference,${chalk.bold(tokens[index].text)}.Could not find an array to point it to.`,[this.lineCount-1,this.lineCount]);
             }
         }
+        if ((resolvedSingleTokens.indices.length > 2) || (resolvedSingleTokens.indices.length > 2)) {
+            Essentials.terminateWithError(DslError.DoubleCheck,this.lineCount,`Be careful with how multiple references are used in a sentence and be sure that you know what they are pointing to.`);
+        }
     }
     private stripMark(text:string) {
         return text.slice(1);// Remove the leading '*' or '#'
