@@ -50,7 +50,9 @@ class Essentials {
             }
         }
         console.error(...messages);
-        Analyzer.terminate = true;
+        if ((errorType===DslError.Semantic) || (errorType===DslError.Syntax)) {
+            Analyzer.terminate = true;
+        }
     }
     public static loadEssentials(input:string):void {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:any, msg: string): void =>{
@@ -142,7 +144,7 @@ class Analyzer extends DSLVisitor<void> {
                     const normSubjectRef = subjectRef.toLowerCase();
                     const dist = distance(normText,normSubjectRef);
                     if (dist < 2) {
-                        Essentials.terminateWithError(DslError.Warning,this.lineCount,`Did you mean to use ${chalk.bold('<'+subjectRef+'>')} instead of ${chalk.bold(text)}?`);
+                        Essentials.terminateWithError(DslError.Warning,this.lineCount,`Did you mean to use the ref,${chalk.bold('<'+subjectRef+'>')} instead of the filler,${chalk.bold(text)}?`);
                     }
                 }
             }
