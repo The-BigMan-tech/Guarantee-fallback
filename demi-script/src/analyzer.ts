@@ -6,6 +6,7 @@ import { Rec } from "./fact-checker.js";
 import chalk from "chalk";
 import Denque from "denque";
 import { cartesianProduct } from "combinatorial-generators";
+import {distance} from "fastest-levenshtein"
 // import stringify from "safe-stable-stringify";
 // import {colorize} from "json-colorizer";
 
@@ -133,7 +134,10 @@ class Analyzer extends DSLVisitor<void> {
             const type = token.type;
             if (type === DSLLexer.PLAIN_WORD) {
                 for (const subjectRef of subjectRefs) {
-                    if (text.toLowerCase()===subjectRef.toLowerCase()) {
+                    const normText = text.toLowerCase();
+                    const normSubjectRef = subjectRef.toLowerCase();
+                    const dist = distance(normText,normSubjectRef);
+                    if (dist < 2) {
                         Essentials.terminateWithError('Warning',this.lineCount,`Did you mean to use ${chalk.bold('<'+subjectRef+'>')} instead of ${chalk.bold(text)}?`);
                     }
                 }
