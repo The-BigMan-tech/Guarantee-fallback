@@ -33,7 +33,7 @@ class Essentials {
     public static tree:ProgramContext;
 
     
-    public static terminateWithError(errorType:string,lineCount:number,msg:string,checkLines?:number[]):void {
+    public static report(errorType:string,lineCount:number,msg:string,checkLines?:number[]):void {
         const orange = chalk.hex('f09258f');
         const green = chalk.hex('adef1e');
         const darkGreen = chalk.hex('98ce25ff');
@@ -65,7 +65,7 @@ class Essentials {
     }
     public static loadEssentials(input:string):void {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:any, msg: string): void =>{
-            Essentials.terminateWithError(DslError.Syntax,line,msg);
+            Essentials.report(DslError.Syntax,line,msg);
         };
         Essentials.inputStream = CharStream.fromString(input);
         Essentials.lexer = new DSLLexer(Essentials.inputStream);
@@ -160,7 +160,7 @@ class Analyzer extends DSLVisitor<void> {
             if (encounteredX) {//i added this here because its possible that the ref is in the same senetnce as the subject that its pointing to.and since they can only be one predicate in a sentece,it wil be difficult to meaningfully use the ref in the same sentence with the subject to make another sentence in conjuction with it.Anything that requires joining for readability should require a fullstop to separate the senetnces not using the ref in the same sentence.so :ada is *strong and <He> is *ggod should rsther be separate sentences in the same line
                 let message = "A reference cannot be used to point to a subject in the same sentence";
                 message += `.\nIs ${chalk.bold(refAsText)} supposed to point to ${chalk.bold(stringify(resTokenAsText))}? If so,separate it as its own sentence.`;
-                Essentials.terminateWithError(DslError.Semantic,lineCount,message);
+                Essentials.report(DslError.Semantic,lineCount,message);
                 return false;
             }
             return true;
@@ -200,7 +200,7 @@ class Analyzer extends DSLVisitor<void> {
                     const dist = distance(normText,normNounRef);
                     if (dist < 2) {
                         const suggestion = chalk.bold( (objectRefs.has(nounRef))?'<'+nounRef+':number>':'<'+nounRef+'>');
-                        Essentials.terminateWithError(DslError.DoubleCheck,this.lineCount,`Did you mean to use the ref,${suggestion} instead of the filler,${chalk.bold(text)}?`);
+                        Essentials.report(DslError.DoubleCheck,this.lineCount,`Did you mean to use the ref,${suggestion} instead of the filler,${chalk.bold(text)}?`);
                     }
                 }
             }
@@ -210,7 +210,7 @@ class Analyzer extends DSLVisitor<void> {
             if (resolvedToken !== null) {//resolve the single ref
                 tokens[index] = resolvedToken;
             }else {
-                Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the singular reference,${chalk.bold(tokens[index].text)}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
+                Essentials.report(DslError.Semantic,this.lineCount,`Failed to resolve the singular reference,${chalk.bold(tokens[index].text)}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
             }
         }
         for (const index of resolvedGroupedTokens.indices) {
@@ -218,11 +218,11 @@ class Analyzer extends DSLVisitor<void> {
             if (resolvedTokens !== null) {//resolve the single ref
                 tokens.splice(index,1,...resolvedTokens);
             }else {
-                Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the group reference,${chalk.bold(tokens[index].text)}.Could not find an array to point it to.`,[this.lineCount-1,this.lineCount]);
+                Essentials.report(DslError.Semantic,this.lineCount,`Failed to resolve the group reference,${chalk.bold(tokens[index].text)}.Could not find an array to point it to.`,[this.lineCount-1,this.lineCount]);
             }
         }
         if ((resolvedSingleTokens.indices.length > 2) || (resolvedSingleTokens.indices.length > 2)) {
-            Essentials.terminateWithError(DslError.DoubleCheck,this.lineCount,`Be careful with how multiple references are used in a sentence and be sure that you know what they are pointing to.`);
+            Essentials.report(DslError.DoubleCheck,this.lineCount,`Be careful with how multiple references are used in a sentence and be sure that you know what they are pointing to.`);
         }
     }
     private stripMark(text:string) {
@@ -265,10 +265,10 @@ class Analyzer extends DSLVisitor<void> {
     private validatePredicateType(token:Token):void {
         const isAlias = this.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
         if (isAlias && ! token.text!.startsWith('#')) {
-            Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Aliases are meant to be prefixed with  ${chalk.bold('#')} but found: ${chalk.bold(token.text)}.Did you mean: #${chalk.bold(this.stripMark(token.text!))}?`);
+            Essentials.report(DslError.Semantic,this.lineCount,`Aliases are meant to be prefixed with  ${chalk.bold('#')} but found: ${chalk.bold(token.text)}.Did you mean: #${chalk.bold(this.stripMark(token.text!))}?`);
         }
         if (!isAlias && ! token.text!.startsWith("*")) {
-            Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Predicates are meant to be prefixed with ${chalk.bold('*')} but found: ${chalk.bold(token.text)}.Did you forget to declare it as an alias?`);
+            Essentials.report(DslError.Semantic,this.lineCount,`Predicates are meant to be prefixed with ${chalk.bold('*')} but found: ${chalk.bold(token.text)}.Did you forget to declare it as an alias?`);
         }
     }
     private getPredicate(tokens:Token[]):string | null {
@@ -278,14 +278,14 @@ class Analyzer extends DSLVisitor<void> {
             const type = token.type;
             if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS) ) {
                 if (predicate !== null) {
-                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`They can only be one alias or predicate in a sentence but found ${chalk.bold('*'+predicate)} and ${chalk.bold(text)} being used at the same time.`);
+                    Essentials.report(DslError.Semantic,this.lineCount,`They can only be one alias or predicate in a sentence but found ${chalk.bold('*'+predicate)} and ${chalk.bold(text)} being used at the same time.`);
                 }
                 this.validatePredicateType(token);
                 predicate = this.stripMark(text);
             }
         });
         if (predicate === null) {
-            Essentials.terminateWithError(DslError.Semantic,this.lineCount,'A sentence must have one predicate.');
+            Essentials.report(DslError.Semantic,this.lineCount,'A sentence must have one predicate.');
         }
         return predicate;
     }
@@ -299,7 +299,7 @@ class Analyzer extends DSLVisitor<void> {
         for (const atoms of flattenedData) {
             console.log('🚀 => :116 => buildFact => flatData:', atoms);
             if (atoms.length === 0) {
-                Essentials.terminateWithError(DslError.Semantic,this.lineCount,'A sentence must contain at least one atom.');
+                Essentials.report(DslError.Semantic,this.lineCount,'A sentence must contain at least one atom.');
             }
             if (!this.records[predicate]) {
                 this.records[predicate] = new Rec([]);
@@ -319,7 +319,9 @@ class Analyzer extends DSLVisitor<void> {
                 const str = this.stripMark(text);
                 const isStrict = text.startsWith('!');
                 if (isStrict && !this.usedNames.has(str)) {
-                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Could not find an existing usage of the name ${chalk.bold(str)} in the document unless this is the first time that it is used and you meant to type: ${chalk.bold(':'+str)} instead.`);
+                    Essentials.report(DslError.Semantic,this.lineCount,`Could not find an existing usage of the name ${chalk.bold(str)} in the document unless this is the first time that it is used and you meant to type: ${chalk.bold(':'+str)} instead.`);
+                }else if (!isStrict && this.usedNames.has(str)) {
+                    Essentials.report(DslError.DoubleCheck,this.lineCount,`You may wish to type the name,${chalk.bold(str)} strictly as ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \nIt signals that it has been defined else where and it helps to prevent errors early.`);
                 }
                 list.push((inRoot)?[str]:str);
             }
@@ -337,7 +339,7 @@ class Analyzer extends DSLVisitor<void> {
             }else if (type === DSLLexer.PLAIN_WORD) {
                 const capitalLetter = text.toUpperCase()[0];
                 if (text.startsWith(capitalLetter)) {
-                    Essentials.terminateWithError(DslError.DoubleCheck,this.lineCount,`Did you mean to write the name,${chalk.bold(":"+text)} instead of the filler,${chalk.bold(text)}?`);
+                    Essentials.report(DslError.DoubleCheck,this.lineCount,`Did you mean to write the name,${chalk.bold(":"+text)} instead of the filler,${chalk.bold(text)}?`);
                 }
             }else if (type === DSLLexer.TERMINATOR) {
                 if (text.endsWith('\n')) this.targetLineCount += 1;//increment the count at every new line created at the end of the sentence
