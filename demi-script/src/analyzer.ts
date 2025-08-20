@@ -18,13 +18,20 @@ class Essentials {
     public static parser:DSLParser;
     public static tree:ProgramContext;
 
-    public static terminateWithError(errorType:string,lineCount:number,msg:string):void {
-        console.error(
+    public static terminateWithError(errorType:string,lineCount:number,msg:string,checkLines?:number[]):void {
+        const messages = [
             chalk.red.underline(`\n${errorType} Error at line ${lineCount}:`),
             chalk.white(`\n${msg}`),
             chalk.magenta('\nPlease Check ->'),
-            chalk.green(Analyzer.inputArr[lineCount-1].trim() + '\n')
-        );
+        ];
+        if (!checkLines) {
+            messages.push(chalk.green(Analyzer.inputArr[lineCount-1].trim() + '\n'));
+        }else {
+            for (const line of checkLines) {
+                messages.push(chalk.green(Analyzer.inputArr[line-1].trim() + ',\n'));
+            }
+        }
+        console.error(...messages);
         Analyzer.terminate = true;
     }
     public static loadEssentials(input:string):void {
@@ -145,14 +152,14 @@ class Analyzer extends DSLVisitor<void> {
             if (resolvedTokenRef.token !== null) {//resolve the single ref
                 tokens[resolvedTokenRef.index] = resolvedTokenRef.token;
             }else {
-                Essentials.terminateWithError('Semantic',this.lineCount,`The singular reference, ${tokens[resolvedTokenRef.index].text} could not be resolved.Could not find a name to point it to.`);
+                Essentials.terminateWithError('Semantic',this.lineCount,`Failed to resolve the singular reference,${tokens[resolvedTokenRef.index].text}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
             }
         }
         if (resolvedTokensRef.index !== null) {
             if (resolvedTokensRef.tokens !== null) {//resolve the group ref
                 tokens.splice(resolvedTokensRef.index!,1,...resolvedTokensRef.tokens);
             }else {
-                Essentials.terminateWithError('Semantic',this.lineCount,`The group reference, ${tokens[resolvedTokensRef.index].text} could not be resolved.Could not find an array to point it to.`);
+                Essentials.terminateWithError('Semantic',this.lineCount,`Failed to resolve the group reference,${tokens[resolvedTokensRef.index].text}.Could not find an array to point it to.`);
             }
         }
     }
