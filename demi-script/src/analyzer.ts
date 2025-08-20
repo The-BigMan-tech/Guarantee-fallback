@@ -77,7 +77,9 @@ class Analyzer extends DSLVisitor<void> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public  records:Record<string,Rec> = {};
     private aliases = new Set<string>();
+
     private lineCount:number = 1;
+    private targetLineCount:number = this.lineCount;
 
     private lastTokensForSingle:Token[] | null = null;
     private lastTokensForGroup:Token[] | null = null;
@@ -98,8 +100,9 @@ class Analyzer extends DSLVisitor<void> {
             }else{
                 const payload = child.getPayload();
                 const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
-                if (isNewLine) this.lineCount += 1;//increment the line count at every empty new line
+                if (isNewLine) this.targetLineCount += 1;//increment the line count at every empty new line
             }
+            this.lineCount = this.targetLineCount;
         }
         return this.records;
     };
@@ -321,7 +324,7 @@ class Analyzer extends DSLVisitor<void> {
                     Essentials.terminateWithError(DslError.DoubleCheck,this.lineCount,`Did you mean to write the name,${chalk.bold(":"+text)} instead of the filler,${chalk.bold(text)}?`);
                 }
             }else if (type === DSLLexer.TERMINATOR) {
-                if (text.endsWith('\n')) this.lineCount += 1;//increment the count at every new line created at the end of the sentence
+                if (text.endsWith('\n')) this.targetLineCount += 1;//increment the count at every new line created at the end of the sentence
             }
         };
         return list;
