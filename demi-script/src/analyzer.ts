@@ -70,7 +70,19 @@ class Analyzer extends DSLVisitor<void> {
         }
         return this.records;
     };
-    private getListTokensBounds(tokens:Denque<Token>) {
+    public visitFact = (ctx:FactContext)=> {
+        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        this.resolveRefs(tokens);
+        this.printTokens(tokens);
+        this.buildFact(tokens);
+    };
+    public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
+        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        this.printTokens(tokens);
+        this.resolveAlias(tokens);
+    };
+
+    private getListTokensBlock(tokens:Denque<Token>) {
         const list:Token[] = [];
         let lBrackets:number = 0;
         let rBrackets:number = 0;
@@ -107,36 +119,31 @@ class Analyzer extends DSLVisitor<void> {
                 resolvedTokenRef.token = this.lastTokens?.find(token=>token.type===DSLLexer.NAME) || token;
                 break;
             }
-            if (type === DSLLexer.GROUP_REF) {
+            else if (type === DSLLexer.GROUP_REF) {
                 if (this.lastTokens) {
                     resolvedTokensRef.index = index;
-                    resolvedTokensRef.tokens = this.getListTokensBounds(new Denque(this.lastTokens));
+                    resolvedTokensRef.tokens = this.getListTokensBlock(new Denque(this.lastTokens));
                     console.log('last array tokens:');
                     this.printTokens(resolvedTokensRef.tokens);
                 }
                 break;
             }
-            if ((type === DSLLexer.NAME) || (type === DSLLexer.LSQUARE)) {
+            else if ((type === DSLLexer.NAME) || (type === DSLLexer.LSQUARE)) {
                 this.lastTokens = tokens;
                 break;
             };
         };
-        if (resolvedTokenRef.index !== null) {
+        if (resolvedTokenRef.index !== null) {//resolve the single ref
             tokens[resolvedTokenRef.index] = resolvedTokenRef.token!;
         }
-        if (resolvedTokensRef.index !== null) {
+        if (resolvedTokensRef.index !== null) {//resolve the group ref
             tokens.splice(resolvedTokensRef.index,1,...resolvedTokensRef.tokens!);
         }
     }
-    public visitFact = (ctx:FactContext)=> {
-        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        this.resolveRefs(tokens);
-        this.printTokens(tokens);
-        this.buildFact(tokens);
-    };
-    public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
-        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        this.printTokens(tokens);
+    private stripMark(text:string) {
+        return text.slice(1);// Remove the leading '*' or '#'
+    }
+    private resolveAlias(tokens:Token[]) {
         let alias = '';
         let predicateRec:Rec = new Rec([]);
         tokens.forEach(token=>{
@@ -155,9 +162,6 @@ class Analyzer extends DSLVisitor<void> {
         });
         this.records[alias] = predicateRec;
         this.aliases.add(alias);
-    };
-    private stripMark(text:string) {
-        return text.slice(1);// Remove the leading '*' or '#'
     }
     private flattenRecursively(input:any[][],flatSequences:any[][] = []):any[][] {
         for (const product of cartesianProduct(...input)) {
@@ -179,7 +183,7 @@ class Analyzer extends DSLVisitor<void> {
             Essentials.terminateWithError('Semantic',this.lineCount,`Aliases are meant to be prefixed with '#' but found: ${token.text}.`);
         }
         if (!isAlias && ! token.text!.startsWith("*")) {
-            Essentials.terminateWithError('Semantic',this.lineCount,`Predicates are meant to be prefixed with '*' but found: ${token.text}.`);
+            Essentials.terminateWithError('Semantic',this.lineCount,`Predicates are meant to be prefixed with '*' but found: ${token.text}.Did you forget to declare it as an alias?`);
         }
     }
     private getPredicate(tokens:Token[]):string | null {
@@ -254,5 +258,5 @@ export function genStruct(input:string):Record<string,Rec> | undefined {
     visitor.createSentenceArray(input);
     Essentials.loadEssentials(input);
     visitor.visit(Essentials.tree);
-    return visitor.records;
+    if (!Analyzer.terminate) return visitor.records;
 }
