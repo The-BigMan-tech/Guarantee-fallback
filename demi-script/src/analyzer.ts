@@ -145,7 +145,7 @@ class Analyzer extends DSLVisitor<void> {
         };
         return (list.length > 0)?list:null;
     }
-    private usedNames = new Set<string>();
+    private usedNames:Record<string,number> = {};
     private resolveRefs(tokens: Token[]) {
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
         const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:[],tokens:new Map()};
@@ -175,7 +175,7 @@ class Analyzer extends DSLVisitor<void> {
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
             }
             else if (type === DSLLexer.GROUP_SUBJECT_REF) {
-                const printOnError = this.inspectRelevantTokens(new Denque(this.lastTokensForGroup || [])).at(0);
+                const printOnError = this.inspectRelevantTokens(new Denque(this.lastTokensForGroup || []),[0],false).at(0);
                 if (!allowRef(encounteredList,this.lineCount,text,printOnError)) return;
 
                 const resolvedTokens = this.getListTokensBlock(new Denque(this.lastTokensForGroup || []));
@@ -185,7 +185,7 @@ class Analyzer extends DSLVisitor<void> {
             }
             else if (type === DSLLexer.NAME) {
                 const isLoose = text.startsWith(':');
-                if (isLoose) this.usedNames.add(this.stripMark(text));
+                if (isLoose) this.usedNames[this.stripMark(text)] = 0;
                 this.lastTokensForSingle = tokens;
                 encounteredName = true;
             }
@@ -307,7 +307,7 @@ class Analyzer extends DSLVisitor<void> {
             this.records[predicate].add(atoms);
         }
     }
-    private inspectRelevantTokens(tokens:Denque<Token>,level:[number]=[0]) {
+    private inspectRelevantTokens(tokens:Denque<Token>,level:[number]=[0],specialMutations:boolean=true) {
         const list:any[] = [];
         const inRoot = level[0] === 0;
         while (tokens.length !== 0) {
@@ -318,10 +318,17 @@ class Analyzer extends DSLVisitor<void> {
                 console.log('Inspecting name: ',text);
                 const str = this.stripMark(text);
                 const isStrict = text.startsWith('!');
-                if (isStrict && !this.usedNames.has(str)) {
-                    Essentials.report(DslError.Semantic,this.lineCount,`Could not find an existing usage of the name ${chalk.bold(str)} in the document unless this is the first time that it is used and you meant to type: ${chalk.bold(':'+str)} instead.`);
-                }else if (!isStrict && this.usedNames.has(str)) {
-                    Essentials.report(DslError.DoubleCheck,this.lineCount,`You may wish to type the name,${chalk.bold(str)} strictly as ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \nIt signals that it has been defined else where and it helps to prevent errors early.`);
+                if (specialMutations) {
+                    console.log('kkk',this.usedNames);
+                    if (isStrict && (str in this.usedNames)) {
+                        Essentials.report(DslError.Semantic,this.lineCount,`Could not find an existing usage of the name ${chalk.bold(str)} in the document unless this is the first time that it is used and you meant to type: ${chalk.bold(':'+str)} instead.`);
+                    }else if (!isStrict && this.usedNames[str] > 0) {
+                        console.log('names 2: ',this.usedNames);
+                        Essentials.report(DslError.DoubleCheck,this.lineCount,`You may wish to type the name,${chalk.bold(str)} strictly as ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \nIt signals that it has been defined else where and it helps to prevent errors early.`);
+                    }
+                    if (str in this.usedNames) {
+                        this.usedNames[str] += 1;
+                    }
                 }
                 list.push((inRoot)?[str]:str);
             }
@@ -331,7 +338,7 @@ class Analyzer extends DSLVisitor<void> {
             }
             else if (type === DSLLexer.LSQUARE) {
                 level[0] += 1;
-                list.push(this.inspectRelevantTokens(tokens,level));
+                list.push(this.inspectRelevantTokens(tokens,level,specialMutations));
             }
             else if (type === DSLLexer.RSQUARE) {
                 level[0] -= 1;
@@ -341,7 +348,7 @@ class Analyzer extends DSLVisitor<void> {
                 if (text.startsWith(capitalLetter)) {
                     Essentials.report(DslError.DoubleCheck,this.lineCount,`Did you mean to write the name,${chalk.bold(":"+text)} instead of the filler,${chalk.bold(text)}?`);
                 }
-            }else if (type === DSLLexer.TERMINATOR) {
+            }else if ((type === DSLLexer.TERMINATOR) && specialMutations) {
                 if (text.endsWith('\n')) this.targetLineCount += 1;//increment the count at every new line created at the end of the sentence
             }
         };
