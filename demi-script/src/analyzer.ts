@@ -62,18 +62,20 @@ class Analyzer extends DSLVisitor<void> {
         }
         return this.records;
     };
-    private getArrayTokens(tokens:Denque<Token>):Token[] {
+    private getListTokensBounds(tokens:Denque<Token>) {
         let list:Token[] = [];
         while (tokens.length !== 0) {
             const token = tokens.shift()!;
             const type = token.type;
             if (type === DSLLexer.LSQUARE) {
                 list.push(token);
-                list = [...list,...this.getArrayTokens(tokens)];
+                list = [...list,...this.getListTokensBounds(tokens)];
             }
             else if (type === DSLLexer.RSQUARE) {
                 list.push(token);
                 break;
+            }else{
+                list.push(token);
             }
         };
         return list;
@@ -88,7 +90,7 @@ class Analyzer extends DSLVisitor<void> {
             }
             if (type === DSLLexer.GROUP_REF) {
                 if (this.lastTokens) {
-                    const lastArrTokens = this.getArrayTokens(new Denque(this.lastTokens));
+                    const lastArrTokens = this.getListTokensBounds(new Denque(this.lastTokens));
                     console.log('last tokens:',this.printTokens(lastArrTokens));
                     // tokens.splice(index,1,...this.lastTokens);
                 }
@@ -173,6 +175,7 @@ class Analyzer extends DSLVisitor<void> {
         if (predicate === null) return;
         const tokenQueue = new Denque(tokens);
         const groupedData = this.getMembersInBoxes(tokenQueue);
+        console.log('🚀 => :176 => buildFact => groupedData:', groupedData);
         const flattenedData = this.flattenRecursively(groupedData);
         for (const atoms of flattenedData) {
             console.log('🚀 => :116 => buildFact => flatData:', atoms);
@@ -185,9 +188,9 @@ class Analyzer extends DSLVisitor<void> {
             this.records[predicate].add(atoms);
         }
     }
-    private getMembersInBoxes(tokens:Denque<Token>,inRoot:boolean=true) {
+    private getMembersInBoxes(tokens:Denque<Token>,level:[number]=[0]) {
         const list:any[] = [];
-
+        const inRoot = level[0] === 0;
         while (tokens.length !== 0) {
             const token = tokens.shift()!;
             const type = token.type;
@@ -201,10 +204,11 @@ class Analyzer extends DSLVisitor<void> {
                 list.push((inRoot)?[num]:num);
             }
             else if (type === DSLLexer.LSQUARE) {
-                inRoot = false;
-                list.push(this.getMembersInBoxes(tokens,inRoot));
+                level[0] += 1;
+                list.push(this.getMembersInBoxes(tokens,level));
             }
             else if (type === DSLLexer.RSQUARE) {
+                level[0] -= 1;
                 break;
             }
         };
