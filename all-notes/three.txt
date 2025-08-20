@@ -1973,6 +1973,8 @@ two stage parsing process
 
 *it may have its limits,but i dont want to start thinking how ill handle recursion cases in other parts of the codebase.i believe that many facts can be written flat.and if possible,i can make my facts takes arrays in the facts but its at the syntax level and my parser will convert them to flat facts before converting those facts to the predicate calls and finally the data structure.it will use cartesian product impl like from the combinatorics package to turn many to many relationships to flat tuples one-many relationships.
 
+*I have singular refs:He,She and It which points to the first name of the nearest fact while They points to the first array of the nearest fact.Its more declarative,less error prone and automatic than directly alloing variable declarations like: let He = :john .This variable will need to be updated manually on every sentence where the subject changes to ensure it properly references the subject.but this is error prone which is why i have them as in built refs like:<He> which requires no management as it always points to the correct subject.The reason why i dont refs pointing to objects like in :ada *eats :meat,where <It> can ref meat is because unlike the subject,there can be more than one objects in a sentence and its not possible without any context-specific information to know what the ref should point to.
+
 tokenization,semantism,building
 
 ?I punched npx swc.i hope it doesnt do anything

@@ -164,7 +164,7 @@ class Analyzer extends DSLVisitor<void> {
             if (resolvedTokensRef.tokens !== null) {//resolve the group ref
                 tokens.splice(resolvedTokensRef.index!,1,...resolvedTokensRef.tokens);
             }else {
-                Essentials.terminateWithError('Semantic',this.lineCount,`Failed to resolve the group reference,${tokens[resolvedTokensRef.index].text}.Could not find an array to point it to.`);
+                Essentials.terminateWithError('Semantic',this.lineCount,`Failed to resolve the group reference,${tokens[resolvedTokensRef.index].text}.Could not find an array to point it to.`,[this.lineCount-1,this.lineCount]);
             }
         }
     }
