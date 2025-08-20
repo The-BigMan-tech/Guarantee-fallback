@@ -27,11 +27,12 @@ class Essentials {
             chalk.white(`\n${msg}`),
         ];
         if (!checkLines) {
-            messages.push(chalk.magenta('\nPlease Check ->'));
+            messages.push(chalk.yellow('\nPlease Check ->'));
             pushLine(lineCount);
         }else {
-            messages.push(chalk.magenta.underline('\nCheck these lines\n'));
+            messages.push(chalk.yellow.underline('\n\nCheck these lines:\n'));
             for (const line of checkLines) {
+                messages.push(chalk.gray(`${line}.`));
                 pushLine(line);
             }
         }
@@ -88,7 +89,7 @@ class Analyzer extends DSLVisitor<void> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         this.resolveRefs(tokens);
         this.printTokens(tokens);
-        this.buildFact(tokens);
+        if (!Analyzer.terminate) this.buildFact(tokens);//i checked for termination here because ref resolution can fail
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
