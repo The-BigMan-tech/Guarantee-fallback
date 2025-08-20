@@ -19,9 +19,9 @@ interface ResolvedTokensRef {
     tokens:Token[] | null
 }
 enum DslError{
-    Semantic="Semantic Error",
-    Syntax="Syntax Error",
-    Warning="Warning"
+    Semantic="Semantic Error at",
+    Syntax="Syntax Error at",
+    DoubleCheck="Double check"
 }
 //todo:Make the fuctions more typesafe by replacing all the type shortcuts i made with the any type to concrete ones.and also try to make the predicates typed instead of dynamically sized arrays of either string or number.This has to be done in the dsl if possible.
 class Essentials {
@@ -41,9 +41,9 @@ class Essentials {
         function pushLine(line:number):void {
             messages.push(grey(Analyzer.inputArr[line-1].trim() + '\n'));
         }
-        
-        let title = chalk.underline(`\n${errorType} at line ${lineCount}:`);
-        title = (errorType === DslError.Warning)?orange(title):chalk.red(title);
+
+        let title = chalk.underline(`\n${errorType} line ${lineCount}:`);
+        title = (errorType === DslError.DoubleCheck)?orange(title):chalk.red(title);
         
         const messages = [title,`\n${msg}`,];
         if (!checkLines) {
@@ -152,7 +152,7 @@ class Analyzer extends DSLVisitor<void> {
                     const normSubjectRef = subjectRef.toLowerCase();
                     const dist = distance(normText,normSubjectRef);
                     if (dist < 2) {
-                        Essentials.terminateWithError(DslError.Warning,this.lineCount,`Did you mean to use the ref,${chalk.bold('<'+subjectRef+'>')} instead of the filler,${chalk.bold(text)}?`);
+                        Essentials.terminateWithError(DslError.DoubleCheck,this.lineCount,`Did you mean to use the ref,${chalk.bold('<'+subjectRef+'>')} instead of the filler,${chalk.bold(text)}?`);
                     }
                 }
             }
@@ -302,7 +302,7 @@ class Analyzer extends DSLVisitor<void> {
             }else if (type === DSLLexer.PLAIN_WORD) {
                 const capitalLetter = text.toUpperCase()[0];
                 if (text.startsWith(capitalLetter)) {
-                    Essentials.terminateWithError(DslError.Warning,this.lineCount,`Did you mean to write the name,${chalk.bold(":"+text)} instead of the filler,${chalk.bold(text)}?`);
+                    Essentials.terminateWithError(DslError.DoubleCheck,this.lineCount,`Did you mean to write the name,${chalk.bold(":"+text)} instead of the filler,${chalk.bold(text)}?`);
                 }
             }
         };
