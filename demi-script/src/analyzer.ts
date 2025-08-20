@@ -94,8 +94,8 @@ class Analyzer extends DSLVisitor<void> {
     };
     public visitFact = (ctx:FactContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        this.printTokens(tokens);
         this.resolveRefs(tokens);
+        this.printTokens(tokens);
         if (!Analyzer.terminate) this.buildFact(tokens);//i checked for termination here because ref resolution can fail
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
@@ -148,12 +148,12 @@ class Analyzer extends DSLVisitor<void> {
                     }
                 }
             }
-            else if (type === DSLLexer.SINGLE_REF) {
+            else if (type === DSLLexer.SINGLE_SUBJECT_REF) {
                 resolvedTokenRef.index = index;
                 resolvedTokenRef.token = this.lastTokensForSingle?.find(token=>token.type===DSLLexer.NAME) || null;
                 break;
             }
-            else if (type === DSLLexer.GROUP_REF) {
+            else if (type === DSLLexer.GROUP_SUBJECT_REF) {
                 resolvedTokensRef.index = index;
                 if (this.lastTokensForGroup) {
                     resolvedTokensRef.tokens = this.getListTokensBlock(new Denque(this.lastTokensForGroup));

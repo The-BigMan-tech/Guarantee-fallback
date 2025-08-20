@@ -21,8 +21,8 @@ export class DSLLexer extends antlr.Lexer {
     public static readonly NAME = 15;
     public static readonly NUMBER = 16;
     public static readonly PLAIN_WORD = 17;
-    public static readonly SINGLE_REF = 18;
-    public static readonly GROUP_REF = 19;
+    public static readonly SINGLE_SUBJECT_REF = 18;
+    public static readonly GROUP_SUBJECT_REF = 19;
     public static readonly NEW_LINE = 20;
     public static readonly WS = 21;
     public static readonly COMMENT = 22;
@@ -39,8 +39,8 @@ export class DSLLexer extends antlr.Lexer {
     public static readonly symbolicNames = [
         null, "COMMA", "LPAREN", "RPAREN", "LSQUARE", "RSQUARE", "SEMICOLON", 
         "QUESTION", "EXCLAMATION", "APOSTROPHE", "EQUALS", "ALIAS_KW", "TERMINATOR", 
-        "PREDICATE", "ALIAS", "NAME", "NUMBER", "PLAIN_WORD", "SINGLE_REF", 
-        "GROUP_REF", "NEW_LINE", "WS", "COMMENT"
+        "PREDICATE", "ALIAS", "NAME", "NUMBER", "PLAIN_WORD", "SINGLE_SUBJECT_REF", 
+        "GROUP_SUBJECT_REF", "NEW_LINE", "WS", "COMMENT"
     ];
 
     public static readonly modeNames = [
@@ -51,8 +51,8 @@ export class DSLLexer extends antlr.Lexer {
         "LETTER", "DIGIT", "COMMA", "LPAREN", "RPAREN", "LSQUARE", "RSQUARE", 
         "SEMICOLON", "QUESTION", "EXCLAMATION", "APOSTROPHE", "EQUALS", 
         "ALIAS_KW", "TERMINATOR", "PERIOD", "PREDICATE", "ALIAS", "NAME", 
-        "NUMBER", "PLAIN_WORD", "SINGLE_REF", "GROUP_REF", "SINGLE_NOUN_REF", 
-        "GROUP_NOUN_REF", "NEW_LINE", "WS", "COMMENT",
+        "NUMBER", "PLAIN_WORD", "SINGLE_SUBJECT_REF", "GROUP_SUBJECT_REF", 
+        "SINGLE_NOUN_REF", "GROUP_NOUN_REF", "NEW_LINE", "WS", "COMMENT",
     ];
 
 

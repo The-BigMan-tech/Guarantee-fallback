@@ -28,8 +28,8 @@ export class DSLParser extends antlr.Parser {
     public static readonly NAME = 15;
     public static readonly NUMBER = 16;
     public static readonly PLAIN_WORD = 17;
-    public static readonly SINGLE_REF = 18;
-    public static readonly GROUP_REF = 19;
+    public static readonly SINGLE_SUBJECT_REF = 18;
+    public static readonly GROUP_SUBJECT_REF = 19;
     public static readonly NEW_LINE = 20;
     public static readonly WS = 21;
     public static readonly COMMENT = 22;
@@ -48,8 +48,8 @@ export class DSLParser extends antlr.Parser {
     public static readonly symbolicNames = [
         null, "COMMA", "LPAREN", "RPAREN", "LSQUARE", "RSQUARE", "SEMICOLON", 
         "QUESTION", "EXCLAMATION", "APOSTROPHE", "EQUALS", "ALIAS_KW", "TERMINATOR", 
-        "PREDICATE", "ALIAS", "NAME", "NUMBER", "PLAIN_WORD", "SINGLE_REF", 
-        "GROUP_REF", "NEW_LINE", "WS", "COMMENT"
+        "PREDICATE", "ALIAS", "NAME", "NUMBER", "PLAIN_WORD", "SINGLE_SUBJECT_REF", 
+        "GROUP_SUBJECT_REF", "NEW_LINE", "WS", "COMMENT"
     ];
     public static readonly ruleNames = [
         "program", "fact", "aliasDeclaration", "sentence", "token", "list",
@@ -103,8 +103,8 @@ export class DSLParser extends antlr.Parser {
                 case DSLParser.NAME:
                 case DSLParser.NUMBER:
                 case DSLParser.PLAIN_WORD:
-                case DSLParser.SINGLE_REF:
-                case DSLParser.GROUP_REF:
+                case DSLParser.SINGLE_SUBJECT_REF:
+                case DSLParser.GROUP_SUBJECT_REF:
                     {
                     this.state = 13;
                     this.fact();
@@ -256,18 +256,18 @@ export class DSLParser extends antlr.Parser {
                 }
                 }
                 break;
-            case DSLParser.SINGLE_REF:
+            case DSLParser.SINGLE_SUBJECT_REF:
                 this.enterOuterAlt(localContext, 2);
                 {
                 this.state = 36;
-                this.match(DSLParser.SINGLE_REF);
+                this.match(DSLParser.SINGLE_SUBJECT_REF);
                 }
                 break;
-            case DSLParser.GROUP_REF:
+            case DSLParser.GROUP_SUBJECT_REF:
                 this.enterOuterAlt(localContext, 3);
                 {
                 this.state = 37;
-                this.match(DSLParser.GROUP_REF);
+                this.match(DSLParser.GROUP_SUBJECT_REF);
                 }
                 break;
             case DSLParser.LSQUARE:
@@ -655,11 +655,11 @@ export class TokenContext extends antlr.ParserRuleContext {
     public NUMBER(): antlr.TerminalNode | null {
         return this.getToken(DSLParser.NUMBER, 0);
     }
-    public SINGLE_REF(): antlr.TerminalNode | null {
-        return this.getToken(DSLParser.SINGLE_REF, 0);
+    public SINGLE_SUBJECT_REF(): antlr.TerminalNode | null {
+        return this.getToken(DSLParser.SINGLE_SUBJECT_REF, 0);
     }
-    public GROUP_REF(): antlr.TerminalNode | null {
-        return this.getToken(DSLParser.GROUP_REF, 0);
+    public GROUP_SUBJECT_REF(): antlr.TerminalNode | null {
+        return this.getToken(DSLParser.GROUP_SUBJECT_REF, 0);
     }
     public list(): ListContext | null {
         return this.getRuleContext(0, ListContext);
