@@ -96,8 +96,7 @@ class Analyzer extends DSLVisitor<void> {
         };
         return list;
     }
-    public visitFact = (ctx:FactContext)=> {
-        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+    private resolveRefs(tokens: Token[]) {
         const resolvedTokenRef:ResolvedTokenRef = {index:null,token:null};
         const resolvedTokensRef:ResolvedTokensRef = {index:null,tokens:null};
 
@@ -128,6 +127,10 @@ class Analyzer extends DSLVisitor<void> {
         if (resolvedTokensRef.index !== null) {
             tokens.splice(resolvedTokensRef.index,1,...resolvedTokensRef.tokens!);
         }
+    }
+    public visitFact = (ctx:FactContext)=> {
+        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        this.resolveRefs(tokens);
         this.printTokens(tokens);
         this.buildFact(tokens);
     };
