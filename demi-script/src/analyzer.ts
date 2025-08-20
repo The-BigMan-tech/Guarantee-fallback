@@ -7,6 +7,7 @@ import chalk from "chalk";
 import Denque from "denque";
 import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
+import stringify from "safe-stable-stringify";
 // import stringify from "safe-stable-stringify";
 // import {colorize} from "json-colorizer";
 
@@ -154,10 +155,10 @@ class Analyzer extends DSLVisitor<void> {
         let encounteredName = false;
         let encounteredList = false;
 
-        function allowRef(encounteredX:boolean,lineCount:number,refAsText:string,resTokenAsText?:string):boolean {
+        function allowRef(encounteredX:boolean,lineCount:number,refAsText:string,resTokenAsText:unknown):boolean {
             if (encounteredX) {//i added this here because its possible that the ref is in the same senetnce as the subject that its pointing to.and since they can only be one predicate in a sentece,it wil be difficult to meaningfully use the ref in the same sentence with the subject to make another sentence in conjuction with it.Anything that requires joining for readability should require a fullstop to separate the senetnces not using the ref in the same sentence.so :ada is *strong and <He> is *ggod should rsther be separate sentences in the same line
                 let message = "A reference cannot be used to point to a subject in the same sentence";
-                message += (resTokenAsText)?`.\nIs ${chalk.bold(refAsText)} supposed to point to ${chalk.bold(resTokenAsText)}? If so,separate it as its own sentence.`:'';
+                message += `.\nIs ${chalk.bold(refAsText)} supposed to point to ${chalk.bold(stringify(resTokenAsText))}? If so,separate it as its own sentence.`;
                 Essentials.terminateWithError(DslError.Semantic,lineCount,message);
                 return false;
             }
@@ -173,9 +174,12 @@ class Analyzer extends DSLVisitor<void> {
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
             }
             else if (type === DSLLexer.GROUP_SUBJECT_REF) {
-                if (!allowRef(encounteredList,this.lineCount,text)) return;
+                const printOnError = this.inspectRelevantTokens(new Denque(this.lastTokensForGroup || [])).at(0);
+                if (!allowRef(encounteredList,this.lineCount,text,printOnError)) return;
+
+                const resolvedTokens = this.getListTokensBlock(new Denque(this.lastTokensForGroup || []));
                 resolvedGroupedTokens.indices.push(index);
-                resolvedGroupedTokens.tokens.set(index,this.getListTokensBlock(new Denque(this.lastTokensForGroup || [])));
+                resolvedGroupedTokens.tokens.set(index,resolvedTokens);
                 console.log('last array tokens:');this.printTokens(resolvedGroupedTokens.tokens.get(index) || []);
             }
             else if ((type === DSLLexer.NAME) && !encounteredName) {//the second check is necessary for correctness because the operation is indempotent.it always assigns the same tokens array to the same variable whenever its called.but its good to prevent the extra computation
