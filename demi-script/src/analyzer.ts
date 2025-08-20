@@ -31,19 +31,27 @@ class Essentials {
     public static parser:DSLParser;
     public static tree:ProgramContext;
 
+    
     public static terminateWithError(errorType:string,lineCount:number,msg:string,checkLines?:number[]):void {
+        const orange = chalk.hex('f09258f');
+        const green = chalk.hex('adef1e');
+        const darkGreen = chalk.hex('98ce25ff');
+        const grey = chalk.hex("#ddcba0ff");
+
         function pushLine(line:number):void {
-            messages.push(chalk.green(Analyzer.inputArr[line-1].trim() + '\n'));
+            messages.push(grey(Analyzer.inputArr[line-1].trim() + '\n'));
         }
-        const messages = [
-            chalk.red.underline(`\n${errorType} at line ${lineCount}:`),
-            chalk.white(`\n${msg}`),
-        ];
+        
+        let title = chalk.underline(`\n${errorType} at line ${lineCount}:`);
+        title = (errorType === DslError.Warning)?orange(title):chalk.red(title);
+        
+        const messages = [title,`\n${msg}`,];
         if (!checkLines) {
-            messages.push(chalk.yellow('\nPlease Check ->'));
+            messages.push(green('\nCheck'),darkGreen('->'));
             pushLine(lineCount);
-        }else {
-            messages.push(chalk.yellow.underline('\n\nCheck these lines:\n'));
+        }
+        else{
+            messages.push(chalk.green.underline('\n\nCheck these lines:\n'));
             for (const line of checkLines) {
                 messages.push(chalk.gray(`${line}.`));
                 pushLine(line);
@@ -291,6 +299,11 @@ class Analyzer extends DSLVisitor<void> {
             else if (type === DSLLexer.RSQUARE) {
                 level[0] -= 1;
                 break;
+            }else if (type === DSLLexer.PLAIN_WORD) {
+                const capitalLetter = text.toUpperCase()[0];
+                if (text.startsWith(capitalLetter)) {
+                    Essentials.terminateWithError(DslError.Warning,this.lineCount,`Did you mean to write the name,${chalk.bold(":"+text)} instead of the filler,${chalk.bold(text)}?`);
+                }
             }
         };
         return list;
