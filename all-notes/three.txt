@@ -1979,6 +1979,12 @@ two stage parsing process
 
 *so my dsl is largely focused on safety,expressivenss and convenience.The syntax is declarative,the analyzer ensres safety and the auto-managed refs and the array for auto expansion are conveiences not even available in prolog
 
+*so this means that predicate safety is handled by well written queries and input constraints.not by a verbose predicate schema
+
+*so dsl syntax and semantic correctness is handled by the analyzer implicitly which captures a wide vaiaety of errors and includes usage assertions for names but predicate validation is something that the rules themeselves or the queries can and should validate because the document itself is valid if it has been verified by the analyzer.so predicate correctness only matters on input-output cycles which falls to the rules and queries naturally
+
+*so my dsl may not fully guarantee a document's correctness but it ensures that everything thats written in it is deliberate and given attention to which prevents many overlooked errors during authoring.
+
 tokenization,semantism,building
 
 ?I punched npx swc.i hope it doesnt do anything
