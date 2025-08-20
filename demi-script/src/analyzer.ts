@@ -10,13 +10,13 @@ import {distance} from "fastest-levenshtein";
 // import stringify from "safe-stable-stringify";
 // import {colorize} from "json-colorizer";
 
-interface ResolvedTokenRef {
-    indices:number[] | null,
-    token:Token | null
+interface ResolvedSingleTokenRef {
+    indices:(number | null)[],//i used an array because they may be multiple refs in a sentence to resolve
+    token:Map<number,null | Token>//i used a map here to localize the tokens that resolves each ref
 }
 interface ResolvedTokensRef {
-    indices:number[] | null,//i used an array because they may be multiple refs in a sentence to resolve
-    tokens:Token[] | null
+    indices:(number | null)[],
+    tokens:Map<number,(null | Token[])>
 }
 enum DslError{
     Semantic="Semantic Error at",
@@ -99,7 +99,6 @@ class Analyzer extends DSLVisitor<void> {
                 const payload = child.getPayload();
                 const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
                 if (isNewLine) this.lineCount += 1;
-                console.log('inc line count',isNewLine);
             }
         }
         return this.records;
@@ -143,18 +142,44 @@ class Analyzer extends DSLVisitor<void> {
         return list;
     }
     private resolveRefs(tokens: Token[]) {
-        const resolvedTokenRef:ResolvedTokenRef = {indices:null,token:null};
-        const resolvedTokensRef:ResolvedTokensRef = {indices:null,tokens:null};
+        const resolvedSingleTokenRef:ResolvedSingleTokenRef = {indices:[],token:new Map()};
+        const resolvedTokensRef:ResolvedTokensRef = {indices:[],tokens:new Map()};
 
         const objectRefs = new Set(['him','her','it','them']);
         const nounRefs = ['He','She','It','They',...objectRefs];
 
         let encounteredSubject = false;
 
-        for (const [index,token] of tokens.entries()){
+        function allowRef(lineCount:number):boolean {
+            if (encounteredSubject) {//i added this here because its possible that the ref is in the same senetnce as the subject that its pointing to.and since they can only be one predicate in a sentece,it wil be difficult to meaningfully use the ref in the same sentence with the subject to make another sentence in conjuction with it.Anything that requires joining for readability should require a fullstop to separate the senetnces not using the ref in the same sentence.so :ada is *strong and <He> is *ggod should rsther be separate sentences in the same line
+                Essentials.terminateWithError(DslError.Semantic,lineCount,`A reference cannot be used to point to a subject in the same sentence.`);
+                return false;
+            }
+            return true;
+        }
+        for (const [index,token] of tokens.entries()){//I did no breaks here to allow all refs in the sentence to resolve
             const text = token.text!;
             const type = token.type;
-            if (type === DSLLexer.PLAIN_WORD) {//this branch is to warn users if they forgot to place angle brackets around the ref and may have also added a typo on top of that.If they made a typo within the angle brackets,it will be caught as a syntax error.This one catches typos not within the bracket as a warning
+            if (type === DSLLexer.SINGLE_SUBJECT_REF) { 
+                if (!allowRef(this.lineCount)) return;
+                resolvedSingleTokenRef.indices.push(index);
+                resolvedSingleTokenRef.token.set(index,this.lastTokensForSingle?.find(token=>token.type===DSLLexer.NAME) || null);
+            }
+            else if (type === DSLLexer.GROUP_SUBJECT_REF) {
+                if (!allowRef(this.lineCount)) return;
+                resolvedTokensRef.indices.push(index);
+                resolvedTokensRef.tokens.set(index,this.getListTokensBlock(new Denque(this.lastTokensForGroup || [])));
+                console.log('last array tokens:');this.printTokens(resolvedTokensRef.tokens.get(index) || []);
+            }
+            else if ((type === DSLLexer.NAME) && !encounteredSubject) {//the second check is necessary for correctness because the operation is indempotent.it always assigns the same tokens array to the same variable whenever its called.but its good to prevent the extra computation
+                this.lastTokensForSingle = tokens;
+                encounteredSubject = true;
+            }
+            else if ((type === DSLLexer.LSQUARE) && !encounteredSubject) {//notice that even though the branches look identical,they are mutating different arrays
+                this.lastTokensForGroup = tokens;
+                encounteredSubject = true;
+            }
+            else if (type === DSLLexer.PLAIN_WORD) {//this branch is to warn users if they forgot to place angle brackets around the ref and may have also added a typo on top of that.If they made a typo within the angle brackets,it will be caught as a syntax error.This one catches typos not within the bracket as a warning
                 for (const nounRef of nounRefs) {
                     const normText = text.toLowerCase();
                     const normNounRef = nounRef.toLowerCase();
@@ -165,57 +190,23 @@ class Analyzer extends DSLVisitor<void> {
                     }
                 }
             }
-            else if (type === DSLLexer.SINGLE_SUBJECT_REF) {
-                if (encounteredSubject) {//i added this here because its possible that the ref is in the same senetnce as the subject that its pointing to.and since they can only be one predicate in a sentece,it wil be difficult to meaningfully use the ref in the same sentence with the subject to make another sentence in conjuction with it.Anything that requires joining for readability should require a fullstop to separate the senetnces not using the ref in the same sentence.so :ada is *strong and <He> is *ggod should rsther be separate sentences in the same line
-                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`A reference cannot be used to point to a subject in the same sentence.`);
-                }
-                resolvedTokenRef.indices ||= [];
-                resolvedTokenRef.indices.push(index);
-                resolvedTokenRef.token = this.lastTokensForSingle?.find(token=>token.type===DSLLexer.NAME) || null;
-                //I didnt break here to allow all refs in the sentence to resolve
-            }
-            else if (type === DSLLexer.GROUP_SUBJECT_REF) {
-                if (encounteredSubject) {
-                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`A reference cannot be used to point to a subject in the same sentence.`);
-                }
-                resolvedTokensRef.indices ||= [];
-                resolvedTokensRef.indices.push(index);
-                if (this.lastTokensForGroup) {
-                    resolvedTokensRef.tokens = this.getListTokensBlock(new Denque(this.lastTokensForGroup));
-                    console.log('last array tokens:');
-                    this.printTokens(resolvedTokensRef.tokens);
-                }
-            }
-            else if (type === DSLLexer.NAME) {
-                if (!encounteredSubject) {//This ensures that only the first name thats encountered is registered and not overrided by others
-                    this.lastTokensForSingle = tokens;
-                    encounteredSubject = true;
-                }
-            }
-            else if (type === DSLLexer.LSQUARE) {
-                if (!encounteredSubject) {
-                    this.lastTokensForGroup = tokens;
-                    encounteredSubject = true;
-                }
-            }
         };
-
-        if (resolvedTokenRef.indices !== null) {
-            for (const index of resolvedTokenRef.indices) {
-                if (resolvedTokenRef.token !== null) {//resolve the single ref
-                    tokens[index] = resolvedTokenRef.token;
-                }else {
-                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the singular reference,${chalk.bold(tokens[index].text)}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
-                }
+        for (const index of resolvedSingleTokenRef.indices) {
+            if (index === null) return;//no resolution required
+            const resolvedToken = resolvedSingleTokenRef.token.get(index) || null;
+            if (resolvedToken !== null) {//resolve the single ref
+                tokens[index] = resolvedToken;
+            }else {
+                Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the singular reference,${chalk.bold(tokens[index].text)}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
             }
         }
-        if (resolvedTokensRef.indices !== null) {
-            for (const index of resolvedTokensRef.indices) {
-                if (resolvedTokensRef.tokens !== null) {//resolve the group ref
-                    tokens.splice(index!,1,...resolvedTokensRef.tokens);
-                }else {
-                    Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the group reference,${chalk.bold(tokens[index].text)}.Could not find an array to point it to.`,[this.lineCount-1,this.lineCount]);
-                }
+        for (const index of resolvedTokensRef.indices) {
+            if (index === null) return;//no resolution required
+            const resolvedTokens = resolvedTokensRef.tokens.get(index) || null;
+            if (resolvedTokens !== null) {//resolve the single ref
+                tokens.splice(index!,1,...resolvedTokens);
+            }else {
+                Essentials.terminateWithError(DslError.Semantic,this.lineCount,`Failed to resolve the singular reference,${chalk.bold(tokens[index].text)}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
             }
         }
     }
@@ -335,7 +326,6 @@ class Analyzer extends DSLVisitor<void> {
     public static inputArr:string[] = [];
     public createSentenceArray(input:string) {
         Analyzer.inputArr = input.split('\n');
-        console.log('🚀 => :329 => createSentenceArray => Analyzer.inputArr:', Analyzer.inputArr);
     }
 }
 export function genStruct(input:string):Record<string,Rec> | undefined {

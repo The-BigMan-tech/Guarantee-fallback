@@ -87,17 +87,14 @@ export function runExamples():void {
     };
     //DSL form
     const facts = `
-        let friends = *friend.
-        [:ada,:peter,:jane,[:billy,:philip]] are #tall.
-        Note that <They> are *big.
+        :John,:Peter *has a :dog.:Mary <He> is *good him.
     `;
     
     const struct = genStruct(facts);
     if (!struct) return;
 
     const doc = new Doc(struct);
-    console.log( doc.isItAFact(doc.records.friends,['ada','zane'],true));
-    console.log( doc.isItAFact(doc.records.friends,['ada','peter']));
+    console.log( doc.isItAFact(doc.records.strong,['peter'],true));
 
 
     console.log('are they friends: ',Rules.areFriends(doc,['zane','cole']));
