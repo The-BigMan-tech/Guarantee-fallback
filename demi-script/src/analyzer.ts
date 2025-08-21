@@ -7,7 +7,6 @@ import chalk from "chalk";
 import Denque from "denque";
 import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
-import stringify from "safe-stable-stringify";
 import {Heap} from "heap-js";
 // import stringify from "safe-stable-stringify";
 // import {colorize} from "json-colorizer";
@@ -25,8 +24,6 @@ enum DslError{
     Syntax="Syntax Error at",
     DoubleCheck="This is safe to ignore but double check"
 }
-type RefCheckMap = Map<Token[],{hasRef:boolean,line:number}>;
-
 //todo:Make the fuctions more typesafe by replacing all the type shortcuts i made with the any type to concrete ones.and also try to make the predicates typed instead of dynamically sized arrays of either string or number.This has to be done in the dsl if possible.
 class Essentials {
     public static inputStream:CharStream;
@@ -81,6 +78,10 @@ function getOrdinalSuffix(n:number):string {
     const s = ["th", "st", "nd", "rd"];
     const v = n % 100;
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+interface RefCheck {
+    hasRef:boolean,
+    line:number
 }
 class Analyzer extends DSLVisitor<void> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
@@ -153,9 +154,8 @@ class Analyzer extends DSLVisitor<void> {
         return (list.length > 0)?list:null;
     }
 
-    private lastTokensForSingle = new Denque<Token[]>([]);
-    private lastTokensForGroup = new Denque<Token[]>([]);
-    private refCheckMap:RefCheckMap = new Map();//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
+    private lastSentenceTokens:Token[] = [];
+    private refCheck:RefCheck = {hasRef:false,line:0};//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
     
     private resolveRefs(tokens: Token[]) {
@@ -166,20 +166,11 @@ class Analyzer extends DSLVisitor<void> {
             if (num > 3) Essentials.report(DslError.DoubleCheck,lineCount,`-Are you sure you can track what this reference; ${chalk.bold(text)} is pointing to?`);
             return num;
         }
-        function checkForRefAmbiguity(sentenceTokens:Token[],line:number,refIncludedMap:RefCheckMap) {
-            const refInfo = refIncludedMap.get(sentenceTokens || []);
-            if (refInfo?.hasRef) {
+        function checkForRefAmbiguity(line:number,refCheck:RefCheck) {
+            if (refCheck.hasRef) {
                 let message = `-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.`;
-                message += `\n-You may wish to write the name or array explicitly in ${chalk.bold('line:'+refInfo.line)} to avoid confusion.`;
-                Essentials.report(DslError.DoubleCheck,line,message,[refInfo.line,line]);
-            }
-        }
-        function pushSentence(tokenQueue:Denque<Token[]>,refCheckMap:RefCheckMap,line:number) {
-            refCheckMap.set(tokens,{hasRef,line});//setting it multiple times(called on every loop that satisifies the condition) is safe because its never set back to false again in the loop
-            tokenQueue.push(tokens);
-            if (tokenQueue.length > 2) {
-                const removedToken = tokenQueue.shift();
-                refCheckMap.delete(removedToken!);//deleting it multiple times is also safe since delete does nothing if the key doesnt exist
+                message += `\n-You may wish to write the name or array explicitly in ${chalk.bold('line:'+refCheck.line)} to avoid confusion.`;
+                Essentials.report(DslError.DoubleCheck,line,message,[refCheck.line,line]);
             }
         }
         function applyResolution(line:number) {
@@ -220,11 +211,9 @@ class Analyzer extends DSLVisitor<void> {
                 if (Analyzer.terminate) return;
 
                 const isMember = (token:Token)=>((token.type===DSLLexer.NAME) || (token.type===DSLLexer.LSQUARE));//i included the check for an array to acknowledge that an array can be the subject;
-                const prevSentence = this.lastTokensForSingle.toArray().at(-1) || [];
-                const membersFromSentence = prevSentence.filter(token=>isMember(token));
+                const membersFromSentence = this.lastSentenceTokens.filter(token=>isMember(token));
                 
                 const firstMember = membersFromSentence[0];
-
                 let objMember:Token | null = null;
                 let objIndex:number | null = null;
 
@@ -235,7 +224,7 @@ class Analyzer extends DSLVisitor<void> {
                         if (firstMember.type === DSLLexer.NAME) {
                             isSubject = (token === firstMember);
                         }else {
-                            const listTokenSet = new Set(this.getListTokensBlock(new Denque(prevSentence),1));
+                            const listTokenSet = new Set(this.getListTokensBlock(new Denque(this.lastSentenceTokens),1));
                             isSubject = listTokenSet.has(token);
                         }
                         return (isName && !isSubject);
@@ -257,7 +246,7 @@ class Analyzer extends DSLVisitor<void> {
                     }
                 }
 
-                checkForRefAmbiguity(prevSentence,this.lineCount,this.refCheckMap);//it always uses the last sentence to prevent different outputs for different ref types.
+                checkForRefAmbiguity(this.lineCount,this.refCheck);//it always uses the last sentence to prevent different outputs for different ref types.
                 resolvedSingleTokens.indices.push(index);
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
                 hasRef = true;
@@ -313,8 +302,8 @@ class Analyzer extends DSLVisitor<void> {
             }
         };   
         for (const name of encounteredNames) this.validateNameUsage(name);//this has to happen before the refs are resolved.else,the names that expanded into those refs will trigger warnings.
-        pushSentence(this.lastTokensForSingle,this.refCheckMap,this.lineCount);
-        pushSentence(this.lastTokensForGroup,this.refCheckMap,this.lineCount);
+        this.lastSentenceTokens = tokens;
+        this.refCheck = {hasRef,line:this.lineCount};
         applyResolution(this.lineCount);
     }
     private stripMark(text:string) {
