@@ -174,7 +174,7 @@ class Analyzer extends DSLVisitor<void> {
             const refInfo = refIncludedMap.get(sentenceTokens || []);
             console.log('🚀 => :175 => checkForRefAmbiguity => refInfo:', refInfo);
             if (refInfo?.hasRef) {
-                let message = `-Be sure that you have followed how you are referencing an item in a sentence that also has a ref.`;
+                let message = `-Be sure that you have followed how you are referencing an item from a sentence that also has a ref.`;
                 message += `\n-You may wish to write the name explicitly in ${chalk.bold('line:'+refInfo.line)} to avoid confusion.`;
                 Essentials.report(DslError.DoubleCheck,line,message,[refInfo.line,line]);
             }
@@ -401,7 +401,7 @@ class Analyzer extends DSLVisitor<void> {
         if (isStrict && !(str in this.usedNames)) {
             Essentials.report(DslError.Semantic,this.lineCount,`-Could not find an existing usage of the name; ${chalk.bold(str)}.\n-Did you meant to type: ${chalk.bold(':'+str)} instead? Assuming that this is the first time it is used.`);
         }else if (!isStrict && this.usedNames[str] > 0) {//only give the recommendation if this is not the first time it is used
-            Essentials.report(DslError.DoubleCheck,this.lineCount,`-You may wish to type ${chalk.bold("!"+str)} rather than loosely as; ${chalk.bold(":"+str)}. \n-It signals that it has been used before here and it prevents errors early.`);
+            Essentials.report(DslError.DoubleCheck,this.lineCount,`-You may wish to type ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \n-It signals that it has been used before here and it prevents errors early.`);
         }
         if (str in this.usedNames) {
             this.usedNames[str] += 1;
