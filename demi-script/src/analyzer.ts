@@ -216,30 +216,36 @@ class Analyzer extends DSLVisitor<void> {
             const type = token.type;
             
             if ((type === DSLLexer.SINGLE_SUBJECT_REF) || (type === DSLLexer.SINGLE_OBJECT_REF)) {
-                const isObjectRef =  (type === DSLLexer.SINGLE_OBJECT_REF);
-                const refIndex = isObjectRef?extractNumFromRef(text,this.lineCount):0;//fallbacks to 0 here because arrays use 0 based indexing to start
+                const isObjectRef = (type === DSLLexer.SINGLE_OBJECT_REF);
+                let resolvedToken = null;
                 if (Analyzer.terminate) return;
 
-                const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
-                const tokensForSentences = this.lastTokensForSingle.toArray();
+                const isMember = (token:Token)=>((token.type===DSLLexer.NAME) || (token.type===DSLLexer.LSQUARE));//i included the check for an array to acknowledge that an array can be the subject;
+                const prevSentence = this.lastTokensForSingle.toArray().at(-1) || [];
+                const membersFromSentence = prevSentence.filter(token=>isMember(token));
+                
+                const firstMember = membersFromSentence[0];
+                let objMember:Token | null = null;
 
-                let resolvedToken = null;
-
-                if (!isObjectRef) {//an interesting thing to note is that at this point in time,the names have been eagerly pushed to the encountered array but they are not availabkle in the sentence tokens because they are only pushed when eery token in this loop has been processed including this one
-                    const firstMember = tokensForSentences.at(-1)?.find(token=>((token.type===DSLLexer.NAME) || (token.type===DSLLexer.LSQUARE)));//i included the check for an array to acknowledge that an array can be the subject
-                    if (firstMember) {
-                        if (encounteredName) {
-                            reportRefError(this.lineCount,text,firstMember.text!,encounteredName);
-                        }
-                        if (firstMember?.type === DSLLexer.NAME) { 
-                            resolvedToken = firstMember;
-                        }else {
-                            Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(tokens[index].text)}.\n-It can only point to the subject of the closest sentence that is a name.But found an array.`,[this.lineCount-1,this.lineCount]);
-                        }
-                    }//i didnt add an else block here reporting an error because syntatically,its not possible to write a sentence without a name or an array
+                if (isObjectRef) {
+                    const objNamesFromSentence = membersFromSentence.filter(token=>(token.type===DSLLexer.NAME) && (token !== firstMember));
+                    const objectIndex = extractNumFromRef(text,this.lineCount);
+                    objMember = objNamesFromSentence[objectIndex];
                 }
 
-                checkForRefAmbiguity(tokensForSentences.at(-1) || [],this.lineCount,this.refCheckMap);//it always uses the last sentence to prevent different outputs for different ref types.
+                const member = isObjectRef?objMember:firstMember;
+                if (member) {
+                    if (encounteredName) {
+                        reportRefError(this.lineCount,text,member.text!,encounteredName);
+                    }
+                    if (member?.type === DSLLexer.NAME) { 
+                        resolvedToken = member;
+                    }else {
+                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(tokens[index].text)}.\n-It can only point to the subject of the closest sentence that is a name.But found an array.`,[this.lineCount-1,this.lineCount]);
+                    }
+                }//i didnt add an else block here reporting an error because syntatically,its not possible to write a sentence without a name or an array
+
+                checkForRefAmbiguity(prevSentence,this.lineCount,this.refCheckMap);//it always uses the last sentence to prevent different outputs for different ref types.
                 resolvedSingleTokens.indices.push(index);
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
                 hasRef = true;
