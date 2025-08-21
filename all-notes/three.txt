@@ -2003,6 +2003,18 @@ two stage parsing process
 
 *so refs are slower than global bindings because they have an extra resolving step.its not a direct lookup.but they are auto-managed and safer
 
+*Although you intentionally avoided adding a formal predicate declaration system to keep your DSL concise, you’ve naturally discovered a clever pattern to enforce predicate safety using an existing feature—aliases—which your analyzer already validates strictly.
+
+*so aliases in themselves,are just synonyms for predicates and because aliases have built in safety because they are declared,it means that i can leverage this as a safer alternatives to predicates.and i didnt design predicate safety one bit.i was going to add predicate assertion like i did for names but i just though of a hack into my own language
+
+*so it means that for safety features,one should use usage assertion for names and aliases over predicates.the diff is just a prefix- !ada is more strict than :ada which reports an error if the name wasnt used elsewhere before the line and #friends is stricter than *friends.the rest of the safety features are checked by the analyzer through semantic checks that eagerly reports errors.
+
+*so usage assertion ! reports an error if the name wasnt previously used but names dont have declarations.while aliases, # reports an error if the alias wasnt declared before use.so to prevent predicate typo,one should define their alias to equal their desired predicate and use that throughout the document.other things like refs or semantic correctness is handled by the analyzer without explicit user intervention for safety.
+
+*so aliases have become by nature,statically declared predicates.even though it was designed as just a synonym
+
+*so it means that aliases are essentially a safer form of predicate.but because they are just synonyms.they themselves,must refer to a predicate at the end because they are not standalone constructs
+
 tokenization,semantism,building
 
 ?I punched npx swc.i hope it doesnt do anything

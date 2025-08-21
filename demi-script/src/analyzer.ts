@@ -286,6 +286,8 @@ class Analyzer extends DSLVisitor<void> {
                     this.records[predicate] = new Rec([]);
                 }
                 predicateRec = this.records[predicate];
+            }else if ((type === DSLLexer.TERMINATOR)) {
+                if (text.endsWith('\n')) this.targetLineCount += 1;//increment the count at every new line created at the end of the sentence
             }
         });
         this.records[alias] = predicateRec;
