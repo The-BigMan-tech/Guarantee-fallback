@@ -208,14 +208,7 @@ class Analyzer extends DSLVisitor<void> {
                 const isLoose = text.startsWith(':');
                 const str = this.stripMark(text);
                 if (isLoose && !(str in this.usedNames)) this.usedNames[str] = 0;
-
-                if (!encounteredName) {//this prevents the same sentence of tokens from being pushed repeatedly on every name in te sentence
-                    this.lastTokensForSingle.push(tokens);
-                    encounteredName = true;
-                    if (this.lastTokensForSingle.length > 2) {
-                        this.lastTokensForSingle.shift();
-                    }
-                }
+                encounteredName = true;
             }
             else if (type === DSLLexer.LSQUARE) {//notice that even though the branches look identical,they are mutating different arrays
                 this.lastTokensForGroup = tokens;
@@ -230,6 +223,12 @@ class Analyzer extends DSLVisitor<void> {
                         const suggestion = chalk.bold( (objectRefs.has(nounRef))?'<'+nounRef+':number>':'<'+nounRef+'>');
                         Essentials.report(DslError.DoubleCheck,this.lineCount,`Did you mean to use the ref,${suggestion} instead of the filler,${chalk.bold(text)}?`);
                     }
+                }
+            }
+            if (!new Set(this.lastTokensForSingle.toArray()).has(tokens)) {//this prevents the same sentence of tokens from being pushed repeatedly on every name in te sentence
+                this.lastTokensForSingle.push(tokens);
+                if (this.lastTokensForSingle.length > 2) {
+                    this.lastTokensForSingle.shift();
                 }
             }
         };
