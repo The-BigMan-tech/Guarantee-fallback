@@ -53,7 +53,7 @@ class Essentials {
             pushLine(lineCount);
         }
         else{
-            messages.push(chalk.green.underline('\n\nCheck these lines:\n'));
+            messages.push(chalk.green.underline('\nCheck these lines:\n'));
             for (const line of checkLines) {
                 messages.push(chalk.gray(`${line}.`));
                 pushLine(line);
@@ -82,9 +82,6 @@ class Analyzer extends DSLVisitor<void> {
 
     private lineCount:number = 1;
     private targetLineCount:number = this.lineCount;
-
-    private lastTokensForSingle = new Denque<Token[]>([]);
-    private lastTokensForGroup = new Denque<Token[]>([]);
 
     public static terminate:boolean = false;
 
@@ -148,17 +145,13 @@ class Analyzer extends DSLVisitor<void> {
         }
         return (list.length > 0)?list:null;
     }
+
+    private lastTokensForSingle = new Denque<Token[]>([]);
+    private lastTokensForGroup = new Denque<Token[]>([]);
+    private refIncludedMap = new Map<Token[],{hasRef:boolean,line:number}>();//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
+    
     private resolveRefs(tokens: Token[]) {
-        const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
-        const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};
-
-        const objectRefs = new Set(['him','her','it','them','their']);
-        const nounRefs = ['He','She','It','They',...objectRefs];
-
-        let encounteredName = false;
-        let encounteredList = false;
-
         function allowRef(encounteredX:boolean,lineCount:number,refAsText:string,resTokenAsText:unknown):boolean {
             if (encounteredX) {//i added this here because its possible that the ref is in the same senetnce as the subject that its pointing to.and since they can only be one predicate in a sentece,it wil be difficult to meaningfully use the ref in the same sentence with the subject to make another sentence in conjuction with it.Anything that requires joining for readability should require a fullstop to separate the senetnces not using the ref in the same sentence.so :ada is *strong and <He> is *ggod should rsther be separate sentences in the same line
                 let message = "-A reference cannot be used to point to a subject in the same sentence";
@@ -175,34 +168,61 @@ class Analyzer extends DSLVisitor<void> {
             if (num > 3) Essentials.report(DslError.DoubleCheck,lineCount,`-Are you sure you can track what this reference; ${chalk.bold(text)} is pointing to?`);
             return num;
         }
+        function checkForRefAmbiguity(sentenceTokens:Token[],line:number,refIncludedMap:Map) {
+            const refInfo = refIncludedMap.get(sentenceTokens || []);
+            if (refInfo?.hasRef) {
+                Essentials.report(DslError.DoubleCheck,line,`Be sure that you have followed how you are referencing an item in a sentence that also has a reference.`,[refInfo.line,line]);
+            }
+        }
+        const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
+        const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};
+
+        const objectRefs = new Set(['him','her','it','them','their']);
+        const nounRefs = ['He','She','It','They',...objectRefs];
+
+        let hasRef = false;
+        let encounteredName = false;
+        let encounteredList = false;
+
         for (const [index,token] of tokens.entries()){//I did no breaks here to allow all refs in the sentence to resolve
             const text = token.text!;
             const type = token.type;
 
             if ((type === DSLLexer.SINGLE_SUBJECT_REF) || (type === DSLLexer.SINGLE_OBJECT_REF)) {
+                hasRef = true;
                 const isObjectRef =  (type === DSLLexer.SINGLE_OBJECT_REF);
                 let refIndex = 0;//started as 0 here because arrays use 0 based indexing to start
                 refIndex += isObjectRef?extractNumFromRef(text,this.lineCount):0;
                 if (Analyzer.terminate) return;
 
                 const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
-                const allNames = this.lastTokensForSingle.toArray().at(sentenceIndex)?.filter(token=>(token.type===DSLLexer.NAME)) || []; 
+                const sentenceTokens = this.lastTokensForSingle.toArray().at(sentenceIndex);
+                const allNames = sentenceTokens?.filter(token=>(token.type===DSLLexer.NAME)) || []; 
                 const resolvedToken = allNames.at(refIndex) || null;
 
+                checkForRefAmbiguity(sentenceTokens || []);
                 if (!isObjectRef) {
                     if (!allowRef(encounteredName,this.lineCount,text,resolvedToken?.text)) return;
                 }
                 resolvedSingleTokens.indices.push(index);
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
             }
+
+
             else if ((type === DSLLexer.GROUP_SUBJECT_REF) || (type === DSLLexer.GROUP_OBJECT_REF)) {
+                hasRef = true;
                 const isObjectRef =  (type === DSLLexer.GROUP_OBJECT_REF);
                 let refIndex = 1;//started as 1 because the list block getter using 1-based indexing (get the nth array from the sentence)
                 refIndex += isObjectRef?extractNumFromRef(text,this.lineCount):0;
                 if (Analyzer.terminate) return;
 
                 const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
-                const tokenQueue = new Denque(this.lastTokensForGroup.toArray().at(sentenceIndex) || []);
+                const sentenceTokens = this.lastTokensForGroup.toArray().at(sentenceIndex) || [];
+                const refInfo = this.refIncludedMap.get(sentenceTokens || []);
+                if (refInfo?.hasRef) {
+                    Essentials.report(DslError.DoubleCheck,this.lineCount,`Be sure that you have followed how you are referencing an item in a sentence that also has a reference.`,[refInfo.line,this.lineCount]);
+                }
+                const tokenQueue = new Denque(sentenceTokens);
 
                 if (!isObjectRef) {
                     if (!allowRef(encounteredList,this.lineCount,text,(this.inspectRelevantTokens(tokenQueue) || []).at(0))) return;
@@ -213,15 +233,21 @@ class Analyzer extends DSLVisitor<void> {
                 console.log('resolved tokens:',index);
                 this.printTokens(resolvedGroupedTokens.tokens.get(index) || []);
             }
+
+
             else if (type === DSLLexer.NAME) {//this must be called for every name to capture them
                 const isLoose = text.startsWith(':');
                 const str = this.stripMark(text);
                 if (isLoose && !(str in this.usedNames)) this.usedNames[str] = 0;
                 encounteredName = true;
             }
+
+
             else if (type === DSLLexer.LSQUARE) {//notice that even though the branches look identical,they are mutating different arrays
                 encounteredList = true;
             }
+
+
             else if (type === DSLLexer.PLAIN_WORD) {//this branch is to warn users if they forgot to place angle brackets around the ref and may have also added a typo on top of that.If they made a typo within the angle brackets,it will be caught as a syntax error.This one catches typos not within the bracket as a warning
                 for (const nounRef of nounRefs) {
                     const normText = text.toLowerCase();
@@ -233,17 +259,23 @@ class Analyzer extends DSLVisitor<void> {
                     }
                 }
             }
+
+
             //Separate block that must run independently of the previous ladder
             if (!new Set(this.lastTokensForSingle.toArray()).has(tokens)) {//this prevents the same sentence of tokens from being pushed repeatedly on every name in te sentence
                 this.lastTokensForSingle.push(tokens);
+                this.refIncludedMap.set(tokens,{hasRef,line:this.lineCount});//setting it multiple times(called on every loop that satisifies the condition) is safe because its never set back to false again in the loop
                 if (this.lastTokensForSingle.length > 2) {
-                    this.lastTokensForSingle.shift();
+                    const removedToken = this.lastTokensForSingle.shift();
+                    this.refIncludedMap.delete(removedToken!);//deleting it multiple times is also safe since delete does nothing if the key doesnt exist
                 }
             }
             if (!new Set(this.lastTokensForGroup.toArray()).has(tokens)) {//this prevents the same sentence of tokens from being pushed repeatedly on every name in te sentence
                 this.lastTokensForGroup.push(tokens);
+                this.refIncludedMap.set(tokens,{hasRef,line:this.lineCount});
                 if (this.lastTokensForGroup.length > 2) {
-                    this.lastTokensForGroup.shift();
+                    const removedToken = this.lastTokensForSingle.shift();
+                    this.refIncludedMap.delete(removedToken!);
                 }
             }
         };
