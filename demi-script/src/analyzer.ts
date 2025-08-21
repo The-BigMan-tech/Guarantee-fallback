@@ -154,12 +154,6 @@ class Analyzer extends DSLVisitor<void> {
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
     
     private resolveRefs(tokens: Token[]) {
-        function reportRefError(lineCount:number,reference:string,referencedName:string,encounteredName:string):void {//i added this here because its possible that the ref is in the same senetnce as the subject that its pointing to.and since they can only be one predicate in a sentece,it wil be difficult to meaningfully use the ref in the same sentence with the subject to make another sentence in conjuction with it.Anything that requires joining for readability should require a fullstop to separate the senetnces not using the ref in the same sentence.so :ada is *strong and <He> is *ggod should rsther be separate sentences in the same line
-            let message = `-Note that the reference ${reference} in line ${lineCount} points to ${referencedName} not ${encounteredName}.`;
-            message += `\n-If your intention is different,then separate it as its own sentence.`;
-            message += `\n-The reference ${chalk.bold('must')} be the first subject of the sentence to prevent confusion like this.`;
-            Essentials.report(DslError.Semantic,lineCount,message);
-        }
         function extractNumFromRef(text:string,lineCount:number):number {
             const num =  Number(text.split(":")[1].slice(0,-1));
             if (!Number.isInteger(num)) Essentials.report(DslError.Semantic,lineCount,`-The reference; ${chalk.bold(text)} must use an integer`);
@@ -170,8 +164,8 @@ class Analyzer extends DSLVisitor<void> {
         function checkForRefAmbiguity(sentenceTokens:Token[],line:number,refIncludedMap:RefCheckMap) {
             const refInfo = refIncludedMap.get(sentenceTokens || []);
             if (refInfo?.hasRef) {
-                let message = `-Be sure that you have followed how you are referencing an item from a sentence that also has a ref.`;
-                message += `\n-You may wish to write the name explicitly in ${chalk.bold('line:'+refInfo.line)} to avoid confusion.`;
+                let message = `-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.`;
+                message += `\n-You may wish to write the name or array explicitly in ${chalk.bold('line:'+refInfo.line)} to avoid confusion.`;
                 Essentials.report(DslError.DoubleCheck,line,message,[refInfo.line,line]);
             }
         }
@@ -208,7 +202,7 @@ class Analyzer extends DSLVisitor<void> {
 
         let hasRef = false;
         let encounteredList = false;
-        let encounteredName:string | null = null;
+
         const encounteredNames:string[] = [];
 
         for (const [index,token] of tokens.entries()){//I did no breaks here to allow all refs in the sentence to resolve
@@ -228,16 +222,23 @@ class Analyzer extends DSLVisitor<void> {
                 let objMember:Token | null = null;
 
                 if (isObjectRef) {
-                    const objNamesFromSentence = membersFromSentence.filter(token=>(token.type===DSLLexer.NAME) && (token !== firstMember));
+                    const objNamesFromSentence = membersFromSentence.filter(token=>{
+                        const isName = (token.type===DSLLexer.NAME);
+                        let isSubject:boolean;
+                        if (firstMember.type === DSLLexer.NAME) {
+                            isSubject = (token === firstMember);
+                        }else {
+                            const listTokenSet = new Set(this.getListTokensBlock(new Denque(prevSentence),1));
+                            isSubject = listTokenSet.has(token);
+                        }
+                        return (isName && !isSubject);
+                    });
                     const objectIndex = extractNumFromRef(text,this.lineCount);
-                    objMember = objNamesFromSentence[objectIndex];
+                    objMember = objNamesFromSentence[objectIndex-1];//the -1 is here because the first member(subject) is excluded from the array
                 }
 
                 const member = isObjectRef?objMember:firstMember;
                 if (member) {
-                    if (encounteredName) {
-                        reportRefError(this.lineCount,text,member.text!,encounteredName);
-                    }
                     if (member?.type === DSLLexer.NAME) { 
                         resolvedToken = member;
                     }else {
@@ -280,7 +281,6 @@ class Analyzer extends DSLVisitor<void> {
                 const isLoose = text.startsWith(':');
                 if (isLoose && !(str in this.usedNames)) this.usedNames[str] = 0;//we dont want to reset it if it has already been set by a previous sentence
                 encounteredNames.push(token.text!);
-                encounteredName = text;
             }
 
 
