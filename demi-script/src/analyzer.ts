@@ -192,18 +192,18 @@ class Analyzer extends DSLVisitor<void> {
         for (const [index,token] of tokens.entries()){//I did no breaks here to allow all refs in the sentence to resolve
             const text = token.text!;
             const type = token.type;
-
+            
             if ((type === DSLLexer.SINGLE_SUBJECT_REF) || (type === DSLLexer.SINGLE_OBJECT_REF)) {
                 const isObjectRef =  (type === DSLLexer.SINGLE_OBJECT_REF);
                 const refIndex = isObjectRef?extractNumFromRef(text,this.lineCount):0;//fallbacks to 0 here because arrays use 0 based indexing to start
                 if (Analyzer.terminate) return;
 
                 const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
-                const sentenceTokens = this.lastTokensForSingle.toArray().at(sentenceIndex) || [];
-                const allNames = sentenceTokens.filter(token=>(token.type===DSLLexer.NAME)); 
+                const tokensForSentences = this.lastTokensForSingle.toArray();
+                const allNames = tokensForSentences.at(sentenceIndex)?.filter(token=>(token.type===DSLLexer.NAME)) || []; 
                 const resolvedToken = allNames.at(refIndex) || null;
 
-                checkForRefAmbiguity(sentenceTokens || [],this.lineCount,this.refCheckMap);
+                checkForRefAmbiguity(tokensForSentences.at(-1) || [],this.lineCount,this.refCheckMap);//it always uses the last sentence to prevent different outputs for different ref types.
                 if (!isObjectRef) {
                     if (!allowRef(encounteredName,this.lineCount,text,resolvedToken?.text)) return;
                 }
@@ -219,10 +219,10 @@ class Analyzer extends DSLVisitor<void> {
                 if (Analyzer.terminate) return;
 
                 const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
-                const sentenceTokens = this.lastTokensForGroup.toArray().at(sentenceIndex) || [];
-                const tokenQueue = new Denque(sentenceTokens);
+                const tokensForSentences = this.lastTokensForGroup.toArray();
+                const tokenQueue = new Denque(tokensForSentences.at(sentenceIndex) || []);
 
-                checkForRefAmbiguity(sentenceTokens || [],this.lineCount,this.refCheckMap);
+                checkForRefAmbiguity(tokensForSentences.at(-1) || [],this.lineCount,this.refCheckMap);//it always uses the last sentence to prevent different outputs for different ref types.
                 if (!isObjectRef) {
                     if (!allowRef(encounteredList,this.lineCount,text,(this.inspectRelevantTokens(tokenQueue) || []).at(0))) return;
                 }
@@ -261,26 +261,20 @@ class Analyzer extends DSLVisitor<void> {
                     }
                 }
             }
-
-
-            //Separate block that must run independently of the previous ladder
-            if (!new Set(this.lastTokensForSingle.toArray()).has(tokens)) {//this prevents the same sentence of tokens from being pushed repeatedly on every name in te sentence
-                this.lastTokensForSingle.push(tokens);
-                this.refCheckMap.set(tokens,{hasRef,line:this.lineCount});//setting it multiple times(called on every loop that satisifies the condition) is safe because its never set back to false again in the loop
-                if (this.lastTokensForSingle.length > 2) {
-                    const removedToken = this.lastTokensForSingle.shift();
-                    this.refCheckMap.delete(removedToken!);//deleting it multiple times is also safe since delete does nothing if the key doesnt exist
-                }
-            }
-            if (!new Set(this.lastTokensForGroup.toArray()).has(tokens)) {//this prevents the same sentence of tokens from being pushed repeatedly on every name in te sentence
-                this.lastTokensForGroup.push(tokens);
-                this.refCheckMap.set(tokens,{hasRef,line:this.lineCount});
-                if (this.lastTokensForGroup.length > 2) {
-                    const removedToken = this.lastTokensForGroup.shift();
-                    this.refCheckMap.delete(removedToken!);
-                }
-            }
         };
+        
+        //Separate block that must run independently of the previous ladder
+        function pushSentence(tokenQueue:Denque<Token[]>,refCheckMap:RefCheckMap,line:number) {
+            refCheckMap.set(tokens,{hasRef,line});//setting it multiple times(called on every loop that satisifies the condition) is safe because its never set back to false again in the loop
+            tokenQueue.push(tokens);
+            if (tokenQueue.length > 2) {
+                const removedToken = tokenQueue.shift();
+                refCheckMap.delete(removedToken!);//deleting it multiple times is also safe since delete does nothing if the key doesnt exist
+            }
+        }
+        
+        pushSentence(this.lastTokensForSingle,this.refCheckMap,this.lineCount);
+        pushSentence(this.lastTokensForGroup,this.refCheckMap,this.lineCount);
         //Apply all resolutions
         for (const index of resolvedSingleTokens.indices) {
             const resolvedToken = resolvedSingleTokens.tokens.get(index) || null;
