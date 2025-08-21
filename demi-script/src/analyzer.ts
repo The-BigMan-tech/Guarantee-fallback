@@ -307,13 +307,25 @@ class Analyzer extends DSLVisitor<void> {
         } 
         return flatSequences;
     }
+    private recommendAlias(text:string):string | null {
+        for (const alias of this.aliases.values()) {
+            if (distance(alias,text!) < 3) {
+                return alias;
+            }
+        }
+        return null;
+    }
     private validatePredicateType(token:Token):void {
         const isAlias = this.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
+        
         if (isAlias && ! token.text!.startsWith('#')) {
             Essentials.report(DslError.Semantic,this.lineCount,`-Aliases are meant to be prefixed with  ${chalk.bold('#')} but found: ${chalk.bold(token.text)}.Did you mean: #${chalk.bold(this.stripMark(token.text!))}?`);
         }
         if (!isAlias && ! token.text!.startsWith("*")) {
-            Essentials.report(DslError.Semantic,this.lineCount,`-Predicates are meant to be prefixed with ${chalk.bold('*')} but found: ${chalk.bold(token.text)}.Did you forget to declare it as an alias?`);
+            let message:string = `-Predicates are meant to be prefixed with ${chalk.bold('*')} but found: ${chalk.bold(token.text)}.\n-Did you forget to declare it as an alias? `;
+            const recommendedAlias = this.recommendAlias(token.text!);
+            message += (recommendedAlias)?`Or did you mean to type #${recommendedAlias}?`:'';
+            Essentials.report(DslError.Semantic,this.lineCount,message);
         }
     }
     private getPredicate(tokens:Token[]):string | null {

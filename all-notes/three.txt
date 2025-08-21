@@ -2015,6 +2015,8 @@ two stage parsing process
 
 *so it means that aliases are essentially a safer form of predicate.but because they are just synonyms.they themselves,must refer to a predicate at the end because they are not standalone constructs
 
+*so aliases now are a typo catcher.so they are recommened over raw predicates because the analyzer doesnt protect the user from their predicates because they are inlined with no declarations
+
 tokenization,semantism,building
 
 ?I punched npx swc.i hope it doesnt do anything
