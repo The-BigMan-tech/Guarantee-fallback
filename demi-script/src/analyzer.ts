@@ -282,12 +282,12 @@ class Analyzer extends DSLVisitor<void> {
 
             else if (type === DSLLexer.PLAIN_WORD) {//this branch is to warn users if they forgot to place angle brackets around the ref and may have also added a typo on top of that.If they made a typo within the angle brackets,it will be caught as a syntax error.This one catches typos not within the bracket as a warning
                 for (const nounRef of nounRefs) {
-                    const normText = text.toLowerCase();
-                    const normNounRef = nounRef.toLowerCase();
+                    const normText = (text.length > 2)?text.toLowerCase():text;//by only lower casing the text if its more than two letters,i prevent the text from being treated leniently when its too small(since lower casing the inputs reduces distance).Else,it will falsely match words that are few distances away but are not semantically similar.
+                    const normNounRef = (nounRef.length > 2)?nounRef.toLowerCase():nounRef;
                     const dist = distance(normText,normNounRef);
                     if (dist < 2) {
-                        const suggestion = chalk.bold( (objectRefs.has(nounRef))?'<'+nounRef+':number>':'<'+nounRef+'>');
-                        Essentials.report(DslError.DoubleCheck,this.lineCount,`-Did you mean to use the ref,${suggestion} instead of the filler,${chalk.bold(text)}?`);
+                        const suggestion = (objectRefs.has(nounRef))?'object ref, <'+nounRef+':n>':'subject ref, <'+nounRef+'>';
+                        Essentials.report(DslError.DoubleCheck,this.lineCount,`-Did you mean to use the ${suggestion} instead of the filler,${chalk.bold(text)}?`);
                     }
                 }
             }
