@@ -77,6 +77,11 @@ class Essentials {
         Essentials.tree = Essentials.parser.program();
     }
 }
+function getOrdinalSuffix(n:number):string {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
 class Analyzer extends DSLVisitor<void> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public  records:Record<string,Rec> = {};
@@ -219,7 +224,9 @@ class Analyzer extends DSLVisitor<void> {
                 const membersFromSentence = prevSentence.filter(token=>isMember(token));
                 
                 const firstMember = membersFromSentence[0];
+
                 let objMember:Token | null = null;
+                let objIndex:number | null = null;
 
                 if (isObjectRef) {
                     const objNamesFromSentence = membersFromSentence.filter(token=>{
@@ -233,8 +240,8 @@ class Analyzer extends DSLVisitor<void> {
                         }
                         return (isName && !isSubject);
                     });
-                    const objectIndex = extractNumFromRef(text,this.lineCount);
-                    objMember = objNamesFromSentence[objectIndex-1];//the -1 is here because the first member(subject) is excluded from the array
+                    objIndex = extractNumFromRef(text,this.lineCount);
+                    objMember = objNamesFromSentence[objIndex-1];//the -1 is here because the first member(subject) is excluded from the array
                 }
 
                 const member = isObjectRef?objMember:firstMember;
@@ -242,9 +249,13 @@ class Analyzer extends DSLVisitor<void> {
                     if (member?.type === DSLLexer.NAME) { 
                         resolvedToken = member;
                     }else {
-                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(tokens[index].text)}.\n-It can only point to the subject of the closest sentence that is a name.But found an array.`,[this.lineCount-1,this.lineCount]);
+                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to the subject of the closest sentence that is a name.But found an array.`,[this.lineCount-1,this.lineCount]);
                     }
-                }//i didnt add an else block here reporting an error because syntatically,its not possible to write a sentence without a name or an array
+                }else {
+                    if (isObjectRef) {
+                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(objIndex! + 1)} name (${getOrdinalSuffix(objIndex!)} object name) in the prior sentence.`,[this.lineCount-1,this.lineCount]);
+                    }
+                }
 
                 checkForRefAmbiguity(prevSentence,this.lineCount,this.refCheckMap);//it always uses the last sentence to prevent different outputs for different ref types.
                 resolvedSingleTokens.indices.push(index);
