@@ -25,6 +25,8 @@ enum DslError{
     Syntax="Syntax Error at",
     DoubleCheck="This is safe to ignore but double check"
 }
+type RefCheckMap = Map<Token[],{hasRef:boolean,line:number}>;
+
 //todo:Make the fuctions more typesafe by replacing all the type shortcuts i made with the any type to concrete ones.and also try to make the predicates typed instead of dynamically sized arrays of either string or number.This has to be done in the dsl if possible.
 class Essentials {
     public static inputStream:CharStream;
@@ -148,7 +150,7 @@ class Analyzer extends DSLVisitor<void> {
 
     private lastTokensForSingle = new Denque<Token[]>([]);
     private lastTokensForGroup = new Denque<Token[]>([]);
-    private refIncludedMap = new Map<Token[],{hasRef:boolean,line:number}>();//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
+    private refCheckMap:RefCheckMap = new Map();//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
     
     private resolveRefs(tokens: Token[]) {
@@ -168,7 +170,7 @@ class Analyzer extends DSLVisitor<void> {
             if (num > 3) Essentials.report(DslError.DoubleCheck,lineCount,`-Are you sure you can track what this reference; ${chalk.bold(text)} is pointing to?`);
             return num;
         }
-        function checkForRefAmbiguity(sentenceTokens:Token[],line:number,refIncludedMap:Map) {
+        function checkForRefAmbiguity(sentenceTokens:Token[],line:number,refIncludedMap:RefCheckMap) {
             const refInfo = refIncludedMap.get(sentenceTokens || []);
             if (refInfo?.hasRef) {
                 Essentials.report(DslError.DoubleCheck,line,`Be sure that you have followed how you are referencing an item in a sentence that also has a reference.`,[refInfo.line,line]);
@@ -200,7 +202,7 @@ class Analyzer extends DSLVisitor<void> {
                 const allNames = sentenceTokens?.filter(token=>(token.type===DSLLexer.NAME)) || []; 
                 const resolvedToken = allNames.at(refIndex) || null;
 
-                checkForRefAmbiguity(sentenceTokens || []);
+                checkForRefAmbiguity(sentenceTokens || [],this.lineCount,this.refCheckMap);
                 if (!isObjectRef) {
                     if (!allowRef(encounteredName,this.lineCount,text,resolvedToken?.text)) return;
                 }
@@ -218,12 +220,9 @@ class Analyzer extends DSLVisitor<void> {
 
                 const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
                 const sentenceTokens = this.lastTokensForGroup.toArray().at(sentenceIndex) || [];
-                const refInfo = this.refIncludedMap.get(sentenceTokens || []);
-                if (refInfo?.hasRef) {
-                    Essentials.report(DslError.DoubleCheck,this.lineCount,`Be sure that you have followed how you are referencing an item in a sentence that also has a reference.`,[refInfo.line,this.lineCount]);
-                }
                 const tokenQueue = new Denque(sentenceTokens);
 
+                checkForRefAmbiguity(sentenceTokens || [],this.lineCount,this.refCheckMap);
                 if (!isObjectRef) {
                     if (!allowRef(encounteredList,this.lineCount,text,(this.inspectRelevantTokens(tokenQueue) || []).at(0))) return;
                 }
@@ -264,18 +263,18 @@ class Analyzer extends DSLVisitor<void> {
             //Separate block that must run independently of the previous ladder
             if (!new Set(this.lastTokensForSingle.toArray()).has(tokens)) {//this prevents the same sentence of tokens from being pushed repeatedly on every name in te sentence
                 this.lastTokensForSingle.push(tokens);
-                this.refIncludedMap.set(tokens,{hasRef,line:this.lineCount});//setting it multiple times(called on every loop that satisifies the condition) is safe because its never set back to false again in the loop
+                this.refCheckMap.set(tokens,{hasRef,line:this.lineCount});//setting it multiple times(called on every loop that satisifies the condition) is safe because its never set back to false again in the loop
                 if (this.lastTokensForSingle.length > 2) {
                     const removedToken = this.lastTokensForSingle.shift();
-                    this.refIncludedMap.delete(removedToken!);//deleting it multiple times is also safe since delete does nothing if the key doesnt exist
+                    this.refCheckMap.delete(removedToken!);//deleting it multiple times is also safe since delete does nothing if the key doesnt exist
                 }
             }
             if (!new Set(this.lastTokensForGroup.toArray()).has(tokens)) {//this prevents the same sentence of tokens from being pushed repeatedly on every name in te sentence
                 this.lastTokensForGroup.push(tokens);
-                this.refIncludedMap.set(tokens,{hasRef,line:this.lineCount});
+                this.refCheckMap.set(tokens,{hasRef,line:this.lineCount});
                 if (this.lastTokensForGroup.length > 2) {
                     const removedToken = this.lastTokensForSingle.shift();
-                    this.refIncludedMap.delete(removedToken!);
+                    this.refCheckMap.delete(removedToken!);
                 }
             }
         };
