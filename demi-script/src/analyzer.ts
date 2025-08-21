@@ -210,25 +210,33 @@ class Analyzer extends DSLVisitor<void> {
                 let resolvedToken = null;
                 if (Analyzer.terminate) return;
 
-                const isMember = (token:Token)=>((token.type===DSLLexer.NAME) || (token.type===DSLLexer.LSQUARE));//i included the check for an array to acknowledge that an array can be the subject;
+                const isMember = (token:Token)=>((token.type===DSLLexer.NAME) || (token.type===DSLLexer.LSQUARE) || (token.type===DSLLexer.RSQUARE));//i included the check for an array to acknowledge that an array can be the subject;
                 const membersFromSentence = this.lastSentenceTokens.filter(token=>isMember(token));
+                
+                console.log('members from sentences');
+                this.printTokens(membersFromSentence);
                 
                 const firstMember = membersFromSentence[0];
                 let objMember:Token | null = null;
                 let objIndex:number | null = null;
 
                 if (isObjectRef) {
-                    const objNamesFromSentence = membersFromSentence.filter(token=>{
-                        const isName = (token.type===DSLLexer.NAME);
-                        let isSubject:boolean;
-                        if (firstMember.type === DSLLexer.NAME) {
-                            isSubject = (token === firstMember);
-                        }else {
-                            const listTokenSet = new Set(this.getListTokensBlock(new Denque(this.lastSentenceTokens),1));
-                            isSubject = listTokenSet.has(token);
+                    objIndex = extractNumFromRef(text,this.lineCount);
+                    const stepToReach = objIndex + 1;//the +1 is to skip over the subject
+
+                    let step = 0;
+                    let increment = 1;
+                    for (let i=0; i<membersFromSentence.length; i+=increment) {
+                        step += 1;
+                        const memberToken = membersFromSentence[i];
+                        if (memberToken.type === DSLLexer.LSQUARE) {
+                            const listBlock = this.getListTokensBlock(new Denque(membersFromSentence),1);
+                            increment = listBlock!.length;
+                        }else if (memberToken.type === DSLLexer.NAME) {
+                            increment = 1;
                         }
-                        return (isName && !isSubject);
-                    });
+                        console.log('incre: ',increment,'token:',memberToken.text,'step',step,'reach',stepToReach);
+                    }
                     objIndex = extractNumFromRef(text,this.lineCount);
                     objMember = objNamesFromSentence[objIndex-1];//the -1 is here because the first member(subject) is excluded from the array
                 }
