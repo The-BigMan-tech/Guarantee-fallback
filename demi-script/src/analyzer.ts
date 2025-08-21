@@ -8,6 +8,7 @@ import Denque from "denque";
 import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import stringify from "safe-stable-stringify";
+import {Heap} from "heap-js";
 // import stringify from "safe-stable-stringify";
 // import {colorize} from "json-colorizer";
 
@@ -16,7 +17,7 @@ interface ResolvedSingleTokens {
     tokens:Map<number,null | Token>//i used a map here to localize the tokens that resolves each ref
 }
 interface ResolvedGroupedTokens {
-    indices:number[],
+    indices:Heap<number>,//used a descending order heap to prevent insertion issues during iteration by looping backwards
     tokens:Map<number,(null | Token[])>
 }
 enum DslError{
@@ -83,7 +84,7 @@ class Analyzer extends DSLVisitor<void> {
     private targetLineCount:number = this.lineCount;
 
     private lastTokensForSingle = new Denque<Token[]>([]);
-    private lastTokensForGroup:Token[] | null = null;
+    private lastTokensForGroup = new Denque<Token[]>([]);
 
     public static terminate:boolean = false;
 
@@ -110,6 +111,7 @@ class Analyzer extends DSLVisitor<void> {
     public visitFact = (ctx:FactContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         this.resolveRefs(tokens);
+        console.log('After resolution');
         this.printTokens(tokens);
         if (!Analyzer.terminate) this.buildFact(tokens);//i checked for termination here because ref resolution can fail
     };
@@ -141,7 +143,6 @@ class Analyzer extends DSLVisitor<void> {
                 list.push(token);
             }
         };
-        console.log('left over');this.printTokens(tokens.toArray());
         if (listCount[0] !== nList) {
             list = this.getListTokensBlock(tokens,nList,listCount) || [];
         }
@@ -150,7 +151,7 @@ class Analyzer extends DSLVisitor<void> {
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
     private resolveRefs(tokens: Token[]) {
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
-        const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:[],tokens:new Map()};
+        const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};
 
         const objectRefs = new Set(['him','her','it','them']);
         const nounRefs = ['He','She','It','They',...objectRefs];
@@ -180,29 +181,37 @@ class Analyzer extends DSLVisitor<void> {
 
             if ((type === DSLLexer.SINGLE_SUBJECT_REF) || (type === DSLLexer.SINGLE_OBJECT_REF)) {
                 const isObjectRef =  (type === DSLLexer.SINGLE_OBJECT_REF);
-                let subjectIndex = 0;
-                subjectIndex += isObjectRef?extractNumFromRef(text,this.lineCount):0;
+                let refIndex = 0;//started as 0 here because arrays use 0 based indexing to start
+                refIndex += isObjectRef?extractNumFromRef(text,this.lineCount):0;
                 if (Analyzer.terminate) return;
 
                 const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
-                const resolvedToken = this.lastTokensForSingle.toArray().at(sentenceIndex)?.filter(token=>(token.type===DSLLexer.NAME)).at(subjectIndex) || null; 
-                console.log(this.lastTokensForSingle.length);
-                
+                const allNames = this.lastTokensForSingle.toArray().at(sentenceIndex)?.filter(token=>(token.type===DSLLexer.NAME)) || []; 
+                const resolvedToken = allNames.at(refIndex) || null;
+
                 if (!isObjectRef) {
                     if (!allowRef(encounteredName,this.lineCount,text,resolvedToken?.text)) return;
                 }
                 resolvedSingleTokens.indices.push(index);
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
             }
-            else if (type === DSLLexer.GROUP_SUBJECT_REF) {
-                const groupedTokens = this.inspectRelevantTokens(new Denque(this.lastTokensForGroup || []));
+            else if ((type === DSLLexer.GROUP_SUBJECT_REF) || (type === DSLLexer.GROUP_OBJECT_REF)) {
+                const isObjectRef =  (type === DSLLexer.GROUP_OBJECT_REF);
+                let refIndex = 1;//started as 1 because the list block getter using 1-based indexing (get the nth array from the sentence)
+                refIndex += isObjectRef?extractNumFromRef(text,this.lineCount):0;
                 if (Analyzer.terminate) return;
-                if (!allowRef(encounteredList,this.lineCount,text,groupedTokens!.at(0))) return;
 
-                const resolvedTokens = this.getListTokensBlock(new Denque(this.lastTokensForGroup || []),2);
+                const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
+                const tokenQueue = new Denque(this.lastTokensForGroup.toArray().at(sentenceIndex) || []);
+
+                if (!isObjectRef) {
+                    if (!allowRef(encounteredList,this.lineCount,text,(this.inspectRelevantTokens(tokenQueue) || []).at(0))) return;
+                }
+                const resolvedTokens = this.getListTokensBlock(tokenQueue,refIndex);
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
-                console.log('last array tokens:');this.printTokens(resolvedGroupedTokens.tokens.get(index) || []);
+                console.log('resolved tokens:',index);
+                this.printTokens(resolvedGroupedTokens.tokens.get(index) || []);
             }
             else if (type === DSLLexer.NAME) {//this must be called for every name to capture them
                 const isLoose = text.startsWith(':');
@@ -211,7 +220,6 @@ class Analyzer extends DSLVisitor<void> {
                 encounteredName = true;
             }
             else if (type === DSLLexer.LSQUARE) {//notice that even though the branches look identical,they are mutating different arrays
-                this.lastTokensForGroup = tokens;
                 encounteredList = true;
             }
             else if (type === DSLLexer.PLAIN_WORD) {//this branch is to warn users if they forgot to place angle brackets around the ref and may have also added a typo on top of that.If they made a typo within the angle brackets,it will be caught as a syntax error.This one catches typos not within the bracket as a warning
@@ -225,13 +233,21 @@ class Analyzer extends DSLVisitor<void> {
                     }
                 }
             }
+            //Separate block that must run independently of the previous ladder
             if (!new Set(this.lastTokensForSingle.toArray()).has(tokens)) {//this prevents the same sentence of tokens from being pushed repeatedly on every name in te sentence
                 this.lastTokensForSingle.push(tokens);
                 if (this.lastTokensForSingle.length > 2) {
                     this.lastTokensForSingle.shift();
                 }
             }
+            if (!new Set(this.lastTokensForGroup.toArray()).has(tokens)) {//this prevents the same sentence of tokens from being pushed repeatedly on every name in te sentence
+                this.lastTokensForGroup.push(tokens);
+                if (this.lastTokensForGroup.length > 2) {
+                    this.lastTokensForGroup.shift();
+                }
+            }
         };
+        //Apply all resolutions
         for (const index of resolvedSingleTokens.indices) {
             const resolvedToken = resolvedSingleTokens.tokens.get(index) || null;
             if (resolvedToken !== null) {//resolve the single ref
@@ -242,13 +258,13 @@ class Analyzer extends DSLVisitor<void> {
         }
         for (const index of resolvedGroupedTokens.indices) {
             const resolvedTokens = resolvedGroupedTokens.tokens.get(index) || null;
-            if (resolvedTokens !== null) {//resolve the single ref
+            if (resolvedTokens !== null) {//resolve the group ref
                 tokens.splice(index,1,...resolvedTokens);
             }else {
                 Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the group reference,${chalk.bold(tokens[index].text)}.Could not find an array to point it to.`,[this.lineCount-1,this.lineCount]);
             }
         }
-        if ((resolvedSingleTokens.indices.length > 2) || (resolvedSingleTokens.indices.length > 2)) {
+        if ((resolvedSingleTokens.indices.length > 2) || (resolvedGroupedTokens.indices.length > 2)) {
             Essentials.report(DslError.DoubleCheck,this.lineCount,`-Be careful with how multiple references are used in a sentence and be sure that you know what they are pointing to.`);
         }
     }
@@ -348,12 +364,13 @@ class Analyzer extends DSLVisitor<void> {
             this.usedNames[str] += 1;
         }
     }
-    private inspectRelevantTokens(tokens:Denque<Token>,readOnly:boolean=true,level:[number]=[0],visitedNames=new Set<string>()) {
+    private inspectRelevantTokens(tokens:Denque<Token>,readOnly:boolean=true,level:[number]=[0],visitedNames=new Set<string>(),shouldClone:boolean=true) {
         if (Analyzer.terminate) return;
+        const tokenQueue = shouldClone ? new Denque(tokens.toArray()) : tokens;//to prevent unwanted mutation if the queue is to be reused elsewhere
         const list:any[] = [];
         const inRoot = level[0] === 0;
-        while (tokens.length !== 0) {
-            const token = tokens.shift()!;
+        while (tokenQueue.length !== 0) {
+            const token = tokenQueue.shift()!;
             const type = token.type;
             const text = token.text!;
             if (type === DSLLexer.NAME) {
@@ -375,7 +392,7 @@ class Analyzer extends DSLVisitor<void> {
             }
             else if (type === DSLLexer.LSQUARE) {
                 level[0] += 1;
-                list.push(this.inspectRelevantTokens(tokens,readOnly,level,visitedNames));
+                list.push(this.inspectRelevantTokens(tokenQueue,readOnly,level,visitedNames,false));// explicitly pass false for shouldClone, so that the method uses the existing queue directly without cloning.
             }
             else if (type === DSLLexer.RSQUARE) {
                 level[0] -= 1;

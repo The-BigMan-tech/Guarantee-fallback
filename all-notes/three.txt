@@ -1997,6 +1997,8 @@ two stage parsing process
 
 *and unlike bindings,refs are automatically managed and resolved and there is no risk of mutation.im sticking with this as the design choice.
 
+*and also,the reason why i used a separate map to hold refs to their resolutions is because i tried directly resolving them in the list during the iteration and the behaviour wasnt expected.so seprating the actual resolution from the resolution mapping is safer.so it resolves all refs in the sentence then applies them
+
 tokenization,semantism,building
 
 ?I punched npx swc.i hope it doesnt do anything
