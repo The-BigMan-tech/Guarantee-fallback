@@ -119,7 +119,8 @@ class Analyzer extends DSLVisitor<void> {
         this.resolveAlias(tokens);
     };
 
-    private getListTokensBlock(tokens:Denque<Token>,nList:number):Token[] | null {
+    private getListTokensBlock(tokens:Denque<Token>,nList:number,listCount:[number]=[0]):Token[] | null {
+        listCount[0] += 1;
         let list:Token[] = [];
         let lBrackets:number = 0;
         let rBrackets:number = 0;
@@ -136,11 +137,14 @@ class Analyzer extends DSLVisitor<void> {
                 list.push(token);
                 rBrackets += 1;
                 if (lBrackets === rBrackets) break;
-            }else if (lBrackets > 0) {
+            }else if (lBrackets > 0) {//ensures only tokens inside the array brackets are collected.
                 list.push(token);
             }
         };
         console.log('left over');this.printTokens(tokens.toArray());
+        if (listCount[0] !== nList) {
+            list = this.getListTokensBlock(tokens,nList,listCount) || [];
+        }
         return (list.length > 0)?list:null;
     }
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
@@ -177,7 +181,7 @@ class Analyzer extends DSLVisitor<void> {
                 if (Analyzer.terminate) return;
                 if (!allowRef(encounteredList,this.lineCount,text,groupedTokens!.at(0))) return;
 
-                const resolvedTokens = this.getListTokensBlock(new Denque(this.lastTokensForGroup || []),1);
+                const resolvedTokens = this.getListTokensBlock(new Denque(this.lastTokensForGroup || []),2);
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
                 console.log('last array tokens:');this.printTokens(resolvedGroupedTokens.tokens.get(index) || []);
