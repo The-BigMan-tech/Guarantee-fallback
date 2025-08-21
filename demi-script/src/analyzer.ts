@@ -179,6 +179,35 @@ class Analyzer extends DSLVisitor<void> {
                 Essentials.report(DslError.DoubleCheck,line,message,[refInfo.line,line]);
             }
         }
+        function pushSentence(tokenQueue:Denque<Token[]>,refCheckMap:RefCheckMap,line:number) {
+            refCheckMap.set(tokens,{hasRef,line});//setting it multiple times(called on every loop that satisifies the condition) is safe because its never set back to false again in the loop
+            tokenQueue.push(tokens);
+            if (tokenQueue.length > 2) {
+                const removedToken = tokenQueue.shift();
+                refCheckMap.delete(removedToken!);//deleting it multiple times is also safe since delete does nothing if the key doesnt exist
+            }
+        }
+        function applyResolution(line:number) {
+            for (const index of resolvedSingleTokens.indices) {
+                const resolvedToken = resolvedSingleTokens.tokens.get(index) || null;
+                if (resolvedToken !== null) {//resolve the single ref
+                    tokens[index] = resolvedToken;
+                }else {
+                    Essentials.report(DslError.Semantic,line,`-Failed to resolve the singular reference,${chalk.bold(tokens[index].text)}.Could not find a name to point it to.`,[line-1,line]);
+                }
+            }
+            for (const index of resolvedGroupedTokens.indices) {
+                const resolvedTokens = resolvedGroupedTokens.tokens.get(index) || null;
+                if (resolvedTokens !== null) {//resolve the group ref
+                    tokens.splice(index,1,...resolvedTokens);
+                }else {
+                    Essentials.report(DslError.Semantic,line,`-Failed to resolve the group reference,${chalk.bold(tokens[index].text)}.Could not find an array to point it to.`,[line-1,line]);
+                }
+            }
+            if ((resolvedSingleTokens.indices.length > 2) || (resolvedGroupedTokens.indices.length > 2)) {
+                Essentials.report(DslError.DoubleCheck,line,`-Be careful with how multiple references are used in a sentence and be sure that you know what they are pointing to.`);
+            }
+        }
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
         const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};
 
@@ -261,40 +290,10 @@ class Analyzer extends DSLVisitor<void> {
                     }
                 }
             }
-        };
-        
-        //Separate block that must run independently of the previous ladder
-        function pushSentence(tokenQueue:Denque<Token[]>,refCheckMap:RefCheckMap,line:number) {
-            refCheckMap.set(tokens,{hasRef,line});//setting it multiple times(called on every loop that satisifies the condition) is safe because its never set back to false again in the loop
-            tokenQueue.push(tokens);
-            if (tokenQueue.length > 2) {
-                const removedToken = tokenQueue.shift();
-                refCheckMap.delete(removedToken!);//deleting it multiple times is also safe since delete does nothing if the key doesnt exist
-            }
-        }
-        
+        };        
         pushSentence(this.lastTokensForSingle,this.refCheckMap,this.lineCount);
         pushSentence(this.lastTokensForGroup,this.refCheckMap,this.lineCount);
-        //Apply all resolutions
-        for (const index of resolvedSingleTokens.indices) {
-            const resolvedToken = resolvedSingleTokens.tokens.get(index) || null;
-            if (resolvedToken !== null) {//resolve the single ref
-                tokens[index] = resolvedToken;
-            }else {
-                Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the singular reference,${chalk.bold(tokens[index].text)}.Could not find a name to point it to.`,[this.lineCount-1,this.lineCount]);
-            }
-        }
-        for (const index of resolvedGroupedTokens.indices) {
-            const resolvedTokens = resolvedGroupedTokens.tokens.get(index) || null;
-            if (resolvedTokens !== null) {//resolve the group ref
-                tokens.splice(index,1,...resolvedTokens);
-            }else {
-                Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the group reference,${chalk.bold(tokens[index].text)}.Could not find an array to point it to.`,[this.lineCount-1,this.lineCount]);
-            }
-        }
-        if ((resolvedSingleTokens.indices.length > 2) || (resolvedGroupedTokens.indices.length > 2)) {
-            Essentials.report(DslError.DoubleCheck,this.lineCount,`-Be careful with how multiple references are used in a sentence and be sure that you know what they are pointing to.`);
-        }
+        applyResolution(this.lineCount);
     }
     private stripMark(text:string) {
         return text.slice(1);// Remove the leading '*' or '#' or : or !
