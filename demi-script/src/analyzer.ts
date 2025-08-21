@@ -191,15 +191,13 @@ class Analyzer extends DSLVisitor<void> {
             const type = token.type;
 
             if ((type === DSLLexer.SINGLE_SUBJECT_REF) || (type === DSLLexer.SINGLE_OBJECT_REF)) {
-                hasRef = true;
                 const isObjectRef =  (type === DSLLexer.SINGLE_OBJECT_REF);
-                let refIndex = 0;//started as 0 here because arrays use 0 based indexing to start
-                refIndex += isObjectRef?extractNumFromRef(text,this.lineCount):0;
+                const refIndex = isObjectRef?extractNumFromRef(text,this.lineCount):0;//fallbacks to 0 here because arrays use 0 based indexing to start
                 if (Analyzer.terminate) return;
 
                 const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
-                const sentenceTokens = this.lastTokensForSingle.toArray().at(sentenceIndex);
-                const allNames = sentenceTokens?.filter(token=>(token.type===DSLLexer.NAME)) || []; 
+                const sentenceTokens = this.lastTokensForSingle.toArray().at(sentenceIndex) || [];
+                const allNames = sentenceTokens.filter(token=>(token.type===DSLLexer.NAME)); 
                 const resolvedToken = allNames.at(refIndex) || null;
 
                 checkForRefAmbiguity(sentenceTokens || [],this.lineCount,this.refCheckMap);
@@ -208,14 +206,13 @@ class Analyzer extends DSLVisitor<void> {
                 }
                 resolvedSingleTokens.indices.push(index);
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
+                hasRef = true;
             }
 
 
             else if ((type === DSLLexer.GROUP_SUBJECT_REF) || (type === DSLLexer.GROUP_OBJECT_REF)) {
-                hasRef = true;
                 const isObjectRef =  (type === DSLLexer.GROUP_OBJECT_REF);
-                let refIndex = 1;//started as 1 because the list block getter using 1-based indexing (get the nth array from the sentence)
-                refIndex += isObjectRef?extractNumFromRef(text,this.lineCount):0;
+                const refIndex = 1 + (isObjectRef?extractNumFromRef(text,this.lineCount):0);//I offset it from 1 because the list block getter using 1-based indexing (get the nth array from the sentence)
                 if (Analyzer.terminate) return;
 
                 const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
@@ -226,9 +223,12 @@ class Analyzer extends DSLVisitor<void> {
                 if (!isObjectRef) {
                     if (!allowRef(encounteredList,this.lineCount,text,(this.inspectRelevantTokens(tokenQueue) || []).at(0))) return;
                 }
+
                 const resolvedTokens = this.getListTokensBlock(tokenQueue,refIndex);
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
+                hasRef = true;
+
                 console.log('resolved tokens:',index);
                 this.printTokens(resolvedGroupedTokens.tokens.get(index) || []);
             }
