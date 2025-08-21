@@ -167,11 +167,25 @@ class Analyzer extends DSLVisitor<void> {
             }
             return true;
         }
+        function extractNumFromRef(text:string,lineCount:number):number {
+            const num =  Number(text.split(":")[1].slice(0,-1));
+            if (!Number.isInteger(num)) Essentials.report(DslError.Semantic,lineCount,`The reference; ${chalk.bold(text)} must use an integer`);
+            if (num < 1) Essentials.report(DslError.Semantic,lineCount,`The reference; ${chalk.bold(text)} must point to an object not to a subject which is at index 0.If thats the intention,then use <He>,<She> or <It>.`);
+            if (num > 3) Essentials.report(DslError.DoubleCheck,lineCount,`Are you sure you can track what this reference; ${chalk.bold(text)} is pointing to?`);
+            return num;
+        }
         for (const [index,token] of tokens.entries()){//I did no breaks here to allow all refs in the sentence to resolve
             const text = token.text!;
             const type = token.type;
-            if (type === DSLLexer.SINGLE_SUBJECT_REF) {
-                const resolvedToken = this.lastTokensForSingle?.find(token=>token.type===DSLLexer.NAME) || null; 
+            if ((type === DSLLexer.SINGLE_SUBJECT_REF) || (type === DSLLexer.SINGLE_OBJECT_REF)) {
+                let resolvedIndex = 0;
+                resolvedIndex += (type === DSLLexer.SINGLE_OBJECT_REF)?extractNumFromRef(text,this.lineCount):0;
+                if (Analyzer.terminate) return;
+                console.log('hhjk: ',resolvedIndex);
+
+                const resolvedToken = this.lastTokensForSingle?.find((token,index)=>{
+                    return ((token.type===DSLLexer.NAME));
+                }) || null; 
                 if (!allowRef(encounteredName,this.lineCount,text,resolvedToken?.text)) return;
                 resolvedSingleTokens.indices.push(index);
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
