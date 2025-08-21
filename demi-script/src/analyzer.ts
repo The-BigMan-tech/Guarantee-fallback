@@ -217,6 +217,7 @@ class Analyzer extends DSLVisitor<void> {
         let hasRef = false;
         let encounteredName = false;
         let encounteredList = false;
+        const encounteredNames:string[] = [];
 
         for (const [index,token] of tokens.entries()){//I did no breaks here to allow all refs in the sentence to resolve
             const text = token.text!;
@@ -250,12 +251,11 @@ class Analyzer extends DSLVisitor<void> {
                 const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
                 const tokensForSentences = this.lastTokensForGroup.toArray();
                 const tokenQueue = new Denque(tokensForSentences.at(sentenceIndex) || []);
-
+    
                 checkForRefAmbiguity(tokensForSentences.at(-1) || [],this.lineCount,this.refCheckMap);//it always uses the last sentence to prevent different outputs for different ref types.
                 if (!isObjectRef) {
                     if (!allowRef(encounteredList,this.lineCount,text,(this.inspectRelevantTokens(tokenQueue) || []).at(0))) return;
                 }
-
                 const resolvedTokens = this.getListTokensBlock(tokenQueue,refIndex);
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
@@ -267,10 +267,11 @@ class Analyzer extends DSLVisitor<void> {
 
 
             else if (type === DSLLexer.NAME) {//this must be called for every name to capture them
-                const isLoose = text.startsWith(':');
                 const str = this.stripMark(text);
+                const isLoose = text.startsWith(':');
                 if (isLoose && !(str in this.usedNames)) this.usedNames[str] = 0;
                 encounteredName = true;
+                encounteredNames.push(token.text!);
             }
 
 
@@ -290,7 +291,8 @@ class Analyzer extends DSLVisitor<void> {
                     }
                 }
             }
-        };        
+        };   
+        for (const name of encounteredNames) this.validateNameUsage(name);//this has to happen before the refs are resolved.else,the names that expanded into those refs will trigger warnings.
         pushSentence(this.lastTokensForSingle,this.refCheckMap,this.lineCount);
         pushSentence(this.lastTokensForGroup,this.refCheckMap,this.lineCount);
         applyResolution(this.lineCount);
@@ -392,14 +394,14 @@ class Analyzer extends DSLVisitor<void> {
             this.records[predicate].add(atoms);
         }
     }
-    private validateNameByPrefix(token:Token) {
-        const text = token.text!;
+    private validateNameUsage(text:string) {
         const isStrict = text.startsWith('!');
         const str = this.stripMark(text);
+        console.log('name: ',str);
         if (isStrict && !(str in this.usedNames)) {
-            Essentials.report(DslError.Semantic,this.lineCount,`-Could not find an existing usage of the name; ${chalk.bold(str)}.\nDid you meant to type: ${chalk.bold(':'+str)} instead? Assuming that this is the first time it is used.`);
-        }else if (!isStrict && this.usedNames[str] > 0) {//only recommend it if this is not the first time it is used
-            Essentials.report(DslError.DoubleCheck,this.lineCount,`-You may wish to type the name; ${chalk.bold(str)} strictly as; ${chalk.bold("!"+str)} rather than loosely as; ${chalk.bold(":"+str)}. \n-It signals that it has been used before here and it prevents errors early.`);
+            Essentials.report(DslError.Semantic,this.lineCount,`-Could not find an existing usage of the name; ${chalk.bold(str)}.\n-Did you meant to type: ${chalk.bold(':'+str)} instead? Assuming that this is the first time it is used.`);
+        }else if (!isStrict && this.usedNames[str] > 0) {//only give the recommendation if this is not the first time it is used
+            Essentials.report(DslError.DoubleCheck,this.lineCount,`-You may wish to type ${chalk.bold("!"+str)} rather than loosely as; ${chalk.bold(":"+str)}. \n-It signals that it has been used before here and it prevents errors early.`);
         }
         if (str in this.usedNames) {
             this.usedNames[str] += 1;
@@ -422,7 +424,6 @@ class Analyzer extends DSLVisitor<void> {
                         if (Analyzer.terminate) return;
                     }
                     visitedNames.add(str);
-                    this.validateNameByPrefix(token);
                     if (Analyzer.terminate) return;
                 }
                 list.push((inRoot)?[str]:str);

@@ -2022,6 +2022,11 @@ two stage parsing process
 *so the control flow is DSL,Analyzer,Rules,Fact checker.safety is enforced at the dsl level by using safety constructs like assertion ! and aliases.while the analyzer performs implicit safety checks.the rules perform input validation and arity checks while the fact checker just does its job.
 
 *The analyzer is made up of resolvers,inspectors,a builder and the reporter
+
+*the thing is that resolving them at 0 and -1 might look the same at output,but if it were identical,i would have gotten the same ambiguity report.so they arent identical.so giving the errror report the unified sentence will solve this without changing their resolution because their resolution although similar,arent identical
+
+*Because your resolution uses distinct token arrays for object vs. subject refs, ambiguity detection based solely on those arrays leads to different results. Unifying ambiguity checks to use the last sentence tokens (regardless of resolution tokens) correctly reflects the logical reference context, enabling consistent and meaningful chained ref warnings without altering resolution semantics.
+
 tokenization,semantism,building
 
 ?I punched npx swc.i hope it doesnt do anything
