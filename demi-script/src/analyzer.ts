@@ -154,14 +154,11 @@ class Analyzer extends DSLVisitor<void> {
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
     
     private resolveRefs(tokens: Token[]) {
-        function allowRef(encounteredX:boolean,lineCount:number,refAsText:string,resTokenAsText:unknown):boolean {
-            if (encounteredX) {//i added this here because its possible that the ref is in the same senetnce as the subject that its pointing to.and since they can only be one predicate in a sentece,it wil be difficult to meaningfully use the ref in the same sentence with the subject to make another sentence in conjuction with it.Anything that requires joining for readability should require a fullstop to separate the senetnces not using the ref in the same sentence.so :ada is *strong and <He> is *ggod should rsther be separate sentences in the same line
-                let message = "-A reference cannot be used to point to a subject in the same sentence";
-                message += `.\n-Is ${chalk.bold(refAsText)} supposed to point to ${chalk.bold(stringify(resTokenAsText))}? If so,separate it as its own sentence.`;
-                Essentials.report(DslError.Semantic,lineCount,message);
-                return false;
-            }
-            return true;
+        function reportRefError(lineCount:number,reference:string,referencedName:string,encounteredName:string):void {//i added this here because its possible that the ref is in the same senetnce as the subject that its pointing to.and since they can only be one predicate in a sentece,it wil be difficult to meaningfully use the ref in the same sentence with the subject to make another sentence in conjuction with it.Anything that requires joining for readability should require a fullstop to separate the senetnces not using the ref in the same sentence.so :ada is *strong and <He> is *ggod should rsther be separate sentences in the same line
+            let message = `-Note that the reference ${reference} in line ${lineCount} points to ${referencedName} not ${encounteredName}.`;
+            message += `\n-If your intention is different,then separate it as its own sentence.`;
+            message += `\n-The reference ${chalk.bold('must')} be the first subject of the sentence to prevent confusion like this.`;
+            Essentials.report(DslError.Semantic,lineCount,message);
         }
         function extractNumFromRef(text:string,lineCount:number):number {
             const num =  Number(text.split(":")[1].slice(0,-1));
@@ -172,7 +169,6 @@ class Analyzer extends DSLVisitor<void> {
         }
         function checkForRefAmbiguity(sentenceTokens:Token[],line:number,refIncludedMap:RefCheckMap) {
             const refInfo = refIncludedMap.get(sentenceTokens || []);
-            console.log('🚀 => :175 => checkForRefAmbiguity => refInfo:', refInfo);
             if (refInfo?.hasRef) {
                 let message = `-Be sure that you have followed how you are referencing an item from a sentence that also has a ref.`;
                 message += `\n-You may wish to write the name explicitly in ${chalk.bold('line:'+refInfo.line)} to avoid confusion.`;
@@ -192,16 +188,12 @@ class Analyzer extends DSLVisitor<void> {
                 const resolvedToken = resolvedSingleTokens.tokens.get(index) || null;
                 if (resolvedToken !== null) {//resolve the single ref
                     tokens[index] = resolvedToken;
-                }else {
-                    Essentials.report(DslError.Semantic,line,`-Failed to resolve the singular reference,${chalk.bold(tokens[index].text)}.Could not find a name to point it to.`,[line-1,line]);
                 }
             }
             for (const index of resolvedGroupedTokens.indices) {
                 const resolvedTokens = resolvedGroupedTokens.tokens.get(index) || null;
                 if (resolvedTokens !== null) {//resolve the group ref
                     tokens.splice(index,1,...resolvedTokens);
-                }else {
-                    Essentials.report(DslError.Semantic,line,`-Failed to resolve the group reference,${chalk.bold(tokens[index].text)}.Could not find an array to point it to.`,[line-1,line]);
                 }
             }
             if ((resolvedSingleTokens.indices.length > 2) || (resolvedGroupedTokens.indices.length > 2)) {
@@ -215,8 +207,8 @@ class Analyzer extends DSLVisitor<void> {
         const nounRefs = ['He','She','It','They',...objectRefs];
 
         let hasRef = false;
-        let encounteredName = false;
         let encounteredList = false;
+        let encounteredName:string | null = null;
         const encounteredNames:string[] = [];
 
         for (const [index,token] of tokens.entries()){//I did no breaks here to allow all refs in the sentence to resolve
@@ -230,13 +222,24 @@ class Analyzer extends DSLVisitor<void> {
 
                 const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
                 const tokensForSentences = this.lastTokensForSingle.toArray();
-                const allNames = tokensForSentences.at(sentenceIndex)?.filter(token=>(token.type===DSLLexer.NAME)) || []; 
-                const resolvedToken = allNames.at(refIndex) || null;
+
+                let resolvedToken = null;
+
+                if (!isObjectRef) {//an interesting thing to note is that at this point in time,the names have been eagerly pushed to the encountered array but they are not availabkle in the sentence tokens because they are only pushed when eery token in this loop has been processed including this one
+                    const firstMember = tokensForSentences.at(-1)?.find(token=>((token.type===DSLLexer.NAME) || (token.type===DSLLexer.LSQUARE)));//i included the check for an array to acknowledge that an array can be the subject
+                    if (firstMember) {
+                        if (encounteredName) {
+                            reportRefError(this.lineCount,text,firstMember.text!,encounteredName);
+                        }
+                        if (firstMember?.type === DSLLexer.NAME) { 
+                            resolvedToken = firstMember;
+                        }else {
+                            Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(tokens[index].text)}.\n-It can only point to the subject of the closest sentence that is a name.But found an array.`,[this.lineCount-1,this.lineCount]);
+                        }
+                    }//i didnt add an else block here reporting an error because syntatically,its not possible to write a sentence without a name or an array
+                }
 
                 checkForRefAmbiguity(tokensForSentences.at(-1) || [],this.lineCount,this.refCheckMap);//it always uses the last sentence to prevent different outputs for different ref types.
-                if (!isObjectRef) {
-                    if (!allowRef(encounteredName,this.lineCount,text,resolvedToken?.text)) return;
-                }
                 resolvedSingleTokens.indices.push(index);
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
                 hasRef = true;
@@ -269,9 +272,9 @@ class Analyzer extends DSLVisitor<void> {
             else if (type === DSLLexer.NAME) {//this must be called for every name to capture them
                 const str = this.stripMark(text);
                 const isLoose = text.startsWith(':');
-                if (isLoose && !(str in this.usedNames)) this.usedNames[str] = 0;
-                encounteredName = true;
+                if (isLoose && !(str in this.usedNames)) this.usedNames[str] = 0;//we dont want to reset it if it has already been set by a previous sentence
                 encounteredNames.push(token.text!);
+                encounteredName = text;
             }
 
 
