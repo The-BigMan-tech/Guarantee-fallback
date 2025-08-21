@@ -1999,6 +1999,10 @@ two stage parsing process
 
 *and also,the reason why i used a separate map to hold refs to their resolutions is because i tried directly resolving them in the list during the iteration and the behaviour wasnt expected.so seprating the actual resolution from the resolution mapping is safer.so it resolves all refs in the sentence then applies them
 
+*it also means that refs have extra performance costs in loading the docuement.so the more refs and arrays are used,the more time it will take to resolve all of them and expand all arrays recursively
+
+*so refs are slower than global bindings because they have an extra resolving step.its not a direct lookup.but they are auto-managed and safer
+
 tokenization,semantism,building
 
 ?I punched npx swc.i hope it doesnt do anything

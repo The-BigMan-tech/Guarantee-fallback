@@ -153,7 +153,7 @@ class Analyzer extends DSLVisitor<void> {
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
         const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};
 
-        const objectRefs = new Set(['him','her','it','them']);
+        const objectRefs = new Set(['him','her','it','them','their']);
         const nounRefs = ['He','She','It','They',...objectRefs];
 
         let encounteredName = false;

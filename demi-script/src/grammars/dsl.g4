@@ -46,7 +46,7 @@ SINGLE_OBJECT_REF:'<' SINGLE_NOUN_OBJECT_REF ':' NUMBER '>';
 GROUP_OBJECT_REF:'<' GROUP_NOUN_OBJECT_REF ':' NUMBER '>';
 
 fragment SINGLE_NOUN_OBJECT_REF:'him' | 'her' | 'it';
-fragment GROUP_NOUN_OBJECT_REF:'them';
+fragment GROUP_NOUN_OBJECT_REF:'them' | 'their';
 
 fragment SINGLE_NOUN_REF:'He' | 'She' | 'It';
 fragment GROUP_NOUN_REF:'They';
