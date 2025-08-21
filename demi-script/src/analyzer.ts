@@ -82,7 +82,7 @@ class Analyzer extends DSLVisitor<void> {
     private lineCount:number = 1;
     private targetLineCount:number = this.lineCount;
 
-    private lastTokensForSingle:Token[] | null = null;
+    private lastTokensForSingle:Denque<Token[]> = new Denque([]);
     private lastTokensForGroup:Token[] | null = null;
 
     public static terminate:boolean = false;
@@ -177,16 +177,20 @@ class Analyzer extends DSLVisitor<void> {
         for (const [index,token] of tokens.entries()){//I did no breaks here to allow all refs in the sentence to resolve
             const text = token.text!;
             const type = token.type;
-            if ((type === DSLLexer.SINGLE_SUBJECT_REF) || (type === DSLLexer.SINGLE_OBJECT_REF)) {
-                let resolvedIndex = 0;
-                resolvedIndex += (type === DSLLexer.SINGLE_OBJECT_REF)?extractNumFromRef(text,this.lineCount):0;
-                if (Analyzer.terminate) return;
-                console.log('hhjk: ',resolvedIndex);
 
-                const resolvedToken = this.lastTokensForSingle?.find((token,index)=>{
-                    return ((token.type===DSLLexer.NAME));
-                }) || null; 
-                if (!allowRef(encounteredName,this.lineCount,text,resolvedToken?.text)) return;
+            if ((type === DSLLexer.SINGLE_SUBJECT_REF) || (type === DSLLexer.SINGLE_OBJECT_REF)) {
+                const isObjectRef =  (type === DSLLexer.SINGLE_OBJECT_REF);
+                let subjectIndex = 0;
+                subjectIndex += isObjectRef?extractNumFromRef(text,this.lineCount):0;
+                if (Analyzer.terminate) return;
+
+                const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
+                const resolvedToken = this.lastTokensForSingle.toArray().at(sentenceIndex)?.filter(token=>(token.type===DSLLexer.NAME)).at(subjectIndex) || null; 
+                console.log(this.lastTokensForSingle.length);
+                
+                if (!isObjectRef) {
+                    if (!allowRef(encounteredName,this.lineCount,text,resolvedToken?.text)) return;
+                }
                 resolvedSingleTokens.indices.push(index);
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
             }
@@ -204,8 +208,14 @@ class Analyzer extends DSLVisitor<void> {
                 const isLoose = text.startsWith(':');
                 const str = this.stripMark(text);
                 if (isLoose && !(str in this.usedNames)) this.usedNames[str] = 0;
-                this.lastTokensForSingle = tokens;
-                encounteredName = true;
+
+                if (!encounteredName) {//this prevents the same sentence of tokens from being pushed repeatedly on every name in te sentence
+                    this.lastTokensForSingle.push(tokens);
+                    encounteredName = true;
+                    if (this.lastTokensForSingle.length > 2) {
+                        this.lastTokensForSingle.shift();
+                    }
+                }
             }
             else if (type === DSLLexer.LSQUARE) {//notice that even though the branches look identical,they are mutating different arrays
                 this.lastTokensForGroup = tokens;
