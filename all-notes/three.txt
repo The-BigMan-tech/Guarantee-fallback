@@ -1985,6 +1985,18 @@ two stage parsing process
 
 *so my dsl may not fully guarantee a document's correctness but it ensures that everything thats written in it is deliberate and given attention to which prevents many overlooked errors during authoring.
 
+*subject refs point to the first name of the nearest sentence which means that it can point to a name in the same sentence but object refs only point to the whatever object in the peviou sentence
+
+*so subject references must always point to the nearest sentence for correctness.so they have the possibility of referencing a name in the same sentence.so my analyzer catches that.But object references never encounter this because they always point to the previous sentence not the nearest one.
+
+*Before,i wanted to just stick with subject refs because its not possible for my ssyetm to know what him is supposed to point to when there could more than one objects in a sentence.so by having them to have this notation<ref:number>,users can help the analyzer resolve such ambiguity.one can say that <ref:0> is the same as using a subject ref but it will probably give a different result.because it will give the first name of the previous senetnce and not the first name of the nearest sentece like using a subject ref.so this will cause unexpected behaviour.which is why i still kept subject refs as separate refs even though object refs look like they can replace i
+
+*so refs unlike assignments,can only be used in their immediatse context not just anywhere because it relies on adjacency.so continuity requires fall through which allows for conciseness but it is unsafe.its best for the refs to be acknowledged that they are used for their immediate context.
+
+*so it means that a ref to a ref should be flagged as unsafe.but it wil be a warning not a semantic error because that may be the intent.
+
+*and unlike bindings,refs are automatically managed and resolved and there is no risk of mutation.im sticking with this as the design choice.
+
 tokenization,semantism,building
 
 ?I punched npx swc.i hope it doesnt do anything
@@ -2292,3 +2304,12 @@ language server
 syntax highlighter
 linter rules
 debugger
+
+**********
+him shouldnt produce this: Semantic Error at line 3:
+A reference cannot be used to point to a subject in the same sentence.
+Is <him:2> supposed to point to ":ada"? If so,separate it as its own sentence.
+Check -> :ada *plays with <him:2>.
+
+
+Refs shouldnt produce assertion warnings
