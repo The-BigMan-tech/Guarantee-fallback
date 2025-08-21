@@ -87,9 +87,10 @@ export function runExamples():void {
     };
     //DSL form
     const facts = `
-        alias play = *friends.
-        [:a,:b,:c] are *friends with [:d,:e,:f].
-        :ada is <their:1> *friend.
+        alias friend = *friend.
+        :zane is :john's #friend.
+        :zane is *friends with <him:1>.
+        :zane is *friends with <him:1>.
     `;
     
     const struct = genStruct(facts);

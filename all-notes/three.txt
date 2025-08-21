@@ -2017,6 +2017,11 @@ two stage parsing process
 
 *so aliases now are a typo catcher.so they are recommened over raw predicates because the analyzer doesnt protect the user from their predicates because they are inlined with no declarations
 
+*so i have name safety,predicate name safety and a bunch of automated sementic schecks.my dsl is safe but the one thing it doesnt have is arity constraints on thos predicates like the type and the number of them.ive decided to not design any achema to support this as for my design,i expect that the responsibility of arity types and number should be by the rules that accepts inputs and returns a result.they should decide the contrainst and assumptions about the inputs they receive and if it falters,it can throw an error
+
+*so the control flow is DSL,Analyzer,Rules,Fact checker.safety is enforced at the dsl level by using safety constructs like assertion ! and aliases.while the analyzer performs implicit safety checks.the rules perform input validation and arity checks while the fact checker just does its job.
+
+*The analyzer is made up of resolvers,inspectors,a builder and the reporter
 tokenization,semantism,building
 
 ?I punched npx swc.i hope it doesnt do anything

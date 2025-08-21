@@ -172,8 +172,11 @@ class Analyzer extends DSLVisitor<void> {
         }
         function checkForRefAmbiguity(sentenceTokens:Token[],line:number,refIncludedMap:RefCheckMap) {
             const refInfo = refIncludedMap.get(sentenceTokens || []);
+            console.log('🚀 => :175 => checkForRefAmbiguity => refInfo:', refInfo);
             if (refInfo?.hasRef) {
-                Essentials.report(DslError.DoubleCheck,line,`Be sure that you have followed how you are referencing an item in a sentence that also has a reference.`,[refInfo.line,line]);
+                let message = `-Be sure that you have followed how you are referencing an item in a sentence that also has a ref.`;
+                message += `\n-You may wish to write the name explicitly in ${chalk.bold('line:'+refInfo.line)} to avoid confusion.`;
+                Essentials.report(DslError.DoubleCheck,line,message,[refInfo.line,line]);
             }
         }
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
@@ -273,7 +276,7 @@ class Analyzer extends DSLVisitor<void> {
                 this.lastTokensForGroup.push(tokens);
                 this.refCheckMap.set(tokens,{hasRef,line:this.lineCount});
                 if (this.lastTokensForGroup.length > 2) {
-                    const removedToken = this.lastTokensForSingle.shift();
+                    const removedToken = this.lastTokensForGroup.shift();
                     this.refCheckMap.delete(removedToken!);
                 }
             }
