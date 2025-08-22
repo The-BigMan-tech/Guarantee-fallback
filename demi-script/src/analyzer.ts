@@ -24,6 +24,9 @@ enum DslError{
     Syntax="Syntax Error at",
     DoubleCheck="This is safe to ignore but double check"
 }
+// console.log = ():undefined=>undefined;
+const grey = chalk.hex("#ddcba0ff");
+
 //todo:Make the fuctions more typesafe by replacing all the type shortcuts i made with the any type to concrete ones.and also try to make the predicates typed instead of dynamically sized arrays of either string or number.This has to be done in the dsl if possible.
 class Essentials {
     public static inputStream:CharStream;
@@ -37,13 +40,12 @@ class Essentials {
         const orange = chalk.hex('f09258f');
         const green = chalk.hex('adef1e');
         const darkGreen = chalk.hex('98ce25ff');
-        const grey = chalk.hex("#ddcba0ff");
 
         function pushLine(line:number):void {
-            messages.push(grey(Analyzer.inputArr[line-1].trim() + '\n'));
+            messages.push(grey(Analyzer.inputArr[line].trim() + '\n'));
         }
 
-        let title = chalk.underline(`\n${errorType} line ${lineCount}:`);
+        let title = chalk.underline(`\n${errorType} line ${lineCount+1}:`);//for 1-based line counting for the logs
         title = (errorType === DslError.DoubleCheck)?orange(title):chalk.red(title);
         
         const messages = [title,`\n${msg}`,];
@@ -54,7 +56,7 @@ class Essentials {
         else{
             messages.push(chalk.green.underline('\nCheck these lines:\n'));
             for (const line of checkLines) {
-                messages.push(chalk.gray(`${line}.`));
+                messages.push(chalk.gray(`${line+1}.`));//for 1-based line counting for the logs
                 pushLine(line);
             }
         }
@@ -88,7 +90,7 @@ class Analyzer extends DSLVisitor<void> {
     public  records:Record<string,Rec> = {};
     private aliases = new Set<string>();
 
-    private lineCount:number = 1;
+    private lineCount:number = 0;
     private targetLineCount:number = this.lineCount;
 
     public static terminate:boolean = false;
@@ -109,7 +111,13 @@ class Analyzer extends DSLVisitor<void> {
                 const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
                 if (isNewLine) this.targetLineCount += 1;//increment the line count at every empty new line
             }
-            this.lineCount = this.targetLineCount;
+            //This must be logged before the line updates as observed from the logs.                 
+            const sentence = Analyzer.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
+            if (sentence.length > 0) {
+                const successMessage = chalk.cyan(`line ${this.lineCount + 1}: `) + chalk.green('Success: ') + grey(sentence) + '\n';//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
+                console.info(successMessage);
+            }
+            this.lineCount = this.targetLineCount;//still update to prevent corrupted state
         }
         return this.records;
     };
@@ -256,6 +264,7 @@ class Analyzer extends DSLVisitor<void> {
                 }else if (isObjectRef) {
                     Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
                 }
+                if (Analyzer.terminate) return;
                 resolvedSingleTokens.indices.push(index);
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
             }
@@ -279,6 +288,7 @@ class Analyzer extends DSLVisitor<void> {
                 }else if (isObjectRef) {
                     Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
                 }
+                if (Analyzer.terminate) return;
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
             }
@@ -466,6 +476,7 @@ class Analyzer extends DSLVisitor<void> {
     public static inputArr:string[] = [];
     public createSentenceArray(input:string) {
         Analyzer.inputArr = input.split('\n');
+        console.log('Input: ',Analyzer.inputArr);
     }
 }
 export function genStruct(input:string):Record<string,Rec> | undefined {
