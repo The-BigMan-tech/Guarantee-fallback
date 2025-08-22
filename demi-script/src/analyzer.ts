@@ -196,7 +196,7 @@ class Analyzer extends DSLVisitor<void> {
             const stepToReach = nthIndex;  
 
             let nthMember:Token | null = null;
-            let listBlock: Token[] | null = null;
+            let lastEncounteredList: Token[] | null = null;
 
             let step = 0;
             let increment = 1;
@@ -208,14 +208,14 @@ class Analyzer extends DSLVisitor<void> {
                 console.log('incre: ',increment,'token:',memberToken.text,'step',step,'reach',stepToReach);
                 
                 if (memberToken.type === DSLLexer.LSQUARE) {
-                    listBlock = this.getListTokensBlock(new Denque(membersFromSentence),nthArray);
+                    lastEncounteredList = this.getListTokensBlock(new Denque(membersFromSentence),nthArray);
                 }
                 if (step === stepToReach) {
                     nthMember = memberToken;
                     break;
                 }
                 else if (memberToken.type === DSLLexer.LSQUARE) {
-                    increment = listBlock!.length;
+                    increment = lastEncounteredList!.length;
                     nthArray += 1;
                 }else if (memberToken.type === DSLLexer.NAME) {
                     increment = 1;
@@ -224,7 +224,7 @@ class Analyzer extends DSLVisitor<void> {
             checkForRefAmbiguity();//it always uses the last sentence to prevent different outputs for different ref types.
             hasRef = true;
 
-            return {nthMember,listBlock};
+            return {nthMember,lastEncounteredList};
         };
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
         const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};
@@ -264,18 +264,16 @@ class Analyzer extends DSLVisitor<void> {
 
             else if ((type === DSLLexer.GROUP_SUBJECT_REF) || (type === DSLLexer.GROUP_OBJECT_REF)) {
                 const isObjectRef = (type === DSLLexer.GROUP_OBJECT_REF);
-                let resolvedTokens:Token[] | null = null;
-
                 const nthIndex = isObjectRef?extractNumFromRef(text):1;
                 if (Analyzer.terminate) return;
                 
                 const result = getNthMember(nthIndex);
                 const member = result.nthMember;
-                const listBlock = result.listBlock;
+                let resolvedTokens:Token[] | null = null;
 
                 if (member) {
                     if (member?.type === DSLLexer.LSQUARE) { 
-                        resolvedTokens = listBlock;
+                        resolvedTokens = result.lastEncounteredList;
                     }else {
                         Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to a member of the previous sentence that is an array.But found a name.`,[this.lineCount-1,this.lineCount]);
                     }
