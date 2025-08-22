@@ -62,7 +62,7 @@ class Essentials {
                 pushLine(line);
             }
         }
-        console.error(...messages);
+        console.info(...messages);
         if ((errorType===DslError.Semantic) || (errorType===DslError.Syntax)) {
             Analyzer.terminate = true;
         }
@@ -105,7 +105,7 @@ class Analyzer extends DSLVisitor<void> {
         if (!Analyzer.terminate) {
             const sentence = Analyzer.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
             if (sentence.length > 0) {
-                const successMessage = chalk.bgGreen.bold(`Processed line ${this.lineCount + 1}: `) + chalk.gray(sentence) + '\n';//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
+                const successMessage = chalk.bgGreen.bold(`Processed line ${this.lineCount + 1}: `) + ' ' + chalk.gray(sentence) + '\n';//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
                 console.info(successMessage);
             }
         }
@@ -320,10 +320,10 @@ class Analyzer extends DSLVisitor<void> {
                 }
             }
         };   
+        checkForRefAmbiguity();//this must be checked before updating the refCheck state
         for (const name of encounteredNames) this.validateNameUsage(name);//this has to happen before the refs are resolved.else,the names that expanded into those refs will trigger warnings.
         this.lastSentenceTokens = tokens;
         this.refCheck = {hasRef,line:this.lineCount};
-        checkForRefAmbiguity();
         applyResolution();
     }
     private stripMark(text:string) {
