@@ -1,4 +1,3 @@
-import { genStruct } from "./analyzer.js";
 import { Doc, Rec,Rule,RecursiveRule, facts} from "./fact-checker.js";
 
 //A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.

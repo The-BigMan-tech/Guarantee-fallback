@@ -1,5 +1,5 @@
 {
-  "name": "demi-script",
+  "name": "Epilog",
   "main": "./dist/bundle-min.js",
   "types": "./dist/bundle-min.d.ts",
   "bin": {},
