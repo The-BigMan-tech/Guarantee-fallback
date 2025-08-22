@@ -177,8 +177,6 @@ class Analyzer extends DSLVisitor<void> {
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
     
     private resolveRefs(tokens: Token[]) {
-        const isMember = (token:Token)=>((token.type===DSLLexer.NAME) || (token.type===DSLLexer.LSQUARE) || (token.type===DSLLexer.RSQUARE));//i included the check for an array to acknowledge that an array can be the subject;
-        
         const extractNumFromRef = (text:string):number=> {
             const num =  Number(text.split(":")[1].slice(0,-1));
             if (!Number.isInteger(num)) Essentials.report(DslError.Semantic,this.lineCount,`-The reference; ${chalk.bold(text)} must use an integer`);
@@ -189,7 +187,7 @@ class Analyzer extends DSLVisitor<void> {
         const checkForRefAmbiguity = ()=> {
             if (this.refCheck.hasRef) {
                 let message = `-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.`;
-                message += `\n-You may wish to write the name or array explicitly in ${chalk.bold('line:'+this.refCheck.line)} to avoid confusion.`;
+                message += `\n-You may wish to write the name or array explicitly in ${chalk.bold('line:'+this.refCheck.line+1)} to avoid confusion.`;
                 Essentials.report(DslError.DoubleCheck,this.lineCount,message,[this.refCheck.line,this.lineCount]);
             }
         };
@@ -211,8 +209,28 @@ class Analyzer extends DSLVisitor<void> {
                 }
             }
         };
+        function getMembers(sentenceTokens:Token[]) {
+            const membersFromSentence:Token[] = [];
+            const bracketCount = {l:0,r:0};
+            for (const token of sentenceTokens) {
+                if (token.type === DSLLexer.LSQUARE) {//capturing the [] brackets collects arrays
+                    bracketCount.l += 1;
+                    membersFromSentence.push(token);
+                }else if (token.type === DSLLexer.RSQUARE) {
+                    bracketCount.r += 1;
+                    membersFromSentence.push(token);
+                }else if (token.type === DSLLexer.NAME) {
+                    membersFromSentence.push(token);
+                }else if (token.type === DSLLexer.COMMA) {
+                    if (bracketCount.l !== bracketCount.r) {//only capture commas that are within the bounds of an array
+                        membersFromSentence.push(token);
+                    }
+                }
+            }
+            return membersFromSentence;
+        };
         const getNthMember = (nthIndex:number)=>{
-            const membersFromSentence = this.lastSentenceTokens.filter(token=>isMember(token)); 
+            const membersFromSentence:Token[] = getMembers(this.lastSentenceTokens);
             const stepToReach = nthIndex;  
 
             let nthMember:Token | null = null;
