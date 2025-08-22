@@ -222,9 +222,7 @@ class Analyzer extends DSLVisitor<void> {
                     increment = 1;
                 }
             }
-            checkForRefAmbiguity();//it always uses the last sentence to prevent different outputs for different ref types.
             hasRef = true;
-
             return {nthMember,lastEncounteredList};
         };
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
@@ -309,6 +307,7 @@ class Analyzer extends DSLVisitor<void> {
         for (const name of encounteredNames) this.validateNameUsage(name);//this has to happen before the refs are resolved.else,the names that expanded into those refs will trigger warnings.
         this.lastSentenceTokens = tokens;
         this.refCheck = {hasRef,line:this.lineCount};
+        checkForRefAmbiguity();
         applyResolution();
     }
     private stripMark(text:string) {

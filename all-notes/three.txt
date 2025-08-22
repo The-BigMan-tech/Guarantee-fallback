@@ -2041,6 +2041,8 @@ two stage parsing process
 *Subject refs implicitly refer to the first member (i.e., nthIndex = 1 by default).
 *Object refs require explicit indexes (nthIndex > 1) because you’ve reserved 1 to mean the subject, so <him:1> is disallowed and triggers an error.
 
+*so a warning doesnt necessarily mean it will lead to unexpected behavior.it may be still be semantically correct if they all resole correctlt but its there to ensure their usage is given attention
+
 refs,smart refs.
 
 tokenization,semantism,building
