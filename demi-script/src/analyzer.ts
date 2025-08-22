@@ -83,7 +83,7 @@ function getOrdinalSuffix(n:number):string {
     const v = n % 100;
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
-function replaceLastOccurrence(str:string, search:string, replacement:string) {
+function replaceLastOccurrence(str:string, search:string, replacement:string):string {
     const lastIndex = str.lastIndexOf(search);
     if (lastIndex === -1) return str; // string not found, return original
     return str.slice(0, lastIndex) + replacement + str.slice(lastIndex + search.length);

@@ -87,7 +87,7 @@ export function runExamples():void {
     };
     //DSL form
     const facts = `
-        ,,,,[:a,:b] are *good [:c,:d].
+        ,,,,[:a,:b,[:u,:i]] are *good [:c,:d].
         <They> are *tall.
     `;
     
@@ -95,7 +95,7 @@ export function runExamples():void {
     if (!struct) return;
 
     const doc = new Doc(struct);
-    console.log( doc.isItAFact(doc.records.play,['a','d']));
+    console.info( doc.isItAFact(doc.records.tall,['a']));
 
 
     console.log('are they friends: ',Rules.areFriends(doc,['zane','cole']));
