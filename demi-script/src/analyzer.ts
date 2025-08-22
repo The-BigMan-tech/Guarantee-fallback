@@ -175,20 +175,21 @@ class Analyzer extends DSLVisitor<void> {
             }
         };
         const applyResolution = ()=> {
+            const numOfRefs = (resolvedSingleTokens.indices.length + resolvedGroupedTokens.indices.length);
+            if (numOfRefs  > 2) {
+                Essentials.report(DslError.DoubleCheck,this.lineCount,`-Be careful with how multiple references are used in a sentence and be sure that you know what they are pointing to.`);
+            }
             for (const index of resolvedSingleTokens.indices) {
                 const resolvedToken = resolvedSingleTokens.tokens.get(index) || null;
                 if (resolvedToken !== null) {//resolve the single ref
                     tokens[index] = resolvedToken;
                 }
             }
-            for (const index of resolvedGroupedTokens.indices) {
+            for (const index of resolvedGroupedTokens.indices) {//this is a heap unlike the one for single tokens which is an array.so it will be consumed after this iteration
                 const resolvedTokens = resolvedGroupedTokens.tokens.get(index) || null;
                 if (resolvedTokens !== null) {//resolve the group ref
                     tokens.splice(index,1,...resolvedTokens);
                 }
-            }
-            if ((resolvedSingleTokens.indices.length > 2) || (resolvedGroupedTokens.indices.length > 2)) {
-                Essentials.report(DslError.DoubleCheck,this.lineCount,`-Be careful with how multiple references are used in a sentence and be sure that you know what they are pointing to.`);
             }
         };
         const getNthMember = (nthIndex:number)=>{
