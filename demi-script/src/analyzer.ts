@@ -313,7 +313,7 @@ class Analyzer extends DSLVisitor<void> {
                     const normText = (text.length > 2)?text.toLowerCase():text;//by only lower casing the text if its more than two letters,i prevent the text from being treated leniently when its too small(since lower casing the inputs reduces distance).Else,it will falsely match words that are few distances away but are not semantically similar.
                     const normNounRef = (nounRef.length > 2)?nounRef.toLowerCase():nounRef;
                     const dist = distance(normText,normNounRef);
-                    if (dist < 2) {
+                    if ((dist < 2) && (normText !== 'is')) {//to exclude is from getting suggestions.
                         const suggestion = (objectRefs.has(nounRef))?'object ref, <'+nounRef+':n>':'subject ref, <'+nounRef+'>';
                         Essentials.report(DslError.DoubleCheck,this.lineCount,`-Did you mean to use the ${suggestion} instead of the filler,${chalk.bold(text)}?`);
                     }
