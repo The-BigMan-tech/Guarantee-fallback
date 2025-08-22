@@ -112,9 +112,19 @@ class Analyzer extends DSLVisitor<void> {
         const textToLog = (tokens !== null)?originalSrc:sentence;
         if (!Analyzer.terminate) {
             if (textToLog.trim().length > 0) {
-                let expansionText = stringify(this.expandedFacts).replace('[','\n[\n');
-                expansionText = replaceLastOccurrence(expansionText,']','\n]\n');
-                expansionText = expansionText.replaceAll(',[',',\n[');
+                let expansionText = stringify(this.expandedFacts);
+                expansionText = replaceLastOccurrence(expansionText,']','\n]\n')
+                    .replace('[','\n[\n')
+                    .replaceAll(',[',',\n[')
+                    .split('\n')
+                    .map(line => {
+                        const trimmed = line.trim();
+                        if (trimmed.startsWith('[') && (trimmed.endsWith(']') || trimmed.endsWith('],'))) {
+                            return '  ' + trimmed; // trim original and add two spaces indentation
+                        }
+                        return line;
+                    })
+                    .join('\n');
 
                 let successMessage = chalk.bgGreen.bold(`\nProcessed line ${this.lineCount + 1}: `);//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
                 successMessage += `\n-Sentence: ${brown(textToLog)}`;
