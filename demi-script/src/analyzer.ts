@@ -159,21 +159,23 @@ class Analyzer extends DSLVisitor<void> {
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
     
     private resolveRefs(tokens: Token[]) {
-        function extractNumFromRef(text:string,lineCount:number):number {
+        const isMember = (token:Token)=>((token.type===DSLLexer.NAME) || (token.type===DSLLexer.LSQUARE) || (token.type===DSLLexer.RSQUARE));//i included the check for an array to acknowledge that an array can be the subject;
+        
+        const extractNumFromRef = (text:string):number=> {
             const num =  Number(text.split(":")[1].slice(0,-1));
-            if (!Number.isInteger(num)) Essentials.report(DslError.Semantic,lineCount,`-The reference; ${chalk.bold(text)} must use an integer`);
-            if (num === 1) Essentials.report(DslError.Semantic,lineCount,`-The reference ${chalk.bold(text)} must point to an object and not the subject.\n-If thats the intention,then use <He>,<She> or <It>.`);
-            if (num > 3) Essentials.report(DslError.DoubleCheck,lineCount,`-Are you sure you can track what this reference; ${chalk.bold(text)} is pointing to?`);
+            if (!Number.isInteger(num)) Essentials.report(DslError.Semantic,this.lineCount,`-The reference; ${chalk.bold(text)} must use an integer`);
+            if (num === 1) Essentials.report(DslError.Semantic,this.lineCount,`-The reference ${chalk.bold(text)} must point to an object and not the subject.\n-If thats the intention,then use <He>,<She> or <It>.`);
+            if (num > 3) Essentials.report(DslError.DoubleCheck,this.lineCount,`-Are you sure you can track what this reference; ${chalk.bold(text)} is pointing to?`);
             return num;
-        }
-        function checkForRefAmbiguity(line:number,refCheck:RefCheck) {
-            if (refCheck.hasRef) {
+        };
+        const checkForRefAmbiguity = ()=> {
+            if (this.refCheck.hasRef) {
                 let message = `-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.`;
-                message += `\n-You may wish to write the name or array explicitly in ${chalk.bold('line:'+refCheck.line)} to avoid confusion.`;
-                Essentials.report(DslError.DoubleCheck,line,message,[refCheck.line,line]);
+                message += `\n-You may wish to write the name or array explicitly in ${chalk.bold('line:'+this.refCheck.line)} to avoid confusion.`;
+                Essentials.report(DslError.DoubleCheck,this.lineCount,message,[this.refCheck.line,this.lineCount]);
             }
-        }
-        function applyResolution(line:number) {
+        };
+        const applyResolution = ()=> {
             for (const index of resolvedSingleTokens.indices) {
                 const resolvedToken = resolvedSingleTokens.tokens.get(index) || null;
                 if (resolvedToken !== null) {//resolve the single ref
@@ -187,9 +189,36 @@ class Analyzer extends DSLVisitor<void> {
                 }
             }
             if ((resolvedSingleTokens.indices.length > 2) || (resolvedGroupedTokens.indices.length > 2)) {
-                Essentials.report(DslError.DoubleCheck,line,`-Be careful with how multiple references are used in a sentence and be sure that you know what they are pointing to.`);
+                Essentials.report(DslError.DoubleCheck,this.lineCount,`-Be careful with how multiple references are used in a sentence and be sure that you know what they are pointing to.`);
             }
-        }
+        };
+        const getNthMember = (nthIndex:number)=>{
+            const membersFromSentence = this.lastSentenceTokens.filter(token=>isMember(token)); 
+            const stepToReach = nthIndex;           
+            let nthMember:Token | null = null;
+    
+            let step = 0;
+            let increment = 1;
+            let nthArray = 1;
+
+            for (let i=0; i<membersFromSentence.length; i+=increment) {
+                step += 1;
+                const memberToken = membersFromSentence[i];
+                console.log('incre: ',increment,'token:',memberToken.text,'step',step,'reach',stepToReach);
+                if (step === stepToReach) {
+                    nthMember = memberToken;
+                    break;
+                }
+                if (memberToken.type === DSLLexer.LSQUARE) {
+                    const listBlock = this.getListTokensBlock(new Denque(membersFromSentence),nthArray);
+                    increment = listBlock!.length;
+                    nthArray += 1;
+                }else if (memberToken.type === DSLLexer.NAME) {
+                    increment = 1;
+                }
+            }
+            return nthMember;
+        };
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
         const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};
 
@@ -206,59 +235,23 @@ class Analyzer extends DSLVisitor<void> {
             
             if ((type === DSLLexer.SINGLE_SUBJECT_REF) || (type === DSLLexer.SINGLE_OBJECT_REF)) {
                 const isObjectRef = (type === DSLLexer.SINGLE_OBJECT_REF);
+                const nthIndex = isObjectRef?extractNumFromRef(text):1;
+                if (Analyzer.terminate) return;
+                
+                const member = getNthMember(nthIndex);
                 let resolvedToken:Token | null = null;
-
-                const isMember = (token:Token)=>((token.type===DSLLexer.NAME) || (token.type===DSLLexer.LSQUARE) || (token.type===DSLLexer.RSQUARE));//i included the check for an array to acknowledge that an array can be the subject;
-                const membersFromSentence = this.lastSentenceTokens.filter(token=>isMember(token));
-                
-                console.log('members from sentences');
-                this.printTokens(membersFromSentence);
-                
-                const firstMember = membersFromSentence[0];
-                let objMember:Token | null = null;
-                let objIndex:number | null = null;
-
-                if (isObjectRef) {
-                    objIndex = extractNumFromRef(text,this.lineCount);
-                    if (Analyzer.terminate) return;
-
-                    const stepToReach = objIndex;
-                    let step = 0;
-                    let increment = 1;
-                    let nthArray = 1;
-
-                    for (let i=0; i<membersFromSentence.length; i+=increment) {
-                        step += 1;
-                        const memberToken = membersFromSentence[i];
-                        console.log('incre: ',increment,'token:',memberToken.text,'step',step,'reach',stepToReach);
-                        if (step === stepToReach) {
-                            objMember = memberToken;
-                            break;
-                        }
-                        if (memberToken.type === DSLLexer.LSQUARE) {
-                            const listBlock = this.getListTokensBlock(new Denque(membersFromSentence),nthArray);
-                            increment = listBlock!.length;
-                            nthArray += 1;
-                        }else if (memberToken.type === DSLLexer.NAME) {
-                            increment = 1;
-                        }
-                    }
-                }
-
-                const member = isObjectRef?objMember:firstMember;
+            
                 if (member) {
                     if (member?.type === DSLLexer.NAME) { 
                         resolvedToken = member;
                     }else {
                         Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to a member of the previous sentence that is a name.But found an array.`,[this.lineCount-1,this.lineCount]);
                     }
-                }else {
-                    if (isObjectRef) {
-                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(objIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
-                    }
+                }else if (isObjectRef) {
+                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
                 }
 
-                checkForRefAmbiguity(this.lineCount,this.refCheck);//it always uses the last sentence to prevent different outputs for different ref types.
+                checkForRefAmbiguity();//it always uses the last sentence to prevent different outputs for different ref types.
                 resolvedSingleTokens.indices.push(index);
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
                 hasRef = true;
@@ -269,7 +262,6 @@ class Analyzer extends DSLVisitor<void> {
                 const isObjectRef = (type === DSLLexer.GROUP_OBJECT_REF);
                 let resolvedTokens:Token[] | null = null;
 
-                const isMember = (token:Token)=>((token.type===DSLLexer.NAME) || (token.type===DSLLexer.LSQUARE) || (token.type===DSLLexer.RSQUARE));//i included the check for an array to acknowledge that an array can be the subject;
                 const membersFromSentence = this.lastSentenceTokens.filter(token=>isMember(token));
                 const firstMember = membersFromSentence[0];
 
@@ -285,12 +277,10 @@ class Analyzer extends DSLVisitor<void> {
                     }else {
                         Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to a member of the previous sentence that is an array.But found a name.`,[this.lineCount-1,this.lineCount]);
                     }
-                }else {
-                    if (isObjectRef) {
-                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(objIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
-                    }
+                }else if (isObjectRef) {
+                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(objIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
                 }
-                checkForRefAmbiguity(this.lineCount,this.refCheck);//it always uses the last sentence to prevent different outputs for different ref types.
+                checkForRefAmbiguity();//it always uses the last sentence to prevent different outputs for different ref types.
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
                 hasRef = true;
@@ -320,7 +310,7 @@ class Analyzer extends DSLVisitor<void> {
         for (const name of encounteredNames) this.validateNameUsage(name);//this has to happen before the refs are resolved.else,the names that expanded into those refs will trigger warnings.
         this.lastSentenceTokens = tokens;
         this.refCheck = {hasRef,line:this.lineCount};
-        applyResolution(this.lineCount);
+        applyResolution();
     }
     private stripMark(text:string) {
         return text.slice(1);// Remove the leading '*' or '#' or : or !
