@@ -197,7 +197,6 @@ class Analyzer extends DSLVisitor<void> {
         const nounRefs = ['He','She','It','They',...objectRefs];
 
         let hasRef = false;
-        let encounteredList = false;
 
         const encounteredNames:string[] = [];
 
@@ -207,7 +206,7 @@ class Analyzer extends DSLVisitor<void> {
             
             if ((type === DSLLexer.SINGLE_SUBJECT_REF) || (type === DSLLexer.SINGLE_OBJECT_REF)) {
                 const isObjectRef = (type === DSLLexer.SINGLE_OBJECT_REF);
-                let resolvedToken = null;
+                let resolvedToken:Token | null = null;
 
                 const isMember = (token:Token)=>((token.type===DSLLexer.NAME) || (token.type===DSLLexer.LSQUARE) || (token.type===DSLLexer.RSQUARE));//i included the check for an array to acknowledge that an array can be the subject;
                 const membersFromSentence = this.lastSentenceTokens.filter(token=>isMember(token));
@@ -255,7 +254,7 @@ class Analyzer extends DSLVisitor<void> {
                     }
                 }else {
                     if (isObjectRef) {
-                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(objIndex! + 1)} name in the prior sentence.`,[this.lineCount-1,this.lineCount]);
+                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(objIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
                     }
                 }
 
@@ -267,17 +266,30 @@ class Analyzer extends DSLVisitor<void> {
 
 
             else if ((type === DSLLexer.GROUP_SUBJECT_REF) || (type === DSLLexer.GROUP_OBJECT_REF)) {
-                const isObjectRef =  (type === DSLLexer.GROUP_OBJECT_REF);
-                const refIndex = 1 + (isObjectRef?extractNumFromRef(text,this.lineCount):0);//I offset it from 1 because the list block getter using 1-based indexing (get the nth array from the sentence)
-                if (Analyzer.terminate) return;
+                const isObjectRef = (type === DSLLexer.GROUP_OBJECT_REF);
+                let resolvedTokens:Token[] | null = null;
 
-                const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
-                const tokensForSentences = this.lastTokensForGroup.toArray();
-                
-                
-                const tokenQueue = new Denque(tokensForSentences.at(sentenceIndex) || []);
-                const resolvedTokens = this.getListTokensBlock(tokenQueue,refIndex);
+                const isMember = (token:Token)=>((token.type===DSLLexer.NAME) || (token.type===DSLLexer.LSQUARE) || (token.type===DSLLexer.RSQUARE));//i included the check for an array to acknowledge that an array can be the subject;
+                const membersFromSentence = this.lastSentenceTokens.filter(token=>isMember(token));
+                const firstMember = membersFromSentence[0];
 
+                const objMember:Token | null = null;
+                const objIndex:number | null = null;
+
+                const member = isObjectRef?objMember:firstMember;
+                const nthArrayMember = 1;
+
+                if (member) {
+                    if (member?.type === DSLLexer.LSQUARE) { 
+                        resolvedTokens = this.getListTokensBlock(new Denque(membersFromSentence),nthArrayMember);
+                    }else {
+                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to a member of the previous sentence that is an array.But found a name.`,[this.lineCount-1,this.lineCount]);
+                    }
+                }else {
+                    if (isObjectRef) {
+                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(objIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
+                    }
+                }
                 checkForRefAmbiguity(this.lineCount,this.refCheck);//it always uses the last sentence to prevent different outputs for different ref types.
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
