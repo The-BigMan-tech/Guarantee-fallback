@@ -203,24 +203,27 @@ class Analyzer extends DSLVisitor<void> {
             let nthArray = 1;
 
             for (let i=0; i<membersFromSentence.length; i+=increment) {
-                step += 1;
+                step += 1;//must be incremeneted before any other operation
                 const memberToken = membersFromSentence[i];
                 console.log('incre: ',increment,'token:',memberToken.text,'step',step,'reach',stepToReach);
+                
+                if (memberToken.type === DSLLexer.LSQUARE) {
+                    listBlock = this.getListTokensBlock(new Denque(membersFromSentence),nthArray);
+                }
                 if (step === stepToReach) {
                     nthMember = memberToken;
                     break;
                 }
-                if (memberToken.type === DSLLexer.LSQUARE) {
-                    listBlock = this.getListTokensBlock(new Denque(membersFromSentence),nthArray);
+                else if (memberToken.type === DSLLexer.LSQUARE) {
                     increment = listBlock!.length;
                     nthArray += 1;
-                    console.log('list block');
                 }else if (memberToken.type === DSLLexer.NAME) {
                     increment = 1;
                 }
             }
             checkForRefAmbiguity();//it always uses the last sentence to prevent different outputs for different ref types.
             hasRef = true;
+            
             return {nthMember,listBlock};
         };
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
@@ -272,7 +275,7 @@ class Analyzer extends DSLVisitor<void> {
 
                 if (member) {
                     if (member?.type === DSLLexer.LSQUARE) { 
-                        // resolvedTokens = listBlock;
+                        resolvedTokens = listBlock;
                     }else {
                         Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to a member of the previous sentence that is an array.But found a name.`,[this.lineCount-1,this.lineCount]);
                     }
