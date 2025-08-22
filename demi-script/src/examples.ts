@@ -1,5 +1,5 @@
 import { genStruct } from "./analyzer.js";
-import { Doc, Rec,Rule,RecursiveRule} from "./fact-checker.js";
+import { Doc, Rec,Rule,RecursiveRule, facts} from "./fact-checker.js";
 
 //A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
 export class Rules {//i had the rules as a seprate class to decouple it from the document.So all rules can be added here and be used on whatever document that needs itrather than decoupling specifc rules to the codument class
@@ -86,16 +86,13 @@ export function runExamples():void {
         friend:records.friends
     };
     //DSL form
-    const facts = `
-        ,,,,[:a,:b,[:u,:i]] are *good [:c,:d].
-        <They> are *tall.
+    const schoolFacts = facts`
+        :ada is a *teacher.
+        <She> is *tall.
     `;
-    
-    const struct = genStruct(facts);
-    if (!struct) return;
-
-    const doc = new Doc(struct);
-    console.info( doc.isItAFact(doc.records.tall,['a']));
+    if (!schoolFacts) return;
+    const doc = new Doc(schoolFacts);
+    console.info( doc.isItAFact(doc.records.tall,['ada']));
 
 
     console.log('are they friends: ',Rules.areFriends(doc,['zane','cole']));

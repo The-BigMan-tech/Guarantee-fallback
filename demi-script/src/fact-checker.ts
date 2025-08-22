@@ -4,6 +4,7 @@ import { LRUCache } from 'lru-cache';
 import {v4 as uniqueID} from "uuid";
 import { AddUnionToElements,Tuple } from "./type-helper.js";
 import {stringify} from "safe-stable-stringify";
+import { genStruct } from "./analyzer.js";
 
 export type Atom = string | number;
 export type Atoms = Atom[];
@@ -149,4 +150,12 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
             current?.members.set.size < smallest?.members.set.size ? current : smallest
         );
     }
+}
+export function facts( strings: TemplateStringsArray, ...values: any[]):Record<string, Rec<Facts>> | undefined {
+    let src = strings[0];
+    for (let i = 0; i < values.length; i++) {
+        src+= values[i] + strings[i + 1];
+    }
+    const result = genStruct(src);
+    return result;
 }
