@@ -133,7 +133,6 @@ class Analyzer extends DSLVisitor<void> {
         let rBrackets:number = 0;
 
         while (tokens.length !== 0) {
-            console.log('l:',lBrackets,'r:',rBrackets);
             const token = tokens.shift()!;
             const type = token.type;
             if (type === DSLLexer.LSQUARE) {
@@ -194,9 +193,11 @@ class Analyzer extends DSLVisitor<void> {
         };
         const getNthMember = (nthIndex:number)=>{
             const membersFromSentence = this.lastSentenceTokens.filter(token=>isMember(token)); 
-            const stepToReach = nthIndex;           
+            const stepToReach = nthIndex;  
+
             let nthMember:Token | null = null;
-    
+            let listBlock: Token[] | null = null;
+
             let step = 0;
             let increment = 1;
             let nthArray = 1;
@@ -210,14 +211,17 @@ class Analyzer extends DSLVisitor<void> {
                     break;
                 }
                 if (memberToken.type === DSLLexer.LSQUARE) {
-                    const listBlock = this.getListTokensBlock(new Denque(membersFromSentence),nthArray);
+                    listBlock = this.getListTokensBlock(new Denque(membersFromSentence),nthArray);
                     increment = listBlock!.length;
                     nthArray += 1;
+                    console.log('list block');
                 }else if (memberToken.type === DSLLexer.NAME) {
                     increment = 1;
                 }
             }
-            return nthMember;
+            checkForRefAmbiguity();//it always uses the last sentence to prevent different outputs for different ref types.
+            hasRef = true;
+            return {nthMember,listBlock};
         };
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
         const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};
@@ -238,7 +242,7 @@ class Analyzer extends DSLVisitor<void> {
                 const nthIndex = isObjectRef?extractNumFromRef(text):1;
                 if (Analyzer.terminate) return;
                 
-                const member = getNthMember(nthIndex);
+                const member = getNthMember(nthIndex).nthMember;
                 let resolvedToken:Token | null = null;
             
                 if (member) {
@@ -250,11 +254,8 @@ class Analyzer extends DSLVisitor<void> {
                 }else if (isObjectRef) {
                     Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
                 }
-
-                checkForRefAmbiguity();//it always uses the last sentence to prevent different outputs for different ref types.
                 resolvedSingleTokens.indices.push(index);
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
-                hasRef = true;
             }
 
 
@@ -262,28 +263,24 @@ class Analyzer extends DSLVisitor<void> {
                 const isObjectRef = (type === DSLLexer.GROUP_OBJECT_REF);
                 let resolvedTokens:Token[] | null = null;
 
-                const membersFromSentence = this.lastSentenceTokens.filter(token=>isMember(token));
-                const firstMember = membersFromSentence[0];
-
-                const objMember:Token | null = null;
-                const objIndex:number | null = null;
-
-                const member = isObjectRef?objMember:firstMember;
-                const nthArrayMember = 1;
+                const nthIndex = isObjectRef?extractNumFromRef(text):1;
+                if (Analyzer.terminate) return;
+                
+                const result = getNthMember(nthIndex);
+                const member = result.nthMember;
+                const listBlock = result.listBlock;
 
                 if (member) {
                     if (member?.type === DSLLexer.LSQUARE) { 
-                        resolvedTokens = this.getListTokensBlock(new Denque(membersFromSentence),nthArrayMember);
+                        // resolvedTokens = listBlock;
                     }else {
                         Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to a member of the previous sentence that is an array.But found a name.`,[this.lineCount-1,this.lineCount]);
                     }
                 }else if (isObjectRef) {
-                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(objIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
+                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
                 }
-                checkForRefAmbiguity();//it always uses the last sentence to prevent different outputs for different ref types.
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
-                hasRef = true;
             }
 
 
