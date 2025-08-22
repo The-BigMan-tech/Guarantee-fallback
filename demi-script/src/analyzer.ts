@@ -226,21 +226,23 @@ class Analyzer extends DSLVisitor<void> {
                     const stepToReach = objIndex;
                     let step = 0;
                     let increment = 1;
+                    let nthArray = 1;
 
                     for (let i=0; i<membersFromSentence.length; i+=increment) {
                         step += 1;
                         const memberToken = membersFromSentence[i];
+                        console.log('incre: ',increment,'token:',memberToken.text,'step',step,'reach',stepToReach);
                         if (step === stepToReach) {
                             objMember = memberToken;
                             break;
                         }
                         if (memberToken.type === DSLLexer.LSQUARE) {
-                            const listBlock = this.getListTokensBlock(new Denque(membersFromSentence),1);
+                            const listBlock = this.getListTokensBlock(new Denque(membersFromSentence),nthArray);
                             increment = listBlock!.length;
+                            nthArray += 1;
                         }else if (memberToken.type === DSLLexer.NAME) {
                             increment = 1;
                         }
-                        console.log('incre: ',increment,'token:',memberToken.text,'step',step,'reach',stepToReach);
                     }
                 }
 
