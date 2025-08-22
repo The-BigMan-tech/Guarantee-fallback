@@ -101,11 +101,13 @@ class Analyzer extends DSLVisitor<void> {
         const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
         console.log('\n Tokens:',tokenDebug);
     }
-    private logProgress() {
+    private logProgress(tokens:Token[] | null) {
+        const originalSrc = tokens?.map(token=>token.text!).join(' ') || '';
+        const sentence = Analyzer.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
+        const textToLog = (tokens !== null)?originalSrc:sentence;
         if (!Analyzer.terminate) {
-            const sentence = Analyzer.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
-            if (sentence.length > 0) {
-                const successMessage = chalk.bgGreen.bold(`Processed line ${this.lineCount + 1}: `) + ' ' + chalk.gray(sentence) + '\n';//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
+            if (textToLog.trim().length > 0) {
+                const successMessage = chalk.bgGreen.bold(`Processed line ${this.lineCount + 1}: `) + ' ' + chalk.gray(textToLog) + '\n';//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
                 console.info(successMessage);
             }
         }
@@ -113,8 +115,10 @@ class Analyzer extends DSLVisitor<void> {
     public visitProgram = (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
             if (Analyzer.terminate) return;
+            let tokens:Token[] | null = null;
+
             if (child instanceof FactContext) {
-                this.visitFact(child);
+                tokens = this.visitFact(child);
             }else if (child instanceof AliasDeclarationContext) {
                 this.visitAliasDeclaration(child);
             }else{
@@ -122,17 +126,18 @@ class Analyzer extends DSLVisitor<void> {
                 const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
                 if (isNewLine) this.targetLineCount += 1;//increment the line count at every empty new line
             }
-            this.logProgress();//This must be logged before the line updates as observed from the logs.                 
+            this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.                 
             this.lineCount = this.targetLineCount;
         }
         return this.records;
     };
     public visitFact = (ctx:FactContext)=> {
-        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         this.resolveRefs(tokens);
         console.log('After resolution');
         this.printTokens(tokens);
         if (!Analyzer.terminate) this.buildFact(tokens);//i checked for termination here because ref resolution can fail
+        return tokens;
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);

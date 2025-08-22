@@ -2043,6 +2043,8 @@ two stage parsing process
 
 *so a warning doesnt necessarily mean it will lead to unexpected behavior.it may be still be semantically correct if they all resole correctlt but its there to ensure their usage is given attention
 
+*Yes, it is better. Capturing raw whitespace tokens (WS) in your grammar is generally unsafe and can lead to parsing errors because whitespace can appear unpredictably and doesn’t align cleanly with your language’s semantic structure.
+
 refs,smart refs.
 
 tokenization,semantism,building
