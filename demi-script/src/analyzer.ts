@@ -162,7 +162,7 @@ class Analyzer extends DSLVisitor<void> {
         function extractNumFromRef(text:string,lineCount:number):number {
             const num =  Number(text.split(":")[1].slice(0,-1));
             if (!Number.isInteger(num)) Essentials.report(DslError.Semantic,lineCount,`-The reference; ${chalk.bold(text)} must use an integer`);
-            if (num < 1) Essentials.report(DslError.Semantic,lineCount,`-The reference; ${chalk.bold(text)} must point to an object and not at index 0 which contains the subject.\n-If thats the intention,then use <He>,<She> or <It>.`);
+            if (num === 1) Essentials.report(DslError.Semantic,lineCount,`-The reference ${chalk.bold(text)} must point to an object and not the subject.\n-If thats the intention,then use <He>,<She> or <It>.`);
             if (num > 3) Essentials.report(DslError.DoubleCheck,lineCount,`-Are you sure you can track what this reference; ${chalk.bold(text)} is pointing to?`);
             return num;
         }
@@ -223,10 +223,10 @@ class Analyzer extends DSLVisitor<void> {
                     objIndex = extractNumFromRef(text,this.lineCount);
                     if (Analyzer.terminate) return;
 
-                    const stepToReach = objIndex + 1;//the +1 is to skip over the subject
+                    const stepToReach = objIndex;
                     let step = 0;
                     let increment = 1;
-                    
+
                     for (let i=0; i<membersFromSentence.length; i+=increment) {
                         step += 1;
                         const memberToken = membersFromSentence[i];
@@ -271,19 +271,15 @@ class Analyzer extends DSLVisitor<void> {
 
                 const sentenceIndex = isObjectRef?0:-1;//the object ref will always point to the first sentence which is directly the previous one while the subject ref will point to the last sentence-whether its the same or previous
                 const tokensForSentences = this.lastTokensForGroup.toArray();
+                
+                
                 const tokenQueue = new Denque(tokensForSentences.at(sentenceIndex) || []);
-    
-                checkForRefAmbiguity(tokensForSentences.at(-1) || [],this.lineCount,this.refCheckMap);//it always uses the last sentence to prevent different outputs for different ref types.
-                if (!isObjectRef) {
-                    if (!allowRef(encounteredList,this.lineCount,text,(this.inspectRelevantTokens(tokenQueue) || []).at(0))) return;
-                }
                 const resolvedTokens = this.getListTokensBlock(tokenQueue,refIndex);
+
+                checkForRefAmbiguity(this.lineCount,this.refCheck);//it always uses the last sentence to prevent different outputs for different ref types.
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
                 hasRef = true;
-
-                console.log('resolved tokens:',index);
-                this.printTokens(resolvedGroupedTokens.tokens.get(index) || []);
             }
 
 
@@ -292,11 +288,6 @@ class Analyzer extends DSLVisitor<void> {
                 const isLoose = text.startsWith(':');
                 if (isLoose && !(str in this.usedNames)) this.usedNames[str] = 0;//we dont want to reset it if it has already been set by a previous sentence
                 encounteredNames.push(token.text!);
-            }
-
-
-            else if (type === DSLLexer.LSQUARE) {//notice that even though the branches look identical,they are mutating different arrays
-                encounteredList = true;
             }
 
 

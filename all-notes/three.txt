@@ -2031,6 +2031,8 @@ two stage parsing process
 
 *and there is no more a nuance difference between the two.they do the exact the same thing.point to positions at the previous sentence.i think thats what subject awareness is about;respecting token positioning.before,He assumed that the first name is the subject not accounting for arrays and him assumed that the nth object is the nth name.which again doesnt consider arrays.which is because of a finding function not actual inspection of the sentence
 
+refs,smart refs.
+
 tokenization,semantism,building
 
 ?I punched npx swc.i hope it doesnt do anything
