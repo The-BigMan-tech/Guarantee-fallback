@@ -24,7 +24,7 @@ enum DslError{
     Syntax="Syntax Error at",
     DoubleCheck="This is safe to ignore but double check"
 }
-// console.log = ():undefined=>undefined;
+console.log = ():undefined=>undefined;//to turn off the logs
 const grey = chalk.hex("#ddcba0ff");
 
 //todo:Make the fuctions more typesafe by replacing all the type shortcuts i made with the any type to concrete ones.and also try to make the predicates typed instead of dynamically sized arrays of either string or number.This has to be done in the dsl if possible.
@@ -111,11 +111,13 @@ class Analyzer extends DSLVisitor<void> {
                 const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
                 if (isNewLine) this.targetLineCount += 1;//increment the line count at every empty new line
             }
-            //This must be logged before the line updates as observed from the logs.                 
-            const sentence = Analyzer.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
-            if (sentence.length > 0) {
-                const successMessage = chalk.cyan(`line ${this.lineCount + 1}: `) + chalk.green('Success: ') + grey(sentence) + '\n';//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
-                console.info(successMessage);
+            if (!Analyzer.terminate) {
+                //This must be logged before the line updates as observed from the logs.                 
+                const sentence = Analyzer.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
+                if (sentence.length > 0) {
+                    const successMessage = chalk.cyan(`line ${this.lineCount + 1}: `) + chalk.green('Success: ') + grey(sentence) + '\n';//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
+                    console.info(successMessage);
+                }
             }
             this.lineCount = this.targetLineCount;//still update to prevent corrupted state
         }
