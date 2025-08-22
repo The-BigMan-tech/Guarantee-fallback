@@ -8,7 +8,7 @@ import Denque from "denque";
 import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
-// import stringify from "safe-stable-stringify";
+import stringify from "safe-stable-stringify";
 // import {colorize} from "json-colorizer";
 
 interface ResolvedSingleTokens {
@@ -83,6 +83,11 @@ function getOrdinalSuffix(n:number):string {
     const v = n % 100;
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
+function replaceLastOccurrence(str:string, search:string, replacement:string) {
+    const lastIndex = str.lastIndexOf(search);
+    if (lastIndex === -1) return str; // string not found, return original
+    return str.slice(0, lastIndex) + replacement + str.slice(lastIndex + search.length);
+}
 interface RefCheck {
     hasRef:boolean,
     line:number
@@ -107,7 +112,13 @@ class Analyzer extends DSLVisitor<void> {
         const textToLog = (tokens !== null)?originalSrc:sentence;
         if (!Analyzer.terminate) {
             if (textToLog.trim().length > 0) {
-                const successMessage = chalk.bgGreen.bold(`Processed line ${this.lineCount + 1}: `) + ' ' + chalk.gray(textToLog) + '\n';//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
+                let expansionText = stringify(this.expandedFacts).replace('[','\n[\n');
+                expansionText = replaceLastOccurrence(expansionText,']','\n]\n');
+                expansionText = expansionText.replaceAll(',[',',\n[');
+
+                let successMessage = chalk.bgGreen.bold(`\nProcessed line ${this.lineCount + 1}: `);//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
+                successMessage += `\n-Sentence: ${brown(textToLog)}`;
+                successMessage += `-Expansion: ${brown(expansionText)}`; 
                 console.info(successMessage);
             }
         }
@@ -128,6 +139,7 @@ class Analyzer extends DSLVisitor<void> {
             }
             this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.                 
             this.lineCount = this.targetLineCount;
+            this.expandedFacts = null;
         }
         return this.records;
     };
@@ -427,6 +439,8 @@ class Analyzer extends DSLVisitor<void> {
         }
         return predicate;
     }
+    private expandedFacts:Atoms[] | null = [];
+
     private buildFact(tokens:Token[]) {
         const predicate = this.getPredicate(tokens);
         if (predicate === null) return;
@@ -434,9 +448,10 @@ class Analyzer extends DSLVisitor<void> {
         const groupedData = this.inspectRelevantTokens(tokenQueue,false);
         if (Analyzer.terminate) return;
 
-        const expandedFacts:Atoms[] = this.expandRecursively(groupedData!);
+        this.expandedFacts = this.expandRecursively(groupedData!);
+        console.log('Ex facts: ',this.expandedFacts);
 
-        for (const fact of expandedFacts) {;
+        for (const fact of this.expandedFacts) {;
             if (fact.length === 0) {
                 Essentials.report(DslError.Semantic,this.lineCount,'-A sentence must contain at least one atom.');
             }

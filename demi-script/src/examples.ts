@@ -87,10 +87,8 @@ export function runExamples():void {
     };
     //DSL form
     const facts = `
-        :a is *good.
-        :b is *tall.
-        [] is *strong.
-        <They> are <his:3> *friends.
+        ,,,,[:a,:b] are *good [:c,:d].
+        <They> are *tall.
     `;
     
     const struct = genStruct(facts);
