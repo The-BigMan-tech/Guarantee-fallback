@@ -25,7 +25,13 @@ enum DslError{
     DoubleCheck="This is safe to ignore but double check"
 }
 console.log = ():undefined=>undefined;//to turn off the logs
-const grey = chalk.hex("#ddcba0ff");
+
+const brown = chalk.hex("#ddcba0ff");
+const lime = chalk.hex('adef1e');
+const orange = chalk.hex('f09258f');
+const darkGreen = chalk.hex('98ce25ff');
+
+
 
 //todo:Make the fuctions more typesafe by replacing all the type shortcuts i made with the any type to concrete ones.and also try to make the predicates typed instead of dynamically sized arrays of either string or number.This has to be done in the dsl if possible.
 class Essentials {
@@ -37,12 +43,8 @@ class Essentials {
 
     
     public static report(errorType:string,lineCount:number,msg:string,checkLines?:number[]):void {
-        const orange = chalk.hex('f09258f');
-        const green = chalk.hex('adef1e');
-        const darkGreen = chalk.hex('98ce25ff');
-
         function pushLine(line:number):void {
-            messages.push(grey(Analyzer.inputArr[line].trim() + '\n'));
+            messages.push(brown(Analyzer.inputArr[line].trim() + '\n'));
         }
 
         let title = chalk.underline(`\n${errorType} line ${lineCount+1}:`);//for 1-based line counting for the logs
@@ -50,11 +52,11 @@ class Essentials {
         
         const messages = [title,`\n${msg}`,];
         if (!checkLines) {
-            messages.push(green('\nCheck'),darkGreen('->'));
+            messages.push(lime('\nCheck'),darkGreen('->'));
             pushLine(lineCount);
         }
         else{
-            messages.push(chalk.green.underline('\nCheck these lines:\n'));
+            messages.push(lime.underline('\nCheck these lines:\n'));
             for (const line of checkLines) {
                 messages.push(chalk.gray(`${line+1}.`));//for 1-based line counting for the logs
                 pushLine(line);
@@ -115,11 +117,12 @@ class Analyzer extends DSLVisitor<void> {
                 //This must be logged before the line updates as observed from the logs.                 
                 const sentence = Analyzer.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
                 if (sentence.length > 0) {
-                    const successMessage = chalk.cyan(`line ${this.lineCount + 1}: `) + chalk.green('Success: ') + grey(sentence) + '\n';//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
+                    const successMessage = chalk.bgGreen.bold(`Processed line ${this.lineCount + 1}: `) + brown(sentence) + '\n';//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
                     console.info(successMessage);
                 }
+                this.lineCount = this.targetLineCount;//still update to prevent corrupted state
             }
-            this.lineCount = this.targetLineCount;//still update to prevent corrupted state
+            
         }
         return this.records;
     };
