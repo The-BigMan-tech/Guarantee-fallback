@@ -2027,6 +2027,10 @@ two stage parsing process
 
 *Because your resolution uses distinct token arrays for object vs. subject refs, ambiguity detection based solely on those arrays leads to different results. Unifying ambiguity checks to use the last sentence tokens (regardless of resolution tokens) correctly reflects the logical reference context, enabling consistent and meaningful chained ref warnings without altering resolution semantics.
 
+*before,He used to point to the first name of the nearest senetnceit didnt bother checking wthere thats the subject of the sentece or not and him pointed to the nth name of the previous sentence regardless of whether it is the nth object.it just gets the nth name.but now,they are subject and position aware.subject aware because they dont cheaply get the first name or nth name,but rather,they acknlowedge what the subject can be and He always returns teh subject not the first name.so if its an array,it reports an error.Him always pooints to the nt object.
+
+*and there is no more a nuance difference between the two.they do the exact the same thing.point to positions at the previous sentence.i think thats what subject awareness is about;respecting token positioning.before,He assumed that the first name is the subject not accounting for arrays and him assumed that the nth object is the nth name.which again doesnt consider arrays.which is because of a finding function not actual inspection of the sentence
+
 tokenization,semantism,building
 
 ?I punched npx swc.i hope it doesnt do anything

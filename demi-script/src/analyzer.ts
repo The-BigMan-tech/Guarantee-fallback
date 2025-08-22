@@ -162,7 +162,7 @@ class Analyzer extends DSLVisitor<void> {
         function extractNumFromRef(text:string,lineCount:number):number {
             const num =  Number(text.split(":")[1].slice(0,-1));
             if (!Number.isInteger(num)) Essentials.report(DslError.Semantic,lineCount,`-The reference; ${chalk.bold(text)} must use an integer`);
-            if (num < 1) Essentials.report(DslError.Semantic,lineCount,`-The reference; ${chalk.bold(text)} must point to an object and not at index 0 which contains the subject.\n-If thats the intention,then use <He>,<She> or <It> because using object refs this way will lead to unexpected behaviour.`);
+            if (num < 1) Essentials.report(DslError.Semantic,lineCount,`-The reference; ${chalk.bold(text)} must point to an object and not at index 0 which contains the subject.\n-If thats the intention,then use <He>,<She> or <It>.`);
             if (num > 3) Essentials.report(DslError.DoubleCheck,lineCount,`-Are you sure you can track what this reference; ${chalk.bold(text)} is pointing to?`);
             return num;
         }
@@ -208,7 +208,6 @@ class Analyzer extends DSLVisitor<void> {
             if ((type === DSLLexer.SINGLE_SUBJECT_REF) || (type === DSLLexer.SINGLE_OBJECT_REF)) {
                 const isObjectRef = (type === DSLLexer.SINGLE_OBJECT_REF);
                 let resolvedToken = null;
-                if (Analyzer.terminate) return;
 
                 const isMember = (token:Token)=>((token.type===DSLLexer.NAME) || (token.type===DSLLexer.LSQUARE) || (token.type===DSLLexer.RSQUARE));//i included the check for an array to acknowledge that an array can be the subject;
                 const membersFromSentence = this.lastSentenceTokens.filter(token=>isMember(token));
@@ -222,13 +221,19 @@ class Analyzer extends DSLVisitor<void> {
 
                 if (isObjectRef) {
                     objIndex = extractNumFromRef(text,this.lineCount);
-                    const stepToReach = objIndex + 1;//the +1 is to skip over the subject
+                    if (Analyzer.terminate) return;
 
+                    const stepToReach = objIndex + 1;//the +1 is to skip over the subject
                     let step = 0;
                     let increment = 1;
+                    
                     for (let i=0; i<membersFromSentence.length; i+=increment) {
                         step += 1;
                         const memberToken = membersFromSentence[i];
+                        if (step === stepToReach) {
+                            objMember = memberToken;
+                            break;
+                        }
                         if (memberToken.type === DSLLexer.LSQUARE) {
                             const listBlock = this.getListTokensBlock(new Denque(membersFromSentence),1);
                             increment = listBlock!.length;
@@ -237,8 +242,6 @@ class Analyzer extends DSLVisitor<void> {
                         }
                         console.log('incre: ',increment,'token:',memberToken.text,'step',step,'reach',stepToReach);
                     }
-                    objIndex = extractNumFromRef(text,this.lineCount);
-                    objMember = objNamesFromSentence[objIndex-1];//the -1 is here because the first member(subject) is excluded from the array
                 }
 
                 const member = isObjectRef?objMember:firstMember;
@@ -246,7 +249,7 @@ class Analyzer extends DSLVisitor<void> {
                     if (member?.type === DSLLexer.NAME) { 
                         resolvedToken = member;
                     }else {
-                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to the subject of the closest sentence that is a name.But found an array.`,[this.lineCount-1,this.lineCount]);
+                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to a member of the previous sentence that is a name.But found an array.`,[this.lineCount-1,this.lineCount]);
                     }
                 }else {
                     if (isObjectRef) {
