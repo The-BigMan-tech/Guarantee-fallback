@@ -2031,6 +2031,16 @@ two stage parsing process
 
 *and there is no more a nuance difference between the two.they do the exact the same thing.point to positions at the previous sentence.i think thats what subject awareness is about;respecting token positioning.before,He assumed that the first name is the subject not accounting for arrays and him assumed that the nth object is the nth name.which again doesnt consider arrays.which is because of a finding function not actual inspection of the sentence
 
+*Your new resolver is subject aware because it explicitly recognizes that the subject may consist of either individual names or entire arrays, as shown by filtering all relevant tokens (NAME, LSQUARE, RSQUARE) in membersFromSentence. This ensures no token that logically belongs to the subject is mistakenly treated as an object or ignored.
+
+*It is position aware thanks to the granular stepping logic that carefully iterates through tokens, correctly accounting for the full length of arrays as atomic groups rather than treating each element separately. This precise indexing allows references to accurately point to the intended token by position.
+
+*your approach makes the resolution of subject and object references functionally symmetric and consistent:
+*Both subject refs (like <He>) and object refs (like <him:n>) use the same core method (getNthMember) to resolve the target token by position within the previous sentence’s members, ensuring uniform processing.
+*The only meaningful difference is semantic and enforced for clarity and safety:
+*Subject refs implicitly refer to the first member (i.e., nthIndex = 1 by default).
+*Object refs require explicit indexes (nthIndex > 1) because you’ve reserved 1 to mean the subject, so <him:1> is disallowed and triggers an error.
+
 refs,smart refs.
 
 tokenization,semantism,building

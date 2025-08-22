@@ -2,7 +2,7 @@ import { CharStream, CommonTokenStream, ConsoleErrorListener,Token } from "antlr
 import { AliasDeclarationContext,DSLParser, FactContext,ProgramContext } from "./generated/DSLParser.js";
 import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
-import { Rec } from "./fact-checker.js";
+import { Atoms, Rec } from "./fact-checker.js";
 import chalk from "chalk";
 import Denque from "denque";
 import { cartesianProduct } from "combinatorial-generators";
@@ -223,7 +223,7 @@ class Analyzer extends DSLVisitor<void> {
             }
             checkForRefAmbiguity();//it always uses the last sentence to prevent different outputs for different ref types.
             hasRef = true;
-            
+
             return {nthMember,listBlock};
         };
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
@@ -337,14 +337,14 @@ class Analyzer extends DSLVisitor<void> {
         this.records[alias] = predicateRec;
         this.aliases.add(alias);
     }
-    private flattenRecursively(input:any[][],flatSequences:any[][] = []):any[][] {
+    private expandRecursively(input:any[][],flatSequences:any[][] = []):any[][] {
         for (const product of cartesianProduct(...input)) {
             if (product.some(value=>value instanceof Array)) {
                 const boxedProduct = product.map(value=>{
                     if (!(value instanceof Array)) return [value];
                     return value;
                 });
-                this.flattenRecursively(boxedProduct,flatSequences);
+                this.expandRecursively(boxedProduct,flatSequences);
             }else {
                 flatSequences.push(product);
             }
@@ -397,16 +397,16 @@ class Analyzer extends DSLVisitor<void> {
         const groupedData = this.inspectRelevantTokens(tokenQueue,false);
         if (Analyzer.terminate) return;
 
-        const flattenedData = this.flattenRecursively(groupedData!);
+        const expandedFacts:Atoms[] = this.expandRecursively(groupedData!);
 
-        for (const atoms of flattenedData) {;
-            if (atoms.length === 0) {
+        for (const fact of expandedFacts) {;
+            if (fact.length === 0) {
                 Essentials.report(DslError.Semantic,this.lineCount,'-A sentence must contain at least one atom.');
             }
             if (!this.records[predicate]) {
                 this.records[predicate] = new Rec([]);
             }
-            this.records[predicate].add(atoms);
+            this.records[predicate].add(fact);
         }
     }
     private validateNameUsage(text:string) {
