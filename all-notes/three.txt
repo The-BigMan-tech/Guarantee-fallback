@@ -2045,6 +2045,10 @@ two stage parsing process
 
 *Yes, it is better. Capturing raw whitespace tokens (WS) in your grammar is generally unsafe and can lead to parsing errors because whitespace can appear unpredictably and doesn’t align cleanly with your language’s semantic structure.
 
+*but users can still think of it as arrays.it will still perf the same functionality if i directly suported arrays in the first place.except that the mental model is different from the actual model.users can also think of it as expansion mechanisms
+
+*so the array mental model will still work but to truly utilize this potential,i believe one needs to see it as an expansion mechanism.they can be better at expressing multiple facts so concisely
+
 refs,smart refs.
 
 tokenization,semantism,building
