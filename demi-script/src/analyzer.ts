@@ -253,7 +253,7 @@ class Analyzer extends DSLVisitor<void> {
                     }
                 }else {
                     if (isObjectRef) {
-                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(objIndex! + 1)} name (${getOrdinalSuffix(objIndex!)} object name) in the prior sentence.`,[this.lineCount-1,this.lineCount]);
+                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(objIndex! + 1)} name in the prior sentence.`,[this.lineCount-1,this.lineCount]);
                     }
                 }
 
