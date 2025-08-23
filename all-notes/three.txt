@@ -2049,6 +2049,9 @@ two stage parsing process
 
 *so the array mental model will still work but to truly utilize this potential,i believe one needs to see it as an expansion mechanism.they can be better at expressing multiple facts so concisely
 
+*so an alias is a synonym of a predicate and as such,it must ultimately refer to a predicate which is why the explicit typing:alias friends = *friends. is required.This pattern is for invalidating a predicate by creating an alias under the same name for safety.but this pattern may be very common when using my dsl to write large documents safely so as a shorthand,i allowed alias friends.which is the same thing as writing it out in full.they both invalidate predicates under the same name
+*and resoling aliases has a small overhead in resolving them.cuz predicates are direct assignments.but aliases are safer so the cost is negligible
+
 refs,smart refs.
 
 tokenization,semantism,building

@@ -407,6 +407,9 @@ class Analyzer extends DSLVisitor<void> {
         });
         this.records[alias] = predicateRec;
         this.aliases.add(alias);
+        if (this.builtAFact) {
+            Essentials.report(DslError.DoubleCheck,this.lineCount,`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors early.`);
+        }
     }
     private expandRecursively(input:any[][],flatSequences:any[][] = []):any[][] {
         for (const product of cartesianProduct(...input)) {
@@ -462,6 +465,7 @@ class Analyzer extends DSLVisitor<void> {
         return predicate;
     }
     private expandedFacts:Atoms[] | null = [];
+    private builtAFact:boolean = false;
 
     private buildFact(tokens:Token[]) {
         const predicate = this.getPredicate(tokens);
@@ -482,6 +486,7 @@ class Analyzer extends DSLVisitor<void> {
             }
             this.records[predicate].add(fact);
         }
+        this.builtAFact = true;
     }
     private validateNameUsage(text:string) {
         const isStrict = text.startsWith('!');
