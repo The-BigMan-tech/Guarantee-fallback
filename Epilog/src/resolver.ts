@@ -284,6 +284,31 @@ class Analyzer extends DSLVisitor<void> {
             hasRef = true;
             return {nthMember,lastEncounteredList};
         };
+        const isResolved = (member:Token | null,refTarget:'single' | 'group',isObjectRef:boolean,text:string,nthIndex:number):boolean=> {
+            if (member) {
+                if (refTarget === 'single') {
+                    if (member?.type === DSLLexer.NAME) { 
+                        return true;
+                    }else {
+                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to a name of the previous sentence but found an array.`,[this.lineCount-1,this.lineCount]);
+                    }
+                }
+                else if (refTarget === 'group') {
+                    if (member?.type === DSLLexer.LSQUARE) { 
+                        return true;
+                    }else {
+                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to an array of the previous sentence but found a name.`,[this.lineCount-1,this.lineCount]);
+                    }
+                }
+            }else {
+                if (isObjectRef) {
+                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
+                }else {
+                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a sentence prior to the reference.`,[this.lineCount-1,this.lineCount]);
+                }
+            }
+            return false;
+        };
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
         const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};
 
@@ -305,17 +330,10 @@ class Analyzer extends DSLVisitor<void> {
                 
                 const member = getNthMember(nthIndex).nthMember;
                 let resolvedToken:Token | null = null;
-            
-                if (member) {
-                    if (member?.type === DSLLexer.NAME) { 
-                        resolvedToken = member;
-                    }else {
-                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to a name of the previous sentence but found an array.`,[this.lineCount-1,this.lineCount]);
-                    }
-                }else if (isObjectRef) {
-                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
-                }
-                if (Analyzer.terminate) return;
+                if (isResolved(member,'single',isObjectRef,text,nthIndex)) {
+                    resolvedToken = member;
+                }else return;
+
                 resolvedSingleTokens.indices.push(index);
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
             }
@@ -330,16 +348,10 @@ class Analyzer extends DSLVisitor<void> {
                 const member = result.nthMember;
                 let resolvedTokens:Token[] | null = null;
 
-                if (member) {
-                    if (member?.type === DSLLexer.LSQUARE) { 
-                        resolvedTokens = result.lastEncounteredList;
-                    }else {
-                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to an array of the previous sentence but found a name.`,[this.lineCount-1,this.lineCount]);
-                    }
-                }else if (isObjectRef) {
-                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
-                }
-                if (Analyzer.terminate) return;
+                if (isResolved(member,'single',isObjectRef,text,nthIndex)) {
+                    resolvedTokens = result.lastEncounteredList;
+                }else return;
+                
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
             }
