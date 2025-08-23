@@ -133,7 +133,7 @@ class Analyzer extends DSLVisitor<void> {
                     const predicateFromAlias = this.aliases.get(this.predicateForLog || '');
                     successMessage += (predicateFromAlias)?`-Alias #${this.predicateForLog} -> *${predicateFromAlias}`:`-Predicate: *${this.predicateForLog}`;
                     successMessage += `\n-Expansion: ${brown(expansionText)}`; 
-                }
+                };
 
                 console.info(successMessage);
             }
@@ -201,7 +201,7 @@ class Analyzer extends DSLVisitor<void> {
     }
 
     private lastSentenceTokens:Token[] = [];
-    private refCheck:RefCheck = {hasRef:false,line:0};//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
+    private prevRefCheck:RefCheck = {hasRef:false,line:0};//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
     
     private resolveRefs(tokens: Token[]) {
@@ -213,10 +213,10 @@ class Analyzer extends DSLVisitor<void> {
             return num;
         };
         const checkForRefAmbiguity = ()=> {
-            if (this.refCheck.hasRef) {
+            if (this.prevRefCheck.hasRef && hasRef) {
                 let message = `-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.`;
-                message += `\n-You may wish to write the name or array explicitly in ${chalk.bold('line:'+this.refCheck.line+1)} to avoid confusion.`;
-                Essentials.report(DslError.DoubleCheck,this.lineCount,message,[this.refCheck.line,this.lineCount]);
+                message += `\n-You may wish to write the name or array explicitly in ${chalk.bold('line:'+ (this.prevRefCheck.line+1))} to avoid confusion.`;
+                Essentials.report(DslError.DoubleCheck,this.lineCount,message,[this.prevRefCheck.line,this.lineCount]);
             }
         };
         const applyResolution = ()=> {
@@ -387,7 +387,7 @@ class Analyzer extends DSLVisitor<void> {
         checkForRefAmbiguity();//this must be checked before updating the refCheck state
         for (const name of encounteredNames) this.validateNameUsage(name);//this has to happen before the refs are resolved.else,the names that expanded into those refs will trigger warnings.
         this.lastSentenceTokens = tokens;
-        this.refCheck = {hasRef,line:this.lineCount};
+        this.prevRefCheck = {hasRef,line:this.lineCount};
         applyResolution();
     }
     private stripMark(text:string) {
