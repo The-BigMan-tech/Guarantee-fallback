@@ -126,7 +126,7 @@ class Analyzer extends DSLVisitor<void> {
                     })
                     .join('\n');
 
-                let successMessage = chalk.bgGreen.bold(`\nProcessed line ${this.lineCount + 1}: `);//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
+                let successMessage = lime.underline(`\nProcessed line ${this.lineCount + 1}: `);//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
                 successMessage += `\n-Sentence: ${brown(textToLog)}`;
                 successMessage += `-Expansion: ${brown(expansionText)}`; 
                 console.info(successMessage);
@@ -348,10 +348,10 @@ class Analyzer extends DSLVisitor<void> {
                 const member = result.nthMember;
                 let resolvedTokens:Token[] | null = null;
 
-                if (isResolved(member,'single',isObjectRef,text,nthIndex)) {
+                if (isResolved(member,'group',isObjectRef,text,nthIndex)) {
                     resolvedTokens = result.lastEncounteredList;
                 }else return;
-                
+
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
             }
@@ -550,5 +550,7 @@ export function genStruct(input:string):Record<string,Rec> | undefined {
     visitor.createSentenceArray(input);
     Essentials.loadEssentials(input);
     visitor.visit(Essentials.tree);
-    if (!Analyzer.terminate) return visitor.records;
+    const shouldTerminate = Analyzer.terminate;//save the current termination state
+    Analyzer.terminate = false;//reset it to false so that subsequent dsls can be analyzed
+    if (!shouldTerminate) return visitor.records;
 }
