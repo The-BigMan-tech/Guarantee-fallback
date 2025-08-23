@@ -310,7 +310,7 @@ class Analyzer extends DSLVisitor<void> {
             return false;
         };
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
-        const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};
+        const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};//used a descending order heap so that insertion during resolution doesnt cause index shift that will unexpectedly affect the final result
 
         const objectRefs = new Set(['him','her','it','them','their']);
         const nounRefs = ['He','She','It','They',...objectRefs];
