@@ -281,10 +281,13 @@ class Analyzer extends DSLVisitor<void> {
                     increment = 1;
                 }
             }
-            hasRef = true;
             return {nthMember,lastEncounteredList};
         };
-        const isResolved = (member:Token | null,refTarget:'single' | 'group',isObjectRef:boolean,text:string,nthIndex:number):boolean=> {
+        const isRefValid = (member:Token | null,refTarget:'single' | 'group',isObjectRef:boolean,text:string,nthIndex:number):boolean=> {
+            if (isObjectRef && !encounteredName && !hasRef) {
+                Essentials.report(DslError.Semantic,this.lineCount,`An object reference can not be the subject of a sentence.`);
+                return false;
+            }
             if (member) {
                 if (refTarget === 'single') {
                     if (member?.type === DSLLexer.NAME) return true;
@@ -308,10 +311,11 @@ class Analyzer extends DSLVisitor<void> {
         const objectRefs = new Set(['him','her','it','them','their']);
         const nounRefs = ['He','She','It','They',...objectRefs];
 
-        let hasRef = false;
-
         const encounteredNames:string[] = [];
 
+        let hasRef = false;
+        let encounteredName:boolean = false;//for use in ensurig safety
+        
         for (const [index,token] of tokens.entries()){//I did no breaks here to allow all refs in the sentence to resolve
             const text = token.text!;
             const type = token.type;
@@ -323,12 +327,13 @@ class Analyzer extends DSLVisitor<void> {
                 
                 const member = getNthMember(nthIndex).nthMember;
                 let resolvedToken:Token | null = null;
-                if (isResolved(member,'single',isObjectRef,text,nthIndex)) {
+                if (isRefValid(member,'single',isObjectRef,text,nthIndex)) {
                     resolvedToken = member;
                 }else return;
 
                 resolvedSingleTokens.indices.push(index);
                 resolvedSingleTokens.tokens.set(index,resolvedToken);
+                hasRef = true;
             }
 
 
@@ -341,12 +346,13 @@ class Analyzer extends DSLVisitor<void> {
                 const member = result.nthMember;
                 let resolvedTokens:Token[] | null = null;
 
-                if (isResolved(member,'group',isObjectRef,text,nthIndex)) {
+                if (isRefValid(member,'group',isObjectRef,text,nthIndex)) {
                     resolvedTokens = result.lastEncounteredList;
                 }else return;
 
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
+                hasRef = true;
             }
 
 
@@ -355,6 +361,7 @@ class Analyzer extends DSLVisitor<void> {
                 const isLoose = text.startsWith(':');
                 if (isLoose && !(str in this.usedNames)) this.usedNames[str] = 0;//we dont want to reset it if it has already been set by a previous sentence
                 encounteredNames.push(token.text!);
+                encounteredName = true;
             }
 
 
