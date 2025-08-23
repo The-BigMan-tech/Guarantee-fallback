@@ -286,19 +286,14 @@ class Analyzer extends DSLVisitor<void> {
         };
         const isResolved = (member:Token | null,refTarget:'single' | 'group',isObjectRef:boolean,text:string,nthIndex:number):boolean=> {
             if (member) {
-                if (refTarget === 'single') {
-                    if (member?.type === DSLLexer.NAME) { 
-                        return true;
-                    }else {
-                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to a name of the previous sentence but found an array.`,[this.lineCount-1,this.lineCount]);
-                    }
-                }
-                else if (refTarget === 'group') {
-                    if (member?.type === DSLLexer.LSQUARE) { 
-                        return true;
-                    }else {
-                        Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to an array of the previous sentence but found a name.`,[this.lineCount-1,this.lineCount]);
-                    }
+                if ((refTarget === 'single') && (member?.type === DSLLexer.NAME)) {
+                    return true;
+                }else if ((refTarget === 'group') && (member?.type === DSLLexer.LSQUARE)) {
+                    return true;
+                }else if ((refTarget === 'single') && !(member?.type === DSLLexer.NAME)) {
+                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to a name of the previous sentence but found an array.`,[this.lineCount-1,this.lineCount]);
+                }else if ((refTarget === 'group') && !(member?.type === DSLLexer.LSQUARE)) {
+                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to an array of the previous sentence but found a name.`,[this.lineCount-1,this.lineCount]);
                 }
             }else {
                 if (isObjectRef) {
