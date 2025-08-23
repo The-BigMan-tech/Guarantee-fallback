@@ -4,7 +4,7 @@ import { LRUCache } from 'lru-cache';
 import {v4 as uniqueID} from "uuid";
 import { AddUnionToElements,Tuple } from "./type-helper.js";
 import {stringify} from "safe-stable-stringify";
-import { genStruct } from "./analyzer.js";
+import { genStruct } from "./resolver.js";
 
 export type Atom = string | number;
 export type Atoms = Atom[];

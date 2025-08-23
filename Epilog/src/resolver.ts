@@ -395,13 +395,13 @@ class Analyzer extends DSLVisitor<void> {
 
             if (type === DSLLexer.PLAIN_WORD) {
                 alias = text;
-            }else if (type === DSLLexer.PREDICATE) {
+            }
+            else if (type === DSLLexer.PREDICATE) {
                 const predicate = this.stripMark(text);
-                if (!this.records[predicate]) {
-                    this.records[predicate] = new Rec([]);
-                }
+                if (!this.records[predicate]) this.records[predicate] = new Rec([]);
                 predicateRec = this.records[predicate];
-            }else if ((type === DSLLexer.TERMINATOR)) {
+            }
+            else if ((type === DSLLexer.TERMINATOR)) {
                 if (text.endsWith('\n')) this.targetLineCount += 1;//increment the count at every new line created at the end of the sentence
             }
         });
@@ -424,7 +424,7 @@ class Analyzer extends DSLVisitor<void> {
     }
     private recommendAlias(text:string):string | null {
         for (const alias of this.aliases.values()) {
-            if (distance(alias,text!) < 3) {
+            if (distance(alias,text!) < 4) {
                 return alias;
             }
         }

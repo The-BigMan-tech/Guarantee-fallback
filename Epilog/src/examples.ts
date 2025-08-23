@@ -86,8 +86,8 @@ export function runExamples():void {
     };
     //DSL form
     const schoolFacts = facts`
-        :ada is a *teacher.
-        <She> is *tall.
+        alias friends.
+        :ada is #friend with :peter.
     `;
     if (!schoolFacts) return;
     const doc = new Doc(schoolFacts);

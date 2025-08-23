@@ -174,6 +174,7 @@ export class DSLParser extends antlr.Parser {
     public aliasDeclaration(): AliasDeclarationContext {
         let localContext = new AliasDeclarationContext(this.context, this.state);
         this.enterRule(localContext, 4, DSLParser.RULE_aliasDeclaration);
+        let _la: number;
         try {
             this.enterOuterAlt(localContext, 1);
             {
@@ -181,11 +182,19 @@ export class DSLParser extends antlr.Parser {
             this.match(DSLParser.ALIAS_KW);
             this.state = 25;
             this.match(DSLParser.PLAIN_WORD);
-            this.state = 26;
-            this.match(DSLParser.EQUALS);
-            this.state = 27;
-            this.match(DSLParser.PREDICATE);
             this.state = 28;
+            this.errorHandler.sync(this);
+            _la = this.tokenStream.LA(1);
+            if (_la === 10) {
+                {
+                this.state = 26;
+                this.match(DSLParser.EQUALS);
+                this.state = 27;
+                this.match(DSLParser.PREDICATE);
+                }
+            }
+
+            this.state = 30;
             this.match(DSLParser.TERMINATOR);
             }
         }
@@ -209,17 +218,17 @@ export class DSLParser extends antlr.Parser {
         try {
             this.enterOuterAlt(localContext, 1);
             {
-            this.state = 31;
+            this.state = 33;
             this.errorHandler.sync(this);
             _la = this.tokenStream.LA(1);
             do {
                 {
                 {
-                this.state = 30;
+                this.state = 32;
                 this.token();
                 }
                 }
-                this.state = 33;
+                this.state = 35;
                 this.errorHandler.sync(this);
                 _la = this.tokenStream.LA(1);
             } while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 4187102) !== 0));
@@ -243,7 +252,7 @@ export class DSLParser extends antlr.Parser {
         this.enterRule(localContext, 8, DSLParser.RULE_token);
         let _la: number;
         try {
-            this.state = 44;
+            this.state = 46;
             this.errorHandler.sync(this);
             switch (this.tokenStream.LA(1)) {
             case DSLParser.LSQUARE:
@@ -254,13 +263,13 @@ export class DSLParser extends antlr.Parser {
             case DSLParser.PLAIN_WORD:
                 this.enterOuterAlt(localContext, 1);
                 {
-                this.state = 40;
+                this.state = 42;
                 this.errorHandler.sync(this);
                 switch (this.tokenStream.LA(1)) {
                 case DSLParser.NAME:
                 case DSLParser.NUMBER:
                     {
-                    this.state = 35;
+                    this.state = 37;
                     _la = this.tokenStream.LA(1);
                     if(!(_la === 15 || _la === 16)) {
                     this.errorHandler.recoverInline(this);
@@ -273,25 +282,25 @@ export class DSLParser extends antlr.Parser {
                     break;
                 case DSLParser.LSQUARE:
                     {
-                    this.state = 36;
+                    this.state = 38;
                     this.list();
                     }
                     break;
                 case DSLParser.PREDICATE:
                     {
-                    this.state = 37;
+                    this.state = 39;
                     this.match(DSLParser.PREDICATE);
                     }
                     break;
                 case DSLParser.ALIAS:
                     {
-                    this.state = 38;
+                    this.state = 40;
                     this.match(DSLParser.ALIAS);
                     }
                     break;
                 case DSLParser.PLAIN_WORD:
                     {
-                    this.state = 39;
+                    this.state = 41;
                     this.match(DSLParser.PLAIN_WORD);
                     }
                     break;
@@ -306,7 +315,7 @@ export class DSLParser extends antlr.Parser {
             case DSLParser.GROUP_OBJECT_REF:
                 this.enterOuterAlt(localContext, 2);
                 {
-                this.state = 42;
+                this.state = 44;
                 _la = this.tokenStream.LA(1);
                 if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 3932160) !== 0))) {
                 this.errorHandler.recoverInline(this);
@@ -326,7 +335,7 @@ export class DSLParser extends antlr.Parser {
             case DSLParser.APOSTROPHE:
                 this.enterOuterAlt(localContext, 3);
                 {
-                this.state = 43;
+                this.state = 45;
                 _la = this.tokenStream.LA(1);
                 if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 974) !== 0))) {
                 this.errorHandler.recoverInline(this);
@@ -361,63 +370,63 @@ export class DSLParser extends antlr.Parser {
         try {
             this.enterOuterAlt(localContext, 1);
             {
-            this.state = 46;
+            this.state = 48;
             this.match(DSLParser.LSQUARE);
-            this.state = 63;
+            this.state = 65;
             this.errorHandler.sync(this);
             _la = this.tokenStream.LA(1);
             if ((((_la) & ~0x1F) === 0 && ((1 << _la) & 98320) !== 0)) {
                 {
-                this.state = 50;
+                this.state = 52;
                 this.errorHandler.sync(this);
                 switch (this.tokenStream.LA(1)) {
                 case DSLParser.NAME:
                     {
-                    this.state = 47;
+                    this.state = 49;
                     this.match(DSLParser.NAME);
                     }
                     break;
                 case DSLParser.NUMBER:
                     {
-                    this.state = 48;
+                    this.state = 50;
                     this.match(DSLParser.NUMBER);
                     }
                     break;
                 case DSLParser.LSQUARE:
                     {
-                    this.state = 49;
+                    this.state = 51;
                     this.list();
                     }
                     break;
                 default:
                     throw new antlr.NoViableAltException(this);
                 }
-                this.state = 60;
+                this.state = 62;
                 this.errorHandler.sync(this);
                 _la = this.tokenStream.LA(1);
                 while (_la === 1) {
                     {
                     {
-                    this.state = 52;
+                    this.state = 54;
                     this.match(DSLParser.COMMA);
-                    this.state = 56;
+                    this.state = 58;
                     this.errorHandler.sync(this);
                     switch (this.tokenStream.LA(1)) {
                     case DSLParser.NAME:
                         {
-                        this.state = 53;
+                        this.state = 55;
                         this.match(DSLParser.NAME);
                         }
                         break;
                     case DSLParser.NUMBER:
                         {
-                        this.state = 54;
+                        this.state = 56;
                         this.match(DSLParser.NUMBER);
                         }
                         break;
                     case DSLParser.LSQUARE:
                         {
-                        this.state = 55;
+                        this.state = 57;
                         this.list();
                         }
                         break;
@@ -426,14 +435,14 @@ export class DSLParser extends antlr.Parser {
                     }
                     }
                     }
-                    this.state = 62;
+                    this.state = 64;
                     this.errorHandler.sync(this);
                     _la = this.tokenStream.LA(1);
                 }
                 }
             }
 
-            this.state = 65;
+            this.state = 67;
             this.match(DSLParser.RSQUARE);
             }
         }
@@ -452,30 +461,31 @@ export class DSLParser extends antlr.Parser {
     }
 
     public static readonly _serializedATN: number[] = [
-        4,1,24,68,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,1,0,1,
+        4,1,24,70,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,1,0,1,
         0,1,0,4,0,16,8,0,11,0,12,0,17,1,0,1,0,1,1,1,1,1,1,1,2,1,2,1,2,1,
-        2,1,2,1,2,1,3,4,3,32,8,3,11,3,12,3,33,1,4,1,4,1,4,1,4,1,4,3,4,41,
-        8,4,1,4,1,4,3,4,45,8,4,1,5,1,5,1,5,1,5,3,5,51,8,5,1,5,1,5,1,5,1,
-        5,3,5,57,8,5,5,5,59,8,5,10,5,12,5,62,9,5,3,5,64,8,5,1,5,1,5,1,5,
-        0,0,6,0,2,4,6,8,10,0,3,1,0,15,16,1,0,18,21,2,0,1,3,6,9,77,0,15,1,
-        0,0,0,2,21,1,0,0,0,4,24,1,0,0,0,6,31,1,0,0,0,8,44,1,0,0,0,10,46,
-        1,0,0,0,12,16,5,22,0,0,13,16,3,2,1,0,14,16,3,4,2,0,15,12,1,0,0,0,
-        15,13,1,0,0,0,15,14,1,0,0,0,16,17,1,0,0,0,17,15,1,0,0,0,17,18,1,
-        0,0,0,18,19,1,0,0,0,19,20,5,0,0,1,20,1,1,0,0,0,21,22,3,6,3,0,22,
-        23,5,12,0,0,23,3,1,0,0,0,24,25,5,11,0,0,25,26,5,17,0,0,26,27,5,10,
-        0,0,27,28,5,13,0,0,28,29,5,12,0,0,29,5,1,0,0,0,30,32,3,8,4,0,31,
-        30,1,0,0,0,32,33,1,0,0,0,33,31,1,0,0,0,33,34,1,0,0,0,34,7,1,0,0,
-        0,35,41,7,0,0,0,36,41,3,10,5,0,37,41,5,13,0,0,38,41,5,14,0,0,39,
-        41,5,17,0,0,40,35,1,0,0,0,40,36,1,0,0,0,40,37,1,0,0,0,40,38,1,0,
-        0,0,40,39,1,0,0,0,41,45,1,0,0,0,42,45,7,1,0,0,43,45,7,2,0,0,44,40,
-        1,0,0,0,44,42,1,0,0,0,44,43,1,0,0,0,45,9,1,0,0,0,46,63,5,4,0,0,47,
-        51,5,15,0,0,48,51,5,16,0,0,49,51,3,10,5,0,50,47,1,0,0,0,50,48,1,
-        0,0,0,50,49,1,0,0,0,51,60,1,0,0,0,52,56,5,1,0,0,53,57,5,15,0,0,54,
-        57,5,16,0,0,55,57,3,10,5,0,56,53,1,0,0,0,56,54,1,0,0,0,56,55,1,0,
-        0,0,57,59,1,0,0,0,58,52,1,0,0,0,59,62,1,0,0,0,60,58,1,0,0,0,60,61,
-        1,0,0,0,61,64,1,0,0,0,62,60,1,0,0,0,63,50,1,0,0,0,63,64,1,0,0,0,
-        64,65,1,0,0,0,65,66,5,5,0,0,66,11,1,0,0,0,9,15,17,33,40,44,50,56,
-        60,63
+        2,3,2,29,8,2,1,2,1,2,1,3,4,3,34,8,3,11,3,12,3,35,1,4,1,4,1,4,1,4,
+        1,4,3,4,43,8,4,1,4,1,4,3,4,47,8,4,1,5,1,5,1,5,1,5,3,5,53,8,5,1,5,
+        1,5,1,5,1,5,3,5,59,8,5,5,5,61,8,5,10,5,12,5,64,9,5,3,5,66,8,5,1,
+        5,1,5,1,5,0,0,6,0,2,4,6,8,10,0,3,1,0,15,16,1,0,18,21,2,0,1,3,6,9,
+        80,0,15,1,0,0,0,2,21,1,0,0,0,4,24,1,0,0,0,6,33,1,0,0,0,8,46,1,0,
+        0,0,10,48,1,0,0,0,12,16,5,22,0,0,13,16,3,2,1,0,14,16,3,4,2,0,15,
+        12,1,0,0,0,15,13,1,0,0,0,15,14,1,0,0,0,16,17,1,0,0,0,17,15,1,0,0,
+        0,17,18,1,0,0,0,18,19,1,0,0,0,19,20,5,0,0,1,20,1,1,0,0,0,21,22,3,
+        6,3,0,22,23,5,12,0,0,23,3,1,0,0,0,24,25,5,11,0,0,25,28,5,17,0,0,
+        26,27,5,10,0,0,27,29,5,13,0,0,28,26,1,0,0,0,28,29,1,0,0,0,29,30,
+        1,0,0,0,30,31,5,12,0,0,31,5,1,0,0,0,32,34,3,8,4,0,33,32,1,0,0,0,
+        34,35,1,0,0,0,35,33,1,0,0,0,35,36,1,0,0,0,36,7,1,0,0,0,37,43,7,0,
+        0,0,38,43,3,10,5,0,39,43,5,13,0,0,40,43,5,14,0,0,41,43,5,17,0,0,
+        42,37,1,0,0,0,42,38,1,0,0,0,42,39,1,0,0,0,42,40,1,0,0,0,42,41,1,
+        0,0,0,43,47,1,0,0,0,44,47,7,1,0,0,45,47,7,2,0,0,46,42,1,0,0,0,46,
+        44,1,0,0,0,46,45,1,0,0,0,47,9,1,0,0,0,48,65,5,4,0,0,49,53,5,15,0,
+        0,50,53,5,16,0,0,51,53,3,10,5,0,52,49,1,0,0,0,52,50,1,0,0,0,52,51,
+        1,0,0,0,53,62,1,0,0,0,54,58,5,1,0,0,55,59,5,15,0,0,56,59,5,16,0,
+        0,57,59,3,10,5,0,58,55,1,0,0,0,58,56,1,0,0,0,58,57,1,0,0,0,59,61,
+        1,0,0,0,60,54,1,0,0,0,61,64,1,0,0,0,62,60,1,0,0,0,62,63,1,0,0,0,
+        63,66,1,0,0,0,64,62,1,0,0,0,65,52,1,0,0,0,65,66,1,0,0,0,66,67,1,
+        0,0,0,67,68,5,5,0,0,68,11,1,0,0,0,10,15,17,28,35,42,46,52,58,62,
+        65
     ];
 
     private static __ATN: antlr.ATN;
@@ -597,14 +607,14 @@ export class AliasDeclarationContext extends antlr.ParserRuleContext {
     public PLAIN_WORD(): antlr.TerminalNode {
         return this.getToken(DSLParser.PLAIN_WORD, 0)!;
     }
-    public EQUALS(): antlr.TerminalNode {
-        return this.getToken(DSLParser.EQUALS, 0)!;
-    }
-    public PREDICATE(): antlr.TerminalNode {
-        return this.getToken(DSLParser.PREDICATE, 0)!;
-    }
     public TERMINATOR(): antlr.TerminalNode {
         return this.getToken(DSLParser.TERMINATOR, 0)!;
+    }
+    public EQUALS(): antlr.TerminalNode | null {
+        return this.getToken(DSLParser.EQUALS, 0);
+    }
+    public PREDICATE(): antlr.TerminalNode | null {
+        return this.getToken(DSLParser.PREDICATE, 0);
     }
     public override get ruleIndex(): number {
         return DSLParser.RULE_aliasDeclaration;

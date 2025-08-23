@@ -7,7 +7,7 @@ program: (NEW_LINE | fact | aliasDeclaration)+ EOF;
 
 fact: sentence TERMINATOR;
 
-aliasDeclaration: ALIAS_KW PLAIN_WORD EQUALS PREDICATE TERMINATOR;
+aliasDeclaration: ALIAS_KW PLAIN_WORD (EQUALS PREDICATE)? TERMINATOR;
 
 sentence: token+ ;
 
@@ -30,7 +30,7 @@ APOSTROPHE:'\'';
 EQUALS: '=';
 ALIAS_KW:'alias';
 
-TERMINATOR:(PERIOD | (PERIOD NEW_LINE));
+TERMINATOR:PERIOD (NEW_LINE)?;
 fragment PERIOD:'.';
 
 PREDICATE: '*' PLAIN_WORD;
