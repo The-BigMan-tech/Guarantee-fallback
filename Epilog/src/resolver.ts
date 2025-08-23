@@ -128,7 +128,13 @@ class Analyzer extends DSLVisitor<void> {
 
                 let successMessage = lime.underline(`\nProcessed line ${this.lineCount + 1}: `);//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
                 successMessage += `\n-Sentence: ${brown(textToLog)}`;
-                successMessage += `-Expansion: ${brown(expansionText)}`; 
+
+                if (this.predicateForLog) {//the condition is to skip printing this on alias declarations.The lock works because this is only set on facts and not on alias declarations.Im locking this on alias declarations because they dont need extra logging cuz there is no expansion data or any need to log the predicate separately.just the declaration is enough
+                    const predicateFromAlias = this.aliases.get(this.predicateForLog || '');
+                    successMessage += (predicateFromAlias)?`-Alias #${this.predicateForLog} -> *${predicateFromAlias}`:`-Predicate: *${this.predicateForLog}`;
+                    successMessage += `\n-Expansion: ${brown(expansionText)}`; 
+                }
+
                 console.info(successMessage);
             }
         }
@@ -407,7 +413,7 @@ class Analyzer extends DSLVisitor<void> {
             }
         });
         this.records[alias] = this.records[predicate] || new Rec([]);//the fallback is for when aliases are declared using the shorthand where the predicate isnt inlined with the declaration.The shorthand is for invalidating predicates
-        this.aliases.set(alias,predicate);
+        this.aliases.set(alias,predicate || alias);
         if (this.builtAFact) {
             Essentials.report(DslError.DoubleCheck,this.lineCount,`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors sooner.`);
         }
@@ -458,8 +464,8 @@ class Analyzer extends DSLVisitor<void> {
                     Essentials.report(DslError.Semantic,this.lineCount,`-They can only be one alias or predicate in a sentence but found ${chalk.bold('*'+predicate)} and ${chalk.bold(text)} being used at the same time.`);
                 }
                 this.validatePredicateType(token);
-                this.predicateForLog = text;
                 predicate = this.stripMark(text);
+                this.predicateForLog = predicate;
             }
         });
         if (predicate === null) {
