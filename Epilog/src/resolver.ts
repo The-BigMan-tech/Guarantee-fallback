@@ -408,7 +408,7 @@ class Analyzer extends DSLVisitor<void> {
         this.records[alias] = predicateRec;
         this.aliases.add(alias);
         if (this.builtAFact) {
-            Essentials.report(DslError.DoubleCheck,this.lineCount,`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors early.`);
+            Essentials.report(DslError.DoubleCheck,this.lineCount,`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors sooner.`);
         }
     }
     private expandRecursively(input:any[][],flatSequences:any[][] = []):any[][] {
