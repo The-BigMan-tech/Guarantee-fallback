@@ -86,8 +86,10 @@ export function runExamples():void {
     };
     //DSL form
     const schoolFacts = facts`
-        alias friends.
-        :ada is #friend with :peter.
+        alias buys.
+        :peter #buys 8 shoes in 7 days.
+        <He> is *tall.
+        *tt.
     `;
     if (!schoolFacts) return;
     const doc = new Doc(schoolFacts);
