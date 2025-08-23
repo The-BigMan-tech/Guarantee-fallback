@@ -95,7 +95,7 @@ interface RefCheck {
 class Analyzer extends DSLVisitor<void> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public  records:Record<string,Rec> = {};
-    private aliases = new Set<string>();
+    private aliases = new Map<string,string>();
 
     private lineCount:number = 0;
     private targetLineCount:number = this.lineCount;
@@ -370,7 +370,8 @@ class Analyzer extends DSLVisitor<void> {
                     const normText = (text.length > 2)?text.toLowerCase():text;//by only lower casing the text if its more than two letters,i prevent the text from being treated leniently when its too small(since lower casing the inputs reduces distance).Else,it will falsely match words that are few distances away but are not semantically similar.
                     const normNounRef = (nounRef.length > 2)?nounRef.toLowerCase():nounRef;
                     const dist = distance(normText,normNounRef);
-                    if ((dist < 2) && (normText !== 'is')) {//to exclude is from getting suggestions.
+                    const exclude = new Set(['is']);
+                    if ((dist < 2) && !exclude.has(normText)) {//to exclude is from getting suggestions.
                         const suggestion = (objectRefs.has(nounRef))?'object ref, <'+nounRef+':n>':'subject ref, <'+nounRef+'>';
                         Essentials.report(DslError.DoubleCheck,this.lineCount,`-Did you mean to use the ${suggestion} instead of the filler,${chalk.bold(text)}?`);
                     }
@@ -388,7 +389,8 @@ class Analyzer extends DSLVisitor<void> {
     }
     private resolveAlias(tokens:Token[]) {
         let alias = '';
-        let predicateRec:Rec = new Rec([]);
+        let predicate = '';
+        
         tokens.forEach(token=>{
             const text = token.text!;
             const type = token.type;
@@ -397,16 +399,15 @@ class Analyzer extends DSLVisitor<void> {
                 alias = text;
             }
             else if (type === DSLLexer.PREDICATE) {
-                const predicate = this.stripMark(text);
+                predicate = this.stripMark(text);
                 if (!this.records[predicate]) this.records[predicate] = new Rec([]);
-                predicateRec = this.records[predicate];
             }
             else if ((type === DSLLexer.TERMINATOR)) {
                 if (text.endsWith('\n')) this.targetLineCount += 1;//increment the count at every new line created at the end of the sentence
             }
         });
-        this.records[alias] = predicateRec;
-        this.aliases.add(alias);
+        this.records[alias] = this.records[predicate] || new Rec([]);//the fallback is for when aliases are declared using the shorthand where the predicate isnt inlined with the declaration.The shorthand is for invalidating predicates
+        this.aliases.set(alias,predicate);
         if (this.builtAFact) {
             Essentials.report(DslError.DoubleCheck,this.lineCount,`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors sooner.`);
         }
@@ -437,15 +438,16 @@ class Analyzer extends DSLVisitor<void> {
         const isAlias = this.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
         
         if (isAlias && ! token.text!.startsWith('#')) {
-            Essentials.report(DslError.Semantic,this.lineCount,`-Aliases are meant to be prefixed with  ${chalk.bold('#')} but found: ${chalk.bold(token.text)}.Did you mean: #${chalk.bold(this.stripMark(token.text!))}?`);
+            Essentials.report(DslError.Semantic,this.lineCount,`-Aliases are meant to be prefixed with ${chalk.bold('#')} but found ${chalk.bold(token.text)}. Did you mean: #${chalk.bold(this.stripMark(token.text!))}?`);
         }
         if (!isAlias && ! token.text!.startsWith("*")) {
-            let message:string = `-Predicates are meant to be prefixed with ${chalk.bold('*')} but found: ${chalk.bold(token.text)}.\n-Did you forget to declare it as an alias? `;
+            let message:string = `-Predicates are meant to be prefixed with ${chalk.bold('*')} but found ${chalk.bold(token.text)}.\n-Did you forget to declare it as an alias? `;
             const recommendedAlias = this.recommendAlias(token.text!);
             message += (recommendedAlias)?`Or did you mean to type #${recommendedAlias}?`:'';
             Essentials.report(DslError.Semantic,this.lineCount,message);
         }
     }
+    private predicateForLog:string | null = null;
     private getPredicate(tokens:Token[]):string | null {
         let predicate:string | null = null;
         tokens.forEach(token => {
@@ -456,6 +458,7 @@ class Analyzer extends DSLVisitor<void> {
                     Essentials.report(DslError.Semantic,this.lineCount,`-They can only be one alias or predicate in a sentence but found ${chalk.bold('*'+predicate)} and ${chalk.bold(text)} being used at the same time.`);
                 }
                 this.validatePredicateType(token);
+                this.predicateForLog = text;
                 predicate = this.stripMark(text);
             }
         });
@@ -464,7 +467,8 @@ class Analyzer extends DSLVisitor<void> {
         }
         return predicate;
     }
-    private expandedFacts:Atoms[] | null = [];
+
+    private expandedFacts:Atoms[] | null = null;
     private builtAFact:boolean = false;
 
     private buildFact(tokens:Token[]) {
@@ -535,7 +539,8 @@ class Analyzer extends DSLVisitor<void> {
                 break;
             }else if (type === DSLLexer.PLAIN_WORD) {
                 const capitalLetter = text.toUpperCase()[0];
-                if (text.startsWith(capitalLetter)) {
+                const exclude = new Set(['A','I']);
+                if (text.startsWith(capitalLetter) && !exclude.has(text)) {
                     Essentials.report(DslError.DoubleCheck,this.lineCount,`-Did you mean to write the name,${chalk.bold(":"+text)} instead of the filler,${chalk.bold(text)}?`);
                 }
             }else if ((type === DSLLexer.TERMINATOR) && !readOnly) {
