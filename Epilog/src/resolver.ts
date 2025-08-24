@@ -163,14 +163,11 @@ class Analyzer extends DSLVisitor<void> {
     public visitFact = (ctx:FactContext)=> {
         const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         this.resolveRefs(tokens);
-        console.log('After resolution');
-        this.printTokens(tokens);
         if (!Analyzer.terminate) this.buildFact(tokens);//i checked for termination here because ref resolution can fail
         return tokens;
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        this.printTokens(tokens);
         this.resolveAlias(tokens);
     };
 
@@ -278,8 +275,7 @@ class Analyzer extends DSLVisitor<void> {
             for (let i=0; i<membersFromSentence.length; i+=increment) {
                 step += 1;//must be incremeneted before any other operation
                 const memberToken = membersFromSentence[i];
-                console.log('incre: ',increment,'token:',memberToken.text,'step',step,'reach',stepToReach);
-                
+
                 if (memberToken.type === DSLLexer.LSQUARE) {//must update before the conditional break
                     lastEncounteredList = this.getListTokensBlock(new Denque(membersFromSentence),nthArray);
                 }
@@ -517,7 +513,6 @@ class Analyzer extends DSLVisitor<void> {
         if (Analyzer.terminate) return;
 
         this.expandedFacts = this.expandRecursively(groupedData!);
-        console.log('Ex facts: ',this.expandedFacts);
 
         for (const fact of this.expandedFacts) {;
             if (fact.length === 0) {
@@ -533,7 +528,7 @@ class Analyzer extends DSLVisitor<void> {
     private validateNameUsage(text:string) {
         const isStrict = text.startsWith('!');
         const str = this.stripMark(text);
-        console.log('name: ',str);
+
         if (isStrict && !(str in this.usedNames)) {
             Essentials.report(DslError.Semantic,this.lineCount,`-Could not find an existing usage of the name; ${chalk.bold(str)}.\n-Did you meant to type: ${chalk.bold(':'+str)} instead? Assuming that this is the first time it is used.`);
         }else if (!isStrict && this.usedNames[str] > 0) {//only give the recommendation if this is not the first time it is used
@@ -590,7 +585,6 @@ class Analyzer extends DSLVisitor<void> {
     public static inputArr:string[] = [];
     public createSentenceArray(input:string) {
         Analyzer.inputArr = input.split('\n');
-        console.log('Input: ',Analyzer.inputArr);
     }
 }
 export function genStruct(input:string):Record<string,Rec> | undefined {
