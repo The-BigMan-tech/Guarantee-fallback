@@ -6,7 +6,8 @@ import { AtomList } from "./type-helper.js";
 import { PatternedAtomList } from "./type-helper.js";
 import { Rec } from "./type-helper.js";
 import fs from 'fs/promises';
-import { readDSLAndOutputJson } from "./resolver.js";
+import { resolveDocToJson } from "./resolver.js";
+import chalk from "chalk";
 
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
 export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
@@ -128,18 +129,15 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         );
     }
 }
-export async function getDoc(srcPath:string,jsonPath:string,outputFolder:string):Promise<Doc> {
+export async function getDoc(srcPath:string,jsonPath:string,outputFolder:string):Promise<Doc | undefined> {
+    // try {await fs.access(jsonPath)};
     try {
-        await fs.access(jsonPath);
-        console.log('JSON file exists, loading...');
-    }catch {
-        console.log('JSON file not found, generating...');
-        await readDSLAndOutputJson(srcPath,outputFolder);
-    }
-    const jsonData = await fs.readFile(jsonPath, 'utf8');
-    const records:Record<string,Rec> = JSON.parse(jsonData);
-    const doc = new Doc(records);
-    return doc;
+        await resolveDocToJson(srcPath,outputFolder);
+        const jsonData = await fs.readFile(jsonPath, 'utf8');
+        const records:Record<string,Rec> = JSON.parse(jsonData);
+        const doc = new Doc(records);
+        return doc;
+    }catch { console.error(`${chalk.red('Unable to find the resolved document: ')}It is likely a path typo or the document contained errors that prevented it from resolving.`); };
 }
 
 

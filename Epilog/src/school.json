@@ -1,0 +1,98 @@
+{
+    "big": {
+        "facts": [
+            {
+                "indexMap": {},
+                "list": [
+                    "peter"
+                ],
+                "set": {}
+            }
+        ],
+        "members": {
+            "indexMap": {},
+            "list": [
+                "peter"
+            ],
+            "set": {}
+        },
+        "recID": "76c937fa-f424-4df7-aaf0-71b84e98b067"
+    },
+    "eats": {
+        "facts": [
+            {
+                "indexMap": {},
+                "list": [
+                    "peter",
+                    "a"
+                ],
+                "set": {}
+            },
+            {
+                "indexMap": {},
+                "list": [
+                    "peter",
+                    "b"
+                ],
+                "set": {}
+            },
+            {
+                "indexMap": {},
+                "list": [
+                    "peter",
+                    "c"
+                ],
+                "set": {}
+            }
+        ],
+        "members": {
+            "indexMap": {},
+            "list": [
+                "peter",
+                "a",
+                "b",
+                "c"
+            ],
+            "set": {}
+        },
+        "recID": "00656f53-0b88-4fd4-91ef-e58ec8d19631"
+    },
+    "jh": {
+        "facts": [
+            {
+                "indexMap": {},
+                "list": [
+                    "a"
+                ],
+                "set": {}
+            }
+        ],
+        "members": {
+            "indexMap": {},
+            "list": [
+                "a"
+            ],
+            "set": {}
+        },
+        "recID": "79c8c9c1-d6d7-4392-bf17-d0fc06441e35"
+    },
+    "tall": {
+        "facts": [
+            {
+                "indexMap": {},
+                "list": [
+                    "peter"
+                ],
+                "set": {}
+            }
+        ],
+        "members": {
+            "indexMap": {},
+            "list": [
+                "peter"
+            ],
+            "set": {}
+        },
+        "recID": "55da7cc3-fce4-4676-8f6a-31cde8c5dfc4"
+    }
+}

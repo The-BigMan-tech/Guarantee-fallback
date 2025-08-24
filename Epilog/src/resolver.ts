@@ -45,7 +45,7 @@ class Essentials {
     
     public static report(errorType:string,lineCount:number,msg:string,checkLines?:number[]):void {
         function pushLine(line:number):void {
-            messages.push(brown(Analyzer.inputArr[line].trim() + '\n'));
+            messages.push(brown(Analyzer.inputArr[line]?.trim() + '\n'));
         }
 
         let title = chalk.underline(`\n${errorType} line ${lineCount+1}:`);//for 1-based line counting for the logs
@@ -108,18 +108,19 @@ class Analyzer extends DSLVisitor<void> {
         console.log('\n Tokens:',tokenDebug);
     }
     private logProgress(tokens:Token[] | null) {
-        const resolvedSentence = tokens?.map(token=>token.text!).join(' ') || '';
+        if (tokens===null) return;
+        const resolvedSentence = tokens.map(token=>token.text!).join(' ') || '';
         const originalSrc  = Analyzer.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
 
         if (!Analyzer.terminate) {
-            if (originalSrc.trim().length > 0) {
+            if (originalSrc?.trim().length > 0) {
                 let expansionText = stringify(this.expandedFacts);
                 expansionText = replaceLastOccurrence(expansionText,']','\n]\n')
                     .replace('[','\n[\n')
                     .replaceAll(',[',',\n[')
                     .split('\n')
                     .map(line => {
-                        const trimmed = line.trim();
+                        const trimmed = line?.trim();
                         if (trimmed.startsWith('[') && (trimmed.endsWith(']') || trimmed.endsWith('],'))) {
                             return '  ' + trimmed; // trim original and add two spaces indentation
                         }
@@ -158,6 +159,7 @@ class Analyzer extends DSLVisitor<void> {
             this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.                 
             this.lineCount = this.targetLineCount;
             this.expandedFacts = null;
+            this.predicateForLog = null;
         }
         return this.records;
     };
@@ -586,28 +588,28 @@ class Analyzer extends DSLVisitor<void> {
     public static inputArr:string[] = [];
     public createSentenceArray(input:string) {
         Analyzer.inputArr = input.split('\n');
+        console.log('Input: ',Analyzer.inputArr);
     }
 }
-function genStruct(input:string):Record<string,Rec> | undefined {
+function genStructures(input:string):Record<string,Rec> | undefined {
     const visitor = new Analyzer();
     visitor.createSentenceArray(input);
     Essentials.loadEssentials(input);
     visitor.visit(Essentials.tree);
-    const shouldTerminate = Analyzer.terminate;//save the current termination state
-    Analyzer.terminate = false;//reset it to false so that subsequent dsls can be analyzed
-    if (!shouldTerminate) return visitor.records;
+    if (!Analyzer.terminate) return visitor.records;
 }
-export async function readDSLAndOutputJson(filePath:string,outputFolder:string):Promise<void> {
+export async function resolveDocToJson(filePath:string,outputFolder:string):Promise<void> {
     try {
         const src = await fs.readFile(filePath, 'utf8');
-        const resolvedData = genStruct(src);
-        const json = stringify(resolvedData,null,4) || '';
-        const jsonFilePath = path.join(
-            outputFolder,
-            path.basename(filePath, path.extname(filePath)) + '.json'
-        );
-        await fs.writeFile(jsonFilePath, json);
-        console.log(`\n${lime('Successfully wrote JSON output to: ')} ${jsonFilePath}\n`);
+        const resolvedData = genStructures(src);
+        if (!Analyzer.terminate) {
+            const json = stringify(resolvedData,null,4) || '';
+            const jsonFilePath = path.basename(filePath, path.extname(filePath)) + '.json';
+            const fullJsonPath = path.join(outputFolder,jsonFilePath);
+            await fs.writeFile(fullJsonPath, json);
+            Analyzer.terminate = false;//reset it for subsequent analyzing
+            console.log(`\n${lime('Successfully wrote JSON output to: ')} ${jsonFilePath}\n`);
+        }
     } catch (err) {
         console.error('Error processing file:', err);
     }

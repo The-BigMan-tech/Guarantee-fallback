@@ -12,6 +12,8 @@ const jsonFilePath = path.join(
 );
 
 const schoolDoc = await getDoc(srcPath,jsonFilePath,jsonOutputDir);
+if (!schoolDoc) process.exit(0);
+
 console.info(schoolDoc.isItAFact(schoolDoc.records.tall,['ada']));
 
 console.log('are they friends: ',Rules.areFriends(schoolDoc,['zane','cole']));
