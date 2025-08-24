@@ -104,12 +104,12 @@ class Analyzer extends DSLVisitor<void> {
     public static terminate:boolean = false;
 
     private printTokens(tokens:Token[]):void {
-        const tokenDebug = tokens.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
+        const tokenDebug = tokens?.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
         console.log('\n Tokens:',tokenDebug);
     }
     private logProgress(tokens:Token[] | null) {
-        if (tokens===null) return;
-        const resolvedSentence = tokens.map(token=>token.text!).join(' ') || '';
+        if ((tokens===null) && !this.seenAlias) return;//dont log anything if they are no tokens and no alias is declared
+        const resolvedSentence = tokens?.map(token=>token.text!).join(' ') || '';
         const originalSrc  = Analyzer.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
 
         if (!Analyzer.terminate) {
@@ -160,6 +160,7 @@ class Analyzer extends DSLVisitor<void> {
             this.lineCount = this.targetLineCount;
             this.expandedFacts = null;
             this.predicateForLog = null;
+            this.seenAlias = false;
         }
         return this.records;
     };
@@ -424,6 +425,7 @@ class Analyzer extends DSLVisitor<void> {
     private stripMark(text:string) {
         return text.slice(1);// Remove the leading '*' or '#' or : or !
     }
+    private seenAlias:boolean = false;//i used this to control progress logging
     private resolveAlias(tokens:Token[]) {
         let alias = '';
         let predicate = '';
@@ -445,6 +447,7 @@ class Analyzer extends DSLVisitor<void> {
         });
         this.records[alias] = this.records[predicate] || new Rec([]);//the fallback is for when aliases are declared using the shorthand where the predicate isnt inlined with the declaration.The shorthand is for invalidating predicates
         this.aliases.set(alias,predicate || alias);
+        this.seenAlias = true;
         if (this.builtAFact) {
             Essentials.report(DslError.DoubleCheck,this.lineCount,`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors sooner.`);
         }
