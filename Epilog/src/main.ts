@@ -1,4 +1,4 @@
-import { Doc, loadDoc } from "./fact-checker.js";
+import { Doc, getDoc } from "./fact-checker.js";
 import { Rules } from "./rules.js";
 import path from "path";
 
@@ -10,7 +10,7 @@ const jsonPath = path.join(
     path.basename(srcPath, path.extname(srcPath)) + '.json'
 );
 
-const schoolDoc = await loadDoc(srcPath,jsonPath,true);
+const schoolDoc = await getDoc(srcPath,jsonPath,true);
 if (!schoolDoc) process.exit(0);
 
 console.info(schoolDoc.isItAFact(schoolDoc.records.eats,['peter','a']));

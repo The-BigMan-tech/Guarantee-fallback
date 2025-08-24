@@ -8,10 +8,8 @@ import { Rec } from "./type-helper.js";
 import fs from 'fs/promises';
 import chalk from "chalk";
 import path from "path";
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { spawn } from 'child_process';
 
-const execAsync = promisify(exec);
 
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
 export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
@@ -134,17 +132,21 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         );
     }
 }
-export async function loadDoc(srcPath:string,jsonPath:string,recreateJson:boolean):Promise<Doc | undefined> {
+export async function getDoc(srcPath:string,jsonPath:string,recreateJson:boolean):Promise<Doc | undefined> {
     try {
         if (recreateJson) {
             const outputFolder = path.dirname(jsonPath);
-            const cliCommand = `epilog-resolver --src "${srcPath}" --out "${outputFolder}"`;
-            const { stdout, stderr } = await execAsync(cliCommand);
-            if (stderr) {
-                console.error('Resolver CLI error:', stderr);
+            const cliArgs = ['--src', srcPath, '--out', outputFolder];
+
+            const child = spawn('epilog-resolver', cliArgs, { stdio: 'inherit',shell:true });
+            const exitCode = await new Promise<number>((resolve, reject) => {
+                child.on('close', resolve);
+                child.on('error', reject);
+            });
+            if (exitCode !== 0) {
+                console.error(`Resolver CLI exited with code ${exitCode}`);
                 return;
             }
-            console.log('Resolver CLI output:', stdout);
         }
         const jsonData = await fs.readFile(jsonPath, 'utf8');
         const records:Record<string,Rec> = JSON.parse(jsonData);
@@ -158,7 +160,7 @@ export async function loadDoc(srcPath:string,jsonPath:string,recreateJson:boolea
         const doc = new Doc(records);
         console.info(lime('Successfully loaded the document.\n'));
         return doc;
-    }catch { console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-It is either a path typo or it doesnt exist.\n-Check for typos,try setting the recreate json flag to true and ensure that the document doesnt contain errors that will prevent it from resolving to a json file.\n`); };
+    }catch(err) { console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-${err}.\n-Check for typos,try setting the recreate json flag to true and ensure that the document doesnt contain errors that will prevent it from resolving to a json file.\n`); };
 }
 
 

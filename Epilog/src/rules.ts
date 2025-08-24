@@ -1,4 +1,5 @@
 import { Doc,Rule,RecursiveRule } from "./fact-checker.js";
+import { UniqueList } from "./unique-list.js";
 
 //A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
 export class Rules {//i had the rules as a seprate class to decouple it from the document.So all rules can be added here and be used on whatever document that needs itrather than decoupling specifc rules to the codument class
@@ -10,7 +11,7 @@ export class Rules {//i had the rules as a seprate class to decouple it from the
     };
     public static isIndirectFriend:RecursiveRule<[string,string]> = (doc,statement,visitedCombinations)=> {
         const [X,Y] = statement;
-        const candidates = doc.genCandidates<string[],1>(1,doc.records.friends,statement,visitedCombinations);
+        const candidates = doc.genCandidates<UniqueList<string>,1>(1,doc.records.friends,statement,visitedCombinations);
         for (const [A] of candidates) {
             if (Rules.isDirectFriend(doc,[X,A])) {
                 if (Rules.isDirectFriend(doc,[A,Y]) || Rules.isIndirectFriend(doc,[A,Y],visitedCombinations)) {
