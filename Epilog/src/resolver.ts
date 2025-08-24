@@ -9,6 +9,7 @@ import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
+import e from "express";
 // import {colorize} from "json-colorizer";
 
 interface ResolvedSingleTokens {
@@ -209,7 +210,6 @@ class Analyzer extends DSLVisitor<void> {
         const extractNumFromRef = (text:string):number=> {
             const num =  Number(text.split(":")[1].slice(0,-1));
             if (!Number.isInteger(num)) Essentials.report(DslError.Semantic,this.lineCount,`-The reference; ${chalk.bold(text)} must use an integer`);
-            if (num === 1) Essentials.report(DslError.Semantic,this.lineCount,`-The reference ${chalk.bold(text)} must point to an object and not the subject.\n-If thats the intention,then use <He>,<She> or <It>.`);
             if (num > 3) Essentials.report(DslError.DoubleCheck,this.lineCount,`-Are you sure you can track what this reference; ${chalk.bold(text)} is pointing to?`);
             return num;
         };
@@ -290,27 +290,45 @@ class Analyzer extends DSLVisitor<void> {
             }
             return {nthMember,lastEncounteredList};
         };
-        const isRefValid = (member:Token | null,refTarget:'single' | 'group',isObjectRef:boolean,text:string,nthIndex:number):boolean=> {
-            if (isObjectRef && !encounteredName && !hasRef) {
+        const isRefValid = (member:Token | null,refTarget:'single' | 'group' | 'any',refType:'object' | 'subject' | 'generic',ref:string,nthIndex:number):boolean=> {
+            if (!member) {
+                if (refType === "object") {
+                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
+                }else if (refType === "subject") {
+                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a sentence prior to the reference.`,[this.lineCount-1,this.lineCount]);
+                }else if (refType === "generic") {
+                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a sentence prior to the reference and it has a ${getOrdinalSuffix(nthIndex! + 1)} member.`,[this.lineCount-1,this.lineCount]);
+                }
+                return false;
+            }
+            else if (refType === "generic")  {
+                return true;
+            }
+            else if ((refType === 'object') && (extractNumFromRef(ref) === 1)) {
+                Essentials.report(DslError.Semantic,this.lineCount,`-The reference ${chalk.bold(ref)} must point to an object and not the subject.\n-If thats the intention,then use <He>,<She> or <It>.`);
+                return false;
+            }
+            else if ((refType === "object") && !encounteredName && !hasRef) {
                 Essentials.report(DslError.Semantic,this.lineCount,`An object reference can not be the subject of a sentence.`);
                 return false;
-            }else if (!isObjectRef && (encounteredName || hasRef)) {
+            }else if ((refType === "subject") && (encounteredName || hasRef)) {
                 Essentials.report(DslError.Semantic,this.lineCount,`An subject reference can not be the object of a sentence.`);
                 return false;
             }
-            if (member) {
-                if (refTarget === 'single') {
-                    if (member?.type === DSLLexer.NAME) return true;
-                    else Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to a name of the previous sentence but found an array.`,[this.lineCount-1,this.lineCount]);
-                }else if (refTarget === 'group') {
-                    if (member?.type === DSLLexer.LSQUARE) return true;
-                    else Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}.\n-It can only point to an array of the previous sentence but found a name.`,[this.lineCount-1,this.lineCount]);
-                }
-            }else {
-                if (isObjectRef) {
-                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
+            else if (refTarget === 'single') {
+                if (member?.type === DSLLexer.NAME) {
+                    return true;
                 }else {
-                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(text)}. \n-Be sure that there is a sentence prior to the reference.`,[this.lineCount-1,this.lineCount]);
+                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to a name of the previous sentence but found an array.`,[this.lineCount-1,this.lineCount]);
+                    return false;
+                }
+            }
+            else if (refTarget === 'group') {
+                if (member?.type === DSLLexer.LSQUARE) {
+                    return true;
+                }else {
+                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to an array of the previous sentence but found a name.`,[this.lineCount-1,this.lineCount]);
+                    return false;
                 }
             }
             return false;
@@ -337,7 +355,7 @@ class Analyzer extends DSLVisitor<void> {
                 
                 const member = getNthMember(nthIndex).nthMember;
                 let resolvedToken:Token | null = null;
-                if (isRefValid(member,'single',isObjectRef,text,nthIndex)) {
+                if (isRefValid(member,'single',(isObjectRef)?'object':'subject',text,nthIndex)) {
                     resolvedToken = member;
                 }else return;
 
@@ -356,13 +374,24 @@ class Analyzer extends DSLVisitor<void> {
                 const member = result.nthMember;
                 let resolvedTokens:Token[] | null = null;
 
-                if (isRefValid(member,'group',isObjectRef,text,nthIndex)) {
+                if (isRefValid(member,'group',(isObjectRef)?'object':'subject',text,nthIndex)) {
                     resolvedTokens = result.lastEncounteredList;
                 }else return;
 
                 resolvedGroupedTokens.indices.push(index);
                 resolvedGroupedTokens.tokens.set(index,resolvedTokens);
                 hasRef = true;
+            }
+            
+            else if (type === DSLLexer.GENERIC_REF) {
+                const nthIndex = extractNumFromRef(text);
+                if (Analyzer.terminate) return;
+
+                const result = getNthMember(nthIndex);
+                const member = result.nthMember;
+                if (isRefValid(member,'any','generic',text,nthIndex)) {
+                    i
+                }else return;
             }
 
 
