@@ -26,7 +26,6 @@ enum DslError{
     Syntax="Syntax Error at",
     DoubleCheck="This is safe to ignore but double check"
 }
-console.log = ():undefined=>undefined;//to turn off the logs
 
 const brown = chalk.hex("#ddcba0ff");
 const lime = chalk.hex('adef1e');
@@ -598,23 +597,17 @@ function genStruct(input:string):Record<string,Rec> | undefined {
     Analyzer.terminate = false;//reset it to false so that subsequent dsls can be analyzed
     if (!shouldTerminate) return visitor.records;
 }
-function omitKeysReplacer(key:string, value:any) {
-    if (key === '_set' || key === 'indexMap') {
-        return undefined; // exclude these properties
-    }
-    return value;
-}
-export async function readDSLAndOutputJson(filePath:string,outputPath:string):Promise<void> {
+export async function readDSLAndOutputJson(filePath:string,outputFolder:string):Promise<void> {
     try {
         const src = await fs.readFile(filePath, 'utf8');
         const resolvedData = genStruct(src);
-        const json = stringify(resolvedData,omitKeysReplacer,4) || '';
+        const json = stringify(resolvedData,null,4) || '';
         const jsonFilePath = path.join(
-            outputPath,
+            outputFolder,
             path.basename(filePath, path.extname(filePath)) + '.json'
         );
         await fs.writeFile(jsonFilePath, json);
-        console.log(`Successfully wrote JSON output to ${jsonFilePath}`);
+        console.log(`Successfully wrote JSON output to ${jsonFilePath}\n`);
     } catch (err) {
         console.error('Error processing file:', err);
     }

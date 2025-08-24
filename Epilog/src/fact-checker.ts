@@ -6,6 +6,8 @@ import { Atoms } from "./type-helper.js";
 import { PatternedAtoms } from "./type-helper.js";
 import { Rec } from "./type-helper.js";
 import { Facts } from "./type-helper.js";
+import fs from 'fs/promises';
+import { readDSLAndOutputJson } from "./resolver.js";
 
 export type Rule<T extends Atoms> = (doc:Doc,statement:T)=>boolean;
 export type RecursiveRule<T extends Atoms> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
@@ -125,3 +127,18 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         );
     }
 }
+export async function getDoc(srcPath:string,jsonPath:string,outputFolder:string):Promise<Doc> {
+    try {
+        await fs.access(jsonPath);
+        console.log('JSON file exists, loading...');
+    }catch {
+        console.log('JSON file not found, generating...');
+        await readDSLAndOutputJson(srcPath,outputFolder);
+    }
+    const jsonData = await fs.readFile(jsonPath, 'utf8');
+    const facts = JSON.parse(jsonData);
+    const doc = new Doc(facts);
+    return doc;
+}
+
+

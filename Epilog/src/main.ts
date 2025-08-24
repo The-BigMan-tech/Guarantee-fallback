@@ -1,32 +1,35 @@
-import { Doc } from "./fact-checker.js";
-import { readDSLAndOutputJson } from "./resolver.js";
+import { Doc, getDoc } from "./fact-checker.js";
 import { Rules } from "./rules.js";
 import path from "path";
 
+
 const cwd = process.cwd();
-await readDSLAndOutputJson(path.join(cwd,'./src/school.el'),path.join(cwd,'./src'));
+const srcPath = path.join(cwd, './src/school.el');
+const jsonOutputDir = path.join(cwd, './src');
+const jsonFilePath = path.join(
+    jsonOutputDir,
+    path.basename(srcPath, path.extname(srcPath)) + '.json'
+);
 
-if (!schoolFacts) process.exit(0);
-const doc = new Doc(schoolFacts);
-console.info( doc.isItAFact(doc.records.tall,['ada']));
+const schoolDoc = await getDoc(srcPath,jsonFilePath,jsonOutputDir);
+console.info(schoolDoc.isItAFact(schoolDoc.records.tall,['ada']));
 
-
-console.log('are they friends: ',Rules.areFriends(doc,['zane','cole']));
+console.log('are they friends: ',Rules.areFriends(schoolDoc,['zane','cole']));
 // console.log(Rules.areBrothers(doc,['ben','ben']));
 
 //this gets all the facts that answers what the widcard can be
-for (const fact of doc.findAllFacts(doc.records.friends,['cole',Doc.wildCard],true)) {//i used the allies alias
+for (const fact of schoolDoc.findAllFacts(schoolDoc.records.friends,['cole',Doc.wildCard],true)) {//i used the allies alias
     if (fact) console.log('friend of cole:',fact);
 }
-const smallestRecord = doc.selectSmallestRecord(doc.records.male,doc.records.friends,doc.records.parent);
-const candidates = doc.genCandidates(1,smallestRecord,[],new Set());
+const smallestRecord = schoolDoc.selectSmallestRecord(schoolDoc.records.male,schoolDoc.records.friends,schoolDoc.records.parent);
+const candidates = schoolDoc.genCandidates(1,smallestRecord,[],new Set());
 for (const [A] of candidates as Generator<string,void,unknown>) {
-    if (Rules.areFriends(doc,['ada',A]) && Rules.areBrothers(doc,[A,'ben'])) {
+    if (Rules.areFriends(schoolDoc,['ada',A]) && Rules.areBrothers(schoolDoc,[A,'ben'])) {
         console.log('The friend of ada who is also the brother of ben:',A);
     }
 }
-console.log(doc.areMembersInSet(['ada','leo'],doc.records.parent?.members.set));
+console.log(schoolDoc.areMembersInSet(['ada','leo'],schoolDoc.records.parent?.members.set));
 
-for (const fact of doc.findAllFacts(doc.records.eats,['ada',Doc.wildCard])) {
+for (const fact of schoolDoc.findAllFacts(schoolDoc.records.eats,['ada',Doc.wildCard])) {
     if (fact) console.log(fact);
 }
