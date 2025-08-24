@@ -633,7 +633,6 @@ program
     .version('1.0.0');
 
 program
-    .command('resolve')
     .description('Run the resolve function with options')
     .requiredOption('--src <srcPath>', 'path to DSL file')
     .option('--out <outputPath>', 'folder to output the DSL data structure')

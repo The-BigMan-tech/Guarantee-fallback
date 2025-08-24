@@ -8,6 +8,10 @@ import { Rec } from "./type-helper.js";
 import fs from 'fs/promises';
 import chalk from "chalk";
 import path from "path";
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
 export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
@@ -130,10 +134,18 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         );
     }
 }
-
 export async function loadDoc(srcPath:string,jsonPath:string,recreateJson:boolean):Promise<Doc | undefined> {
     try {
-        if (recreateJson) await resolveDocToJson(srcPath,path.dirname(jsonPath));
+        if (recreateJson) {
+            const outputFolder = path.dirname(jsonPath);
+            const cliCommand = `epilog-resolver --src "${srcPath}" --out "${outputFolder}"`;
+            const { stdout, stderr } = await execAsync(cliCommand);
+            if (stderr) {
+                console.error('Resolver CLI error:', stderr);
+                return;
+            }
+            console.log('Resolver CLI output:', stdout);
+        }
         const jsonData = await fs.readFile(jsonPath, 'utf8');
         const records:Record<string,Rec> = JSON.parse(jsonData);
         const isValid = validator.Check(records);

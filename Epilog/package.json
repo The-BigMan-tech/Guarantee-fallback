@@ -2,7 +2,9 @@
   "name": "Epilog",
   "main": "./dist/bundle-min.js",
   "types": "./dist/bundle-min.d.ts",
-  "bin": {},
+  "bin": {
+    "epilog-resolver":"./build/src/resolver.js"
+  },
   "version": "1.0.0",
   "description": "A TypeScript library project scaffold providing ready-to-use build and debug tooling",
   "scripts": {
