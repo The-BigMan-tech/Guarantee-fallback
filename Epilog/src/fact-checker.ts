@@ -14,6 +14,7 @@ export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
 export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
 
 
+const lime = chalk.hex('adef1e');
 export class Doc {//I named it Doc instead of Document to avoid ambiguity with the default Document class which is for the DOM
     public records:Record<string,Rec> = {};
     public static wildCard = Symbol('*');
@@ -131,11 +132,9 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
     }
 }
 
-const lime = chalk.hex('adef1e');
-export async function loadDoc(srcPath:string,jsonPath:string):Promise<Doc | undefined> {
-    // try {await fs.access(jsonPath)};
+export async function loadDoc(srcPath:string,jsonPath:string,recreateJson:boolean):Promise<Doc | undefined> {
     try {
-        // await resolveDocToJson(srcPath,path.dirname(jsonPath));
+        if (recreateJson) await resolveDocToJson(srcPath,path.dirname(jsonPath));
         const jsonData = await fs.readFile(jsonPath, 'utf8');
         const records:Record<string,Rec> = JSON.parse(jsonData);
         const isValid = validator.Check(records);
@@ -148,7 +147,7 @@ export async function loadDoc(srcPath:string,jsonPath:string):Promise<Doc | unde
         const doc = new Doc(records);
         console.info(lime('Successfully loaded the document.\n'));
         return doc;
-    }catch { console.error(`${chalk.red('Unable to find the resolved document: ')}It is likely a path typo or the document contained errors that prevented it from resolving.`); };
+    }catch { console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-It is either a path typo or it doesnt exist.\n-Check for typos,try setting the recreate json flag to true and ensure that the document doesnt contain errors that will prevent it from resolving to a json file.\n`); };
 }
 
 
