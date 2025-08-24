@@ -2052,6 +2052,12 @@ two stage parsing process
 *so an alias is a synonym of a predicate and as such,it must ultimately refer to a predicate which is why the explicit typing:alias friends = *friends. is required.This pattern is for invalidating a predicate by creating an alias under the same name for safety.but this pattern may be very common when using my dsl to write large documents safely so as a shorthand,i allowed alias friends.which is the same thing as writing it out in full.they both invalidate predicates under the same name
 *and resoling aliases has a small overhead in resolving them.cuz predicates are direct assignments.but aliases are safer so the cost is negligible
 
+*So subject refs like He,She refer to the subject ad must be a name while him,her refer to the object and must be a name.They must refer to a subject thats an array and them must refer to an object thats an array.subject refs must be the subject of the current senetnce and object refs can not be the subject of the current reference.any attempt to refer to the subject with an object one by using him:1 for example,will report an error.All thse checks are to prevent any form of confusion or ambiguities.
+
+*so generic refs are not inherently unsafe.Because they are implemented the same way as semantic ones but because they are not treated with any semantic role,they can become ambiguous and the resolver can not guarantee if a generic ref is used with meaning or not.so overuse can cause logic errors if users dont properly understand its context.but it brings flexibility where users need to ref an arbitrary member with no constraints.
+
+*so all references have this clean notation: <name:index?>
+
 refs,smart refs.
 
 tokenization,semantism,building

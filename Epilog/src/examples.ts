@@ -86,10 +86,9 @@ export function runExamples():void {
     };
     //DSL form
     const schoolFacts = facts`
-        alias buys.
-        :peter #buys 8 shoes in 7 days.
-        <He> is *tall.
-        *tt.
+        [:a,:b,:c] *eat [:d,:e,:f].
+        <They> *watch [:g,:h,:i].
+        :j *plays with <them:2>.
     `;
     if (!schoolFacts) return;
     const doc = new Doc(schoolFacts);
