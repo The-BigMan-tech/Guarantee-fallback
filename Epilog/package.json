@@ -57,6 +57,7 @@
     "@lezer/generator": "^1.8.0",
     "@lezer/javascript": "^1.5.1",
     "@lezer/lr": "^1.4.2",
+    "@sinclair/typebox": "^0.34.40",
     "@types/deep-equal": "^1.0.4",
     "antlr-ng": "^1.0.10",
     "antlr4ng": "^3.0.16",

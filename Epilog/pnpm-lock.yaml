@@ -20,6 +20,9 @@ importers:
       '@lezer/lr':
         specifier: ^1.4.2
         version: 1.4.2
+      '@sinclair/typebox':
+        specifier: ^0.34.40
+        version: 0.34.40
       '@types/deep-equal':
         specifier: ^1.0.4
         version: 1.0.4
@@ -499,6 +502,9 @@ packages:
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
+
+  '@sinclair/typebox@0.34.40':
+    resolution: {integrity: sha512-gwBNIP8ZAYev/ORDWW0QvxdwPXwxBtLsdsJgSc7eDIRt8ubP+rxUBzPsrwnu16fgEF8Bx4lh/+mvQvJzcTM6Kw==}
 
   '@types/chai@5.2.2':
     resolution: {integrity: sha512-8kB30R7Hwqf40JPiKhVzodJs2Qc1ZJ5zuT3uzw5Hq/dhNCl3G3l83jfpdI1e20BP348+fV7VIL/+FxaXkqBmWg==}
@@ -2074,6 +2080,8 @@ snapshots:
     optional: true
 
   '@rtsao/scc@1.1.0': {}
+
+  '@sinclair/typebox@0.34.40': {}
 
   '@types/chai@5.2.2':
     dependencies:

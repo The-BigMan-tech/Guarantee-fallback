@@ -1,6 +1,6 @@
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
-import { Tuple, UniqueAtomList } from "./type-helper.js";
+import { Tuple, UniqueAtomList, validator } from "./type-helper.js";
 import {stringify} from "safe-stable-stringify";
 import { AtomList } from "./type-helper.js";
 import { PatternedAtomList } from "./type-helper.js";
@@ -8,6 +8,7 @@ import { Rec } from "./type-helper.js";
 import fs from 'fs/promises';
 import { resolveDocToJson } from "./resolver.js";
 import chalk from "chalk";
+import path from "path";
 
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
 export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
@@ -74,8 +75,8 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
                 }
             }
         }
-        if (matchedFacts.length===0) yield false;
         this.saveToFactsCache(cacheKey,matchedFacts);
+        if (matchedFacts.length===0) yield false;
     }
     public findFirstFact(record: Rec, args:PatternedAtomList,byMembership=false):false | AtomList {
         const facts = this.findAllFacts(record, args,byMembership);
@@ -129,13 +130,23 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         );
     }
 }
-export async function getDoc(srcPath:string,jsonPath:string,outputFolder:string):Promise<Doc | undefined> {
+
+const lime = chalk.hex('adef1e');
+export async function loadDoc(srcPath:string,jsonPath:string):Promise<Doc | undefined> {
     // try {await fs.access(jsonPath)};
     try {
-        await resolveDocToJson(srcPath,outputFolder);
+        // await resolveDocToJson(srcPath,path.dirname(jsonPath));
         const jsonData = await fs.readFile(jsonPath, 'utf8');
         const records:Record<string,Rec> = JSON.parse(jsonData);
+        const isValid = validator.Check(records);
+
+        if (!isValid) {
+            const errors = [...validator.Errors(jsonData)].map(({ path, message }) => ({ path, message }));
+            console.error(chalk.red('Validation error in the json file:'), errors);
+            return;//to prevent corruption
+        }
         const doc = new Doc(records);
+        console.info(lime('Successfully loaded the document.\n'));
         return doc;
     }catch { console.error(`${chalk.red('Unable to find the resolved document: ')}It is likely a path typo or the document contained errors that prevented it from resolving.`); };
 }

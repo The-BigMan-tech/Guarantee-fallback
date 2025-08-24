@@ -598,15 +598,23 @@ function genStructures(input:string):Record<string,Rec> | undefined {
     visitor.visit(Essentials.tree);
     if (!Analyzer.terminate) return visitor.records;
 }
+function omitJsonKeys(key:string,value:any) {
+    if ((key === "set") ||  (key === "indexMap")) {
+        return undefined; // exclude 'password'
+    }
+    return value; // include everything else
+}
+
 export async function resolveDocToJson(filePath:string,outputFolder:string):Promise<void> {
     try {
         const src = await fs.readFile(filePath, 'utf8');
         const resolvedData = genStructures(src);
         if (!Analyzer.terminate) {
-            const json = stringify(resolvedData,null,4) || '';
+            const json = stringify(resolvedData,omitJsonKeys,4) || '';
             const jsonFilePath = path.basename(filePath, path.extname(filePath)) + '.json';
             const fullJsonPath = path.join(outputFolder,jsonFilePath);
             await fs.writeFile(fullJsonPath, json);
+
             Analyzer.terminate = false;//reset it for subsequent analyzing
             console.log(`\n${lime('Successfully wrote JSON output to: ')} ${jsonFilePath}\n`);
         }
