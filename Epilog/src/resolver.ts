@@ -607,7 +607,7 @@ export async function readDSLAndOutputJson(filePath:string,outputFolder:string):
             path.basename(filePath, path.extname(filePath)) + '.json'
         );
         await fs.writeFile(jsonFilePath, json);
-        console.log(`\nSuccessfully wrote JSON output to ${jsonFilePath}\n`);
+        console.log(`\n${lime('Successfully wrote JSON output to: ')} ${jsonFilePath}\n`);
     } catch (err) {
         console.error('Error processing file:', err);
     }
