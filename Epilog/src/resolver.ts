@@ -294,6 +294,9 @@ class Analyzer extends DSLVisitor<void> {
             if (isObjectRef && !encounteredName && !hasRef) {
                 Essentials.report(DslError.Semantic,this.lineCount,`An object reference can not be the subject of a sentence.`);
                 return false;
+            }else if (!isObjectRef && (encounteredName || hasRef)) {
+                Essentials.report(DslError.Semantic,this.lineCount,`An subject reference can not be the object of a sentence.`);
+                return false;
             }
             if (member) {
                 if (refTarget === 'single') {
