@@ -9,7 +9,6 @@ import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
-import e from "express";
 // import {colorize} from "json-colorizer";
 
 interface ResolvedSingleTokens {
@@ -207,6 +206,17 @@ class Analyzer extends DSLVisitor<void> {
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
     
     private resolveRefs(tokens: Token[]) {
+        const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
+        const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};//used a descending order heap so that insertion during resolution doesnt cause index shift that will unexpectedly affect the final result
+
+        const objectRefs = new Set(['him','her','it','them','their']);
+        const nounRefs = ['He','She','It','They',...objectRefs];
+
+        const encounteredNames:string[] = [];
+
+        let hasRef = false;
+        let encounteredName:boolean = false;//for use in ensurig safety
+        
         const extractNumFromRef = (text:string):number=> {
             const num =  Number(text.split(":")[1].slice(0,-1));
             if (!Number.isInteger(num)) Essentials.report(DslError.Semantic,this.lineCount,`-The reference; ${chalk.bold(text)} must use an integer`);
@@ -225,17 +235,13 @@ class Analyzer extends DSLVisitor<void> {
             if (numOfRefs  > 2) {
                 Essentials.report(DslError.DoubleCheck,this.lineCount,`-Be careful with how multiple references are used in a sentence and be sure that you know what they are pointing to.`);
             }
-            for (const index of resolvedSingleTokens.indices) {
-                const resolvedToken = resolvedSingleTokens.tokens.get(index) || null;
-                if (resolvedToken !== null) {//resolve the single ref
-                    tokens[index] = resolvedToken;
-                }
+            for (const index of resolvedSingleTokens.indices) {//resolve the single ref
+                const resolvedToken = resolvedSingleTokens.tokens.get(index)!;
+                tokens[index] = resolvedToken;
             }
             for (const index of resolvedGroupedTokens.indices) {//this is a heap unlike the one for single tokens which is an array.so it will be consumed after this iteration
-                const resolvedTokens = resolvedGroupedTokens.tokens.get(index) || null;
-                if (resolvedTokens !== null) {//resolve the group ref
-                    tokens.splice(index,1,...resolvedTokens);
-                }
+                const resolvedTokens = resolvedGroupedTokens.tokens.get(index)!;
+                tokens.splice(index,1,...resolvedTokens);
             }
         };
         function getMembers(sentenceTokens:Token[]) {
@@ -333,17 +339,7 @@ class Analyzer extends DSLVisitor<void> {
             }
             return false;
         };
-        const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
-        const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};//used a descending order heap so that insertion during resolution doesnt cause index shift that will unexpectedly affect the final result
 
-        const objectRefs = new Set(['him','her','it','them','their']);
-        const nounRefs = ['He','She','It','They',...objectRefs];
-
-        const encounteredNames:string[] = [];
-
-        let hasRef = false;
-        let encounteredName:boolean = false;//for use in ensurig safety
-        
         for (const [index,token] of tokens.entries()){//I did no breaks here to allow all refs in the sentence to resolve
             const text = token.text!;
             const type = token.type;
@@ -354,13 +350,11 @@ class Analyzer extends DSLVisitor<void> {
                 if (Analyzer.terminate) return;
                 
                 const member = getNthMember(nthIndex).nthMember;
-                let resolvedToken:Token | null = null;
+    
                 if (isRefValid(member,'single',(isObjectRef)?'object':'subject',text,nthIndex)) {
-                    resolvedToken = member;
+                    resolvedSingleTokens.indices.push(index);
+                    resolvedSingleTokens.tokens.set(index,member);
                 }else return;
-
-                resolvedSingleTokens.indices.push(index);
-                resolvedSingleTokens.tokens.set(index,resolvedToken);
                 hasRef = true;
             }
 
@@ -372,14 +366,11 @@ class Analyzer extends DSLVisitor<void> {
                 
                 const result = getNthMember(nthIndex);
                 const member = result.nthMember;
-                let resolvedTokens:Token[] | null = null;
 
                 if (isRefValid(member,'group',(isObjectRef)?'object':'subject',text,nthIndex)) {
-                    resolvedTokens = result.lastEncounteredList;
+                    resolvedGroupedTokens.indices.push(index);
+                    resolvedGroupedTokens.tokens.set(index,result.lastEncounteredList);
                 }else return;
-
-                resolvedGroupedTokens.indices.push(index);
-                resolvedGroupedTokens.tokens.set(index,resolvedTokens);
                 hasRef = true;
             }
             
@@ -389,9 +380,17 @@ class Analyzer extends DSLVisitor<void> {
 
                 const result = getNthMember(nthIndex);
                 const member = result.nthMember;
+
                 if (isRefValid(member,'any','generic',text,nthIndex)) {
-                    i
+                    if (member!.type === DSLLexer.NAME) {
+                        resolvedSingleTokens.indices.push(index);
+                        resolvedSingleTokens.tokens.set(index,member);
+                    }else if (member!.type === DSLLexer.LSQUARE) {
+                        resolvedGroupedTokens.indices.push(index);
+                        resolvedGroupedTokens.tokens.set(index,result.lastEncounteredList);
+                    }
                 }else return;
+                hasRef = true;
             }
 
 
