@@ -2,7 +2,6 @@ import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
 import { Tuple } from "./type-helper.js";
 import {stringify} from "safe-stable-stringify";
-import { genStruct } from "./resolver.js";
 import { Atoms } from "./type-helper.js";
 import { PatternedAtoms } from "./type-helper.js";
 import { Rec } from "./type-helper.js";
@@ -125,12 +124,4 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
             current?.members.set.size < smallest?.members.set.size ? current : smallest
         );
     }
-}
-export function facts( strings: TemplateStringsArray, ...values: any[]):Record<string, Rec<Facts>> | undefined {
-    let src = strings[0];
-    for (let i = 0; i < values.length; i++) {
-        src+= values[i] + strings[i + 1];
-    }
-    const result = genStruct(src);
-    return result;
 }

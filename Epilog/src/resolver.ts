@@ -10,6 +10,8 @@ import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
 import { Rec } from "./type-helper.js";
 import { Atoms } from "./type-helper.js";
+import fs from 'fs/promises';
+import path from 'path';
 
 interface ResolvedSingleTokens {
     indices:number[],//i used an array because they may be multiple refs in a sentence to resolve
@@ -587,7 +589,7 @@ class Analyzer extends DSLVisitor<void> {
         Analyzer.inputArr = input.split('\n');
     }
 }
-export function genStruct(input:string):Record<string,Rec> | undefined {
+function genStruct(input:string):Record<string,Rec> | undefined {
     const visitor = new Analyzer();
     visitor.createSentenceArray(input);
     Essentials.loadEssentials(input);
@@ -595,4 +597,25 @@ export function genStruct(input:string):Record<string,Rec> | undefined {
     const shouldTerminate = Analyzer.terminate;//save the current termination state
     Analyzer.terminate = false;//reset it to false so that subsequent dsls can be analyzed
     if (!shouldTerminate) return visitor.records;
+}
+function omitKeysReplacer(key:string, value:any) {
+    if (key === '_set' || key === 'indexMap') {
+        return undefined; // exclude these properties
+    }
+    return value;
+}
+export async function readDSLAndOutputJson(filePath:string,outputPath:string):Promise<void> {
+    try {
+        const src = await fs.readFile(filePath, 'utf8');
+        const resolvedData = genStruct(src);
+        const json = stringify(resolvedData,omitKeysReplacer,4) || '';
+        const jsonFilePath = path.join(
+            outputPath,
+            path.basename(filePath, path.extname(filePath)) + '.json'
+        );
+        await fs.writeFile(jsonFilePath, json);
+        console.log(`Successfully wrote JSON output to ${jsonFilePath}`);
+    } catch (err) {
+        console.error('Error processing file:', err);
+    }
 }

@@ -1,13 +1,11 @@
-import { facts } from "./fact-checker.js";
 import { Doc } from "./fact-checker.js";
+import { readDSLAndOutputJson } from "./resolver.js";
 import { Rules } from "./rules.js";
+import path from "path";
 
+const cwd = process.cwd();
+await readDSLAndOutputJson(path.join(cwd,'./src/school.el'),path.join(cwd,'./src'));
 
-const schoolFacts = facts`
-    [:a,:b,:c] *eat [:d,:e,:f].
-    <They> *watch [:g,:h,:i].
-    :j *plays with <them:2>.
-`;
 if (!schoolFacts) process.exit(0);
 const doc = new Doc(schoolFacts);
 console.info( doc.isItAFact(doc.records.tall,['ada']));

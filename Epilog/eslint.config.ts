@@ -57,7 +57,8 @@ const config = tsEslint.config(
                 {
                     "selector": "variable",
                     "modifiers": ["const"],
-                    "format": ["camelCase", "UPPER_CASE"]
+                    "format": ["camelCase", "UPPER_CASE"],
+                    "leadingUnderscore": "allow"
                 },
                 {
                     "selector": "variable",
