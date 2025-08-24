@@ -1,45 +1,20 @@
-import {UniqueList} from "./unique-list.js";
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
-import {v4 as uniqueID} from "uuid";
-import { AddUnionToElements,Tuple } from "./type-helper.js";
+import { Tuple } from "./type-helper.js";
 import {stringify} from "safe-stable-stringify";
 import { genStruct } from "./resolver.js";
-
-export type Atom = string | number;
-export type Atoms = Atom[];
-type PatternedAtoms = AddUnionToElements<Atoms,typeof Doc.wildCard>
-type UniqueAtoms = UniqueList<Atom>
-export type Facts = (Atom[])[];//i typed it like this over Atoms[] is to prevent any for of ambiguity when reading it.Atoms[] may be read as an array of atoms by mistake instead of an array of atom arrays.
+import { Atoms } from "./type-helper.js";
+import { PatternedAtoms } from "./type-helper.js";
+import { Rec } from "./type-helper.js";
+import { Facts } from "./type-helper.js";
 
 export type Rule<T extends Atoms> = (doc:Doc,statement:T)=>boolean;
 export type RecursiveRule<T extends Atoms> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
 
 
-export class Rec<T extends Facts = Facts> {
-    public members:UniqueAtoms = new UniqueList();//i used a unique list to prevent duplicate entries which prevents the number of iterations when testing for a fact against an arbitrary member.its a list but uses a set to ensure that elements are unique which allows me to benefit from list iteration and uniqueness at the same time.I also localized this structure to per fact to only test against arbotrary members that are atually involved in a fact
-    public container:UniqueAtoms[] = [];
-    public recID:string = uniqueID();
-
-    public constructor(facts:T) {
-        for (const atoms of facts) {
-            this.build(atoms);
-        }
-    }
-    public add(atoms:Atoms):void {
-        this.build(atoms);
-    }
-    public build(atoms:Atoms):void {
-        const uniqueAtoms:UniqueAtoms = new UniqueList(atoms);
-        this.container.push(uniqueAtoms);
-        for (const member of uniqueAtoms.list) {
-            this.members.add(member);
-        }
-    }
-}
 export class Doc {//I named it Doc instead of Document to avoid ambiguity with the default Document class which is for the DOM
     public records:Record<string,Rec>;
-    public static wildCard = Symbol('*');//i placed it behind a symbol to avoid collisions
+    public static wildCard = Symbol('*');
     private factCheckerCache = new LRUCache<string,string>({max:100});
 
     public constructor(records:Record<string,Rec>) {

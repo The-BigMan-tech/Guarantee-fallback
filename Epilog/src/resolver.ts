@@ -2,14 +2,14 @@ import { CharStream, CommonTokenStream, ConsoleErrorListener,Token } from "antlr
 import { AliasDeclarationContext,DSLParser, FactContext,ProgramContext } from "./generated/DSLParser.js";
 import { DSLLexer } from "./generated/DSLLexer.js";
 import { DSLVisitor } from "./generated/DSLVisitor.js";
-import { Atoms, Rec } from "./fact-checker.js";
 import chalk from "chalk";
 import Denque from "denque";
 import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
-// import {colorize} from "json-colorizer";
+import { Rec } from "./type-helper.js";
+import { Atoms } from "./type-helper.js";
 
 interface ResolvedSingleTokens {
     indices:number[],//i used an array because they may be multiple refs in a sentence to resolve
