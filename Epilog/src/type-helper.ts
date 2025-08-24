@@ -16,28 +16,29 @@ export type AddUnionToElements<T extends readonly any[], U> = {
 
 export type WildCard = symbol;//i placed whatever string will be used as a wildcard behind a symbol to avoid collisions
 export type Atom = string | number;
-export type Atoms = Atom[];
-export type PatternedAtoms = AddUnionToElements<Atoms,WildCard>;
-export type UniqueAtoms = UniqueList<Atom>
-export type Facts = (Atom[])[];//i typed it like this over Atoms[] is to prevent any for of ambiguity when reading it.Atoms[] may be read as an array of atoms by mistake instead of an array of atom arrays.
+export type AtomList = Atom[];
+export type PatternedAtomList = AddUnionToElements<AtomList,WildCard>;
+export type UniqueAtomList = UniqueList<Atom>
+export type Facts = UniqueAtomList[];
 
 export class Rec<T extends Facts = Facts> {
-    public members:UniqueAtoms = new UniqueList();//i used a unique list to prevent duplicate entries which prevents the number of iterations when testing for a fact against an arbitrary member.its a list but uses a set to ensure that elements are unique which allows me to benefit from list iteration and uniqueness at the same time.I also localized this structure to per fact to only test against arbotrary members that are atually involved in a fact
-    public container:UniqueAtoms[] = [];
+    public members:UniqueAtomList = new UniqueList();//i used a unique list to prevent duplicate entries which prevents the number of iterations when testing for a fact against an arbitrary member.its a list but uses a set to ensure that elements are unique which allows me to benefit from list iteration and uniqueness at the same time.I also localized this structure to per fact to only test against arbotrary members that are atually involved in a fact
+    public facts:Facts = [];
     public recID:string = uniqueID();
 
     public constructor(facts:T) {
-        for (const atoms of facts) {
-            this.build(atoms);
+        for (const uniqueAtomList of facts) {
+            this.build(uniqueAtomList,true);
         }
     }
-    public add(atoms:Atoms):void {
-        this.build(atoms);
+    public add(atomList:AtomList):void {
+        const uniqueAtomList = new UniqueList(atomList);
+        this.build(uniqueAtomList,false);
     }
-    public build(atoms:Atoms):void {
-        const uniqueAtoms:UniqueAtoms = new UniqueList(atoms);
-        this.container.push(uniqueAtoms);
-        for (const member of uniqueAtoms.list) {
+    public build(uniqueAtomList:UniqueAtomList,recreateList:boolean):void {
+        if (recreateList) uniqueAtomList = new UniqueList(uniqueAtomList.list);//recereate the unique list since the set and index map isnt included in the serialized json file
+        this.facts.push(uniqueAtomList);
+        for (const member of uniqueAtomList.list) {
             this.members.add(member);
         }
     }

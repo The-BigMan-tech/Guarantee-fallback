@@ -1,28 +1,29 @@
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
-import { Tuple } from "./type-helper.js";
+import { Tuple, UniqueAtomList } from "./type-helper.js";
 import {stringify} from "safe-stable-stringify";
-import { Atoms } from "./type-helper.js";
-import { PatternedAtoms } from "./type-helper.js";
+import { AtomList } from "./type-helper.js";
+import { PatternedAtomList } from "./type-helper.js";
 import { Rec } from "./type-helper.js";
-import { Facts } from "./type-helper.js";
 import fs from 'fs/promises';
 import { readDSLAndOutputJson } from "./resolver.js";
 
-export type Rule<T extends Atoms> = (doc:Doc,statement:T)=>boolean;
-export type RecursiveRule<T extends Atoms> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
+export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
+export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
 
 
 export class Doc {//I named it Doc instead of Document to avoid ambiguity with the default Document class which is for the DOM
-    public records:Record<string,Rec>;
+    public records:Record<string,Rec> = {};
     public static wildCard = Symbol('*');
     private factCheckerCache = new LRUCache<string,string>({max:100});
 
     public constructor(records:Record<string,Rec>) {
-        this.records = records;
+        Object.keys(records).forEach(key=>{
+            this.records[key] = new Rec(records[key].facts);
+        });
     }
     //compare the subject array against the target.
-    private compareStatements(subject:PatternedAtoms,target:PatternedAtoms):boolean {
+    private compareStatements(subject:PatternedAtomList,target:PatternedAtomList):boolean {
         if (target.length === subject.length) {
             for (const [index,targetElement] of target.entries()) {
                 const subjectElement = subject[index];
@@ -33,15 +34,15 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         }
         return false;//a quick check to save computation.it infers that if the arrays arent of the same length,then they arent the same
     }
-    public saveToFactsCache(key:string,facts:Facts):void {
-        if (facts.length === 0) {
+    public saveToFactsCache(key:string,atomList:AtomList[]):void {
+        if (atomList.length === 0) {
             this.factCheckerCache.set(key,stringify(false));
         }else {
-            this.factCheckerCache.set(key,stringify(facts));
+            this.factCheckerCache.set(key,stringify(atomList));
         }
     }
     //it returns the facts where the members match or false if the input isnt a fact.I made it to yield all the facts that match.Its useful for getting to answer questions like ada is the friend of who? by using null as a placeholder and getting all the facts that provide concrete values on what the placheolder is for those facts 
-    public* findAllFacts(record:Rec,statement:PatternedAtoms,byMembership=false):Generator<Atoms | false,void,true | undefined>{//the byMembership mode is a different way of checking for fact truthiness by checking if all of the mebers in the statement are also members in a fact.if so,then its true.Its different from the deafult method which compares the statement to the fact by element order which mimics how prolog checks for facts.This way of checking for facts is useful when a fact can have an arbitrary number of atoms and checking if a statmet is a fact by checking the exact order of the elements is too strict that its fragile or even computationally infeasible.like if i were to check if two atoms,X and Y are friends where friends has an arbitarry number of atoms,then checking if they are friends will require me to fill in the gaps at the right positions with wildcards but it wont make sense if a fact has like 10 atoms.so checking if the statement is true by membership is the practical approach.Using the default checker is better for small-medium arity tuples.Another alternative is to reate a fact checking strategy that sorts the elements optionally before comparing and have a helper fill the remainder of the array  with wildcards.but set mebership is the most robust and fastest way of doing this same task.no overhead for sorting or padding needed
+    public* findAllFacts(record:Rec,statement:PatternedAtomList,byMembership=false):Generator<AtomList | false,void,true | undefined>{//the byMembership mode is a different way of checking for fact truthiness by checking if all of the mebers in the statement are also members in a fact.if so,then its true.Its different from the deafult method which compares the statement to the fact by element order which mimics how prolog checks for facts.This way of checking for facts is useful when a fact can have an arbitrary number of atoms and checking if a statmet is a fact by checking the exact order of the elements is too strict that its fragile or even computationally infeasible.like if i were to check if two atoms,X and Y are friends where friends has an arbitarry number of atoms,then checking if they are friends will require me to fill in the gaps at the right positions with wildcards but it wont make sense if a fact has like 10 atoms.so checking if the statement is true by membership is the practical approach.Using the default checker is better for small-medium arity tuples.Another alternative is to reate a fact checking strategy that sorts the elements optionally before comparing and have a helper fill the remainder of the array  with wildcards.but set mebership is the most robust and fastest way of doing this same task.no overhead for sorting or padding needed
         if (!record) return;
         //return early if the members from the input arent even available in the record,saving computation by preventing wasteful checks over all the facts in the record
         if (!this.areMembersInSet(statement,record.members.set)) {
@@ -52,7 +53,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         const cacheKey = `${record.recID}|${stringify(statement)}`;
         const cached = this.factCheckerCache.get(cacheKey);
         if (cached !== undefined) {//reuse cache if it exists.
-            const cachedFacts:Facts | false = JSON.parse(cached); 
+            const cachedFacts:AtomList[] | false = JSON.parse(cached); 
             if (cachedFacts===false) {
                 yield false;
             }else for (const fact of cachedFacts) {
@@ -61,13 +62,13 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
             return;
         }
         //the actual fact checking
-        const matchedFacts:Facts = [];
-        for (const uniqueAtoms of record.container) {
-            if (this.areMembersInSet(statement,uniqueAtoms.set)) {
-                if (byMembership || this.compareStatements(statement,uniqueAtoms.list)) {//compare statements method uses strict checking by checking if the statement is exactly identical to the fact by number of elements and element order.By placing this strict check under the membership check,the function saves computation by only scanning statements aginst relevant facts not a full linear scam against all facts
-                    const atoms:Atoms = uniqueAtoms.list;
-                    matchedFacts.push(atoms);
-                    const saveToCacheEarly = yield atoms; 
+        const matchedFacts:AtomList[] = [];
+        for (const fact of record.facts) {
+            if (this.areMembersInSet(statement,fact.set)) {
+                if (byMembership || this.compareStatements(statement,fact.list)) {//compare statements method uses strict checking by checking if the statement is exactly identical to the fact by number of elements and element order.By placing this strict check under the membership check,the function saves computation by only scanning statements aginst relevant facts not a full linear scam against all facts
+                    const atomList:AtomList = fact.list;
+                    matchedFacts.push(atomList);
+                    const saveToCacheEarly = yield atomList; 
                     if (saveToCacheEarly) this.saveToFactsCache(cacheKey,matchedFacts);
                 }
             }
@@ -75,13 +76,13 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         if (matchedFacts.length===0) yield false;
         this.saveToFactsCache(cacheKey,matchedFacts);
     }
-    public findFirstFact(record: Rec, args:PatternedAtoms,byMembership=false):false | Atoms {
+    public findFirstFact(record: Rec, args:PatternedAtomList,byMembership=false):false | AtomList {
         const facts = this.findAllFacts(record, args,byMembership);
-        const firstFact = facts.next().value as false | Atoms;
+        const firstFact = facts.next().value as false | AtomList;
         facts.next(true);//save to cache without finishing the generator because since this function only collects the first fact,the generator may not have a chance to save results to the cache if there is ore than one matching fact.
         return firstFact;
     }
-    public isItAFact(record: Rec, args:PatternedAtoms,byMembership=false):boolean {
+    public isItAFact(record: Rec, args:PatternedAtomList,byMembership=false):boolean {
         return Boolean(this.findFirstFact(record,args,byMembership));
     }
 
@@ -90,15 +91,15 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         return inputCombination.map(element => stringify(element)).join('|');
     }
     //the checked facts is just a record to maintain recursion so the facts checked in a function call is not meant to persist across rules,else,subsequent calls to the same rule wont work as expected
-    public* genCandidates<T extends Atoms,N extends number>(howManyToReturn:N,record:Rec<T[]>,inputCombination:unknown[],visitedCombinations:Set<string>)
-    :Generator<Tuple<T[number],N>, void, unknown> {//if the caller is recursing on itself,then it should provide any input it receives relevant to the fact checking to prevent cycles.
+    public* genCandidates<T extends UniqueAtomList,N extends number>(howManyToReturn:N,record:Rec<T[]>,inputCombination:unknown[],visitedCombinations:Set<string>)
+    :Generator<Tuple<T['list'][number],N>, void, unknown> {//if the caller is recursing on itself,then it should provide any input it receives relevant to the fact checking to prevent cycles.
         if (!record) return;
         const sequences = permutations(record.members.list,howManyToReturn);//i chose permutations because the order at which the candidates are supplied matters but without replacement
         for (const permutation of sequences) {
             const combinationKey = this.getCombinationKey(...inputCombination, ...permutation);
             if (!visitedCombinations.has(combinationKey)) {
                 visitedCombinations.add(combinationKey);
-                yield permutation as Tuple<T[number],N>;
+                yield permutation as Tuple<T['list'][number],N>;
             }
         }
     }
@@ -136,8 +137,8 @@ export async function getDoc(srcPath:string,jsonPath:string,outputFolder:string)
         await readDSLAndOutputJson(srcPath,outputFolder);
     }
     const jsonData = await fs.readFile(jsonPath, 'utf8');
-    const facts = JSON.parse(jsonData);
-    const doc = new Doc(facts);
+    const records:Record<string,Rec> = JSON.parse(jsonData);
+    const doc = new Doc(records);
     return doc;
 }
 

@@ -9,7 +9,7 @@ import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
 import { Rec } from "./type-helper.js";
-import { Atoms } from "./type-helper.js";
+import { AtomList } from "./type-helper.js";
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -503,7 +503,7 @@ class Analyzer extends DSLVisitor<void> {
         return predicate;
     }
 
-    private expandedFacts:Atoms[] | null = null;
+    private expandedFacts:AtomList[] | null = null;
     private builtAFact:boolean = false;
 
     private buildFact(tokens:Token[]) {
@@ -607,7 +607,7 @@ export async function readDSLAndOutputJson(filePath:string,outputFolder:string):
             path.basename(filePath, path.extname(filePath)) + '.json'
         );
         await fs.writeFile(jsonFilePath, json);
-        console.log(`Successfully wrote JSON output to ${jsonFilePath}\n`);
+        console.log(`\nSuccessfully wrote JSON output to ${jsonFilePath}\n`);
     } catch (err) {
         console.error('Error processing file:', err);
     }
