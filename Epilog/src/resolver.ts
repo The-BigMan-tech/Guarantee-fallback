@@ -57,7 +57,7 @@ class Essentials {
             pushLine(lineCount);
         }
         else{
-            messages.push(lime.underline('\nCheck these lines:\n'));
+            messages.push(lime.underline('\n\nCheck these lines:\n'));
             for (const line of checkLines) {
                 messages.push(chalk.gray(`${line+1}.`));//for 1-based line counting for the logs
                 pushLine(line);
