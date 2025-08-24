@@ -6,7 +6,6 @@ import { AtomList } from "./type-helper.js";
 import { PatternedAtomList } from "./type-helper.js";
 import { Rec } from "./type-helper.js";
 import fs from 'fs/promises';
-import { resolveDocToJson } from "./resolver.js";
 import chalk from "chalk";
 import path from "path";
 

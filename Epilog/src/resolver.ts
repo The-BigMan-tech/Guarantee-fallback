@@ -588,7 +588,6 @@ class Analyzer extends DSLVisitor<void> {
     public static inputArr:string[] = [];
     public createSentenceArray(input:string) {
         Analyzer.inputArr = input.split('\n');
-        console.log('Input: ',Analyzer.inputArr);
     }
 }
 function genStructures(input:string):Record<string,Rec> | undefined {
@@ -605,14 +604,16 @@ function omitJsonKeys(key:string,value:any) {
     return value; // include everything else
 }
 
-export async function resolveDocToJson(filePath:string,outputFolder:string):Promise<void> {
+async function resolveDocToJson(filePath:string,outputFolder?:string):Promise<void> {
     try {
         const src = await fs.readFile(filePath, 'utf8');
         const resolvedData = genStructures(src);
         if (!Analyzer.terminate) {
             const json = stringify(resolvedData,omitJsonKeys,4) || '';
             const jsonFilePath = path.basename(filePath, path.extname(filePath)) + '.json';
-            const fullJsonPath = path.join(outputFolder,jsonFilePath);
+
+            const outputPath = outputFolder || path.dirname(filePath);
+            const fullJsonPath = path.join(outputPath,jsonFilePath);
             await fs.writeFile(fullJsonPath, json);
 
             Analyzer.terminate = false;//reset it for subsequent analyzing
@@ -622,3 +623,22 @@ export async function resolveDocToJson(filePath:string,outputFolder:string):Prom
         console.error('Error processing file:', err);
     }
 }
+import { Command } from 'commander';
+
+const program = new Command();
+
+program
+    .name('epilog')
+    .description('Example CLI that calls a function using flags/options')
+    .version('1.0.0');
+
+program
+    .command('resolve')
+    .description('Run the resolve function with options')
+    .requiredOption('--src <srcPath>', 'path to DSL file')
+    .option('--out <outputPath>', 'folder to output the DSL data structure')
+    .action(async (options) => {
+        await resolveDocToJson(options.src, options.out);
+    });
+
+program.parse(process.argv);

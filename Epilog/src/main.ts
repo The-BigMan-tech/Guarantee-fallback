@@ -1,21 +1,20 @@
-import { Doc, getDoc } from "./fact-checker.js";
+import { Doc, loadDoc } from "./fact-checker.js";
 import { Rules } from "./rules.js";
 import path from "path";
 
 
 const cwd = process.cwd();
 const srcPath = path.join(cwd, './src/school.el');
-const jsonOutputDir = path.join(cwd, './src');
-const jsonFilePath = path.join(
-    jsonOutputDir,
+const jsonPath = path.join(
+    path.join(cwd, './src'),
     path.basename(srcPath, path.extname(srcPath)) + '.json'
 );
 
-const schoolDoc = await getDoc(srcPath,jsonFilePath,jsonOutputDir);
+const schoolDoc = await loadDoc(srcPath,jsonPath,true);
 if (!schoolDoc) process.exit(0);
 
-console.info(schoolDoc.isItAFact(schoolDoc.records.jh,['b']));
-
+console.info(schoolDoc.isItAFact(schoolDoc.records.eats,['peter','a']));
+console.info(schoolDoc.isItAFact(schoolDoc.records.jh,['a']));
 console.log('are they friends: ',Rules.areFriends(schoolDoc,['zane','cole']));
 // console.log(Rules.areBrothers(doc,['ben','ben']));
 
