@@ -142,6 +142,7 @@ export async function getDoc(srcPath:string,jsonPath:string,recreateJson:boolean
             const exitCode = await new Promise<number>((resolve, reject) => {
                 child.on('close', resolve);
                 child.on('error', reject);
+                
             });
             if (exitCode !== 0) {
                 console.error(`Resolver CLI exited with code ${exitCode}`);
@@ -160,7 +161,7 @@ export async function getDoc(srcPath:string,jsonPath:string,recreateJson:boolean
         const doc = new Doc(records);
         console.info(lime('Successfully loaded the document.\n'));
         return doc;
-    }catch(err) { console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-${err}.\n-Check for typos,try setting the recreate json flag to true and ensure that the document doesnt contain errors that will prevent it from resolving to a json file.\n`); };
+    }catch { console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for typos,try setting the recreate json flag to true and ensure that the document doesnt contain errors that will prevent it from resolving to a json file.\n`); };
 }
 
 
