@@ -2058,6 +2058,10 @@ two stage parsing process
 
 *so all references have this clean notation: <name:index?>
 
+*it all works now.So the two components of my language is the resolver and the fact checker.the resolver is its own cli that can read .el src files and turn them to json documents.while the fact checer reads these documents nd interpretes them for fact querying.so unlike prolog,no interpreter.the dsl is tunred to a data structure upfront.
+
+*my logic language is built to run on a host language.the host doesnt matter because the same resolver can be used consistently across all env as its a self contained cli tool.the reason for the host is so that rules will be written imperatively in the languages people enjoy the most.because if found it difficult to write a rule how i wanted it in prolog.the requirement per language is that the fact checker that reads the json must be ported.as of now,its only in js because thats the native language my loggic language is written in.
+
 refs,smart refs.
 
 tokenization,semantism,building

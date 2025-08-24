@@ -13,7 +13,9 @@ const jsonPath = path.join(
 const schoolDoc = await getDoc(srcPath,jsonPath,true);
 if (!schoolDoc) process.exit(0);
 
-console.info(schoolDoc.isItAFact(schoolDoc.records.eats,['peter','a']));
+console.info(schoolDoc.isItAFact(schoolDoc.records.friends,['ada','zane']));//outputs false because its not a direct fact
+console.info(Rules.areFriends(schoolDoc,['ada','zane']));//outputs true out of inference
+
 console.info(schoolDoc.isItAFact(schoolDoc.records.jh,['a']));
 console.log('are they friends: ',Rules.areFriends(schoolDoc,['zane','cole']));
 // console.log(Rules.areBrothers(doc,['ben','ben']));
