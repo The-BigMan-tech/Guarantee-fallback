@@ -1,98 +1,53 @@
 {
-    "big": {
+    "friends": {
         "facts": [
             {
-                "indexMap": {},
                 "list": [
-                    "peter"
-                ],
-                "set": {}
+                    "peter",
+                    "ada"
+                ]
+            },
+            {
+                "list": [
+                    "peter",
+                    "ada"
+                ]
+            },
+            {
+                "list": [
+                    "ada",
+                    "john"
+                ]
+            },
+            {
+                "list": [
+                    "john",
+                    "jane"
+                ]
+            },
+            {
+                "list": [
+                    "jane",
+                    "zane"
+                ]
             }
         ],
         "members": {
-            "indexMap": {},
-            "list": [
-                "peter"
-            ],
-            "set": {}
-        },
-        "recID": "76c937fa-f424-4df7-aaf0-71b84e98b067"
-    },
-    "eats": {
-        "facts": [
-            {
-                "indexMap": {},
-                "list": [
-                    "peter",
-                    "a"
-                ],
-                "set": {}
-            },
-            {
-                "indexMap": {},
-                "list": [
-                    "peter",
-                    "b"
-                ],
-                "set": {}
-            },
-            {
-                "indexMap": {},
-                "list": [
-                    "peter",
-                    "c"
-                ],
-                "set": {}
-            }
-        ],
-        "members": {
-            "indexMap": {},
             "list": [
                 "peter",
-                "a",
-                "b",
-                "c"
-            ],
-            "set": {}
+                "ada",
+                "john",
+                "jane",
+                "zane"
+            ]
         },
-        "recID": "00656f53-0b88-4fd4-91ef-e58ec8d19631"
+        "recID": "b6c5ee22-f7ad-4922-84d4-db932fdc0727"
     },
-    "jh": {
-        "facts": [
-            {
-                "indexMap": {},
-                "list": [
-                    "a"
-                ],
-                "set": {}
-            }
-        ],
+    "hello": {
+        "facts": [],
         "members": {
-            "indexMap": {},
-            "list": [
-                "a"
-            ],
-            "set": {}
+            "list": []
         },
-        "recID": "79c8c9c1-d6d7-4392-bf17-d0fc06441e35"
-    },
-    "tall": {
-        "facts": [
-            {
-                "indexMap": {},
-                "list": [
-                    "peter"
-                ],
-                "set": {}
-            }
-        ],
-        "members": {
-            "indexMap": {},
-            "list": [
-                "peter"
-            ],
-            "set": {}
-        },
-        "recID": "55da7cc3-fce4-4676-8f6a-31cde8c5dfc4"
+        "recID": "5b545b54-e627-425a-9277-50ca33445f4c"
     }
 }

@@ -1,0 +1,58 @@
+{
+    "scopeName":"source.epilog",
+    "patterns":[
+        {
+            "name": "constant.name.dsl",
+            "match": "\\:[a-zA-Z]+" 
+        },
+        {
+            "name": "constant.name.strict.dsl",
+            "match": "\\![a-zA-Z]+" 
+        },
+        {
+            "name": "constant.numeric.dsl",
+            "match": "-?[0-9]+(\\.[0-9]+)?"
+        },
+        {
+            "name": "constant.alias.dsl",
+            "match": "#[a-zA-Z]+" 
+        },
+        {
+            "name": "constant.predicate.dsl",
+            "match": "\\*[a-zA-Z]+"
+        },
+        {
+            "name": "constant.plainword.dsl",
+            "match": "\\b[a-zA-Z]+\\b" 
+        },
+        {
+            "name": "terminator.dsl",
+            "match": "\\."
+        },
+        {
+            "name": "keyword.alias.dsl",
+            "match": "\\balias\\b" 
+        },
+        {
+            "name": "comment.line.dsl",
+            "begin": "//",
+            "end": "$" 
+        },
+        {
+            "name": "punctuation.dsl",
+            "match": "[,()\\[\\];?!'\\=]" 
+        },
+        {
+            "name": "punctuation.colon.angle.dsl",
+            "match": "[:<>]" 
+        },
+        {
+            "name": "punctuation.bracket.dsl",
+            "match": "[\\[\\]]" 
+        },
+        {
+            "name": "variable.ref.dsl",
+            "match": "<[a-zA-Z][a-zA-Z0-9_]*>"
+        }
+    ]
+}

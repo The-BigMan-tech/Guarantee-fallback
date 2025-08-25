@@ -28,7 +28,7 @@ EXCLAMATION: '!';
 APOSTROPHE:'\'';
 
 EQUALS: '=';
-ALIAS_KW:'alias';
+ALIAS_KW:'alias';//
 
 TERMINATOR:PERIOD (NEW_LINE)?;
 fragment PERIOD:'.';
@@ -37,8 +37,8 @@ fragment COLON:':';
 PREDICATE: '*' PLAIN_WORD;
 ALIAS: '#' PLAIN_WORD;
 
-NAME: (COLON PLAIN_WORD) | ('!' PLAIN_WORD);
-NUMBER: '-'? DIGIT+ ('.' DIGIT+)?;
+NAME: (COLON PLAIN_WORD) | ('!' PLAIN_WORD);//
+NUMBER: '-'? DIGIT+ ('.' DIGIT+)?;//
 PLAIN_WORD: LETTER (LETTER | DIGIT | '_')*;
 
 GENERIC_REF:'<' 'ref' COLON NUMBER '>';
