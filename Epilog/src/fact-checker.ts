@@ -147,34 +147,49 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         return intersection;
     }
 }
-export async function getDoc(srcPath:string,jsonPath:string,recreateJson:boolean):Promise<Doc | undefined> {
-    try {
-        if (recreateJson) {
-            const outputFolder = path.dirname(jsonPath);
-            const cliArgs = ['--src', srcPath, '--out', outputFolder];
-
-            const child = spawn('epilog-resolver', cliArgs, { stdio: 'inherit',shell:true });
-            const exitCode = await new Promise<number>((resolve, reject) => {
-                child.on('close', resolve);
-                child.on('error', reject);
-                
-            });
-            if (exitCode !== 0) {
-                console.error(`Resolver CLI exited with code ${exitCode}`);
-                return;
-            }
+/**
+ * It loads the document from the specifed path.if the path is directly to the json output,it directly import it.Else,if its to the .el file,it will transform it to the json output and then,import it.In the second case,an output path must be specified
+ * @param importPath 
+ * @returns 
+ */
+export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
+    if (!(filePath.endsWith(".el") || filePath.endsWith(".json"))) {
+        console.error(chalk.red('The import path must be a .el src file or the .json output'));
+        return;
+    }
+    const isJson = filePath.endsWith(".json");
+    let jsonPath:string = isJson?filePath:'';
+    if (!isJson) {
+        if (!outputFolder) {
+            console.error(chalk.red('An output path must be specified if the import is the src file'));
+            return;
         }
+        const cliArgs = ['--src',filePath, '--out', outputFolder];
+        const child = spawn('epilog-resolver', cliArgs, { stdio: 'inherit',shell:true });
+        const exitCode = await new Promise<number>((resolve, reject) => {
+            child.on('close', resolve);
+            child.on('error', reject);
+        });
+        if (exitCode !== 0) {
+            console.error(`Resolver CLI exited with code ${exitCode}`);
+            return;
+        }
+        const jsonFilePath = path.basename(filePath, path.extname(filePath)) + '.json';
+        jsonPath = path.join(outputFolder,jsonFilePath);
+    }
+    try {
+        console.log('json path: ',jsonPath);
+        return;
         const jsonData = await fs.readFile(jsonPath, 'utf8');
         const records:Record<string,Rec> = JSON.parse(jsonData);
         const isValid = validator.Check(records);
-
         if (!isValid) {
             const errors = [...validator.Errors(jsonData)].map(({ path, message }) => ({ path, message }));
             console.error(chalk.red('Validation error in the json file:'), errors);
             return;//to prevent corruption
         }
         const doc = new Doc(records);
-        console.info(lime('Successfully loaded the document.\n'));
+        console.info(lime('Successfully loaded the document from the path:',jsonPath,'\n'));
         return doc;
     }catch { console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try setting the recreate json flag to true and ensure that the document doesnt contain errors that will prevent it from resolving to a json file.\n`); };
 }

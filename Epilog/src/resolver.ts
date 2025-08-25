@@ -607,15 +607,15 @@ function omitJsonKeys(key:string,value:any) {
     return value; // include everything else
 }
 
-async function resolveDocToJson(filePath:string,outputFolder?:string):Promise<void> {
+async function resolveDocToJson(srcFilePath:string,outputFolder?:string):Promise<void> {
     try {
-        const src = await fs.readFile(filePath, 'utf8');
+        const src = await fs.readFile(srcFilePath, 'utf8');
         const resolvedData = genStructures(src);
         if (!Analyzer.terminate) {
             const json = stringify(resolvedData,omitJsonKeys,4) || '';
-            const jsonFilePath = path.basename(filePath, path.extname(filePath)) + '.json';
+            const jsonFilePath = path.basename(srcFilePath, path.extname(srcFilePath)) + '.json';
 
-            const outputPath = outputFolder || path.dirname(filePath);
+            const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided
             const fullJsonPath = path.join(outputPath,jsonFilePath);
             await fs.writeFile(fullJsonPath, json);
 

@@ -1,7 +1,6 @@
 import { Doc,Rule,RecursiveRule } from "./fact-checker.js";
 import { UniqueList } from "./utils.js";
 
-
 interface Rules {
     areDirectFriends:Rule<[string,string]>,
     areIndirectFriends:RecursiveRule<[string,string]>,

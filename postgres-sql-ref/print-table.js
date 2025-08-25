@@ -13,7 +13,7 @@ const sql = postgres({
     host: 'localhost',      // PostgreSQL server address
     port: 5432,             // PostgreSQL server port
     username: 'postgres', // Your PostgreSQL username
-    password: 'JehovahmyGod1234$$#', // Your PostgreSQL password
+    password: '', // Your PostgreSQL password
     database: 'postgres', // The name of your database
 })
 async function fetchData(table,file) {
