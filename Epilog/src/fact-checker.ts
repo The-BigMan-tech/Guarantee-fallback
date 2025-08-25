@@ -148,7 +148,9 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
     }
 }
 /**
- * It loads the document from the specifed path.if the path is directly to the json output,it directly import it.Else,if its to the .el file,it will transform it to the json output and then,import it.In the second case,an output path must be specified
+ * It loads the document from the specifed path.If the path is directly to the json output,it directly imports it.Else,if its to the .el file,it will transform it to the json output and then,import it.In the second case,an output path must be specified.
+ * 
+ * This means that you can set the import path to the .el src file to load it up and on subsequent queries,you can import the resolved json file to ensure that the document is only transformed when needed.
  * @param importPath 
  * @returns 
  */
@@ -178,7 +180,6 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Do
         jsonPath = path.join(outputFolder,jsonFilePath);
     }
     try {
-        console.log('json path: ',jsonPath);
         const jsonData = await fs.readFile(jsonPath, 'utf8');
         const records:Record<string,Rec> = JSON.parse(jsonData);
         const isValid = validator.Check(records);
