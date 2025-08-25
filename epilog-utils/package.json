@@ -1,10 +1,7 @@
 {
-  "name": "Epilog",
+  "name": "@epilog/utils",
   "main": "./dist/bundle-min.js",
   "types": "./dist/bundle-min.d.ts",
-  "bin": {
-    "epilog-resolver":"./build/src/resolver.js"
-  },
   "version": "1.0.0",
   "description": "A TypeScript library project scaffold providing ready-to-use build and debug tooling",
   "scripts": {
@@ -17,7 +14,7 @@
     "gen:types": "tsc",
     "watch:src": "nodemon --watch src --ext ts,json",
     "watch:build": "nodemon --watch build --ext js,json",
-    "build": "pnpm run lint:src && pnpm run test && pnpm run clean:build && pnpm run compile:full -s false && pnpm run gen:types && pnpm run bundle && pnpm run minify && pnpm run clean:intermediateBundle",
+    "build": "pnpm run lint:src && pnpm run test && pnpm run compile:full -s false && pnpm run gen:types && pnpm run bundle && pnpm run minify && jiti run ./remove-regular-bundle.ts",
     "exec:main": "node ./build/src/main.js",
     "exec:bundle": "node ./dist/bundle-min.js",
     "exec:main:watch": "pnpm run watch:build --exec \"pnpm run exec:main\"",
@@ -25,9 +22,7 @@
     "test:watch": "vitest watch",
     "lint:src": "eslint \"src/**/*.{ts,tsx,js}\" \"tests/**/*.{ts,tsx,js}\"",
     "lint:watch": "pnpm run watch:src --exec \"pnpm run lint:src\"",
-    "lint:fix": "pnpm run lint:src --fix",
-    "grammar:gen": "antlr-ng -Dlanguage=TypeScript -v -o src/generated/ src/grammars/DSL.g4",
-    "grammar:watch": "nodemon --watch src/grammars --ext g4 --exec \"pnpm run grammar:gen\""
+    "lint:fix": "pnpm run lint:src --fix"
   },
   "files": [
     "dist",
