@@ -11,6 +11,10 @@ alias mother = *parent.
 //Family facts
 :ada is a *female.
 :john is a *male.
+:jake is a *male.
 
 :leo is the #father of :john.
 :leo is the #father of :ada.
+:leo is the #father of :jake.
+
+:Susan is the #mother of :john.
