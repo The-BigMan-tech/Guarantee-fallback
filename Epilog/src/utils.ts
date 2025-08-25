@@ -61,7 +61,7 @@ export class Rec<T extends Facts = Facts> implements RecType {
         }
     }
 }
-class UniqueList<T> {
+export class UniqueList<T> {
     public set: Set<T>; // Hash Set for uniqueness
     public list: T[];   // Dynamic Array to access last element
     private indexMap: Map<T, number>;//a map to keep track of indexes for efficient deleteion

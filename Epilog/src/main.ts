@@ -10,29 +10,26 @@ const jsonPath = path.join(
     path.basename(srcPath, path.extname(srcPath)) + '.json'
 );
 
-const schoolDoc = await getDoc(srcPath,jsonPath,false);
-if (!schoolDoc) process.exit(0);
+const doc = await getDoc(srcPath,jsonPath,false);
+if (!doc) process.exit(0);
 
-console.info(schoolDoc.isItAFact(schoolDoc.records.friends,['ada','zane']));//outputs false because its not a direct fact
-console.info(Rules.areFriends(schoolDoc,['ada','zane']));//outputs true out of inference
-
-console.info(schoolDoc.isItAFact(schoolDoc.records.jh,['a']));
-console.log('are they friends: ',Rules.areFriends(schoolDoc,['zane','cole']));
-// console.log(Rules.areBrothers(doc,['ben','ben']));
+console.info(doc.isItAFact(doc.records.friends,['ada','zane']));//outputs false because its not a direct fact
+console.info(Rules.areFriends(doc,['ada','zane']));//outputs true out of inference
+console.log(Rules.areBrothers(doc,['john','ada']));
 
 //this gets all the facts that answers what the widcard can be
-for (const fact of schoolDoc.findAllFacts(schoolDoc.records.friends,['cole',Doc.wildCard],true)) {//i used the allies alias
+for (const fact of doc.findAllFacts(doc.records.friends,['cole',Doc.wildCard],true)) {//i used the allies alias
     if (fact) console.log('friend of cole:',fact);
 }
-const smallestRecord = schoolDoc.selectSmallestRecord(schoolDoc.records.male,schoolDoc.records.friends,schoolDoc.records.parent);
-const candidates = schoolDoc.genCandidates(1,smallestRecord,[],new Set());
+const smallestRecord = doc.selectSmallestRecord(doc.records.male,doc.records.friends,doc.records.parent);
+const candidates = doc.genCandidates(1,smallestRecord,[],new Set());
 for (const [A] of candidates as Generator<string,void,unknown>) {
-    if (Rules.areFriends(schoolDoc,['ada',A]) && Rules.areBrothers(schoolDoc,[A,'ben'])) {
+    if (Rules.areFriends(doc,['ada',A]) && Rules.areBrothers(doc,[A,'ben'])) {
         console.log('The friend of ada who is also the brother of ben:',A);
     }
 }
-console.log(schoolDoc.areMembersInSet(['ada','leo'],schoolDoc.records.parent?.members.set));
+console.log(doc.areMembersInSet(['ada','leo'],doc.records.parent?.members.set));
 
-for (const fact of schoolDoc.findAllFacts(schoolDoc.records.eats,['ada',Doc.wildCard])) {
+for (const fact of doc.findAllFacts(doc.records.eats,['ada',Doc.wildCard])) {
     if (fact) console.log(fact);
 }

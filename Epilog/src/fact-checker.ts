@@ -161,7 +161,7 @@ export async function getDoc(srcPath:string,jsonPath:string,recreateJson:boolean
         const doc = new Doc(records);
         console.info(lime('Successfully loaded the document.\n'));
         return doc;
-    }catch { console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for typos,try setting the recreate json flag to true and ensure that the document doesnt contain errors that will prevent it from resolving to a json file.\n`); };
+    }catch { console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try setting the recreate json flag to true and ensure that the document doesnt contain errors that will prevent it from resolving to a json file.\n`); };
 }
 
 
