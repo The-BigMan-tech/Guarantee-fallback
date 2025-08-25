@@ -1,4 +1,4 @@
-import { Doc,importDoc } from "./fact-checker.js";
+import { Doc,importDoc } from "./fact-checker/fact-checker.js";
 import { rules } from "./rules.js";
 import path from "path";
 import { fileURLToPath } from 'url';
@@ -8,7 +8,7 @@ const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
 const parentDirFromSrc = _dirname.replace('\\build','');
 
-const doc = await importDoc(path.join(parentDirFromSrc,'./doc.el'),parentDirFromSrc);
+const doc = await importDoc(path.join(parentDirFromSrc,'./doc.json'));
 if (!doc) process.exit(0);
 
 console.info(doc.isItAFact(doc.records.friends,['ada','zane']));//outputs false because its not a direct fact
