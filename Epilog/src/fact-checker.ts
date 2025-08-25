@@ -117,7 +117,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         return false;
     }
     //it returns true if all the elements in args are also present in the set and it returns false otherwise
-    public areMembersInSet<T>(args:T[],set:Set<T>):boolean {
+    private areMembersInSet<T>(args:T[],set:Set<T>):boolean {
         if (!set) return false;
         for (const arg of args) {
             if (!this.isSymbol(arg) && !this.isWildCard(arg) && !set.has(arg) ) {
@@ -126,10 +126,25 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         }
         return true;
     }
-    public selectSmallestRecord(...records: Rec[]): Rec {
+    public static selectSmallestSet<T>(...sets:Set<T>[]):Set<T> {
+        return sets.reduce((smallest, current) =>
+            current.size < smallest.size ? current : smallest
+        );
+    }
+    public static selectSmallestRecord(...records: Rec[]): Rec {
         return records.reduce((smallest, current) =>
             current?.members.set.size < smallest?.members.set.size ? current : smallest
         );
+    }
+    public static intersection<T>(...sets:Set<T>[]):Set<T> {
+        const intersection = new Set<T>();
+        const smallestSet = this.selectSmallestSet(...sets);
+        for (const element of smallestSet) {
+            if (sets.every(set=> set.has(element))) {
+                intersection.add(element);
+            }
+        }
+        return intersection;
     }
 }
 export async function getDoc(srcPath:string,jsonPath:string,recreateJson:boolean):Promise<Doc | undefined> {

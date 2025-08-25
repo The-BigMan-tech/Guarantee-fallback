@@ -10,7 +10,7 @@
             "match": "\\![a-zA-Z]+" 
         },
         {
-            "name": "constant.numeric.el",
+            "name": "constant.number.el",
             "match": "-?[0-9]+(\\.[0-9]+)?"
         },
         {
@@ -24,6 +24,10 @@
         {
             "name": "keyword.alias.el",
             "match": "\\balias\\b" 
+        },
+        {
+            "name": "reference.el",
+            "match": "[\\bHe\\b]" 
         },
         {
             "name": "constant.plainword.el",

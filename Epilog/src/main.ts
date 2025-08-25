@@ -1,4 +1,4 @@
-import { getDoc } from "./fact-checker.js";
+import { Doc, getDoc } from "./fact-checker.js";
 import { Rules } from "./rules.js";
 import path from "path";
 
@@ -17,7 +17,7 @@ console.info(Rules.areFriends(doc,['ada','zane']));//outputs true out of inferen
 console.log(Rules.areBrothers(doc,['john','jake']));
 
 
-const smallestRecord = doc.selectSmallestRecord(doc.records.male,doc.records.friends);
+const smallestRecord = Doc.selectSmallestRecord(doc.records.male,doc.records.friends);
 const candidates = doc.genCandidates(1,smallestRecord,[],new Set());
 for (const [A] of candidates as Generator<string,void,unknown>) {
     if (Rules.areFriends(doc,['ada',A]) && Rules.areBrothers(doc,[A,'ben'])) {

@@ -1,17 +1,6 @@
 import { Doc,Rule,RecursiveRule } from "./fact-checker.js";
 import { UniqueList } from "./utils.js";
 
-function intersect<T>(setA:Set<T>,setB:Set<T>):Set<T> {
-    const intersection = new Set<T>();
-    const [smallerSet,otherSet] = (setA.size < setB.size)?[setA,setB]:[setB,setA];
-    for (const element of smallerSet) {
-        if (otherSet.has(element)) {
-            intersection.add(element);
-        }
-    }
-    console.log('🚀 => :15 => intersect => intersection:', intersection);
-    return intersection;
-}
 //A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
 export class Rules {//i had the rules as a seprate class to decouple it from the document.So all rules can be added here and be used on whatever document that needs itrather than decoupling specifc rules to the codument class
     public static areDirectFriends:Rule<[string,string]> = (doc,statement)=> {
@@ -42,7 +31,7 @@ export class Rules {//i had the rules as a seprate class to decouple it from the
             .map(fact=>{ if (fact!==false) return fact[0]; });//this iterates through each fact to index into the first element to get the parent
         const parentsOfY = [...doc.findAllFacts(doc.records.parent,[Doc.wildCard,Y])]
             .map(fact=>{ if (fact!==false) return fact[0]; });
-        const commonParent = intersect(new Set(parentsOfX),new Set(parentsOfY));
+        const commonParent = Doc.intersection(new Set(parentsOfX),new Set(parentsOfY));
         return Boolean(commonParent.size);
     };
     public static areBrothers:Rule<[string,string]> = (doc,statement) => {
