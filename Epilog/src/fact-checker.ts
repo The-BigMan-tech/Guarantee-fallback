@@ -179,7 +179,6 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Do
     }
     try {
         console.log('json path: ',jsonPath);
-        return;
         const jsonData = await fs.readFile(jsonPath, 'utf8');
         const records:Record<string,Rec> = JSON.parse(jsonData);
         const isValid = validator.Check(records);
@@ -189,9 +188,9 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Do
             return;//to prevent corruption
         }
         const doc = new Doc(records);
-        console.info(lime('Successfully loaded the document from the path:',jsonPath,'\n'));
+        console.info(lime('Successfully loaded the document from the path:'),jsonPath,'\n');
         return doc;
-    }catch { console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try setting the recreate json flag to true and ensure that the document doesnt contain errors that will prevent it from resolving to a json file.\n`); };
+    }catch { console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try importing the .el file directly to recreate the json file and ensure that the document doesnt contain errors that will prevent it from resolving to the json.\n`); };
 }
 
 
