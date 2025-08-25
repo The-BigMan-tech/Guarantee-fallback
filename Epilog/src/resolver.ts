@@ -8,8 +8,8 @@ import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
-import { Rec } from "./type-helper.js";
-import { AtomList } from "./type-helper.js";
+import { Rec } from "./utils.js";
+import { AtomList } from "./utils.js";
 import fs from 'fs/promises';
 import path from 'path';
 

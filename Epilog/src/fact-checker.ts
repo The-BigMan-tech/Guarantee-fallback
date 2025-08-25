@@ -1,10 +1,10 @@
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
-import { Tuple, UniqueAtomList, validator } from "./type-helper.js";
+import { Tuple, UniqueAtomList, validator } from "./utils.js";
 import {stringify} from "safe-stable-stringify";
-import { AtomList } from "./type-helper.js";
-import { PatternedAtomList } from "./type-helper.js";
-import { Rec } from "./type-helper.js";
+import { AtomList } from "./utils.js";
+import { PatternedAtomList } from "./utils.js";
+import { Rec } from "./utils.js";
 import fs from 'fs/promises';
 import chalk from "chalk";
 import path from "path";
