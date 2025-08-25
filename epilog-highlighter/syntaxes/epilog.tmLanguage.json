@@ -26,10 +26,6 @@
             "match": "\\balias\\b" 
         },
         {
-            "name": "reference.el",
-            "match": "[\\bHe\\b]" 
-        },
-        {
             "name": "constant.plainword.el",
             "match": "\\b[a-zA-Z]+\\b" 
         },
