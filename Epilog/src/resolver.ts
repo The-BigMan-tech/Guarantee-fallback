@@ -70,7 +70,7 @@ class Essentials {
     }
     public static loadEssentials(input:string):void {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:any, msg: string): void =>{
-            Essentials.report(DslError.Syntax,line,msg);
+            Essentials.report(DslError.Syntax,line-1,msg);//i minused one because the line were the syntax error is caught is always a line ahead of where it occured in the document.
         };
         Essentials.inputStream = CharStream.fromString(input);
         Essentials.lexer = new DSLLexer(Essentials.inputStream);
