@@ -10,7 +10,7 @@ const jsonPath = path.join(
     path.basename(srcPath, path.extname(srcPath)) + '.json'
 );
 
-const doc = await getDoc(srcPath,jsonPath,false);
+const doc = await getDoc(srcPath,jsonPath,true);
 if (!doc) process.exit(0);
 
 console.info(doc.isItAFact(doc.records.friends,['ada','zane']));//outputs false because its not a direct fact
