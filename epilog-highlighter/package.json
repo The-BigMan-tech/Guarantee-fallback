@@ -16,8 +16,12 @@
         {
             "id": "epilog",
             "aliases": ["Epilog", "epilog"],
-            "extensions": [".el"],
-            "configuration": "./language-configuration.json"
+            "extensions": [".el",".epilog"],
+            "icon": {
+				"light": "./epilog.svg",
+				"dark": "./epilog.svg"
+			},
+            "configuration": "./epilog-configuration.json"
         }
     ],
     "grammars": [
