@@ -8,7 +8,7 @@ const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
 const parentDirFromSrc = _dirname.replace('\\build','');
 
-const doc = await importDoc(path.join(parentDirFromSrc,'./doc.el'),parentDirFromSrc);
+const doc = await importDoc(path.join(parentDirFromSrc,'./doc.json'));
 if (!doc) process.exit(0);
 
 console.info(await doc.isItAFact('friends',['philip','john']));//outputs false because its not a direct fact
