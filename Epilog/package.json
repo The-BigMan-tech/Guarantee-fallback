@@ -69,6 +69,7 @@
     "fastest-levenshtein": "^1.0.16",
     "heap-js": "^2.6.0",
     "json-colorizer": "^3.0.1",
+    "json-rpc-2.0": "^1.7.1",
     "lru-cache": "^11.1.0",
     "safe-stable-stringify": "^2.5.0",
     "uuid": "^11.1.0"
