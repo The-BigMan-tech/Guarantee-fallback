@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import ipc from 'node-ipc';
 import { JSONRPCServer } from "json-rpc-2.0";
+import stringify from "safe-stable-stringify";
 
 const server = new JSONRPCServer();
 server.addMethod("checkFacts", (params) => {
@@ -15,8 +16,10 @@ export async function startIPCServer(): Promise<void> {
 
     ipc.serve(() => {
         ipc.server.on('message', async (data, socket) => {
+            console.log('🚀 => :19 => startIPCServer => data:', typeof data,data);
             try {
-                const response = await server.receive(data);
+                const response = stringify(await server.receive(data));
+                console.log('🚀 => :22 => startIPCServer => response:',typeof response,response);
                 if (response) {
                     ipc.server.emit(socket, 'message', response);
                 }
