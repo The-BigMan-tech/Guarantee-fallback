@@ -9,34 +9,42 @@ import {docOnServer} from "./fact-checker.js";
 
 const server = new JSONRPCServer();
 server.addMethod("importDoc", async ({ filePath, outputFolder }: { filePath: string; outputFolder?: string }) => {
-    await importDoc(filePath, outputFolder);
-    return;
+    return await importDoc(filePath, outputFolder);
 });
 server.addMethod("findAllFacts",({predicate,statement,byMembership}:{predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
     if (!docOnServer) return;
-    const allFacts = [...docOnServer.findAllFacts(docOnServer.records[predicate],statement,byMembership)];
-    return allFacts;
+    const result = [...docOnServer.findAllFacts(docOnServer.records[predicate],statement,byMembership)];
+    return result;
 });
 server.addMethod("findFirstFact",({predicate,statement,byMembership}:{predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
     if (!docOnServer) return;
-    return docOnServer.findFirstFact(docOnServer.records[predicate],statement,byMembership);
+    const result = docOnServer.findFirstFact(docOnServer.records[predicate],statement,byMembership);
+    return result;
 });
 server.addMethod("isItAFact",({predicate,statement,byMembership}:{predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
     if (!docOnServer) return;
-    return docOnServer.isItAFact(docOnServer.records[predicate],statement,byMembership);
+    const result = docOnServer.isItAFact(docOnServer.records[predicate],statement,byMembership);
+    return result;
 });
 server.addMethod("genCandidates",({howManyToReturn,predicate,inputCombination,visitedCombinations}:{howManyToReturn: number,predicate:string, inputCombination:Atom[], visitedCombinations:string[]})=>{
     if (!docOnServer) return;
-    return [...docOnServer.genCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,new Set(visitedCombinations))];
+    const result = [...docOnServer.genCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,new Set(visitedCombinations))];
+    return result;
 });
 server.addMethod("intersection",({sets}:{sets:Set<Atom>[]})=>{
     if (!docOnServer) return;
-    Doc.intersection(...sets);
+    const result =  Doc.intersection(...sets);
+    return result;
 });
 server.addMethod("selectSmallestRecord",({predicates}:{predicates:string[]})=>{
     if (!docOnServer) return;
-    const records = predicates.map(predicate=>docOnServer!.records[predicate]);
-    Doc.selectSmallestRecord(...records);
+    const relevantRecords = predicates.map(predicate=>docOnServer!.records[predicate]);
+    const smallestRecord = Doc.selectSmallestRecord(...relevantRecords);
+    for (const predicate of predicates) {
+        if (docOnServer.records[predicate] === smallestRecord) {
+            return predicate;
+        }
+    }
 });
 server.addMethod('wildCard',()=>{
     return Doc.wildCard;

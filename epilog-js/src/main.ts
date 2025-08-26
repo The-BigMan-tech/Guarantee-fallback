@@ -28,17 +28,16 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
     })
 );
 export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
-    const records = await client.request("importDoc",{filePath,outputFolder}) as (Record<string,Rec> | null);
-    if (records !== null) {
-        const doc = new Doc();
-        return doc;
+    const loaded = await client.request("importDoc",{filePath,outputFolder}) as boolean | undefined;;
+    if (!loaded) {
+        console.log(chalk.red("An error occurred while importing the document.See the server"));
+        return;
     }
-    console.error(chalk.red(`An error occured while the request was processed.check the server`));
+    return new Doc();
 }
 
-
 export class Doc {
-    public async findAllFacts(predicate:string,statement:PatternedAtomList,byMembership=false):Promise<AtomList>{
+    public async findAllFacts(predicate:string,statement:PatternedAtomList,byMembership=false):Promise<(false | AtomList)[]>{
         return await client.request("findAllFacts",{predicate,statement,byMembership});
     }
     public async findFirstFact(predicate:string,statement:PatternedAtomList,byMembership=false):Promise<false | AtomList> {
@@ -47,42 +46,26 @@ export class Doc {
     public async isItAFact(predicate:string,statement:PatternedAtomList,byMembership=false):Promise<boolean> {
         return await client.request("isItAFact",{predicate,statement,byMembership});
     }
-    public async genCandidates<T extends Atom,N extends number>(howManyToReturn:N,predicate:string,inputCombination:Atom[],visitedCombinations:string[]):Promise<T[]>{
-        return await client.request("isItAFact",{howManyToReturn,predicate,inputCombination,visitedCombinations});
+    public async genCandidates<T extends Atom,N extends number>(howManyToReturn:N,predicate:string,inputCombination:Atom[],visitedCombinations:string[]):Promise<T[][]>{
+        return await client.request("genCandidates",{howManyToReturn,predicate,inputCombination,visitedCombinations});
     }
-    public async selectSmallestRecord(predicates:string[]):Promise<Rec> {
+    public async selectSmallestRecord(predicates:string[]):Promise<string> {
         return await client.request('selectSmallestRecord',{predicates});
     }
-    public async intersection(sets:Set<Atom>[]):Promise<Set<Atom>> {
+    public async intersection(sets:Set<Atom | undefined>[]):Promise<Set<Atom>> {
         return await client.request('intersection',{sets});
     }
     public async wildCard():Promise<string> {
         return await client.request('wildCard',{});
     }
 }
-export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
-export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
+export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>Promise<boolean>;
+export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:string[])=>Promise<boolean>;
 
-export type WildCard = symbol;//i placed whatever string will be used as a wildcard behind a symbol to avoid collisions
+export type WildCard = string;
 export type Atom = string | number;
 export type AtomList = Atom[];
 export type PatternedAtomList = AddUnionToElements<AtomList,WildCard>;
-export type UniqueAtomList = UniqueList<Atom>
-export type Facts = UniqueAtomList[];
-export type Tuple<T, N extends number, R extends unknown[] = []> = 
-    R['length'] extends N ? R : Tuple<T, N, [...R, T]>;
-
 export type AddUnionToElements<T extends readonly any[], U> = {
     [K in keyof T]: T[K] | U;
 };
-interface Rec {
-    members:UniqueAtomList;
-    facts:Facts;
-    recID:string;
-}
-interface UniqueList<T> {
-    set: Set<T>; 
-    list: T[];  
-    indexMap: Map<T, number>;
-
-}

@@ -155,7 +155,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
  */
 export let docOnServer:Doc | null = null;
 
-export async function importDoc(filePath:string,outputFolder?:string):Promise<undefined> {
+export async function importDoc(filePath:string,outputFolder?:string):Promise<true | undefined> {
     if (!(filePath.endsWith(".el") || filePath.endsWith(".json"))) {
         console.log('🚀 => :158 => importDoc => filePath:', filePath);
         console.error(chalk.red('The import path must be a .el src file or the .json output'));
@@ -192,6 +192,7 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<un
         }
         console.info(lime('Successfully loaded the document from the path:'),jsonPath,'\n');
         docOnServer = new Doc(records);
+        return true;
     }catch { 
         if (!Resolver.terminate) {
             console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try importing the .el file directly to recreate the json file and ensure that the document doesnt contain errors that will prevent it from resolving to the json.\n`); 
