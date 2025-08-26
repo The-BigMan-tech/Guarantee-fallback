@@ -37,7 +37,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         }
         return false;//a quick check to save computation.it infers that if the arrays arent of the same length,then they arent the same
     }
-    public saveToFactsCache(key:string,atomList:AtomList[]):void {
+    private saveToFactsCache(key:string,atomList:AtomList[]):void {
         if (atomList.length === 0) {
             this.factCheckerCache.set(key,stringify(false));
         }else {

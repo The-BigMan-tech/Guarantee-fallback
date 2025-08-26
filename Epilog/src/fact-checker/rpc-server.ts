@@ -2,12 +2,14 @@ import chalk from "chalk";
 import ipc from 'node-ipc';
 import { JSONRPCServer } from "json-rpc-2.0";
 import stringify from "safe-stable-stringify";
+import { importDoc } from "./fact-checker.js";
 
 const server = new JSONRPCServer();
-server.addMethod("checkFacts",({ text }:{text:string})  => {
-    console.log(chalk.cyan('checkFacts params:'), text);
-    return { valid: true, details: "Facts are consistent" };
+server.addMethod("importDoc", async ({ filePath, outputFolder }: { filePath: string; outputFolder?: string }) => {
+    const doc = await importDoc(filePath, outputFolder);
+    return doc;
 });
+
 
 export async function startIPCServer(): Promise<void> {
     ipc.config.id = 'epilog-ipc-server';
