@@ -12,7 +12,6 @@ import { Rec } from "../utils/utils.js";
 import { AtomList } from "../utils/utils.js";
 import fs from 'fs/promises';
 import path from 'path';
-import { Command } from 'commander';
 
 interface ResolvedSingleTokens {
     indices:number[],//i used an array because they may be multiple refs in a sentence to resolve
@@ -607,7 +606,7 @@ function omitJsonKeys(key:string,value:any) {
     }
     return value; // include everything else
 }
-async function resolveDocToJson(srcFilePath:string,outputFolder?:string):Promise<void> {
+export async function resolveDocToJson(srcFilePath:string,outputFolder?:string):Promise<void> {
     try {
         const src = await fs.readFile(srcFilePath, 'utf8');
         const resolvedData = genStructures(src);
@@ -625,20 +624,4 @@ async function resolveDocToJson(srcFilePath:string,outputFolder?:string):Promise
     } catch (err) {
         console.error('Error processing file:', err);
     }
-}
-export function runCLI() {
-    const program = new Command();
-    program
-        .name('epilog')
-        .description('Example CLI that calls a function using flags/options')
-        .version('1.0.0');
-    program
-        .description('Run the resolve function with options')
-        .requiredOption('--src <srcPath>', 'path to DSL file')
-        .option('--out <outputPath>', 'folder to output the DSL data structure')
-        .action(async (options) => {
-            await resolveDocToJson(options.src, options.out);
-        });
-
-    program.parse(process.argv);
 }

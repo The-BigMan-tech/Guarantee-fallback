@@ -1,6 +1,5 @@
 import { JSONRPCServer } from "json-rpc-2.0";
 
-
 const server = new JSONRPCServer();
 server.addMethod("checkFacts", ({ facts }) => {
     return { valid: true, details: "Facts are consistent" };
@@ -10,4 +9,7 @@ server.addMethod("checkFacts", ({ facts }) => {
 async function handleRequest(request: any) {
     const response = await server.receive(request);
     return response;
+}
+export async function startIPCServer(port:number) {
+
 }
