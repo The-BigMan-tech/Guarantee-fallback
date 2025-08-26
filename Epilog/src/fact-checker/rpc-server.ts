@@ -28,12 +28,14 @@ server.addMethod("isItAFact",({predicate,statement,byMembership}:{predicate:stri
 });
 server.addMethod("genCandidates",({howManyToReturn,predicate,inputCombination,visitedCombinations}:{howManyToReturn: number,predicate:string, inputCombination:Atom[], visitedCombinations:string[]})=>{
     if (!docOnServer) return;
-    const result = [...docOnServer.genCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,new Set(visitedCombinations))];
-    return result;
+    const visitedSet = new Set(visitedCombinations);
+    const candidates = [...docOnServer.genCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,visitedSet)];
+    return {candidates,checkedCombinations:Array.from(visitedSet)};
 });
 server.addMethod("intersection",({arrays}:{arrays:[]})=>{
     if (!docOnServer) return;
-    const result =  [...Doc.intersection(...arrays.map(arr=>new Set(arr))).values()];
+    const sets = arrays.map(arr=>new Set(arr));
+    const result =  [...Doc.intersection(...sets)];
     return result;
 });
 server.addMethod("selectSmallestRecord",({predicates}:{predicates:string[]})=>{

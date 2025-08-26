@@ -46,7 +46,7 @@ export class Doc {
     public async isItAFact(predicate:string,statement:PatternedAtomList,byMembership=false):Promise<boolean> {
         return await client.request("isItAFact",{predicate,statement,byMembership});
     }
-    public async genCandidates<T extends Atom,N extends number>(howManyToReturn:N,predicate:string,inputCombination:Atom[],visitedCombinations:string[]):Promise<T[][]>{
+    public async genCandidates<T extends Atom,N extends number>(howManyToReturn:N,predicate:string,inputCombination:Atom[],visitedCombinations:string[]):Promise<{candidates:T[][],checkedCombinations:string[]}>{
         return await client.request("genCandidates",{howManyToReturn,predicate,inputCombination,visitedCombinations});
     }
     public async selectSmallestRecord(predicates:string[]):Promise<string> {

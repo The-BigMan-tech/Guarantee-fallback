@@ -1,4 +1,4 @@
-import { Rule,RecursiveRule } from "./main.js";
+import { RecursiveRule, Rule } from "./main.js";
 
 interface Rules {
     areDirectFriends:Rule<[string,string]>,
@@ -16,10 +16,10 @@ export const rules:Rules = {//A rule is a function that takes a document and a s
     },
     areIndirectFriends:async (doc,statement,visitedCombinations)=> {
         const [X,Y] = statement;
-        const candidates = await doc.genCandidates<string,1>(1,'friends',statement,visitedCombinations);
+        const {candidates,checkedCombinations} = await doc.genCandidates<string,1>(1,'friends',statement,visitedCombinations);
         for (const [A] of candidates) {
             if (await rules.areDirectFriends(doc,[X,A])) {
-                if (await rules.areDirectFriends(doc,[A,Y]) || await rules.areIndirectFriends(doc,[A,Y],visitedCombinations)) {
+                if (await rules.areDirectFriends(doc,[A,Y]) || await rules.areIndirectFriends(doc,[A,Y],checkedCombinations)) {
                     return true;
                 }
             }
