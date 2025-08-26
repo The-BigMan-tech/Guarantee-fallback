@@ -155,6 +155,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
  */
 export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
     if (!(filePath.endsWith(".el") || filePath.endsWith(".json"))) {
+        console.log('🚀 => :158 => importDoc => filePath:', filePath);
         console.error(chalk.red('The import path must be a .el src file or the .json output'));
         return;
     }
@@ -165,8 +166,8 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Do
             console.error(chalk.red('An output path must be specified if the import is the src file'));
             return;
         }
-        const cliArgs = ['resolve','--src',filePath, '--out', outputFolder];
-        const child = spawn('epilog', cliArgs, { stdio: 'inherit',shell:true });
+        const cliArgs = ['run', 'exec:main','resolve', '--src', filePath, '--out', outputFolder];
+        const child = spawn('pnpm', cliArgs, { stdio: 'inherit', shell: true });
         const exitCode = await new Promise<number>((resolve, reject) => {
             child.on('close', resolve);
             child.on('error', reject);
