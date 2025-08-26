@@ -28,16 +28,19 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
     })
 );
 export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
-    const records = JSON.parse(await client.request("importDoc",{filePath,outputFolder})) as Record<string,Rec>;
-    const doc = new Doc(records);
-    return doc;
+    const records = JSON.parse(await client.request("importDoc",{filePath,outputFolder})) as (Record<string,Rec> | null);
+    if (records !== null) {
+        const doc = new Doc(records);
+        return doc;
+    }
+    console.error(chalk.red(`An error occured while the request was processed.check the server`));
 }
 
 
 export class Doc {
     public records:Record<string,Rec> = {};
     public static wildCard = Symbol('*');
-    
+
     public constructor(records:Record<string,Rec>) {
         Object.keys(records).forEach(key=>{
             this.records[key] = new Rec(records[key].facts);

@@ -9,6 +9,7 @@ import fs from 'fs/promises';
 import chalk from "chalk";
 import path from "path";
 import { spawn } from 'child_process';
+import { Resolver } from "../resolver/resolver.js";
 
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
 export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
@@ -189,8 +190,12 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Re
             return;//to prevent corruption
         }
         console.info(lime('Successfully loaded the document from the path:'),jsonPath,'\n');
-        return records;
-    }catch { console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try importing the .el file directly to recreate the json file and ensure that the document doesnt contain errors that will prevent it from resolving to the json.\n`); };
+        return records;//returned the json records for the client to build the document on their side
+    }catch { 
+        if (!Resolver.terminate) {
+            console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try importing the .el file directly to recreate the json file and ensure that the document doesnt contain errors that will prevent it from resolving to the json.\n`); 
+        }
+    };
 }
 
 

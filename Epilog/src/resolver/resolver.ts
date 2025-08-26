@@ -93,7 +93,7 @@ interface RefCheck {
     hasRef:boolean,
     line:number
 }
-class Resolver extends DSLVisitor<void> {
+export class Resolver extends DSLVisitor<void> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public  records:Record<string,Rec> = {};
     private aliases = new Map<string,string>();
