@@ -55,7 +55,7 @@ export class Doc {
     public isItAFact(record: Rec, args:PatternedAtomList,byMembership=false):boolean {
         
     }
-    public* genCandidates<N extends number,list=UniqueAtomList['list'][number]>(howManyToReturn:N,record:Rec<UniqueAtomList[]>,inputCombination:unknown[],visitedCombinations:Set<string>)
+    public* genCandidates<T extends Atom,N extends number,list=UniqueList<T>['list'][number]>(howManyToReturn:N,record:Rec<UniqueAtomList[]>,inputCombination:unknown[],visitedCombinations:Set<string>)
     :Generator<Tuple<list,N>, void, unknown> {
 
     }
@@ -69,6 +69,8 @@ export class Doc {
         
     }
 }
+export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
+export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
 
 export type WildCard = symbol;//i placed whatever string will be used as a wildcard behind a symbol to avoid collisions
 export type Atom = string | number;
