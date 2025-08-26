@@ -28,7 +28,7 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
     })
 );
 export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
-    const records = JSON.parse(await client.request("importDoc",{filePath,outputFolder})) as (Record<string,Rec> | null);
+    const records = await client.request("importDoc",{filePath,outputFolder}) as (Record<string,Rec> | null);
     if (records !== null) {
         const doc = new Doc(records);
         return doc;
