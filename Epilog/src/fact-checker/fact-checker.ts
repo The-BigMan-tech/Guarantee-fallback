@@ -90,7 +90,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
     }
 
 
-    public getCombinationKey(...inputCombination:unknown[]):string {
+    private getCombinationKey(...inputCombination:unknown[]):string {
         return inputCombination.map(element => stringify(element)).join('|');
     }
     //the checked facts is just a record to maintain recursion so the facts checked in a function call is not meant to persist across rules,else,subsequent calls to the same rule wont work as expected
@@ -153,7 +153,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
  * @param importPath 
  * @returns 
  */
-export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
+export async function importDoc(filePath:string,outputFolder?:string):Promise<Record<string,Rec> | undefined> {
     if (!(filePath.endsWith(".el") || filePath.endsWith(".json"))) {
         console.log('🚀 => :158 => importDoc => filePath:', filePath);
         console.error(chalk.red('The import path must be a .el src file or the .json output'));
@@ -188,9 +188,8 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Do
             console.error(chalk.red('Validation error in the json file:'), errors);
             return;//to prevent corruption
         }
-        const doc = new Doc(records);
         console.info(lime('Successfully loaded the document from the path:'),jsonPath,'\n');
-        return doc;
+        return records;
     }catch { console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try importing the .el file directly to recreate the json file and ensure that the document doesnt contain errors that will prevent it from resolving to the json.\n`); };
 }
 

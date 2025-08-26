@@ -6,8 +6,8 @@ import { importDoc } from "./fact-checker.js";
 
 const server = new JSONRPCServer();
 server.addMethod("importDoc", async ({ filePath, outputFolder }: { filePath: string; outputFolder?: string }) => {
-    const doc = await importDoc(filePath, outputFolder);
-    return doc;
+    const records = await importDoc(filePath, outputFolder);
+    return records;
 });
 
 
