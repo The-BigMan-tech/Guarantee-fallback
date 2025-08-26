@@ -1,4 +1,4 @@
-import { Doc,Rule,RecursiveRule } from "./fact-checker/fact-checker.js";
+import { Doc,Rule,RecursiveRule } from "./main.js";
 import { UniqueList } from "./utils/utils.js";
 
 interface Rules {

@@ -10,7 +10,6 @@ import chalk from "chalk";
 import path from "path";
 import { spawn } from 'child_process';
 
-
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
 export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
 
