@@ -4,8 +4,8 @@ import { JSONRPCServer } from "json-rpc-2.0";
 import stringify from "safe-stable-stringify";
 
 const server = new JSONRPCServer();
-server.addMethod("checkFacts", (params) => {
-    console.log('checkFacts params:', params);
+server.addMethod("checkFacts",({ text }:{text:string})  => {
+    console.log(chalk.cyan('checkFacts params:'), text);
     return { valid: true, details: "Facts are consistent" };
 });
 
@@ -16,10 +16,10 @@ export async function startIPCServer(): Promise<void> {
 
     ipc.serve(() => {
         ipc.server.on('message', async (data, socket) => {
-            console.log('🚀 => :19 => startIPCServer => data:', typeof data,data);
+            console.log(chalk.cyan('🚀 => :19 => startIPCServer => data:'), typeof data,data);
             try {
                 const response = stringify(await server.receive(data));
-                console.log('🚀 => :22 => startIPCServer => response:',typeof response,response);
+                console.log(chalk.cyan('🚀 => :22 => startIPCServer => response:'),typeof response,response);
                 if (response) {
                     ipc.server.emit(socket, 'message', response);
                 }

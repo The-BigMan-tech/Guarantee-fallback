@@ -1,6 +1,5 @@
 import ipc from 'node-ipc';
 import { JSONRPCClient } from "json-rpc-2.0";
-import stringify from "safe-stable-stringify";
 
 const client = new JSONRPCClient((jsonRPCRequest) =>
     new Promise((resolve, reject) => {
@@ -9,9 +8,7 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
         ipc.connectTo('epilog-ipc-server', () => {
             const server = ipc.of['epilog-ipc-server']; 
             server.on('connect', () => {
-                const message = stringify(jsonRPCRequest);
-                console.log('🚀 => :13 => message:', message);
-                server.emit('message',message);
+                server.emit('message',jsonRPCRequest);
             });
             server.on('message', (data: string) => {
                 try {
@@ -29,6 +26,6 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
     })
 );
 
-client.request("checkFacts",{facts:[]}).then(result => {
+client.request("checkFacts",'hello world').then(result => {
     console.log('Fact checker response:', result);
 });
