@@ -1,4 +1,5 @@
 import ipc from 'node-ipc';
+import chalk from "chalk";
 import { JSONRPCClient } from "json-rpc-2.0";
 
 const client = new JSONRPCClient((jsonRPCRequest) =>
@@ -13,6 +14,7 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
             server.on('message', (data: string) => {//get the response
                 try {
                     const jsonRPCResponse = JSON.parse(data);
+                    console.log(chalk.cyan('Response: '),jsonRPCResponse);//hanlde the response
                     resolve(client.receive(jsonRPCResponse));
                 } catch (err) {
                     reject(err);
@@ -26,5 +28,5 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
 );
 
 client.request("checkFacts",'hello world').then(result => {
-    console.log('Fact checker response:', result);//hanlde the response
+    //
 });
