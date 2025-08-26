@@ -19,10 +19,8 @@ async function runCLI():Promise<void> {
     program
         .command('run')
         .description('Start the fact checker IPC server')
-        .option('--port <port>', 'Port for IPC server', '3000')
-        .action(async (options) => {
-            const port = parseInt(options.port, 10);
-            await startIPCServer(port);
+        .action(async () => {
+            await startIPCServer();
         });
     await program.parseAsync(process.argv);
 }
