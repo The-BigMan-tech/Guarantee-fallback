@@ -1,6 +1,6 @@
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
-import { Tuple, UniqueAtomList, validator } from "../utils/utils.js";
+import { Tuple,validator,UniqueAtomList } from "../utils/utils.js";
 import {stringify} from "safe-stable-stringify";
 import { AtomList } from "../utils/utils.js";
 import { PatternedAtomList } from "../utils/utils.js";
@@ -94,15 +94,15 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         return inputCombination.map(element => stringify(element)).join('|');
     }
     //the checked facts is just a record to maintain recursion so the facts checked in a function call is not meant to persist across rules,else,subsequent calls to the same rule wont work as expected
-    public* genCandidates<T extends UniqueAtomList,N extends number>(howManyToReturn:N,record:Rec<T[]>,inputCombination:unknown[],visitedCombinations:Set<string>)
-    :Generator<Tuple<T['list'][number],N>, void, unknown> {//if the caller is recursing on itself,then it should provide any input it receives relevant to the fact checking to prevent cycles.
+    public* genCandidates<N extends number,list=UniqueAtomList['list'][number]>(howManyToReturn:N,record:Rec<UniqueAtomList[]>,inputCombination:unknown[],visitedCombinations:Set<string>)
+    :Generator<Tuple<list,N>, void, unknown> {//if the caller is recursing on itself,then it should provide any input it receives relevant to the fact checking to prevent cycles.
         if (!record) return;
         const sequences = permutations(record.members.list,howManyToReturn);//i chose permutations because the order at which the candidates are supplied matters but without replacement
         for (const permutation of sequences) {
             const combinationKey = this.getCombinationKey(...inputCombination, ...permutation);
             if (!visitedCombinations.has(combinationKey)) {
                 visitedCombinations.add(combinationKey);
-                yield permutation as Tuple<T['list'][number],N>;
+                yield permutation as Tuple<list,N>;
             }
         }
     }
