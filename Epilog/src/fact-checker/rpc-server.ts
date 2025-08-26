@@ -3,7 +3,8 @@ import ipc from 'node-ipc';
 import { JSONRPCServer } from "json-rpc-2.0";
 
 const server = new JSONRPCServer();
-server.addMethod("checkFacts", ({ facts }) => {
+server.addMethod("checkFacts", (params) => {
+    console.log('checkFacts params:', params);
     return { valid: true, details: "Facts are consistent" };
 });
 
