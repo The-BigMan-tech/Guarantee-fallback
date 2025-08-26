@@ -2373,3 +2373,7 @@ linter rules
 debugger
 
 *before,my language was tightly limited to js environment.because it was written in js,it made sense to leverage template strings for the src.then i made my resolver a standalone cli that can read .el src files but it was still limited to js because the fact checker was called directly ad its not possible to have different languages call the fact checker.but now,with the bindings,my epilog language can support any language.but it wasnt easy.the ipc and .el src file support was very hard to pull off.
+
+*and unlike prolog,there is no interpreter.only a resolver that turns it to json files.so anywhere the fact checker can run,can also understand the facts.so it naturallly lends itself as an ipc service that can be called anywhere.
+
+*so to simulate the installation;the command is pnpm add -g epilog.and in my terminal,i just ran epilog resolve --src *.el and it resolved it to a json file.but now to use it,i need to run the epilog fact checker ipc with epilog run.and finally,ill need a language binding to communncate with this.so for js,ill do npm install epilog-js locally because its a binding not the language itself.
