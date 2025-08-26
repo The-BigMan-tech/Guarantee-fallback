@@ -46,7 +46,7 @@ class Essentials {
     
     public static report(errorType:string,lineCount:number,msg:string,checkLines?:number[]):void {
         function pushLine(line:number):void {
-            messages.push(brown(Analyzer.inputArr[line]?.trim() + '\n'));
+            messages.push(brown(Resolver.inputArr[line]?.trim() + '\n'));
         }
 
         let title = chalk.underline(`\n${errorType} line ${lineCount+1}:`);//for 1-based line counting for the logs
@@ -66,7 +66,7 @@ class Essentials {
         }
         console.info(...messages);
         if ((errorType===DslError.Semantic) || (errorType===DslError.Syntax)) {
-            Analyzer.terminate = true;
+            Resolver.terminate = true;
         }
     }
     public static loadEssentials(input:string):void {
@@ -94,7 +94,7 @@ interface RefCheck {
     hasRef:boolean,
     line:number
 }
-class Analyzer extends DSLVisitor<void> {
+class Resolver extends DSLVisitor<void> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public  records:Record<string,Rec> = {};
     private aliases = new Map<string,string>();
@@ -111,9 +111,9 @@ class Analyzer extends DSLVisitor<void> {
     private logProgress(tokens:Token[] | null) {
         if ((tokens===null) && !this.seenAlias) return;//dont log anything if they are no tokens and no alias is declared
         const resolvedSentence = tokens?.map(token=>token.text!).join(' ') || '';
-        const originalSrc  = Analyzer.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
+        const originalSrc  = Resolver.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
 
-        if (!Analyzer.terminate) {
+        if (!Resolver.terminate) {
             if (originalSrc?.trim().length > 0) {
                 let expansionText = stringify(this.expandedFacts);
                 expansionText = replaceLastOccurrence(expansionText,']','\n]\n')
@@ -145,7 +145,7 @@ class Analyzer extends DSLVisitor<void> {
     }
     public visitProgram = (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
-            if (Analyzer.terminate) return;
+            if (Resolver.terminate) return;
             let tokens:Token[] | null = null;
 
             if (child instanceof FactContext) {
@@ -168,7 +168,7 @@ class Analyzer extends DSLVisitor<void> {
     public visitFact = (ctx:FactContext)=> {
         const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         this.resolveRefs(tokens);
-        if (!Analyzer.terminate) this.buildFact(tokens);//i checked for termination here because ref resolution can fail
+        if (!Resolver.terminate) this.buildFact(tokens);//i checked for termination here because ref resolution can fail
         return tokens;
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
@@ -348,7 +348,7 @@ class Analyzer extends DSLVisitor<void> {
             if ((type === DSLLexer.SINGLE_SUBJECT_REF) || (type === DSLLexer.SINGLE_OBJECT_REF)) {
                 const isObjectRef = (type === DSLLexer.SINGLE_OBJECT_REF);
                 const nthIndex = isObjectRef?extractNumFromRef(text):1;
-                if (Analyzer.terminate) return;
+                if (Resolver.terminate) return;
                 
                 const member = getNthMember(nthIndex).nthMember;
     
@@ -363,7 +363,7 @@ class Analyzer extends DSLVisitor<void> {
             else if ((type === DSLLexer.GROUP_SUBJECT_REF) || (type === DSLLexer.GROUP_OBJECT_REF)) {
                 const isObjectRef = (type === DSLLexer.GROUP_OBJECT_REF);
                 const nthIndex = isObjectRef?extractNumFromRef(text):1;
-                if (Analyzer.terminate) return;
+                if (Resolver.terminate) return;
                 
                 const result = getNthMember(nthIndex);
                 const member = result.nthMember;
@@ -377,7 +377,7 @@ class Analyzer extends DSLVisitor<void> {
             
             else if (type === DSLLexer.GENERIC_REF) {
                 const nthIndex = extractNumFromRef(text);
-                if (Analyzer.terminate) return;
+                if (Resolver.terminate) return;
 
                 const result = getNthMember(nthIndex);
                 const member = result.nthMember;
@@ -517,7 +517,7 @@ class Analyzer extends DSLVisitor<void> {
         if (predicate === null) return;
         const tokenQueue = new Denque(tokens);
         const groupedData = this.inspectRelevantTokens(tokenQueue,false);
-        if (Analyzer.terminate) return;
+        if (Resolver.terminate) return;
 
         this.expandedFacts = this.expandRecursively(groupedData!);
 
@@ -546,7 +546,7 @@ class Analyzer extends DSLVisitor<void> {
         }
     }
     private inspectRelevantTokens(tokens:Denque<Token>,readOnly:boolean=true,level:[number]=[0],visitedNames=new Set<string>(),shouldClone:boolean=true) {
-        if (Analyzer.terminate) return;
+        if (Resolver.terminate) return;
         const tokenQueue = shouldClone ? new Denque(tokens.toArray()) : tokens;//to prevent unwanted mutation if the queue is to be reused elsewhere
         const list:any[] = [];
         const inRoot = level[0] === 0;
@@ -559,10 +559,10 @@ class Analyzer extends DSLVisitor<void> {
                 if (!readOnly) {
                     if (visitedNames.has(str)) {
                         Essentials.report(DslError.Semantic,this.lineCount,`-The same name cannot be used more than once in a sentence but found; ${chalk.bold(text)} used again.`);
-                        if (Analyzer.terminate) return;
+                        if (Resolver.terminate) return;
                     }
                     visitedNames.add(str);
-                    if (Analyzer.terminate) return;
+                    if (Resolver.terminate) return;
                 }
                 list.push((inRoot)?[str]:str);
             }
@@ -591,15 +591,15 @@ class Analyzer extends DSLVisitor<void> {
     }
     public static inputArr:string[] = [];
     public createSentenceArray(input:string) {
-        Analyzer.inputArr = input.split('\n');
+        Resolver.inputArr = input.split('\n');
     }
 }
 function genStructures(input:string):Record<string,Rec> | undefined {
-    const visitor = new Analyzer();
+    const visitor = new Resolver();
     visitor.createSentenceArray(input);
     Essentials.loadEssentials(input);
     visitor.visit(Essentials.tree);
-    if (!Analyzer.terminate) return visitor.records;
+    if (!Resolver.terminate) return visitor.records;
 }
 function omitJsonKeys(key:string,value:any) {
     if ((key === "set") ||  (key === "indexMap")) {
@@ -611,7 +611,7 @@ async function resolveDocToJson(srcFilePath:string,outputFolder?:string):Promise
     try {
         const src = await fs.readFile(srcFilePath, 'utf8');
         const resolvedData = genStructures(src);
-        if (!Analyzer.terminate) {
+        if (!Resolver.terminate) {
             const json = stringify(resolvedData,omitJsonKeys,4) || '';
             const jsonFilePath = path.basename(srcFilePath, path.extname(srcFilePath)) + '.json';
 
@@ -619,7 +619,7 @@ async function resolveDocToJson(srcFilePath:string,outputFolder?:string):Promise
             const fullJsonPath = path.join(outputPath,jsonFilePath);
             await fs.writeFile(fullJsonPath, json);
 
-            Analyzer.terminate = false;//reset it for subsequent analyzing
+            Resolver.terminate = false;//reset it for subsequent analyzing
             console.log(`\n${lime('Successfully wrote JSON output to: ')} ${jsonFilePath}\n`);
         }
     } catch (err) {

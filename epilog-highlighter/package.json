@@ -16,10 +16,10 @@
         {
             "id": "epilog",
             "aliases": ["Epilog", "epilog"],
-            "extensions": [".el",".epilog"],
+            "extensions": [".el"],
             "icon": {
-				"light": "./epilog.svg",
-				"dark": "./epilog.svg"
+				"light": "./icons/epilog.svg",
+				"dark": "./icons/epilog.svg"
 			},
             "configuration": "./epilog-configuration.json"
         }

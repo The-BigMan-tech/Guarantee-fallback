@@ -1,54 +1,67 @@
 {
-    "scopeName":"source.epilog",
-    "patterns":[
-        {
-            "name": "constant.name.el",
-            "match": "\\:[a-zA-Z]+" 
+    "scopeName": "source.epilog",
+    "patterns": [
+        { "include": "#angleBrackets" },
+        { "include": "#otherPatterns" }
+    ],
+    "repository": {
+        "angleBrackets": {
+            "name": "angle.brackets.el",
+            "begin": "<",
+            "beginCaptures": { "0": { "name": "punctuation.angle.begin.el" } },
+            "end": ">",
+            "endCaptures": { "0": { "name": "punctuation.angle.end.el" } },
+            "patterns": [
+                {
+                    "name": "reference.el",
+                    "match": "[a-zA-Z]+"
+                }
+            ]
         },
-        {
-            "name": "constant.name.strict.el",
-            "match": "\\![a-zA-Z]+" 
-        },
-        {
-            "name": "constant.number.el",
-            "match": "-?[0-9]+(\\.[0-9]+)?"
-        },
-        {
-            "name": "constant.alias.el",
-            "match": "#[a-zA-Z]+" 
-        },
-        {
-            "name": "constant.predicate.el",
-            "match": "\\*[a-zA-Z]+"
-        },
-        {
-            "name": "keyword.alias.el",
-            "match": "\\balias\\b" 
-        },
-        {
-            "name": "constant.plainword.el",
-            "match": "\\b[a-zA-Z]+\\b" 
-        },
-        {
-            "name": "terminator.el",
-            "match": "\\."
-        },
-        {
-            "name": "comment.line.el",
-            "begin": "//",
-            "end": "$" 
-        },
-        {
-            "name": "punctuation.el",
-            "match": "[,()\\[\\];?!'\\=]" 
-        },
-        {
-            "name": "punctuation.colon.angle.el",
-            "match": "[:<>]" 
-        },
-        {
-            "name": "punctuation.bracket.el",
-            "match": "[\\[\\]]" 
+        "otherPatterns": {
+            "patterns":[
+                {
+                    "name": "constant.name.el",
+                    "match": "\\:[a-zA-Z]+" 
+                },
+                {
+                    "name": "constant.name.strict.el",
+                    "match": "\\![a-zA-Z]+" 
+                },
+                {
+                    "name": "constant.number.el",
+                    "match": "-?[0-9]+(\\.[0-9]+)?"
+                },
+                {
+                    "name": "constant.alias.el",
+                    "match": "#[a-zA-Z]+" 
+                },
+                {
+                    "name": "constant.predicate.el",
+                    "match": "\\*[a-zA-Z]+"
+                },
+                {
+                    "name": "keyword.alias.el",
+                    "match": "\\balias\\b" 
+                },
+                {
+                    "name": "constant.plainword.el",
+                    "match": "\\b[a-zA-Z]+\\b" 
+                },
+                {
+                    "name": "terminator.el",
+                    "match": "\\."
+                },
+                {
+                    "name": "comment.line.el",
+                    "begin": "//",
+                    "end": "$" 
+                },
+                {
+                    "name": "punctuation.el",
+                    "match": "[,()\\[\\];?!'\\=]" 
+                }
+            ]
         }
-    ]
+    }
 }
