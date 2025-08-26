@@ -31,9 +31,9 @@ server.addMethod("genCandidates",({howManyToReturn,predicate,inputCombination,vi
     const result = [...docOnServer.genCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,new Set(visitedCombinations))];
     return result;
 });
-server.addMethod("intersection",({sets}:{sets:Set<Atom>[]})=>{
+server.addMethod("intersection",({arrays}:{arrays:[]})=>{
     if (!docOnServer) return;
-    const result =  Doc.intersection(...sets);
+    const result =  [...Doc.intersection(...arrays.map(arr=>new Set(arr))).values()];
     return result;
 });
 server.addMethod("selectSmallestRecord",({predicates}:{predicates:string[]})=>{

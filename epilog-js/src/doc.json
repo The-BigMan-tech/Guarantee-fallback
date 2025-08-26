@@ -1,17 +1,224 @@
 {
-    "boy": {
+    "father": {
         "facts": [
             {
                 "list": [
-                    "peter"
+                    "leo",
+                    "john"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "ada"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "jake"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "ben"
+                ]
+            },
+            {
+                "list": [
+                    "Susan",
+                    "john"
                 ]
             }
         ],
         "members": {
             "list": [
-                "peter"
+                "leo",
+                "john",
+                "ada",
+                "jake",
+                "ben",
+                "Susan"
             ]
         },
-        "recID": "13084813-6374-44a3-bdb2-149a6822b7e1"
+        "recID": "21cfe1fb-a46c-4ed5-b56a-6606c1115df6"
+    },
+    "female": {
+        "facts": [
+            {
+                "list": [
+                    "ada"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "ada"
+            ]
+        },
+        "recID": "63c3ca2d-080c-4ea9-927e-05ec8ecf6e03"
+    },
+    "friends": {
+        "facts": [
+            {
+                "list": [
+                    "ada",
+                    "john"
+                ]
+            },
+            {
+                "list": [
+                    "john",
+                    "philip"
+                ]
+            },
+            {
+                "list": [
+                    "philip",
+                    "jake"
+                ]
+            },
+            {
+                "list": [
+                    "jake",
+                    "ben"
+                ]
+            },
+            {
+                "list": [
+                    "ben",
+                    "billy"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "ada",
+                "john",
+                "philip",
+                "jake",
+                "ben",
+                "billy"
+            ]
+        },
+        "recID": "e29d6e97-35a3-419e-a05d-36394769cbae"
+    },
+    "male": {
+        "facts": [
+            {
+                "list": [
+                    "john"
+                ]
+            },
+            {
+                "list": [
+                    "jake"
+                ]
+            },
+            {
+                "list": [
+                    "ben"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "john",
+                "jake",
+                "ben"
+            ]
+        },
+        "recID": "82afe63d-6c1b-44e1-a047-0d3266e5176b"
+    },
+    "mother": {
+        "facts": [
+            {
+                "list": [
+                    "leo",
+                    "john"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "ada"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "jake"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "ben"
+                ]
+            },
+            {
+                "list": [
+                    "Susan",
+                    "john"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "leo",
+                "john",
+                "ada",
+                "jake",
+                "ben",
+                "Susan"
+            ]
+        },
+        "recID": "21cfe1fb-a46c-4ed5-b56a-6606c1115df6"
+    },
+    "parent": {
+        "facts": [
+            {
+                "list": [
+                    "leo",
+                    "john"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "ada"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "jake"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "ben"
+                ]
+            },
+            {
+                "list": [
+                    "Susan",
+                    "john"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "leo",
+                "john",
+                "ada",
+                "jake",
+                "ben",
+                "Susan"
+            ]
+        },
+        "recID": "21cfe1fb-a46c-4ed5-b56a-6606c1115df6"
     }
 }

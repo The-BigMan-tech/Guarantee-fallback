@@ -52,8 +52,8 @@ export class Doc {
     public async selectSmallestRecord(predicates:string[]):Promise<string> {
         return await client.request('selectSmallestRecord',{predicates});
     }
-    public async intersection(sets:Set<Atom | undefined>[]):Promise<Set<Atom>> {
-        return await client.request('intersection',{sets});
+    public async intersection(arrays:(Atom | undefined)[][]):Promise<Atom[]> {
+        return await client.request('intersection',{arrays});
     }
     public async wildCard():Promise<string> {
         return await client.request('wildCard',{});

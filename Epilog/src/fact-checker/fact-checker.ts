@@ -125,7 +125,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         }
         return true;
     }
-    private static selectSmallestSet(...sets:Set<Atom>[]):Set<Atom> {
+    private static selectSmallestSet(...sets:Set<unknown>[]):Set<unknown> {
         return sets.reduce((smallest, current) =>
             current.size < smallest.size ? current : smallest
         );
@@ -135,8 +135,8 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
             current?.members.set.size < smallest?.members.set.size ? current : smallest
         );
     }
-    public static intersection(...sets:Set<Atom>[]):Set<Atom> {
-        const intersection = new Set<Atom>();
+    public static intersection(...sets:Set<unknown>[]):Set<unknown> {
+        const intersection = new Set<unknown>();
         const smallestSet = this.selectSmallestSet(...sets);
         for (const element of smallestSet) {
             if (sets.every(set=> set.has(element))) {
