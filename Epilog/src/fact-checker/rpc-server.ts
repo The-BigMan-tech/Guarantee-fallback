@@ -15,13 +15,13 @@ export async function startIPCServer(): Promise<void> {
     ipc.config.silent = false;
 
     ipc.serve(() => {
-        ipc.server.on('message', async (data, socket) => {
-            console.log(chalk.cyan('🚀 => :19 => startIPCServer => data:'), typeof data,data);
+        ipc.server.on('message', async (data, socket) => {//receive request from the client
+            console.log(chalk.cyan('🚀 => :19 => startIPCServer => data:'),data);
             try {
-                const response = stringify(await server.receive(data));
+                const response = stringify(await server.receive(data));//route request to the appropriate controller
                 console.log(chalk.cyan('🚀 => :22 => startIPCServer => response:'),typeof response,response);
                 if (response) {
-                    ipc.server.emit(socket, 'message', response);
+                    ipc.server.emit(socket, 'message', response);//return response back to the client.The response must be stringified
                 }
             } catch (err) {
                 console.error('Error handling JSON-RPC request:', err);

@@ -7,10 +7,10 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
         
         ipc.connectTo('epilog-ipc-server', () => {
             const server = ipc.of['epilog-ipc-server']; 
-            server.on('connect', () => {
+            server.on('connect', () => {//make the request.the request should not be stringified
                 server.emit('message',jsonRPCRequest);
             });
-            server.on('message', (data: string) => {
+            server.on('message', (data: string) => {//get the response
                 try {
                     const jsonRPCResponse = JSON.parse(data);
                     console.log('🚀 => :17 => jsonRPCResponse:', jsonRPCResponse);
@@ -27,5 +27,5 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
 );
 
 client.request("checkFacts",'hello world').then(result => {
-    console.log('Fact checker response:', result);
+    console.log('Fact checker response:', result);//hanlde the response
 });
