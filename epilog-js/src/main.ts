@@ -13,7 +13,6 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
             server.on('message', (data: string) => {//get the response
                 try {
                     const jsonRPCResponse = JSON.parse(data);
-                    console.log('🚀 => :17 => jsonRPCResponse:', jsonRPCResponse);
                     resolve(client.receive(jsonRPCResponse));
                 } catch (err) {
                     reject(err);

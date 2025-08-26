@@ -10,16 +10,14 @@ server.addMethod("checkFacts",({ text }:{text:string})  => {
 });
 
 export async function startIPCServer(): Promise<void> {
-    console.log(chalk.green('Running the epilog fact checker...'));
     ipc.config.id = 'epilog-ipc-server';
     ipc.config.silent = false;
 
     ipc.serve(() => {
         ipc.server.on('message', async (data, socket) => {//receive request from the client
-            console.log(chalk.cyan('🚀 => :19 => startIPCServer => data:'),data);
+            console.log(chalk.cyan('Request: '),data);
             try {
                 const response = stringify(await server.receive(data));//route request to the appropriate controller
-                console.log(chalk.cyan('🚀 => :22 => startIPCServer => response:'),typeof response,response);
                 if (response) {
                     ipc.server.emit(socket, 'message', response);//return response back to the client.The response must be stringified
                 }
@@ -29,5 +27,5 @@ export async function startIPCServer(): Promise<void> {
         });
     });
     ipc.server.start();
-    console.log(chalk.green(`node-ipc JSON-RPC IPC server listening as '${ipc.config.id}'`));
+    console.log(chalk.green(`The epilog fact checker is listening with the id '${ipc.config.id}'`));
 }
