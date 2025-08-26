@@ -2372,11 +2372,4 @@ syntax highlighter
 linter rules
 debugger
 
-**********
-him shouldnt produce this: Semantic Error at line 3:
-A reference cannot be used to point to a subject in the same sentence.
-Is <him:2> supposed to point to ":ada"? If so,separate it as its own sentence.
-Check -> :ada *plays with <him:2>.
-
-
-Refs shouldnt produce assertion warnings
+*before,my language was tightly limited to js environment.because it was written in js,it made sense to leverage template strings for the src.then i made my resolver a standalone cli that can read .el src files but it was still limited to js because the fact checker was called directly ad its not possible to have different languages call the fact checker.but now,with the bindings,my epilog language can support any language.but it wasnt easy.the ipc and .el src file support was very hard to pull off.

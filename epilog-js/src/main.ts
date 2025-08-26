@@ -15,8 +15,8 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
             server.on('message', (data: string) => {//get the response
                 try {
                     const jsonRPCResponse = JSON.parse(data);
-                    console.log(chalk.cyan('Response: '),jsonRPCResponse);//hanlde the response
-                    resolve(client.receive(jsonRPCResponse));
+                    // console.log(chalk.cyan('Response: '),jsonRPCResponse);
+                    resolve(client.receive(jsonRPCResponse));//hanlde the response
                 } catch (err) {
                     reject(err);
                 } finally {
