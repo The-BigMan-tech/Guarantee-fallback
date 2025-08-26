@@ -1,5 +1,4 @@
-import { Doc,Rule,RecursiveRule } from "./main.js";
-import { UniqueList } from "./utils/utils.js";
+import { RecursiveRule, Rule } from "./main.js";
 
 interface Rules {
     areDirectFriends:Rule<[string,string]>,
@@ -9,43 +8,45 @@ interface Rules {
     areBrothers:Rule<[string,string]>
 }
 export const rules:Rules = {//A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
-    areDirectFriends:(doc,statement)=> {
+    areDirectFriends:async (doc,statement)=> {
         const [X,Y] = statement;
         return (//the reason why its querying only for the first fact cuz we want to know if tey are direct friends or not without caring abut all the facts that makes this true
-            doc.isItAFact(doc.records.friends,[X,Y],true)
+            doc.isItAFact('friends',[X,Y],true)
         );
     },
-    areIndirectFriends:(doc,statement,visitedCombinations)=> {
+    areIndirectFriends:async (doc,statement,visitedCombinations)=> {
         const [X,Y] = statement;
-        const candidates = doc.genCandidates<UniqueList<string>,1>(1,doc.records.friends,statement,visitedCombinations);
+        const {candidates,checkedCombinations} = await doc.genCandidates<string,1>(1,'friends',statement,visitedCombinations);
         for (const [A] of candidates) {
-            if (rules.areDirectFriends(doc,[X,A])) {
-                if (rules.areDirectFriends(doc,[A,Y]) || rules.areIndirectFriends(doc,[A,Y],visitedCombinations)) {
+            if (await rules.areDirectFriends(doc,[X,A])) {
+                if (await rules.areDirectFriends(doc,[A,Y]) || await rules.areIndirectFriends(doc,[A,Y],checkedCombinations)) {
                     return true;
                 }
             }
         }
         return false;
     },
-    areFriends:(doc,statement)=> {
-        const areFriends = rules.areDirectFriends(doc,statement) || rules.areIndirectFriends(doc,statement,new Set());
+    areFriends:async (doc,statement)=> {
+        const areFriends = (await rules.areDirectFriends(doc,statement)) || (await rules.areIndirectFriends(doc,statement,[]));
         return areFriends;
     },
-    areSiblings:(doc,statement)=> {
+    areSiblings:async (doc,statement)=> {
         const [X,Y] = statement;
-        const parentsOfX = [...doc.findAllFacts(doc.records.parent,[Doc.wildCard,X])]//this is to collect all the facts that answers who the parent of x is
-            .map(fact=>{ if (fact!==false) return fact[0]; });//this iterates through each fact to index into the first element to get the parent
-        const parentsOfY = [...doc.findAllFacts(doc.records.parent,[Doc.wildCard,Y])]
+        const parentsOfX = (await doc.findAllFacts('parent',[await doc.wildCard(),X]))
             .map(fact=>{ if (fact!==false) return fact[0]; });
-        const commonParent = Doc.intersection(new Set(parentsOfX),new Set(parentsOfY));
-        return Boolean(commonParent.size);
+        
+        const parentsOfY = (await doc.findAllFacts('parent',[await doc.wildCard(),Y]))
+            .map(fact=>{ if (fact!==false) return fact[0]; });
+
+        const commonParent = await doc.intersection([parentsOfX,parentsOfY]);
+        return Boolean(commonParent.length);
     },
-    areBrothers:(doc,statement) => {
+    areBrothers:async (doc,statement) => {
         const [X,Y] = statement;
         if (X === Y) return false;
-        const isXMale = doc.isItAFact(doc.records.male,[X]);
-        const isYMale = doc.isItAFact(doc.records.male,[Y]);
-        if (isXMale && isYMale && rules.areSiblings(doc,[X,Y])) return true;
+        const isXMale = await doc.isItAFact('male',[X]);
+        const isYMale = await doc.isItAFact('male',[Y]);
+        if (isXMale && isYMale && await rules.areSiblings(doc,[X,Y])) return true;
         return false;
     }
 };
