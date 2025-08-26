@@ -165,8 +165,8 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Do
             console.error(chalk.red('An output path must be specified if the import is the src file'));
             return;
         }
-        const cliArgs = ['--src',filePath, '--out', outputFolder];
-        const child = spawn('epilog-resolver', cliArgs, { stdio: 'inherit',shell:true });
+        const cliArgs = ['resolve','--src',filePath, '--out', outputFolder];
+        const child = spawn('epilog', cliArgs, { stdio: 'inherit',shell:true });
         const exitCode = await new Promise<number>((resolve, reject) => {
             child.on('close', resolve);
             child.on('error', reject);

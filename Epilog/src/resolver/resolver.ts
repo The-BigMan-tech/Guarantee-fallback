@@ -622,6 +622,6 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string):
             console.log(`\n${lime('Successfully wrote JSON output to: ')} ${jsonFilePath}\n`);
         }
     } catch (err) {
-        console.error('Error processing file:', err);
+        console.error('Error processing file.Be sure its a valid file path:', err);
     }
 }
