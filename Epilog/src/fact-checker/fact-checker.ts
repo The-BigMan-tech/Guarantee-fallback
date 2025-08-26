@@ -10,6 +10,7 @@ import chalk from "chalk";
 import path from "path";
 import { spawn } from 'child_process';
 import { Resolver } from "../resolver/resolver.js";
+import {v4 as uniqueID} from "uuid";
 
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
 export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
@@ -18,12 +19,13 @@ export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedComb
 const lime = chalk.hex('adef1e');
 export class Doc {//I named it Doc instead of Document to avoid ambiguity with the default Document class which is for the DOM
     public records:Record<string,Rec> = {};
-    public static wildCard = Symbol('*');
+    public static wildCard = uniqueID();
     private factCheckerCache = new LRUCache<string,string>({max:100});
 
     public constructor(records:Record<string,Rec>) {
         Object.keys(records).forEach(key=>{
-            this.records[key] = new Rec(records[key].facts);
+            this.records[key] = new Rec(records[key].facts);//rebuild the rec since some internal structures arent serializable
+            //didnt preserve recID since they are just for caching and not lookups so change here is fine
         });
     }
     //compare the subject array against the target.
@@ -95,7 +97,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         return inputCombination.map(element => stringify(element)).join('|');
     }
     //the checked facts is just a record to maintain recursion so the facts checked in a function call is not meant to persist across rules,else,subsequent calls to the same rule wont work as expected
-    public* genCandidates<T extends Atom,N extends number,list=UniqueList<T>['list'][number]>(howManyToReturn:N,record:Rec<UniqueAtomList[]>,inputCombination:unknown[],visitedCombinations:Set<string>)
+    public* genCandidates<T extends Atom,N extends number,list=UniqueList<T>['list'][number]>(howManyToReturn:N,record:Rec<UniqueAtomList[]>,inputCombination:Atom[],visitedCombinations:Set<string>)
     :Generator<Tuple<list,N>, void, unknown> {//if the caller is recursing on itself,then it should provide any input it receives relevant to the fact checking to prevent cycles.
         if (!record) return;
         const sequences = permutations(record.members.list,howManyToReturn);//i chose permutations because the order at which the candidates are supplied matters but without replacement
@@ -107,9 +109,6 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
             }
         }
     }
-    private isSymbol(arg:unknown):arg is symbol {
-        return (typeof arg === "symbol");
-    }
     private isWildCard(arg:unknown):boolean {
         if (arg === Doc.wildCard) {
             return true;
@@ -120,13 +119,13 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
     private areMembersInSet<T>(args:T[],set:Set<T>):boolean {
         if (!set) return false;
         for (const arg of args) {
-            if (!this.isSymbol(arg) && !this.isWildCard(arg) && !set.has(arg) ) {
+            if (!this.isWildCard(arg) && !set.has(arg) ) {
                 return false;//return early if the inputs arent even members to save computation.
             }
         }
         return true;
     }
-    public static selectSmallestSet<T>(...sets:Set<T>[]):Set<T> {
+    private static selectSmallestSet(...sets:Set<Atom>[]):Set<Atom> {
         return sets.reduce((smallest, current) =>
             current.size < smallest.size ? current : smallest
         );
@@ -136,8 +135,8 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
             current?.members.set.size < smallest?.members.set.size ? current : smallest
         );
     }
-    public static intersection<T>(...sets:Set<T>[]):Set<T> {
-        const intersection = new Set<T>();
+    public static intersection(...sets:Set<Atom>[]):Set<Atom> {
+        const intersection = new Set<Atom>();
         const smallestSet = this.selectSmallestSet(...sets);
         for (const element of smallestSet) {
             if (sets.every(set=> set.has(element))) {
@@ -154,7 +153,9 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
  * @param importPath 
  * @returns 
  */
-export async function importDoc(filePath:string,outputFolder?:string):Promise<Record<string,Rec> | undefined> {
+export let docOnServer:Doc | null = null;
+
+export async function importDoc(filePath:string,outputFolder?:string):Promise<undefined> {
     if (!(filePath.endsWith(".el") || filePath.endsWith(".json"))) {
         console.log('🚀 => :158 => importDoc => filePath:', filePath);
         console.error(chalk.red('The import path must be a .el src file or the .json output'));
@@ -190,7 +191,7 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Re
             return;//to prevent corruption
         }
         console.info(lime('Successfully loaded the document from the path:'),jsonPath,'\n');
-        return records;//returned the json records for the client to build the document on their side
+        docOnServer = new Doc(records);
     }catch { 
         if (!Resolver.terminate) {
             console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try importing the .el file directly to recreate the json file and ensure that the document doesnt contain errors that will prevent it from resolving to the json.\n`); 
