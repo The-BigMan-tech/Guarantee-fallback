@@ -1765,6 +1765,7 @@ Intellisense
 Code editor ai-----Windsurf
 Chat ai-------perplexity
 Verision control-----Git
+Code lens--Error lens vscode ext
 
 *Animation control
 Single state variable to prevent conflicts
@@ -1913,6 +1914,7 @@ intellsisense
 syntax highlighters
 static type checker
 test automation
+code lens
 
 *Src code pipeline tools
 lexer
