@@ -1,4 +1,4 @@
-import { CharStream, CommonTokenStream, ConsoleErrorListener,Token } from "antlr4ng";
+import { CharStream, CommonTokenStream, ConsoleErrorListener,ParseTree,Token } from "antlr4ng";
 import { AliasDeclarationContext,DSLParser, FactContext,ProgramContext } from "../generated/DSLParser.js";
 import { DSLLexer } from "../generated/DSLLexer.js";
 import { DSLVisitor } from "../generated/DSLVisitor.js";
@@ -64,6 +64,7 @@ class Essentials {
             }
         }
         console.info(...messages);
+        Resolver.logs.push(...messages);
         if ((errorType===DslError.Semantic) || (errorType===DslError.Syntax)) {
             Resolver.terminate = true;
         }
@@ -93,7 +94,7 @@ interface RefCheck {
     hasRef:boolean,
     line:number
 }
-export class Resolver extends DSLVisitor<void> {
+export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public  records:Record<string,Rec> = {};
     private aliases = new Map<string,string>();
@@ -102,6 +103,10 @@ export class Resolver extends DSLVisitor<void> {
     private targetLineCount:number = this.lineCount;
 
     public static terminate:boolean = false;
+
+    public static logFile:string | null = null;
+    public static logs:string[] = [];
+    public static inputArr:string[] = [];
 
     private printTokens(tokens:Token[]):void {
         const tokenDebug = tokens?.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
@@ -137,42 +142,54 @@ export class Resolver extends DSLVisitor<void> {
                     successMessage += (predicateFromAlias)?`\n-Alias #${this.predicateForLog} -> *${predicateFromAlias}`:`\n-Predicate: *${this.predicateForLog}`;
                     successMessage += `\n-Expansion: ${brown(expansionText)}`; 
                 };
-
                 console.info(successMessage);
+                Resolver.logs.push(successMessage);
             }
         }
     }
-    public visitProgram = (ctx:ProgramContext)=> {
+    public async resolveProgram(child:ParseTree) {
+        let tokens:Token[] | null = null;
+        if (child instanceof FactContext) {
+            tokens = await this.visitFact(child);
+        }else if (child instanceof AliasDeclarationContext) {
+            await this.visitAliasDeclaration(child);
+        }else{
+            const payload = child.getPayload();
+            const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
+            if (isNewLine) this.targetLineCount += 1;//increment the line count at every empty new line
+        }
+        this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.                 
+        this.lineCount = this.targetLineCount;
+        this.expandedFacts = null;
+        this.predicateForLog = null;
+        this.seenAlias = false;
+        const logs = Resolver.logs.join('');
+        await fs.appendFile(Resolver.logFile!,logs + '\n');
+        Resolver.logs.length = 0;
+    }
+    public visitProgram = async (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
             if (Resolver.terminate) return;
-            let tokens:Token[] | null = null;
-
-            if (child instanceof FactContext) {
-                tokens = this.visitFact(child);
-            }else if (child instanceof AliasDeclarationContext) {
-                this.visitAliasDeclaration(child);
-            }else{
-                const payload = child.getPayload();
-                const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
-                if (isNewLine) this.targetLineCount += 1;//increment the line count at every empty new line
-            }
-            this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.                 
-            this.lineCount = this.targetLineCount;
-            this.expandedFacts = null;
-            this.predicateForLog = null;
-            this.seenAlias = false;
+            await this.resolveProgram(child);
         }
-        return this.records;
+        return undefined;
     };
-    public visitFact = (ctx:FactContext)=> {
+    public visit = async (tree: ParseTree)=> {
+        if (tree instanceof ProgramContext) {
+            await this.visitProgram(tree); // Pass the context directly
+        };
+        return undefined;
+    };
+    public visitFact = async (ctx:FactContext)=> {
         const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         this.resolveRefs(tokens);
         if (!Resolver.terminate) this.buildFact(tokens);//i checked for termination here because ref resolution can fail
         return tokens;
     };
-    public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
+    public visitAliasDeclaration = async (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         this.resolveAlias(tokens);
+        return undefined;
     };
 
     private getListTokensBlock(tokens:Denque<Token>,nList:number,listCount:[number]=[0]):Token[] | null {
@@ -588,16 +605,15 @@ export class Resolver extends DSLVisitor<void> {
         };
         return list;
     }
-    public static inputArr:string[] = [];
     public createSentenceArray(input:string) {
         Resolver.inputArr = input.split('\n');
     }
 }
-function genStructures(input:string):Record<string,Rec> | undefined {
+async function genStructures(input:string):Record<string,Rec> | undefined {
     const visitor = new Resolver();
     visitor.createSentenceArray(input);
     Essentials.loadEssentials(input);
-    visitor.visit(Essentials.tree);
+    await visitor.visit(Essentials.tree);
     if (!Resolver.terminate) return visitor.records;
 }
 function omitJsonKeys(key:string,value:any) {
@@ -609,17 +625,21 @@ function omitJsonKeys(key:string,value:any) {
 export async function resolveDocToJson(srcFilePath:string,outputFolder?:string):Promise<void> {
     try {
         const src = await fs.readFile(srcFilePath, 'utf8');
+
+        const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
+        const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided
+        const fullFilePathNoExt = path.join(outputPath,filePathNoExt);
+
+        Resolver.logFile = fullFilePathNoExt + '.ansi';
+        await fs.writeFile(Resolver.logFile, '');
+
         const resolvedData = genStructures(src);
         if (!Resolver.terminate) {
             const json = stringify(resolvedData,omitJsonKeys,4) || '';
-            const jsonFilePath = path.basename(srcFilePath, path.extname(srcFilePath)) + '.json';
-
-            const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided
-            const fullJsonPath = path.join(outputPath,jsonFilePath);
-            await fs.writeFile(fullJsonPath, json);
-
+            const jsonPath = fullFilePathNoExt + ".json";
+            await fs.writeFile(jsonPath, json);
             Resolver.terminate = false;//reset it for subsequent analyzing
-            console.log(`\n${lime('Successfully wrote JSON output to: ')} ${jsonFilePath}\n`);
+            console.log(`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`);
         }
     } catch (err) {
         console.error('Error processing file.Be sure its a valid file path:', err);

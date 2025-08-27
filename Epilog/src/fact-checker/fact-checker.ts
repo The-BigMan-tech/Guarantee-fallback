@@ -20,7 +20,7 @@ const lime = chalk.hex('adef1e');
 export class Doc {//I named it Doc instead of Document to avoid ambiguity with the default Document class which is for the DOM
     public records:Record<string,Rec> = {};
     public static wildCard = uniqueID();
-    private factCheckerCache = new LRUCache<string,string>({max:100});
+    private static factCheckerCache = new LRUCache<string,string>({max:100});//soeven if the client runs multiple times,they will still be using cached data.and to ensure this i made the cache static so that it doesnt get wiped on recreation of the doc class due to repeated imports from re-execution of client scripts
 
     public constructor(records:Record<string,Rec>) {
         Object.keys(records).forEach(key=>{
@@ -42,9 +42,9 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
     }
     private saveToFactsCache(key:string,atomList:AtomList[]):void {
         if (atomList.length === 0) {
-            this.factCheckerCache.set(key,stringify(false));
+            Doc.factCheckerCache.set(key,stringify(false));
         }else {
-            this.factCheckerCache.set(key,stringify(atomList));
+            Doc.factCheckerCache.set(key,stringify(atomList));
         }
     }
     //it returns the facts where the members match or false if the input isnt a fact.I made it to yield all the facts that match.Its useful for getting to answer questions like ada is the friend of who? by using null as a placeholder and getting all the facts that provide concrete values on what the placheolder is for those facts 
@@ -57,7 +57,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         }
         //utilize the cache
         const cacheKey = `${record.recID}|${stringify(statement)}`;
-        const cached = this.factCheckerCache.get(cacheKey);
+        const cached = Doc.factCheckerCache.get(cacheKey);
         if (cached !== undefined) {//reuse cache if it exists.
             const cachedFacts:AtomList[] | false = JSON.parse(cached); 
             if (cachedFacts===false) {
