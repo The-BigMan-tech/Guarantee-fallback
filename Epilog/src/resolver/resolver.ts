@@ -147,7 +147,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         }
     }
-    public async resolveProgram(child:ParseTree) {
+    public static async flushLogs() {
+        const logs = Resolver.logs.join('');
+        await fs.appendFile(Resolver.logFile!,logs + '\n');
+        Resolver.logs.length = 0;
+    }
+    private async resolveProgram(child:ParseTree) {
         let tokens:Token[] | null = null;
         if (child instanceof FactContext) {
             tokens = await this.visitFact(child);
@@ -163,10 +168,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         this.expandedFacts = null;
         this.predicateForLog = null;
         this.seenAlias = false;
-        const logs = Resolver.logs.join('');
-        console.info('🚀 => :167 => resolveProgram => logs:', logs);
-        await fs.appendFile(Resolver.logFile!,logs + '\n');
-        Resolver.logs.length = 0;
+        await Resolver.flushLogs();
     }
     public visitProgram = async (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
@@ -614,6 +616,7 @@ async function genStructures(input:string):Promise<Record<string,Rec> | undefine
     const visitor = new Resolver();
     visitor.createSentenceArray(input);
     Essentials.loadEssentials(input);
+    await Resolver.flushLogs();//to capture syntax errors to the log
     await visitor.visit(Essentials.tree);
     if (!Resolver.terminate) return visitor.records;
 }
