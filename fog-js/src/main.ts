@@ -7,8 +7,8 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
     new Promise((resolve, reject) => {
         ipc.config.silent = true;
         
-        ipc.connectTo('epilog-ipc-server', () => {
-            const server = ipc.of['epilog-ipc-server']; 
+        ipc.connectTo('fog-ipc-server', () => {
+            const server = ipc.of['fog-ipc-server']; 
             server.on('connect', () => {//make the request.the request should not be stringified
                 server.emit('message',jsonRPCRequest);
             });
@@ -20,7 +20,7 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
                 } catch (err) {
                     reject(err);
                 } finally {
-                    ipc.disconnect('epilog-ipc-server');
+                    ipc.disconnect('fog-ipc-server');
                 }
             });
             server.on('error', reject);

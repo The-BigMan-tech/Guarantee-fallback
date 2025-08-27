@@ -1,5 +1,5 @@
 {
-    "name": "epilog-js",
+    "name": "fog-js",
     "main": "./dist/bundle-min.js",
     "types": "./dist/bundle-min.d.ts",
     "version": "1.0.1",
