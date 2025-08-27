@@ -1,19 +1,19 @@
 {
-    "scopeName": "source.epilog",
+    "scopeName": "source.fog",
     "patterns": [
         { "include": "#angleBrackets" },
         { "include": "#otherPatterns" }
     ],
     "repository": {
         "angleBrackets": {
-            "name": "angle.brackets.el",
+            "name": "angle.brackets.fog",
             "begin": "<",
-            "beginCaptures": { "0": { "name": "punctuation.angle.begin.el" } },
+            "beginCaptures": { "0": { "name": "punctuation.angle.begin.fog" } },
             "end": ">",
-            "endCaptures": { "0": { "name": "punctuation.angle.end.el" } },
+            "endCaptures": { "0": { "name": "punctuation.angle.end.fog" } },
             "patterns": [
                 {
-                    "name": "reference.el",
+                    "name": "reference.fog",
                     "match": "[a-zA-Z]+"
                 }
             ]
@@ -21,44 +21,44 @@
         "otherPatterns": {
             "patterns":[
                 {
-                    "name": "constant.name.el",
+                    "name": "constant.name.fog",
                     "match": "\\:[a-zA-Z]+" 
                 },
                 {
-                    "name": "constant.name.strict.el",
+                    "name": "constant.name.strict.fog",
                     "match": "\\![a-zA-Z]+" 
                 },
                 {
-                    "name": "constant.number.el",
+                    "name": "constant.number.fog",
                     "match": "-?[0-9]+(\\.[0-9]+)?"
                 },
                 {
-                    "name": "constant.alias.el",
+                    "name": "constant.alias.fog",
                     "match": "#[a-zA-Z]+" 
                 },
                 {
-                    "name": "constant.predicate.el",
+                    "name": "constant.predicate.fog",
                     "match": "\\*[a-zA-Z]+"
                 },
                 {
-                    "name": "keyword.alias.el",
+                    "name": "keyword.alias.fog",
                     "match": "\\balias\\b" 
                 },
                 {
-                    "name": "constant.plainword.el",
+                    "name": "constant.plainword.fog",
                     "match": "\\b[a-zA-Z]+\\b" 
                 },
                 {
-                    "name": "terminator.el",
+                    "name": "terminator.fog",
                     "match": "\\."
                 },
                 {
-                    "name": "comment.line.el",
+                    "name": "comment.line.fog",
                     "begin": "//",
                     "end": "$" 
                 },
                 {
-                    "name": "punctuation.el",
+                    "name": "punctuation.fog",
                     "match": "[,()\\[\\];?!'\\=]" 
                 }
             ]

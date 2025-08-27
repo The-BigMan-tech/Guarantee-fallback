@@ -1,7 +1,7 @@
 {
-  "name": "epilog-highlighter",
-  "displayName": "epilog-highlighter",
-  "description": "A highlighter for .el logic files",
+  "name": "fog-support",
+  "displayName": "Fog language support",
+  "description": "Editor support for the fog logic language",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.103.0"
@@ -14,21 +14,21 @@
   "contributes": {
     "languages": [
         {
-            "id": "epilog",
-            "aliases": ["Epilog", "epilog"],
-            "extensions": [".el"],
+            "id": "fog",
+            "aliases": ["Fog"],
+            "extensions": [".fog"],
             "icon": {
-				"light": "./icons/epilog.svg",
-				"dark": "./icons/epilog.svg"
+				"light": "./icons/fog.svg",
+				"dark": "./icons/fog.svg"
 			},
-            "configuration": "./epilog-configuration.json"
+            "configuration": "./fog.configuration.json"
         }
     ],
     "grammars": [
         {
-            "language": "epilog",
-            "scopeName": "source.epilog",
-            "path": "./syntaxes/epilog.tmLanguage.json"
+            "language": "fog",
+            "scopeName": "source.fog",
+            "path": "./syntaxes/fog.tmLanguage.json"
         }
     ]
   },
