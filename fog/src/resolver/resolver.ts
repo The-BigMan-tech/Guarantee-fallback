@@ -638,6 +638,7 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
         const src = await fs.readFile(srcFilePath, 'utf8');
         const resolvedData = await genStructures(src);
 
+        console.log('Output folder: ',outputFolder);
         if (outputFolder !== NoOutput.value) {
             const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
             const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided

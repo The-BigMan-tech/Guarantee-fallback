@@ -37,7 +37,7 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Do
     return new Doc();
 }
 export async function resolveDoc(filePath:string):Promise<ResolutionResult> {
-    const result = await client.request("importDoc",{filePath,outputFolder:NoOutput.value}) as ResolutionResult;
+    const result = await client.request("resolveDocToJson",{filePath,outputFolder:NoOutput.value}) as ResolutionResult;
     return result;
 }
 

@@ -1,6 +1,6 @@
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
-import { Tuple,validator,UniqueAtomList, UniqueList, Result } from "../utils/utils.js";
+import { Tuple,validator,UniqueAtomList, UniqueList, Result, NoOutput } from "../utils/utils.js";
 import {stringify} from "safe-stable-stringify";
 import { AtomList,Atom } from "../utils/utils.js";
 import { PatternedAtomList } from "../utils/utils.js";
@@ -186,6 +186,7 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Re
         return result;
     }catch { 
         if (!Resolver.terminate) {
+            if (outputFolder === NoOutput.value) return Result.success;
             console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try importing the fog file directly to recreate the json file and ensure that the document doesnt contain errors that will prevent it from resolving to the json.\n`); 
         }
         return Result.error;

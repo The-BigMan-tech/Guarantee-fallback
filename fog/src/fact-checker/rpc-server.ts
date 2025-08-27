@@ -64,7 +64,7 @@ export async function startIPCServer(): Promise<void> {
 
     ipc.serve(() => {
         ipc.server.on('message', async (data, socket) => {//receive request from the client
-            console.log(chalk.cyan('Request: '),data);
+            // console.log(chalk.cyan('Request: '),data);
             try {
                 const response = stringify(await server.receive(data));//route request to the appropriate controller
                 if (response) {

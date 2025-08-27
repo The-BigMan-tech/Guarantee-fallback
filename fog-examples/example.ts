@@ -8,7 +8,7 @@ const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);
 const parentDirFromSrc = _dirname.replace('\\build','');
 
-const doc = await importDoc(path.join(parentDirFromSrc,'./documents/doc.fog'),parentDirFromSrc);
+const doc = await importDoc(path.join(parentDirFromSrc,'./documents/doc.fog'),'no-output');
 if (!doc) process.exit(0);
 
 console.info('Fact:',await doc.isItAFact('friends',['philip','ada']));//outputs false because its not a direct fact
