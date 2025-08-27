@@ -2381,3 +2381,5 @@ debugger
 *so to simulate the installation;the command is pnpm add -g epilog.and in my terminal,i just ran epilog resolve --src *.el and it resolved it to a json file.but now to use it,i need to run the epilog fact checker ipc with epilog run.and finally,ill need a language binding to communncate with this.so for js,ill do npm install epilog-js locally because its a binding not the language itself.
 
 *it now works.so i now have a report of the resolving process in a .ansi file which has to previewed by an sni previewre which is avaiable as a vscode ext.this is better than relying on the terminal where my colors wont show as expected for some reason and not to meantion that it isnt portable for detailed analysis and when i resize the terminal up and down,and up again,it destroys the layout of the text.using a .ansi file is reliable and consistent.and using .ansi instead of log flags that its meant to be previeed under an ansi previewer
+
+*so the process is to have all the dep included which will be insalled when the package is instaled.but during loading,it will use the bundle unless explcitly told to use the external dependency
