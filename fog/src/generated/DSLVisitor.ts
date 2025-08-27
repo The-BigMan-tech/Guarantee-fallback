@@ -2,12 +2,12 @@
 import { AbstractParseTreeVisitor } from "antlr4ng";
 
 
-import { ProgramContext } from "./DSLParser.js";
-import { FactContext } from "./DSLParser.js";
-import { AliasDeclarationContext } from "./DSLParser.js";
-import { SentenceContext } from "./DSLParser.js";
-import { TokenContext } from "./DSLParser.js";
-import { ListContext } from "./DSLParser.js";
+import { ProgramContext } from "./DSLParser.ts";
+import { FactContext } from "./DSLParser.ts";
+import { AliasDeclarationContext } from "./DSLParser.ts";
+import { SentenceContext } from "./DSLParser.ts";
+import { TokenContext } from "./DSLParser.ts";
+import { ListContext } from "./DSLParser.ts";
 
 
 /**

@@ -1,15 +1,15 @@
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
-import { Tuple,validator,UniqueAtomList, UniqueList } from "../utils/utils.js";
+import { Tuple,validator,UniqueAtomList, UniqueList } from "../utils/utils.ts";
 import {stringify} from "safe-stable-stringify";
-import { AtomList,Atom } from "../utils/utils.js";
-import { PatternedAtomList } from "../utils/utils.js";
-import { Rec } from "../utils/utils.js";
+import { AtomList,Atom } from "../utils/utils.ts";
+import { PatternedAtomList } from "../utils/utils.ts";
+import { Rec } from "../utils/utils.ts";
 import fs from 'fs/promises';
 import chalk from "chalk";
 import path from "path";
 import { spawn } from 'child_process';
-import { Resolver } from "../resolver/resolver.js";
+import { Resolver } from "../resolver/resolver.ts";
 import {v4 as uniqueID} from "uuid";
 
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;

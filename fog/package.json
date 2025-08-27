@@ -1,11 +1,11 @@
 {
-  "name": "epilog",
+  "name": "fog",
   "main": "./dist/bundle-min.js",
   "types": "./dist/bundle-min.d.ts",
   "bin": {
-    "epilog": "./dist/bundle-min.js"
+    "fog": "./dist/bundle-min.js"
   },
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A TypeScript library project scaffold providing ready-to-use build and debug tooling",
   "scripts": {
     "compile:full": "swc ./src -d build --delete-dir-on-start",

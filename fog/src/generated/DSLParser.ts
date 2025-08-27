@@ -2,8 +2,8 @@
 import * as antlr from "antlr4ng";
 import { Token } from "antlr4ng";
 
-import { DSLListener } from "./DSLListener.js";
-import { DSLVisitor } from "./DSLVisitor.js";
+import { DSLListener } from "./DSLListener.ts";
+import { DSLVisitor } from "./DSLVisitor.ts";
 
 // for running tests with parameters, TODO: discuss strategy for typed parameters in CI
 // eslint-disable-next-line no-unused-vars
