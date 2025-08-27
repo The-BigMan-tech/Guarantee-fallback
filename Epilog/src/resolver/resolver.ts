@@ -127,7 +127,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     .map(line => {
                         const trimmed = line?.trim();
                         if (trimmed.startsWith('[') && (trimmed.endsWith(']') || trimmed.endsWith('],'))) {
-                            return '  ' + trimmed; // trim original and add two spaces indentation
+                            return '    ' + trimmed; // trim original and add two spaces indentation
                         }
                         return line;
                     })
@@ -164,6 +164,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         this.predicateForLog = null;
         this.seenAlias = false;
         const logs = Resolver.logs.join('');
+        console.info('🚀 => :167 => resolveProgram => logs:', logs);
         await fs.appendFile(Resolver.logFile!,logs + '\n');
         Resolver.logs.length = 0;
     }
@@ -609,7 +610,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         Resolver.inputArr = input.split('\n');
     }
 }
-async function genStructures(input:string):Record<string,Rec> | undefined {
+async function genStructures(input:string):Promise<Record<string,Rec> | undefined> {
     const visitor = new Resolver();
     visitor.createSentenceArray(input);
     Essentials.loadEssentials(input);
@@ -633,7 +634,7 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string):
         Resolver.logFile = fullFilePathNoExt + '.ansi';
         await fs.writeFile(Resolver.logFile, '');
 
-        const resolvedData = genStructures(src);
+        const resolvedData = await genStructures(src);
         if (!Resolver.terminate) {
             const json = stringify(resolvedData,omitJsonKeys,4) || '';
             const jsonPath = fullFilePathNoExt + ".json";
