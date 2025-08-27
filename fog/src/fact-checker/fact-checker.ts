@@ -8,8 +8,7 @@ import { Rec } from "../utils/utils.js";
 import fs from 'fs/promises';
 import chalk from "chalk";
 import path from "path";
-import { spawn } from 'child_process';
-import { Resolver } from "../resolver/resolver.js";
+import { resolveDocToJson, Resolver } from "../resolver/resolver.js";
 import {v4 as uniqueID} from "uuid";
 
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
@@ -167,16 +166,7 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<tr
             console.error(chalk.red('An output path must be specified if the import is the src file'));
             return;
         }
-        const cliArgs = ['resolve', '--src', filePath, '--out', outputFolder];
-        const child = spawn('fog', cliArgs, { stdio: 'inherit', shell: true });
-        const exitCode = await new Promise<number>((resolve, reject) => {
-            child.on('close', resolve);
-            child.on('error', reject);
-        });
-        if (exitCode !== 0) {
-            console.error(`Resolver CLI exited with code ${exitCode}`);
-            return;
-        }
+        await resolveDocToJson(filePath,outputFolder);
         const jsonFilePath = path.basename(filePath, path.extname(filePath)) + '.json';
         jsonPath = path.join(outputFolder,jsonFilePath);
     }
