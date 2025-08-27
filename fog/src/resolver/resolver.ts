@@ -634,6 +634,11 @@ interface ResolutionResult {
 }
 export async function resolveDocToJson(srcFilePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult> {
     try {
+        const isSrcFile = srcFilePath.endsWith(".fog");
+        if (!isSrcFile) {
+            console.error(chalk.red('The resolver only reads .fog files.'));
+            return {result:Result.error,jsonPath:Result.error};
+        }
         const src = await fs.readFile(srcFilePath, 'utf8');
         const resolvedData = await genStructures(src);
 
