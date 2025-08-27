@@ -1,0 +1,222 @@
+
+
+Processed line 1: 
+-Sentence: alias father = *parent.
+
+Processed line 2: 
+-Sentence: alias mother = *parent.
+
+
+
+Processed line 5: 
+-Sentence: :ada and :john are *friends.
+-Predicate: *friends
+-Expansion: 
+[
+    ["ada","john"]
+]
+
+
+Processed line 6: 
+-Sentence: !john and :philip are *friends.
+-Predicate: *friends
+-Expansion: 
+[
+    ["john","philip"]
+]
+
+
+Processed line 7: 
+-Sentence: !philip and :jake are *friends.
+-Predicate: *friends
+-Expansion: 
+[
+    ["philip","jake"]
+]
+
+
+Processed line 8: 
+-Sentence: !jake and :ben are *friends.
+-Predicate: *friends
+-Expansion: 
+[
+    ["jake","ben"]
+]
+
+
+Processed line 9: 
+-Sentence: !ben and :billy are *friends.
+-Predicate: *friends
+-Expansion: 
+[
+    ["ben","billy"]
+]
+
+
+
+
+Processed line 12: 
+-Sentence: !ada is a *female.
+-Predicate: *female
+-Expansion: 
+[
+    ["ada"]
+]
+
+
+Processed line 13: 
+-Sentence: !john is a *male.
+-Predicate: *male
+-Expansion: 
+[
+    ["john"]
+]
+
+
+Processed line 14: 
+-Sentence: !jake is a *male.
+-Predicate: *male
+-Expansion: 
+[
+    ["jake"]
+]
+
+
+Processed line 15: 
+-Sentence: !ben is a *male.
+-Predicate: *male
+-Expansion: 
+[
+    ["ben"]
+]
+
+
+
+This is safe to ignore but double check line 17:
+-Did you mean to use the subject ref, <She> instead of the filler,the?
+Check->:leo is the #father of !john.
+
+This is safe to ignore but double check line 17:
+-Did you mean to use the subject ref, <They> instead of the filler,the?
+Check->:leo is the #father of !john.
+
+This is safe to ignore but double check line 17:
+-Did you mean to use the object ref, <them:n> instead of the filler,the?
+Check->:leo is the #father of !john.
+
+Processed line 17: 
+-Sentence: :leo is the #father of !john.
+-Alias #father -> *parent
+-Expansion: 
+[
+    ["leo","john"]
+]
+
+
+This is safe to ignore but double check line 18:
+-Did you mean to use the subject ref, <She> instead of the filler,the?
+Check-><He> is the #father of !ada.
+
+This is safe to ignore but double check line 18:
+-Did you mean to use the subject ref, <They> instead of the filler,the?
+Check-><He> is the #father of !ada.
+
+This is safe to ignore but double check line 18:
+-Did you mean to use the object ref, <them:n> instead of the filler,the?
+Check-><He> is the #father of !ada.
+
+Processed line 18: 
+-Sentence: <He> is the #father of !ada.
+-With resolved references: :leo is the #father of !ada .
+
+-Alias #father -> *parent
+-Expansion: 
+[
+    ["leo","ada"]
+]
+
+
+This is safe to ignore but double check line 19:
+-Did you mean to use the subject ref, <She> instead of the filler,the?
+Check-><He> is the #father of !jake.
+
+This is safe to ignore but double check line 19:
+-Did you mean to use the subject ref, <They> instead of the filler,the?
+Check-><He> is the #father of !jake.
+
+This is safe to ignore but double check line 19:
+-Did you mean to use the object ref, <them:n> instead of the filler,the?
+Check-><He> is the #father of !jake.
+
+This is safe to ignore but double check line 19:
+-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.
+-You may wish to write the name or array explicitly in line:18 to avoid confusion.
+
+Check these lines:
+18.<He> is the #father of !ada.
+19.<He> is the #father of !jake.
+
+Processed line 19: 
+-Sentence: <He> is the #father of !jake.
+-With resolved references: :leo is the #father of !jake .
+
+-Alias #father -> *parent
+-Expansion: 
+[
+    ["leo","jake"]
+]
+
+
+This is safe to ignore but double check line 20:
+-Did you mean to use the subject ref, <She> instead of the filler,the?
+Check-><He> is the #father of !ben.
+
+This is safe to ignore but double check line 20:
+-Did you mean to use the subject ref, <They> instead of the filler,the?
+Check-><He> is the #father of !ben.
+
+This is safe to ignore but double check line 20:
+-Did you mean to use the object ref, <them:n> instead of the filler,the?
+Check-><He> is the #father of !ben.
+
+This is safe to ignore but double check line 20:
+-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.
+-You may wish to write the name or array explicitly in line:19 to avoid confusion.
+
+Check these lines:
+19.<He> is the #father of !jake.
+20.<He> is the #father of !ben.
+
+Processed line 20: 
+-Sentence: <He> is the #father of !ben.
+-With resolved references: :leo is the #father of !ben .
+-Alias #father -> *parent
+-Expansion: 
+[
+    ["leo","ben"]
+]
+
+
+
+
+This is safe to ignore but double check line 22:
+-Did you mean to use the subject ref, <She> instead of the filler,the?
+Check->:Susan is the #mother of !john.
+
+This is safe to ignore but double check line 22:
+-Did you mean to use the subject ref, <They> instead of the filler,the?
+Check->:Susan is the #mother of !john.
+
+This is safe to ignore but double check line 22:
+-Did you mean to use the object ref, <them:n> instead of the filler,the?
+Check->:Susan is the #mother of !john.
+
+Processed line 22: 
+-Sentence: :Susan is the #mother of !john.
+-Alias #mother -> *parent
+-Expansion: 
+[
+    ["Susan","john"]
+]
+
+

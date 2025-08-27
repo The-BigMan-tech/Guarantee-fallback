@@ -1,5 +1,5 @@
 {
-  "name": "epilog-examples",
+  "name": "fog-examples",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,6 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "epilog-js": "^1.0.1"
+    "fog-js": "^1.0.1"
   }
 }

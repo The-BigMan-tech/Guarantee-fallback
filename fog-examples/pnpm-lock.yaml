@@ -8,7 +8,7 @@ importers:
 
   .:
     dependencies:
-      epilog-js:
+      fog-js:
         specifier: ^1.0.1
         version: 1.0.1
 
@@ -65,9 +65,6 @@ packages:
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
 
-  epilog-js@1.0.1:
-    resolution: {integrity: sha512-h41JKlRvXMe4cTv4crHxKVViGthzNYLBIFrb/QdHE14y5gBLHYFEoRL7wSIAfENbrpSeFMOIviA7c6jlx7AMEQ==}
-
   es-main@1.4.0:
     resolution: {integrity: sha512-/rYhbfGK/1E6L7TcoUqmrWbSnOlMoxahiZInSYKbhIZ4/dbclHtXEcrViu4Az9IzYNBT8LcXpPszfS47zbGpwA==}
 
@@ -78,6 +75,9 @@ packages:
   event-pubsub@5.0.3:
     resolution: {integrity: sha512-2QiHxshejKgJrYMzSI9MEHrvhmzxBL+eLyiM5IiyjDBySkgwS2+tdtnO3gbx8pEisu/yOFCIhfCb63gCEu0yBQ==}
     engines: {node: '>=13.0.0'}
+
+  fog-js@1.0.1:
+    resolution: {integrity: sha512-9r12ASbGO4feK8EdnnjxMelVCyh4/ekYw427cMY2h5RtMWDCTSgOfjZkuv7+JgJalS7xqFxQl3kqYWKKsQtxew==}
 
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
@@ -273,15 +273,6 @@ snapshots:
 
   emoji-regex@8.0.0: {}
 
-  epilog-js@1.0.1:
-    dependencies:
-      '@types/node-ipc': 9.2.3
-      commander: 14.0.0
-      es-main: 1.4.0
-      json-rpc-2.0: 1.7.1
-      node-ipc: 12.0.0
-      uuid: 11.1.0
-
   es-main@1.4.0: {}
 
   escalade@3.2.0: {}
@@ -290,6 +281,15 @@ snapshots:
     dependencies:
       copyfiles: 2.4.1
       strong-type: 0.1.6
+
+  fog-js@1.0.1:
+    dependencies:
+      '@types/node-ipc': 9.2.3
+      commander: 14.0.0
+      es-main: 1.4.0
+      json-rpc-2.0: 1.7.1
+      node-ipc: 12.0.0
+      uuid: 11.1.0
 
   fs.realpath@1.0.0: {}
 

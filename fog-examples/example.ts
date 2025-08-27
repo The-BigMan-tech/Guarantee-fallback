@@ -1,7 +1,7 @@
 import path from "path";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { importDoc } from "epilog-js";
+import { importDoc } from "fog-js";
 import { rules } from "./rules.js";
 
 const _filename = fileURLToPath(import.meta.url);

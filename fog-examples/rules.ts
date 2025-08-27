@@ -1,4 +1,4 @@
-import { RecursiveRule, Rule } from "epilog-js";
+import { RecursiveRule, Rule } from "fog-js";
 
 interface Rules {
     areDirectFriends:Rule<[string,string]>,
