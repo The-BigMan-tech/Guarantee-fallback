@@ -635,20 +635,20 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
             console.error(chalk.red('The resolver only reads .fog files.'));
             return {result:Result.error,jsonPath:Result.error};
         }
+        const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
+        const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided
+        const fullFilePathNoExt = path.join(outputPath,filePathNoExt);
+
+        if (outputFolder !== NoOutput.value) {
+            Resolver.logFile = fullFilePathNoExt + '.ansi';
+            Resolver.logs = [];//this must be initialized before generating the struct if the file log is required
+            await fs.writeFile(Resolver.logFile, '');
+        }
         const src = await fs.readFile(srcFilePath, 'utf8');
         const resolvedData = await genStructures(src);
 
-        console.log('Output folder: ',outputFolder);
-        if (outputFolder !== NoOutput.value) {
-            const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
-            const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided
-            const fullFilePathNoExt = path.join(outputPath,filePathNoExt);
-
-            Resolver.logFile = fullFilePathNoExt + '.ansi';
-            Resolver.logs = [];
-            await fs.writeFile(Resolver.logFile, '');
-
-            if (!Resolver.terminate) {
+        if (!Resolver.terminate) {
+            if (outputFolder !== NoOutput.value) {
                 const json = stringify(resolvedData,omitJsonKeys,4) || '';
                 const jsonPath = fullFilePathNoExt + ".json";
                 await fs.writeFile(jsonPath, json);
@@ -657,9 +657,9 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
                 console.log(`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`);
                 return {result:Result.success,jsonPath};
             }
-        }
-        if (!Resolver.terminate) return {result:Result.success,jsonPath:NoOutput.value};
-        else return {result:Result.error,jsonPath:Result.error};
+            return {result:Result.success,jsonPath:NoOutput.value};
+        };
+        return {result:Result.error,jsonPath:Result.error};
     } catch {
         console.error(chalk.red('Error processing file.Be sure its a valid file path'));
         return {result:Result.error,jsonPath:Result.error};
