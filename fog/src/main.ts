@@ -1,6 +1,6 @@
 import { Command } from 'commander';
-import { resolveDocToJson } from './resolver/resolver.ts';
-import { startIPCServer } from './fact-checker/rpc-server.ts';
+import { resolveDocToJson } from './resolver/resolver.js';
+import { startIPCServer } from './fact-checker/rpc-server.js';
 
 const program = new Command();
 async function runCLI():Promise<void> {

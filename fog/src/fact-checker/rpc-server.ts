@@ -2,9 +2,9 @@ import chalk from "chalk";
 import ipc from 'node-ipc';
 import { JSONRPCServer } from "json-rpc-2.0";
 import stringify from "safe-stable-stringify";
-import { Doc, importDoc } from "./fact-checker.ts";
-import { Atom, PatternedAtomList} from "../utils/utils.ts";
-import {docOnServer} from "./fact-checker.ts";
+import { Doc, importDoc } from "./fact-checker.js";
+import { Atom, PatternedAtomList} from "../utils/utils.js";
+import {docOnServer} from "./fact-checker.js";
 
 
 const server = new JSONRPCServer();
@@ -53,7 +53,7 @@ server.addMethod('wildCard',()=>{
 });
 
 export async function startIPCServer(): Promise<void> {
-    ipc.config.id = 'epilog-ipc-server';
+    ipc.config.id = 'fog-ipc-server';
     ipc.config.silent = false;
 
     ipc.serve(() => {
@@ -70,5 +70,5 @@ export async function startIPCServer(): Promise<void> {
         });
     });
     ipc.server.start();
-    console.log(chalk.green(`The epilog fact checker is listening with the id '${ipc.config.id}'`));
+    console.log(chalk.green(`The fog fact checker is listening with the id '${ipc.config.id}'`));
 }

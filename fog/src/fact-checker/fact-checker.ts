@@ -1,15 +1,15 @@
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
-import { Tuple,validator,UniqueAtomList, UniqueList } from "../utils/utils.ts";
+import { Tuple,validator,UniqueAtomList, UniqueList } from "../utils/utils.js";
 import {stringify} from "safe-stable-stringify";
-import { AtomList,Atom } from "../utils/utils.ts";
-import { PatternedAtomList } from "../utils/utils.ts";
-import { Rec } from "../utils/utils.ts";
+import { AtomList,Atom } from "../utils/utils.js";
+import { PatternedAtomList } from "../utils/utils.js";
+import { Rec } from "../utils/utils.js";
 import fs from 'fs/promises';
 import chalk from "chalk";
 import path from "path";
 import { spawn } from 'child_process';
-import { Resolver } from "../resolver/resolver.ts";
+import { Resolver } from "../resolver/resolver.js";
 import {v4 as uniqueID} from "uuid";
 
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
@@ -169,7 +169,7 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<tr
             return;
         }
         const cliArgs = ['resolve', '--src', filePath, '--out', outputFolder];
-        const child = spawn('epilog', cliArgs, { stdio: 'inherit', shell: true });
+        const child = spawn('fog', cliArgs, { stdio: 'inherit', shell: true });
         const exitCode = await new Promise<number>((resolve, reject) => {
             child.on('close', resolve);
             child.on('error', reject);

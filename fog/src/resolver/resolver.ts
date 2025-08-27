@@ -1,15 +1,15 @@
 import { CharStream, CommonTokenStream, ConsoleErrorListener,ParseTree,Token } from "antlr4ng";
-import { AliasDeclarationContext,DSLParser, FactContext,ProgramContext } from "../generated/DSLParser.ts";
-import { DSLLexer } from "../generated/DSLLexer.ts";
-import { DSLVisitor } from "../generated/DSLVisitor.ts";
+import { AliasDeclarationContext,DSLParser, FactContext,ProgramContext } from "../generated/DSLParser.js";
+import { DSLLexer } from "../generated/DSLLexer.js";
+import { DSLVisitor } from "../generated/DSLVisitor.js";
 import chalk from "chalk";
 import Denque from "denque";
 import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
-import { Rec } from "../utils/utils.ts";
-import { AtomList } from "../utils/utils.ts";
+import { Rec } from "../utils/utils.js";
+import { AtomList } from "../utils/utils.js";
 import fs from 'fs/promises';
 import path from 'path';
 
