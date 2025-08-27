@@ -1,6 +1,6 @@
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
-import { Tuple,validator,UniqueAtomList, UniqueList, Result, NoOutput } from "../utils/utils.js";
+import { Tuple,validator,UniqueAtomList, UniqueList, Result } from "../utils/utils.js";
 import {stringify} from "safe-stable-stringify";
 import { AtomList,Atom } from "../utils/utils.js";
 import { PatternedAtomList } from "../utils/utils.js";
@@ -180,7 +180,7 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Re
         console.error(chalk.red('The import path must be a .fog src file or the .json output'));
         return Result.error;
     }
-    
+
     try {
         const result = await loadDocFromJson(jsonPath!);
         return result;

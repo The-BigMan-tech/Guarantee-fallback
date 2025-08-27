@@ -3,13 +3,18 @@ import ipc from 'node-ipc';
 import { JSONRPCServer } from "json-rpc-2.0";
 import stringify from "safe-stable-stringify";
 import { Doc, importDoc } from "./fact-checker.js";
-import { Atom, PatternedAtomList} from "../utils/utils.js";
+import { Atom, NoOutput, PatternedAtomList} from "../utils/utils.js";
 import {docOnServer} from "./fact-checker.js";
+import { resolveDocToJson } from "../resolver/resolver.js";
 
 
 const server = new JSONRPCServer();
 server.addMethod("importDoc", async ({ filePath, outputFolder }: { filePath: string; outputFolder?: string }) => {
     const result = await importDoc(filePath, outputFolder);
+    return result;
+});
+server.addMethod("resolveDocToJson", async ({ filePath, outputFolder }: { filePath: string; outputFolder?: string | NoOutput }) => {
+    const result = await resolveDocToJson(filePath, outputFolder);
     return result;
 });
 server.addMethod("findAllFacts",({predicate,statement,byMembership}:{predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
