@@ -15,6 +15,14 @@ export type AddUnionToElements<T extends readonly any[], U> = {
     [K in keyof T]: T[K] | U;
 };
 
+export enum Result {
+    success='success',
+    error='error'
+}
+export enum NoOutput {
+    value='no-output'
+}
+
 const atomSchema = Type.Union([Type.String(),Type.Number()]);
 const uniqueAtomListSchema = Type.Object({
     list: Type.Array(atomSchema),

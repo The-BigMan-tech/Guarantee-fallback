@@ -1,13 +1,12 @@
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
-import { Tuple,validator,UniqueAtomList, UniqueList } from "../utils/utils.js";
+import { Tuple,validator,UniqueAtomList, UniqueList, Result, NoOutput } from "../utils/utils.js";
 import {stringify} from "safe-stable-stringify";
 import { AtomList,Atom } from "../utils/utils.js";
 import { PatternedAtomList } from "../utils/utils.js";
 import { Rec } from "../utils/utils.js";
 import fs from 'fs/promises';
 import chalk from "chalk";
-import path from "path";
 import { resolveDocToJson, Resolver } from "../resolver/resolver.js";
 import {v4 as uniqueID} from "uuid";
 
@@ -154,38 +153,46 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
  */
 export let docOnServer:Doc | null = null;
 
-export async function importDoc(filePath:string,outputFolder?:string):Promise<true | undefined> {
-    if (!(filePath.endsWith(".fog") || filePath.endsWith(".json"))) {
-        console.error(chalk.red('The import path must be a .fog src file or the .json output'));
-        return;
+
+async function loadDocFromJson(jsonPath:string | NoOutput):Promise<Result> {
+    if (jsonPath === NoOutput.value) return Result.success;//return early without saving the json data to the server document because no output was specified
+    if (jsonPath === Result.error) return Result.error;
+    const jsonData = await fs.readFile(jsonPath, 'utf8');
+    const records:Record<string,Rec> = JSON.parse(jsonData);
+    const isValid = validator.Check(records);
+    if (!isValid) {
+        const errors = [...validator.Errors(jsonData)].map(({ path, message }) => ({ path, message }));
+        console.error(chalk.red('Validation error in the json file:'), errors);
+        return Result.error;//to prevent corruption
     }
-    const isJson = filePath.endsWith(".json");
-    let jsonPath:string = isJson?filePath:'';
-    if (!isJson) {
+    console.info(lime('Successfully loaded the document from the path:'),jsonPath,'\n');
+    docOnServer = new Doc(records);
+    return Result.success;
+}
+export async function importDoc(filePath:string,outputFolder?:string | NoOutput):Promise<Result> {
+    const isSrcFile = filePath.endsWith(".fog");
+    const isJsonFile = filePath.endsWith(".json");
+    let jsonPath:string | null = isSrcFile?null:filePath;//i currently set it to null if its the src file because the json file isnt yet available at this time
+
+    if (isSrcFile) {//this block creates the json output and loads it if its a src file.
         if (!outputFolder) {
-            console.error(chalk.red('An output path must be specified if the import is the src file'));
-            return;
+            console.error(chalk.red('An output path must be specified if the import is a src file \n -Or set it to null to just resolve the file without producing any output.This feature wont be use much and mostly only by the lsp to return reports withot producing an output'));
+            return Result.error;
         }
-        await resolveDocToJson(filePath,outputFolder);
-        const jsonFilePath = path.basename(filePath, path.extname(filePath)) + '.json';
-        jsonPath = path.join(outputFolder,jsonFilePath);
+        jsonPath = (await resolveDocToJson(filePath,outputFolder)).jsonPath;
+    }else if (!isJsonFile) {
+        console.error(chalk.red('The import path must be a .fog src file or the .json output'));
+        return Result.error;
     }
+
     try {
-        const jsonData = await fs.readFile(jsonPath, 'utf8');
-        const records:Record<string,Rec> = JSON.parse(jsonData);
-        const isValid = validator.Check(records);
-        if (!isValid) {
-            const errors = [...validator.Errors(jsonData)].map(({ path, message }) => ({ path, message }));
-            console.error(chalk.red('Validation error in the json file:'), errors);
-            return;//to prevent corruption
-        }
-        console.info(lime('Successfully loaded the document from the path:'),jsonPath,'\n');
-        docOnServer = new Doc(records);
-        return true;
+        const result = await loadDocFromJson(jsonPath!);
+        return result;
     }catch { 
         if (!Resolver.terminate) {
             console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try importing the fog file directly to recreate the json file and ensure that the document doesnt contain errors that will prevent it from resolving to the json.\n`); 
         }
+        return Result.error;
     };
 }
 

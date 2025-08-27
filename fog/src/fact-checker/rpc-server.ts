@@ -9,7 +9,8 @@ import {docOnServer} from "./fact-checker.js";
 
 const server = new JSONRPCServer();
 server.addMethod("importDoc", async ({ filePath, outputFolder }: { filePath: string; outputFolder?: string }) => {
-    return await importDoc(filePath, outputFolder);
+    const result = await importDoc(filePath, outputFolder);
+    return result;
 });
 server.addMethod("findAllFacts",({predicate,statement,byMembership}:{predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
     if (!docOnServer) return;

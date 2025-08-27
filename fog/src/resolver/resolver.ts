@@ -8,7 +8,7 @@ import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
-import { Rec } from "../utils/utils.js";
+import { NoOutput, Rec, Result } from "../utils/utils.js";
 import { AtomList } from "../utils/utils.js";
 import fs from 'fs/promises';
 import path from 'path';
@@ -64,7 +64,7 @@ class Essentials {
             }
         }
         console.info(...messages);
-        Resolver.logs.push(...messages);
+        Resolver.logs?.push(...messages);
         if ((errorType===DslError.Semantic) || (errorType===DslError.Syntax)) {
             Resolver.terminate = true;
         }
@@ -105,7 +105,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static terminate:boolean = false;
 
     public static logFile:string | null = null;
-    public static logs:string[] = [];
+    public static logs:string[] | null = null;
     public static inputArr:string[] = [];
 
     private printTokens(tokens:Token[]):void {
@@ -143,14 +143,16 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     successMessage += `\n-Expansion: ${brown(expansionText)}`; 
                 };
                 console.info(successMessage);
-                Resolver.logs.push(successMessage);
+                Resolver.logs?.push(successMessage);
             }
         }
     }
     public static async flushLogs() {
-        const logs = Resolver.logs.join('');
-        await fs.appendFile(Resolver.logFile!,logs + '\n');
-        Resolver.logs.length = 0;
+        if (Resolver.logs && Resolver.logFile) {
+            const logs = Resolver.logs.join('');
+            await fs.appendFile(Resolver.logFile,logs + '\n');
+            Resolver.logs.length = 0;
+        }
     }
     private async resolveProgram(child:ParseTree) {
         let tokens:Token[] | null = null;
@@ -626,27 +628,40 @@ function omitJsonKeys(key:string,value:any) {
     }
     return value; // include everything else
 }
-export async function resolveDocToJson(srcFilePath:string,outputFolder?:string):Promise<void> {
+interface ResolutionResult {
+    result:Result,
+    jsonPath:string | NoOutput | Result.error;
+}
+export async function resolveDocToJson(srcFilePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult> {
     try {
         const src = await fs.readFile(srcFilePath, 'utf8');
+        const resolvedData = await genStructures(src);
 
         const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
         const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided
         const fullFilePathNoExt = path.join(outputPath,filePathNoExt);
 
-        Resolver.logFile = fullFilePathNoExt + '.ansi';
-        await fs.writeFile(Resolver.logFile, '');
-
-        const resolvedData = await genStructures(src);
-        if (!Resolver.terminate) {
-            const json = stringify(resolvedData,omitJsonKeys,4) || '';
-            const jsonPath = fullFilePathNoExt + ".json";
-            await fs.writeFile(jsonPath, json);
-            Resolver.terminate = false;//reset it for subsequent analyzing
-            console.log(`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`);
-            console.log(`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`);
+        if (outputFolder !== NoOutput.value) {
+            Resolver.logFile = fullFilePathNoExt + '.ansi';
+            Resolver.logs = [];
+            await fs.writeFile(Resolver.logFile, '');
         }
+        if (!Resolver.terminate) {
+            if (outputFolder !== NoOutput.value) {
+                const json = stringify(resolvedData,omitJsonKeys,4) || '';
+                const jsonPath = fullFilePathNoExt + ".json";
+                await fs.writeFile(jsonPath, json);
+                Resolver.terminate = false;//reset it for subsequent analyzing
+                console.log(`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`);
+                console.log(`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`);
+                return {result:Result.success,jsonPath};
+            }else {
+                return {result:Result.success,jsonPath:NoOutput.value};
+            }
+        }
+        return {result:Result.error,jsonPath:Result.error};
     } catch {
         console.error(chalk.red('Error processing file.Be sure its a valid file path'));
+        return {result:Result.error,jsonPath:Result.error};
     }
 }
