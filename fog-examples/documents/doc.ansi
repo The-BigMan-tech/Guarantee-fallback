@@ -1,0 +1,240 @@
+
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 1: [24m[39m
+-Sentence: [38;2;221;203;160malias father = *parent.[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 2: [24m[39m
+-Sentence: [38;2;221;203;160malias mother = *parent.[39m
+
+
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 5: [24m[39m
+-Sentence: [38;2;221;203;160m:ada and :john are *friends.[39m
+-Predicate: *friends
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["ada","john"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 6: [24m[39m
+-Sentence: [38;2;221;203;160m!john and :philip are *friends.[39m
+-Predicate: *friends
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["john","philip"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 7: [24m[39m
+-Sentence: [38;2;221;203;160m!philip and :jake are *friends.[39m
+-Predicate: *friends
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["philip","jake"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 8: [24m[39m
+-Sentence: [38;2;221;203;160m!jake and :ben are *friends.[39m
+-Predicate: *friends
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["jake","ben"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 9: [24m[39m
+-Sentence: [38;2;221;203;160m!ben and :billy are *friends.[39m
+-Predicate: *friends
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["ben","billy"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+
+
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 12: [24m[39m
+-Sentence: [38;2;221;203;160m!ada is a *female.[39m
+-Predicate: *female
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["ada"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 13: [24m[39m
+-Sentence: [38;2;221;203;160m!john is a *male.[39m
+-Predicate: *male
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["john"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 14: [24m[39m
+-Sentence: [38;2;221;203;160m!jake is a *male.[39m
+-Predicate: *male
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["jake"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 15: [24m[39m
+-Sentence: [38;2;221;203;160m!ben is a *male.[39m
+-Predicate: *male
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["ben"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+
+[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 17:[24m[39m
+-Did you mean to use the subject ref, <She> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:leo is the #father of !john.[39m
+[38;2;221;203;160m[39m[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 17:[24m[39m
+-Did you mean to use the subject ref, <They> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:leo is the #father of !john.[39m
+[38;2;221;203;160m[39m[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 17:[24m[39m
+-Did you mean to use the object ref, <them:n> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:leo is the #father of !john.[39m
+[38;2;221;203;160m[39m[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 17: [24m[39m
+-Sentence: [38;2;221;203;160m:leo is the #father of !john.[39m
+-Alias #father -> *parent
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["leo","john"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 18:[24m[39m
+-Did you mean to use the subject ref, <She> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m<He> is the #father of !ada.[39m
+[38;2;221;203;160m[39m[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 18:[24m[39m
+-Did you mean to use the subject ref, <They> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m<He> is the #father of !ada.[39m
+[38;2;221;203;160m[39m[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 18:[24m[39m
+-Did you mean to use the object ref, <them:n> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m<He> is the #father of !ada.[39m
+[38;2;221;203;160m[39m[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 18: [24m[39m
+-Sentence: [38;2;221;203;160m<He> is the #father of !ada.[39m
+-With resolved references: [38;2;221;203;160m:leo is the #father of !ada .[39m
+[38;2;221;203;160m[39m
+-Alias #father -> *parent
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["leo","ada"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 19:[24m[39m
+-Did you mean to use the subject ref, <She> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m<He> is the #father of !jake.[39m
+[38;2;221;203;160m[39m[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 19:[24m[39m
+-Did you mean to use the subject ref, <They> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m<He> is the #father of !jake.[39m
+[38;2;221;203;160m[39m[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 19:[24m[39m
+-Did you mean to use the object ref, <them:n> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m<He> is the #father of !jake.[39m
+[38;2;221;203;160m[39m[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 19:[24m[39m
+-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.
+-You may wish to write the name or array explicitly in [1mline:18[22m to avoid confusion.[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mCheck these lines:[24m[39m
+[38;2;173;239;30m[4m[24m[39m[90m18.[39m[38;2;221;203;160m<He> is the #father of !ada.[39m
+[38;2;221;203;160m[39m[90m19.[39m[38;2;221;203;160m<He> is the #father of !jake.[39m
+[38;2;221;203;160m[39m[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 19: [24m[39m
+-Sentence: [38;2;221;203;160m<He> is the #father of !jake.[39m
+-With resolved references: [38;2;221;203;160m:leo is the #father of !jake .[39m
+[38;2;221;203;160m[39m
+-Alias #father -> *parent
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["leo","jake"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 20:[24m[39m
+-Did you mean to use the subject ref, <She> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m<He> is the #father of !ben.[39m
+[38;2;221;203;160m[39m[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 20:[24m[39m
+-Did you mean to use the subject ref, <They> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m<He> is the #father of !ben.[39m
+[38;2;221;203;160m[39m[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 20:[24m[39m
+-Did you mean to use the object ref, <them:n> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m<He> is the #father of !ben.[39m
+[38;2;221;203;160m[39m[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 20:[24m[39m
+-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.
+-You may wish to write the name or array explicitly in [1mline:19[22m to avoid confusion.[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mCheck these lines:[24m[39m
+[38;2;173;239;30m[4m[24m[39m[90m19.[39m[38;2;221;203;160m<He> is the #father of !jake.[39m
+[38;2;221;203;160m[39m[90m20.[39m[38;2;221;203;160m<He> is the #father of !ben.[39m
+[38;2;221;203;160m[39m[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 20: [24m[39m
+-Sentence: [38;2;221;203;160m<He> is the #father of !ben.[39m
+-With resolved references: [38;2;221;203;160m:leo is the #father of !ben .[39m
+-Alias #father -> *parent
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["leo","ben"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+
+[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 21:[24m[39m
+-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.
+-You may wish to write the name or array explicitly in [1mline:20[22m to avoid confusion.[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mCheck these lines:[24m[39m
+[38;2;173;239;30m[4m[24m[39m[90m20.[39m[38;2;221;203;160m<He> is the #father of !ben.[39m
+[38;2;221;203;160m[39m[90m21.[39m[38;2;221;203;160m:benson is <his:2> *friend.[39m
+[38;2;221;203;160m[39m[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 21: [24m[39m
+-Sentence: [38;2;221;203;160m:benson is <his:2> *friend.[39m
+-With resolved references: [38;2;221;203;160m:benson is !ben *friend .[39m
+[38;2;221;203;160m[39m
+-Predicate: *friend
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["benson","ben"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 22:[24m[39m
+-Did you mean to use the subject ref, <She> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Susan is the #mother of !john.[39m
+[38;2;221;203;160m[39m[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 22:[24m[39m
+-Did you mean to use the subject ref, <They> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Susan is the #mother of !john.[39m
+[38;2;221;203;160m[39m[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 22:[24m[39m
+-Did you mean to use the object ref, <them:n> instead of the filler,[1mthe[22m?[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Susan is the #mother of !john.[39m
+[38;2;221;203;160m[39m[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 22: [24m[39m
+-Sentence: [38;2;221;203;160m:Susan is the #mother of !john.[39m
+-Alias #mother -> *parent
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["Susan","john"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+

@@ -13,7 +13,7 @@ const doc = await importDoc(path.join(docFolder,'./doc.json'));
 if (!doc) process.exit(0);
 
 console.info('Fact:',await doc.isItAFact('friends',['philip','ada']));//outputs false because its not a direct fact
-console.info('Rule:',await rules.areFriends(doc,['ada','philip']));//outputs true out of inference
+console.info('Rule:',await rules.areFriends(doc,['ada','benson']));//outputs true out of inference
 console.log('Rule:',await rules.areBrothers(doc,['john','jake']));
 
 //This gets all the friends of ada who are also the brother of ben.It selects the smallest record from the ones that are relevant to the context to reduce the number of enumerations required to solve the query to the minimum requirement

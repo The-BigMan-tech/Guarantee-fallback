@@ -42,7 +42,7 @@
                 "Susan"
             ]
         },
-        "recID": "9477b8ee-64a0-477c-b4cf-ea64a61915f6"
+        "recID": "2b77a6d0-fd23-4329-be5c-ffd87588b048"
     },
     "female": {
         "facts": [
@@ -57,7 +57,24 @@
                 "ada"
             ]
         },
-        "recID": "a53ce730-2edb-4acc-965a-0c49e4e14343"
+        "recID": "039be1ac-488b-4056-a933-81909b8125ee"
+    },
+    "friend": {
+        "facts": [
+            {
+                "list": [
+                    "benson",
+                    "ben"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "benson",
+                "ben"
+            ]
+        },
+        "recID": "70187cd0-ba35-4575-912a-1742d35b9875"
     },
     "friends": {
         "facts": [
@@ -102,7 +119,7 @@
                 "billy"
             ]
         },
-        "recID": "40e6af13-50c0-4dec-84db-fa166a1687c8"
+        "recID": "97083f21-1c33-48c8-a98f-b4df32457bcd"
     },
     "male": {
         "facts": [
@@ -129,7 +146,7 @@
                 "ben"
             ]
         },
-        "recID": "792de483-8a6d-44d4-986d-5f6eb9d62514"
+        "recID": "c3aab4a3-d97a-4bc9-bba0-799c89598fcb"
     },
     "mother": {
         "facts": [
@@ -174,7 +191,7 @@
                 "Susan"
             ]
         },
-        "recID": "9477b8ee-64a0-477c-b4cf-ea64a61915f6"
+        "recID": "2b77a6d0-fd23-4329-be5c-ffd87588b048"
     },
     "parent": {
         "facts": [
@@ -219,6 +236,6 @@
                 "Susan"
             ]
         },
-        "recID": "9477b8ee-64a0-477c-b4cf-ea64a61915f6"
+        "recID": "2b77a6d0-fd23-4329-be5c-ffd87588b048"
     }
 }
