@@ -30,7 +30,8 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
 export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
     const loaded = await client.request("importDoc",{filePath,outputFolder}) as boolean | undefined;;
     if (!loaded) {
-        console.log(chalk.red("An error occurred while importing the document.See the server"));
+        console.log(chalk.red("An error occurred while importing the document.See the server."));
+        console.log(chalk.yellow("You may also want to check the .ansi log with an ansi file previewer at the output folder."));
         return;
     }
     return new Doc();

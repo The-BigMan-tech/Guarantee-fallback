@@ -1,3 +1,5 @@
+process.env.FORCE_COLOR = '1'; // Enable colors even if not detected
+
 import { Command } from 'commander';
 import { resolveDocToJson } from './resolver/resolver.js';
 import { startIPCServer } from './fact-checker/rpc-server.js';

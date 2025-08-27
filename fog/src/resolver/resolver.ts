@@ -644,6 +644,7 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string):
             await fs.writeFile(jsonPath, json);
             Resolver.terminate = false;//reset it for subsequent analyzing
             console.log(`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`);
+            console.log(`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`);
         }
     } catch (err) {
         console.error('Error processing file.Be sure its a valid file path:', err);
