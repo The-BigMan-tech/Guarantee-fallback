@@ -74,11 +74,11 @@ export type PatternedAtomList = AddUnionToElements<AtomList,WildCard>;
 export type AddUnionToElements<T extends readonly any[], U> = {
     [K in keyof T]: T[K] | U;
 };
-enum Result {
+export enum Result {
     success='success',
     error='error'
 }
-enum NoOutput {
+export enum NoOutput {
     value='no-output'
 }
 export interface ResolutionResult {

@@ -27,7 +27,8 @@ export default [
 					{ find: '@src', replacement:path.resolve(__dirname, 'src') },
 				],
 			}),
-		]
+		],
+        external:['chalk']
 	},
 	{
 		input: './build/types/src/main.d.ts', // Entry point to your emitted `.d.ts` files
