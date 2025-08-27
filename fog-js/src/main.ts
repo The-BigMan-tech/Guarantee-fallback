@@ -36,6 +36,10 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Do
     }
     return new Doc();
 }
+export async function resolveDoc(filePath:string):Promise<ResolutionResult> {
+    const result = await client.request("importDoc",{filePath,outputFolder:NoOutput.value}) as ResolutionResult;
+    return result;
+}
 
 export class Doc {
     public async findAllFacts(predicate:string,statement:PatternedAtomList,byMembership=false):Promise<(false | AtomList)[]>{
@@ -73,4 +77,11 @@ export type AddUnionToElements<T extends readonly any[], U> = {
 enum Result {
     success='success',
     error='error'
+}
+enum NoOutput {
+    value='no-output'
+}
+export interface ResolutionResult {
+    result:Result,
+    jsonPath:string | NoOutput | Result.error;
 }

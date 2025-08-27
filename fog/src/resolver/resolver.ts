@@ -8,7 +8,7 @@ import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
-import { NoOutput, Rec, Result } from "../utils/utils.js";
+import { NoOutput, Rec, ResolutionResult, Result } from "../utils/utils.js";
 import { AtomList } from "../utils/utils.js";
 import fs from 'fs/promises';
 import path from 'path';
@@ -627,10 +627,6 @@ function omitJsonKeys(key:string,value:any) {
         return undefined; // exclude 'password'
     }
     return value; // include everything else
-}
-interface ResolutionResult {
-    result:Result,
-    jsonPath:string | NoOutput | Result.error;
 }
 export async function resolveDocToJson(srcFilePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult> {
     try {
