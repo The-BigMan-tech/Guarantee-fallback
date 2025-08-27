@@ -147,18 +147,17 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
     }
 }
 /**
- * It loads the document from the specifed path.If the path is directly to the json output,it directly imports it.Else,if its to the .el file,it will transform it to the json output and then,import it.In the second case,an output path must be specified.
+ * It loads the document from the specifed path.If the path is directly to the json output,it directly imports it.Else,if its to the .fog file,it will transform it to the json output and then,import it.In the second case,an output path must be specified.
  * 
- * This means that you can set the import path to the .el src file to load it up and on subsequent queries,you can import the resolved json file to ensure that the document is only transformed when needed.
+ * This means that you can set the import path to the .fog src file to load it up and on subsequent queries,you can import the resolved json file to ensure that the document is only transformed when needed.
  * @param importPath 
  * @returns 
  */
 export let docOnServer:Doc | null = null;
 
 export async function importDoc(filePath:string,outputFolder?:string):Promise<true | undefined> {
-    if (!(filePath.endsWith(".el") || filePath.endsWith(".json"))) {
-        console.log('🚀 => :158 => importDoc => filePath:', filePath);
-        console.error(chalk.red('The import path must be a .el src file or the .json output'));
+    if (!(filePath.endsWith(".fog") || filePath.endsWith(".json"))) {
+        console.error(chalk.red('The import path must be a .fog src file or the .json output'));
         return;
     }
     const isJson = filePath.endsWith(".json");
@@ -195,7 +194,7 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<tr
         return true;
     }catch { 
         if (!Resolver.terminate) {
-            console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try importing the .el file directly to recreate the json file and ensure that the document doesnt contain errors that will prevent it from resolving to the json.\n`); 
+            console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try importing the fog file directly to recreate the json file and ensure that the document doesnt contain errors that will prevent it from resolving to the json.\n`); 
         }
     };
 }

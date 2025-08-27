@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "resolve:docs":"fog resolve --src ./output/doc.fog"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "fog-js": "^1.0.1"
+    "fog-js": "^1.0.2"
   }
 }

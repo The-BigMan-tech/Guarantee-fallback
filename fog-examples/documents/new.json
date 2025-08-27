@@ -1,0 +1,119 @@
+{
+    "eats": {
+        "facts": [
+            {
+                "list": [
+                    "d",
+                    "a"
+                ]
+            },
+            {
+                "list": [
+                    "d",
+                    "b"
+                ]
+            },
+            {
+                "list": [
+                    "d",
+                    "c"
+                ]
+            },
+            {
+                "list": [
+                    "e",
+                    "a"
+                ]
+            },
+            {
+                "list": [
+                    "e",
+                    "b"
+                ]
+            },
+            {
+                "list": [
+                    "e",
+                    "c"
+                ]
+            },
+            {
+                "list": [
+                    "f",
+                    "a"
+                ]
+            },
+            {
+                "list": [
+                    "f",
+                    "b"
+                ]
+            },
+            {
+                "list": [
+                    "f",
+                    "c"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "d",
+                "a",
+                "b",
+                "c",
+                "e",
+                "f"
+            ]
+        },
+        "recID": "f9ca29f5-aa15-4a0b-8378-f0d60c877c3e"
+    },
+    "smart": {
+        "facts": [
+            {
+                "list": [
+                    "Billy"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "Billy"
+            ]
+        },
+        "recID": "fcf0128e-2418-41e4-953a-bffb6210fdec"
+    },
+    "tall": {
+        "facts": [
+            {
+                "list": [
+                    "Billy"
+                ]
+            },
+            {
+                "list": [
+                    "d"
+                ]
+            },
+            {
+                "list": [
+                    "e"
+                ]
+            },
+            {
+                "list": [
+                    "f"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "Billy",
+                "d",
+                "e",
+                "f"
+            ]
+        },
+        "recID": "f76cf58d-2e69-4280-b6d0-ca0568bb93c8"
+    }
+}
