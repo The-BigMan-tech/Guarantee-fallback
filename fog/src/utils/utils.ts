@@ -20,11 +20,11 @@ export enum Result {
     error='error'
 }
 export enum NoOutput {
-    value='no-output'
+    value=1//i used a number over a string to get better type safety by distinguishing it from string paths.i used 1 not 0 so that the code doesnt mistakenly treat it as a falsy value
 }
 export interface ResolutionResult {
     result:Result,
-    jsonPath:string | NoOutput | Result.error,
+    jsonPath:string | NoOutput | undefined,
     aliases:Record<string,string> | undefined
 }
 

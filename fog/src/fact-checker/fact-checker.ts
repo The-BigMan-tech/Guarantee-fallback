@@ -145,7 +145,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
     }
 }
 /**
- * It loads the document from the specifed path.If the path is directly to the json output,it directly imports it.Else,if its to the .fog file,it will transform it to the json output and then,import it.In the second case,an output path must be specified.
+ * It loads the document from the specifed path.If the path is directly to the json output,it directly imports it.Else,if its to the .fog file,it will transform it to the json output and then,import it.
  * 
  * This means that you can set the import path to the .fog src file to load it up and on subsequent queries,you can import the resolved json file to ensure that the document is only transformed when needed.
  * @param importPath 
@@ -166,15 +166,20 @@ async function loadDocFromJson(jsonPath:string):Promise<Result> {
     docOnServer = new Doc(records);
     return Result.success;
 }
+//This function is intended to update the server side document with the json output.it doesnt accept no-output like the resolver.For the lsp that needs analysis data without making output,it should call the resolver directlt
 export async function importDoc(filePath:string,outputFolder?:string):Promise<Result> {
     const isSrcFile = filePath.endsWith(".fog");
     const isJsonFile = filePath.endsWith(".json");
     let jsonPath:string | null = isSrcFile?null:filePath;//i currently set it to null if its the src file because the json file isnt yet available at this time
 
     if (isSrcFile) {//this block creates the json output and loads it if its a src file.
-        const result = (await resolveDocToJson(filePath,outputFolder));
-        if (result.result === Result.error) return Result.error;
-        jsonPath = result.jsonPath;
+        const {result,jsonPath:jsonPathResult} = await resolveDocToJson(filePath,outputFolder);
+        if (result === Result.error) return Result.error;
+        if (jsonPathResult === NoOutput.value) {
+            console.error(`'${NoOutput.value}' can not be used as the output parameter when loading the document on the server`);
+            return Result.error;
+        }
+        jsonPath = jsonPathResult!;
     }
     else if (!isJsonFile) {
         console.error(chalk.red('The import path must be a .fog src file or the .json output'));
@@ -185,12 +190,11 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Re
         const result = await loadDocFromJson(jsonPath!);
         return result;
     }catch { 
-        if (!Resolver.terminate) {
-            if (outputFolder === NoOutput.value) return Result.success;
-            console.error(`${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try importing the fog file directly to recreate the json file and ensure that the document doesnt contain errors that will prevent it from resolving to the json.\n`); 
-        }
+        const err = `${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try importing the fog file directly to recreate the json file and ensure that the document doesnt contain errors that will prevent it from resolving to the json.\n`;
+        if (!Resolver.terminate) console.error(err); //only log the io read error if it had nothing to do with the resolver.
         return Result.error;
     };
+    
 }
 
 

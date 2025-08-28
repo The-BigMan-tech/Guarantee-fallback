@@ -666,15 +666,17 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
             console.error(chalk.red('The resolver only reads .fog files.'));
             return {result:Result.error,jsonPath:undefined,aliases:undefined};
         }
+
+        const produceOutput = outputFolder !== NoOutput.value;
         const outputFilePath = getOutputPathNoExt(srcFilePath,outputFolder);
-        if (outputFolder !== NoOutput.value) await setUpLogs(outputFilePath!);//this must be initialized before generating the struct as long as the file log is required
+        if (produceOutput) await setUpLogs(outputFilePath!);//this must be initialized before generating the struct as long as the file log is required
 
         const src = await fs.readFile(srcFilePath, 'utf8');
         const resolvedData = await genStructures(src);
         
         if (!Resolver.terminate) {
             let jsonPath:string | NoOutput = NoOutput.value;
-            if (outputFolder !== NoOutput.value) {
+            if (produceOutput) {
                 jsonPath = await writeToOutput(outputFilePath!,stringify(resolvedData,omitJsonKeys,4) || '');
             }
             clearStaticVariables();
