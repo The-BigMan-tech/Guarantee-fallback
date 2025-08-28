@@ -3,35 +3,29 @@ import chalk from "chalk";
 import { JSONRPCClient } from "json-rpc-2.0";
 
 
-async function createClient(client:JSONRPCClient<void>,jsonRPCRequest:any):Promise<unknown> {
-    return new Promise((resolve, reject) => {
-        const ipcServerID = 'fog-ipc-server';
-        ipc.config.silent = true;
-        ipc.connectTo(ipcServerID, () => {
-            const server = ipc.of[ipcServerID]; 
-            server.on('connect', () => {//make the request.the request should not be stringified
-                server.emit('message',jsonRPCRequest);
-            });
-            server.on('message', (data: string) => {//get the response
-                try {
-                    const jsonRPCResponse = JSON.parse(data);
-                    resolve(client.receive(jsonRPCResponse));//hanlde the response
-                } catch (err) {
-                    reject(err);
-                } finally {
-                    ipc.disconnect('fog-ipc-server');
-                }
-            });
-            server.on('error', reject);
-        });
-    });
-}
 const client = new JSONRPCClient(async (jsonRPCRequest) =>{
-    try {
-        await createClient(client,jsonRPCRequest);
-    }catch {
+    const throwErr = ():never => {
         throw new Error(chalk.red('Unable to connect to the fact checker.Did you forget to start the server?'));
-    }
+    };
+    const ipcServerID = 'fog-ipc-server';
+    ipc.config.silent = true;
+    ipc.connectTo(ipcServerID, () => {
+        const server = ipc.of[ipcServerID]; 
+        server.on('connect', () => {//make the request.the request should not be stringified
+            server.emit('message',jsonRPCRequest);
+        });
+        server.on('message', (data: string) => {//get the response
+            try {
+                const jsonRPCResponse = JSON.parse(data);
+                client.receive(jsonRPCResponse);//hanlde the response
+            } catch (err) {
+                throw new Error(String(err));
+            } finally {
+                ipc.disconnect(ipcServerID);
+            }
+        });
+        server.on('error',throwErr);
+    });
 });
 export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
     const result = await client.request("importDoc",{filePath,outputFolder}) as Result;
