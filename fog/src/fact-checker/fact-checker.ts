@@ -48,7 +48,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         }
     }
     //it returns the facts where the members match or false if the input isnt a fact.I made it to yield all the facts that match.Its useful for getting to answer questions like ada is the friend of who? by using null as a placeholder and getting all the facts that provide concrete values on what the placheolder is for those facts 
-    public* findAllFacts(record:Rec,statement:PatternedAtomList,byMembership=false):Generator<AtomList | false,void,true | undefined>{//the byMembership mode is a different way of checking for fact truthiness by checking if all of the mebers in the statement are also members in a fact.if so,then its true.Its different from the deafult method which compares the statement to the fact by element order which mimics how prolog checks for facts.This way of checking for facts is useful when a fact can have an arbitrary number of atoms and checking if a statmet is a fact by checking the exact order of the elements is too strict that its fragile or even computationally infeasible.like if i were to check if two atoms,X and Y are friends where friends has an arbitarry number of atoms,then checking if they are friends will require me to fill in the gaps at the right positions with wildcards but it wont make sense if a fact has like 10 atoms.so checking if the statement is true by membership is the practical approach.Using the default checker is better for small-medium arity tuples.Another alternative is to reate a fact checking strategy that sorts the elements optionally before comparing and have a helper fill the remainder of the array  with wildcards.but set mebership is the most robust and fastest way of doing this same task.no overhead for sorting or padding needed
+    private* findAllFacts(record:Rec,statement:PatternedAtomList,byMembership=false):Generator<AtomList | false,void,true | undefined>{//the byMembership mode is a different way of checking for fact truthiness by checking if all of the mebers in the statement are also members in a fact.if so,then its true.Its different from the deafult method which compares the statement to the fact by element order which mimics how prolog checks for facts.This way of checking for facts is useful when a fact can have an arbitrary number of atoms and checking if a statmet is a fact by checking the exact order of the elements is too strict that its fragile or even computationally infeasible.like if i were to check if two atoms,X and Y are friends where friends has an arbitarry number of atoms,then checking if they are friends will require me to fill in the gaps at the right positions with wildcards but it wont make sense if a fact has like 10 atoms.so checking if the statement is true by membership is the practical approach.Using the default checker is better for small-medium arity tuples.Another alternative is to reate a fact checking strategy that sorts the elements optionally before comparing and have a helper fill the remainder of the array  with wildcards.but set mebership is the most robust and fastest way of doing this same task.no overhead for sorting or padding needed
         if (!record) return;
         //return early if the members from the input arent even available in the record,saving computation by preventing wasteful checks over all the facts in the record
         if (!this.areMembersInSet(statement,record.members.set)) {
@@ -80,20 +80,30 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
             }
         }
         this.saveToFactsCache(cacheKey,matchedFacts);
-        if (matchedFacts.length===0) yield false;
+        if (matchedFacts.length===0) yield false;//the reason why this generator yields false is because it has to yield something to indicate that a fact is not is true.
     }
-    public findFirstNFacts(num:number,record: Rec,args:PatternedAtomList,byMembership=false):(AtomList | false)[] {
-        const facts:(AtomList | false)[] = [];
-        const factsGen = this.findAllFacts(record, args,byMembership);
-        for (let i=0;i < num;i++) {
-            const fact = factsGen.next(true).value as false | AtomList;//sending true will save to cache without finishing the generator because since this function only collects the first fact,the generator may not have a chance to save results to the cache if there is ore than one matching fact.
-            if (fact===undefined) break;
-            facts.push(fact);
+    //this function consumes the whole generator into an array and returns it
+    public findAllFactsInList(record:Rec,statement:PatternedAtomList,byMembership=false):AtomList[] {
+        const facts:AtomList[] = [];
+        for (const fact of this.findAllFacts(record,statement,byMembership)) {
+            if (fact !== false) facts.push(fact);
         }
         return facts;
     }
+    //this function only consumes the generator till it reaches N.
+    public findFirstNFacts(num:number,record: Rec,args:PatternedAtomList,byMembership=false):AtomList[] {
+        const facts:AtomList[] = [];
+        const factsGen = this.findAllFacts(record, args,byMembership);
+        for (let i=0;i < num;i++) {
+            const fact = factsGen.next(true).value as false | AtomList;//sending true will save to cache without finishing the generator because since this function only collects the first fact,the generator may not have a chance to save results to the cache if there is ore than one matching fact.
+            if (fact===undefined) break;//cut the loop short as soon as all the fscts within 0 - n has been consumed without overshooting the generator just to reach n.
+            if (fact!== false) facts.push(fact);
+        }
+        console.log('🚀 => :93 => findFirstNFacts => facts:', facts);
+        return facts;
+    }
     public isItAFact(record: Rec, args:PatternedAtomList,byMembership=false):boolean {
-        return Boolean(this.findFirstNFacts(1,record,args,byMembership));
+        return Boolean(this.findFirstNFacts(1,record,args,byMembership).length);
     }
 
 
@@ -203,3 +213,319 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Re
     };
     
 }
+const doc = new Doc(
+    {
+    "father": {
+        "facts": [
+            {
+                "list": [
+                    "leo",
+                    "john"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "ada"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "jake"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "ben"
+                ]
+            },
+            {
+                "list": [
+                    "Susan",
+                    "john"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "leo",
+                "john",
+                "ada",
+                "jake",
+                "ben",
+                "Susan"
+            ]
+        },
+        "recID": "a98078d3-dd2a-4815-9be2-05600e868af9"
+    },
+    "female": {
+        "facts": [
+            {
+                "list": [
+                    "ada"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "ada"
+            ]
+        },
+        "recID": "de077ea0-e95c-4af6-be8b-578a32a45dcb"
+    },
+    "friend": {
+        "facts": [
+            {
+                "list": [
+                    "ada",
+                    "john"
+                ]
+            },
+            {
+                "list": [
+                    "john",
+                    "philip"
+                ]
+            },
+            {
+                "list": [
+                    "philip",
+                    "jake"
+                ]
+            },
+            {
+                "list": [
+                    "jake",
+                    "ben"
+                ]
+            },
+            {
+                "list": [
+                    "ben",
+                    "billy"
+                ]
+            },
+            {
+                "list": [
+                    "ada",
+                    "a"
+                ]
+            },
+            {
+                "list": [
+                    "ada",
+                    "b"
+                ]
+            },
+            {
+                "list": [
+                    "benson",
+                    "ben"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "ada",
+                "john",
+                "philip",
+                "jake",
+                "ben",
+                "billy",
+                "a",
+                "b",
+                "benson"
+            ]
+        },
+        "recID": "a9da4aac-39f5-4200-8072-68bbe7963fd1"
+    },
+    "friends": {
+        "facts": [
+            {
+                "list": [
+                    "ada",
+                    "john"
+                ]
+            },
+            {
+                "list": [
+                    "john",
+                    "philip"
+                ]
+            },
+            {
+                "list": [
+                    "philip",
+                    "jake"
+                ]
+            },
+            {
+                "list": [
+                    "jake",
+                    "ben"
+                ]
+            },
+            {
+                "list": [
+                    "ben",
+                    "billy"
+                ]
+            },
+            {
+                "list": [
+                    "ada",
+                    "a"
+                ]
+            },
+            {
+                "list": [
+                    "ada",
+                    "b"
+                ]
+            },
+            {
+                "list": [
+                    "benson",
+                    "ben"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "ada",
+                "john",
+                "philip",
+                "jake",
+                "ben",
+                "billy",
+                "a",
+                "b",
+                "benson"
+            ]
+        },
+        "recID": "a9da4aac-39f5-4200-8072-68bbe7963fd1"
+    },
+    "male": {
+        "facts": [
+            {
+                "list": [
+                    "john"
+                ]
+            },
+            {
+                "list": [
+                    "jake"
+                ]
+            },
+            {
+                "list": [
+                    "ben"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "john",
+                "jake",
+                "ben"
+            ]
+        },
+        "recID": "935c4825-850a-4e04-946c-7d934f176637"
+    },
+    "mother": {
+        "facts": [
+            {
+                "list": [
+                    "leo",
+                    "john"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "ada"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "jake"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "ben"
+                ]
+            },
+            {
+                "list": [
+                    "Susan",
+                    "john"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "leo",
+                "john",
+                "ada",
+                "jake",
+                "ben",
+                "Susan"
+            ]
+        },
+        "recID": "a98078d3-dd2a-4815-9be2-05600e868af9"
+    },
+    "parent": {
+        "facts": [
+            {
+                "list": [
+                    "leo",
+                    "john"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "ada"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "jake"
+                ]
+            },
+            {
+                "list": [
+                    "leo",
+                    "ben"
+                ]
+            },
+            {
+                "list": [
+                    "Susan",
+                    "john"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "leo",
+                "john",
+                "ada",
+                "jake",
+                "ben",
+                "Susan"
+            ]
+        },
+        "recID": "a98078d3-dd2a-4815-9be2-05600e868af9"
+    }
+}
+,null)
+
+console.log(doc.isItAFact(doc.records.friends,['ada','john'],true));
+
