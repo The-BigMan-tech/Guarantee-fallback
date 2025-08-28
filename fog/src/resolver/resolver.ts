@@ -150,7 +150,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static async flushLogs() {
         if (Resolver.logs && Resolver.logFile) {
             const logs = Resolver.logs.join('');
-            await fs.appendFile(Resolver.logFile,logs);
+            await fs.appendFile(Resolver.logFile,logs + '\n');
             Resolver.logs.length = 0;
         }
     }
