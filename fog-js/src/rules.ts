@@ -54,7 +54,7 @@ const rules:Rules = {//A rule is a function that takes a document and a statemen
         return false;
     }
 };
-export function getInferredDoc(doc:Doc):InferrableDoc {
+export function getInferrableDoc(doc:Doc):InferrableDoc {
     const inferredDoc:InferrableDoc = {
         ...doc,
         isItImplied:async (rule,statement)=>{//this is a pattern to query rules with the same interface design as querying a fact
