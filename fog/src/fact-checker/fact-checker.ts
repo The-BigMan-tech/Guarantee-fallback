@@ -16,13 +16,13 @@ export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedComb
 
 const lime = chalk.hex('adef1e');
 export class Doc {//I named it Doc instead of Document to avoid ambiguity with the default Document class which is for the DOM
-    public aliases:Record<string,string> = {};
+    public aliases:Record<string,string>;
     public records:Record<string,Rec> = {};
     public static wildCard = uniqueID();
     private static factCheckerCache = new LRUCache<string,string>({max:100});//soeven if the client runs multiple times,they will still be using cached data.and to ensure this i made the cache static so that it doesnt get wiped on recreation of the doc class due to repeated imports from re-execution of client scripts
 
-    public constructor(records:Record<string,Rec>,aliases:typeof this.aliases) {
-        this.aliases = aliases;
+    public constructor(records:Record<string,Rec>,aliases:typeof this.aliases | null) {
+        this.aliases = aliases || {};
         Object.keys(records).forEach(key=>{
             this.records[key] = new Rec(records[key].facts);//rebuild the rec since some internal structures arent serializable
             //didnt preserve recID since they are just for caching and not lookups so change here is fine
@@ -82,14 +82,18 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         this.saveToFactsCache(cacheKey,matchedFacts);
         if (matchedFacts.length===0) yield false;
     }
-    public findFirstFact(record: Rec, args:PatternedAtomList,byMembership=false):false | AtomList {
-        const facts = this.findAllFacts(record, args,byMembership);
-        const firstFact = facts.next().value as false | AtomList;
-        facts.next(true);//save to cache without finishing the generator because since this function only collects the first fact,the generator may not have a chance to save results to the cache if there is ore than one matching fact.
-        return firstFact;
+    public findFirstNFacts(num:number,record: Rec,args:PatternedAtomList,byMembership=false):(AtomList | false)[] {
+        const facts:(AtomList | false)[] = [];
+        const factsGen = this.findAllFacts(record, args,byMembership);
+        for (let i=0;i < num;i++) {
+            const fact = factsGen.next(true).value as false | AtomList;//sending true will save to cache without finishing the generator because since this function only collects the first fact,the generator may not have a chance to save results to the cache if there is ore than one matching fact.
+            if (fact===undefined) break;
+            facts.push(fact);
+        }
+        return facts;
     }
     public isItAFact(record: Rec, args:PatternedAtomList,byMembership=false):boolean {
-        return Boolean(this.findFirstFact(record,args,byMembership));
+        return Boolean(this.findFirstNFacts(1,record,args,byMembership));
     }
 
 
@@ -199,5 +203,3 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Re
     };
     
 }
-
-
