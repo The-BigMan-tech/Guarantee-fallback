@@ -2,9 +2,10 @@ import ipc from 'node-ipc';
 import chalk from "chalk";
 import { JSONRPCClient } from "json-rpc-2.0";
 
-const ipcServerID = 'fog-ipc-server';
-const client = new JSONRPCClient((jsonRPCRequest) =>
-    new Promise((resolve, reject) => {
+
+async function createClient(client:JSONRPCClient<void>,jsonRPCRequest:any):Promise<unknown> {
+    return new Promise((resolve, reject) => {
+        const ipcServerID = 'fog-ipc-server';
         ipc.config.silent = true;
         ipc.connectTo(ipcServerID, () => {
             const server = ipc.of[ipcServerID]; 
@@ -14,7 +15,6 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
             server.on('message', (data: string) => {//get the response
                 try {
                     const jsonRPCResponse = JSON.parse(data);
-                    // console.log(chalk.cyan('Response: '),jsonRPCResponse);
                     resolve(client.receive(jsonRPCResponse));//hanlde the response
                 } catch (err) {
                     reject(err);
@@ -24,8 +24,15 @@ const client = new JSONRPCClient((jsonRPCRequest) =>
             });
             server.on('error', reject);
         });
-    })
-);
+    });
+}
+const client = new JSONRPCClient(async (jsonRPCRequest) =>{
+    try {
+        await createClient(client,jsonRPCRequest);
+    }catch {
+        throw new Error(chalk.red('Unable to connect to the fact checker.Did you forget to start the server?'));
+    }
+});
 export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
     const result = await client.request("importDoc",{filePath,outputFolder}) as Result;
     if (result === Result.error) {
