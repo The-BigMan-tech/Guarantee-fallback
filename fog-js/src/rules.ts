@@ -5,7 +5,7 @@ export interface InferrableDoc extends Doc {
     isItImplied:(rule:string,statement:Atom[])=>Promise<boolean> | ((...args:any[])=>any),
 }
 interface Rules {
-    directFriends:Rule<[string,string]>,
+    directFriends:Rule<string[]>,
     indirectFriends:RecursiveRule<[string,string]>,
     friends:Rule<[string,string]>,
     siblings:Rule<[string,string]>,
@@ -13,13 +13,10 @@ interface Rules {
 }
 const rules:Rules = {//A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
     directFriends:async (doc,statement)=> {
-        const [X,Y] = statement;
-        return (//the reason why its querying only for the first fact cuz we want to know if tey are direct friends or not without caring abut all the facts that makes this true
-            doc.isItAFact('friends',[X,Y],true)
-        );
+        return doc.isItAFact('friends',statement,true);//its checking by membership not strict order to handle a statement of variable args and also when the order requirement isnt strict
     },
     indirectFriends:async (doc,statement,visitedCombinations)=> {
-        const [X,Y] = statement;
+        const [X,Y] = statement;//its only handling two entities at a time to prevent unbound recursion.
         const {candidates,checkedCombinations} = await doc.genCandidates<string,1>(1,'friends',statement,visitedCombinations);
         for (const [A] of candidates) {
             if (await rules.directFriends(doc,[X,A])) {
