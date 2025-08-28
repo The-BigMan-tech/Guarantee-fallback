@@ -9,6 +9,7 @@ alias friends = *friend.
 !philip and :jake are #friends.
 !jake and :ben are #friends.
 !ben and :billy are #friends.
+:a,:b,:c and :d are #friends.
 
 //Family facts
 !ada is a *female.

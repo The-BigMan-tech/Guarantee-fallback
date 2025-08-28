@@ -1,9 +1,6 @@
-/* eslint-disable indent */
-import { Atom, Doc, RecursiveRule, Rule } from "./main.js";
+import { RecursiveRule, Rule } from "./main.js";
 
-export interface InferrableDoc extends Doc {
-    isItImplied:(rule:string,statement:Atom[])=>Promise<boolean> | ((...args:any[])=>any),
-}
+
 interface Rules {
     directFriends:Rule<string[]>,
     indirectFriends:RecursiveRule<[string,string]>,
@@ -11,7 +8,7 @@ interface Rules {
     siblings:Rule<[string,string]>,
     brothers:Rule<[string,string]>
 }
-const rules:Rules = {//A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
+export const rules:Rules = {//A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
     directFriends:async (doc,statement)=> {
         return doc.isItAFact('friends',statement,true);//its checking by membership not strict order to handle a statement of variable args and also when the order requirement isnt strict
     },
@@ -49,18 +46,3 @@ const rules:Rules = {//A rule is a function that takes a document and a statemen
         return false;
     }
 };
-export function getInferrableDoc(doc:Doc):InferrableDoc {
-    const inferredDoc:InferrableDoc = {
-        ...doc,
-        isItImplied:async (rule,statement)=>{//this is a pattern to query rules with the same interface design as querying a fact
-            const aliases = await doc.aliases();
-            switch (aliases[rule] || rule) {//i did a look up on the aliases rather than strictly the rule name itself so that it can also work for aliases
-                case (aliases['friends']):return await rules.friends(doc,statement as [string,string]);//so this will trigger if both the string and the input refer to the same predicate
-                case ('siblings'):return await rules.siblings(doc,statement as [string,string]);//this one is for exact matching because this string is not used in the document.Its a new keyword so there is no existing aliases for it.This knowledge has to come from  the author
-                case ('brothers'):return await rules.brothers(doc,statement as [string,string]);
-            }
-            return false;
-        }
-    };
-    return inferredDoc;
-}

@@ -1,6 +1,9 @@
 import { getFromDocuments } from "./import.js";
+import { rules } from "./rules.js";
 
 const doc = await getFromDocuments('./doc.fog');
 if (!doc) process.exit(0);
 
-console.info('Fact:',await doc.isItImplied('brothers',['jake','ben']));//outputs false because its not a direct fact
+doc.useImplications(rules);
+const answer = await doc.isItImplied!('friends',['a','d']);//outputs false because its not a direct fact
+console.log('Answer: ',answer);
