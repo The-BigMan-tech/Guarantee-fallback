@@ -41,7 +41,7 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
 }
 
 export class Doc {//i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading
-    //this method allows the user to query for the truthiness of a statement of a rule the same way they do with facts.rather than calling methods directly on the rule object,they write the name of the rule they want to check against as they would for fact querying and the method will forward it to the correct rule by key.It also includes aliases allowing users to also query rules with aliases that will still forward to the correct rule even though the rule's name isnt the alias.
+    //this method allows the user to query for the truthiness of a statement of a rule the same way they do with facts.So that rather than calling methods directly on the rule object,they write the name of the rule they want to check against as they would for fact querying and this method will forward it to the correct rule by key.It also includes aliases allowing users to also query rules with aliases that will still forward to the correct rule even though the rule's name isnt the alias.Recommended to use over direct function calls on the rule object.
     public isItImplied:null | ((rule:string,statement:Atom[])=>Promise<boolean>) = null;
     
     public useRules<K extends string>(rules:Record<K,AnyRuleType>):void {

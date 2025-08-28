@@ -4,6 +4,6 @@ import { rules } from "./rules.js";
 const doc = await getFromDocuments('./doc.fog');
 if (!doc) process.exit(0);
 
-doc.useImplications(rules);
+doc.useRules(rules);
 const answer = await doc.isItImplied!('friends',['a','d']);//outputs false because its not a direct fact
 console.log('Answer: ',answer);
