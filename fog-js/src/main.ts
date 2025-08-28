@@ -36,32 +36,52 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Do
     }
     return new Doc();
 }
-export async function resolveDoc(filePath:string):Promise<ResolutionResult> {
-    const result = await client.request("resolveDocToJson",{filePath,outputFolder:NoOutput.value}) as ResolutionResult;
+export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult> {
+    const result = await client.request("resolveDocToJson",{filePath,outputFolder:outputFolder}) as ResolutionResult;
     return result;
 }
 
 export class Doc {//i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading
+    private static throwDocError():never {
+        throw new Error(chalk.red('The document was unable to load to the fact checker.'));
+    }
+    public aliases = async ():Promise<Record<string,string>>=>{
+        const result:Result.error | Record<string,string> = await client.request('aliases',{});
+        if (result === Result.error) Doc.throwDocError();
+        return result;
+    };
     public findAllFacts = async (predicate:string,statement:PatternedAtomList,byMembership=false):Promise<(false | AtomList)[]>=>{
-        return await client.request("findAllFacts",{predicate,statement,byMembership});
+        const result:Result.error | (false | AtomList)[] = await client.request("findAllFacts",{predicate,statement,byMembership});
+        if (result === Result.error) Doc.throwDocError();
+        return result;
     };
     public findFirstFact = async (predicate:string,statement:PatternedAtomList,byMembership=false):Promise<false | AtomList>=> {
-        return await client.request("findFirstFact",{predicate,statement,byMembership});
+        const result:Result.error | false | AtomList = await client.request("findFirstFact",{predicate,statement,byMembership});
+        if (result === Result.error) Doc.throwDocError();
+        return result;
     };
     public isItAFact = async(predicate:string,statement:PatternedAtomList,byMembership=false):Promise<boolean>=> {
-        return await client.request("isItAFact",{predicate,statement,byMembership});
+        const result:Result.error | boolean = await client.request("isItAFact",{predicate,statement,byMembership});
+        if (result === Result.error) Doc.throwDocError();
+        return result;
     };
-    public genCandidates = async <T extends Atom,N extends number>(howManyToReturn:N,predicate:string,inputCombination:Atom[],visitedCombinations:string[]):Promise<{candidates:T[][],checkedCombinations:string[]}>=>{
-        return await client.request("genCandidates",{howManyToReturn,predicate,inputCombination,visitedCombinations});
+    public genCandidates = async <T extends Atom,N extends number>(howManyToReturn:N,predicate:string,inputCombination:Atom[],visitedCombinations:string[]):Promise<GeneratedCandidates<T>>=>{
+        const result:Result.error | GeneratedCandidates<T> =  await client.request("genCandidates",{howManyToReturn,predicate,inputCombination,visitedCombinations});
+        if (result === Result.error) Doc.throwDocError();
+        return result;
     };
     public selectSmallestRecord = async (predicates:string[]):Promise<string>=> {
-        return await client.request('selectSmallestRecord',{predicates});
+        const result:Result.error | string = await client.request('selectSmallestRecord',{predicates});
+        if (result === Result.error) Doc.throwDocError();
+        return result;
     };
     public intersection = async (arrays:(Atom | undefined)[][]):Promise<Atom[]>=> {
-        return await client.request('intersection',{arrays});
+        const result:Result.error | Atom[] =  await client.request('intersection',{arrays});
+        if (result === Result.error) Doc.throwDocError();
+        return result;
     };
     public wildCard = async ():Promise<string>=>{
-        return await client.request('wildCard',{});
+        return await client.request('wildCard',{});//this one can not return a doc error because its a static property thats always available on the server
     };
 }
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>Promise<boolean>;
@@ -79,9 +99,13 @@ export enum Result {
     error='error'
 }
 export enum NoOutput {
-    value='no-output'
+    value=1//i used a number over a string to get better type safety by distinguishing it from string paths.i used 1 not 0 so that the code doesnt mistakenly treat it as a falsy value
 }
 export interface ResolutionResult {
     result:Result,
-    jsonPath:string | NoOutput | Result.error;
+    jsonPath:string | NoOutput | undefined,
+}
+export interface GeneratedCandidates<T> {
+    candidates:T[][],
+    checkedCombinations:string[]
 }

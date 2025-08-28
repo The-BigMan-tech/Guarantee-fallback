@@ -179,7 +179,7 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Re
         const {result,jsonPath:jsonPathResult} = await resolveDocToJson(filePath,outputFolder);
         if (result === Result.error) return Result.error;
         if (jsonPathResult === NoOutput.value) {
-            console.error(`'${NoOutput.value}' can not be used as the output parameter when loading the document on the server`);
+            console.error(chalk.red(`The no output flag: '${NoOutput.value}' can not be used as the output parameter when loading the document on the server.`));
             return Result.error;
         }
         jsonPath = jsonPathResult!;//we can assert this here because if the resolver result isnt an error,then the path is guaranteed to be valid
