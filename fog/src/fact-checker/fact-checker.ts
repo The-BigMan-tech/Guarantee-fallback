@@ -41,6 +41,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         return false;//a quick check to save computation.it infers that if the arrays arent of the same length,then they arent the same
     }
     private saveToFactsCache(key:string,atomList:AtomList[]):void {
+        console.log('saved to cache');
         if (atomList.length === 0) {
             Doc.factCheckerCache.set(key,stringify(false));
         }else {
@@ -48,7 +49,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         }
     }
     //it returns the facts where the members match or false if the input isnt a fact.I made it to yield all the facts that match.Its useful for getting to answer questions like ada is the friend of who? by using null as a placeholder and getting all the facts that provide concrete values on what the placheolder is for those facts 
-    private* findAllFacts(record:Rec,statement:PatternedAtomList,byMembership=false):Generator<AtomList | false,void,true | undefined>{//the byMembership mode is a different way of checking for fact truthiness by checking if all of the mebers in the statement are also members in a fact.if so,then its true.Its different from the deafult method which compares the statement to the fact by element order which mimics how prolog checks for facts.This way of checking for facts is useful when a fact can have an arbitrary number of atoms and checking if a statmet is a fact by checking the exact order of the elements is too strict that its fragile or even computationally infeasible.like if i were to check if two atoms,X and Y are friends where friends has an arbitarry number of atoms,then checking if they are friends will require me to fill in the gaps at the right positions with wildcards but it wont make sense if a fact has like 10 atoms.so checking if the statement is true by membership is the practical approach.Using the default checker is better for small-medium arity tuples.Another alternative is to reate a fact checking strategy that sorts the elements optionally before comparing and have a helper fill the remainder of the array  with wildcards.but set mebership is the most robust and fastest way of doing this same task.no overhead for sorting or padding needed
+    private* findAllFacts(record:Rec,statement:PatternedAtomList,byMembership=false):Generator<AtomList | false,void,boolean | undefined>{//the byMembership mode is a different way of checking for fact truthiness by checking if all of the mebers in the statement are also members in a fact.if so,then its true.Its different from the deafult method which compares the statement to the fact by element order which mimics how prolog checks for facts.This way of checking for facts is useful when a fact can have an arbitrary number of atoms and checking if a statmet is a fact by checking the exact order of the elements is too strict that its fragile or even computationally infeasible.like if i were to check if two atoms,X and Y are friends where friends has an arbitarry number of atoms,then checking if they are friends will require me to fill in the gaps at the right positions with wildcards but it wont make sense if a fact has like 10 atoms.so checking if the statement is true by membership is the practical approach.Using the default checker is better for small-medium arity tuples.Another alternative is to reate a fact checking strategy that sorts the elements optionally before comparing and have a helper fill the remainder of the array  with wildcards.but set mebership is the most robust and fastest way of doing this same task.no overhead for sorting or padding needed
         if (!record) return;
         //return early if the members from the input arent even available in the record,saving computation by preventing wasteful checks over all the facts in the record
         if (!this.areMembersInSet(statement,record.members.set)) {
@@ -86,7 +87,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
     public findAllFactsInList(record:Rec,statement:PatternedAtomList,byMembership=false):AtomList[] {
         const facts:AtomList[] = [];
         for (const fact of this.findAllFacts(record,statement,byMembership)) {
-            if (fact !== false) facts.push(fact);
+            if (fact!==false) facts.push(fact);
         }
         return facts;
     }
@@ -95,11 +96,16 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         const facts:AtomList[] = [];
         const factsGen = this.findAllFacts(record, args,byMembership);
         for (let i=0;i < num;i++) {
-            const fact = factsGen.next(true).value as false | AtomList;//sending true will save to cache without finishing the generator because since this function only collects the first fact,the generator may not have a chance to save results to the cache if there is ore than one matching fact.
-            if (fact===undefined) break;//cut the loop short as soon as all the fscts within 0 - n has been consumed without overshooting the generator just to reach n.
-            if (fact!== false) facts.push(fact);
+            console.log(i);
+            const indexBasedNum = num-1;//i did num-1 because i is 0-based while num is 1-based
+            const saveToCache = (i==(indexBasedNum))?true:false;//The point of this condition is to ensure that the results are saved to the cache only once(at the last fact) and not on every iteration. 
+            const fact = factsGen.next(saveToCache).value as false | AtomList;//sending true will save to cache without finishing the generator because since this function only collects the first fact,the generator may not have a chance to save results to the cache if there is ore than one matching fact.
+            if ((fact===undefined) || ((i==0) && (i==indexBasedNum))) {//also save to cache if this is there is only one truthy fact.This is because when its 0,the loop will break early and there wont be subsequent loops that will help save it to the cache.we also tied that to if it is at the last fact to prevent consuming the generator twice which will lead to bugs.
+                factsGen.next(true);
+                if (fact===undefined)break;//cut the loop short as soon as all the fscts within 0 - n has been consumed without overshooting the generator just to reach n.
+            }
+            if (fact!==false) facts.push(fact);
         }
-        console.log('🚀 => :93 => findFirstNFacts => facts:', facts);
         return facts;
     }
     public isItAFact(record: Rec, args:PatternedAtomList,byMembership=false):boolean {
@@ -358,7 +364,7 @@ const doc = new Doc(
             {
                 "list": [
                     "philip",
-                    "jake"
+                    "ada"
                 ]
             },
             {
@@ -527,5 +533,5 @@ const doc = new Doc(
 }
 ,null)
 
-console.log(doc.isItAFact(doc.records.friends,['ada','john'],true));
+console.log(doc.findFirstNFacts(1,doc.records.friends,[Doc.wildCard,'ada'],true));
 
