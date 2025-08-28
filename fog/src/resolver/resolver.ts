@@ -667,7 +667,7 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
             return {result:Result.error,jsonPath:undefined,aliases:undefined};
         }
 
-        const produceOutput = outputFolder !== NoOutput.value;
+        const produceOutput = Number(outputFolder) !== NoOutput.value;//i converted the outputFolder to a number because passing 1 may parse it as a string
         const outputFilePath = getOutputPathNoExt(srcFilePath,outputFolder);
         if (produceOutput) await setUpLogs(outputFilePath!);//this must be initialized before generating the struct as long as the file log is required
 
