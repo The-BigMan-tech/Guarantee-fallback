@@ -3,7 +3,7 @@ import ipc from 'node-ipc';
 import { JSONRPCServer } from "json-rpc-2.0";
 import stringify from "safe-stable-stringify";
 import { Doc, importDoc } from "./fact-checker.js";
-import { Atom, NoOutput, PatternedAtomList} from "../utils/utils.js";
+import { Atom, NoOutput, PatternedAtomList, Result} from "../utils/utils.js";
 import {docOnServer} from "./fact-checker.js";
 import { resolveDocToJson } from "../resolver/resolver.js";
 
@@ -14,38 +14,46 @@ server.addMethod("importDoc", async ({ filePath, outputFolder }: { filePath: str
     return result;
 });
 server.addMethod("resolveDocToJson", async ({ filePath, outputFolder }: { filePath: string; outputFolder?: string | NoOutput }) => {
+    if (!docOnServer) return Result.error;
     const result = await resolveDocToJson(filePath, outputFolder);
     return result;
 });
+server.addMethod("aliases",()=>{
+    if (!docOnServer) return Result.error;
+    return docOnServer.aliases;
+});
+server.addMethod('wildCard',()=>{
+    return Doc.wildCard;
+});
 server.addMethod("findAllFacts",({predicate,statement,byMembership}:{predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
-    if (!docOnServer) return;
+    if (!docOnServer) return Result.error;
     const result = [...docOnServer.findAllFacts(docOnServer.records[predicate],statement,byMembership)];
     return result;
 });
 server.addMethod("findFirstFact",({predicate,statement,byMembership}:{predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
-    if (!docOnServer) return;
+    if (!docOnServer) return Result.error;
     const result = docOnServer.findFirstFact(docOnServer.records[predicate],statement,byMembership);
     return result;
 });
 server.addMethod("isItAFact",({predicate,statement,byMembership}:{predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
-    if (!docOnServer) return;
+    if (!docOnServer) return Result.error;
     const result = docOnServer.isItAFact(docOnServer.records[predicate],statement,byMembership);
     return result;
 });
 server.addMethod("genCandidates",({howManyToReturn,predicate,inputCombination,visitedCombinations}:{howManyToReturn: number,predicate:string, inputCombination:Atom[], visitedCombinations:string[]})=>{
-    if (!docOnServer) return;
+    if (!docOnServer) return Result.error;
     const visitedSet = new Set(visitedCombinations);
     const candidates = [...docOnServer.genCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,visitedSet)];
     return {candidates,checkedCombinations:Array.from(visitedSet)};
 });
 server.addMethod("intersection",({arrays}:{arrays:[]})=>{
-    if (!docOnServer) return;
+    if (!docOnServer) return Result.error;
     const sets = arrays.map(arr=>new Set(arr));
     const result =  [...Doc.intersection(...sets)];
     return result;
 });
 server.addMethod("selectSmallestRecord",({predicates}:{predicates:string[]})=>{
-    if (!docOnServer) return;
+    if (!docOnServer) return Result.error;
     const relevantRecords = predicates.map(predicate=>docOnServer!.records[predicate]);
     const smallestRecord = Doc.selectSmallestRecord(...relevantRecords);
     for (const predicate of predicates) {
@@ -53,9 +61,6 @@ server.addMethod("selectSmallestRecord",({predicates}:{predicates:string[]})=>{
             return predicate;
         }
     }
-});
-server.addMethod('wildCard',()=>{
-    return Doc.wildCard;
 });
 
 export async function startIPCServer(): Promise<void> {
