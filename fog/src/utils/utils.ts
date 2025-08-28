@@ -24,7 +24,8 @@ export enum NoOutput {
 }
 export interface ResolutionResult {
     result:Result,
-    jsonPath:string | NoOutput | Result.error;
+    jsonPath:string | NoOutput | Result.error,
+    aliases:Record<string,string> | undefined
 }
 
 const atomSchema = Type.Union([Type.String(),Type.Number()]);

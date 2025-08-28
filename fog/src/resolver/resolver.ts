@@ -96,8 +96,8 @@ interface RefCheck {
 }
 export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
-    public  records:Record<string,Rec> = {};
-    private aliases = new Map<string,string>();
+    public records:Record<string,Rec> = {};
+    public static aliases = new Map<string,string>();
 
     private lineCount:number = 0;
     private targetLineCount:number = this.lineCount;
@@ -622,46 +622,66 @@ async function genStructures(input:string):Promise<Record<string,Rec> | undefine
     await visitor.visit(Essentials.tree);
     if (!Resolver.terminate) return visitor.records;
 }
+function clearStaticVariables() {
+    Resolver.terminate = false;//reset it for subsequent analyzing
+    Resolver.aliases.clear();
+    Resolver.inputArr.length = 0;
+    Resolver.logs = null;
+    Resolver.logFile = null;
+}
+function getOutputPathNoExt(srcFilePath:string,outputFolder?:string | NoOutput) {
+    const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
+    const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided
+    return path.join(outputPath,filePathNoExt);
+}
+async function setUpLogs(filePath:string) {
+    Resolver.logFile = filePath + '.ansi';
+    Resolver.logs = [];//this must be initialized before generating the struct as long as the file log is required
+    await fs.writeFile(Resolver.logFile, '');
+}
+async function writeToOutput(outputFilePath:string,jsonInput:string):Promise<string> {
+    const jsonPath = outputFilePath + ".json";
+    await fs.writeFile(jsonPath, jsonInput);
+    console.log(`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`);
+    console.log(`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`);
+    return jsonPath;
+}
 function omitJsonKeys(key:string,value:any) {
     if ((key === "set") ||  (key === "indexMap")) {
         return undefined; // exclude 'password'
     }
     return value; // include everything else
 }
+function mapToObject<K extends string | number | symbol,V>(map:Map<K,V>):Record<K,V> {
+    const rec:Record<K,V> = {} as Record<K,V>;
+    const keys = [...map.keys()];
+    keys.forEach(key=>(rec[key]=map.get(key)!));
+    return rec;
+}
 export async function resolveDocToJson(srcFilePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult> {
     try {
         const isSrcFile = srcFilePath.endsWith(".fog");
         if (!isSrcFile) {
             console.error(chalk.red('The resolver only reads .fog files.'));
-            return {result:Result.error,jsonPath:Result.error};
+            return {result:Result.error,jsonPath:Result.error,aliases:undefined};
         }
-        const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
-        const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided
-        const fullFilePathNoExt = path.join(outputPath,filePathNoExt);
+        const outputFilePath = getOutputPathNoExt(srcFilePath,outputFolder);
+        if (outputFolder !== NoOutput.value) await setUpLogs(outputFilePath);
 
-        if (outputFolder !== NoOutput.value) {
-            Resolver.logFile = fullFilePathNoExt + '.ansi';
-            Resolver.logs = [];//this must be initialized before generating the struct as long as the file log is required
-            await fs.writeFile(Resolver.logFile, '');
-        }
         const src = await fs.readFile(srcFilePath, 'utf8');
         const resolvedData = await genStructures(src);
-
-        if (!Resolver.terminate) {
-            if (outputFolder !== NoOutput.value) {
-                const json = stringify(resolvedData,omitJsonKeys,4) || '';
-                const jsonPath = fullFilePathNoExt + ".json";
-                await fs.writeFile(jsonPath, json);
-                Resolver.terminate = false;//reset it for subsequent analyzing
-                console.log(`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`);
-                console.log(`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`);
-                return {result:Result.success,jsonPath};
-            }
-            return {result:Result.success,jsonPath:NoOutput.value};
-        };
-        return {result:Result.error,jsonPath:Result.error};
+        
+        if (!Resolver.terminate && (outputFolder !== NoOutput.value)) {
+            const jsonPath = await writeToOutput(outputFilePath,stringify(resolvedData,omitJsonKeys,4) || '');
+            clearStaticVariables();
+            return {result:Result.success,jsonPath,aliases:mapToObject(Resolver.aliases)};
+        }
+            
+        return {result:Result.success,jsonPath:NoOutput.value};
+        clearStaticVariables();
+        return {result:Result.error,jsonPath:Result.error,aliases:undefined};
     } catch {
         console.error(chalk.red('Error processing file.Be sure its a valid file path'));
-        return {result:Result.error,jsonPath:Result.error};
+        return {result:Result.error,jsonPath:Result.error,aliases:undefined};
     }
 }
