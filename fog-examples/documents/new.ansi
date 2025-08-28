@@ -1,0 +1,82 @@
+
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 1: [24m[39m
+-Sentence: [38;2;221;203;160malias allies = *friends.[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 2: [24m[39m
+-Sentence: [38;2;221;203;160m:ada and :john are *friends.[39m
+-Predicate: *friends
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["ada","john"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 3: [24m[39m
+-Sentence: [38;2;221;203;160m<She> *plays :football with <him:2>.[39m
+-With resolved references: [38;2;221;203;160m:ada *plays :football with :john .[39m
+[38;2;221;203;160m[39m
+-Predicate: *plays
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["ada","football","john"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 4:[24m[39m
+-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.
+-You may wish to write the name or array explicitly in [1mline:3[22m to avoid confusion.[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mCheck these lines:[24m[39m
+[38;2;173;239;30m[4m[24m[39m[90m3.[39m[38;2;221;203;160m<She> *plays :football with <him:2>.[39m
+[38;2;221;203;160m[39m[90m4.[39m[38;2;221;203;160m<She> *eats [:meat,:fish,:rice].[39m
+[38;2;221;203;160m[39m[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 4: [24m[39m
+-Sentence: [38;2;221;203;160m<She> *eats [:meat,:fish,:rice].[39m
+-With resolved references: [38;2;221;203;160m:ada *eats [ :meat , :fish , :rice ] .[39m
+[38;2;221;203;160m[39m
+-Predicate: *eats
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["ada","meat"],[39m
+[38;2;221;203;160m    ["ada","fish"],[39m
+[38;2;221;203;160m    ["ada","rice"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 5:[24m[39m
+-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.
+-You may wish to write the name or array explicitly in [1mline:4[22m to avoid confusion.[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mCheck these lines:[24m[39m
+[38;2;173;239;30m[4m[24m[39m[90m4.[39m[38;2;221;203;160m<She> *eats [:meat,:fish,:rice].[39m
+[38;2;221;203;160m[39m[90m5.[39m[38;2;221;203;160m[:john,:peter,:paul] *enjoy <them:2>.[39m
+[38;2;221;203;160m[39m[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mThis is safe to ignore but double check line 5:[24m[39m
+-You may wish to type [1m!john[22m rather than loosely as [1m:john[22m. 
+-It signals that it has been used before here and it prevents errors early.[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m[:john,:peter,:paul] *enjoy <them:2>.[39m
+[38;2;221;203;160m[39m[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 5: [24m[39m
+-Sentence: [38;2;221;203;160m[:john,:peter,:paul] *enjoy <them:2>.[39m
+-With resolved references: [38;2;221;203;160m[ :john , :peter , :paul ] *enjoy [ :meat , :fish , :rice ] .[39m
+[38;2;221;203;160m[39m
+-Predicate: *enjoy
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["john","meat"],[39m
+[38;2;221;203;160m    ["john","fish"],[39m
+[38;2;221;203;160m    ["john","rice"],[39m
+[38;2;221;203;160m    ["peter","meat"],[39m
+[38;2;221;203;160m    ["peter","fish"],[39m
+[38;2;221;203;160m    ["peter","rice"],[39m
+[38;2;221;203;160m    ["paul","meat"],[39m
+[38;2;221;203;160m    ["paul","fish"],[39m
+[38;2;221;203;160m    ["paul","rice"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[31m[4m[24m[39m
+[31m[4mSemantic Error at line 6:[24m[39m
+An object reference can not be the subject of a sentence.[38;2;173;239;30m[39m
+[38;2;173;239;30mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m<them:2> *love <them:2>.[39m
+[38;2;221;203;160m[39m

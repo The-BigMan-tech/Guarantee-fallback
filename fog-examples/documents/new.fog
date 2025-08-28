@@ -1,4 +1,6 @@
-:Billy is *tall.
-<He> is *smart.
-[:d,:e,:f] *eats [:a,:b,:c].
-<They> are *tall.
+alias allies = *friends.
+:ada *friends :john.
+<She> *plays :football with <him:2>.
+<She> *eats [:meat,:fish,:rice].
+[:john,:peter,:paul] *enjoy <them:2>.
+<They> *love <them:2>.
