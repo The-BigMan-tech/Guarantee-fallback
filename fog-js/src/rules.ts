@@ -37,11 +37,9 @@ const rules:Rules = {//A rule is a function that takes a document and a statemen
     siblings:async (doc,statement)=> {
         const [X,Y] = statement;
         const parentsOfX = (await doc.findAllFacts('parent',[await doc.wildCard(),X]))
-            .map(fact=>{ if (fact!==false) return fact[0]; });
-        
+            .map(fact=>fact[0]);
         const parentsOfY = (await doc.findAllFacts('parent',[await doc.wildCard(),Y]))
-            .map(fact=>{ if (fact!==false) return fact[0]; });
-
+            .map(fact=>fact[0]);
         const commonParent = await doc.intersection([parentsOfX,parentsOfY]);
         return Boolean(commonParent.length);
     },

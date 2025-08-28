@@ -49,13 +49,13 @@ export class Doc {//i used arrow methods so that i can have these methods as pro
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public findAllFacts = async (predicate:string,statement:PatternedAtomList,byMembership=false):Promise<(false | AtomList)[]>=>{
-        const result:Result.error | (false | AtomList)[] = await client.request("findAllFacts",{predicate,statement,byMembership});
+    public findAllFacts = async (predicate:string,statement:PatternedAtomList,byMembership=false):Promise<AtomList[]>=>{
+        const result:Result.error | AtomList[] = await client.request("findAllFacts",{predicate,statement,byMembership});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public findFirstFact = async (predicate:string,statement:PatternedAtomList,byMembership=false):Promise<false | AtomList>=> {
-        const result:Result.error | false | AtomList = await client.request("findFirstFact",{predicate,statement,byMembership});
+    public findFirstNFacts = async (num:number,predicate:string,statement:PatternedAtomList,byMembership=false):Promise<AtomList[]>=> {
+        const result:Result.error | AtomList[] = await client.request("findFirstNFacts",{num,predicate,statement,byMembership});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
