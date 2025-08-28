@@ -85,7 +85,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         if (matchedFacts.length===0) yield false;//the reason why this generator yields false is because it has to yield something to indicate that a fact is not is true.
     }
     //this function consumes the whole generator into an array and returns it
-    public findAllFactsInList(record:Rec,statement:PatternedAtomList,byMembership=false):AtomList[] {
+    public consumeAllFacts(record:Rec,statement:PatternedAtomList,byMembership=false):AtomList[] {
         const facts:AtomList[] = [];
         for (const fact of this.findAllFacts(record,statement,byMembership)) {
             if (fact!==false) facts.push(fact);

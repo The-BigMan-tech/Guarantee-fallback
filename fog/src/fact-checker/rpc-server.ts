@@ -27,12 +27,12 @@ server.addMethod('wildCard',()=>{
 });
 server.addMethod("findAllFacts",({predicate,statement,byMembership}:{predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
     if (!docOnServer) return Result.error;
-    const result = [...docOnServer.findAllFacts(docOnServer.records[predicate],statement,byMembership)];
+    const result = docOnServer.consumeAllFacts(docOnServer.records[predicate],statement,byMembership);
     return result;
 });
-server.addMethod("findFirstFact",({predicate,statement,byMembership}:{predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
+server.addMethod("findFirstNFacts",({num,predicate,statement,byMembership}:{num:number,predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
     if (!docOnServer) return Result.error;
-    const result = docOnServer.findFirstFact(docOnServer.records[predicate],statement,byMembership);
+    const result = docOnServer.findFirstNFacts(num,docOnServer.records[predicate],statement,byMembership);
     return result;
 });
 server.addMethod("isItAFact",({predicate,statement,byMembership}:{predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
