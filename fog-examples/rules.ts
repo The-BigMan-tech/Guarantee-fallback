@@ -1,6 +1,6 @@
 import { Atom, Doc, RecursiveRule, Rule } from "fog-js";
 
-export interface InferredDoc extends Doc {
+export interface InferrableDoc extends Doc {
     isItImplied:(rule:string,statement:Atom[])=>Promise<boolean> | Function,
 }
 interface Rules {
@@ -53,9 +53,8 @@ export const rules:Rules = {//A rule is a function that takes a document and a s
         return false;
     }
 };
-export function getInferredDoc(doc:Doc):InferredDoc {
-    const s:Doc = {...doc};
-    const inferredDoc = {
+export function getInferredDoc(doc:Doc):InferrableDoc {
+    const inferredDoc:InferrableDoc = {
         ...doc,
         isItImplied:async (rule,statement)=>{
             switch (rule) {

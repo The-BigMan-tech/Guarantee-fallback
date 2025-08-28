@@ -11,6 +11,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "fog-js": "^1.0.4"
+    "fog-js": "^1.0.5"
   }
 }
