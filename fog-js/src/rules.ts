@@ -11,7 +11,7 @@ interface Rules {
     areSiblings:Rule<[string,string]>,
     areBrothers:Rule<[string,string]>
 }
-export const rules:Rules = {//A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
+const rules:Rules = {//A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
     areDirectFriends:async (doc,statement)=> {
         const [X,Y] = statement;
         return (//the reason why its querying only for the first fact cuz we want to know if tey are direct friends or not without caring abut all the facts that makes this true
@@ -57,7 +57,7 @@ export const rules:Rules = {//A rule is a function that takes a document and a s
 export function getInferredDoc(doc:Doc):InferrableDoc {
     const inferredDoc:InferrableDoc = {
         ...doc,
-        isItImplied:async (rule,statement)=>{
+        isItImplied:async (rule,statement)=>{//this is a pattern to query rules with the same interface design as querying a fact
             const aliases = await doc.aliases();
             switch (aliases[rule]) {//i did a look up on the aliases rather than strictly the rule name itself so that it can also work for aliases
                 case (aliases['friends']):return await rules.areFriends(doc,statement as [string,string]);
