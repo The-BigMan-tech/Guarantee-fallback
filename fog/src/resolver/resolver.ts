@@ -138,7 +138,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 successMessage += (this.prevRefCheck.hasRef)?`\n-With resolved references: ${brown(resolvedSentence)}`:'';//using prevRefCehck under the same loop accesses the ref check of the latest senetnce.
 
                 if (this.predicateForLog) {//the condition is to skip printing this on alias declarations.The lock works because this is only set on facts and not on alias declarations.Im locking this on alias declarations because they dont need extra logging cuz there is no expansion data or any need to log the predicate separately.just the declaration is enough
-                    const predicateFromAlias = this.aliases.get(this.predicateForLog || '');
+                    const predicateFromAlias = Resolver.aliases.get(this.predicateForLog || '');
                     successMessage += (predicateFromAlias)?`\n-Alias #${this.predicateForLog} -> *${predicateFromAlias}`:`\n-Predicate: *${this.predicateForLog}`;
                     successMessage += `\n-Expansion: ${brown(expansionText)}`; 
                 };
@@ -468,7 +468,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         });
         this.records[alias] = this.records[predicate] || new Rec([]);//the fallback is for when aliases are declared using the shorthand where the predicate isnt inlined with the declaration.The shorthand is for invalidating predicates
-        this.aliases.set(alias,predicate || alias);
+        Resolver.aliases.set(alias,predicate || alias);
         this.seenAlias = true;
         if (this.builtAFact) {
             Essentials.report(DslError.DoubleCheck,this.lineCount,`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors sooner.`);
@@ -489,7 +489,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return flatSequences;
     }
     private recommendAlias(text:string):string | null {
-        for (const alias of this.aliases.values()) {
+        for (const alias of Resolver.aliases.values()) {
             if (distance(alias,text!) < 4) {
                 return alias;
             }
@@ -497,7 +497,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return null;
     }
     private validatePredicateType(token:Token):void {
-        const isAlias = this.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
+        const isAlias = Resolver.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
         
         if (isAlias && ! token.text!.startsWith('#')) {
             Essentials.report(DslError.Semantic,this.lineCount,`-Aliases are meant to be prefixed with ${chalk.bold('#')} but found ${chalk.bold(token.text)}. Did you mean: #${chalk.bold(this.stripMark(token.text!))}?`);
@@ -630,20 +630,21 @@ function clearStaticVariables() {
     Resolver.logFile = null;
 }
 function getOutputPathNoExt(srcFilePath:string,outputFolder?:string | NoOutput) {
+    if (outputFolder === NoOutput.value) return null;
     const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
     const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided
     return path.join(outputPath,filePathNoExt);
 }
 async function setUpLogs(filePath:string) {
     Resolver.logFile = filePath + '.ansi';
-    Resolver.logs = [];//this must be initialized before generating the struct as long as the file log is required
+    Resolver.logs = [];
     await fs.writeFile(Resolver.logFile, '');
 }
 async function writeToOutput(outputFilePath:string,jsonInput:string):Promise<string> {
     const jsonPath = outputFilePath + ".json";
     await fs.writeFile(jsonPath, jsonInput);
-    console.log(`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`);
-    console.log(`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`);
+    const messages = [`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`,`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`];
+    console.log(messages.join(''));
     return jsonPath;
 }
 function omitJsonKeys(key:string,value:any) {
@@ -663,25 +664,27 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
         const isSrcFile = srcFilePath.endsWith(".fog");
         if (!isSrcFile) {
             console.error(chalk.red('The resolver only reads .fog files.'));
-            return {result:Result.error,jsonPath:Result.error,aliases:undefined};
+            return {result:Result.error,jsonPath:undefined,aliases:undefined};
         }
         const outputFilePath = getOutputPathNoExt(srcFilePath,outputFolder);
-        if (outputFolder !== NoOutput.value) await setUpLogs(outputFilePath);
+        if (outputFolder !== NoOutput.value) await setUpLogs(outputFilePath!);//this must be initialized before generating the struct as long as the file log is required
 
         const src = await fs.readFile(srcFilePath, 'utf8');
         const resolvedData = await genStructures(src);
         
-        if (!Resolver.terminate && (outputFolder !== NoOutput.value)) {
-            const jsonPath = await writeToOutput(outputFilePath,stringify(resolvedData,omitJsonKeys,4) || '');
+        if (!Resolver.terminate) {
+            let jsonPath:string | NoOutput = NoOutput.value;
+            if (outputFolder !== NoOutput.value) {
+                jsonPath = await writeToOutput(outputFilePath!,stringify(resolvedData,omitJsonKeys,4) || '');
+            }
             clearStaticVariables();
             return {result:Result.success,jsonPath,aliases:mapToObject(Resolver.aliases)};
+        }else {
+            clearStaticVariables();
+            return {result:Result.error,jsonPath:undefined,aliases:undefined};
         }
-            
-        return {result:Result.success,jsonPath:NoOutput.value};
-        clearStaticVariables();
-        return {result:Result.error,jsonPath:Result.error,aliases:undefined};
     } catch {
         console.error(chalk.red('Error processing file.Be sure its a valid file path'));
-        return {result:Result.error,jsonPath:Result.error,aliases:undefined};
+        return {result:Result.error,jsonPath:undefined,aliases:undefined};
     }
 }
