@@ -97,12 +97,11 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         const facts:AtomList[] = [];
         const factsGen = this.findAllFacts(record, args,byMembership);
         for (let i=0;i < num;i++) {
-            const fact = factsGen.next().value as false | AtomList;//sending true will save to cache without finishing the generator because since this function only collects the first fact,the generator may not have a chance to save results to the cache if there is ore than one matching fact..
-            console.log(i,':',fact);
-            if (fact===undefined) {console.log('break'); break;};//cut the loop short as soon as all the facts within 0 - n has been consumed without overshooting the generator just to reach n.
+            const fact = factsGen.next().value as false | AtomList;
+            if (fact===undefined) break;;//cut the loop short as soon as all the facts within 0 - n has been consumed without overshooting the generator just to reach n.
             if (fact!==false) facts.push(fact);
         }
-        factsGen.next(true);
+        factsGen.next(true);//send a signal to the generator to save the results to the cache
         return facts;
     }
     public isItAFact(record: Rec, args:PatternedAtomList,byMembership=false):boolean {
@@ -530,5 +529,5 @@ const doc = new Doc(
 }
 ,null)
 
-console.log(doc.findFirstNFacts(7,doc.records.friends,[Doc.wildCard,'ada'],true));
+console.log(doc.findFirstNFacts(8,doc.records.friends,[Doc.wildCard,'ada'],true));
 
