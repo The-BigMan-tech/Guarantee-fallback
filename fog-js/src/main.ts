@@ -4,9 +4,6 @@ import { JSONRPCClient } from "json-rpc-2.0";
 
 
 const client = new JSONRPCClient(async (jsonRPCRequest) =>{
-    const throwErr = ():never => {
-        throw new Error(chalk.red('Unable to connect to the fact checker.Did you forget to start the server?'));
-    };
     const ipcServerID = 'fog-ipc-server';
     ipc.config.silent = true;
     ipc.connectTo(ipcServerID, () => {
@@ -24,7 +21,9 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
                 ipc.disconnect(ipcServerID);
             }
         });
-        server.on('error',throwErr);
+        server.on('error',():never => {
+            throw new Error(chalk.red('The server encountered an error or it may not have been started.'));
+        });
     });
 });
 export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
