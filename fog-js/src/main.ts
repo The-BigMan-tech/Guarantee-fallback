@@ -41,28 +41,28 @@ export async function resolveDoc(filePath:string):Promise<ResolutionResult> {
     return result;
 }
 
-export class Doc {
-    public async findAllFacts(predicate:string,statement:PatternedAtomList,byMembership=false):Promise<(false | AtomList)[]>{
+export class Doc {//i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading
+    public findAllFacts = async (predicate:string,statement:PatternedAtomList,byMembership=false):Promise<(false | AtomList)[]>=>{
         return await client.request("findAllFacts",{predicate,statement,byMembership});
-    }
-    public async findFirstFact(predicate:string,statement:PatternedAtomList,byMembership=false):Promise<false | AtomList> {
+    };
+    public findFirstFact = async (predicate:string,statement:PatternedAtomList,byMembership=false):Promise<false | AtomList>=> {
         return await client.request("findFirstFact",{predicate,statement,byMembership});
-    }
-    public async isItAFact(predicate:string,statement:PatternedAtomList,byMembership=false):Promise<boolean> {
+    };
+    public isItAFact = async(predicate:string,statement:PatternedAtomList,byMembership=false):Promise<boolean>=> {
         return await client.request("isItAFact",{predicate,statement,byMembership});
-    }
-    public async genCandidates<T extends Atom,N extends number>(howManyToReturn:N,predicate:string,inputCombination:Atom[],visitedCombinations:string[]):Promise<{candidates:T[][],checkedCombinations:string[]}>{
+    };
+    public genCandidates = async <T extends Atom,N extends number>(howManyToReturn:N,predicate:string,inputCombination:Atom[],visitedCombinations:string[]):Promise<{candidates:T[][],checkedCombinations:string[]}>=>{
         return await client.request("genCandidates",{howManyToReturn,predicate,inputCombination,visitedCombinations});
-    }
-    public async selectSmallestRecord(predicates:string[]):Promise<string> {
+    };
+    public selectSmallestRecord = async (predicates:string[]):Promise<string>=> {
         return await client.request('selectSmallestRecord',{predicates});
-    }
-    public async intersection(arrays:(Atom | undefined)[][]):Promise<Atom[]> {
+    };
+    public intersection = async (arrays:(Atom | undefined)[][]):Promise<Atom[]>=> {
         return await client.request('intersection',{arrays});
-    }
-    public async wildCard():Promise<string> {
+    };
+    public wildCard = async ():Promise<string>=>{
         return await client.request('wildCard',{});
-    }
+    };
 }
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>Promise<boolean>;
 export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:string[])=>Promise<boolean>;

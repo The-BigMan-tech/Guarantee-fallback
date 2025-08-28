@@ -1,5 +1,8 @@
-import { RecursiveRule, Rule } from "fog-js";
+import { Atom, Doc, RecursiveRule, Rule } from "fog-js";
 
+export interface InferredDoc extends Doc {
+    isItImplied:(rule:string,statement:Atom[])=>Promise<boolean> | Function,
+}
 interface Rules {
     areDirectFriends:Rule<[string,string]>,
     areIndirectFriends:RecursiveRule<[string,string]>,
@@ -50,3 +53,16 @@ export const rules:Rules = {//A rule is a function that takes a document and a s
         return false;
     }
 };
+export function getInferredDoc(doc:Doc):InferredDoc {
+    const s:Doc = {...doc};
+    const inferredDoc = {
+        ...doc,
+        isItImplied:async (rule,statement)=>{
+            switch (rule) {
+                case ('friends'):return await rules.areFriends(this,statement as [string,string]);
+            }
+            return true;
+        }
+    };
+    return inferredDoc;
+}
