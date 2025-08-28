@@ -24,7 +24,7 @@ interface ResolvedGroupedTokens {
 enum DslError{
     Semantic="Semantic Error at",
     Syntax="Syntax Error at",
-    DoubleCheck="This is safe to ignore but double check"
+    DoubleCheck="Double check"
 }
 
 const brown = chalk.hex("#ddcba0ff");
@@ -150,7 +150,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static async flushLogs() {
         if (Resolver.logs && Resolver.logFile) {
             const logs = Resolver.logs.join('');
-            await fs.appendFile(Resolver.logFile,logs + '\n');
+            await fs.appendFile(Resolver.logFile,logs);
             Resolver.logs.length = 0;
         }
     }
@@ -641,7 +641,7 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
 
         if (outputFolder !== NoOutput.value) {
             Resolver.logFile = fullFilePathNoExt + '.ansi';
-            Resolver.logs = [];//this must be initialized before generating the struct if the file log is required
+            Resolver.logs = [];//this must be initialized before generating the struct as long as the file log is required
             await fs.writeFile(Resolver.logFile, '');
         }
         const src = await fs.readFile(srcFilePath, 'utf8');
