@@ -5,36 +5,36 @@ export interface InferrableDoc extends Doc {
     isItImplied:(rule:string,statement:Atom[])=>Promise<boolean> | ((...args:any[])=>any),
 }
 interface Rules {
-    areDirectFriends:Rule<[string,string]>,
-    areIndirectFriends:RecursiveRule<[string,string]>,
-    areFriends:Rule<[string,string]>,
-    areSiblings:Rule<[string,string]>,
-    areBrothers:Rule<[string,string]>
+    directFriends:Rule<[string,string]>,
+    indirectFriends:RecursiveRule<[string,string]>,
+    friends:Rule<[string,string]>,
+    siblings:Rule<[string,string]>,
+    brothers:Rule<[string,string]>
 }
 const rules:Rules = {//A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
-    areDirectFriends:async (doc,statement)=> {
+    directFriends:async (doc,statement)=> {
         const [X,Y] = statement;
         return (//the reason why its querying only for the first fact cuz we want to know if tey are direct friends or not without caring abut all the facts that makes this true
             doc.isItAFact('friends',[X,Y],true)
         );
     },
-    areIndirectFriends:async (doc,statement,visitedCombinations)=> {
+    indirectFriends:async (doc,statement,visitedCombinations)=> {
         const [X,Y] = statement;
         const {candidates,checkedCombinations} = await doc.genCandidates<string,1>(1,'friends',statement,visitedCombinations);
         for (const [A] of candidates) {
-            if (await rules.areDirectFriends(doc,[X,A])) {
-                if (await rules.areDirectFriends(doc,[A,Y]) || await rules.areIndirectFriends(doc,[A,Y],checkedCombinations)) {
+            if (await rules.directFriends(doc,[X,A])) {
+                if (await rules.directFriends(doc,[A,Y]) || await rules.indirectFriends(doc,[A,Y],checkedCombinations)) {
                     return true;
                 }
             }
         }
         return false;
     },
-    areFriends:async (doc,statement)=> {
-        const areFriends = (await rules.areDirectFriends(doc,statement)) || (await rules.areIndirectFriends(doc,statement,[]));
+    friends:async (doc,statement)=> {
+        const areFriends = (await rules.directFriends(doc,statement)) || (await rules.indirectFriends(doc,statement,[]));
         return areFriends;
     },
-    areSiblings:async (doc,statement)=> {
+    siblings:async (doc,statement)=> {
         const [X,Y] = statement;
         const parentsOfX = (await doc.findAllFacts('parent',[await doc.wildCard(),X]))
             .map(fact=>{ if (fact!==false) return fact[0]; });
@@ -45,12 +45,12 @@ const rules:Rules = {//A rule is a function that takes a document and a statemen
         const commonParent = await doc.intersection([parentsOfX,parentsOfY]);
         return Boolean(commonParent.length);
     },
-    areBrothers:async (doc,statement) => {
+    brothers:async (doc,statement) => {
         const [X,Y] = statement;
         if (X === Y) return false;
         const isXMale = await doc.isItAFact('male',[X]);
         const isYMale = await doc.isItAFact('male',[Y]);
-        if (isXMale && isYMale && await rules.areSiblings(doc,[X,Y])) return true;
+        if (isXMale && isYMale && await rules.siblings(doc,[X,Y])) return true;
         return false;
     }
 };
@@ -59,8 +59,10 @@ export function getInferredDoc(doc:Doc):InferrableDoc {
         ...doc,
         isItImplied:async (rule,statement)=>{//this is a pattern to query rules with the same interface design as querying a fact
             const aliases = await doc.aliases();
-            switch (aliases[rule]) {//i did a look up on the aliases rather than strictly the rule name itself so that it can also work for aliases
-                case (aliases['friends']):return await rules.areFriends(doc,statement as [string,string]);
+            switch (aliases[rule] || rule) {//i did a look up on the aliases rather than strictly the rule name itself so that it can also work for aliases
+                case (aliases['friends']):return await rules.friends(doc,statement as [string,string]);//so this will trigger if both the string and the input refer to the same predicate
+                case ('siblings'):return await rules.siblings(doc,statement as [string,string]);//this one is for exact matching because this string is not used in the document.Its a new keyword so there is no existing aliases for it.This knowledge has to come from  the author
+                case ('brothers'):return await rules.brothers(doc,statement as [string,string]);
             }
             return false;
         }
