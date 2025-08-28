@@ -58,7 +58,7 @@ export function getInferredDoc(doc:Doc):InferrableDoc {
         ...doc,
         isItImplied:async (rule,statement)=>{
             switch (rule) {
-                case ('friends'):return await rules.areFriends(this,statement as [string,string]);
+                case ('friends'):return await rules.areFriends(doc,statement as [string,string]);
             }
             return true;
         }
