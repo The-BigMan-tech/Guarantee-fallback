@@ -2,13 +2,12 @@ import ipc from 'node-ipc';
 import chalk from "chalk";
 import { JSONRPCClient } from "json-rpc-2.0";
 
-
+const ipcServerID = 'fog-ipc-server';
 const client = new JSONRPCClient((jsonRPCRequest) =>
     new Promise((resolve, reject) => {
         ipc.config.silent = true;
-        
-        ipc.connectTo('fog-ipc-server', () => {
-            const server = ipc.of['fog-ipc-server']; 
+        ipc.connectTo(ipcServerID, () => {
+            const server = ipc.of[ipcServerID]; 
             server.on('connect', () => {//make the request.the request should not be stringified
                 server.emit('message',jsonRPCRequest);
             });
@@ -43,7 +42,7 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
 
 export class Doc {//i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading
     private static throwDocError():never {
-        throw new Error(chalk.red('The document was unable to load to the fact checker.'));
+        throw new Error(chalk.red('The fact checker was unable to load to the document.'));
     }
     public aliases = async ():Promise<Record<string,string>>=>{
         const result:Result.error | Record<string,string> = await client.request('aliases',{});
