@@ -637,7 +637,7 @@ function getOutputPathNoExt(srcFilePath:string,outputFolder?:string | NoOutput) 
     return path.join(outputPath,filePathNoExt);
 }
 function logOutputFolderErr(outputPath:string):void {
-    console.log(chalk.red(`The output folder doesnt exist or it has permissions that prevents writing to it.\n-Check the path: `),outputPath,'\n');
+    console.log(chalk.red(`The output folder doesnt exist or is prevented from writing to it by permissions.\n-Check the path: `),outputPath,'\n');
 }
 async function setUpLogs(outputFilePath:string) {
     const logPath = outputFilePath + '.ansi';
