@@ -70,17 +70,18 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         }
         //the actual fact checking
         const matchedFacts:AtomList[] = [];
+        let saveToCacheEarly:boolean = false;
         for (const fact of record.facts) {
             if (this.areMembersInSet(statement,fact.set)) {
                 if (byMembership || this.compareStatements(statement,fact.list)) {//compare statements method uses strict checking by checking if the statement is exactly identical to the fact by number of elements and element order.By placing this strict check under the membership check,the function saves computation by only scanning statements aginst relevant facts not a full linear scam against all facts
                     const atomList:AtomList = fact.list;
                     matchedFacts.push(atomList);
-                    const saveToCacheEarly = yield atomList; 
+                    saveToCacheEarly = Boolean(yield atomList); 
                     if (saveToCacheEarly) this.saveToFactsCache(cacheKey,matchedFacts);
                 }
             }
         }
-        this.saveToFactsCache(cacheKey,matchedFacts);
+        if (!saveToCacheEarly) this.saveToFactsCache(cacheKey,matchedFacts);
         if (matchedFacts.length===0) yield false;//the reason why this generator yields false is because it has to yield something to indicate that a fact is not is true.
     }
     //this function consumes the whole generator into an array and returns it
@@ -96,16 +97,12 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         const facts:AtomList[] = [];
         const factsGen = this.findAllFacts(record, args,byMembership);
         for (let i=0;i < num;i++) {
-            console.log(i);
-            const indexBasedNum = num-1;//i did num-1 because i is 0-based while num is 1-based
-            const saveToCache = (i==(indexBasedNum))?true:false;//The point of this condition is to ensure that the results are saved to the cache only once(at the last fact) and not on every iteration. 
-            const fact = factsGen.next(saveToCache).value as false | AtomList;//sending true will save to cache without finishing the generator because since this function only collects the first fact,the generator may not have a chance to save results to the cache if there is ore than one matching fact.
-            if ((fact===undefined) || ((i==0) && (i==indexBasedNum))) {//also save to cache if this is there is only one truthy fact.This is because when its 0,the loop will break early and there wont be subsequent loops that will help save it to the cache.we also tied that to if it is at the last fact to prevent consuming the generator twice which will lead to bugs.
-                factsGen.next(true);
-                if (fact===undefined)break;//cut the loop short as soon as all the fscts within 0 - n has been consumed without overshooting the generator just to reach n.
-            }
+            const fact = factsGen.next().value as false | AtomList;//sending true will save to cache without finishing the generator because since this function only collects the first fact,the generator may not have a chance to save results to the cache if there is ore than one matching fact..
+            console.log(i,':',fact);
+            if (fact===undefined) {console.log('break'); break;};//cut the loop short as soon as all the facts within 0 - n has been consumed without overshooting the generator just to reach n.
             if (fact!==false) facts.push(fact);
         }
+        factsGen.next(true);
         return facts;
     }
     public isItAFact(record: Rec, args:PatternedAtomList,byMembership=false):boolean {
@@ -533,5 +530,5 @@ const doc = new Doc(
 }
 ,null)
 
-console.log(doc.findFirstNFacts(1,doc.records.friends,[Doc.wildCard,'ada'],true));
+console.log(doc.findFirstNFacts(7,doc.records.friends,[Doc.wildCard,'ada'],true));
 
