@@ -179,7 +179,7 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Re
             console.error(`'${NoOutput.value}' can not be used as the output parameter when loading the document on the server`);
             return Result.error;
         }
-        jsonPath = jsonPathResult!;
+        jsonPath = jsonPathResult!;//we can assert this here because if the resolver result isnt an error,then the path is guaranteed to be valid
     }
     else if (!isJsonFile) {
         console.error(chalk.red('The import path must be a .fog src file or the .json output'));
@@ -187,7 +187,7 @@ export async function importDoc(filePath:string,outputFolder?:string):Promise<Re
     }
 
     try {
-        const result = await loadDocFromJson(jsonPath!);
+        const result = await loadDocFromJson(jsonPath!);//the json path at this point will be valid because if it isnt,it would have returned early.
         return result;
     }catch { 
         const err = `${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try importing the fog file directly to recreate the json file and ensure that the document doesnt contain errors that will prevent it from resolving to the json.\n`;
