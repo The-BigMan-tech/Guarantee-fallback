@@ -25,7 +25,6 @@ export enum NoOutput {
 export interface ResolutionResult {
     result:Result,
     jsonPath:string | NoOutput | undefined,
-    aliases:Record<string,string> | undefined
 }
 
 const atomSchema = Type.Union([Type.String(),Type.Number()]);
@@ -115,4 +114,10 @@ export class UniqueList<T> {//A data structure that provides iteration and index
         }
         return false; // Element does not exist
     }
+}
+export function mapToObject<K extends string | number | symbol,V>(map:Map<K,V>):Record<K,V> {
+    const rec:Record<K,V> = {} as Record<K,V>;
+    const keys = [...map.keys()];
+    keys.forEach(key=>(rec[key]=map.get(key)!));
+    return rec;
 }

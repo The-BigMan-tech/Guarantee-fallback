@@ -1,6 +1,6 @@
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
-import { Tuple,validator,UniqueAtomList, UniqueList, Result, NoOutput } from "../utils/utils.js";
+import { Tuple,validator,UniqueAtomList, UniqueList, Result, NoOutput, mapToObject } from "../utils/utils.js";
 import {stringify} from "safe-stable-stringify";
 import { AtomList,Atom } from "../utils/utils.js";
 import { PatternedAtomList } from "../utils/utils.js";
@@ -16,11 +16,13 @@ export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedComb
 
 const lime = chalk.hex('adef1e');
 export class Doc {//I named it Doc instead of Document to avoid ambiguity with the default Document class which is for the DOM
+    public aliases:Record<string,string> = {};
     public records:Record<string,Rec> = {};
     public static wildCard = uniqueID();
     private static factCheckerCache = new LRUCache<string,string>({max:100});//soeven if the client runs multiple times,they will still be using cached data.and to ensure this i made the cache static so that it doesnt get wiped on recreation of the doc class due to repeated imports from re-execution of client scripts
 
-    public constructor(records:Record<string,Rec>) {
+    public constructor(records:Record<string,Rec>,aliases:typeof this.aliases) {
+        this.aliases = aliases;
         Object.keys(records).forEach(key=>{
             this.records[key] = new Rec(records[key].facts);//rebuild the rec since some internal structures arent serializable
             //didnt preserve recID since they are just for caching and not lookups so change here is fine
@@ -163,15 +165,16 @@ async function loadDocFromJson(jsonPath:string):Promise<Result> {
         return Result.error;//to prevent corruption
     }
     console.info(lime('Successfully loaded the document from the path:'),jsonPath,'\n');
-    docOnServer = new Doc(records);
+    docOnServer = new Doc(records,mapToObject(Resolver.aliases));
     return Result.success;
 }
 //This function is intended to update the server side document with the json output.it doesnt accept no-output like the resolver.For the lsp that needs analysis data without making output,it should call the resolver directlt
 export async function importDoc(filePath:string,outputFolder?:string):Promise<Result> {
     const isSrcFile = filePath.endsWith(".fog");
     const isJsonFile = filePath.endsWith(".json");
-    let jsonPath:string | null = isSrcFile?null:filePath;//i currently set it to null if its the src file because the json file isnt yet available at this time
 
+
+    let jsonPath:string | null = isSrcFile?null:filePath;//i currently set it to null if its the src file because the json file isnt yet available at this time
     if (isSrcFile) {//this block creates the json output and loads it if its a src file.
         const {result,jsonPath:jsonPathResult} = await resolveDocToJson(filePath,outputFolder);
         if (result === Result.error) return Result.error;

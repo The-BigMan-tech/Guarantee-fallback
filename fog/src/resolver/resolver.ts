@@ -615,6 +615,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
 }
 async function genStructures(input:string):Promise<Record<string,Rec> | undefined> {
+    clearStaticVariables();//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
     const visitor = new Resolver();
     visitor.createSentenceArray(input);
     Essentials.loadEssentials(input);
@@ -623,8 +624,8 @@ async function genStructures(input:string):Promise<Record<string,Rec> | undefine
     if (!Resolver.terminate) return visitor.records;
 }
 function clearStaticVariables() {
-    Resolver.terminate = false;//reset it for subsequent analyzing
     Resolver.aliases.clear();
+    Resolver.terminate = false;//reset it for subsequent analyzing
     Resolver.inputArr.length = 0;
     Resolver.logs = null;
     Resolver.logFile = null;
@@ -653,18 +654,12 @@ function omitJsonKeys(key:string,value:any) {
     }
     return value; // include everything else
 }
-function mapToObject<K extends string | number | symbol,V>(map:Map<K,V>):Record<K,V> {
-    const rec:Record<K,V> = {} as Record<K,V>;
-    const keys = [...map.keys()];
-    keys.forEach(key=>(rec[key]=map.get(key)!));
-    return rec;
-}
 export async function resolveDocToJson(srcFilePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult> {
     try {
         const isSrcFile = srcFilePath.endsWith(".fog");
         if (!isSrcFile) {
             console.error(chalk.red('The resolver only reads .fog files.'));
-            return {result:Result.error,jsonPath:undefined,aliases:undefined};
+            return {result:Result.error,jsonPath:undefined};
         }
 
         const produceOutput = Number(outputFolder) !== NoOutput.value;//i converted the outputFolder to a number because passing 1 may parse it as a string
@@ -679,14 +674,12 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
             if (produceOutput) {
                 jsonPath = await writeToOutput(outputFilePath!,stringify(resolvedData,omitJsonKeys,4) || '');
             }
-            clearStaticVariables();
-            return {result:Result.success,jsonPath,aliases:mapToObject(Resolver.aliases)};
+            return {result:Result.success,jsonPath};
         }else {
-            clearStaticVariables();
-            return {result:Result.error,jsonPath:undefined,aliases:undefined};
+            return {result:Result.error,jsonPath:undefined};
         }
     } catch {
         console.error(chalk.red('Error processing file.Be sure its a valid file path'));
-        return {result:Result.error,jsonPath:undefined,aliases:undefined};
+        return {result:Result.error,jsonPath:undefined};
     }
 }
