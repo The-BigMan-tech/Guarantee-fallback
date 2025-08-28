@@ -44,7 +44,7 @@ export class Doc {//i used arrow methods so that i can have these methods as pro
     //this method allows the user to query for the truthiness of a statement of a rule the same way they do with facts.rather than calling methods directly on the rule object,they write the name of the rule they want to check against as they would for fact querying and the method will forward it to the correct rule by key.It also includes aliases allowing users to also query rules with aliases that will still forward to the correct rule even though the rule's name isnt the alias.
     public isItImplied:null | ((rule:string,statement:Atom[])=>Promise<boolean>) = null;
     
-    public useImplications(rules:Record<any,Rule<any> | RecursiveRule<any>>):void {
+    public useRules<K extends string>(rules:Record<K,AnyRuleType>):void {
         const rKeys = Object.keys(rules);
         this.isItImplied = async (ruleForQuery,statement):Promise<boolean> => {//this is a pattern to query rules with the same interface design as querying a fact
             const aliases = await this.aliases();
@@ -52,7 +52,8 @@ export class Doc {//i used arrow methods so that i can have these methods as pro
                 const queryKey = aliases[ruleForQuery] || ruleForQuery;
                 const forwardKey = aliases[rKey] || rKey;
                 if (queryKey === forwardKey) {
-                    return await rules[rKey](this,statement,[]);
+                    const ruleFucntion = (rules as Record<string,AnyRuleType>)[rKey];
+                    return await ruleFucntion(this,statement,[]);
                 }
             }
             return false;
@@ -100,6 +101,7 @@ export class Doc {//i used arrow methods so that i can have these methods as pro
         return await client.request('wildCard',{});//this one can not return a doc error because its a static property thats always available on the server
     };
 }
+type AnyRuleType = Rule<any> | RecursiveRule<any>;
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>Promise<boolean>;
 export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:string[])=>Promise<boolean>;
 
