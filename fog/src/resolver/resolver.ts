@@ -678,9 +678,9 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
         if (produceOutput) await setUpLogs(outputFilePath!);//this must be initialized before generating the struct as long as the file log is required
 
         const src = await fs.readFile(srcFilePath, 'utf8');
-        const resolvedData = await genStructures(src);
+        const resolvedData = await genStructures(src);//the result here will be undefined if there was a resolution error.
         
-        if (!Resolver.terminate) {
+        if (resolvedData) {
             let jsonPath:string | NoOutput = NoOutput.value;
             if (produceOutput) {
                 const result = await writeToOutput(outputFilePath!,stringify(resolvedData,omitJsonKeys,4) || '');
