@@ -615,7 +615,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
 }
 async function genStructures(input:string):Promise<Record<string,Rec> | undefined> {
-    clearStaticVariables();//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
     const visitor = new Resolver();
     visitor.createSentenceArray(input);
     Essentials.loadEssentials(input);
@@ -646,10 +645,10 @@ async function accessOutputFolder(outputPath:string):Promise<void> {
 }
 async function setUpLogs(outputFilePath:string) {
     await accessOutputFolder(outputFilePath);
-    const logPath = outputFilePath + '.diagnostics.ansi';
+    const logPath = outputFilePath + '.ansi';
     Resolver.logFile = logPath;
     Resolver.logs = [];
-    await fs.writeFile(Resolver.logFile, 'VIEW THIS UNDER AN ANSI PREVIEWER.\n');
+    await fs.writeFile(Resolver.logFile, 'THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.\n\n');
 }
 async function writeToOutput(outputFilePath:string,jsonInput:string):Promise<string> {
     await accessOutputFolder(outputFilePath);
@@ -667,7 +666,7 @@ function omitJsonKeys(key:string,value:any) {
 }
 export async function resolveDocToJson(srcFilePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult> {
     try {
-        console.log('called resolver');
+        clearStaticVariables();//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
         const isSrcFile = srcFilePath.endsWith(".fog");
         if (!isSrcFile) {
             console.error(chalk.red('The resolver only reads .fog files.'));
