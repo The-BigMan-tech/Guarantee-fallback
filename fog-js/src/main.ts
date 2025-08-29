@@ -61,7 +61,7 @@ export class Doc {//i used arrow methods so that i can have these methods as pro
             return this.isItAFact(ruleForQuery,statement,byMembership);
         };
     }
-    public async printAnswer(answer:boolean):Promise<void> {
+    public printAnswer(answer:boolean):void {
         const text = (answer)?chalk.green('yes'):chalk.red('no');
         console.log(chalk.yellow('\nAnswer: '),text);
     }
