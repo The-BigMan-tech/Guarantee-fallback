@@ -63,11 +63,12 @@ export async function genTypes<K extends string>(doc:Doc,jsonOutputFile:string,r
     const union = ' | ';
     const allMembers = (await doc.allMembers()).map(member=>`"${member}"`);
     const typeUnion = allMembers.join(union);
-    const typeDeclaration = `export type members = (${typeUnion})[];`;
+    const typeDeclaration = `export type members = (${typeUnion})[];\n`;
     const fileName = path.basename(jsonOutputFile,'.json');
     const typeFile = fileName + '.ts';
     const typeFilePath = path.join(path.dirname(jsonOutputFile),typeFile);
-    // await fs.writeFile(typeFilePath,typeDeclaration);
+    await fs.writeFile(typeFilePath,typeDeclaration);
+
     console.log('🚀 => :67 => genTypes => typeFilePath:', typeFilePath);
     console.log('dec: ',typeDeclaration);
 
@@ -79,13 +80,15 @@ export async function genTypes<K extends string>(doc:Doc,jsonOutputFile:string,r
     });
     const relationshipArray = [...allRelationships.values()].map(relationship=>`"${relationship}"`);
     const relationshipUnion = relationshipArray.join(union);
-    const relationshipType = `export type relationships = ${relationshipUnion}`;
+    const queryType = `export type queryType = ${relationshipUnion};\n`;
     let rKeyUnion:string = "";
 
     if (rules) {
         rKeyUnion =  Object.keys(rules).map(rKey=>`"${rKey}"`).join(union);
     }
-    const queryUnion = relationshipType + union + rKeyUnion;
+    const queryUnion = queryType + union + rKeyUnion;
+    await fs.appendFile(typeFilePath,queryUnion);
+
     console.log('🚀 => :88 => genTypes => queryUnion:', queryUnion);
 }
 
