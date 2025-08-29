@@ -90,7 +90,12 @@ export async function genTypes<K extends string>(docName:string,outputFolder:str
 
     console.log(chalk.green('Sucessfully generated the types at: '),outputFolder);
 }
-
+//this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
+export async function setupOutput<K extends string>(srcFilePath:string,outputFolder:string,rules:Record<K,AnyRuleType>):Promise<void> {
+    const doc = await importDocFromPath(srcFilePath,outputFolder);
+    const docName = path.basename(srcFilePath,path.extname(srcFilePath));
+    if (doc) await genTypes(docName,outputFolder,doc,rules);
+}
 export class Doc<U extends string=string,T extends PatternedAtomList=PatternedAtomList> {//i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading
     //this method allows the user to query for the truthiness of a statement of a rule the same way they do with facts.So that rather than calling methods directly on the rule object,they write the name of the rule they want to check against as they would for fact querying and this method will forward it to the correct rule by key.It also includes aliases allowing users to also query rules with aliases that will still forward to the correct rule even though the rule's name isnt the alias.
     //this is recommended to use for querying rather direct function calls on a rule object but use the rule object to directly build functions or other rules for better type safety and control and use this mainly as a convenience for querying.
