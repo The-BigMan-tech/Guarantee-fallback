@@ -16,17 +16,22 @@ export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedComb
 
 const lime = chalk.hex('adef1e');
 export class Doc {//I named it Doc instead of Document to avoid ambiguity with the default Document class which is for the DOM
-    public aliases:Record<string,string>;
+    private _allMembers:UniqueAtomList = new UniqueList();//this is used by the binding to generate the types of the memebers.this will help catch subtle typos during querying.
     public records:Record<string,Rec> = {};
-    public static wildCard = uniqueID();
-    private static factCheckerCache = new LRUCache<string,string>({max:100});//soeven if the client runs multiple times,they will still be using cached data.and to ensure this i made the cache static so that it doesnt get wiped on recreation of the doc class due to repeated imports from re-execution of client scripts
+
+    public aliases:Record<string,string>;
+    public static wildCard = uniqueID();//by using a unique id over the string '*', will prevent collisions with atoms during fact checking.
+    private static factCheckerCache = new LRUCache<string,string>({max:100});//so even if the client runs multiple times,they will still be using cached data.and to ensure this i made the cache static so that it doesnt get wiped on recreation of the doc class due to repeated imports from re-execution of client scripts
 
     public constructor(records:Record<string,Rec>,aliases:typeof this.aliases | null) {
         this.aliases = aliases || {};
         Object.keys(records).forEach(key=>{
-            this.records[key] = new Rec(records[key].facts);//rebuild the rec since some internal structures arent serializable
-            //didnt preserve recID since they are just for caching and not lookups so change here is fine
+            this.records[key] = new Rec(records[key].facts);//rebuild the rec since some internal structures arent serializable.I didnt preserve recID since they are just for caching and not lookups so change here is fine
+            this.records[key].members.list.map(member=>this._allMembers.add(member));
         });
+    }
+    public get allMembers():AtomList {
+        return this._allMembers.list;
     }
     //compare the subject array against the target.
     private compareStatements(subject:PatternedAtomList,target:PatternedAtomList):boolean {

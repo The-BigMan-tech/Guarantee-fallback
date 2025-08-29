@@ -21,6 +21,10 @@ server.addMethod("resolveDocToJson", async ({ filePath, outputFolder }: { filePa
     const result = await resolveDocToJson(filePath, outputFolder);
     return result;
 });
+server.addMethod("allMembers",()=>{
+    if (!docOnServer) return Result.error;
+    return docOnServer.allMembers;
+});
 server.addMethod("aliases",()=>{
     if (!docOnServer) return Result.error;
     return docOnServer.aliases;

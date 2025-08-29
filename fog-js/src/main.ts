@@ -50,12 +50,6 @@ export async function importDocFromObject(obj:Record<string,any>):Promise<Doc | 
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
     return new Doc();
 }
-export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
-    const result = await client.request("importDoc",{filePath,outputFolder}) as Result;
-    if (resolutionErr(result)) return;
-    console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
-    return new Doc();
-}
 export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult | undefined> {
     const resolutionResult = await client.request("resolveDocToJson",{filePath,outputFolder:outputFolder}) as ResolutionResult;
     if (resolutionErr(resolutionResult.result)) return;
@@ -91,6 +85,11 @@ export class Doc {//i used arrow methods so that i can have these methods as pro
     private static throwDocError():never {
         throw new Error(chalk.red('The fact checker was unable to load to the document.'));
     }
+    public allMembers = async ():Promise<AtomList>=>{
+        const result:Result.error | AtomList = await client.request('allMembers',{});
+        if (result === Result.error) Doc.throwDocError();
+        return result;
+    };
     public aliases = async ():Promise<Record<string,string>>=>{
         const result:Result.error | Record<string,string> = await client.request('aliases',{});
         if (result === Result.error) Doc.throwDocError();
