@@ -636,29 +636,28 @@ function getOutputPathNoExt(srcFilePath:string,outputFolder?:string | NoOutput) 
     const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided
     return path.join(outputPath,filePathNoExt);
 }
-function logOutputFolderErr(outputPath:string):void {
-    console.error(chalk.red(`The output folder doesnt exist or is prevented from writing to it by permissions.\n-Check the path: `) +  outputPath + '\n');
-    throw new Error();
+async function accessOutputFolder(outputPath:string):Promise<void> {
+    try {
+        await fs.access(outputPath);
+    }catch {
+        console.info(chalk.yellow(`The output folder is the absent.Creating the dir: `) +  outputPath + '\n');
+        await fs.mkdir(outputPath);
+    };
 }
 async function setUpLogs(outputFilePath:string) {
-    const logPath = outputFilePath + '.ansi';
-    try {
-        Resolver.logFile = logPath;
-        Resolver.logs = [];
-        await fs.writeFile(Resolver.logFile, '');
-    }catch {logOutputFolderErr(path.dirname(logPath));};
+    await accessOutputFolder(outputFilePath);
+    const logPath = outputFilePath + '.diagnostics.ansi';
+    Resolver.logFile = logPath;
+    Resolver.logs = [];
+    await fs.writeFile(Resolver.logFile, 'VIEW THIS UNDER AN ANSI PREVIEWER.\n');
 }
-async function writeToOutput(outputFilePath:string,jsonInput:string):Promise<string | Result.error> {
+async function writeToOutput(outputFilePath:string,jsonInput:string):Promise<string> {
+    await accessOutputFolder(outputFilePath);
     const jsonPath = outputFilePath + ".json";
-    try {
-        await fs.writeFile(jsonPath, jsonInput);
-        const messages = [`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`,`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`];
-        console.log(messages.join(''));
-        return jsonPath;
-    }catch {//i didnt create the output folder when not found to prevent accidentally overriding the user's folder
-        logOutputFolderErr(path.dirname(jsonPath));
-        return Result.error;
-    }
+    await fs.writeFile(jsonPath, jsonInput);
+    const messages = [`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`,`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`];
+    console.log(messages.join(''));
+    return jsonPath;
 }
 function omitJsonKeys(key:string,value:any) {
     if ((key === "set") ||  (key === "indexMap")) {
@@ -685,9 +684,7 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
         if (resolvedData) {
             let jsonPath:string | NoOutput = NoOutput.value;
             if (produceOutput) {
-                const result = await writeToOutput(outputFilePath!,stringify(resolvedData,omitJsonKeys,4) || '');
-                if (result === Result.error) return {result:Result.error,jsonPath:undefined};
-                jsonPath = result;
+                jsonPath = await writeToOutput(outputFilePath!,stringify(resolvedData,omitJsonKeys,4) || '');
             }
             return {result:Result.success,jsonPath};
         }else {
