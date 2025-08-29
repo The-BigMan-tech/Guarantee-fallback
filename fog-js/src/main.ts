@@ -61,16 +61,21 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
 }
 export async function genTypes<K extends string>(doc:Doc,jsonOutputFile:string,rules?:Record<K,AnyRuleType>):Promise<void> {
     const union = ' | ';
-    const allMembers = (await doc.allMembers()).map(member=>`"${member}"`);
-    const typeUnion = allMembers.join(union);
-    const typeDeclaration = `export type members = (${typeUnion})[];\n`;
+    const terminator = ";\n";
+    const exportType = 'export type';
+
     const fileName = path.basename(jsonOutputFile,'.json');
     const typeFile = fileName + '.ts';
     const typeFilePath = path.join(path.dirname(jsonOutputFile),typeFile);
-    await fs.writeFile(typeFilePath,typeDeclaration);
+    
+
+    const allMembers = (await doc.allMembers()).map(member=>`"${member}"`);
+    const memberUnion = allMembers.join(union);
+    const memberDeclaration = `${exportType} members = (${memberUnion})[]${terminator}`;
+    await fs.writeFile(typeFilePath,memberDeclaration);
 
     console.log('🚀 => :67 => genTypes => typeFilePath:', typeFilePath);
-    console.log('dec: ',typeDeclaration);
+    console.log('dec: ',memberDeclaration);
 
     const allRelationships = new Set<string>();
     const relationships = await doc.aliases();
@@ -80,16 +85,15 @@ export async function genTypes<K extends string>(doc:Doc,jsonOutputFile:string,r
     });
     const relationshipArray = [...allRelationships.values()].map(relationship=>`"${relationship}"`);
     const relationshipUnion = relationshipArray.join(union);
-    const queryType = `export type queryType = ${relationshipUnion};\n`;
-    let rKeyUnion:string = "";
-
+    let queryType = `${exportType} queryType = ${relationshipUnion}`;
+    
     if (rules) {
-        rKeyUnion =  Object.keys(rules).map(rKey=>`"${rKey}"`).join(union);
+        const rKeyUnion =  Object.keys(rules).map(rKey=>`"${rKey}"`).join(union);
+        queryType += union + rKeyUnion;
     }
-    const queryUnion = queryType + union + rKeyUnion;
-    await fs.appendFile(typeFilePath,queryUnion);
-
-    console.log('🚀 => :88 => genTypes => queryUnion:', queryUnion);
+    queryType += terminator;
+    await fs.appendFile(typeFilePath,queryType);
+    console.log('🚀 => :88 => genTypes => queryUnion:', queryType);
 }
 
 export class Doc {//i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading
