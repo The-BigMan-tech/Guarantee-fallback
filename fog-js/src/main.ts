@@ -31,8 +31,24 @@ function resolutionErr(result:Result):boolean {
         console.log(chalk.red("An error occurred while resolving the document.See the server."));
         console.log(chalk.yellow("You may also want to check the .ansi log at the output folder with an ansi file previewer if generated."));
         return true;
+    }else {
+        console.log(chalk.green('Successfully resolved the document.'));
+        return false;
     }
-    return false;
+}
+/**It loads the server document with the data from the file using the file path provided.
+ * It can take a .fog document or a .json file.
+ * For the .json file,it directly loads the data onto the server document but for the .fog file,it resolves the document to the provided output folder and loads the data onto the server
+ */
+export async function importDocFromPath(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
+    const result = await client.request("importDocFromPath",{filePath,outputFolder}) as Result;
+    if (resolutionErr(result)) return;
+    return new Doc();
+}
+export async function importDocFromObject(obj:Record<string,any>):Promise<Doc | undefined> {
+    const result = await client.request("importDocFromObject",{obj}) as Result;
+    if (resolutionErr(result)) return;
+    return new Doc();
 }
 export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
     const result = await client.request("importDoc",{filePath,outputFolder}) as Result;

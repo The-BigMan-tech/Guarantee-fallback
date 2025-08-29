@@ -2,15 +2,19 @@ import chalk from "chalk";
 import ipc from 'node-ipc';
 import { JSONRPCServer } from "json-rpc-2.0";
 import stringify from "safe-stable-stringify";
-import { Doc, importDoc } from "./fact-checker.js";
+import { Doc, importDocFromObject, importDocFromPath } from "./fact-checker.js";
 import { Atom, NoOutput, PatternedAtomList, Result} from "../utils/utils.js";
 import {docOnServer} from "./fact-checker.js";
 import { resolveDocToJson } from "../resolver/resolver.js";
 
 
 const server = new JSONRPCServer();
-server.addMethod("importDoc", async ({ filePath, outputFolder }: { filePath: string; outputFolder?: string }) => {
-    const result = await importDoc(filePath, outputFolder);
+server.addMethod("importDocFromPath", async ({ filePath, outputFolder }: { filePath: string; outputFolder?: string }) => {
+    const result = await importDocFromPath(filePath, outputFolder);
+    return result;
+});
+server.addMethod("importDocFromObject", async ({ obj }: {obj: Record<string,any> }) => {
+    const result = await importDocFromObject(obj);
     return result;
 });
 server.addMethod("resolveDocToJson", async ({ filePath, outputFolder }: { filePath: string; outputFolder?: string | NoOutput }) => {

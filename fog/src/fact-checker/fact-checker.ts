@@ -199,11 +199,11 @@ async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
     docOnServer = new Doc(records,mapToObject(Resolver.aliases));
     return Result.success;
 }
-export async function loadDocFromJsonRecord(json:Record<string,any>):Promise<void> {
+export async function importDocFromObject(json:Record<string,any>):Promise<void> {
     await loadDocFromJson(json);
 }
 //This function is intended to update the server side document with the json output.it doesnt accept no-output like the resolver.For the lsp that needs analysis data without making output,it should call the resolver directlt
-export async function importDoc(filePath:string,outputFolder?:string):Promise<Result> {
+export async function importDocFromPath(filePath:string,outputFolder?:string):Promise<Result> {
     const isSrcFile = filePath.endsWith(".fog");
     const isJsonFile = filePath.endsWith(".json");
 
