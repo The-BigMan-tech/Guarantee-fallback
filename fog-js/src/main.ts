@@ -63,12 +63,14 @@ export async function genTypes<K extends string>(docName:string,outputFolder:str
     const union = ' | ';
     const terminator = ";\n";
     const exportType = 'export type';
+    const equals = "=";
+    const arr = (elementType:unknown):string =>`(${elementType})[]`;
 
     const typeFile = docName + '.types.ts';
     const typeFilePath = path.join(outputFolder,typeFile);
     
     const memberUnion =  (await doc.allMembers()).map(member=>`"${member}"`).join(union);
-    const memberDeclaration = `${exportType} members = (${memberUnion})[]${terminator}`;
+    const memberDeclaration = `${exportType} members ${equals} ${arr(memberUnion)} ${terminator}`;
     await fs.writeFile(typeFilePath,memberDeclaration);
 
     const relations = new Set<string>();
@@ -79,18 +81,20 @@ export async function genTypes<K extends string>(docName:string,outputFolder:str
     });
 
     const relationsUnion = Array.from(relations).map(relationship=>`"${relationship}"`).join(union);
-    let queryType = `${exportType} queryType = ${relationsUnion}`;
+    let queryType = `${exportType} queryType ${equals} ${relationsUnion}`;
 
     const rulesUnion = (rules)?Object.keys(rules).map(rKey=>`"${rKey}"`).join(union):'';
     queryType += (rules)?(union + rulesUnion):'';
     await fs.appendFile(typeFilePath,queryType + terminator);
+
+    console.log(chalk.green('Sucessfully generated the types at: '),outputFolder);
 }
 
 export class Doc {//i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading
     //this method allows the user to query for the truthiness of a statement of a rule the same way they do with facts.So that rather than calling methods directly on the rule object,they write the name of the rule they want to check against as they would for fact querying and this method will forward it to the correct rule by key.It also includes aliases allowing users to also query rules with aliases that will still forward to the correct rule even though the rule's name isnt the alias.
     //this is recommended to use for querying rather direct function calls on a rule object but use the rule object to directly build functions or other rules for better type safety and control and use this mainly as a convenience for querying.
     //it will also fallback to direct fact checking if the statement doesnt satisfy any of the given rules making it a good useful utility for querying the document against all known facts and rules with alias support in a single call.Rules will be given priority first over direct fact checking because this method unlike isItAFact is designed for checking with inference.The check mode is used as part of the fallback to fact querying
-    public isItImplied:null | (<T extends PatternedAtomList=PatternedAtomList>(rule:string,statement:T,checkMode:Check)=>Promise<boolean>) = null;
+    public isItImplied:null | (<T extends PatternedAtomList=PatternedAtomList>(ruleQuery:string,statement:T,checkMode:Check)=>Promise<boolean>) = null;
     
     public useRules<K extends string>(rules:Record<K,AnyRuleType>):void {
         const rKeys = Object.keys(rules);
