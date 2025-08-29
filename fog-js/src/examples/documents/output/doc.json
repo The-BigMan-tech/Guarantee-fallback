@@ -1,0 +1,224 @@
+{
+    "father": {
+        "facts": [
+            {
+                "list": [
+                    "Susan",
+                    "Matt"
+                ]
+            },
+            {
+                "list": [
+                    "Susan",
+                    "Philip"
+                ]
+            },
+            {
+                "list": [
+                    "Susan",
+                    "Mandy"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "Susan",
+                "Matt",
+                "Philip",
+                "Mandy"
+            ]
+        },
+        "recID": "c611371e-ee74-4b49-9c1d-96a4d48eb852"
+    },
+    "female": {
+        "facts": [
+            {
+                "list": [
+                    "Mandy"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "Mandy"
+            ]
+        },
+        "recID": "5cdc6c61-8d54-4adb-9fdf-8c26ec7747aa"
+    },
+    "friend": {
+        "facts": [
+            {
+                "list": [
+                    "Billy",
+                    "John"
+                ]
+            },
+            {
+                "list": [
+                    "John",
+                    "Mark",
+                    "Zane"
+                ]
+            },
+            {
+                "list": [
+                    "Zane",
+                    "Cole"
+                ]
+            },
+            {
+                "list": [
+                    "Leo",
+                    "Cole"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "Billy",
+                "John",
+                "Mark",
+                "Zane",
+                "Cole",
+                "Leo"
+            ]
+        },
+        "recID": "fb34cec9-9d11-46a5-b1f1-61c489f17ad2"
+    },
+    "friends": {
+        "facts": [
+            {
+                "list": [
+                    "Billy",
+                    "John"
+                ]
+            },
+            {
+                "list": [
+                    "John",
+                    "Mark",
+                    "Zane"
+                ]
+            },
+            {
+                "list": [
+                    "Zane",
+                    "Cole"
+                ]
+            },
+            {
+                "list": [
+                    "Leo",
+                    "Cole"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "Billy",
+                "John",
+                "Mark",
+                "Zane",
+                "Cole",
+                "Leo"
+            ]
+        },
+        "recID": "fb34cec9-9d11-46a5-b1f1-61c489f17ad2"
+    },
+    "male": {
+        "facts": [
+            {
+                "list": [
+                    "Matt",
+                    "Philip"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "Matt",
+                "Philip"
+            ]
+        },
+        "recID": "0f8b6c5d-ed9e-4a09-aee8-f694baf93540"
+    },
+    "males": {
+        "facts": [
+            {
+                "list": [
+                    "Matt",
+                    "Philip"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "Matt",
+                "Philip"
+            ]
+        },
+        "recID": "0f8b6c5d-ed9e-4a09-aee8-f694baf93540"
+    },
+    "mother": {
+        "facts": [
+            {
+                "list": [
+                    "Susan",
+                    "Matt"
+                ]
+            },
+            {
+                "list": [
+                    "Susan",
+                    "Philip"
+                ]
+            },
+            {
+                "list": [
+                    "Susan",
+                    "Mandy"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "Susan",
+                "Matt",
+                "Philip",
+                "Mandy"
+            ]
+        },
+        "recID": "c611371e-ee74-4b49-9c1d-96a4d48eb852"
+    },
+    "parent": {
+        "facts": [
+            {
+                "list": [
+                    "Susan",
+                    "Matt"
+                ]
+            },
+            {
+                "list": [
+                    "Susan",
+                    "Philip"
+                ]
+            },
+            {
+                "list": [
+                    "Susan",
+                    "Mandy"
+                ]
+            }
+        ],
+        "members": {
+            "list": [
+                "Susan",
+                "Matt",
+                "Philip",
+                "Mandy"
+            ]
+        },
+        "recID": "c611371e-ee74-4b49-9c1d-96a4d48eb852"
+    }
+}
