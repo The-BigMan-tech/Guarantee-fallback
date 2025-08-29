@@ -65,7 +65,7 @@ export async function genTypes<K extends string>(docName:string,outputFolder:str
     const exportType = 'export type';
 
     const typeFile = docName + '.types.ts';
-    const typeFilePath = path.join(path.dirname(outputFolder),typeFile);
+    const typeFilePath = path.join(outputFolder,typeFile);
     
     const memberUnion =  (await doc.allMembers()).map(member=>`"${member}"`).join(union);
     const memberDeclaration = `${exportType} members = (${memberUnion})[]${terminator}`;
@@ -82,12 +82,8 @@ export async function genTypes<K extends string>(docName:string,outputFolder:str
     let queryType = `${exportType} queryType = ${relationsUnion}`;
 
     const rulesUnion = (rules)?Object.keys(rules).map(rKey=>`"${rKey}"`).join(union):'';
-    queryType += (rules)?`${union}${rulesUnion}`:'';
+    queryType += (rules)?(union + rulesUnion):'';
     await fs.appendFile(typeFilePath,queryType + terminator);
-
-    console.log('🚀 => :67 => genTypes => typeFilePath:', typeFilePath);
-    console.log('dec: ',memberDeclaration);
-    console.log('🚀 => :88 => genTypes => queryUnion:', queryType);
 }
 
 export class Doc {//i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading

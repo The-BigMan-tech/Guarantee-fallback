@@ -691,7 +691,7 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
             return {result:Result.error,jsonPath:undefined};
         }
     } catch {
-        console.error(chalk.red('Error processing file.Be sure its a valid file path'));
+        console.error(chalk.red(`Error: Be sure this is a valid file path: `),srcFilePath);
         return {result:Result.error,jsonPath:undefined};
     }
 }
