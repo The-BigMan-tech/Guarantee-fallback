@@ -14,7 +14,6 @@ server.addMethod("importDoc", async ({ filePath, outputFolder }: { filePath: str
     return result;
 });
 server.addMethod("resolveDocToJson", async ({ filePath, outputFolder }: { filePath: string; outputFolder?: string | NoOutput }) => {
-    if (!docOnServer) return Result.error;
     const result = await resolveDocToJson(filePath, outputFolder);
     return result;
 });

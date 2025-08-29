@@ -637,7 +637,8 @@ function getOutputPathNoExt(srcFilePath:string,outputFolder?:string | NoOutput) 
     return path.join(outputPath,filePathNoExt);
 }
 function logOutputFolderErr(outputPath:string):void {
-    console.log(chalk.red(`The output folder doesnt exist or is prevented from writing to it by permissions.\n-Check the path: `),outputPath,'\n');
+    console.error(chalk.red(`The output folder doesnt exist or is prevented from writing to it by permissions.\n-Check the path: `) +  outputPath + '\n');
+    throw new Error();
 }
 async function setUpLogs(outputFilePath:string) {
     const logPath = outputFilePath + '.ansi';
@@ -667,6 +668,7 @@ function omitJsonKeys(key:string,value:any) {
 }
 export async function resolveDocToJson(srcFilePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult> {
     try {
+        console.log('called resolver');
         const isSrcFile = srcFilePath.endsWith(".fog");
         if (!isSrcFile) {
             console.error(chalk.red('The resolver only reads .fog files.'));

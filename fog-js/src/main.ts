@@ -26,18 +26,22 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
         });
     });
 });
-export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
-    const result = await client.request("importDoc",{filePath,outputFolder}) as Result;
+function importErr(result:Result):boolean {
     if (result === Result.error) {
         console.log(chalk.red("An error occurred while importing the document.See the server."));
         console.log(chalk.yellow("You may also want to check the .ansi log at the output folder with an ansi file previewer if generated."));
-        return;
+        return true;
     }
+    return false;
+}
+export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
+    const result = await client.request("importDoc",{filePath,outputFolder}) as Result;
+    if (importErr(result)) return;
     return new Doc();
 }
-export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult> {
-    const result = await client.request("resolveDocToJson",{filePath,outputFolder:outputFolder}) as ResolutionResult;
-    return result;
+export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult | undefined> {
+    const resolutionResult = await client.request("resolveDocToJson",{filePath,outputFolder:outputFolder}) as ResolutionResult;
+    return resolutionResult;
 }
 
 export class Doc {//i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading

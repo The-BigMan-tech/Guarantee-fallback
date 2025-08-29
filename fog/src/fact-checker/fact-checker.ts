@@ -171,18 +171,36 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
  */
 export let docOnServer:Doc | null = null;
 
-async function loadDocFromJson(jsonPath:string):Promise<Result> {
-    const jsonData = await fs.readFile(jsonPath, 'utf8');
-    const records:Record<string,Rec> = JSON.parse(jsonData);
+type Path = string;
+
+
+async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
+    const providedPath = typeof json === "string";
+    let records:Record<string,Rec>;
+    let jsonString:string;
+    if (providedPath) {
+        jsonString = await fs.readFile(json, 'utf8');
+        records = JSON.parse(jsonString);
+    }else {
+        jsonString = stringify(json);
+        records = json;
+    }
     const isValid = validator.Check(records);
     if (!isValid) {
-        const errors = [...validator.Errors(jsonData)].map(({ path, message }) => ({ path, message }));
+        const errors = [...validator.Errors(jsonString)].map(({ path, message }) => ({ path, message }));
         console.error(chalk.red('Validation error in the json file:'), errors);
         return Result.error;//to prevent corruption
     }
-    console.info(lime('Successfully loaded the document from the path:'),jsonPath,'\n');
+    if (providedPath) {
+        console.info(lime('Successfully loaded the document from the path:'),jsonString,'\n');
+    }else {
+        console.info(lime('Successfully loaded the document from the json object'));
+    }
     docOnServer = new Doc(records,mapToObject(Resolver.aliases));
     return Result.success;
+}
+export async function loadDocFromJsonRecord(json:Record<string,any>):Promise<void> {
+    await loadDocFromJson(json);
 }
 //This function is intended to update the server side document with the json output.it doesnt accept no-output like the resolver.For the lsp that needs analysis data without making output,it should call the resolver directlt
 export async function importDoc(filePath:string,outputFolder?:string):Promise<Result> {
