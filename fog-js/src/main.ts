@@ -58,16 +58,27 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
     console.log(chalk.green('\nSuccessfully resolved the document.'));
     return resolutionResult;
 }
-export async function genTypes(doc:Doc,jsonOutputFile:string):Promise<void> {
+export async function genTypes<K>(doc:Doc,jsonOutputFile:string,rules?:Record<K,AnyRuleType>):Promise<void> {
     const allMembers = (await doc.allMembers()).map(member=>`"${member}"`);
     const typeUnion = allMembers.join(' | ');
     const typeDeclaration = `export type members = (${typeUnion})[];`;
     const fileName = path.basename(jsonOutputFile,'.json');
     const typeFile = fileName + '.ts';
     const typeFilePath = path.join(path.dirname(jsonOutputFile),typeFile);
-    await fs.writeFile(typeFilePath,typeDeclaration);
+    // await fs.writeFile(typeFilePath,typeDeclaration);
     console.log('🚀 => :67 => genTypes => typeFilePath:', typeFilePath);
     console.log('dec: ',typeDeclaration);
+
+    const allRelationships = new Set<string>();
+    const relationships = await doc.aliases();
+    Object.keys(relationships).forEach(key=>{
+        allRelationships.add(key);//add all aliases
+        allRelationships.add(relationships[key]);//add all the predicates that are pointed to by the aliases.
+    });
+    const relationshipArray = [...allRelationships.values()].map(relationship=>`"${relationship}"`);
+    const relationshipUnion = relationshipArray.join(' | ');
+    const relationshipType = `export type relationships = ${relationshipUnion}`;
+    console.log('🚀 => :81 => genTypes => relationshipType:', relationshipType);
 }
 
 export class Doc {//i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading
