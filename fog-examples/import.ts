@@ -1,7 +1,7 @@
 import path from "path";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { Doc, importDoc } from "./main.js";
+import { Doc, importDoc } from "fog-js";
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);

@@ -1,4 +1,4 @@
-import { RecursiveRule, Rule } from "./main.js";
+import { RecursiveRule, Rule } from "fog-js";
 
 
 interface Rules {
@@ -30,7 +30,7 @@ export const rules:Rules = {//A rule is a function that takes a document and a s
     },
     siblings:async (doc,statement)=> {
         const [X,Y] = statement;
-        const parentsOfX = (await doc.findAllFacts('parent',[await doc.wildCard(),X]))
+        const parentsOfX = (await doc.findAllFacts('parent',[await doc.wildCard(),X]))//do not check for truthiness by membership because a parent relationship is a strict order of parent to child not inseneitive to positions like as it is for friends
             .map(fact=>fact[0]);
         const parentsOfY = (await doc.findAllFacts('parent',[await doc.wildCard(),Y]))
             .map(fact=>fact[0]);
@@ -40,8 +40,8 @@ export const rules:Rules = {//A rule is a function that takes a document and a s
     brothers:async (doc,statement) => {
         const [X,Y] = statement;
         if (X === Y) return false;
-        const isXMale = await doc.isItAFact('male',[X]);
-        const isYMale = await doc.isItAFact('male',[Y]);
+        const isXMale = await doc.isItAFact('male',[X],true);
+        const isYMale = await doc.isItAFact('male',[Y],true);
         if (isXMale && isYMale && await rules.siblings(doc,[X,Y])) return true;
         return false;
     }

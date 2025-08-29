@@ -5,4 +5,4 @@ const doc = await getFromDocuments('./documents/doc.fog');
 if (!doc) process.exit(0);
 
 doc.useRules(rules);
-doc.printAnswer(await doc.isItImplied!('male',['leo']));//outputs false because its not a direct fact
+doc.printAnswer(await doc.isItImplied!('males',['Matt']));//outputs false because its not a direct fact

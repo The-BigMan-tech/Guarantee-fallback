@@ -5,7 +5,7 @@ export async function someQuery(doc:Doc) {//This gets all the friends of ada who
     const smallestRecord = await doc.selectSmallestRecord(['male','friends']);
     const {candidates} = await doc.genCandidates<string,1>(1,smallestRecord,[],[]);
     for (const [A] of candidates) {
-        if (await rules.areFriends(doc,['ada',A]) && await rules.areBrothers(doc,[A,'ben'])) {
+        if (await rules.friends(doc,['ada',A]) && await rules.brothers(doc,[A,'ben'])) {
             console.log('The friend of ada who is also the brother of ben:',A);
         }
     }
