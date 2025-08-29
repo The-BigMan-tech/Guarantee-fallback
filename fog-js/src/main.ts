@@ -52,13 +52,14 @@ export async function importDocFromObject(obj:Record<string,any>):Promise<Doc | 
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
     return new Doc();
 }
+//this binding is intended for the lsp to use to get analysis report without affecting the ipc server
 export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult | undefined> {
     const resolutionResult = await client.request("resolveDocToJson",{filePath,outputFolder:outputFolder}) as ResolutionResult;
     if (resolutionErr(resolutionResult.result)) return;
     console.log(chalk.green('\nSuccessfully resolved the document.'));
     return resolutionResult;
 }
-export async function genTypes<K>(doc:Doc,jsonOutputFile:string,rules?:Record<K,AnyRuleType>):Promise<void> {
+export async function genTypes<K extends string>(doc:Doc,jsonOutputFile:string,rules?:Record<K,AnyRuleType>):Promise<void> {
     const allMembers = (await doc.allMembers()).map(member=>`"${member}"`);
     const typeUnion = allMembers.join(' | ');
     const typeDeclaration = `export type members = (${typeUnion})[];`;
@@ -85,7 +86,7 @@ export class Doc {//i used arrow methods so that i can have these methods as pro
     //this method allows the user to query for the truthiness of a statement of a rule the same way they do with facts.So that rather than calling methods directly on the rule object,they write the name of the rule they want to check against as they would for fact querying and this method will forward it to the correct rule by key.It also includes aliases allowing users to also query rules with aliases that will still forward to the correct rule even though the rule's name isnt the alias.
     //this is recommended to use for querying rather direct function calls on a rule object but use the rule object to directly build functions or other rules for better type safety and control and use this mainly as a convenience for querying.
     //it will also fallback to direct fact checking if the statement doesnt satisfy any of the given rules making it a good useful utility for querying the document against all known facts and rules with alias support in a single call.Rules will be given priority first over direct fact checking because this method unlike isItAFact is designed for checking with inference.The check mode is used as part of the fallback to fact querying
-    public isItImplied:null | (<T extends AtomList=AtomList>(rule:string,statement:T,checkMode:Check)=>Promise<boolean>) = null;
+    public isItImplied:null | (<T extends PatternedAtomList=PatternedAtomList>(rule:string,statement:T,checkMode:Check)=>Promise<boolean>) = null;
     
     public useRules<K extends string>(rules:Record<K,AnyRuleType>):void {
         const rKeys = Object.keys(rules);
@@ -101,7 +102,15 @@ export class Doc {//i used arrow methods so that i can have these methods as pro
             }
             return this.isItAFact(ruleForQuery,statement,checkMode);
         };
-    }
+    };
+    public isItAFact = async<T extends PatternedAtomList=PatternedAtomList>(predicate:string,statement:T,checkMode:Check):Promise<boolean>=> {
+        const result:Result.error | boolean = await client.request("isItAFact",{predicate,statement,byMembership:Boolean(checkMode)});
+        if (result === Result.error) Doc.throwDocError();
+        return result;
+    };
+    public wildCard = async<T extends string[]=string[]> ():Promise<T[number]>=>{
+        return (await client.request('wildCard',{})) as T[number];//this one can not return a doc error because its a static property thats always available on the server
+    };
     public printAnswer(answer:boolean):void {
         const text = (answer)?chalk.green('yes'):chalk.red('no');
         console.log(chalk.yellow('\nAnswer: '),text);
@@ -129,11 +138,6 @@ export class Doc {//i used arrow methods so that i can have these methods as pro
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public isItAFact = async(predicate:string,statement:PatternedAtomList,checkMode:Check):Promise<boolean>=> {
-        const result:Result.error | boolean = await client.request("isItAFact",{predicate,statement,byMembership:Boolean(checkMode)});
-        if (result === Result.error) Doc.throwDocError();
-        return result;
-    };
     public genCandidates = async <T extends Atom,N extends number>(howManyToReturn:N,predicate:string,inputCombination:Atom[],visitedCombinations:string[]):Promise<GeneratedCandidates<T>>=>{
         const result:Result.error | GeneratedCandidates<T> =  await client.request("genCandidates",{howManyToReturn,predicate,inputCombination,visitedCombinations});
         if (result === Result.error) Doc.throwDocError();
@@ -148,9 +152,6 @@ export class Doc {//i used arrow methods so that i can have these methods as pro
         const result:Result.error | Atom[] =  await client.request('intersection',{arrays});
         if (result === Result.error) Doc.throwDocError();
         return result;
-    };
-    public wildCard = async ():Promise<string>=>{
-        return await client.request('wildCard',{});//this one can not return a doc error because its a static property thats always available on the server
     };
 }
 export type AnyRuleType = Rule<any> | RecursiveRule<any>;
