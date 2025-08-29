@@ -1,5 +1,5 @@
 import resolvedDoc from "./documents/output/doc.json" with {type:'json'};
-import { members } from "./documents/output/doc.types.js";
+import { members ,queryType} from "./documents/output/doc.types.js";
 import { rules } from "./rules.js";
 import { Check, importDocFromObject } from "../main.js";
 
