@@ -60,6 +60,10 @@ export class Doc {//i used arrow methods so that i can have these methods as pro
             return false;
         };
     }
+    public async printAnswer(answer:boolean):Promise<void> {
+        const text = (answer)?chalk.green('yes'):chalk.red('no');
+        console.log(chalk.yellow('\nAnswer: '),text);
+    }
     private static throwDocError():never {
         throw new Error(chalk.red('The fact checker was unable to load to the document.'));
     }
