@@ -43,21 +43,22 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
 export class Doc {//i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading
     //this method allows the user to query for the truthiness of a statement of a rule the same way they do with facts.So that rather than calling methods directly on the rule object,they write the name of the rule they want to check against as they would for fact querying and this method will forward it to the correct rule by key.It also includes aliases allowing users to also query rules with aliases that will still forward to the correct rule even though the rule's name isnt the alias.
     //this is recommended to use for querying rather direct function calls on a rule object but use the rule object to directly build functions or other rules for better type safety and control and use this mainly as a convenience for querying.
-    public isItImplied:null | ((rule:string,statement:Atom[])=>Promise<boolean>) = null;
+    //it will also fallback to direct fact checking if the statement doesnt satisfy any of the given rules making it a good useful utility for querying the document against all known facts and rules with alias support in a single call.Rules will be given priority first over direct fact checking because this method unlike isItAFact is designed for checking with inference.
+    public isItImplied:null | ((rule:string,statement:Atom[],byMembership?:boolean)=>Promise<boolean>) = null;
     
     public useRules<K extends string>(rules:Record<K,AnyRuleType>):void {
         const rKeys = Object.keys(rules);
-        this.isItImplied = async (ruleForQuery,statement):Promise<boolean> => {//this is a pattern to query rules with the same interface design as querying a fact
+        this.isItImplied = async (ruleForQuery,statement,byMembership=false):Promise<boolean> => {//this is a pattern to query rules with the same interface design as querying a fact
             const aliases = await this.aliases();
             for (const rKey of rKeys) {
                 const queryKey = aliases[ruleForQuery] || ruleForQuery;
                 const forwardKey = aliases[rKey] || rKey;
+                const ruleFucntion = (rules as Record<string,AnyRuleType>)[rKey];
                 if (queryKey === forwardKey) {
-                    const ruleFucntion = (rules as Record<string,AnyRuleType>)[rKey];
                     return await ruleFucntion(this,statement,[]);
                 }
             }
-            return false;
+            return this.isItAFact(ruleForQuery,statement,byMembership);
         };
     }
     public async printAnswer(answer:boolean):Promise<void> {
