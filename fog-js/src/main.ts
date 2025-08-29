@@ -125,7 +125,7 @@ export class Doc<U extends string=string,T extends PatternedAtomList=PatternedAt
         return result;
     };
     //It is intended that the members type generated in the output should be passed as T.this will let ts to treat the wildcard as a valid memeber of the document even though it isnt explicitly written
-    public wildCard = async<T extends string[]=string[]> ():Promise<T[number]>=>{
+    public wildCard = async():Promise<T[number]>=>{
         return (await client.request('wildCard',{})) as T[number];//this one can not return a doc error because its a static property thats always available on the server
     };
     public printAnswer(answer:boolean):void {
