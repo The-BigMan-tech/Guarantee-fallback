@@ -31,10 +31,8 @@ function resolutionErr(result:Result):boolean {
         console.log(chalk.red("An error occurred while resolving the document.See the server."));
         console.log(chalk.yellow("You may also want to check the .ansi log at the output folder with an ansi file previewer if generated."));
         return true;
-    }else {
-        console.log(chalk.green('Successfully resolved the document.'));
-        return false;
     }
+    return false;
 }
 /**It loads the server document with the data from the file using the file path provided.
  * It can take a .fog document or a .json file.
@@ -43,21 +41,25 @@ function resolutionErr(result:Result):boolean {
 export async function importDocFromPath(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
     const result = await client.request("importDocFromPath",{filePath,outputFolder}) as Result;
     if (resolutionErr(result)) return;
+    console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
     return new Doc();
 }
 export async function importDocFromObject(obj:Record<string,any>):Promise<Doc | undefined> {
     const result = await client.request("importDocFromObject",{obj}) as Result;
     if (resolutionErr(result)) return;
+    console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
     return new Doc();
 }
 export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
     const result = await client.request("importDoc",{filePath,outputFolder}) as Result;
     if (resolutionErr(result)) return;
+    console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
     return new Doc();
 }
 export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult | undefined> {
     const resolutionResult = await client.request("resolveDocToJson",{filePath,outputFolder:outputFolder}) as ResolutionResult;
     if (resolutionErr(resolutionResult.result)) return;
+    console.log(chalk.green('\nSuccessfully resolved the document.'));
     return resolutionResult;
 }
 
