@@ -26,9 +26,9 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
         });
     });
 });
-function importErr(result:Result):boolean {
+function resolutionErr(result:Result):boolean {
     if (result === Result.error) {
-        console.log(chalk.red("An error occurred while importing the document.See the server."));
+        console.log(chalk.red("An error occurred while resolving the document.See the server."));
         console.log(chalk.yellow("You may also want to check the .ansi log at the output folder with an ansi file previewer if generated."));
         return true;
     }
@@ -36,11 +36,12 @@ function importErr(result:Result):boolean {
 }
 export async function importDoc(filePath:string,outputFolder?:string):Promise<Doc | undefined> {
     const result = await client.request("importDoc",{filePath,outputFolder}) as Result;
-    if (importErr(result)) return;
+    if (resolutionErr(result)) return;
     return new Doc();
 }
 export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult | undefined> {
     const resolutionResult = await client.request("resolveDocToJson",{filePath,outputFolder:outputFolder}) as ResolutionResult;
+    if (resolutionErr(resolutionResult.result)) return;
     return resolutionResult;
 }
 
