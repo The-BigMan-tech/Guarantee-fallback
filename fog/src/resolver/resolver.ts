@@ -635,12 +635,13 @@ function getOutputPathNoExt(srcFilePath:string,outputFolder?:string | NoOutput) 
     const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided
     return path.join(outputPath,filePathNoExt);
 }
-async function accessOutputFolder(outputPath:string):Promise<void> {
+async function accessOutputFolder(outputFilePath:string):Promise<void> {
+    const outputFolder = path.dirname(outputFilePath);
     try {
-        await fs.access(outputPath);
+        await fs.access(outputFolder);
     }catch {
-        console.info(chalk.yellow(`The output folder is the absent.Creating the dir: `) +  outputPath + '\n');
-        await fs.mkdir(outputPath);
+        console.info(chalk.yellow(`The output folder is the absent.Creating the dir: `) +  outputFolder + '\n');
+        await fs.mkdir(outputFolder);
     };
 }
 async function setUpLogs(outputFilePath:string) {
