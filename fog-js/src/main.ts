@@ -65,9 +65,9 @@ export async function genTypes(doc:Doc,jsonOutputFile:string):Promise<void> {
     const fileName = path.basename(jsonOutputFile,'.json');
     const typeFile = fileName + '.ts';
     const typeFilePath = path.join(path.dirname(jsonOutputFile),typeFile);
+    await fs.writeFile(typeFilePath,typeDeclaration);
     console.log('🚀 => :67 => genTypes => typeFilePath:', typeFilePath);
     console.log('dec: ',typeDeclaration);
-    await fs.writeFile(typeFilePath,typeDeclaration);
 }
 
 export class Doc {//i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading
