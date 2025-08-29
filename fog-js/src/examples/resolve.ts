@@ -14,6 +14,7 @@ const outputPath = path.join(dirname(srcFilePath),'./output');
 
 export async function resolveDocument():Promise<void> {
     const doc = await importDocFromPath(srcFilePath,outputPath);
-    if (doc) await genTypes(doc,path.join(outputPath,'./doc.json'),rules);
+    const docName = path.basename(srcFilePath,path.extname(srcFilePath));
+    if (doc) await genTypes(docName,outputPath,doc,rules);
 }
 await resolveDocument();

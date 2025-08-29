@@ -59,40 +59,34 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
     console.log(chalk.green('\nSuccessfully resolved the document.'));
     return resolutionResult;
 }
-export async function genTypes<K extends string>(doc:Doc,jsonOutputFile:string,rules?:Record<K,AnyRuleType>):Promise<void> {
+export async function genTypes<K extends string>(docName:string,outputFolder:string,doc:Doc,rules?:Record<K,AnyRuleType>):Promise<void> {
     const union = ' | ';
     const terminator = ";\n";
     const exportType = 'export type';
 
-    const fileName = path.basename(jsonOutputFile,'.json');
-    const typeFile = fileName + '.ts';
-    const typeFilePath = path.join(path.dirname(jsonOutputFile),typeFile);
+    const typeFile = docName + '.types.ts';
+    const typeFilePath = path.join(path.dirname(outputFolder),typeFile);
     
-
-    const allMembers = (await doc.allMembers()).map(member=>`"${member}"`);
-    const memberUnion = allMembers.join(union);
+    const memberUnion =  (await doc.allMembers()).map(member=>`"${member}"`).join(union);
     const memberDeclaration = `${exportType} members = (${memberUnion})[]${terminator}`;
     await fs.writeFile(typeFilePath,memberDeclaration);
 
+    const relations = new Set<string>();
+    const aliases = await doc.aliases();
+    Object.keys(aliases).forEach(key=>{
+        relations.add(key);//add all aliases
+        relations.add(aliases[key]);//add all the predicates that are pointed to by the aliases.
+    });
+
+    const relationsUnion = Array.from(relations).map(relationship=>`"${relationship}"`).join(union);
+    let queryType = `${exportType} queryType = ${relationsUnion}`;
+
+    const rulesUnion = (rules)?Object.keys(rules).map(rKey=>`"${rKey}"`).join(union):'';
+    queryType += (rules)?`${union}${rulesUnion}`:'';
+    await fs.appendFile(typeFilePath,queryType + terminator);
+
     console.log('🚀 => :67 => genTypes => typeFilePath:', typeFilePath);
     console.log('dec: ',memberDeclaration);
-
-    const allRelationships = new Set<string>();
-    const relationships = await doc.aliases();
-    Object.keys(relationships).forEach(key=>{
-        allRelationships.add(key);//add all aliases
-        allRelationships.add(relationships[key]);//add all the predicates that are pointed to by the aliases.
-    });
-    const relationshipArray = [...allRelationships.values()].map(relationship=>`"${relationship}"`);
-    const relationshipUnion = relationshipArray.join(union);
-    let queryType = `${exportType} queryType = ${relationshipUnion}`;
-    
-    if (rules) {
-        const rKeyUnion =  Object.keys(rules).map(rKey=>`"${rKey}"`).join(union);
-        queryType += union + rKeyUnion;
-    }
-    queryType += terminator;
-    await fs.appendFile(typeFilePath,queryType);
     console.log('🚀 => :88 => genTypes => queryUnion:', queryType);
 }
 
