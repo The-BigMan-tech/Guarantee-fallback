@@ -1,5 +1,6 @@
 import ipc from 'node-ipc';
 import chalk from "chalk";
+import path from "path";
 import { JSONRPCClient } from "json-rpc-2.0";
 
 
@@ -55,6 +56,16 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
     if (resolutionErr(resolutionResult.result)) return;
     console.log(chalk.green('\nSuccessfully resolved the document.'));
     return resolutionResult;
+}
+export async function genTypes(doc:Doc,jsonOutputFile:string):Promise<void> {
+    const allMembers = await doc.allMembers();
+    const typeUnion = allMembers.join(' | ');
+    const typeDeclaration = `type members = ${typeUnion};`;
+    const fileName = path.basename(jsonOutputFile,'.json');
+    const typeFile = fileName + '.ts';
+    const typeFilePath = path.join(path.dirname(jsonOutputFile),typeFile);
+    console.log('🚀 => :67 => genTypes => typeFilePath:', typeFilePath);
+    console.log('dec: ',typeDeclaration);
 }
 
 export class Doc {//i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading

@@ -23,7 +23,7 @@
         "lint:src": "eslint \"src/**/*.{ts,tsx,js}\" \"tests/**/*.{ts,tsx,js}\"",
         "lint:watch": "pnpm run watch:src --exec \"pnpm run lint:src\"",
         "lint:fix": "pnpm run lint:src --fix",
-        "resolve:doc":"jiti ./src/examples/resolve.ts"
+        "resolve:doc":"jiti ./src/examples/resolve.ts && jiti ./src/examples/type-gen.ts"
     },
     "files": [
         "dist",
