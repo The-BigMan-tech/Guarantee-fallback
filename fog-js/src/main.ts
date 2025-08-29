@@ -60,8 +60,9 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
     return resolutionResult;
 }
 export async function genTypes<K extends string>(doc:Doc,jsonOutputFile:string,rules?:Record<K,AnyRuleType>):Promise<void> {
+    const union = ' | ';
     const allMembers = (await doc.allMembers()).map(member=>`"${member}"`);
-    const typeUnion = allMembers.join(' | ');
+    const typeUnion = allMembers.join(union);
     const typeDeclaration = `export type members = (${typeUnion})[];`;
     const fileName = path.basename(jsonOutputFile,'.json');
     const typeFile = fileName + '.ts';
@@ -77,9 +78,15 @@ export async function genTypes<K extends string>(doc:Doc,jsonOutputFile:string,r
         allRelationships.add(relationships[key]);//add all the predicates that are pointed to by the aliases.
     });
     const relationshipArray = [...allRelationships.values()].map(relationship=>`"${relationship}"`);
-    const relationshipUnion = relationshipArray.join(' | ');
+    const relationshipUnion = relationshipArray.join(union);
     const relationshipType = `export type relationships = ${relationshipUnion}`;
-    console.log('🚀 => :81 => genTypes => relationshipType:', relationshipType);
+    let rKeyUnion:string = "";
+
+    if (rules) {
+        rKeyUnion =  Object.keys(rules).map(rKey=>`"${rKey}"`).join(union);
+    }
+    const queryUnion = relationshipType + union + rKeyUnion;
+    console.log('🚀 => :88 => genTypes => queryUnion:', queryUnion);
 }
 
 export class Doc {//i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading

@@ -1,6 +1,5 @@
 import { Rule ,RecursiveRule,Check} from "../main.js";
 
-
 interface Rules {
     directFriends:Rule<string[]>,
     indirectFriends:RecursiveRule<[string,string]>,
