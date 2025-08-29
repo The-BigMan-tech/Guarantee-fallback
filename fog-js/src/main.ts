@@ -107,7 +107,7 @@ export class Doc {//i used arrow methods so that i can have these methods as pro
         return await client.request('wildCard',{});//this one can not return a doc error because its a static property thats always available on the server
     };
 }
-type AnyRuleType = Rule<any> | RecursiveRule<any>;
+export type AnyRuleType = Rule<any> | RecursiveRule<any>;
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>Promise<boolean>;
 export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:string[])=>Promise<boolean>;
 

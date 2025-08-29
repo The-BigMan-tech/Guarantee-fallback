@@ -5,7 +5,7 @@
   "bin": {
     "fog": "./dist/bundle-min.js"
   },
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "A TypeScript library project scaffold providing ready-to-use build and debug tooling",
   "scripts": {
     "compile:full": "swc ./src -d build --delete-dir-on-start",

@@ -1,8 +1,8 @@
-import { getFromDocuments } from "./import";
+import { getFromDocuments } from "./import.js";
+import { rules } from "./rules.js";
 
-const doc = await getFromDocuments('./doc.fog');
+const doc = await getFromDocuments('./documents/doc.fog');
 if (!doc) process.exit(0);
 
-const wildCard = await doc.wildCard();
-console.info('Fact:',await doc.isItImplied('friends',['ada',wildCard]));//outputs false because its not a direct fact
-
+doc.useRules(rules);
+doc.printAnswer(await doc.isItImplied!('male',['leo']));//outputs false because its not a direct fact
