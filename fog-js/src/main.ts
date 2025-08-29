@@ -104,14 +104,14 @@ export class Doc<U extends string=string,T extends PatternedAtomList=PatternedAt
     //it will also fallback to direct fact checking if the statement doesnt satisfy any of the given rules making it a good useful utility for querying the document against all known facts and rules with alias support in a single call.Rules will be given priority first over direct fact checking because this method unlike isItAFact is designed for checking with inference.The check mode is used as part of the fallback to fact querying
     public isItImplied:null | ((relationshipQuery:U,statement:T,checkMode:Check)=>Promise<boolean>) = null;
     
-    public useRules(rules:Record<U,AnyRuleType>):void {
+    public useRules<RKey extends string>(rules:Record<RKey,AnyRuleType>):void {
         const rKeys = Object.keys(rules);
         this.isItImplied = async (relationshipQuery,statement,checkMode:Check):Promise<boolean> => {//this is a pattern to query rules with the same interface design as querying a fact
             const aliases = await this.aliases();
             for (const rKey of rKeys) {
                 const queryKey = aliases[relationshipQuery] || relationshipQuery;
                 const forwardKey = aliases[rKey] || rKey;
-                const ruleFucntion = rules[rKey as U];
+                const ruleFucntion = rules[rKey as RKey];
                 if (queryKey === forwardKey) {
                     return await ruleFucntion(this as any,statement,[]);
                 }

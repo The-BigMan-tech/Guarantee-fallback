@@ -5,7 +5,7 @@ interface Rules {
     indirectFriends:RecursiveRule<[string,string]>,
     friends:Rule<[string,string]>,
     siblings:Rule<[string,string]>,
-    brother:Rule<[string,string]>
+    brothers:Rule<[string,string]>
 }
 export const rules:Rules = {//A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
     directFriends:async (doc,statement)=> {
@@ -36,7 +36,7 @@ export const rules:Rules = {//A rule is a function that takes a document and a s
         const commonParent = await doc.intersection([parentsOfX,parentsOfY]);
         return Boolean(commonParent.length);
     },
-    brother:async (doc,statement) => {
+    brothers:async (doc,statement) => {
         const [X,Y] = statement;
         if (X === Y) return false;
         const isXMale = await doc.isItAFact('male',[X],Check.byMembership);
