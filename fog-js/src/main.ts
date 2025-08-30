@@ -63,20 +63,15 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
 export async function genTypes<K extends string>(docName:string,outputFolder:string,doc:Doc,rules?:Record<K,Rule>):Promise<void> {
     const union = ' | ';
     const terminator = ";\n";
-    const exportType = 'export type';
-    const equals = "=";
+    const exportType = (name:string):string=>`export type ${name} =`;
     const arr = (elementType:unknown):string =>`(${elementType})[]`;
 
     const typeFile = docName + '.types.ts';
     const typeFilePath = path.join(outputFolder,typeFile);
     
     const memberUnion =  (await doc.allMembers()).map(member=>`"${member}"`).join(union);
-    const memberDeclaration = `${exportType} members ${equals} ${arr(memberUnion)} ${terminator}`;
-    await fs.writeFile(typeFilePath,memberDeclaration);
-
-    const rulesUnion = (rules)?Object.keys(rules).map(rKey=>`"${rKey}"`).join(union):'';
-    const rulesDeclaration = `${exportType} rulesUnion ${equals} ${rulesUnion}`;
-    if (rules) await fs.appendFile(typeFilePath,rulesDeclaration + terminator);
+    const memberDeclaration = `${exportType('members')} ${arr(memberUnion)}`;
+    await fs.writeFile(typeFilePath,memberDeclaration + terminator);
 
     const relations = new Set<string>();
     Object.entries(await doc.aliases()).forEach(([alias,predicate])=>{
@@ -85,11 +80,14 @@ export async function genTypes<K extends string>(docName:string,outputFolder:str
     });
 
     const relationsUnion = Array.from(relations).map(relationship=>`"${relationship}"`).join(union);
-    let relationsDeclaration = `${exportType} relations ${equals} ${relationsUnion}`;
-    
-    relationsDeclaration += (rules)?(union + rulesUnion):'';
+    const relationsDeclaration = `${exportType('relations')} ${relationsUnion}`;
     await fs.appendFile(typeFilePath,relationsDeclaration + terminator);
 
+    if (rules) {
+        const rulesUnion = (rules)?Object.keys(rules).map(rKey=>`"${rKey}"`).join(union):'';
+        const rulesDeclaration = `${exportType('rulesUnion')} ${rulesUnion}`;
+        await fs.appendFile(typeFilePath,rulesDeclaration + terminator);
+    }
     console.log(chalk.green('Sucessfully generated the types at: '),typeFilePath);
 }
 //this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
