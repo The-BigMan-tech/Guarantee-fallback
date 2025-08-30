@@ -107,7 +107,7 @@ export class Doc<//i used an empty string over the string type for better type s
     //it will also fallback to direct fact checking if the statement doesnt satisfy any of the given rules making it a good useful utility for querying the document against all known facts and rules with alias support in a single call.Rules will be given priority first over direct fact checking because this method unlike isItAFact is designed for checking with inference.The check mode is used as part of the fallback to fact querying
     public isItImplied:(relation:P | R,statement:L)=>Promise<boolean> = async ()=>false;
     
-    public useRules(rules:Record<R,Rule>):void {
+    public useRules(rules:Record<R,Rule<P>>):void {
         const rKeys = Object.keys(rules);
         this.isItImplied = async (relation,statement):Promise<boolean> => {//this is a pattern to query rules with the same interface design as querying a fact
             const aliases = await this.aliases();
