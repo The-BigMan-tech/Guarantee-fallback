@@ -3,7 +3,6 @@ import { LRUCache } from 'lru-cache';
 import { Tuple,validator,UniqueAtomList, UniqueList, Result, NoOutput, mapToObject } from "../utils/utils.js";
 import {stringify} from "safe-stable-stringify";
 import { AtomList,Atom } from "../utils/utils.js";
-import { PatternedAtomList } from "../utils/utils.js";
 import { Rec } from "../utils/utils.js";
 import fs from 'fs/promises';
 import chalk from "chalk";
@@ -34,7 +33,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         return this._allMembers.list;
     }
     //compare the subject array against the target.
-    private compareStatements(subject:PatternedAtomList,target:PatternedAtomList):boolean {
+    private compareStatements(subject:AtomList,target:AtomList):boolean {
         if (target.length === subject.length) {
             for (const [index,targetElement] of target.entries()) {
                 const subjectElement = subject[index];
@@ -54,7 +53,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         }
     }
     //it returns the facts where the members match or false if the input isnt a fact.I made it to yield all the facts that match.Its useful for getting to answer questions like ada is the friend of who? by using null as a placeholder and getting all the facts that provide concrete values on what the placheolder is for those facts 
-    private* findAllFacts(record:Rec,statement:PatternedAtomList,byMembership:boolean):Generator<AtomList | false,void,boolean | undefined>{//the byMembership mode is a different way of checking for fact truthiness by checking if all of the mebers in the statement are also members in a fact.if so,then its true.Its different from the deafult method which compares the statement to the fact by element order which mimics how prolog checks for facts.This way of checking for facts is useful when a fact can have an arbitrary number of atoms and checking if a statmet is a fact by checking the exact order of the elements is too strict that its fragile or even computationally infeasible.like if i were to check if two atoms,X and Y are friends where friends has an arbitarry number of atoms,then checking if they are friends will require me to fill in the gaps at the right positions with wildcards but it wont make sense if a fact has like 10 atoms.so checking if the statement is true by membership is the practical approach.Using the default checker is better for small-medium arity tuples.Another alternative is to reate a fact checking strategy that sorts the elements optionally before comparing and have a helper fill the remainder of the array  with wildcards.but set mebership is the most robust and fastest way of doing this same task.no overhead for sorting or padding needed
+    private* findAllFacts(record:Rec,statement:AtomList,byMembership:boolean):Generator<AtomList | false,void,boolean | undefined>{//the byMembership mode is a different way of checking for fact truthiness by checking if all of the mebers in the statement are also members in a fact.if so,then its true.Its different from the deafult method which compares the statement to the fact by element order which mimics how prolog checks for facts.This way of checking for facts is useful when a fact can have an arbitrary number of atoms and checking if a statmet is a fact by checking the exact order of the elements is too strict that its fragile or even computationally infeasible.like if i were to check if two atoms,X and Y are friends where friends has an arbitarry number of atoms,then checking if they are friends will require me to fill in the gaps at the right positions with wildcards but it wont make sense if a fact has like 10 atoms.so checking if the statement is true by membership is the practical approach.Using the default checker is better for small-medium arity tuples.Another alternative is to reate a fact checking strategy that sorts the elements optionally before comparing and have a helper fill the remainder of the array  with wildcards.but set mebership is the most robust and fastest way of doing this same task.no overhead for sorting or padding needed
         if (!record) return;
         //return early if the members from the input arent even available in the record,saving computation by preventing wasteful checks over all the facts in the record
         if (!this.areMembersInSet(statement,record.members.set)) {
@@ -90,7 +89,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         if (matchedFacts.length===0) yield false;//the reason why this generator yields false is because it has to yield something to indicate that a fact is not is true.
     }
     //this function consumes the whole generator into an array and returns it
-    public consumeAllFacts(record:Rec,statement:PatternedAtomList,byMembership:boolean):AtomList[] {
+    public consumeAllFacts(record:Rec,statement:AtomList,byMembership:boolean):AtomList[] {
         const facts:AtomList[] = [];
         for (const fact of this.findAllFacts(record,statement,byMembership)) {
             if (fact!==false) facts.push(fact);
@@ -98,7 +97,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         return facts;
     }
     //this function only consumes the generator till it reaches N.
-    public findFirstNFacts(num:number,record: Rec,args:PatternedAtomList,byMembership:boolean):AtomList[] {
+    public findFirstNFacts(num:number,record: Rec,args:AtomList,byMembership:boolean):AtomList[] {
         const facts:AtomList[] = [];
         const factsGen = this.findAllFacts(record, args,byMembership);
         for (let i=0;i < num;i++) {
@@ -109,7 +108,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         factsGen.next(true);//send a signal to the generator to save the results to the cache
         return facts;
     }
-    public isItAFact(record: Rec, args:PatternedAtomList,byMembership:boolean):boolean {
+    public isItAFact(record: Rec, args:AtomList,byMembership:boolean):boolean {
         return Boolean(this.findFirstNFacts(1,record,args,byMembership).length);
     }
 
@@ -131,10 +130,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         }
     }
     private isWildCard(arg:unknown):boolean {
-        if (arg === Doc.wildCard) {
-            return true;
-        }
-        return false;
+        return (arg === Doc.wildCard)?true:false;
     }
     //it returns true if all the elements in args are also present in the set and it returns false otherwise
     private areMembersInSet<T>(args:T[],set:Set<T>):boolean {

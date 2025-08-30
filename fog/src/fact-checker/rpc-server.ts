@@ -3,7 +3,7 @@ import ipc from 'node-ipc';
 import { JSONRPCServer } from "json-rpc-2.0";
 import stringify from "safe-stable-stringify";
 import { Doc, importDocFromObject, importDocFromPath } from "./fact-checker.js";
-import { Atom, NoOutput, PatternedAtomList, Result} from "../utils/utils.js";
+import { Atom, AtomList, NoOutput,Result} from "../utils/utils.js";
 import {docOnServer} from "./fact-checker.js";
 import { resolveDocToJson } from "../resolver/resolver.js";
 
@@ -32,17 +32,17 @@ server.addMethod("aliases",()=>{
 server.addMethod('wildCard',()=>{
     return Doc.wildCard;
 });
-server.addMethod("findAllFacts",({predicate,statement,byMembership}:{predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
+server.addMethod("findAllFacts",({predicate,statement,byMembership}:{predicate:string,statement:AtomList,byMembership:boolean})=>{
     if (!docOnServer) return Result.error;
     const result = docOnServer.consumeAllFacts(docOnServer.records[predicate],statement,byMembership);
     return result;
 });
-server.addMethod("findFirstNFacts",({num,predicate,statement,byMembership}:{num:number,predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
+server.addMethod("findFirstNFacts",({num,predicate,statement,byMembership}:{num:number,predicate:string,statement:AtomList,byMembership:boolean})=>{
     if (!docOnServer) return Result.error;
     const result = docOnServer.findFirstNFacts(num,docOnServer.records[predicate],statement,byMembership);
     return result;
 });
-server.addMethod("isItAFact",({predicate,statement,byMembership}:{predicate:string,statement:PatternedAtomList,byMembership:boolean})=>{
+server.addMethod("isItAFact",({predicate,statement,byMembership}:{predicate:string,statement:AtomList,byMembership:boolean})=>{
     if (!docOnServer) return Result.error;
     const result = docOnServer.isItAFact(docOnServer.records[predicate],statement,byMembership);
     return result;

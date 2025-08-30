@@ -43,11 +43,8 @@ const recordSchema = Type.Record(Type.String(), recSchema);
 export const validator = TypeCompiler.Compile(recordSchema);
 type RecType = Static<typeof recSchema>;
 
-
-export type WildCard = symbol;//i placed whatever string will be used as a wildcard behind a symbol to avoid collisions
 export type Atom = string | number;
 export type AtomList = Atom[];
-export type PatternedAtomList = AddUnionToElements<AtomList,WildCard>;
 export type UniqueAtomList = UniqueList<Atom>
 export type Facts = UniqueAtomList[];
 
