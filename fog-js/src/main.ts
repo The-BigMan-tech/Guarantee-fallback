@@ -60,7 +60,7 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
     console.log(chalk.green('\nSuccessfully resolved the document.'));
     return resolutionResult;
 }
-export async function genTypes<K extends string>(docName:string,outputFolder:string,doc:Doc,rules?:Record<K,AnyRuleType>):Promise<void> {
+export async function genTypes<K extends string>(docName:string,outputFolder:string,doc:Doc,rules?:Record<K,Rule>):Promise<void> {
     const union = ' | ';
     const terminator = ";\n";
     const exportType = 'export type';
@@ -93,7 +93,7 @@ export async function genTypes<K extends string>(docName:string,outputFolder:str
     console.log(chalk.green('Sucessfully generated the types at: '),typeFilePath);
 }
 //this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
-export async function setupOutput<K extends string>(srcFilePath:string,outputFolder:string,rules:Record<K,AnyRuleType>):Promise<void> {
+export async function setupOutput<K extends string>(srcFilePath:string,outputFolder:string,rules:Record<K,Rule>):Promise<void> {
     const doc = await importDocFromPath(srcFilePath,outputFolder);
     const docName = path.basename(srcFilePath,path.extname(srcFilePath));
     if (doc) await genTypes(docName,outputFolder,doc,rules);
@@ -102,24 +102,24 @@ export class Doc<U extends string=string,T extends PatternedAtomList=PatternedAt
     //this method allows the user to query for the truthiness of a statement of a rule the same way they do with facts.So that rather than calling methods directly on the rule object,they write the name of the rule they want to check against as they would for fact querying and this method will forward it to the correct rule by key.It also includes aliases allowing users to also query rules with aliases that will still forward to the correct rule even though the rule's name isnt the alias.
     //this is recommended to use for querying rather direct function calls on a rule object but use the rule object to directly build functions or other rules for better type safety and control and use this mainly as a convenience for querying.
     //it will also fallback to direct fact checking if the statement doesnt satisfy any of the given rules making it a good useful utility for querying the document against all known facts and rules with alias support in a single call.Rules will be given priority first over direct fact checking because this method unlike isItAFact is designed for checking with inference.The check mode is used as part of the fallback to fact querying
-    public isItImplied:(relationshipQuery:U,statement:T,checkMode:Check)=>Promise<boolean> = async ()=>false;
+    public isItImplied:(relationshipQuery:U,statement:T)=>Promise<boolean> = async ()=>false;
     
-    public useRules<RKey extends string>(rules:Record<RKey,AnyRuleType>):void {
+    public useRules<K extends string>(rules:Record<K,Rule | RecursiveRule>):void {
         const rKeys = Object.keys(rules);
-        this.isItImplied = async (relationshipQuery,statement,checkMode:Check):Promise<boolean> => {//this is a pattern to query rules with the same interface design as querying a fact
+        this.isItImplied = async (relationshipQuery,statement):Promise<boolean> => {//this is a pattern to query rules with the same interface design as querying a fact
             const aliases = await this.aliases();
             for (const rKey of rKeys) {
                 const queryKey = aliases[relationshipQuery] || relationshipQuery;
                 const forwardKey = aliases[rKey] || rKey;
-                const ruleFucntion = rules[rKey as RKey];
+                const ruleFucntion = rules[rKey as K];
                 if (queryKey === forwardKey) {
                     return await ruleFucntion(this as any,statement,[]);
                 }
             }
-            return this.isItAFact(relationshipQuery,statement,checkMode);
+            return false;
         };
     };
-    public isItAFact = async(predicate:U,statement:T,checkMode:Check):Promise<boolean>=> {
+    public isItStated = async(predicate:U,statement:T,checkMode:Check):Promise<boolean>=> {
         const result:Result.error | boolean = await client.request("isItAFact",{predicate,statement,byMembership:Boolean(checkMode)});
         if (result === Result.error) Doc.throwDocError();
         return result;
@@ -171,9 +171,9 @@ export class Doc<U extends string=string,T extends PatternedAtomList=PatternedAt
         return result;
     };
 }
-export type AnyRuleType = Rule<any> | RecursiveRule<any>;
-export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>Promise<boolean>;
-export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:string[])=>Promise<boolean>;
+export type Rule = ProceduralRule | RecursiveRule;
+export type ProceduralRule<T=any> = (doc:Doc,statement:T)=>Promise<boolean>;
+export type RecursiveRule<T=any> = (doc:Doc,statement:T,visitedCombinations:string[])=>Promise<boolean>;
 
 export type WildCard = string;
 export type Atom = string | number;
