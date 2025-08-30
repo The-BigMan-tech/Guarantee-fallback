@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {Check, Doc, GeneratedCandidates } from "../main.js";
-import { predicates } from "./documents/output/doc.types.js";
-
-type P = predicates;
+import { predicates as P } from "./documents/output/doc.types.js";
 
 export const rules = {//A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
     directFriends:async (doc:Doc<P>,statement:string[])=> {
