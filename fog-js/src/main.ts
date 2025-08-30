@@ -151,8 +151,8 @@ export class Doc<//i used an empty string over the string type for better type s
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public genCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:string[]):Promise<GeneratedCandidates<M>>=>{
-        const result:Result.error | GeneratedCandidates<M> =  await client.request("genCandidates",{howManyToReturn,predicate,inputCombination,visitedCombinations});
+    public genCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:string[]):Promise<GeneratedCandidates<M,N>>=>{
+        const result:Result.error | GeneratedCandidates<M,N> =  await client.request("genCandidates",{howManyToReturn,predicate,inputCombination,visitedCombinations});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
@@ -200,7 +200,10 @@ export interface ResolutionResult {
     result:Result,
     jsonPath:string | NoOutput | undefined,
 }
-export interface GeneratedCandidates<T extends string | number> {
-    candidates:AtomList<T>[],
+export type Tuple<T, N extends number, R extends unknown[] = []> = 
+    R['length'] extends N ? R : Tuple<T, N, [...R, T]>;
+
+export interface GeneratedCandidates<T extends string | number,N extends number> {
+    candidates:Tuple<Atom<T>,N>[],
     checkedCombinations:string[]
 }
