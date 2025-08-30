@@ -105,11 +105,11 @@ export class Doc<//i used an empty string over the string type for better type s
     //this method allows the user to query for the truthiness of a statement of a rule the same way they do with facts.So that rather than calling methods directly on the rule object,they write the name of the rule they want to check against as they would for fact querying and this method will forward it to the correct rule by key.It also includes aliases allowing users to also query rules with aliases that will still forward to the correct rule even though the rule's name isnt the alias.
     //this is recommended to use for querying rather direct function calls on a rule object but use the rule object to directly build functions or other rules for better type safety and control and use this mainly as a convenience for querying.
     //it will also fallback to direct fact checking if the statement doesnt satisfy any of the given rules making it a good useful utility for querying the document against all known facts and rules with alias support in a single call.Rules will be given priority first over direct fact checking because this method unlike isItAFact is designed for checking with inference.The check mode is used as part of the fallback to fact querying
-    public isItImplied:(relation:P | R,statement:L)=>Promise<boolean> = async ()=>false;
+    public isItImplied:(relation:P | R,statement:L,fallback?:FactCheckMode)=>Promise<boolean> = async ()=>false;
     
     public useRules(rules:Record<R,Rule<P>>):void {
         const rKeys = Object.keys(rules);
-        this.isItImplied = async (relation,statement):Promise<boolean> => {//this is a pattern to query rules with the same interface design as querying a fact
+        this.isItImplied = async (relation,statement,fallback?:FactCheckMode):Promise<boolean> => {//this is a pattern to query rules with the same interface design as querying a fact
             const aliases = await this.aliases();
             for (const rKey of rKeys) {
                 const queryKey = aliases[relation] || relation;
@@ -119,11 +119,11 @@ export class Doc<//i used an empty string over the string type for better type s
                     return await ruleFucntion(this as any,statement,[]);
                 }
             }
-            return false;
+            return (fallback!==undefined)?this.isItStated(relation,statement,fallback):false;
         };
     };//the reason why i made this to take the relations query Q instead of predicates P is to have full intellisese of all the possible relations to ask regardless if its for a fact or an implication
-    public isItStated = async(relation:P | R,statement:L,checkMode:Check):Promise<boolean>=> {
-        const result:Result.error | boolean = await client.request("isItAFact",{predicate:relation,statement,byMembership:Boolean(checkMode)});
+    public isItStated = async(relation:P | R,statement:L,checkMode:FactCheckMode):Promise<boolean>=> {
+        const result:Result.error | boolean = await client.request("isItAFact",{predicate:relation,statement,byMembership:checkMode});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
@@ -141,13 +141,13 @@ export class Doc<//i used an empty string over the string type for better type s
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public findAllFacts = async (predicate:P,statement:L,checkMode:Check):Promise<L[]>=>{
-        const result:Result.error | L[] = await client.request("findAllFacts",{predicate,statement,byMembership:Boolean(checkMode)});
+    public findAllFacts = async (predicate:P,statement:L,checkMode:FactCheckMode):Promise<L[]>=>{
+        const result:Result.error | L[] = await client.request("findAllFacts",{predicate,statement,byMembership:checkMode});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public findFirstNFacts = async (num:number,predicate:P,statement:L,checkMode:Check):Promise<L[]>=> {
-        const result:Result.error | L[] = await client.request("findFirstNFacts",{num,predicate,statement,byMembership:Boolean(checkMode)});
+    public findFirstNFacts = async (num:number,predicate:P,statement:L,checkMode:FactCheckMode):Promise<L[]>=> {
+        const result:Result.error | L[] = await client.request("findFirstNFacts",{num,predicate,statement,byMembership:checkMode});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
@@ -181,13 +181,17 @@ export type RecursiveRule<P extends string =''> = (doc:Doc<P>,statement:any,visi
 export type Atom<T extends string | number = string | number> = T;
 export type AtomList<T extends string | number> = Atom<T>[];
 
+const factCheckModes = {
+    Membership:true,
+    ExactMatch:false,
+};
+type FactCheckMode = boolean;
+export const checkBy = factCheckModes;//to be used in the isItStated method
+export const fallbackTo = factCheckModes;//to be used in in the isItImplied method for clarity that the implication check fallbacks to fact checking if the statement isnt explicitly said to be true by a rule.This is more clear than writing check by ... which is because the check mode the caller passes to the implication check doesnt in any way,affect the actual implication process because its explicitly handled by the rules.
+
 export enum Result {
     success='success',
     error='error'
-}
-export enum Check {
-    byMembership=1,
-    byExactMatch=0
 }
 export enum NoOutput {
     value=1//i used a number over a string to get better type safety by distinguishing it from string paths.i used 1 not 0 so that the code doesnt mistakenly treat it as a falsy value
