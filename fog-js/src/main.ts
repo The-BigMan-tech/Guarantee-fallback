@@ -99,7 +99,7 @@ export class Doc<//i used an empty string over the string type for better type s
     P extends string ='',//"Prediactes" or aliases
     R extends string ='',//the union of all the keys in a "Rule"
     M extends Atom = Atom,//these are the "Members" of the document.Its a union type
-    L = AtomList<M>//the "List" of all the members
+    L extends Atom[] = AtomList<M>//the "List" of all the members
     > {
     //i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading    
     //this method allows the user to query for the truthiness of a statement of a rule the same way they do with facts.So that rather than calling methods directly on the rule object,they write the name of the rule they want to check against as they would for fact querying and this method will forward it to the correct rule by key.It also includes aliases allowing users to also query rules with aliases that will still forward to the correct rule even though the rule's name isnt the alias.
@@ -175,8 +175,8 @@ export class Doc<//i used an empty string over the string type for better type s
     }
 }
 export type Rule<P extends string = ''> = ProceduralRule<P> | RecursiveRule<P>;
-export type ProceduralRule<P extends string = '',S extends AtomList<Atom>=any> = (doc:Doc<P>,statement:S)=>Promise<boolean>;
-export type RecursiveRule<P extends string ='',S extends AtomList<Atom>=any> = (doc:Doc<P>,statement:S,visitedCombinations:string[])=>Promise<boolean>;
+export type ProceduralRule<P extends string = ''> = (doc:Doc<P>,statement:any)=>Promise<boolean>;
+export type RecursiveRule<P extends string =''> = (doc:Doc<P>,statement:any,visitedCombinations:string[])=>Promise<boolean>;
 
 export type Atom<T extends string | number = string | number> = T;
 export type AtomList<T extends string | number> = Atom<T>[];
