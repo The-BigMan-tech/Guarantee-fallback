@@ -204,6 +204,6 @@ export type Tuple<T, N extends number, R extends unknown[] = []> =
     R['length'] extends N ? R : Tuple<T, N, [...R, T]>;
 
 export interface GeneratedCandidates<T extends string | number,N extends number> {
-    candidates:Tuple<Atom<T>,N>[],
+    combinations:Tuple<Atom<T>,N>[],
     checkedCombinations:string[]
 }

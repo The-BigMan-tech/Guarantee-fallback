@@ -27,6 +27,7 @@ server.addMethod("allMembers",()=>{
 });
 server.addMethod("aliases",()=>{
     if (!docOnServer) return Result.error;
+    console.log('🚀 => :30 => docOnServer.aliases:', docOnServer.aliases);
     return docOnServer.aliases;
 });
 server.addMethod('wildCard',()=>{
@@ -50,8 +51,8 @@ server.addMethod("isItAFact",({predicate,statement,byMembership}:{predicate:stri
 server.addMethod("genCandidates",({howManyToReturn,predicate,inputCombination,visitedCombinations}:{howManyToReturn: number,predicate:string, inputCombination:Atom[], visitedCombinations:string[]})=>{
     if (!docOnServer) return Result.error;
     const visitedSet = new Set(visitedCombinations);
-    const candidates = [...docOnServer.genCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,visitedSet)];
-    return {candidates,checkedCombinations:Array.from(visitedSet)};
+    const combinations = [...docOnServer.genCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,visitedSet)];
+    return {combinations,checkedCombinations:Array.from(visitedSet)};
 });
 server.addMethod("intersection",({arrays}:{arrays:[]})=>{
     if (!docOnServer) return Result.error;
