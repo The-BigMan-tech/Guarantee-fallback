@@ -41,17 +41,17 @@ function resolutionErr(result:Result):boolean {
  * For the .json file,it directly loads the data onto the server document but for the .fog file,it resolves the document to the provided output folder and loads the data onto the server
  */
 
-export async function importDocFromPath<M extends Atom,P extends string,R extends string>(filePath:string,outputFolder?:string):Promise<Doc<M,P,R> | undefined> {
+export async function importDocFromPath<P extends string,R extends string,M extends Atom>(filePath:string,outputFolder?:string):Promise<Doc<P,R,M> | undefined> {
     const result = await client.request("importDocFromPath",{filePath,outputFolder}) as Result;
     if (resolutionErr(result)) return;
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
-    return new Doc<M,P,R>();
+    return new Doc<P,R,M>();
 }
-export async function importDocFromObject<M extends Atom,P extends string,R extends string>(obj:Record<string,any>):Promise<Doc<M,P,R> | undefined> {
+export async function importDocFromObject<P extends string,R extends string,M extends Atom>(obj:Record<string,any>):Promise<Doc<P,R,M> | undefined> {
     const result = await client.request("importDocFromObject",{obj}) as Result;
     if (resolutionErr(result)) return;
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
-    return new Doc<M,P,R>();
+    return new Doc<P,R,M>();
 }
 //this binding is intended for the lsp to use to get analysis report without affecting the ipc server
 export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult | undefined> {
@@ -60,7 +60,7 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
     console.log(chalk.green('\nSuccessfully resolved the document.'));
     return resolutionResult;
 }
-export async function genTypes<K extends string>(docName:string,outputFolder:string,doc:Doc,rules?:Record<K,Rule>):Promise<void> {
+export async function genTypes<P extends string,R extends string>(docName:string,outputFolder:string,doc:Doc<string,string>,rules?:Record<R,Rule<P>>):Promise<void> {
     const union = ' | ';
     const terminator = ";\n";
     const exportType = (name:string):string=>`export type ${name} =`;
@@ -90,16 +90,16 @@ export async function genTypes<K extends string>(docName:string,outputFolder:str
     console.log(chalk.green('Sucessfully generated the types at: '),typeFilePath);
 }
 //this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
-export async function setupOutput<K extends string>(srcFilePath:string,outputFolder:string,rules:Record<K,Rule>):Promise<void> {
+export async function setupOutput<P extends string,R extends string>(srcFilePath:string,outputFolder:string,rules:Record<R,Rule<P>>):Promise<void> {
     const doc = await importDocFromPath(srcFilePath,outputFolder);
     const docName = path.basename(srcFilePath,path.extname(srcFilePath));
     if (doc) await genTypes(docName,outputFolder,doc,rules);
 }
-export class Doc<
-    M extends Atom = Atom,//these are the Members of the document.Its a uniontype
-    P extends string=string,//these are the Predicates or aliases.
-    R extends string=string,//the union of all the keys in a Rule
-    L =AtomList<M>//the List of all the members
+export class Doc<//i used an empty string over the string type for better type safety by preventing the generics from mathcing every string by default
+    P extends string ='',//"Prediactes" or aliases
+    R extends string ='',//the union of all the keys in a "Rule"
+    M extends Atom = Atom,//these are the "Members" of the document.Its a union type
+    L = AtomList<M>//the "List" of all the members
     > {
     //i used arrow methods so that i can have these methods as properties on the object rather than methods.this will allow for patterns like spreading    
     //this method allows the user to query for the truthiness of a statement of a rule the same way they do with facts.So that rather than calling methods directly on the rule object,they write the name of the rule they want to check against as they would for fact querying and this method will forward it to the correct rule by key.It also includes aliases allowing users to also query rules with aliases that will still forward to the correct rule even though the rule's name isnt the alias.
@@ -174,9 +174,9 @@ export class Doc<
         throw new Error(chalk.red('The fact checker was unable to load to the document.'));
     }
 }
-export type Rule = ProceduralRule | RecursiveRule;
-export type ProceduralRule<T extends AtomList<Atom>=any> = (doc:Doc,statement:T)=>Promise<boolean>;
-export type RecursiveRule<T extends AtomList<Atom>=any> = (doc:Doc,statement:T,visitedCombinations:string[])=>Promise<boolean>;
+export type Rule<P extends string = ''> = ProceduralRule<P> | RecursiveRule<P>;
+export type ProceduralRule<P extends string = '',S extends AtomList<Atom>=any> = (doc:Doc<P>,statement:S)=>Promise<boolean>;
+export type RecursiveRule<P extends string ='',S extends AtomList<Atom>=any> = (doc:Doc<P>,statement:S,visitedCombinations:string[])=>Promise<boolean>;
 
 export type Atom<T extends string | number = string | number> = T;
 export type AtomList<T extends string | number> = Atom<T>[];
