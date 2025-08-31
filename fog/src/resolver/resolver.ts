@@ -635,24 +635,25 @@ function getOutputPathNoExt(srcFilePath:string,outputFolder?:string | NoOutput) 
     const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided
     return path.join(outputPath,filePathNoExt);
 }
-async function accessOutputFolder(outputFilePath:string):Promise<void> {
+async function accessOutputFolder(outputFilePath:string):Promise<boolean> {
     const outputFolder = path.dirname(outputFilePath);
     try {
         await fs.access(outputFolder);
+        return true;
     }catch {
         console.info(chalk.yellow(`The output folder is the absent.Creating the dir: `) +  outputFolder + '\n');
-        await fs.mkdir(outputFolder);
+        return false;
     };
 }
 async function setUpLogs(outputFilePath:string) {
-    await accessOutputFolder(outputFilePath);
+    if (!await accessOutputFolder(outputFilePath)) await fs.mkdir(outputFilePath);
     const logPath = outputFilePath + '.ansi';
     Resolver.logFile = logPath;
     Resolver.logs = [];
     await fs.writeFile(Resolver.logFile, 'THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.\n\n');
 }
 async function writeToOutput(outputFilePath:string,jsonInput:string):Promise<string> {
-    await accessOutputFolder(outputFilePath);
+    if (!await accessOutputFolder(outputFilePath)) await fs.mkdir(outputFilePath);
     const jsonPath = outputFilePath + ".json";
     await fs.writeFile(jsonPath, jsonInput);
     const messages = [`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`,`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`];
