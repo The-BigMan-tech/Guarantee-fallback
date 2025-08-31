@@ -1,6 +1,6 @@
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
-import { Tuple,validator,UniqueAtomList, UniqueList, Result, NoOutput, mapToObject } from "../utils/utils.js";
+import { Tuple,validator,UniqueAtomList, UniqueList, Result, NoOutput, FullData } from "../utils/utils.js";
 import {stringify} from "safe-stable-stringify";
 import { AtomList,Atom } from "../utils/utils.js";
 import { Rec } from "../utils/utils.js";
@@ -23,12 +23,9 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
     public static wildCard = uniqueID();//by using a unique id over the string '*', will prevent collisions with atoms during fact checking.
     private static factCheckerCache = new LRUCache<string,string>({max:100});//so even if the client runs multiple times,they will still be using cached data.and to ensure this i made the cache static so that it doesnt get wiped on recreation of the doc class due to repeated imports from re-execution of client scripts
 
-    public constructor(records:Record<string,Rec>,aliases:Map<string,string>,predicates:string[]) {
+    public constructor(records:Record<string,Rec>,predicates:Record<string,string>) {
         //i merged all the aliases and predicates into a single record object for a stanadlone and complete transfer of all relation data--either predicates or aliases
-        this.predicates = mapToObject(aliases);
-        for (const predicate of predicates) {
-            this.predicates[predicate] = predicate;
-        }
+        this.predicates = predicates;
         Object.keys(records).forEach(key=>{
             this.records[key] = new Rec(records[key].facts);//rebuild the rec since some internal structures arent serializable.I didnt preserve recID since they are just for caching and not lookups so change here is fine
             this.records[key].members.list.map(member=>this._allMembers.add(member));
@@ -183,27 +180,29 @@ type Path = string;
 
 async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
     const providedPath = typeof json === "string";
-    let records:Record<string,Rec>;
+    let fullData:FullData;
     let jsonString:string;
+
     if (providedPath) {
         jsonString = await fs.readFile(json, 'utf8');
-        records = JSON.parse(jsonString);
+        fullData = JSON.parse(jsonString);
     }else {
         jsonString = stringify(json);
-        records = json;
+        fullData = json as FullData;
     }
-    const isValid = validator.Check(records);
+    
+    const isValid = validator.Check(fullData);
     if (!isValid) {
         const errors = [...validator.Errors(jsonString)].map(({ path, message }) => ({ path, message }));
         console.error(chalk.red('Validation error in the json file:'), errors);
         return Result.error;//to prevent corruption
     }
     if (providedPath) {
-        console.info(lime('Successfully loaded the document from the path:'),jsonString,'\n');
+        console.info(lime('Successfully loaded the document from the path:'),json,'\n');
     }else {
         console.info(lime('Successfully loaded the document from the json object'));
     }
-    docOnServer = new Doc(records,Resolver.aliases,Resolver.predicates);
+    docOnServer = new Doc(fullData.records,fullData.predicates);
     return Result.success;
 }
 export async function importDocFromObject(json:Record<string,any>):Promise<Result> {

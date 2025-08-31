@@ -40,7 +40,19 @@ const recSchema = Type.Object({
 });
 
 const recordSchema = Type.Record(Type.String(), recSchema);
-export const validator = TypeCompiler.Compile(recordSchema);
+const predicateSchema = Type.Record(Type.String(),Type.String());
+
+const fullSchema = Type.Object({
+    predicates:predicateSchema,
+    records:recordSchema
+});
+
+export const validator = TypeCompiler.Compile(fullSchema);
+
+export interface FullData {
+    predicates:Record<string,string>,
+    records:Record<string,Rec>
+}
 type RecType = Static<typeof recSchema>;
 
 export type Atom = string | number;
