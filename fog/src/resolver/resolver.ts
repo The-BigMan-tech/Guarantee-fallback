@@ -53,11 +53,11 @@ class Essentials {
         
         const messages = [title,`\n${msg}`,];
         if (!checkLines) {
-            messages.push(lime('\nCheck'),darkGreen('->'));
+            messages.push(chalk.green('\nCheck'),darkGreen('->'));
             pushLine(lineCount);
         }
         else{
-            messages.push(lime.underline('\n\nCheck these lines:\n'));
+            messages.push(chalk.green.underline('\n\nCheck these lines:\n'));
             for (const line of checkLines) {
                 messages.push(chalk.gray(`${line+1}.`));//for 1-based line counting for the logs
                 pushLine(line);
@@ -635,25 +635,24 @@ function getOutputPathNoExt(srcFilePath:string,outputFolder?:string | NoOutput) 
     const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided
     return path.join(outputPath,filePathNoExt);
 }
-async function accessOutputFolder(outputFilePath:string):Promise<boolean> {
+async function accessOutputFolder(outputFilePath:string):Promise<void> {
     const outputFolder = path.dirname(outputFilePath);
     try {
-        await fs.access(outputFolder);
-        return true;
+        await fs.access(outputFolder);   
     }catch {
         console.info(chalk.yellow(`The output folder is the absent.Creating the dir: `) +  outputFolder + '\n');
-        return false;
+        await fs.mkdir(outputFolder);
     };
 }
 async function setUpLogs(outputFilePath:string) {
-    if (!await accessOutputFolder(outputFilePath)) await fs.mkdir(outputFilePath);
+    await accessOutputFolder(outputFilePath);
     const logPath = outputFilePath + '.ansi';
     Resolver.logFile = logPath;
     Resolver.logs = [];
     await fs.writeFile(Resolver.logFile, 'THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.\n\n');
 }
 async function writeToOutput(outputFilePath:string,jsonInput:string):Promise<string> {
-    if (!await accessOutputFolder(outputFilePath)) await fs.mkdir(outputFilePath);
+    await accessOutputFolder(outputFilePath);
     const jsonPath = outputFilePath + ".json";
     await fs.writeFile(jsonPath, jsonInput);
     const messages = [`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`,`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`];
