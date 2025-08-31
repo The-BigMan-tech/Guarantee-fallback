@@ -73,7 +73,7 @@ export async function genTypes<P extends string,R extends string>(docName:string
     await fs.writeFile(typeFilePath,memberDeclaration + terminator);
 
     const predicates = new Set<string>();
-    Object.entries(await doc.aliases()).forEach(([alias,predicate])=>{
+    Object.entries(await doc.predicates()).forEach(([alias,predicate])=>{
         predicates.add(alias);
         predicates.add(predicate);
     });
@@ -110,10 +110,10 @@ export class Doc<//i used an empty string over the string type for better type s
     public useRules(rules:Record<R,Rule<P>>):void {
         const rKeys = Object.keys(rules);
         this.isItImplied = async (relation,statement,fallback?:FactCheckMode):Promise<boolean> => {//this is a pattern to query rules with the same interface design as querying a fact
-            const aliases = await this.aliases();
+            const predicates = await this.predicates();
             for (const rKey of rKeys) {
-                const queryKey = aliases[relation] || relation;
-                const forwardKey = aliases[rKey] || rKey;
+                const queryKey = predicates[relation] || relation;
+                const forwardKey = predicates[rKey] || rKey;
                 const ruleFucntion = rules[rKey as R];
                 if (queryKey === forwardKey) {
                     return await ruleFucntion(this as any,statement,[]);
@@ -136,8 +136,8 @@ export class Doc<//i used an empty string over the string type for better type s
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public aliases = async ():Promise<Record<string,string>>=>{
-        const result:Result.error | Record<string,string> = await client.request('aliases',{});
+    public predicates = async ():Promise<Record<string,string>>=>{
+        const result:Result.error | Record<string,string> = await client.request('predicates',{});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };

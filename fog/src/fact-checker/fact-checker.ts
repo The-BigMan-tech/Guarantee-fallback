@@ -18,15 +18,16 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
     private _allMembers:UniqueAtomList = new UniqueList();//this is used by the binding to generate the types of the memebers.this will help catch subtle typos during querying.
     public records:Record<string,Rec> = {};
 
-    public aliases:Record<string,string>;
+    public predicates:Record<string,string> = {};
 
     public static wildCard = uniqueID();//by using a unique id over the string '*', will prevent collisions with atoms during fact checking.
     private static factCheckerCache = new LRUCache<string,string>({max:100});//so even if the client runs multiple times,they will still be using cached data.and to ensure this i made the cache static so that it doesnt get wiped on recreation of the doc class due to repeated imports from re-execution of client scripts
 
-    public constructor(records:Record<string,Rec>,aliases:typeof this.aliases | null,predicates:string[]) {
-        this.aliases = aliases || {};
+    public constructor(records:Record<string,Rec>,aliases:Map<string,string>,predicates:string[]) {
+        //i merged all the aliases and predicates into a single record object for a stanadlone and complete transfer of all relation data--either predicates or aliases
+        this.predicates = mapToObject(aliases);
         for (const predicate of predicates) {
-            this.aliases[predicate] = predicate;
+            this.predicates[predicate] = predicate;
         }
         Object.keys(records).forEach(key=>{
             this.records[key] = new Rec(records[key].facts);//rebuild the rec since some internal structures arent serializable.I didnt preserve recID since they are just for caching and not lookups so change here is fine
@@ -201,7 +202,7 @@ async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
     }else {
         console.info(lime('Successfully loaded the document from the json object'));
     }
-    docOnServer = new Doc(records,mapToObject(Resolver.aliases),Resolver.predicates);
+    docOnServer = new Doc(records,Resolver.aliases,Resolver.predicates);
     return Result.success;
 }
 export async function importDocFromObject(json:Record<string,any>):Promise<Result> {

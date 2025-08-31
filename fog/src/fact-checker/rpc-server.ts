@@ -25,10 +25,10 @@ server.addMethod("allMembers",()=>{
     if (!docOnServer) return Result.error;
     return docOnServer.allMembers;
 });
-server.addMethod("aliases",()=>{
+server.addMethod("predicates",()=>{
     if (!docOnServer) return Result.error;
-    console.log('🚀 => :30 => docOnServer.aliases:', docOnServer.aliases);
-    return docOnServer.aliases;
+    console.log('🚀 => :30 => docOnServer.aliases:', docOnServer.predicates);
+    return docOnServer.predicates;
 });
 server.addMethod('wildCard',()=>{
     return Doc.wildCard;
