@@ -454,7 +454,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
     private resolveAlias(tokens:Token[]) {
         let alias = '';
-        let predicate = '';
+        let predicate:string | null = null;
         
         tokens.forEach(token=>{
             const text = token.text!;
@@ -465,14 +465,16 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
             else if (type === DSLLexer.PREDICATE) {
                 predicate = this.stripMark(text);
-                if (!this.records[predicate]) this.records[predicate] = new Rec([]);
+                if (!this.records[predicate]) this.records[predicate] = new Rec([]);//this creates a record for the predicates if it doesnt have one which happens when it wasnt used elsewhere prior to the alias declaration
             }
             else if ((type === DSLLexer.TERMINATOR)) {
                 if (text.endsWith('\n')) this.targetLineCount += 1;//increment the count at every new line created at the end of the sentence
             }
         });
-        //
-        if (!this.records[predicate]) this.records[alias] = new Rec([]);//the fallback is for when aliases are declared using the shorthand where the predicate isnt inlined with the declaration.The shorthand is for invalidating predicates
+        //i intially made it to point to the predicate record in memory if it existed,but after moving to json outputs,it led to duplicate entries that only increased the final document size for every alias.so i prevented it from pointing to the predicate record if it existed
+        this.records[alias] = new Rec([]);
+
+        //the fallback is for when there is no predicate provided to point to in the alias declaration.its used as a shorthand where the alias points to the predicate of the same name.its a pettern to invalidate the use of those predicates for better safety.
         this.aliases.set(alias,predicate || alias);
         this.seenAlias = true;
         if (this.builtAFact) {
@@ -526,6 +528,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 this.validatePredicateType(token);
                 predicate = this.stripMark(text);
                 this.predicateForLog = predicate;
+                if (type===DSLLexer.PREDICATE) this.predicates.set(predicate,predicate);//this is entirely for type generation support on the client side
             }
         });
         if (predicate === null) {
@@ -536,8 +539,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private buildFact(tokens:Token[]) {
         const predicate = this.getPredicate(tokens);
         if (predicate === null) return;
-        this.predicates.set(predicate,predicate);//this is entirely for type generation support on the client side
-
+    
         const tokenQueue = new Denque(tokens);
         const groupedData = this.inspectRelevantTokens(tokenQueue,false);
         if (Resolver.terminate) return;
@@ -551,7 +553,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             if (!this.records[predicate]) {
                 this.records[predicate] = new Rec([]);
             }
-            this.records[predicate].add(fact);
+            if (this.predicates.has(predicate)) {//locking the addition of facts to a record ensures that they are only added for predicates which are unique and not for aliases.because if so,aliases will just be duplicates of their predicates counterpart leading to a larger document size.
+                this.records[predicate].add(fact);
+            }
         }
         this.builtAFact = true;
     }
