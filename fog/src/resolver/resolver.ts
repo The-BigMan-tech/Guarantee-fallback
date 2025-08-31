@@ -685,7 +685,7 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
             let jsonPath:string | NoOutput = NoOutput.value;
             if (produceOutput) {
                 let predicateRecord:Record<string,string> = {};
-                resolvedData.predicates.forEach(predicate=>(predicateRecord[predicate] = predicate));
+                resolvedData.predicates.forEach(predicate=>{predicateRecord[predicate] = predicate;});
                 predicateRecord = {...predicateRecord,...mapToObject(resolvedData.aliases)};
 
                 const fullData:FullData = {predicates:predicateRecord,records:resolvedData.records};
