@@ -61,13 +61,13 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
     return resolutionResult;
 }
 export async function genTypes<P extends string,R extends string>(docName:string,outputFolder:string,doc:Doc<string,string>,rules?:Record<R,Rule<P>>):Promise<void> {
-    const exportType = (name:string):string=>`export type ${name} =`;
+    const exportType = (declaration:string):string =>`export ${declaration}`;
+    const declareType = (name:string):string =>`type ${name} =`;
+    const kvPair = (key:string,value:string):string =>`${key}:${value}`;
 
-    const kvPair = (key:string,value:string):string=>`${key}:${value}`;
-
-    const interfaceType = (name:string,pairs:string[],indentation:number):string =>{
+    const declareInterface = (name:string,pairs:string[],indentation:number):string =>{
         const indentedPairs = pairs.map(pair=>pair.padStart(pair.length + indentation,' '));
-        return `export interface ${name} {\n${indentedPairs.join(',\n')}\n}`;
+        return `interface ${name} {\n${indentedPairs.join(',\n')}\n}`;
     };
 
     const union = ' | ';
@@ -79,7 +79,7 @@ export async function genTypes<P extends string,R extends string>(docName:string
     const [predicatesType,membersType,keyofRulesType] = ['predicates','members','keyofRules'];
 
     const memberUnion =  (await doc.allMembers()).map(member=>`"${member}"`).join(union);
-    const memberDeclaration = `${exportType(membersType)} ${memberUnion}`;
+    const memberDeclaration = exportType(`${declareType(membersType)} ${memberUnion}`);
     await fs.writeFile(typeFilePath,memberDeclaration + terminator);
 
     const predicates = new Set<string>();
@@ -89,12 +89,12 @@ export async function genTypes<P extends string,R extends string>(docName:string
     });
 
     const predicatesUnion = Array.from(predicates).map(predicate=>`"${predicate}"`).join(union);
-    const predicatesDeclaration = `${exportType(predicatesType)} ${predicatesUnion}`;
+    const predicatesDeclaration = exportType(`${declareType(predicatesType)} ${predicatesUnion}`);
     await fs.appendFile(typeFilePath,predicatesDeclaration + terminator);
 
     if (rules) {
         const rulesUnion = (rules)?Object.keys(rules).map(rKey=>`"${rKey}"`).join(union):'';
-        const rulesDeclaration = `${exportType(keyofRulesType)} ${rulesUnion}`;
+        const rulesDeclaration = exportType(`${declareType(keyofRulesType)} ${rulesUnion}`);
         await fs.appendFile(typeFilePath,rulesDeclaration + terminator);
     }
     const kvPairs = [
@@ -102,7 +102,7 @@ export async function genTypes<P extends string,R extends string>(docName:string
         kvPair(membersType,membersType)
     ];
     if (rules) kvPairs.push(kvPair(keyofRulesType,keyofRulesType));
-    const infoInterface = interfaceType('info',kvPairs,4);
+    const infoInterface = exportType(declareInterface('info',kvPairs,4));
     await fs.appendFile(typeFilePath,infoInterface + terminator);
 
     console.log(chalk.green('Sucessfully generated the types at: '),typeFilePath);
@@ -212,7 +212,7 @@ export type FactCheckMode = boolean;
 export const checkBy = factCheckModes;//to be used in the isItStated method
 export const fallbackTo = factCheckModes;//to be used in in the isItImplied method for clarity that the implication check fallbacks to fact checking if the statement isnt explicitly said to be true by a rule.This is more clear than writing check by ... which is because the check mode the caller passes to the implication check doesnt in any way,affect the actual implication process because its explicitly handled by the rules.
 
-export enum Result {
+enum Result {
     success='success',
     error='error'
 }
