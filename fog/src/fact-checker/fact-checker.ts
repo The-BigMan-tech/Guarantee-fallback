@@ -19,11 +19,15 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
     public records:Record<string,Rec> = {};
 
     public aliases:Record<string,string>;
+
     public static wildCard = uniqueID();//by using a unique id over the string '*', will prevent collisions with atoms during fact checking.
     private static factCheckerCache = new LRUCache<string,string>({max:100});//so even if the client runs multiple times,they will still be using cached data.and to ensure this i made the cache static so that it doesnt get wiped on recreation of the doc class due to repeated imports from re-execution of client scripts
 
-    public constructor(records:Record<string,Rec>,aliases:typeof this.aliases | null) {
+    public constructor(records:Record<string,Rec>,aliases:typeof this.aliases | null,predicates:string[]) {
         this.aliases = aliases || {};
+        for (const predicate of predicates) {
+            this.aliases[predicate] = predicate;
+        }
         Object.keys(records).forEach(key=>{
             this.records[key] = new Rec(records[key].facts);//rebuild the rec since some internal structures arent serializable.I didnt preserve recID since they are just for caching and not lookups so change here is fine
             this.records[key].members.list.map(member=>this._allMembers.add(member));
@@ -197,7 +201,7 @@ async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
     }else {
         console.info(lime('Successfully loaded the document from the json object'));
     }
-    docOnServer = new Doc(records,mapToObject(Resolver.aliases));
+    docOnServer = new Doc(records,mapToObject(Resolver.aliases),Resolver.predicates);
     return Result.success;
 }
 export async function importDocFromObject(json:Record<string,any>):Promise<Result> {

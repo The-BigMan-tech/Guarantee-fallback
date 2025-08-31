@@ -529,6 +529,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
         return predicate;
     }
+    public static predicates:string[] = [];
 
     private expandedFacts:AtomList[] | null = null;
     private builtAFact:boolean = false;
@@ -536,6 +537,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private buildFact(tokens:Token[]) {
         const predicate = this.getPredicate(tokens);
         if (predicate === null) return;
+        Resolver.predicates.push(predicate);
+
         const tokenQueue = new Denque(tokens);
         const groupedData = this.inspectRelevantTokens(tokenQueue,false);
         if (Resolver.terminate) return;
@@ -624,6 +627,7 @@ async function genStructures(input:string):Promise<Record<string,Rec> | undefine
 }
 function clearStaticVariables() {
     Resolver.aliases.clear();
+    Resolver.predicates.length = 0;
     Resolver.terminate = false;//reset it for subsequent analyzing
     Resolver.inputArr.length = 0;
     Resolver.logs = null;

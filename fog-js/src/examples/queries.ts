@@ -8,6 +8,7 @@ import { checkBy, fallbackTo, importDocFromObject, Tuple } from "../main.js";
 const doc = await importDocFromObject<P,R,M>(resolvedDoc);
 if (!doc) process.exit(0);
 
+console.log('Aliases: ',await doc.aliases());
 doc.useRules(rules);//using the generated rules union will inform you when you have made changes to the rules structure which will be a reminder to regenerate the output
 const answer = await doc.isItImplied('allies',["Billy","John"]);
 doc.printAnswer(answer);
@@ -16,15 +17,19 @@ const wildCard = await doc.wildCard();
 console.log(await doc.findAllFacts('allies',["Cole",wildCard],checkBy.Membership));
 
 //Do not use this in recursive functions.its meant to be used procedurally.directly use the generateCandidates method for recursive methods and provide the input and checked combinations to it so as to prevent cycles.
-const runWithCandidates = async <N extends number>(num:N,predicate:P,func:(...args:Tuple<M,N>)=>Promise<any>):Promise<void> =>{
+const runWithCandidates = async <N extends number>(predicate:P,num:N,func:(...args:Tuple<M,N>)=>Promise<any>):Promise<void> =>{
     const {combinations} = await doc.genCandidates(num,predicate,[],[]);//i passed empty arrays as the combinations because this is not done recurrisvely
     for (const combination of combinations) {
         await func(...combination);
     }
 };
-await runWithCandidates(2,"friends",async (A,B)=>{
-    if (await doc.isItImplied('allies',[A,B])) {
-        console.log('allies: ',A,B);
+const rec = await doc.selectSmallestRecord(["male","parent",""]);
+await runWithCandidates(rec,2,async (A)=>{
+    if (await doc.isItStated('parent',['Susan',A],checkBy.ExactMatch)) {
+        console.log(A);
+        if (await doc.isItStated('male',[A],checkBy.Membership)) {
+            
+        }
     }
     return;
 });
