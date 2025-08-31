@@ -24,15 +24,9 @@ const runWithCandidates = async <N extends number>(predicate:P,num:N,func:(...ar
         await func(...combination);
     }
 };
-const rec = await doc.selectSmallestRecord(["male","parent","female"]);
-console.log('🚀 => :27 => rec:', rec);
-await runWithCandidates("female",2,async (A)=>{
-    console.log(A);
+await runWithCandidates("female",3,async (A)=>{
     if (await doc.isItStated('parent',['Susan',A],checkBy.ExactMatch)) {
-        
-        if (await doc.isItStated('male',[A],checkBy.Membership)) {
-            
-        }
+        console.log(A);
     }
     return;
 });
