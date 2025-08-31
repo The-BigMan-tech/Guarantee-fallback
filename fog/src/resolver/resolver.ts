@@ -465,20 +465,18 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
             else if (type === DSLLexer.PREDICATE) {
                 predicate = this.stripMark(text);
+                this.predicates.set(predicate,predicate);
                 if (!this.records[predicate]) this.records[predicate] = new Rec([]);//this creates a record for the predicates if it doesnt have one which happens when it wasnt used elsewhere prior to the alias declaration
             }
             else if ((type === DSLLexer.TERMINATOR)) {
                 if (text.endsWith('\n')) this.targetLineCount += 1;//increment the count at every new line created at the end of the sentence
             }
         });
-        //i intially made it to point to the predicate record in memory if it existed,but after moving to json outputs,it led to duplicate entries that only increased the final document size for every alias.so i prevented it from pointing to the predicate record if it existed
+        //i intially made it to point to the predicate record in memory if it existed,but after moving to json outputs,it led to duplicate entries that only increased the final document size for every alias.so i prevented it from pointing to the predicate record if it existed and had it its own unique but empty record.
         this.records[alias] = new Rec([]);
-
-        //the fallback is for when there is no predicate provided to point to in the alias declaration.its used as a shorthand where the alias points to the predicate of the same name.its a pettern to invalidate the use of those predicates for better safety.
-        this.aliases.set(alias,predicate || alias);
-        if (predicate) this.predicates.set(predicate,predicate);
-
+        this.aliases.set(alias,predicate || alias);//the fallback is for when there is no predicate provided to point to in the alias declaration.its used as a shorthand where the alias points to the predicate of the same name.its a pettern to invalidate the use of those predicates for better safety.
         this.seenAlias = true;
+
         if (this.builtAFact) {
             Essentials.report(DslError.DoubleCheck,this.lineCount,`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors sooner.`);
         }
