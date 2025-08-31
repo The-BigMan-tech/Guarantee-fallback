@@ -62,10 +62,11 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
 }
 export async function genTypes<P extends string,R extends string>(docName:string,outputFolder:string,doc:Doc<string,string>,rules?:Record<R,Rule<P>>):Promise<void> {
     const exportType = (name:string):string=>`export type ${name} =`;
-    const kvPair = (key:string,value:string):string=>`\n${key}:${value}\n`;
-    const interfaceType = (name:string,pairs:string[]):string =>`
-        interface ${name} {${pairs.join('')}}
-    `;
+    const kvPair = (key:string,value:string):string=>`${key}:${value}`;
+    const interfaceType = (name:string,pairs:string[],indentation:number):string =>{
+        const indentedPairs = pairs.map(pair=>pair.padStart(pair.length + indentation,' '));
+        return `export interface ${name} {\n${indentedPairs.join(',\n')}\n}`;
+    };
     const union = ' | ';
     const terminator = ";\n";
 
@@ -97,8 +98,9 @@ export async function genTypes<P extends string,R extends string>(docName:string
         kvPair(predicatesType,predicatesType),
         kvPair(keyofRulesType,keyofRulesType),
         kvPair(membersType,membersType)
-    ]);
-    console.log('🚀 => :101 => genTypes => info:', info);
+    ],4);
+    console.log('🚀 => :101 => genTypes => info:',);
+    console.log(info);
     console.log(chalk.green('Sucessfully generated the types at: '),typeFilePath);
 }
 //this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
