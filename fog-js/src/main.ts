@@ -177,7 +177,7 @@ export class Doc<//i used an empty string over the string type for better type s
 interface Info {
     predicates:string,
     keyofRules:string,
-    members:string,
+    members:Atom,
 }
 export type Rule<P extends string = ''> = ProceduralRule<P> | RecursiveRule<P>;
 export type ProceduralRule<P extends string = ''> = (doc:Doc<P>,statement:any)=>Promise<boolean>;
