@@ -27,7 +27,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         //i merged all the aliases and predicates into a single record object for a stanadlone and complete transfer of all relation data--either predicates or aliases
         this.predicates = predicates;
         Object.keys(records).forEach(key=>{
-            this.records[key] = new Rec(records[key].facts);//rebuild the rec since some internal structures arent serializable.I didnt preserve recID since they are just for caching and not lookups so change here is fine
+            this.records[key] = new Rec(records[key].facts);//rebuild the rec since some internal structures arent serializable.
             this.records[key].members.list.map(member=>this._allMembers.add(member));
         });
     }
@@ -190,10 +190,10 @@ async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
         jsonString = stringify(json);
         fullData = json as FullData;
     }
-    
+
     const isValid = validator.Check(fullData);
     if (!isValid) {
-        const errors = [...validator.Errors(jsonString)].map(({ path, message }) => ({ path, message }));
+        const errors = [...validator.Errors(fullData)].map(({ path, message }) => ({ path, message }));
         console.error(chalk.red('Validation error in the json file:'), errors);
         return Result.error;//to prevent corruption
     }

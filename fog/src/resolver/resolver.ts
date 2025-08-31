@@ -660,7 +660,7 @@ async function writeToOutput(outputFilePath:string,jsonInput:string):Promise<str
     return jsonPath;
 }
 function omitJsonKeys(key:string,value:any) {
-    if ((key === "set") ||  (key === "indexMap")) {
+    if ((key === "set") || (key === "indexMap") || (key === "recID")) {//I didnt preserve recID because they are just for caching and not lookups.New ones can be reliably generated at runtime for caching.
         return undefined; // exclude 'password'
     }
     return value; // include everything else
