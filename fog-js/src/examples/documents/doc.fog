@@ -1,5 +1,6 @@
 alias friends.
 alias friend = *friends.
+alias allies = *friends.
 
 alias mother = *parent.
 alias father = *parent.
@@ -17,4 +18,5 @@ alias males = *male.
 
 :Susan is the #mother of :Matt.
 :Susan is the #mother of :Philip.
-:Susan is the #mother of :Mandy.
+<She> is the #mother of :Mandy.
+<ref:1> *has 9 :shoes.
