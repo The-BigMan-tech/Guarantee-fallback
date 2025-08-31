@@ -41,13 +41,13 @@ function resolutionErr(result:Result):boolean {
  * For the .json file,it directly loads the data onto the server document but for the .fog file,it resolves the document to the provided output folder and loads the data onto the server
  */
 
-export async function importDocFromPath<P extends string,R extends string,M extends Atom>(filePath:string,outputFolder?:string):Promise<Doc<P,R,M> | undefined> {
+export async function importDocFromPath<I extends Info,P extends string=I['predicates'],R extends string=I['keyofRules'],M extends Atom=I['members']>(filePath:string,outputFolder?:string):Promise<Doc<P,R,M> | undefined> {
     const result = await client.request("importDocFromPath",{filePath,outputFolder}) as Result;
     if (resolutionErr(result)) return;
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
     return new Doc<P,R,M>();
 }
-export async function importDocFromObject<P extends string,R extends string,M extends Atom>(obj:Record<string,any>):Promise<Doc<P,R,M> | undefined> {
+export async function importDocFromObject<I extends Info,P extends string=I['predicates'],R extends string=I['keyofRules'],M extends Atom=I['members']>(obj:Record<string,any>):Promise<Doc<P,R,M> | undefined> {
     const result = await client.request("importDocFromObject",{obj}) as Result;
     if (resolutionErr(result)) return;
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
@@ -174,6 +174,11 @@ export class Doc<//i used an empty string over the string type for better type s
         throw new Error(chalk.red('The fact checker was unable to load to the document.'));
     }
 }
+interface Info {
+    predicates:string,
+    keyofRules:string,
+    members:string,
+}
 export type Rule<P extends string = ''> = ProceduralRule<P> | RecursiveRule<P>;
 export type ProceduralRule<P extends string = ''> = (doc:Doc<P>,statement:any)=>Promise<boolean>;
 export type RecursiveRule<P extends string =''> = (doc:Doc<P>,statement:any,visitedCombinations:string[])=>Promise<boolean>;
@@ -185,7 +190,7 @@ const factCheckModes = {
     Membership:true,
     ExactMatch:false,
 };
-type FactCheckMode = boolean;
+export type FactCheckMode = boolean;
 export const checkBy = factCheckModes;//to be used in the isItStated method
 export const fallbackTo = factCheckModes;//to be used in in the isItImplied method for clarity that the implication check fallbacks to fact checking if the statement isnt explicitly said to be true by a rule.This is more clear than writing check by ... which is because the check mode the caller passes to the implication check doesnt in any way,affect the actual implication process because its explicitly handled by the rules.
 

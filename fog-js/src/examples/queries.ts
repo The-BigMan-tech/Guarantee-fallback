@@ -3,7 +3,12 @@ import { predicates as P,keyofRules as R,members as M} from "./documents/output/
 import { rules } from "./rules.js";
 import { checkBy, fallbackTo, importDocFromObject } from "../main.js";
 
-const doc = await importDocFromObject<P,R,M>(resolvedDoc);
+interface Info {
+    predicates:P,
+    members:M,
+    keyofRules:R
+}
+const doc = await importDocFromObject<Info>(resolvedDoc);
 if (!doc) process.exit(0);
 
 
