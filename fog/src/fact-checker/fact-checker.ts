@@ -180,15 +180,15 @@ type Path = string;
 
 async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
     const providedPath = typeof json === "string";
-    let fullData:FullData;
-    let jsonString:string;
+    const [jsonAsPath,jsonAsObject] = (providedPath)?[json,null]:[null,json];
 
+    let fullData:FullData;
+    
     if (providedPath) {
-        jsonString = await fs.readFile(json, 'utf8');
+        const jsonString = await fs.readFile(jsonAsPath!, 'utf8');
         fullData = JSON.parse(jsonString);
     }else {
-        jsonString = stringify(json);
-        fullData = json as FullData;
+        fullData = jsonAsObject as FullData;
     }
 
     const isValid = validator.Check(fullData);
@@ -197,8 +197,9 @@ async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
         console.error(chalk.red('Validation error in the json file:'), errors);
         return Result.error;//to prevent corruption
     }
+    
     if (providedPath) {
-        console.info(lime('Successfully loaded the document from the path:'),json,'\n');
+        console.info(lime('Successfully loaded the document from the path:'),jsonAsPath,'\n');
     }else {
         console.info(lime('Successfully loaded the document from the json object'));
     }
