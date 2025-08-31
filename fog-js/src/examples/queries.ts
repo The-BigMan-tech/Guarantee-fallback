@@ -1,14 +1,10 @@
 import resolvedDoc from "./documents/output/doc.json" with {type:'json'};
-import { predicates as P,keyofRules as R,members as M} from "./documents/output/doc.types.js";
+import {info} from "./documents/output/doc.types.js";
 import { rules } from "./rules.js";
 import { checkBy, fallbackTo, importDocFromObject } from "../main.js";
 
-interface Info {
-    predicates:P,
-    members:M,
-    keyofRules:R
-}
-const doc = await importDocFromObject<Info>(resolvedDoc);
+
+const doc = await importDocFromObject<info>(resolvedDoc);
 if (!doc) process.exit(0);
 
 
