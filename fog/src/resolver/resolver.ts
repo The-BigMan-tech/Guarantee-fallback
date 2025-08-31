@@ -97,7 +97,8 @@ interface RefCheck {
 export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public records:Record<string,Rec> = {};
-    public static aliases = new Map<string,string>();
+    public aliases = new Map<string,string>();
+    public predicates:string[] = [];
 
     private lineCount:number = 0;
     private targetLineCount:number = this.lineCount;
@@ -107,6 +108,15 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static logFile:string | null = null;
     public static logs:string[] | null = null;
     public static inputArr:string[] = [];
+
+    private expandedFacts:AtomList[] | null = null;
+    private builtAFact:boolean = false;
+
+    private lastSentenceTokens:Token[] = [];
+    private prevRefCheck:RefCheck = {hasRef:false,line:0};//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
+    private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
+    private seenAlias:boolean = false;//i used this to control progress logging
+    private predicateForLog:string | null = null;
 
     private printTokens(tokens:Token[]):void {
         const tokenDebug = tokens?.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
@@ -138,7 +148,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 successMessage += (this.prevRefCheck.hasRef)?`\n-With resolved references: ${brown(resolvedSentence)}`:'';//using prevRefCehck under the same loop accesses the ref check of the latest senetnce.
 
                 if (this.predicateForLog) {//the condition is to skip printing this on alias declarations.The lock works because this is only set on facts and not on alias declarations.Im locking this on alias declarations because they dont need extra logging cuz there is no expansion data or any need to log the predicate separately.just the declaration is enough
-                    const predicateFromAlias = Resolver.aliases.get(this.predicateForLog || '');
+                    const predicateFromAlias = this.aliases.get(this.predicateForLog || '');
                     successMessage += (predicateFromAlias)?`\n-Alias #${this.predicateForLog} -> *${predicateFromAlias}`:`\n-Predicate: *${this.predicateForLog}`;
                     successMessage += `\n-Expansion: ${brown(expansionText)}`; 
                 };
@@ -223,11 +233,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
         return (list.length > 0)?list:null;
     }
-
-    private lastSentenceTokens:Token[] = [];
-    private prevRefCheck:RefCheck = {hasRef:false,line:0};//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
-    private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
-    
     private resolveRefs(tokens: Token[]) {
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
         const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};//used a descending order heap so that insertion during resolution doesnt cause index shift that will unexpectedly affect the final result
@@ -447,7 +452,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private stripMark(text:string) {
         return text.slice(1);// Remove the leading '*' or '#' or : or !
     }
-    private seenAlias:boolean = false;//i used this to control progress logging
     private resolveAlias(tokens:Token[]) {
         let alias = '';
         let predicate = '';
@@ -468,7 +472,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         });
         this.records[alias] = this.records[predicate] || new Rec([]);//the fallback is for when aliases are declared using the shorthand where the predicate isnt inlined with the declaration.The shorthand is for invalidating predicates
-        Resolver.aliases.set(alias,predicate || alias);
+        this.aliases.set(alias,predicate || alias);
         this.seenAlias = true;
         if (this.builtAFact) {
             Essentials.report(DslError.DoubleCheck,this.lineCount,`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors sooner.`);
@@ -489,7 +493,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return flatSequences;
     }
     private recommendAlias(text:string):string | null {
-        for (const alias of Resolver.aliases.values()) {
+        for (const alias of this.aliases.values()) {
             if (distance(alias,text!) < 4) {
                 return alias;
             }
@@ -497,7 +501,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return null;
     }
     private validatePredicateType(token:Token):void {
-        const isAlias = Resolver.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
+        const isAlias = this.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
         
         if (isAlias && ! token.text!.startsWith('#')) {
             Essentials.report(DslError.Semantic,this.lineCount,`-Aliases are meant to be prefixed with ${chalk.bold('#')} but found ${chalk.bold(token.text)}. Did you mean: #${chalk.bold(this.stripMark(token.text!))}?`);
@@ -509,7 +513,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             Essentials.report(DslError.Semantic,this.lineCount,message);
         }
     }
-    private predicateForLog:string | null = null;
     private getPredicate(tokens:Token[]):string | null {
         let predicate:string | null = null;
         tokens.forEach(token => {
@@ -529,15 +532,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
         return predicate;
     }
-    public static predicates:string[] = [];
-
-    private expandedFacts:AtomList[] | null = null;
-    private builtAFact:boolean = false;
-
     private buildFact(tokens:Token[]) {
         const predicate = this.getPredicate(tokens);
         if (predicate === null) return;
-        Resolver.predicates.push(predicate);
+        this.predicates.push(predicate);
 
         const tokenQueue = new Denque(tokens);
         const groupedData = this.inspectRelevantTokens(tokenQueue,false);
@@ -617,17 +615,15 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         Resolver.inputArr = input.split('\n');
     }
 }
-async function genStructures(input:string):Promise<Record<string,Rec> | undefined> {
+async function genStructures(input:string) {
     const visitor = new Resolver();
     visitor.createSentenceArray(input);
     Essentials.loadEssentials(input);
     await Resolver.flushLogs();//to capture syntax errors to the log
     await visitor.visit(Essentials.tree);
-    if (!Resolver.terminate) return visitor.records;
+    if (!Resolver.terminate) return {aliases:visitor.aliases,predicates:visitor.predicates,records:visitor.records};
 }
 function clearStaticVariables() {
-    Resolver.aliases.clear();
-    Resolver.predicates.length = 0;
     Resolver.terminate = false;//reset it for subsequent analyzing
     Resolver.inputArr.length = 0;
     Resolver.logs = null;
@@ -688,11 +684,11 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
         if (resolvedData) {
             let jsonPath:string | NoOutput = NoOutput.value;
             if (produceOutput) {
-                const predicateRecord = mapToObject(Resolver.aliases);
-                for (const predicate of Resolver.predicates) {
-                    predicateRecord[predicate] = predicate;
-                }
-                const fullData:FullData = {predicates:predicateRecord,records:resolvedData};
+                let predicateRecord:Record<string,string> = {};
+                resolvedData.predicates.forEach(predicate=>(predicateRecord[predicate] = predicate));
+                predicateRecord = {...predicateRecord,...mapToObject(resolvedData.aliases)};
+
+                const fullData:FullData = {predicates:predicateRecord,records:resolvedData.records};
                 jsonPath = await writeToOutput(outputFilePath!,stringify(fullData,omitJsonKeys,4) || '');
             }
             return {result:Result.success,jsonPath};
