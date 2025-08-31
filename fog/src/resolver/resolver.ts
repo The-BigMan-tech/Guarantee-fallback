@@ -476,6 +476,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
         //the fallback is for when there is no predicate provided to point to in the alias declaration.its used as a shorthand where the alias points to the predicate of the same name.its a pettern to invalidate the use of those predicates for better safety.
         this.aliases.set(alias,predicate || alias);
+        if (predicate) this.predicates.set(predicate,predicate);
+
         this.seenAlias = true;
         if (this.builtAFact) {
             Essentials.report(DslError.DoubleCheck,this.lineCount,`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors sooner.`);
@@ -516,46 +518,46 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             Essentials.report(DslError.Semantic,this.lineCount,message);
         }
     }
-    private getPredicate(tokens:Token[]):string | null {
-        let predicate:string | null = null;
+    private getRelation(tokens:Token[]):string | null {
+        let relation:string | null = null;
         tokens.forEach(token => {
             const text = token.text!;
             const type = token.type;
             if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS) ) {
-                if (predicate !== null) {
-                    Essentials.report(DslError.Semantic,this.lineCount,`-They can only be one alias or predicate in a sentence but found ${chalk.bold('*'+predicate)} and ${chalk.bold(text)} being used at the same time.`);
+                if (relation !== null) {
+                    Essentials.report(DslError.Semantic,this.lineCount,`-They can only be one alias or predicate in a sentence but found ${chalk.bold('*'+relation)} and ${chalk.bold(text)} being used at the same time.`);
                 }
                 this.validatePredicateType(token);
-                predicate = this.stripMark(text);
-                this.predicateForLog = predicate;
-                if (type===DSLLexer.PREDICATE) this.predicates.set(predicate,predicate);//this is entirely for type generation support on the client side
+                relation = this.stripMark(text);
+                this.predicateForLog = relation;
+
+                if (type===DSLLexer.PREDICATE) {
+                    this.predicates.set(relation,relation);//this is entirely for type generation support on the client side
+                    if (!this.records[relation]) {//im only doing this for the predicate because aliases are guaranteed to have their records after alias resolution
+                        this.records[relation] = new Rec([]);
+                    }
+                }
             }
         });
-        if (predicate === null) {
+        if (relation === null) {
             Essentials.report(DslError.Semantic,this.lineCount,'-A sentence must have one predicate or alias.');
         }
-        return predicate;
+        return relation;
     }
     private buildFact(tokens:Token[]) {
-        const predicate = this.getPredicate(tokens);
-        if (predicate === null) return;
+        const relation = this.getRelation(tokens);
+        if (relation === null) return;
     
         const tokenQueue = new Denque(tokens);
         const groupedData = this.inspectRelevantTokens(tokenQueue,false);
         if (Resolver.terminate) return;
 
         this.expandedFacts = this.expandRecursively(groupedData!);
-
         for (const fact of this.expandedFacts) {;
-            if (fact.length === 0) {
-                Essentials.report(DslError.Semantic,this.lineCount,'-A sentence must contain at least one atom.');
-            }
-            if (!this.records[predicate]) {
-                this.records[predicate] = new Rec([]);
-            }
-            if (this.predicates.has(predicate)) {//locking the addition of facts to a record ensures that they are only added for predicates which are unique and not for aliases.because if so,aliases will just be duplicates of their predicates counterpart leading to a larger document size.
-                this.records[predicate].add(fact);
-            }
+            if (fact.length === 0) Essentials.report(DslError.Semantic,this.lineCount,'-A sentence must contain at least one atom.');
+            const referredPredicate = this.predicates.get(relation) || this.aliases.get(relation);
+            if (referredPredicate) this.records[referredPredicate].add(fact);
+            console.log('🚀 => :559 => buildFact => predicate:',relation);
         }
         this.builtAFact = true;
     }
