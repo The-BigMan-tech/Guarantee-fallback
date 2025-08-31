@@ -113,7 +113,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         factsGen.next(true);//send a signal to the generator to save the results to the cache
         return facts;
     }
-    public isItAFact(record: Rec, args:AtomList,byMembership:boolean):boolean {
+    public isItStated(record: Rec, args:AtomList,byMembership:boolean):boolean {
         return Boolean(this.findFirstNFacts(1,record,args,byMembership).length);
     }
 

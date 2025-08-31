@@ -43,16 +43,16 @@ server.addMethod("findFirstNFacts",({num,predicate,statement,byMembership}:{num:
     const result = docOnServer.findFirstNFacts(num,docOnServer.records[predicate],statement,byMembership);
     return result;
 });
-server.addMethod("isItAFact",({predicate,statement,byMembership}:{predicate:string,statement:AtomList,byMembership:boolean})=>{
+server.addMethod("isItStated",({predicate,statement,byMembership}:{predicate:string,statement:AtomList,byMembership:boolean})=>{
     if (!docOnServer) return Result.error;
-    const result = docOnServer.isItAFact(docOnServer.records[predicate],statement,byMembership);
+    const result = docOnServer.isItStated(docOnServer.records[predicate],statement,byMembership);
     return result;
 });
 server.addMethod("genCandidates",({howManyToReturn,predicate,inputCombination,visitedCombinations}:{howManyToReturn: number,predicate:string, inputCombination:Atom[], visitedCombinations:string[]})=>{
     if (!docOnServer) return Result.error;
     const visitedSet = new Set(visitedCombinations);
     const combinations = [...docOnServer.genCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,visitedSet)];
-    console.log('🚀 => :55 => docOnServer.records[predicate]:', docOnServer.records[predicate]);
+    console.log('🚀 => :55 => docOnServer.combos:',combinations);
     return {combinations,checkedCombinations:Array.from(visitedSet)};
 });
 server.addMethod("intersection",({arrays}:{arrays:[]})=>{

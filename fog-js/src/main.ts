@@ -123,7 +123,7 @@ export class Doc<//i used an empty string over the string type for better type s
         };
     };//the reason why i made this to take the relations query Q instead of predicates P is to have full intellisese of all the possible relations to ask regardless if its for a fact or an implication
     public isItStated = async(relation:P | R,statement:L,checkMode:FactCheckMode):Promise<boolean>=> {
-        const result:Result.error | boolean = await client.request("isItAFact",{predicate:relation,statement,byMembership:checkMode});
+        const result:Result.error | boolean = await client.request("isItStated",{predicate:relation,statement,byMembership:checkMode});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
