@@ -102,10 +102,9 @@ export async function genTypes<P extends string,R extends string>(docName:string
         kvPair(membersType,membersType)
     ];
     if (rules) kvPairs.push(kvPair(keyofRulesType,keyofRulesType));
-    const info = interfaceType('info',kvPairs,4);
+    const infoInterface = interfaceType('info',kvPairs,4);
+    await fs.appendFile(typeFilePath,infoInterface + terminator);
 
-    console.log('🚀 => :101 => genTypes => info:',);
-    console.log(info);
     console.log(chalk.green('Sucessfully generated the types at: '),typeFilePath);
 }
 //this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
