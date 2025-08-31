@@ -539,6 +539,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         });
         if (relation === null) {
             Essentials.report(DslError.Semantic,this.lineCount,'-A sentence must have one predicate or alias.');
+        }else if (omittedJsonKeys.has(relation)) {
+            Essentials.report(DslError.Semantic,this.lineCount,`The following keys should not be used as predicates or aliases as they are used to omit unnecessary data from the json document:\n${chalk.yellow(Array.from(omittedJsonKeys))}`);
         }
         return relation;
     }
@@ -554,8 +556,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         for (const fact of this.expandedFacts) {;
             if (fact.length === 0) Essentials.report(DslError.Semantic,this.lineCount,'-A sentence must contain at least one atom.');
             const referredPredicate = this.predicates.get(relation) || this.aliases.get(relation);
-            if (referredPredicate) this.records[referredPredicate].add(fact);
-            console.log('🚀 => :559 => buildFact => predicate:',relation);
+            this.records[referredPredicate!].add(fact);
         }
         this.builtAFact = true;
     }
@@ -664,8 +665,9 @@ async function writeToOutput(outputFilePath:string,jsonInput:string):Promise<str
     console.log(messages.join(''));
     return jsonPath;
 }
+const omittedJsonKeys = new Set(['set','indexMap','recID','members']);//I didnt preserve recID because they are just for caching and not lookups.New ones can be reliably generated at runtime for caching.
 function omitJsonKeys(key:string,value:any) {
-    if ((key === "set") || (key === "indexMap") || (key === "recID")) {//I didnt preserve recID because they are just for caching and not lookups.New ones can be reliably generated at runtime for caching.
+    if (omittedJsonKeys.has(key)) {
         return undefined; // exclude 'password'
     }
     return value; // include everything else

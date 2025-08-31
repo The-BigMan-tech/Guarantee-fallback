@@ -34,12 +34,12 @@ const uniqueAtomListSchema = Type.Object({
 
 const factsSchema = Type.Array(uniqueAtomListSchema);
 const recSchema = Type.Object({
-    members:uniqueAtomListSchema,
     facts:factsSchema,
 });
 
-const recordSchema = Type.Record(Type.String(), recSchema);
+
 const predicateSchema = Type.Record(Type.String(),Type.String());
+const recordSchema = Type.Record(Type.String(), recSchema);
 
 const fullSchema = Type.Object({
     predicates:predicateSchema,
