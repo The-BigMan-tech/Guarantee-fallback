@@ -8,76 +8,20 @@
         "has": "has",
         "male": "male",
         "males": "male",
-        "mother": "parent"
+        "mother": "parent",
+        "parent": "parent"
     },
     "records": {
         "allies": {
-            "facts": [
-                {
-                    "list": [
-                        "Billy",
-                        "John"
-                    ]
-                },
-                {
-                    "list": [
-                        "John",
-                        "Mark",
-                        "Zane"
-                    ]
-                },
-                {
-                    "list": [
-                        "Zane",
-                        "Cole"
-                    ]
-                },
-                {
-                    "list": [
-                        "Leo",
-                        "Cole"
-                    ]
-                }
-            ],
+            "facts": [],
             "members": {
-                "list": [
-                    "Billy",
-                    "John",
-                    "Mark",
-                    "Zane",
-                    "Cole",
-                    "Leo"
-                ]
+                "list": []
             }
         },
         "father": {
-            "facts": [
-                {
-                    "list": [
-                        "Susan",
-                        "Matt"
-                    ]
-                },
-                {
-                    "list": [
-                        "Susan",
-                        "Philip"
-                    ]
-                },
-                {
-                    "list": [
-                        "Susan",
-                        "Mandy"
-                    ]
-                }
-            ],
+            "facts": [],
             "members": {
-                "list": [
-                    "Susan",
-                    "Matt",
-                    "Philip",
-                    "Mandy"
-                ]
+                "list": []
             }
         },
         "female": {
@@ -95,42 +39,9 @@
             }
         },
         "friend": {
-            "facts": [
-                {
-                    "list": [
-                        "Billy",
-                        "John"
-                    ]
-                },
-                {
-                    "list": [
-                        "John",
-                        "Mark",
-                        "Zane"
-                    ]
-                },
-                {
-                    "list": [
-                        "Zane",
-                        "Cole"
-                    ]
-                },
-                {
-                    "list": [
-                        "Leo",
-                        "Cole"
-                    ]
-                }
-            ],
+            "facts": [],
             "members": {
-                "list": [
-                    "Billy",
-                    "John",
-                    "Mark",
-                    "Zane",
-                    "Cole",
-                    "Leo"
-                ]
+                "list": []
             }
         },
         "friends": {
@@ -207,49 +118,15 @@
             }
         },
         "males": {
-            "facts": [
-                {
-                    "list": [
-                        "Matt",
-                        "Philip"
-                    ]
-                }
-            ],
+            "facts": [],
             "members": {
-                "list": [
-                    "Matt",
-                    "Philip"
-                ]
+                "list": []
             }
         },
         "mother": {
-            "facts": [
-                {
-                    "list": [
-                        "Susan",
-                        "Matt"
-                    ]
-                },
-                {
-                    "list": [
-                        "Susan",
-                        "Philip"
-                    ]
-                },
-                {
-                    "list": [
-                        "Susan",
-                        "Mandy"
-                    ]
-                }
-            ],
+            "facts": [],
             "members": {
-                "list": [
-                    "Susan",
-                    "Matt",
-                    "Philip",
-                    "Mandy"
-                ]
+                "list": []
             }
         },
         "parent": {

@@ -18,7 +18,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
     private _allMembers:UniqueAtomList = new UniqueList();//this is used by the binding to generate the types of the memebers.this will help catch subtle typos during querying.
     public records:Record<string,Rec> = {};
 
-    public predicates:Record<string,string> = {};
+    public  predicates:Record<string,string> = {};
 
     public static wildCard = uniqueID();//by using a unique id over the string '*', will prevent collisions with atoms during fact checking.
     private static factCheckerCache = new LRUCache<string,string>({max:100});//so even if the client runs multiple times,they will still be using cached data.and to ensure this i made the cache static so that it doesnt get wiped on recreation of the doc class due to repeated imports from re-execution of client scripts
@@ -26,9 +26,20 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
     public constructor(records:Record<string,Rec>,predicates:Record<string,string>) {
         //i merged all the aliases and predicates into a single record object for a stanadlone and complete transfer of all relation data--either predicates or aliases
         this.predicates = predicates;
+        const predicatesToRec = new Map<string,Rec>();
+
+        Object.keys(this.predicates).forEach(predicate=>{
+            const referredPredicate = this.predicates[predicate];
+            if (!predicatesToRec.has(referredPredicate)) {
+                const rec = new Rec(records[referredPredicate].facts);//rebuild the rec from the facts since some internal structures arent serializable.  
+                rec.members.list.map(member=>this._allMembers.add(member));
+                predicatesToRec.set(referredPredicate,rec);
+            }
+        });
+
         Object.keys(records).forEach(key=>{
-            this.records[key] = new Rec(records[key].facts);//rebuild the rec since some internal structures arent serializable.
-            this.records[key].members.list.map(member=>this._allMembers.add(member));
+            const referredPredicate = this.predicates[key];
+            this.records[key] = predicatesToRec.get(referredPredicate)!;
         });
     }
     public get allMembers():AtomList {
