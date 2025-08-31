@@ -61,15 +61,21 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
     return resolutionResult;
 }
 export async function genTypes<P extends string,R extends string>(docName:string,outputFolder:string,doc:Doc<string,string>,rules?:Record<R,Rule<P>>):Promise<void> {
+    const exportType = (name:string):string=>`export type ${name} =`;
+    const kvPair = (key:string,value:string):string=>`\n${key}:${value}\n`;
+    const interfaceType = (name:string,pairs:string[]):string =>`
+        interface ${name} {${pairs.join('')}}
+    `;
     const union = ' | ';
     const terminator = ";\n";
-    const exportType = (name:string):string=>`export type ${name} =`;
 
     const typeFile = docName + '.types.ts';
     const typeFilePath = path.join(outputFolder,typeFile);
     
+    const [predicatesType,membersType,keyofRulesType] = ['predicates','members','keyofRules'];
+
     const memberUnion =  (await doc.allMembers()).map(member=>`"${member}"`).join(union);
-    const memberDeclaration = `${exportType('members')} ${memberUnion}`;
+    const memberDeclaration = `${exportType(membersType)} ${memberUnion}`;
     await fs.writeFile(typeFilePath,memberDeclaration + terminator);
 
     const predicates = new Set<string>();
@@ -79,14 +85,20 @@ export async function genTypes<P extends string,R extends string>(docName:string
     });
 
     const predicatesUnion = Array.from(predicates).map(predicate=>`"${predicate}"`).join(union);
-    const predicatesDeclaration = `${exportType('predicates')} ${predicatesUnion}`;
+    const predicatesDeclaration = `${exportType(predicatesType)} ${predicatesUnion}`;
     await fs.appendFile(typeFilePath,predicatesDeclaration + terminator);
 
     if (rules) {
         const rulesUnion = (rules)?Object.keys(rules).map(rKey=>`"${rKey}"`).join(union):'';
-        const rulesDeclaration = `${exportType('keyofRules')} ${rulesUnion}`;
+        const rulesDeclaration = `${exportType(keyofRulesType)} ${rulesUnion}`;
         await fs.appendFile(typeFilePath,rulesDeclaration + terminator);
     }
+    const info = interfaceType('info',[
+        kvPair(predicatesType,predicatesType),
+        kvPair(keyofRulesType,keyofRulesType),
+        kvPair(membersType,membersType)
+    ]);
+    console.log('🚀 => :101 => genTypes => info:', info);
     console.log(chalk.green('Sucessfully generated the types at: '),typeFilePath);
 }
 //this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
