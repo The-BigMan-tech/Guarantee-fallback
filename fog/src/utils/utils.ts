@@ -36,7 +36,6 @@ const factsSchema = Type.Array(uniqueAtomListSchema);
 const recSchema = Type.Object({
     members:uniqueAtomListSchema,
     facts:factsSchema,
-    recID: Type.String(),
 });
 
 const recordSchema = Type.Record(Type.String(), recSchema);
