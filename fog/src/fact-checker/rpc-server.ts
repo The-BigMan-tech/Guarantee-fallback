@@ -52,6 +52,7 @@ server.addMethod("genCandidates",({howManyToReturn,predicate,inputCombination,vi
     if (!docOnServer) return Result.error;
     const visitedSet = new Set(visitedCombinations);
     const combinations = [...docOnServer.genCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,visitedSet)];
+    console.log('🚀 => :55 => docOnServer.records[predicate]:', docOnServer.records[predicate]);
     return {combinations,checkedCombinations:Array.from(visitedSet)};
 });
 server.addMethod("intersection",({arrays}:{arrays:[]})=>{

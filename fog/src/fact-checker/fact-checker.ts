@@ -125,7 +125,8 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
     public* genCandidates<T extends Atom,N extends number,list=UniqueList<T>['list'][number]>(howManyToReturn:N,record:Rec<UniqueAtomList[]>,inputCombination:Atom[],visitedCombinations:Set<string>)
     :Generator<Tuple<list,N>, void, unknown> {//if the caller is recursing on itself,then it should provide any input it receives relevant to the fact checking to prevent cycles.
         if (!record) return;
-        const sequences = permutations(record.members.list,howManyToReturn);//i chose permutations because the order at which the candidates are supplied matters but without replacement
+        const list = record.members.list;
+        const sequences = permutations(list,Math.min(howManyToReturn,list.length));//i chose permutations because the order at which the candidates are supplied matters but without replacement
         for (const permutation of sequences) {
             const combinationKey = this.getCombinationKey(...inputCombination, ...permutation);
             if (!visitedCombinations.has(combinationKey)) {
