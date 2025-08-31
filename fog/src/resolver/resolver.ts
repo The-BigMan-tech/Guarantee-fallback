@@ -97,8 +97,8 @@ interface RefCheck {
 export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public records:Record<string,Rec> = {};
-    public aliases = new Map<string,string>();
-    public predicates:string[] = [];
+    public aliases = new Map<string,string>();//this is used in the actual document processing.its also used additionally,for type generation on the client side
+    public predicates = new Map<string,string>();//this isnt used during document processing.its entirely for type generation
 
     private lineCount:number = 0;
     private targetLineCount:number = this.lineCount;
@@ -471,7 +471,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 if (text.endsWith('\n')) this.targetLineCount += 1;//increment the count at every new line created at the end of the sentence
             }
         });
-        this.records[alias] = this.records[predicate] || new Rec([]);//the fallback is for when aliases are declared using the shorthand where the predicate isnt inlined with the declaration.The shorthand is for invalidating predicates
+        //
+        if (!this.records[predicate]) this.records[alias] = new Rec([]);//the fallback is for when aliases are declared using the shorthand where the predicate isnt inlined with the declaration.The shorthand is for invalidating predicates
         this.aliases.set(alias,predicate || alias);
         this.seenAlias = true;
         if (this.builtAFact) {
@@ -535,7 +536,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private buildFact(tokens:Token[]) {
         const predicate = this.getPredicate(tokens);
         if (predicate === null) return;
-        this.predicates.push(predicate);
+        this.predicates.set(predicate,predicate);//this is entirely for type generation support on the client side
 
         const tokenQueue = new Denque(tokens);
         const groupedData = this.inspectRelevantTokens(tokenQueue,false);
@@ -684,10 +685,10 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
         if (resolvedData) {
             let jsonPath:string | NoOutput = NoOutput.value;
             if (produceOutput) {
-                let predicateRecord:Record<string,string> = {};
-                resolvedData.predicates.forEach(predicate=>{predicateRecord[predicate] = predicate;});
-                predicateRecord = {...predicateRecord,...mapToObject(resolvedData.aliases)};
-
+                const predicateRecord:Record<string,string> = {
+                    ...mapToObject(resolvedData.predicates),
+                    ...mapToObject(resolvedData.aliases)
+                };
                 const fullData:FullData = {predicates:predicateRecord,records:resolvedData.records};
                 jsonPath = await writeToOutput(outputFilePath!,stringify(fullData,omitJsonKeys,4) || '');
             }
