@@ -4,6 +4,7 @@ import path from "path";
 import fs from "fs/promises";
 import { JSONRPCClient } from "json-rpc-2.0";
 import { ZodError } from 'zod';
+import * as zod from "zod";
 
 
 const client = new JSONRPCClient(async (jsonRPCRequest) =>{
@@ -223,6 +224,12 @@ export type RecursiveRule<P extends string =''> = (doc:Doc<P>,statement:any,visi
 
 export type Atom<T extends string | number = string | number> = T;
 export type AtomList<T extends string | number> = Atom<T>[];
+
+
+export interface Implications<K extends string,P extends string> {//The statements property is for validating the input(statement) in a rule before processing.The name of the keys here should match the rules they are meant to be used for validation
+    statements:Record<K,()=>zod.ZodType>,//i made it map to arrow functions so that defined validations can be reused for different keys under the same definition
+    rules:Record<K,Rule<P>>
+}
 
 const factCheckModes = {
     Membership:true,

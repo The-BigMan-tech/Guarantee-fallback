@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import {checkBy, Doc, GeneratedCandidates } from "../main.js";
+import {checkBy, Doc, GeneratedCandidates, Implications } from "../main.js";
 import { predicates as P } from "./documents/output/doc.types.js";
+import * as zod from "zod";
+
+//I recommend generating the types for the document before writing the rules for better query safety by passing the predicates type as a generic to the Doc type
 
 //you dont have to explicitly declare any of the rules as recursive or procedural rules since ts will flag any errors if you try to import a rules object with an incompatible signature using the useRules method on the document.This reduces the verbosity needed.
 export const rules = {//A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
-    directFriends:async (doc:Doc<P>,statement:string[])=> {
+    directFriends:async (doc:Doc<P>,statement:[string,string])=> {
         return doc.isItStated('friends',statement,checkBy.Membership);//its checking by membership not strict order to handle a statement of variable args and also when the order requirement isnt strict
     },
     indirectFriends:async (doc:Doc<P>,statement:[string,string],visitedCombinations:string[])=> {
@@ -40,4 +43,14 @@ export const rules = {//A rule is a function that takes a document and a stateme
         if (isXMale && isYMale && await rules.siblings(doc,[X,Y])) return true;
         return false;
     }
+};
+export const implications:Implications<keyof typeof rules,P> = {
+    statements:{//this is entirely for input validation.
+        friends:()=>zod.tuple([zod.string(),zod.string()]),
+        directFriends:()=>implications.statements.friends(),
+        indirectFriends:()=>implications.statements.friends(),
+        siblings:()=>zod.tuple([zod.string(),zod.string()]),
+        brothers:()=>implications.statements.siblings(),
+    },
+    rules:rules
 };
