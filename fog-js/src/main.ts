@@ -5,7 +5,10 @@ import fs from "fs/promises";
 import { JSONRPCClient, JSONRPCResponse } from "json-rpc-2.0";
 import { ZodError } from 'zod';
 import * as zod from "zod";
+import { BehaviorSubject,Observable, Subscriber  } from 'rxjs';
 
+const streamResult = new BehaviorSubject<any>(null); // Initial value can be null or any default
+export const streamObservable: Observable<any> = streamResult.asObservable();
 
 const client = new JSONRPCClient(async (jsonRPCRequest) =>{
     const ipcServerID = 'fog-ipc-server';
@@ -20,7 +23,7 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
                 const jsonRPCResponse = JSON.parse(data) as JSONRPCResponse;
                 const result = jsonRPCResponse.result as Response<any>;
                 client.receive({...jsonRPCResponse,result:result.value});//hanlde the response
-                console.log('🚀 => :22 => result:', result);
+                streamResult.next(result);
                 if (result.finished) ipc.disconnect(ipcServerID);
             }catch (err) {
                 console.error(chalk.red('Error processing message:'));
@@ -149,8 +152,8 @@ export class Doc<//i used an empty string over the string type for better type s
                         const validator = implications.statements[rKey as R]();
                         const ruleFucntion = rules[rKey as R];
                         validator.parse(statement);
-                        
                         return await ruleFucntion(this as any,statement,visitedCombinations || [ [] ]);
+
                     }catch(err:unknown) {
                         if (err instanceof ZodError) {
                             const errors = JSON.parse(err.message) as Error[];
@@ -198,11 +201,25 @@ export class Doc<//i used an empty string over the string type for better type s
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public genCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Promise<Tuple<M,N>[]>=>{
-        const result:Result.error | GeneratedCandidates<M,N> =  await client.request("genCandidates",{howManyToReturn,predicate,inputCombination,visitedCombinations:visitedCombinations[0]});
-        if (result === Result.error) Doc.throwDocError();
-        visitedCombinations[0] = result.checkedCombinations;
-        return result.combinations;
+    public genCandidates = <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Observable<Tuple<M,N>[]>=> {
+        const streamer = (observer:Subscriber<any>):void =>{
+            const subscription = streamObservable.subscribe(
+                (result:Response<Result.error | GeneratedCandidates<M, N>>) => {
+                    if (!result.finished) {
+                        const value = result.value;
+                        if (value === Result.error) Doc.throwDocError();
+                        visitedCombinations[0] = value.checkedCombinations;
+                        observer.next(value.combinations);
+                    }else {
+                        observer.complete();
+                        subscription.unsubscribe();
+                    }
+                });
+        };
+        return new Observable(observer=>{
+            client.request("genCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] })
+                .then(()=>streamer(observer));
+        });
     };
     public selectSmallestRecord = async (predicates:P[]):Promise<P>=> {
         const result:Result.error | P = await client.request('selectSmallestRecord',{predicates});
