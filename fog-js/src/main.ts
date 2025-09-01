@@ -78,7 +78,10 @@ export async function genTypes<P extends string,R extends string>(docName:string
     
     const [predicatesType,membersType,keyofRulesType] = ['predicates','members','keyofRules'];
 
-    const memberUnion =  (await doc.allMembers()).map(member=>`"${member}"`).join(union);
+    const memberUnion =  (await doc.allMembers()).map(member=>{
+        return (typeof member==="string")?`"${member}"`:member;
+    }).join(union);
+    
     const memberDeclaration = exportType(`${declareType(membersType)} ${memberUnion}`);
     await fs.writeFile(typeFilePath,memberDeclaration + terminator);
 
