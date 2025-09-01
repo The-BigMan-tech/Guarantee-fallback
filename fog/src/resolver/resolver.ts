@@ -137,7 +137,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     .map(line => {
                         const trimmed = line?.trim();
                         if (trimmed.startsWith('[') && (trimmed.endsWith(']') || trimmed.endsWith('],'))) {
-                            return '    ' + trimmed; // trim original and add two spaces indentation
+                            return trimmed.padStart(trimmed.length + 4,' '); // trim original and add two spaces indentation
                         }
                         return line;
                     })
