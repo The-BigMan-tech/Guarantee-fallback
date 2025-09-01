@@ -131,7 +131,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         return inputCombination.map(element => stringify(element)).join('|');
     }
     //the checked facts is just a record to maintain recursion so the facts checked in a function call is not meant to persist across rules,else,subsequent calls to the same rule wont work as expected
-    public* genCandidates<T extends Atom,N extends number,list=UniqueList<T>['list'][number]>(howManyToReturn:N,record:Rec<UniqueAtomList[]>,inputCombination:Atom[],visitedCombinations:Set<string>)
+    public* pullCandidates<T extends Atom,N extends number,list=UniqueList<T>['list'][number]>(howManyToReturn:N,record:Rec<UniqueAtomList[]>,inputCombination:Atom[],visitedCombinations:Set<string>)
     :Generator<Tuple<list,N>, void, unknown> {//if the caller is recursing on itself,then it should provide any input it receives relevant to the fact checking to prevent cycles.
         if (!record) return;
         const list = record.members.list;

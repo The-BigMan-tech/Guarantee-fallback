@@ -5,7 +5,7 @@ import fs from "fs/promises";
 import { JSONRPCClient, JSONRPCResponse } from "json-rpc-2.0";
 import { ZodError } from 'zod';
 import * as zod from "zod";
-import { BehaviorSubject,Observable, Subscriber  } from 'rxjs';
+import { BehaviorSubject,Observable, Subscriber } from 'rxjs';
 
 const streamResult = new BehaviorSubject<Response<any> | null>(null); // Initial value can be null or any default
 export const streamObservable = streamResult.asObservable();
@@ -201,7 +201,7 @@ export class Doc<//i used an empty string over the string type for better type s
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public genCandidates = <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Observable<Tuple<M,N>>=> {
+    public pullCandidates = <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Observable<Tuple<M,N>>=> {
         const observerFunc = (observer:Subscriber<Tuple<M,N>>):void =>{
             const subscription = streamObservable.subscribe(result => {
                 if (!(result!.finished)) {
@@ -216,7 +216,7 @@ export class Doc<//i used an empty string over the string type for better type s
             });
         };
         return new Observable(observer=>{
-            client.request("genCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] })
+            client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] })
                 .then(()=>observerFunc(observer));
         });
     };
