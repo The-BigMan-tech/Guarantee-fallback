@@ -40,7 +40,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         Object.keys(records).forEach(key=>{
             const referredPredicate = this.predicates[key];
             this.records[key] = predicatesToRec.get(referredPredicate)!;
-            console.log("Records: ",this.records);//you can check the individual recIDs to verify if records from predicates have unique ids and those from aliases refer to the correct predicate record by checking if their recID is the same as the predicate rec they are referring to
+            // console.log("Records: ",this.records);//you can check the individual recIDs to verify if records from predicates have unique ids and those from aliases refer to the correct predicate record by checking if their recID is the same as the predicate rec they are referring to
         });
     }
     public get allMembers():AtomList {

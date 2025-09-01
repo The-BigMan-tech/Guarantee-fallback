@@ -2387,3 +2387,5 @@ debugger
 *so the process is to have all the dep included which will be insalled when the package is instaled.but during loading,it will use the bundle unless explcitly told to use the external dependency
 
 *you can only access an object's property during declaration only with arrow function properties at least,to my observation
+
+Because i consumed the combination generator all at once for the fog client,i dont need to preserve the vsisted combinations array around because it uses the same array to get all the combinations all at once

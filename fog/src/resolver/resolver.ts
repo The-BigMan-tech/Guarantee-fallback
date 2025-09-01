@@ -8,7 +8,7 @@ import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
-import { FullData, mapToObject, NoOutput, Rec, ResolutionResult, Result } from "../utils/utils.js";
+import { FullData,mapToRecord, NoOutput, Rec, ResolutionResult, Result } from "../utils/utils.js";
 import { AtomList } from "../utils/utils.js";
 import fs from 'fs/promises';
 import path from 'path';
@@ -692,8 +692,8 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
             let jsonPath:string | NoOutput = NoOutput.value;
             if (produceOutput) {
                 const predicateRecord:Record<string,string> = {
-                    ...mapToObject(resolvedData.predicates),
-                    ...mapToObject(resolvedData.aliases)
+                    ...mapToRecord(resolvedData.predicates),
+                    ...mapToRecord(resolvedData.aliases)
                 };
                 const fullData:FullData = {predicates:predicateRecord,records:resolvedData.records};
                 jsonPath = await writeToOutput(outputFilePath!,stringify(fullData,omitJsonKeys,4) || '');

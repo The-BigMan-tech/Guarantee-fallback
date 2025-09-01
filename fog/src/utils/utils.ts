@@ -37,7 +37,6 @@ const recSchema = Type.Object({
     facts:factsSchema,
 });
 
-
 const predicateSchema = Type.Record(Type.String(),Type.String());
 const recordSchema = Type.Record(Type.String(), recSchema);
 
@@ -59,6 +58,15 @@ export type AtomList = Atom[];
 export type UniqueAtomList = UniqueList<Atom>
 export type Facts = UniqueAtomList[];
 
+export function isGenerator(value: any): value is Generator {
+    return (
+        value !== null && 
+        value !== undefined &&
+        typeof value === 'object' && 
+        typeof value.next === 'function' && 
+        typeof value.throw === 'function'
+    );
+}
 export class Rec<T extends Facts = Facts> implements RecType {
     public members:UniqueAtomList = new UniqueList();//i used a unique list to prevent duplicate entries which prevents the number of iterations when testing for a fact against an arbitrary member.its a list but uses a set to ensure that elements are unique which allows me to benefit from list iteration and uniqueness at the same time.I also localized this structure to per fact to only test against arbotrary members that are atually involved in a fact
     public facts:Facts = [];
@@ -123,7 +131,7 @@ export class UniqueList<T> {//A data structure that provides iteration and index
         return false; // Element does not exist
     }
 }
-export function mapToObject<K extends string | number | symbol,V>(map:Map<K,V>):Record<K,V> {
+export function mapToRecord<K extends string | number | symbol,V>(map:Map<K,V>):Record<K,V> {
     const rec:Record<K,V> = {} as Record<K,V>;
     const keys = [...map.keys()];
     keys.forEach(key=>(rec[key]=map.get(key)!));
