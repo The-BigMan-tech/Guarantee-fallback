@@ -101,7 +101,11 @@ export async function genTypes<P extends string,R extends string>(docName:string
         kvPair(predicatesType,predicatesType),
         kvPair(membersType,membersType)
     ];
-    if (rules) kvPairs.push(kvPair(keyofRulesType,keyofRulesType));
+    if (rules) {
+        kvPairs.push(kvPair(keyofRulesType,keyofRulesType));
+    }else {
+        kvPairs.push(kvPair(keyofRulesType,`''`));
+    }
     const infoInterface = exportType(declareInterface('info',kvPairs,4));
     await fs.appendFile(typeFilePath,infoInterface + terminator);
 

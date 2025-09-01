@@ -40,6 +40,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         Object.keys(records).forEach(key=>{
             const referredPredicate = this.predicates[key];
             this.records[key] = predicatesToRec.get(referredPredicate)!;
+            console.log("Records: ",this.records);
         });
     }
     public get allMembers():AtomList {
