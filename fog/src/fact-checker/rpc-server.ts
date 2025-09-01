@@ -50,8 +50,8 @@ server.addMethod("isItStated",({predicate,statement,byMembership}:{predicate:str
 server.addMethod("genCandidates",function* ({howManyToReturn,predicate,inputCombination,visitedCombinations}:{howManyToReturn: number,predicate:string, inputCombination:Atom[], visitedCombinations:string[]}) {
     if (!docOnServer) return Result.error;
     const visitedSet = new Set(visitedCombinations);
-    for (const combinations of docOnServer.genCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,visitedSet)) {
-        yield {combinations,checkedCombinations:Array.from(visitedSet)};
+    for (const combination of docOnServer.genCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,visitedSet)) {
+        yield {combination,checkedCombinations:Array.from(visitedSet)};
     }
 });
 server.addMethod("intersection",({arrays}:{arrays:any[][]})=>{
@@ -82,7 +82,6 @@ export async function startIPCServer(): Promise<void> {
                 const result = response?.result;
                 if (isGenerator(result)) {
                     for await (const value of result) {
-                        console.log('is gen 2');
                         const responseToClient = stringify({...response,result:{finished:false,value}});
                         ipc.server.emit(socket, 'message', responseToClient); // Send each value to the client
                     }

@@ -201,14 +201,14 @@ export class Doc<//i used an empty string over the string type for better type s
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public genCandidates = <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Observable<Tuple<M,N>[]>=> {
-        const observerFunc = (observer:Subscriber<any>):void =>{
+    public genCandidates = <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Observable<Tuple<M,N>>=> {
+        const observerFunc = (observer:Subscriber<Tuple<M,N>>):void =>{
             const subscription = streamObservable.subscribe(result => {
                 if (!(result!.finished)) {
                     const value = result!.value as Result.error | GeneratedCandidates<M, N>;
                     if (value === Result.error) Doc.throwDocError();
                     visitedCombinations[0] = value.checkedCombinations;
-                    observer.next(value.combinations);
+                    observer.next(value.combination);
                 }else {
                     observer.complete();
                     subscription.unsubscribe();
@@ -283,7 +283,7 @@ export type Tuple<T, N extends number, R extends unknown[] = []> =
     R['length'] extends N ? R : Tuple<T, N, [...R, T]>;
 
 export interface GeneratedCandidates<T extends string | number,N extends number> {
-    combinations:Tuple<Atom<T>,N>[],
+    combination:Tuple<Atom<T>,N>,
     checkedCombinations:string[]
 }
 export type Box<T> = [T];
