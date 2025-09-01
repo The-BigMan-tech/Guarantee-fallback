@@ -7,8 +7,8 @@ import { ZodError } from 'zod';
 import * as zod from "zod";
 import { BehaviorSubject,Observable, Subscriber  } from 'rxjs';
 
-const streamResult = new BehaviorSubject<any>(null); // Initial value can be null or any default
-export const streamObservable: Observable<any> = streamResult.asObservable();
+const streamResult = new BehaviorSubject<Response<any> | null>(null); // Initial value can be null or any default
+export const streamObservable = streamResult.asObservable();
 
 const client = new JSONRPCClient(async (jsonRPCRequest) =>{
     const ipcServerID = 'fog-ipc-server';
@@ -24,7 +24,7 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
                 const result = jsonRPCResponse.result as Response<any>;
                 client.receive({...jsonRPCResponse,result:result.value});//hanlde the response
                 streamResult.next(result);
-                if (result.finished) ipc.disconnect(ipcServerID);
+                if (result.finished) ipc.disconnect(ipcServerID);//close the connection when all the data for the request has been fully sent
             }catch (err) {
                 console.error(chalk.red('Error processing message:'));
                 throw new Error(String(err));
@@ -202,23 +202,22 @@ export class Doc<//i used an empty string over the string type for better type s
         return result;
     };
     public genCandidates = <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Observable<Tuple<M,N>[]>=> {
-        const streamer = (observer:Subscriber<any>):void =>{
-            const subscription = streamObservable.subscribe(
-                (result:Response<Result.error | GeneratedCandidates<M, N>>) => {
-                    if (!result.finished) {
-                        const value = result.value;
-                        if (value === Result.error) Doc.throwDocError();
-                        visitedCombinations[0] = value.checkedCombinations;
-                        observer.next(value.combinations);
-                    }else {
-                        observer.complete();
-                        subscription.unsubscribe();
-                    }
-                });
+        const observerFunc = (observer:Subscriber<any>):void =>{
+            const subscription = streamObservable.subscribe(result => {
+                if (!(result!.finished)) {
+                    const value = result!.value as Result.error | GeneratedCandidates<M, N>;
+                    if (value === Result.error) Doc.throwDocError();
+                    visitedCombinations[0] = value.checkedCombinations;
+                    observer.next(value.combinations);
+                }else {
+                    observer.complete();
+                    subscription.unsubscribe();
+                }
+            });
         };
         return new Observable(observer=>{
             client.request("genCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] })
-                .then(()=>streamer(observer));
+                .then(()=>observerFunc(observer));
         });
     };
     public selectSmallestRecord = async (predicates:P[]):Promise<P>=> {
