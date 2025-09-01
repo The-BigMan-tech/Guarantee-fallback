@@ -6,7 +6,7 @@ import * as zod from "zod";
 //I recommend generating the types for the document before writing the rules for better query safety by passing the predicates type as a generic to the Doc type
 //you dont have to explicitly declare any of the rules as recursive or procedural rules since ts will flag any errors if you try to import a rules object with an incompatible signature using the useRules method on the document.This reduces the verbosity needed.
 
-const statements = {//this is entirely for input validation.
+const statements = {//this is entirely for input validation.You just define the validation schema by name, for the statement input that each rule receives.and by exporting it into an implication object,the document will auto validate all incoming inputs on implication queries
     friends:()=>zod.tuple([zod.string(),zod.string()]),
     directFriends:()=>statements.friends(),
     indirectFriends:()=>statements.friends(),
