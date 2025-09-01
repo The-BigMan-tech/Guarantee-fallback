@@ -8,8 +8,8 @@ const doc = await importDocFromObject<info>(resolvedDoc);
 if (!doc) process.exit(0);
 
 doc.useImplications(implications);//using the generated rules union will inform you when you have made changes to the rules structure which will be a reminder to regenerate the output
-const answer = await doc.isItImplied('allies',[9],fallbackTo.Membership);
+const answer = await doc.isItImplied(fallbackTo.Membership,'allies',["John"]);
 if (answer !== Result.error) doc.printAnswer(answer);
 
 const wildCard = await doc.wildCard();
-console.log(await doc.findAllFacts('allies',["Cole",wildCard],checkBy.Membership));
+console.log(await doc.findAllFacts(checkBy.Membership,'allies',["Cole",wildCard]));

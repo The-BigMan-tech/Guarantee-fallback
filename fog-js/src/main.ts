@@ -132,22 +132,22 @@ export class Doc<//i used an empty string over the string type for better type s
     //this method allows the user to query for the truthiness of a statement of a rule the same way they do with facts.So that rather than calling methods directly on the rule object,they write the name of the rule they want to check against as they would for fact querying and this method will forward it to the correct rule by key.It also includes aliases allowing users to also query rules with aliases that will still forward to the correct rule even though the rule's name isnt the alias.
     //this is recommended to use for querying rather direct function calls on a rule object but use the rule object to directly build functions or other rules for better type safety and control and use this mainly as a convenience for querying.
     //it will also fallback to direct fact checking if the statement doesnt satisfy any of the given rules making it a good useful utility for querying the document against all known facts and rules with alias support in a single call.Rules will be given priority first over direct fact checking because this method unlike isItAFact is designed for checking with inference.The check mode is used as part of the fallback to fact querying
-    public isItImplied:(relation:P | R,statement:L,fallback?:FactCheckMode)=>Promise<boolean | Result.error> = async ()=>false;
+    public isItImplied:(fallback:FactCheckMode,relation:P | R,statement:L,visitedCombinations?:string[])=>Promise<boolean | Result.error> = async ()=>false;
     
     public useImplications(implications:Implications<R,P>):void {
         const rules = implications.rules;
         const rKeys = Object.keys(rules);
-        this.isItImplied = async (relation,statement,fallback?:FactCheckMode):Promise<boolean | Result.error> => {//this is a pattern to query rules with the same interface design as querying a fact
+        this.isItImplied = async (fallback,relation,statement,visitedCombinations):Promise<boolean | Result.error> => {//this is a pattern to query rules with the same interface design as querying a fact
             const predicates = await this.predicates();
             for (const rKey of rKeys) {
                 const queryKey = predicates[relation] || relation;
                 const routeKey = predicates[rKey] || rKey;
-                const ruleFucntion = rules[rKey as R];
                 if (queryKey === routeKey) {
                     try {
                         const validator = implications.statements[rKey as R]();
+                        const ruleFucntion = rules[rKey as R];
                         validator.parse(statement);
-                        return await ruleFucntion(this as any,statement,[]);
+                        return await ruleFucntion(this as any,statement,visitedCombinations || []);
                     }catch(err:unknown) {
                         if (err instanceof ZodError) {
                             const errors = JSON.parse(err.message) as Error[];
@@ -163,10 +163,10 @@ export class Doc<//i used an empty string over the string type for better type s
                     }
                 }
             }
-            return (fallback!==undefined)?this.isItStated(relation,statement,fallback):false;
+            return this.isItStated(fallback,relation,statement);
         };
     };//the reason why i made this to take the relations query Q instead of predicates P is to have full intellisese of all the possible relations to ask regardless if its for a fact or an implication
-    public isItStated = async(relation:P | R,statement:L,checkMode:FactCheckMode):Promise<boolean>=> {
+    public isItStated = async(checkMode:FactCheckMode,relation:P | R,statement:L):Promise<boolean>=> {
         const result:Result.error | boolean = await client.request("isItStated",{predicate:relation,statement,byMembership:checkMode});
         if (result === Result.error) Doc.throwDocError();
         return result;
@@ -185,12 +185,12 @@ export class Doc<//i used an empty string over the string type for better type s
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public findAllFacts = async (predicate:P,statement:L,checkMode:FactCheckMode):Promise<L[]>=>{
+    public findAllFacts = async (checkMode:FactCheckMode,predicate:P,statement:L):Promise<L[]>=>{
         const result:Result.error | L[] = await client.request("findAllFacts",{predicate,statement,byMembership:checkMode});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public findFirstNFacts = async (num:number,predicate:P,statement:L,checkMode:FactCheckMode):Promise<L[]>=> {
+    public findFirstNFacts = async (checkMode:FactCheckMode,num:number,predicate:P,statement:L):Promise<L[]>=> {
         const result:Result.error | L[] = await client.request("findFirstNFacts",{num,predicate,statement,byMembership:checkMode});
         if (result === Result.error) Doc.throwDocError();
         return result;
