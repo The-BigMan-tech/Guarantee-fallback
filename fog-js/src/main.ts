@@ -147,6 +147,7 @@ export class Doc<//i used an empty string over the string type for better type s
                         const validator = implications.statements[rKey as R]();
                         const ruleFucntion = rules[rKey as R];
                         validator.parse(statement);
+                        
                         return await ruleFucntion(this as any,statement,visitedCombinations || []);
                     }catch(err:unknown) {
                         if (err instanceof ZodError) {
@@ -195,10 +196,11 @@ export class Doc<//i used an empty string over the string type for better type s
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public genCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:string[]):Promise<GeneratedCandidates<M,N>>=>{
+    public genCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:string[]):Promise<Tuple<M,N>[]>=>{
         const result:Result.error | GeneratedCandidates<M,N> =  await client.request("genCandidates",{howManyToReturn,predicate,inputCombination,visitedCombinations});
         if (result === Result.error) Doc.throwDocError();
-        return result;
+        visitedCombinations = result.checkedCombinations;
+        return result.combinations;
     };
     public selectSmallestRecord = async (predicates:P[]):Promise<P>=> {
         const result:Result.error | P = await client.request('selectSmallestRecord',{predicates});
