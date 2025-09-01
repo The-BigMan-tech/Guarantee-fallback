@@ -2,7 +2,7 @@ import ipc from 'node-ipc';
 import chalk from "chalk";
 import path from "path";
 import fs from "fs/promises";
-import { JSONRPCClient } from "json-rpc-2.0";
+import { JSONRPCClient, JSONRPCResponse } from "json-rpc-2.0";
 import { ZodError } from 'zod';
 import * as zod from "zod";
 
@@ -17,13 +17,15 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
         });
         server.on('message', (data: string) => {//get the response
             try {
-                const jsonRPCResponse = JSON.parse(data);
-                client.receive(jsonRPCResponse);//hanlde the response
-            } catch (err) {
+                const jsonRPCResponse = JSON.parse(data) as JSONRPCResponse;
+                const result = jsonRPCResponse.result as Response<any>;
+                client.receive({...jsonRPCResponse,result:result.value});//hanlde the response
+                console.log('🚀 => :22 => result:', result);
+                if (result.finished) ipc.disconnect(ipcServerID);
+            }catch (err) {
+                console.error(chalk.red('Error processing message:'));
                 throw new Error(String(err));
-            } finally {
-                ipc.disconnect(ipcServerID);
-            }
+            } 
         });
         server.on('error',():never => {
             throw new Error(chalk.red('The server encountered an error or it may not have been started.'));
@@ -168,7 +170,7 @@ export class Doc<//i used an empty string over the string type for better type s
         };
     };//the reason why i made this to take the relations query Q instead of predicates P is to have full intellisese of all the possible relations to ask regardless if its for a fact or an implication
     public isItStated = async(checkMode:FactCheckMode,relation:P | R,statement:L):Promise<boolean>=> {
-        const result:Result.error | boolean = await client.request("isItStated",{predicate:relation,statement,byMembership:checkMode});
+        const result:Result.error | boolean = await client.request("isItStated",{predicate:relation,statement,byMembership:checkMode}) ;
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
@@ -219,6 +221,10 @@ export class Doc<//i used an empty string over the string type for better type s
     private static throwDocError():never {
         throw new Error(chalk.red('The fact checker was unable to load to the document.'));
     }
+}
+interface Response<T> {
+    finished:boolean,
+    value:T
 }
 interface Info {
     predicates:string,

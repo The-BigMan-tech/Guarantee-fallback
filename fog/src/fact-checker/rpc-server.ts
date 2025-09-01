@@ -3,10 +3,9 @@ import ipc from 'node-ipc';
 import { JSONRPCServer } from "json-rpc-2.0";
 import stringify from "safe-stable-stringify";
 import { Doc, importDocFromObject, importDocFromPath } from "./fact-checker.js";
-import { Atom, AtomList, NoOutput,Result} from "../utils/utils.js";
+import { Atom, AtomList, isGenerator, NoOutput,Result} from "../utils/utils.js";
 import {docOnServer} from "./fact-checker.js";
 import { resolveDocToJson } from "../resolver/resolver.js";
-
 
 const server = new JSONRPCServer();
 server.addMethod("importDocFromPath", async ({ filePath, outputFolder }: { filePath: string; outputFolder?: string }) => {
@@ -48,12 +47,12 @@ server.addMethod("isItStated",({predicate,statement,byMembership}:{predicate:str
     const result = docOnServer.isItStated(docOnServer.records[predicate],statement,byMembership);
     return result;
 });
-server.addMethod("genCandidates",({howManyToReturn,predicate,inputCombination,visitedCombinations}:{howManyToReturn: number,predicate:string, inputCombination:Atom[], visitedCombinations:string[]})=>{
+server.addMethod("genCandidates",function* ({howManyToReturn,predicate,inputCombination,visitedCombinations}:{howManyToReturn: number,predicate:string, inputCombination:Atom[], visitedCombinations:string[]}) {
     if (!docOnServer) return Result.error;
     const visitedSet = new Set(visitedCombinations);
-    const combinations = [...docOnServer.genCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,visitedSet)];
-    console.log('🚀 => :55 => docOnServer.combos:',combinations);
-    return {combinations,checkedCombinations:Array.from(visitedSet)};
+    for (const combinations of docOnServer.genCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,visitedSet)) {
+        yield {combinations,checkedCombinations:Array.from(visitedSet)};
+    }
 });
 server.addMethod("intersection",({arrays}:{arrays:any[][]})=>{
     if (!docOnServer) return Result.error;
@@ -78,11 +77,20 @@ export async function startIPCServer(): Promise<void> {
 
     ipc.serve(() => {
         ipc.server.on('message', async (data, socket) => {//receive request from the client
-            // console.log(chalk.cyan('Request: '),data);
             try {
-                const response = stringify(await server.receive(data));//route request to the appropriate controller
-                if (response) {
-                    ipc.server.emit(socket, 'message', response);//return response back to the client.The response must be stringified
+                const response = await server.receive(data);//route request to the appropriate controller
+                const result = response?.result;
+                if (isGenerator(result)) {
+                    for await (const value of result) {
+                        console.log('is gen 2');
+                        const responseToClient = stringify({...response,result:{finished:false,value}});
+                        ipc.server.emit(socket, 'message', responseToClient); // Send each value to the client
+                    }
+                    const endResponse = stringify({...response,result:{finished:true,value:null}});
+                    ipc.server.emit(socket, 'message',endResponse);//end of streaming
+                }else {
+                    const responseToClient = stringify({...response,result:{finished:true,value:result}});//the response must be stringified to the client
+                    ipc.server.emit(socket, 'message', responseToClient); // Return response back to the client
                 }
             } catch (err) {
                 console.error('Error handling JSON-RPC request:', err);
