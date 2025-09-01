@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import {checkBy, Doc, Implications, Tuple } from "../main.js";
+import {Box, checkBy, Doc, Implications, Tuple } from "../main.js";
 import { predicates as P } from "./documents/output/doc.types.js";
 import * as zod from "zod";
 
@@ -18,8 +18,9 @@ export const rules = {//A rule is a function that takes a document and a stateme
     directFriends:async (doc:Doc<P>,statement:[string,string])=> {
         return doc.isItStated(checkBy.Membership,'friends',statement);//its checking by membership not strict order to handle a statement of variable args and also when the order requirement isnt strict
     },
-    indirectFriends:async (doc:Doc<P>,statement:[string,string],visitedCombinations:string[])=> {
+    indirectFriends:async (doc:Doc<P>,statement:[string,string],visitedCombinations:Box<string[]>)=> {
         const [X,Y] = statement;//its only handling two entities at a time to prevent unbound recursion.
+        console.log('🚀 => :24 => visitedCombinations I:', visitedCombinations);
         const combinations = await doc.genCandidates(1,'friends',statement,visitedCombinations) as Tuple<string,1>[];
         for (const [A] of combinations) {
             if (await rules.directFriends(doc,[X,A])) {
@@ -31,7 +32,7 @@ export const rules = {//A rule is a function that takes a document and a stateme
         return false;
     },
     friends:async (doc:Doc<P>,statement:[string,string])=> {
-        const areFriends = (await rules.directFriends(doc,statement)) || (await rules.indirectFriends(doc,statement,[]));
+        const areFriends = (await rules.directFriends(doc,statement)) || (await rules.indirectFriends(doc,statement,[ [] ]));
         return areFriends;
     },
     siblings:async (doc:Doc<P>,statement:[string,string])=> {

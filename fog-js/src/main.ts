@@ -132,7 +132,7 @@ export class Doc<//i used an empty string over the string type for better type s
     //this method allows the user to query for the truthiness of a statement of a rule the same way they do with facts.So that rather than calling methods directly on the rule object,they write the name of the rule they want to check against as they would for fact querying and this method will forward it to the correct rule by key.It also includes aliases allowing users to also query rules with aliases that will still forward to the correct rule even though the rule's name isnt the alias.
     //this is recommended to use for querying rather direct function calls on a rule object but use the rule object to directly build functions or other rules for better type safety and control and use this mainly as a convenience for querying.
     //it will also fallback to direct fact checking if the statement doesnt satisfy any of the given rules making it a good useful utility for querying the document against all known facts and rules with alias support in a single call.Rules will be given priority first over direct fact checking because this method unlike isItAFact is designed for checking with inference.The check mode is used as part of the fallback to fact querying
-    public isItImplied:(fallback:FactCheckMode,relation:P | R,statement:L,visitedCombinations?:string[])=>Promise<boolean | Result.error> = async ()=>false;
+    public isItImplied:(fallback:FactCheckMode,relation:P | R,statement:L,visitedCombinations?:Box<string[]>)=>Promise<boolean | Result.error> = async ()=>false;
     
     public useImplications(implications:Implications<R,P>):void {
         const rules = implications.rules;
@@ -148,7 +148,7 @@ export class Doc<//i used an empty string over the string type for better type s
                         const ruleFucntion = rules[rKey as R];
                         validator.parse(statement);
                         
-                        return await ruleFucntion(this as any,statement,visitedCombinations || []);
+                        return await ruleFucntion(this as any,statement,visitedCombinations || [ [] ]);
                     }catch(err:unknown) {
                         if (err instanceof ZodError) {
                             const errors = JSON.parse(err.message) as Error[];
@@ -196,10 +196,10 @@ export class Doc<//i used an empty string over the string type for better type s
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public genCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:string[]):Promise<Tuple<M,N>[]>=>{
-        const result:Result.error | GeneratedCandidates<M,N> =  await client.request("genCandidates",{howManyToReturn,predicate,inputCombination,visitedCombinations});
+    public genCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Promise<Tuple<M,N>[]>=>{
+        const result:Result.error | GeneratedCandidates<M,N> =  await client.request("genCandidates",{howManyToReturn,predicate,inputCombination,visitedCombinations:visitedCombinations[0]});
         if (result === Result.error) Doc.throwDocError();
-        visitedCombinations = result.checkedCombinations;
+        visitedCombinations[0] = result.checkedCombinations;
         return result.combinations;
     };
     public selectSmallestRecord = async (predicates:P[]):Promise<P>=> {
@@ -227,7 +227,7 @@ interface Info {
 }
 export type Rule<P extends string = ''> = ProceduralRule<P> | RecursiveRule<P>;
 export type ProceduralRule<P extends string = ''> = (doc:Doc<P>,statement:any)=>Promise<boolean>;
-export type RecursiveRule<P extends string =''> = (doc:Doc<P>,statement:any,visitedCombinations:string[])=>Promise<boolean>;
+export type RecursiveRule<P extends string =''> = (doc:Doc<P>,statement:any,visitedCombinations:Box<string[]>)=>Promise<boolean>;//i boxed the visited combinations in an array for direct mutation under the genCandidates method
 
 export type Atom<T extends string | number = string | number> = T;
 export type AtomList<T extends string | number> = Atom<T>[];
@@ -264,3 +264,4 @@ export interface GeneratedCandidates<T extends string | number,N extends number>
     combinations:Tuple<Atom<T>,N>[],
     checkedCombinations:string[]
 }
+export type Box<T> = [T];
