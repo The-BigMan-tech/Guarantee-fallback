@@ -134,25 +134,30 @@ export class Doc<//i used an empty string over the string type for better type s
     //it will also fallback to direct fact checking if the statement doesnt satisfy any of the given rules making it a good useful utility for querying the document against all known facts and rules with alias support in a single call.Rules will be given priority first over direct fact checking because this method unlike isItAFact is designed for checking with inference.The check mode is used as part of the fallback to fact querying
     public isItImplied:(relation:P | R,statement:L,fallback?:FactCheckMode)=>Promise<boolean | Result.error> = async ()=>false;
     
-    public useRules(rules:Record<R,Rule<P>>):void {
+    public useImplications(implications:Implications<R,P>):void {
+        const rules = implications.rules;
         const rKeys = Object.keys(rules);
         this.isItImplied = async (relation,statement,fallback?:FactCheckMode):Promise<boolean | Result.error> => {//this is a pattern to query rules with the same interface design as querying a fact
             const predicates = await this.predicates();
             for (const rKey of rKeys) {
                 const queryKey = predicates[relation] || relation;
-                const forwardKey = predicates[rKey] || rKey;
+                const routeKey = predicates[rKey] || rKey;
                 const ruleFucntion = rules[rKey as R];
-                if (queryKey === forwardKey) {
+                if (queryKey === routeKey) {
                     try {
+                        const validator = implications.statements[rKey as R]();
+                        validator.parse(statement);
                         return await ruleFucntion(this as any,statement,[]);
                     }catch(err:unknown) {
                         if (err instanceof ZodError) {
                             const errors = JSON.parse(err.message) as Error[];
                             const error = '\n' + errors.map(error=>'-' + error.message + '.').join('\n');
                             console.log(chalk.red.underline('\nStatement validation error:'),error,'\n');
+                            console.log(chalk.red.underline('Details:\n'),err,'\n');
                         }else {
-                            console.log(chalk.red(`\nThe rule '${rKey}' encountered an error:`));
+                            console.log(chalk.red.underline(`\nThe rule '${rKey}' encountered an error:`));
                             console.log((err as Error).message + '\n');
+                            console.log(chalk.red.underline('Details:\n'),err,'\n');
                         }
                         return Result.error;
                     }
