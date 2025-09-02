@@ -45,14 +45,14 @@ function processStream<T>(subscriber:Subscriber<any>,subscription:Subscription |
         subscription?.unsubscribe();
     }
 }
-async function readStream<R,T>(func:(subscriber:Subscriber<R>,value:T)=>void):Promise<R[]> {
-    const subscriberFunc = (subscriber:Subscriber<R>):void =>{//observe the stream and inform the subscriber
+async function readStream<ReturnType,ValueType>(func:(subscriber:Subscriber<ReturnType>,value:ValueType)=>void):Promise<ReturnType[]> {
+    const subscriberFunc = (subscriber:Subscriber<ReturnType>):void =>{//observe the stream and inform the subscriber
         let subscription: Subscription | null = null;
         subscription = streamObservable.subscribe(response => {
-            processStream<T>(subscriber,subscription,response,func);
+            processStream<ValueType>(subscriber,subscription,response,func);
         });
     };
-    const observable = new Observable<R>(subscriber=>subscriberFunc(subscriber));//create the observable
+    const observable = new Observable<ReturnType>(subscriber=>subscriberFunc(subscriber));//create the observable
     return await consumeAsyncIterable(observableToAsyncGen(observable));//this ensures that the stream is fully consumed before returning to the client to prevent concurrency issues where the client may initiate another request which will cancel the stream
 }
 function resolutionErr(result:Result):boolean {

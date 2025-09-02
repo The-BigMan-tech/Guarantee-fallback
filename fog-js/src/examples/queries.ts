@@ -8,9 +8,12 @@ const doc = await importDocFromObject<info>(resolvedDoc);
 if (!doc) process.exit(0);
 
 doc.useImplications(implications);
-const answer = await doc.isItImplied(fallbackTo.Membership,'friends',["Billy","Mark"]);
-if (answer !== Result.error) {//this is to check for statement validation error i.e when the query violates the statement format that a rule expects
-    doc.printAnswer(answer);
+const answer1 = await doc.isItImplied(fallbackTo.Membership,'brothers',["Matt","Philip"]);
+doc.printAnswer(answer1);
+
+const answer2 = await doc.isItImplied(fallbackTo.Membership,'allies',["Billy","Mark"]);
+if (answer2 !== Result.error) {//this is to check for statement validation error i.e when the query violates the statement format that a rule expects
+    doc.printAnswer(answer2);
 }
 
 // const combinations = await doc.pullCandidates(2, 'friends', [], [[]]);
