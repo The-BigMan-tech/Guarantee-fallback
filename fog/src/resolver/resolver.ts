@@ -176,9 +176,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             
             if (!isTerminator && !isFiller){//the for alias check is to ensure that the plain words in alias declarations are considered
                 let name:string = token.text!;
-                if (!aliasDeclaration && (token.type === DSLLexer.ALIAS)) {//locking it to whether its an alias declaration prevents it from flagging an alias declaration as a duplicate sentence because the alias declaration itself is essentially a duplicate since it refers to a predicate and its meant to be that way.so the resolver should respect this
-                    name = this.stripMark(name);
-                    name = this.aliases.get(name)!;
+                if (!aliasDeclaration && ((token.type === DSLLexer.ALIAS) || (token.type === DSLLexer.PREDICATE))) {//locking it to whether its an alias declaration prevents it from flagging an alias declaration as a duplicate sentence because the alias declaration itself is essentially a duplicate since it refers to a predicate and its meant to be that way.so the resolver should respect this
+                    name = this.stripMark(name);//strip their prefixes
+                    name = this.aliases.get(name) || name;//the fallback is for the case of predicates
                 }
                 tokenNames.push(name);
             }
