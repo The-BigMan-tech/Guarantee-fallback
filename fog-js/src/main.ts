@@ -37,13 +37,23 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
     });
 });
 //this function runs the following callback with the response and automatically runs cleanup logic when the stream is fully processed
-function processStream<T>(subscriber:Subscriber<any>,subscription:Subscription | null,response:Response<any> | null,func:(value:T)=>void):void {
+function processStream<T>(subscriber:Subscriber<any>,subscription:Subscription | null,response:Response<any> | null,func:(subscriber:Subscriber<any>,value:T)=>void):void {
     if (!(response!.finished)) {
-        func(response!.value as T);
+        func(subscriber,response!.value as T);
     }else {
         subscriber.complete();
         subscription?.unsubscribe();
     }
+}
+async function readStream<R,T>(func:(subscriber:Subscriber<R>,value:T)=>void):Promise<R[]> {
+    const subscriberFunc = (subscriber:Subscriber<R>):void =>{//observe the stream and inform the subscriber
+        let subscription: Subscription | null = null;
+        subscription = streamObservable.subscribe(response => {
+            processStream<T>(subscriber,subscription,response,func);
+        });
+    };
+    const observable = new Observable<R>(subscriber=>subscriberFunc(subscriber));//create the observable
+    return await consumeAsyncIterable(observableToAsyncGen(observable));//this ensures that the stream is fully consumed before returning to the client to prevent concurrency issues where the client may initiate another request which will cancel the stream
 }
 function resolutionErr(result:Result):boolean {
     if (result === Result.error) {
@@ -213,20 +223,11 @@ export class Doc<//i used an empty string over the string type for better type s
     };
     public pullCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Promise<Tuple<M,N>[]>=> {
         await client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] });//initiate the stream request
-        const subscriberFunc = (subscriber:Subscriber<Tuple<M,N>>):void =>{//observe the stream and inform the subscriber
-            let subscription: Subscription | null = null;
-            subscription = streamObservable.subscribe(response => {
-                processStream<Result.error | GeneratedCandidates<M, N>>(subscriber,subscription,response,
-                    (value)=>{
-                        if (value === Result.error) Doc.throwDocError();
-                        visitedCombinations[0] = value.checkedCombinations;
-                        subscriber.next(value.combination);
-                    }
-                );
-            });
-        };
-        const observable = new Observable<Tuple<M,N>>(subscriber=>subscriberFunc(subscriber));//create the observable
-        return await consumeAsyncIterable(observableToAsyncGen(observable));//this ensures that the stream is fully consumed before returning to the client to prevent concurrency issues where the client may initiate another request which will cancel the stream
+        return await readStream<Tuple<M,N>,Result.error | GeneratedCandidates<M, N>>((subscriber,value)=>{
+            if (value === Result.error) Doc.throwDocError();
+            visitedCombinations[0] = value.checkedCombinations;
+            subscriber.next(value.combination);
+        });
     };
     public selectSmallestRecord = async (predicates:P[]):Promise<P>=> {
         const result:Result.error | P = await client.request('selectSmallestRecord',{predicates});
