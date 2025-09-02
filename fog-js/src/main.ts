@@ -202,7 +202,8 @@ export class Doc<//i used an empty string over the string type for better type s
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public pullCandidates = <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):CustomAsyncIterable<Tuple<M,N>>=> {
+    public pullCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Promise<CustomAsyncIterable<Tuple<M,N>>>=> {
+        await client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] });
         const subscriberFunc = (subscriber:Subscriber<Tuple<M,N>>):void =>{
             const subscription = streamObservable.subscribe(response => {
                 if (!(response!.finished)) {
@@ -216,10 +217,7 @@ export class Doc<//i used an empty string over the string type for better type s
                 }
             });
         };
-        const observable = new Observable<Tuple<M,N>>(subscriber=>{
-            client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] })
-                .then(()=>subscriberFunc(subscriber));
-        });
+        const observable = new Observable<Tuple<M,N>>(subscriber=>subscriberFunc(subscriber));
         return observableToAsyncGen(observable);
     };
     public selectSmallestRecord = async (predicates:P[]):Promise<P>=> {
