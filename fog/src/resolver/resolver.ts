@@ -167,14 +167,20 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         }
     }
-    private checkForRepetition(tokens:Token[] | null,forAlias:boolean) {//twi sentences are structurally identical if they have the same predicate or alias and the same number of atoms in the exact same order regardless of fillers.The resolver will flag this to prevent the final document from being bloated with unnecessary duplicate information.
+    private checkForRepetition(tokens:Token[] | null,aliasDeclaration:boolean) {//twi sentences are structurally identical if they have the same predicate or alias and the same number of atoms in the exact same order regardless of fillers.The resolver will flag this to prevent the final document from being bloated with unnecessary duplicate information.
         if ((tokens===null) || (tokens.length === 0)) return;
         const tokenNames:string[] = [];//im going to be checking against the token names and not the raw objects to make stringofying computationally easier
         tokens.forEach(token =>{
             const isTerminator = (token.type === DSLLexer.TERMINATOR);
-            const isFiller = ((token.type === DSLLexer.PLAIN_WORD) && !forAlias);
+            const isFiller = ((token.type === DSLLexer.PLAIN_WORD) && !aliasDeclaration);//the condition for alias declaration prevents it from conidering the name of the alias as filler just because its a plain word
+            
             if (!isTerminator && !isFiller){//the for alias check is to ensure that the plain words in alias declarations are considered
-                tokenNames.push(token.text!);
+                let name:string = token.text!;
+                if (!aliasDeclaration && (token.type === DSLLexer.ALIAS)) {//locking it to whether its an alias declaration prevents it from flagging an alias declaration as a duplicate sentence because the alias declaration itself is essentially a duplicate since it refers to a predicate and its meant to be that way.so the resolver should respect this
+                    name = this.stripMark(name);
+                    name = this.aliases.get(name)!;
+                }
+                tokenNames.push(name);
             }
         });
         const stringifiedNames = stringify(tokenNames);
