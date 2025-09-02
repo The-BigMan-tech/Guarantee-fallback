@@ -6,7 +6,7 @@ import { JSONRPCClient, JSONRPCResponse } from "json-rpc-2.0";
 import { ZodError } from 'zod';
 import * as zod from "zod";
 import { BehaviorSubject,Observable, Subscriber } from 'rxjs';
-import observableToAsyncGen, { CustomAsyncIterable } from './observable-async-gen.ts';
+import observableToAsyncGen, { CustomAsyncIterable } from './observable-async-gen.js';
 
 const streamResult = new BehaviorSubject<Response<any> | null>(null); // Initial value can be null or any default
 export const streamObservable = streamResult.asObservable();
