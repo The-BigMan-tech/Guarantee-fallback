@@ -210,8 +210,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         for (const child of ctx.children) {
             if (Resolver.terminate) return;
             await this.resolveLine(child);
-            console.log('🚀 => :209 => lineCount:',this.lineCount,Resolver.inputArr.length);
-            const shouldFlushLogs = Resolver.terminate || (this.lineCount===Resolver.inputArr.length) || ((this.lineCount % Resolver.linesToLogAtATime)===0);
+            const EOF = this.lineCount===Resolver.inputArr.length;
+            const shouldFlushLogs = Resolver.terminate || EOF || ((this.lineCount % Resolver.linesToLogAtATime)===0);
             if (shouldFlushLogs) {
                 await Resolver.flushLogs();
             }
