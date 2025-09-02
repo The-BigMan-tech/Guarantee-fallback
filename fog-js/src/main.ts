@@ -202,22 +202,22 @@ export class Doc<//i used an empty string over the string type for better type s
         return result;
     };
     public pullCandidates = <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Observable<Tuple<M,N>>=> {
-        const observerFunc = (observer:Subscriber<Tuple<M,N>>):void =>{
-            const subscription = streamObservable.subscribe(result => {
-                if (!(result!.finished)) {
-                    const value = result!.value as Result.error | GeneratedCandidates<M, N>;
+        const subscriberFunc = (subscriber:Subscriber<Tuple<M,N>>):void =>{
+            const subscription = streamObservable.subscribe(response => {
+                if (!(response!.finished)) {
+                    const value = response!.value as Result.error | GeneratedCandidates<M, N>;
                     if (value === Result.error) Doc.throwDocError();
                     visitedCombinations[0] = value.checkedCombinations;
-                    observer.next(value.combination);
+                    subscriber.next(value.combination);
                 }else {
-                    observer.complete();
+                    subscriber.complete();
                     subscription.unsubscribe();
                 }
             });
         };
-        return new Observable(observer=>{
+        return new Observable(subscriber=>{
             client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] })
-                .then(()=>observerFunc(observer));
+                .then(()=>subscriberFunc(subscriber));
         });
     };
     public selectSmallestRecord = async (predicates:P[]):Promise<P>=> {

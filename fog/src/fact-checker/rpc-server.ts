@@ -51,7 +51,7 @@ server.addMethod("pullCandidates",function* ({howManyToReturn,predicate,inputCom
     if (!docOnServer) return Result.error;
     const visitedSet = new Set(visitedCombinations);
     for (const combination of docOnServer.pullCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,visitedSet)) {
-        yield {combination,checkedCombinations:Array.from(visitedSet)};
+        yield {combination,checkedCombinations:Array.from(visitedSet)};//stream the data to the client
     }
 });
 server.addMethod("intersection",({arrays}:{arrays:any[][]})=>{
