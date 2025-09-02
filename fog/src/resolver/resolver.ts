@@ -200,7 +200,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         if (this.lineCount === (Resolver.inputArr.length-1)) {//this block is to increment the line count at the end of the file.This is because i dont directly have the eof token in the tokens array which is because they only contain sentences.so without that,the line count at the end of the file will always be a count short which s why im checking it against the input array.length - 1.Explicitly incrementing it under tis conditin fixes that.
             this.targetLineCount += 1;
         }
-        this.checkForRepetition(tokens,declaredAlias);
+        // this.checkForRepetition(tokens,declaredAlias);
         this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.   
         this.lineCount = this.targetLineCount;
         this.expandedFacts = null;
@@ -685,10 +685,14 @@ async function setUpLogs(outputFilePath:string) {
     Resolver.logs = [];
     await fs.writeFile(Resolver.logFile, 'THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.\n\n');
 }
-async function writeToOutput(outputFilePath:string,jsonInput:string):Promise<string> {
+async function writeToOutput(outputFilePath:string,jsonInput:string,start:number):Promise<string> {
     await accessOutputFolder(outputFilePath);
     const jsonPath = outputFilePath + ".json";
     await fs.writeFile(jsonPath,jsonInput);
+
+    const totalTime = Number( (performance.now() - start).toFixed(3) );
+    await fs.appendFile(Resolver.logFile!,chalk.green(`\n\nThe document resolved in ${totalTime} ms (${totalTime/1000} seconds)`));
+
     const messages = [`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`,`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`];
     console.log(messages.join(''));
     return jsonPath;
@@ -702,6 +706,8 @@ function omitJsonKeys(key:string,value:any) {
 }
 export async function resolveDocToJson(srcFilePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult> {
     try {
+        const start = performance.now();
+
         clearStaticVariables();//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
         const isSrcFile = srcFilePath.endsWith(".fog");
         if (!isSrcFile) {
@@ -724,7 +730,7 @@ export async function resolveDocToJson(srcFilePath:string,outputFolder?:string |
                     ...mapToRecord(resolvedData.aliases)
                 };
                 const fullData:FullData = {predicates:predicateRecord,records:resolvedData.records};
-                jsonPath = await writeToOutput(outputFilePath!,stringify(fullData,omitJsonKeys,4) || '');
+                jsonPath = await writeToOutput(outputFilePath!,stringify(fullData,omitJsonKeys,4) || '',start);
             }
             return {result:Result.success,jsonPath};
         }else {
