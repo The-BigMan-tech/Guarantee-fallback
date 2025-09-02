@@ -37,9 +37,9 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
     });
 });
 //this function runs the following callback with the response and automatically runs cleanup logic when the stream is fully processed
-function processStream(subscriber:Subscriber<any>,subscription:Subscription | null,response:Response<any> | null,func:(response:Response<any> | null)=>void):void {
+function processStream<T>(subscriber:Subscriber<any>,subscription:Subscription | null,response:Response<any> | null,func:(value:T)=>void):void {
     if (!(response!.finished)) {
-        func(response);
+        func(response!.value as T);
     }else {
         subscriber.complete();
         subscription?.unsubscribe();
@@ -216,12 +216,13 @@ export class Doc<//i used an empty string over the string type for better type s
         const subscriberFunc = (subscriber:Subscriber<Tuple<M,N>>):void =>{//observe the stream and inform the subscriber
             let subscription: Subscription | null = null;
             subscription = streamObservable.subscribe(response => {
-                processStream(subscriber,subscription,response,(response)=>{
-                    const value = response!.value as Result.error | GeneratedCandidates<M, N>;
-                    if (value === Result.error) Doc.throwDocError();
-                    visitedCombinations[0] = value.checkedCombinations;
-                    subscriber.next(value.combination);
-                });
+                processStream<Result.error | GeneratedCandidates<M, N>>(subscriber,subscription,response,
+                    (value)=>{
+                        if (value === Result.error) Doc.throwDocError();
+                        visitedCombinations[0] = value.checkedCombinations;
+                        subscriber.next(value.combination);
+                    }
+                );
             });
         };
         const observable = new Observable<Tuple<M,N>>(subscriber=>subscriberFunc(subscriber));//create the observable
