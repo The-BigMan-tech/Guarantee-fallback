@@ -119,15 +119,16 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
     private visitedSentences = new Map<string,number>();
     private getTokenStructureByName(tokens:Token[]) {
-        return tokens.map(token =>(token.type !== DSLLexer.PLAIN_WORD)?token.text!:'')
-            .filter(name=>name!==undefined);
+        const names:string[] = [];
+        tokens.forEach(token =>(token.type !== DSLLexer.PLAIN_WORD)?names.push(token.text!):undefined);
+        return names;
     }
     private printTokens(tokens:Token[]):void {
         const tokenDebug = tokens?.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
         console.log('\n Tokens:',tokenDebug);
     }
     private logProgress(tokens:Token[] | null) {
-        if ((tokens===null) || !(tokens.length > 0)) return;
+        if ((tokens===null) || (tokens.length === 0)) return;
         const resolvedSentence = tokens?.map(token=>token.text!).join(' ') || '';
         const originalSrc  = Resolver.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
 
@@ -170,8 +171,11 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         }
     }
-    private checkForRepetition(tokens:Token[]) {
-
+    private checkForRepetition(tokens:Token[] | null) {
+        if ((tokens===null) || (tokens.length === 0)) return;
+        const tokenNames = this.getTokenStructureByName(tokens);//im going to be checking against the token names and not the raw objects to make stringofying computationally easier
+        console.log('🚀 => :175 => checkForRepetition => tokenNames:', tokenNames);
+        this.visitedSentences.set(stringify(tokenNames),this.lineCount);
     }
     private async resolveLine(child:ParseTree) {
         let tokens:Token[] | null = null;
@@ -184,7 +188,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
             if (isNewLine) this.targetLineCount += 1;//increment the line count at every empty new line
         }
-        this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.                 
+        this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.   
+        this.checkForRepetition(tokens);              
         this.lineCount = this.targetLineCount;
         this.expandedFacts = null;
         this.predicateForLog = null;
