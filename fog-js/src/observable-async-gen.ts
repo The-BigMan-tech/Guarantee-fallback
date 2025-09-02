@@ -10,7 +10,15 @@ export interface CustomAsyncIterable<T> {
     [Symbol.asyncIterator](): MyAsyncIterator<T>;
 }
 
-export default function observableToAsyncGen<T>(observable: Observable<T>): CustomAsyncIterable<T> {
+export async function consumeAsyncIterable<T>(asyncIterable: AsyncIterable<T>): Promise<T[]> {
+    const result: T[] = [];
+    for await (const item of asyncIterable) {
+        result.push(item);
+    }
+    return result;
+}
+
+export function observableToAsyncGen<T>(observable: Observable<T>): CustomAsyncIterable<T> {
     const queue: IteratorResult<T>[] = [];
     let subscription: Subscription | null = null;
     let nextValueResolver: ((value: IteratorResult<T>) => void) | null = null;

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import {Box, checkBy, Doc, Implications, Tuple } from "../main.js";
+import {Box, checkBy, Doc, Implications } from "../main.js";
 import { predicates as P } from "./documents/output/doc.types.js";
 import * as zod from "zod";
-
+import { CustomAsyncIterable } from "../observable-async-gen.js";
 //I recommend generating the types for the document before writing the rules for better query safety by passing the predicates type as a generic to the Doc type
 //you dont have to explicitly declare any of the rules as recursive or procedural rules since ts will flag any errors if you try to import a rules object with an incompatible signature using the useRules method on the document.This reduces the verbosity needed.
 
@@ -21,8 +21,9 @@ export const rules = {//A rule is a function that takes a document and a stateme
     indirectFriends:async (doc:Doc<P>,statement:[string,string],visitedCombinations:Box<string[]>)=> {
         const [X,Y] = statement;//its only handling two entities at a time to prevent unbound recursion.
         console.log('🚀 => :24 => visitedCombinations I:', visitedCombinations);
-        const combinations = await doc.genCandidates(1,'friends',statement,visitedCombinations) as Tuple<string,1>[];
-        for (const [A] of combinations) {
+        const combinations = await doc.pullCandidates(1,'friends',statement,visitedCombinations) as CustomAsyncIterable<[string]>;
+        for await (const [A] of combinations) {
+            console.log('🚀 => :26 => A:', A);
             if (await rules.directFriends(doc,[X,A])) {
                 if (await rules.directFriends(doc,[A,Y]) || await rules.indirectFriends(doc,[A,Y],visitedCombinations)) {
                     return true;

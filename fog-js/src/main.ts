@@ -6,7 +6,7 @@ import { JSONRPCClient, JSONRPCResponse } from "json-rpc-2.0";
 import { ZodError } from 'zod';
 import * as zod from "zod";
 import { BehaviorSubject,Observable, Subscriber } from 'rxjs';
-import observableToAsyncGen, { CustomAsyncIterable } from './observable-async-gen.js';
+import { CustomAsyncIterable,observableToAsyncGen,consumeAsyncIterable } from './observable-async-gen.js';
 
 const streamResult = new BehaviorSubject<Response<any> | null>(null); // Initial value can be null or any default
 export const streamObservable = streamResult.asObservable();
@@ -202,7 +202,7 @@ export class Doc<//i used an empty string over the string type for better type s
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public pullCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Promise<CustomAsyncIterable<Tuple<M,N>>>=> {
+    public pullCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Promise<Tuple<M,N>[]>=> {
         await client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] });
         const subscriberFunc = (subscriber:Subscriber<Tuple<M,N>>):void =>{
             const subscription = streamObservable.subscribe(response => {
@@ -218,7 +218,7 @@ export class Doc<//i used an empty string over the string type for better type s
             });
         };
         const observable = new Observable<Tuple<M,N>>(subscriber=>subscriberFunc(subscriber));
-        return observableToAsyncGen(observable);
+        return await consumeAsyncIterable(observableToAsyncGen(observable));//this ensures that the stream is fully consumed before returning to the client to prevent concurrency issues where the client may initiate another request which will cancel the stream
     };
     public selectSmallestRecord = async (predicates:P[]):Promise<P>=> {
         const result:Result.error | P = await client.request('selectSmallestRecord',{predicates});
