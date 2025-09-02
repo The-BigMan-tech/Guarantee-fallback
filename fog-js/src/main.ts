@@ -5,7 +5,7 @@ import fs from "fs/promises";
 import { JSONRPCClient, JSONRPCResponse } from "json-rpc-2.0";
 import { ZodError } from 'zod';
 import * as zod from "zod";
-import { BehaviorSubject,Observable, Subscriber } from 'rxjs';
+import { BehaviorSubject,Observable, Subscriber, Subscription } from 'rxjs';
 import { CustomAsyncIterable,observableToAsyncGen,consumeAsyncIterable } from './observable-async-gen.js';
 
 const streamResult = new BehaviorSubject<Response<any> | null>(null); // Initial value can be null or any default
@@ -203,9 +203,10 @@ export class Doc<//i used an empty string over the string type for better type s
         return result;
     };
     public pullCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Promise<Tuple<M,N>[]>=> {
-        await client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] });
+        await client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] });//initiate the stream request
         const subscriberFunc = (subscriber:Subscriber<Tuple<M,N>>):void =>{
-            const subscription = streamObservable.subscribe(response => {
+            let subscription: Subscription | null = null;
+            subscription = streamObservable.subscribe(response => {
                 if (!(response!.finished)) {
                     const value = response!.value as Result.error | GeneratedCandidates<M, N>;
                     if (value === Result.error) Doc.throwDocError();
@@ -213,7 +214,7 @@ export class Doc<//i used an empty string over the string type for better type s
                     subscriber.next(value.combination);
                 }else {
                     subscriber.complete();
-                    subscription.unsubscribe();
+                    subscription?.unsubscribe();
                 }
             });
         };
