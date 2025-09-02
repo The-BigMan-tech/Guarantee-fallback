@@ -167,7 +167,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         }
     }
-    private checkForRepetition(tokens:Token[] | null,forAlias:boolean) {
+    private checkForRepetition(tokens:Token[] | null,forAlias:boolean) {//twi sentences are structurally identical if they have the same predicate or alias and the same number of atoms in the exact same order regardless of fillers.The resolver will flag this to prevent the final document from being bloated with unnecessary duplicate information.
         if ((tokens===null) || (tokens.length === 0)) return;
         const tokenNames:string[] = [];//im going to be checking against the token names and not the raw objects to make stringofying computationally easier
         tokens.forEach(token =>{
@@ -177,8 +177,14 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 tokenNames.push(token.text!);
             }
         });
+        const stringifiedNames = stringify(tokenNames);
         console.log('🚀 => :175 => checkForRepetition => tokenNames:', tokenNames);
-        this.visitedSentences.set(stringify(tokenNames),this.lineCount);
+        if (this.visitedSentences.has(stringifiedNames)) {
+            const sameSentenceLine = this.visitedSentences.get(stringifiedNames)!;
+            Essentials.report(DslError.Semantic,this.lineCount,`This sentence is structurally identical to a previous one.\nRemove it to improve resolution speed and reduce the final document size`,[sameSentenceLine,this.lineCount]);
+        }else {
+            this.visitedSentences.set(stringifiedNames,this.lineCount);//i mapped it to its line in the src for error reporting
+        }
     }
     private async resolveLine(child:ParseTree) {
         let tokens:Token[] | null = null;
