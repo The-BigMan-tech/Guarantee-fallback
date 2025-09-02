@@ -181,7 +181,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         console.log('🚀 => :175 => checkForRepetition => tokenNames:', tokenNames);
         if (this.visitedSentences.has(stringifiedNames)) {
             const sameSentenceLine = this.visitedSentences.get(stringifiedNames)!;
-            Essentials.report(DslError.Semantic,this.lineCount,`This sentence is structurally identical to a previous one.\nRemove it to improve resolution speed and reduce the final document size`,[sameSentenceLine,this.lineCount]);
+            Essentials.report(DslError.Semantic,this.lineCount,`-This sentence is structurally identical to a previous one.\n-Remove it to improve resolution speed and reduce the final document size`,[sameSentenceLine,this.lineCount]);
         }else {
             this.visitedSentences.set(stringifiedNames,this.lineCount);//i mapped it to its line in the src for error reporting
         }
@@ -199,8 +199,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
             if (isNewLine) this.targetLineCount += 1;//increment the line count at every empty new line
         }
+        this.checkForRepetition(tokens,declaredAlias);
+        if (Resolver.terminate) return;
+        
         this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.   
-        this.checkForRepetition(tokens,declaredAlias);              
         this.lineCount = this.targetLineCount;
         this.expandedFacts = null;
         this.predicateForLog = null;
