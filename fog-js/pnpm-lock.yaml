@@ -14,6 +14,9 @@ importers:
       commander:
         specifier: ^14.0.0
         version: 14.0.0
+      denque:
+        specifier: ^2.1.0
+        version: 2.1.0
       es-main:
         specifier: ^1.4.0
         version: 1.4.0
@@ -23,6 +26,9 @@ importers:
       node-ipc:
         specifier: ^12.0.0
         version: 12.0.0
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
@@ -1561,6 +1567,10 @@ packages:
   define-properties@1.2.1:
     resolution: {integrity: sha512-8QmQKqEASLd5nx0U1B1okLElbUuuttJ/AnYmRXbbbGDWh6uS208EjD4Xqq/I9wK7u0v6O08XhTWnt5XtEbR6Dg==}
     engines: {node: '>= 0.4'}
+
+  denque@2.1.0:
+    resolution: {integrity: sha512-HVQE3AAb/pxF8fQAoiqpvg9i3evqug3hoiwakOyZAwJm+6vZehbkYXZ0l4JxS+I3QxM97v5aaRNhj8v5oBhekw==}
+    engines: {node: '>=0.10'}
 
   des.js@1.1.0:
     resolution: {integrity: sha512-r17GxjhUCjSRy8aiJpr8/UadFIzMzJGexI3Nmz4ADi9LYSFx4gTBp80+NaX/YsXWWLhpZ7v/v/ubEc/bCNfKwg==}
@@ -4687,6 +4697,8 @@ snapshots:
       define-data-property: 1.1.4
       has-property-descriptors: 1.0.2
       object-keys: 1.1.1
+
+  denque@2.1.0: {}
 
   des.js@1.1.0:
     dependencies:

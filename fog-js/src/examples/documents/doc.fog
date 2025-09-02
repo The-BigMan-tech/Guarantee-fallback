@@ -9,9 +9,10 @@ alias male.
 alias males = *male.
 
 :Billy and :John are #friends.
-:John,:Mark and :Zane are #friends.
+:John :Zane are #friends.
 :Zane is the #friend of :Cole.
 :Leo is :Cole's #friend.
+:Leo and :Mark are #friends.
 
 :Matt and :Philip are #males.
 :Mandy is a *female.

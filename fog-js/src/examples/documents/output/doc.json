@@ -13,16 +13,10 @@
     },
     "records": {
         "allies": {
-            "facts": [],
-            "members": {
-                "list": []
-            }
+            "facts": []
         },
         "father": {
-            "facts": [],
-            "members": {
-                "list": []
-            }
+            "facts": []
         },
         "female": {
             "facts": [
@@ -31,18 +25,10 @@
                         "Mandy"
                     ]
                 }
-            ],
-            "members": {
-                "list": [
-                    "Mandy"
-                ]
-            }
+            ]
         },
         "friend": {
-            "facts": [],
-            "members": {
-                "list": []
-            }
+            "facts": []
         },
         "friends": {
             "facts": [
@@ -55,7 +41,6 @@
                 {
                     "list": [
                         "John",
-                        "Mark",
                         "Zane"
                     ]
                 },
@@ -70,18 +55,14 @@
                         "Leo",
                         "Cole"
                     ]
+                },
+                {
+                    "list": [
+                        "Leo",
+                        "Mark"
+                    ]
                 }
-            ],
-            "members": {
-                "list": [
-                    "Billy",
-                    "John",
-                    "Mark",
-                    "Zane",
-                    "Cole",
-                    "Leo"
-                ]
-            }
+            ]
         },
         "has": {
             "facts": [
@@ -92,14 +73,7 @@
                         "shoes"
                     ]
                 }
-            ],
-            "members": {
-                "list": [
-                    "Susan",
-                    9,
-                    "shoes"
-                ]
-            }
+            ]
         },
         "male": {
             "facts": [
@@ -109,25 +83,13 @@
                         "Philip"
                     ]
                 }
-            ],
-            "members": {
-                "list": [
-                    "Matt",
-                    "Philip"
-                ]
-            }
+            ]
         },
         "males": {
-            "facts": [],
-            "members": {
-                "list": []
-            }
+            "facts": []
         },
         "mother": {
-            "facts": [],
-            "members": {
-                "list": []
-            }
+            "facts": []
         },
         "parent": {
             "facts": [
@@ -149,15 +111,7 @@
                         "Mandy"
                     ]
                 }
-            ],
-            "members": {
-                "list": [
-                    "Susan",
-                    "Matt",
-                    "Philip",
-                    "Mandy"
-                ]
-            }
+            ]
         }
     }
 }
