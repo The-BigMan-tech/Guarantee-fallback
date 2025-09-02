@@ -100,13 +100,14 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public aliases = new Map<string,string>();//this is used for semantic safety by usin it to know which relations are declared as aliases or not so as to enforce checks when resolving the document.its also used in conjuction with the predicates map to clarify which records need full fact data to themselves and to build the final predicate map
     public predicates = new Map<string,string>();//this is used in conjuction with the aliases map to understand what records need their facts built into their own record.This mechanism ensures that only preidcates get a built record of facts to themsleves and aliases dont.it is comined with the alias map into a single oobject that maps the relations(predicates or aliases) to the conccrete predicates they refer to.This allows the json document to contain info about what record points to what(in the case of aliases).This greatly reduces the document size by having alias records completely empty and all the facts that belongs to the are transferred to the concrete proedicate.so at loading time,the fact chcekcer can know what they point to by using the predicate map.
 
-    private lineCount:number = 0;
-    private targetLineCount:number = this.lineCount;
+    private lineCount:number = 0;//this meant to be read-only by all methods but only mutated once at the end of each resolution step to be equal to the mutable line count
+    private targetLineCount:number = this.lineCount;//this is the mutable line count that is safe to increment by any method that inspects tokens and at every new line.Its not meant to be done by every method that inspects tokens but only a few.and here,only three pieces of the codebase does this.This is to prevent incorrect state bugs.
 
     public static terminate:boolean = false;
 
     public static logFile:string | null = null;
     public static logs:string[] | null = null;
+    public static linesToLogAtATime:number = 10;
     public static inputArr:string[] = [];
 
     private expandedFacts:AtomList[] | null = null;
@@ -200,12 +201,16 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         this.lineCount = this.targetLineCount;
         this.expandedFacts = null;
         this.predicateForLog = null;
-        await Resolver.flushLogs();
     }
     public visitProgram = async (ctx:ProgramContext)=> {
-        for (const child of ctx.children) {
+        for (const [index,child] of ctx.children.entries()) {
             if (Resolver.terminate) return;
             await this.resolveLine(child);
+            console.log('🚀 => :209 => lineCount:',this.lineCount);
+            const shouldFlushLogs = Resolver.terminate || ((this.lineCount % Resolver.linesToLogAtATime)===0);
+            if (shouldFlushLogs) {
+                await Resolver.flushLogs();
+            }
         }
         return undefined;
     };
