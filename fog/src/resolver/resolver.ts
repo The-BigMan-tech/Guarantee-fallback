@@ -100,6 +100,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public aliases = new Map<string,string>();//this is used for semantic safety by usin it to know which relations are declared as aliases or not so as to enforce checks when resolving the document.its also used in conjuction with the predicates map to clarify which records need full fact data to themselves and to build the final predicate map
     public predicates = new Map<string,string>();//this is used in conjuction with the aliases map to understand what records need their facts built into their own record.This mechanism ensures that only preidcates get a built record of facts to themsleves and aliases dont.it is comined with the alias map into a single oobject that maps the relations(predicates or aliases) to the conccrete predicates they refer to.This allows the json document to contain info about what record points to what(in the case of aliases).This greatly reduces the document size by having alias records completely empty and all the facts that belongs to the are transferred to the concrete proedicate.so at loading time,the fact chcekcer can know what they point to by using the predicate map.
 
+    //the reason why im explicitly managing the line count instead of the index at every program context visit iteration is because that method assumes that the each context is a line which isnt the case when there are multiple snetences in a line.
     private lineCount:number = 0;//this meant to be read-only by all methods but only mutated once at the end of each resolution step to be equal to the mutable line count
     private targetLineCount:number = this.lineCount;//this is the mutable line count that is safe to increment by any method that inspects tokens and at every new line.Its not meant to be done by every method that inspects tokens but only a few.and here,only three pieces of the codebase does this.This is to prevent incorrect state bugs.
 
@@ -120,7 +121,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
     private visitedSentences = new Map<string,number>();
 
-    private printTokens(tokens:Token[]):void {
+    private printTokens(tokens:Token[] | null):void {
         const tokenDebug = tokens?.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
         console.log('\n Tokens:',tokenDebug);
     }
@@ -196,6 +197,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
             if (isNewLine) this.targetLineCount += 1;//increment the line count at every empty new line
         }
+        if (this.lineCount === (Resolver.inputArr.length-1)) {//this block is to increment the line count at the end of the file.This is because i dont directly have the eof token in the tokens array which is because they only contain sentences.so without that,the line count at the end of the file will always be a count short which s why im checking it against the input array.length - 1.Explicitly incrementing it under tis conditin fixes that.
+            this.targetLineCount += 1;
+        }
         this.checkForRepetition(tokens,declaredAlias);
         this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.   
         this.lineCount = this.targetLineCount;
@@ -203,11 +207,11 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         this.predicateForLog = null;
     }
     public visitProgram = async (ctx:ProgramContext)=> {
-        for (const [index,child] of ctx.children.entries()) {
+        for (const child of ctx.children) {
             if (Resolver.terminate) return;
             await this.resolveLine(child);
-            console.log('🚀 => :209 => lineCount:',this.lineCount);
-            const shouldFlushLogs = Resolver.terminate || ((this.lineCount % Resolver.linesToLogAtATime)===0);
+            console.log('🚀 => :209 => lineCount:',this.lineCount,Resolver.inputArr.length);
+            const shouldFlushLogs = Resolver.terminate || (this.lineCount===Resolver.inputArr.length) || ((this.lineCount % Resolver.linesToLogAtATime)===0);
             if (shouldFlushLogs) {
                 await Resolver.flushLogs();
             }
