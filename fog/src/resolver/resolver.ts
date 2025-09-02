@@ -124,7 +124,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         console.log('\n Tokens:',tokenDebug);
     }
     private logProgress(tokens:Token[] | null) {
-        if ((tokens===null) || (tokens.length === 0) || Resolver.terminate) return;
+        if ((tokens===null) || Resolver.terminate) return;
         const resolvedSentence = tokens?.map(token=>token.text!).join(' ') || '';
         const originalSrc  = Resolver.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
         let expansionText = stringify(this.expandedFacts);
