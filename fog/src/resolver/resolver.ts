@@ -124,38 +124,37 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         console.log('\n Tokens:',tokenDebug);
     }
     private logProgress(tokens:Token[] | null) {
-        if ((tokens===null) || (tokens.length === 0)) return;
+        if ((tokens===null) || (tokens.length === 0) || Resolver.terminate) return;
         const resolvedSentence = tokens?.map(token=>token.text!).join(' ') || '';
         const originalSrc  = Resolver.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
+        
+        if (originalSrc?.trim().length > 0) {
+            let expansionText = stringify(this.expandedFacts);
+            expansionText = replaceLastOccurrence(expansionText,']','\n]\n')
+                .replace('[','\n[\n')
+                .replaceAll(',[',',\n[')
+                .split('\n')
+                .map(line => {
+                    const trimmed = line?.trim();
+                    if (trimmed.startsWith('[') && (trimmed.endsWith(']') || trimmed.endsWith('],'))) {
+                        return trimmed.padStart(trimmed.length + 4,' '); // trim original and add two spaces indentation
+                    }
+                    return line;
+                })
+                .join('\n');
 
-        if (!Resolver.terminate) {
-            if (originalSrc?.trim().length > 0) {
-                let expansionText = stringify(this.expandedFacts);
-                expansionText = replaceLastOccurrence(expansionText,']','\n]\n')
-                    .replace('[','\n[\n')
-                    .replaceAll(',[',',\n[')
-                    .split('\n')
-                    .map(line => {
-                        const trimmed = line?.trim();
-                        if (trimmed.startsWith('[') && (trimmed.endsWith(']') || trimmed.endsWith('],'))) {
-                            return trimmed.padStart(trimmed.length + 4,' '); // trim original and add two spaces indentation
-                        }
-                        return line;
-                    })
-                    .join('\n');
+            let successMessage = lime.underline(`\nProcessed line ${this.lineCount + 1}: `);//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
+            successMessage += `\n-Sentence: ${brown(originalSrc)}`;
+            successMessage += (this.prevRefCheck.hasRef)?`\n-With resolved references: ${brown(resolvedSentence)}`:'';//using prevRefCehck under the same loop accesses the ref check of the latest senetnce.
+            
+            if (this.predicateForLog) {//the condition is to skip printing this on alias declarations.The lock works because this is only set on facts and not on alias declarations.Im locking this on alias declarations because they dont need extra logging cuz there is no expansion data or any need to log the predicate separately.just the declaration is enough
+                const predicateFromAlias = this.aliases.get(this.predicateForLog || '');
+                successMessage += (predicateFromAlias)?`\n-Alias #${this.predicateForLog} -> *${predicateFromAlias}`:`\n-Predicate: *${this.predicateForLog}`;
+                successMessage += `\n-Expansion: ${brown(expansionText)}`; 
+            };
 
-                let successMessage = lime.underline(`\nProcessed line ${this.lineCount + 1}: `);//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
-                successMessage += `\n-Sentence: ${brown(originalSrc)}`;
-                successMessage += (this.prevRefCheck.hasRef)?`\n-With resolved references: ${brown(resolvedSentence)}`:'';//using prevRefCehck under the same loop accesses the ref check of the latest senetnce.
-
-                if (this.predicateForLog) {//the condition is to skip printing this on alias declarations.The lock works because this is only set on facts and not on alias declarations.Im locking this on alias declarations because they dont need extra logging cuz there is no expansion data or any need to log the predicate separately.just the declaration is enough
-                    const predicateFromAlias = this.aliases.get(this.predicateForLog || '');
-                    successMessage += (predicateFromAlias)?`\n-Alias #${this.predicateForLog} -> *${predicateFromAlias}`:`\n-Predicate: *${this.predicateForLog}`;
-                    successMessage += `\n-Expansion: ${brown(expansionText)}`; 
-                };
-                console.info(successMessage);
-                Resolver.logs?.push(successMessage);
-            }
+            console.info(successMessage);
+            Resolver.logs?.push(successMessage);
         }
     }
     public static async flushLogs() {
@@ -200,8 +199,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             if (isNewLine) this.targetLineCount += 1;//increment the line count at every empty new line
         }
         this.checkForRepetition(tokens,declaredAlias);
-        if (Resolver.terminate) return;
-        
         this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.   
         this.lineCount = this.targetLineCount;
         this.expandedFacts = null;
