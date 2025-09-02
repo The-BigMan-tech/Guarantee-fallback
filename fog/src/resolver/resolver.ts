@@ -118,11 +118,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private predicateForLog:string | null = null;
 
     private visitedSentences = new Map<string,number>();
-    private getTokenStructureByName(tokens:Token[]) {
-        const names:string[] = [];
-        tokens.forEach(token =>(token.type !== DSLLexer.PLAIN_WORD)?names.push(token.text!):undefined);
-        return names;
-    }
+
     private printTokens(tokens:Token[]):void {
         const tokenDebug = tokens?.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
         console.log('\n Tokens:',tokenDebug);
@@ -171,25 +167,34 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         }
     }
-    private checkForRepetition(tokens:Token[] | null) {
+    private checkForRepetition(tokens:Token[] | null,forAlias:boolean) {
         if ((tokens===null) || (tokens.length === 0)) return;
-        const tokenNames = this.getTokenStructureByName(tokens);//im going to be checking against the token names and not the raw objects to make stringofying computationally easier
+        const tokenNames:string[] = [];//im going to be checking against the token names and not the raw objects to make stringofying computationally easier
+        tokens.forEach(token =>{
+            const isTerminator = (token.type === DSLLexer.TERMINATOR);
+            const isFiller = ((token.type === DSLLexer.PLAIN_WORD) && !forAlias);
+            if (!isTerminator && !isFiller){//the for alias check is to ensure that the plain words in alias declarations are considered
+                tokenNames.push(token.text!);
+            }
+        });
         console.log('🚀 => :175 => checkForRepetition => tokenNames:', tokenNames);
         this.visitedSentences.set(stringify(tokenNames),this.lineCount);
     }
     private async resolveLine(child:ParseTree) {
         let tokens:Token[] | null = null;
+        let declaredAlias = false;
         if (child instanceof FactContext) {
             tokens = await this.visitFact(child);
         }else if (child instanceof AliasDeclarationContext) {
             tokens = await this.visitAliasDeclaration(child);
+            declaredAlias = true;
         }else{
             const payload = child.getPayload();
             const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
             if (isNewLine) this.targetLineCount += 1;//increment the line count at every empty new line
         }
         this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.   
-        this.checkForRepetition(tokens);              
+        this.checkForRepetition(tokens,declaredAlias);              
         this.lineCount = this.targetLineCount;
         this.expandedFacts = null;
         this.predicateForLog = null;
