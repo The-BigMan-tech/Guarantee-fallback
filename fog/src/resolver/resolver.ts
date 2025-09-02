@@ -160,7 +160,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             const logs = Resolver.logs.join('');
             if (logs.length > 0) {
                 await fs.appendFile(Resolver.logFile,logs + '\n');
-                Resolver.logs.length = 0;
+                Resolver.logs.length = 0;//clear the batch
             }
         }
     }
