@@ -5,7 +5,7 @@ import fs from "fs/promises";
 import { JSONRPCClient, JSONRPCResponse } from "json-rpc-2.0";
 import { ZodError } from 'zod';
 import * as zod from "zod";
-import { BehaviorSubject,Observable, Subscriber } from 'rxjs';
+import { BehaviorSubject,Observable, Subscriber, Subscription } from 'rxjs';
 
 const streamResult = new BehaviorSubject<Response<any> | null>(null); // Initial value can be null or any default
 export const streamObservable = streamResult.asObservable();
@@ -169,7 +169,7 @@ export class Doc<//i used an empty string over the string type for better type s
                     }
                 }
             }
-            return this.isItStated(fallback,relation,statement);
+            return await this.isItStated(fallback,relation,statement);
         };
     };//the reason why i made this to take the relations query Q instead of predicates P is to have full intellisese of all the possible relations to ask regardless if its for a fact or an implication
     public isItStated = async(checkMode:FactCheckMode,relation:P | R,statement:L):Promise<boolean>=> {
@@ -215,10 +215,11 @@ export class Doc<//i used an empty string over the string type for better type s
                 }
             });
         };
-        return new Observable(subscriber=>{
+        const observable = new Observable<Tuple<M,N>>(subscriber=>{
             client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] })
                 .then(()=>subscriberFunc(subscriber));
         });
+        return observable;
     };
     public selectSmallestRecord = async (predicates:P[]):Promise<P>=> {
         const result:Result.error | P = await client.request('selectSmallestRecord',{predicates});
@@ -287,3 +288,95 @@ export interface GeneratedCandidates<T extends string | number,N extends number>
     checkedCombinations:string[]
 }
 export type Box<T> = [T];
+
+
+interface MyAsyncIterator<T> {
+  next(): Promise<IteratorResult<T>>;
+  return?(): Promise<IteratorResult<T>>;
+  throw?(e?: any): Promise<IteratorResult<T>>;
+}
+
+export interface MyAsyncIterable<T> {
+  [Symbol.asyncIterator](): MyAsyncIterator<T>;
+}
+
+export function observableToAsyncGen<T>(observable: Observable<T>): MyAsyncIterable<T> {
+  const queue: IteratorResult<T>[] = [];
+  let subscription: Subscription | null = null;
+  let nextValueResolver: ((value: IteratorResult<T>) => void) | null = null;
+  let doneResolver: (() => void) | null = null;
+  let errorRejecter: ((error: any) => void) | null = null;
+  let isDone = false;
+
+  const asyncIterator: MyAsyncIterator<T> = {
+    async next(): Promise<IteratorResult<T>> {
+      if (queue.length) {
+        return queue.shift()!;
+      }
+      if (isDone) {
+        return { value: undefined, done: true };
+      }
+      return new Promise<IteratorResult<T>>((resolve, reject) => {
+        nextValueResolver = resolve;
+        errorRejecter = reject;
+        doneResolver = () => {
+          isDone = true;
+          resolve({ value: undefined, done: true });
+        };
+      });
+    },
+
+    async return(): Promise<IteratorResult<T>> {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+      isDone = true;
+      if (doneResolver) {
+        doneResolver();
+      }
+      return { value: undefined, done: true };
+    },
+
+    async throw(error?: any): Promise<IteratorResult<T>> {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+      isDone = true;
+      if (errorRejecter) {
+        errorRejecter(error);
+      }
+      return { value: undefined, done: true };
+    },
+  };
+
+  subscription = observable.subscribe({
+    next: (value) => {
+      if (nextValueResolver) {
+        nextValueResolver({ value, done: false });
+        nextValueResolver = null;
+      } else {
+        queue.push({ value, done: false });
+      }
+    },
+    error: (err) => {
+      if (errorRejecter) {
+        errorRejecter(err);
+        errorRejecter = null;
+      }
+      isDone = true;
+    },
+    complete: () => {
+      if (doneResolver) {
+        doneResolver();
+        doneResolver = null;
+      }
+      isDone = true;
+    },
+  });
+
+  const asyncIterable: MyAsyncIterable<T> = {
+    [Symbol.asyncIterator]: () => asyncIterator,
+  };
+
+  return asyncIterable;
+}
