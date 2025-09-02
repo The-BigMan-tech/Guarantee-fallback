@@ -691,7 +691,7 @@ async function writeToOutput(outputFilePath:string,jsonInput:string,start:number
     await fs.writeFile(jsonPath,jsonInput);
 
     const totalTime = Number( (performance.now() - start).toFixed(3) );
-    await fs.appendFile(Resolver.logFile!,chalk.green(`\n\nThe document resolved in ${totalTime} ms (${totalTime/1000} seconds)`));
+    await fs.appendFile(Resolver.logFile!,chalk.green(`\n\nThe document resolved in ${totalTime} ms (${(totalTime/1000).toFixed(3)} seconds)`));
 
     const messages = [`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`,`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`];
     console.log(messages.join(''));
