@@ -115,15 +115,19 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private lastSentenceTokens:Token[] = [];
     private prevRefCheck:RefCheck = {hasRef:false,line:0};//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
-    private seenAlias:boolean = false;//i used this to control progress logging
     private predicateForLog:string | null = null;
 
+    private visitedSentences = new Map<string,number>();
+    private getTokenStructureByName(tokens:Token[]) {
+        return tokens.map(token =>(token.type !== DSLLexer.PLAIN_WORD)?token.text!:'')
+            .filter(name=>name!==undefined);
+    }
     private printTokens(tokens:Token[]):void {
         const tokenDebug = tokens?.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
         console.log('\n Tokens:',tokenDebug);
     }
     private logProgress(tokens:Token[] | null) {
-        if ((tokens===null) && !this.seenAlias) return;//dont log anything if they are no tokens and no alias is declared
+        if ((tokens===null) || !(tokens.length > 0)) return;
         const resolvedSentence = tokens?.map(token=>token.text!).join(' ') || '';
         const originalSrc  = Resolver.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
 
@@ -164,12 +168,15 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             Resolver.logs.length = 0;
         }
     }
-    private async resolveProgram(child:ParseTree) {
+    private checkForRepetition(tokens:Token[]) {
+
+    }
+    private async resolveLine(child:ParseTree) {
         let tokens:Token[] | null = null;
         if (child instanceof FactContext) {
             tokens = await this.visitFact(child);
         }else if (child instanceof AliasDeclarationContext) {
-            await this.visitAliasDeclaration(child);
+            tokens = await this.visitAliasDeclaration(child);
         }else{
             const payload = child.getPayload();
             const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
@@ -179,13 +186,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         this.lineCount = this.targetLineCount;
         this.expandedFacts = null;
         this.predicateForLog = null;
-        this.seenAlias = false;
         await Resolver.flushLogs();
     }
     public visitProgram = async (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
             if (Resolver.terminate) return;
-            await this.resolveProgram(child);
+            await this.resolveLine(child);
         }
         return undefined;
     };
@@ -204,7 +210,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public visitAliasDeclaration = async (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         this.resolveAlias(tokens);
-        return undefined;
+        return tokens;
     };
 
     private getListTokensBlock(tokens:Denque<Token>,nList:number,listCount:[number]=[0]):Token[] | null {
@@ -475,7 +481,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         //i intially made it to point to the predicate record in memory if it existed,but after moving to json outputs,it led to duplicate entries that only increased the final document size for every alias.so i prevented it from pointing to the predicate record if it existed and had it its own unique but empty record.
         this.records[alias] = new Rec([]);
         this.aliases.set(alias,predicate || alias);//the fallback is for when there is no predicate provided to point to in the alias declaration.its used as a shorthand where the alias points to the predicate of the same name.its a pettern to invalidate the use of those predicates for better safety.
-        this.seenAlias = true;
 
         if (this.builtAFact) {
             Essentials.report(DslError.DoubleCheck,this.lineCount,`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors sooner.`);
@@ -660,7 +665,7 @@ async function setUpLogs(outputFilePath:string) {
 async function writeToOutput(outputFilePath:string,jsonInput:string):Promise<string> {
     await accessOutputFolder(outputFilePath);
     const jsonPath = outputFilePath + ".json";
-    await fs.writeFile(jsonPath, jsonInput);
+    await fs.writeFile(jsonPath,jsonInput);
     const messages = [`\n${lime('Successfully wrote JSON output to: ')} ${jsonPath}\n`,`\n${lime('Successfully wrote ansi report to: ')} ${Resolver.logFile}\n`];
     console.log(messages.join(''));
     return jsonPath;
