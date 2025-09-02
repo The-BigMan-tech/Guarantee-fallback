@@ -164,8 +164,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static async flushLogs() {
         if (Resolver.logs && Resolver.logFile) {
             const logs = Resolver.logs.join('');
-            await fs.appendFile(Resolver.logFile,logs + '\n');
-            Resolver.logs.length = 0;
+            if (logs.length > 0) {
+                await fs.appendFile(Resolver.logFile,logs + '\n');
+                Resolver.logs.length = 0;
+            }
         }
     }
     private checkForRepetition(tokens:Token[]) {
