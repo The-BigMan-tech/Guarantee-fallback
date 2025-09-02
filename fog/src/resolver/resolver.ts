@@ -169,7 +169,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
     private checkForRepetition(tokens:Token[] | null,aliasDeclaration:boolean) {//twi sentences are structurally identical if they have the same predicate or alias and the same number of atoms in the exact same order regardless of fillers.The resolver will flag this to prevent the final document from being bloated with unnecessary duplicate information.
         if ((tokens===null) || (tokens.length === 0)) return;
-        const tokenNames:string[] = [];//im going to be checking against the token names and not the raw objects to make stringofying computationally easier
+        //im using a queue because it will be inserting predicates to the front of the array.This is because no matter the position of the predicate in a sentence,it always produces the same output meaning that the semantic meaning of the sentence is the same.So by inserting them to the front and not pushing them to the ends,i ensure that the position of the predicate doesnt affect its reasoning of duplicates because they will always be at the front
+        const tokenNames = new Denque<string>([]);//im going to be checking against the token names and not the raw objects to make stringofying computationally easier
         tokens.forEach(token =>{
             const isTerminator = (token.type === DSLLexer.TERMINATOR);
             const isFiller = ((token.type === DSLLexer.PLAIN_WORD) && !aliasDeclaration);//the condition for alias declaration prevents it from conidering the name of the alias as filler just because its a plain word
@@ -179,12 +180,14 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 if (!aliasDeclaration && ((token.type === DSLLexer.ALIAS) || (token.type === DSLLexer.PREDICATE))) {//locking it to whether its an alias declaration prevents it from flagging an alias declaration as a duplicate sentence because the alias declaration itself is essentially a duplicate since it refers to a predicate and its meant to be that way.so the resolver should respect this
                     name = this.stripMark(name);//strip their prefixes
                     name = this.aliases.get(name) || name;//the fallback is for the case of predicates
+                    tokenNames.unshift(name);
+                }else {
+                    tokenNames.push(name);
                 }
-                tokenNames.push(name);
             }
         });
-        const stringifiedNames = stringify(tokenNames);
-        console.log('🚀 => :175 => checkForRepetition => tokenNames:', tokenNames);
+        const stringifiedNames = stringify(tokenNames.toArray());
+        console.log('🚀 => :175 => checkForRepetition => tokenNames:', tokenNames.toArray());
         if (this.visitedSentences.has(stringifiedNames)) {
             const sameSentenceLine = this.visitedSentences.get(stringifiedNames)!;
             Essentials.report(DslError.Semantic,this.lineCount,`-This sentence is structurally identical to a previous one.\n-Remove it to improve resolution speed and reduce the final document size.`,[sameSentenceLine,this.lineCount]);
