@@ -5,7 +5,8 @@ import fs from "fs/promises";
 import { JSONRPCClient, JSONRPCResponse } from "json-rpc-2.0";
 import { ZodError } from 'zod';
 import * as zod from "zod";
-import { BehaviorSubject,Observable, Subscriber, Subscription } from 'rxjs';
+import { BehaviorSubject,Observable, Subscriber } from 'rxjs';
+import observableToAsyncGen, { CustomAsyncIterable } from './observable-async-gen.ts';
 
 const streamResult = new BehaviorSubject<Response<any> | null>(null); // Initial value can be null or any default
 export const streamObservable = streamResult.asObservable();
@@ -201,7 +202,7 @@ export class Doc<//i used an empty string over the string type for better type s
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public pullCandidates = <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Observable<Tuple<M,N>>=> {
+    public pullCandidates = <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):CustomAsyncIterable<Tuple<M,N>>=> {
         const subscriberFunc = (subscriber:Subscriber<Tuple<M,N>>):void =>{
             const subscription = streamObservable.subscribe(response => {
                 if (!(response!.finished)) {
@@ -219,7 +220,7 @@ export class Doc<//i used an empty string over the string type for better type s
             client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] })
                 .then(()=>subscriberFunc(subscriber));
         });
-        return observable;
+        return observableToAsyncGen(observable);
     };
     public selectSmallestRecord = async (predicates:P[]):Promise<P>=> {
         const result:Result.error | P = await client.request('selectSmallestRecord',{predicates});
@@ -289,94 +290,3 @@ export interface GeneratedCandidates<T extends string | number,N extends number>
 }
 export type Box<T> = [T];
 
-
-interface MyAsyncIterator<T> {
-  next(): Promise<IteratorResult<T>>;
-  return?(): Promise<IteratorResult<T>>;
-  throw?(e?: any): Promise<IteratorResult<T>>;
-}
-
-export interface MyAsyncIterable<T> {
-  [Symbol.asyncIterator](): MyAsyncIterator<T>;
-}
-
-export function observableToAsyncGen<T>(observable: Observable<T>): MyAsyncIterable<T> {
-  const queue: IteratorResult<T>[] = [];
-  let subscription: Subscription | null = null;
-  let nextValueResolver: ((value: IteratorResult<T>) => void) | null = null;
-  let doneResolver: (() => void) | null = null;
-  let errorRejecter: ((error: any) => void) | null = null;
-  let isDone = false;
-
-  const asyncIterator: MyAsyncIterator<T> = {
-    async next(): Promise<IteratorResult<T>> {
-      if (queue.length) {
-        return queue.shift()!;
-      }
-      if (isDone) {
-        return { value: undefined, done: true };
-      }
-      return new Promise<IteratorResult<T>>((resolve, reject) => {
-        nextValueResolver = resolve;
-        errorRejecter = reject;
-        doneResolver = () => {
-          isDone = true;
-          resolve({ value: undefined, done: true });
-        };
-      });
-    },
-
-    async return(): Promise<IteratorResult<T>> {
-      if (subscription) {
-        subscription.unsubscribe();
-      }
-      isDone = true;
-      if (doneResolver) {
-        doneResolver();
-      }
-      return { value: undefined, done: true };
-    },
-
-    async throw(error?: any): Promise<IteratorResult<T>> {
-      if (subscription) {
-        subscription.unsubscribe();
-      }
-      isDone = true;
-      if (errorRejecter) {
-        errorRejecter(error);
-      }
-      return { value: undefined, done: true };
-    },
-  };
-
-  subscription = observable.subscribe({
-    next: (value) => {
-      if (nextValueResolver) {
-        nextValueResolver({ value, done: false });
-        nextValueResolver = null;
-      } else {
-        queue.push({ value, done: false });
-      }
-    },
-    error: (err) => {
-      if (errorRejecter) {
-        errorRejecter(err);
-        errorRejecter = null;
-      }
-      isDone = true;
-    },
-    complete: () => {
-      if (doneResolver) {
-        doneResolver();
-        doneResolver = null;
-      }
-      isDone = true;
-    },
-  });
-
-  const asyncIterable: MyAsyncIterable<T> = {
-    [Symbol.asyncIterator]: () => asyncIterator,
-  };
-
-  return asyncIterable;
-}
