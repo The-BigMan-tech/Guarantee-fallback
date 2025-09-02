@@ -63,6 +63,7 @@ class Essentials {
                 pushLine(line);
             }
         }
+        messages.push('\n');
         console.info(...messages);
         Resolver.logs?.push(...messages);
         if ((errorType===DslError.Semantic) || (errorType===DslError.Syntax)) {
@@ -153,6 +154,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             successMessage += (predicateFromAlias)?`\n-Alias #${this.predicateForLog} -> *${predicateFromAlias}`:`\n-Predicate: *${this.predicateForLog}`;
             successMessage += `\n-Expansion: ${brown(expansionText)}`; 
         };
+        successMessage += '\n';
         console.info(successMessage);
         Resolver.logs?.push(successMessage);
     }
@@ -160,7 +162,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         if (Resolver.logs && Resolver.logFile) {
             const logs = Resolver.logs.join('');
             if (logs.length > 0) {
-                await fs.appendFile(Resolver.logFile,logs + '\n');
+                await fs.appendFile(Resolver.logFile,logs);
                 Resolver.logs.length = 0;//clear the batch
             }
         }
@@ -200,7 +202,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         if (this.lineCount === (Resolver.inputArr.length-1)) {//this block is to increment the line count at the end of the file.This is because i dont directly have the eof token in the tokens array which is because they only contain sentences.so without that,the line count at the end of the file will always be a count short which s why im checking it against the input array.length - 1.Explicitly incrementing it under tis conditin fixes that.
             this.targetLineCount += 1;
         }
-        // this.checkForRepetition(tokens,declaredAlias);
+        this.checkForRepetition(tokens,declaredAlias);
         this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.   
         this.lineCount = this.targetLineCount;
         this.expandedFacts = null;
