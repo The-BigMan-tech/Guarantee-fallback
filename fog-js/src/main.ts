@@ -37,19 +37,20 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
     });
 });
 //this function runs the following callback with the response and automatically runs cleanup logic when the stream is fully processed
-function processStream<T>(subscriber:Subscriber<any>,subscription:Subscription | null,response:Response<any> | null,func:(subscriber:Subscriber<any>,value:T)=>void):void {
+function processStream<R,T>(subscriber:Subscriber<any>,subscription:Subscription | null,response:Response<any> | null,func:(value:T)=>R):void {
     if (!(response!.finished)) {
-        func(subscriber,response!.value as T);
+        const returnValue = func(response!.value as T);
+        subscriber.next(returnValue);
     }else {
         subscriber.complete();
         subscription?.unsubscribe();
     }
 }
-async function readStream<ReturnType,ValueType>(func:(subscriber:Subscriber<ReturnType>,value:ValueType)=>void):Promise<ReturnType[]> {
+async function collectStream<ReturnType,ValueType>(func:(value:ValueType)=>ReturnType):Promise<ReturnType[]> {
     const subscriberFunc = (subscriber:Subscriber<ReturnType>):void =>{//observe the stream and inform the subscriber
         let subscription: Subscription | null = null;
         subscription = streamObservable.subscribe(response => {
-            processStream<ValueType>(subscriber,subscription,response,func);
+            processStream<ReturnType,ValueType>(subscriber,subscription,response,func);
         });
     };
     const observable = new Observable<ReturnType>(subscriber=>subscriberFunc(subscriber));//create the observable
@@ -223,10 +224,10 @@ export class Doc<//i used an empty string over the string type for better type s
     };
     public pullCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Promise<Tuple<M,N>[]>=> {
         await client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] });//initiate the stream request
-        return await readStream<Tuple<M,N>,Result.error | GeneratedCandidates<M, N>>((subscriber,value)=>{
+        return await collectStream<Tuple<M,N>,Result.error | GeneratedCandidates<M, N>>(value=>{
             if (value === Result.error) Doc.throwDocError();
             visitedCombinations[0] = value.checkedCombinations;
-            subscriber.next(value.combination);
+            return value.combination;
         });
     };
     public selectSmallestRecord = async (predicates:P[]):Promise<P>=> {
