@@ -26,11 +26,11 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
             try {
                 const jsonRPCResponse = JSON.parse(data) as JSONRPCResponse;
                 const result = jsonRPCResponse.result as Response<any>;
+                console.log('🚀 => :29 => result:', result);
 
                 console.log('stream length: ',streamBatch.length);
-                streamBatch.push(result);
-                client.receive({...jsonRPCResponse,result:result.value});//hanlde the response
-
+                if (!result.finished) streamBatch.push(result);//the lock behind the condition is to prevent it from pushing the dummy result that indicates its finished,to the batch which will cause subtle bugs
+                client.receive({...jsonRPCResponse,result:result.value});//hanlde the response.It still receives the result whether finished or not unlike the stream batch because one-time requests only have one result where the meaningful value is under the same object that flagged th request as finsihed
                 if ((streamBatch.length == 10) || result.finished) {
                     console.log('cleared the stream');
                     streamResult.next(streamBatch);
