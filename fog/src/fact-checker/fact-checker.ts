@@ -200,8 +200,7 @@ async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
         const jsonString = await fs.readFile(jsonAsPath!, 'utf8');
         fullData = JSON.parse(jsonString);
     }else {
-        const defaultProp = 'default' in jsonAsObject!;//this is to handle js environment differences like between swc and jiti
-        fullData = (defaultProp)?jsonAsObject!['default']:jsonAsObject! as FullData;
+        fullData = jsonAsObject! as FullData;
     }
 
     const isValid = validator.Check(fullData);

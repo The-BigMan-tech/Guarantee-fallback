@@ -78,6 +78,11 @@ export async function startIPCServer(): Promise<void> {
     ipc.serve(() => {
         ipc.server.on('message', async (data, socket) => {//receive request from the client
             try {
+                const obj = data.params?.obj;
+                if (obj) {
+                    const defaultProp = 'default' in obj;//this is to handle js environment differences like between swc and jiti
+                    data.params.obj = (defaultProp)?obj['default']:obj;
+                }
                 const response = await server.receive(data);//route request to the appropriate controller
                 const result = response?.result;
                 if (isGenerator(result)) {
