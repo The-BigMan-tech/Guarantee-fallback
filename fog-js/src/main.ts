@@ -5,12 +5,12 @@ import fs from "fs/promises";
 import { JSONRPCClient, JSONRPCResponse } from "json-rpc-2.0";
 import { ZodError } from 'zod';
 import * as zod from "zod";
-import { BehaviorSubject,Observable, skip, Subscriber, Subscription } from 'rxjs';
+import { BehaviorSubject,Observable,skip,Subscriber, Subscription } from 'rxjs';
 import { observableToAsyncGen,consumeAsyncIterable } from './observable-async-gen.js';
 import Denque from 'denque';
 import sizeof from "object-sizeof";
 
-const streamResult = new BehaviorSubject<Denque<Response<any>> | null>(null); // Initial value can be null or any default
+const streamResult = new BehaviorSubject<Denque<Response<any>>>(new Denque([])); // Initial value can be null or any default
 export const streamObservable = streamResult.asObservable();
 type bytes = number;
 
@@ -19,10 +19,12 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
     ipc.config.silent = true;
 
     const streamBatch = new Denque<Response<any>>([]);
-    const batchLengthThresh = 10;
+    const batchLengthThresh = 6;
 
     const batchMemThresh:bytes = 1000;
     let streamMemSize:bytes = 0;
+
+    let inStreamRequest:boolean = false;
 
     ipc.connectTo(ipcServerID, () => {
         const server = ipc.of[ipcServerID]; 
@@ -35,7 +37,6 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
                 const result = jsonRPCResponse.result as Response<any>;
                 client.receive({...jsonRPCResponse,result:result.value});//hanlde the response.It still receives the result whether finished or not unlike the stream batch because one-time requests only have one result where the meaningful value is under the same object that flagged th request as finsihed
                 
-                const inStreamRequest = (!result.finished) || (streamBatch.length > 0);
                 if (inStreamRequest) {
                     console.log('stream length: ',streamBatch.length,'mem size: ',streamMemSize);
                     streamBatch.push(result);//push this regardless of whether its the finished dummy state.Its important to clarify that the stream request is complete
@@ -44,9 +45,13 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
                     const flushStreamBatch = (streamBatch.length >= batchLengthThresh) || (streamMemSize >= batchMemThresh) || result.finished;
                     if (flushStreamBatch) {
                         console.log('cleared the stream');
+                        console.log('🚀 => :49 => streamBatch:', streamBatch);
                         streamMemSize = 0;//we can reset the memsize here because the batch will be cleared.
+                        inStreamRequest = false;
                         streamResult.next(streamBatch);
                     }
+                }else {
+                    inStreamRequest = (!result.finished) || (streamBatch.length > 0);
                 }
                 if (result.finished) ipc.disconnect(ipcServerID);//close the connection when all the data for the request has been fully sent
             }catch (err) {
