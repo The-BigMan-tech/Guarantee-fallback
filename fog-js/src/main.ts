@@ -8,6 +8,7 @@ import * as zod from "zod";
 import { BehaviorSubject,Observable, skip, Subscriber, Subscription } from 'rxjs';
 import { observableToAsyncGen,consumeAsyncIterable } from './observable-async-gen.js';
 import Denque from 'denque';
+import sizeof from "object-sizeof";
 
 const streamResult = new BehaviorSubject<Denque<Response<any>> | null>(null); // Initial value can be null or any default
 export const streamObservable = streamResult.asObservable();
@@ -17,6 +18,8 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
     ipc.config.silent = true;
 
     const streamBatch = new Denque<Response<any>>([]);
+    let streamMemSize = 0;
+
     ipc.connectTo(ipcServerID, () => {
         const server = ipc.of[ipcServerID]; 
         server.on('connect', () => {//make the request.the request should not be stringified
@@ -26,12 +29,16 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
             try {
                 const jsonRPCResponse = JSON.parse(data) as JSONRPCResponse;
                 const result = jsonRPCResponse.result as Response<any>;
-              
-                console.log('stream length: ',streamBatch.length);
+                
+                streamMemSize += sizeof(result.value);//only increase the size on every streamed value.The reason why im not just getting the size of the stream batch directly is because the dequeue object may be a complex object to calculate the size.So to maximize perf,only measuring the actual value is better.
+
+                console.log('stream length: ',streamBatch.length,'mem size: ',streamMemSize);
                 client.receive({...jsonRPCResponse,result:result.value});//hanlde the response.It still receives the result whether finished or not unlike the stream batch because one-time requests only have one result where the meaningful value is under the same object that flagged th request as finsihed
                 if (!result.finished) streamBatch.push(result);//the lock behind the condition is to prevent it from pushing the dummy result that indicates its finished,to the batch which will cause subtle bugs
+                
                 if ((streamBatch.length == 10) || result.finished) {
                     console.log('cleared the stream');
+                    streamMemSize = 0;//we can reset the memsize here because the batch will be cleared.
                     streamResult.next(streamBatch);
                 }
                 if (result.finished) ipc.disconnect(ipcServerID);//close the connection when all the data for the request has been fully sent
