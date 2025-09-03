@@ -48,12 +48,14 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
 });
 //this function runs the following callback with the response and automatically runs cleanup logic when the stream is fully processed
 function processStream<R,T>(subscriber:Subscriber<any>,subscription:Subscription | null,streamBatch:Denque<Response<any>>,func:(value:T)=>R):void {
-    const response = streamBatch.shift()!;
-    console.log('🚀 => :52 => processStream => response:', response.value);
-    if (!(response.finished) || (streamBatch.length > 0)) {
+    let response:Response<any> | null = null;
+    while (streamBatch.length > 0) {
+        response = streamBatch.shift()!;
+        console.log('🚀 => :52 => processStream => response:', response.value);
         const returnValue = func(response!.value as T);
         subscriber.next(returnValue);
-    }else {
+    }
+    if (response?.finished) {
         console.log('queue length: ',streamBatch.length);
         subscriber.complete();
         subscription?.unsubscribe();
