@@ -21,7 +21,7 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
     const streamBatch = new Denque<Response<any>>([]);
     const batchLengthThresh = 10;
 
-    const batchMemThresh:bytes = 400;
+    const batchMemThresh:bytes = 1000;
     let streamMemSize:bytes = 0;
 
     ipc.connectTo(ipcServerID, () => {
@@ -84,6 +84,18 @@ async function collectStream<ReturnType,ValueType>(func:(value:ValueType)=>Retur
     const observable = new Observable<ReturnType>(subscriber=>subscriberFunc(subscriber));//create the observable
     return await consumeAsyncIterable(observableToAsyncGen(observable));//this ensures that the stream is fully consumed before returning to the client to prevent concurrency issues where the client may initiate another request which will cancel the stream
 }
+
+async function streamRequest<R,V>({req,collector}:{req:()=>Promise<any>,collector:(value:V)=>R}):Promise<R[]> {
+    await req();
+    return await collectStream<R,V>(value=>collector(value));
+}
+
+
+
+/**It loads the server document with the data from the file using the file path provided.
+ * It can take a .fog document or a .json file.
+ * For the .json file,it directly loads the data onto the server document but for the .fog file,it resolves the document to the provided output folder and loads the data onto the server
+ */
 function resolutionErr(result:Result):boolean {
     if (result === Result.error) {
         console.log(chalk.red("An error occurred while resolving the document.See the server."));
@@ -92,11 +104,6 @@ function resolutionErr(result:Result):boolean {
     }
     return false;
 }
-/**It loads the server document with the data from the file using the file path provided.
- * It can take a .fog document or a .json file.
- * For the .json file,it directly loads the data onto the server document but for the .fog file,it resolves the document to the provided output folder and loads the data onto the server
- */
-
 export async function importDocFromPath<I extends Info,P extends string=I['predicates'],R extends string=I['keyofRules'],M extends Atom=I['members']>(filePath:string,outputFolder?:string):Promise<Doc<P,R,M> | undefined> {
     const result = await client.request("importDocFromPath",{filePath,outputFolder}) as Result;
     if (resolutionErr(result)) return;
@@ -116,6 +123,14 @@ export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput
     console.log(chalk.green('\nSuccessfully resolved the document.'));
     return resolutionResult;
 }
+//this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
+export async function setupOutput<P extends string,R extends string>(srcFilePath:string,outputFolder:string,rules?:Record<R,Rule<P>>):Promise<void> {
+    const doc = await importDocFromPath(srcFilePath,outputFolder);
+    const docName = path.basename(srcFilePath,path.extname(srcFilePath));
+    if (doc) await genTypes(docName,outputFolder,doc,rules);
+}
+
+
 export async function genTypes<P extends string,R extends string>(docName:string,outputFolder:string,doc:Doc<string,string>,rules?:Record<R,Rule<P>>):Promise<void> {
     const exportType = (declaration:string):string =>`export ${declaration}`;
     const declareType = (name:string):string =>`type ${name} =`;
@@ -170,12 +185,10 @@ export async function genTypes<P extends string,R extends string>(docName:string
 
     console.log(chalk.green('Sucessfully generated the types at: '),typeFilePath);
 }
-//this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
-export async function setupOutput<P extends string,R extends string>(srcFilePath:string,outputFolder:string,rules?:Record<R,Rule<P>>):Promise<void> {
-    const doc = await importDocFromPath(srcFilePath,outputFolder);
-    const docName = path.basename(srcFilePath,path.extname(srcFilePath));
-    if (doc) await genTypes(docName,outputFolder,doc,rules);
-}
+
+
+
+
 export class Doc<//i used an empty string over the string type for better type safety by preventing the generics from mathcing every string by default
     P extends string ='',//"Prediactes" or aliases
     R extends string ='',//the union of all the keys in a "Rule"
@@ -251,12 +264,15 @@ export class Doc<//i used an empty string over the string type for better type s
         return result;
     };
     public pullCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Promise<Tuple<M,N>[]>=> {
-        await client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] });//initiate the stream request
-        return await collectStream<Tuple<M,N>,Result.error | GeneratedCandidates<M, N>>(value=>{
-            if (value === Result.error) Doc.throwDocError();
-            visitedCombinations[0] = value.checkedCombinations;
-            return value.combination;
+        const result = await streamRequest<Tuple<M,N>,Result.error | GeneratedCandidates<M, N>>({
+            req:async()=>await client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] }),
+            collector:(value)=>{
+                if (value === Result.error) Doc.throwDocError();
+                visitedCombinations[0] = value.checkedCombinations;
+                return value.combination;
+            }
         });
+        return result;
     };
     public selectSmallestRecord = async (predicates:P[]):Promise<P>=> {
         const result:Result.error | P = await client.request('selectSmallestRecord',{predicates});
