@@ -12,13 +12,17 @@ import sizeof from "object-sizeof";
 
 const streamResult = new BehaviorSubject<Denque<Response<any>> | null>(null); // Initial value can be null or any default
 export const streamObservable = streamResult.asObservable();
+type bytes = number;
 
 const client = new JSONRPCClient(async (jsonRPCRequest) =>{
     const ipcServerID = 'fog-ipc-server';
     ipc.config.silent = true;
 
     const streamBatch = new Denque<Response<any>>([]);
-    let streamMemSize = 0;
+    const batchLengthThresh = 10;
+
+    const batchMemThresh:bytes = 400;
+    let streamMemSize:bytes = 0;
 
     ipc.connectTo(ipcServerID, () => {
         const server = ipc.of[ipcServerID]; 
@@ -29,14 +33,16 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
             try {
                 const jsonRPCResponse = JSON.parse(data) as JSONRPCResponse;
                 const result = jsonRPCResponse.result as Response<any>;
-                
-                streamMemSize += sizeof(result.value);//only increase the size on every streamed value.The reason why im not just getting the size of the stream batch directly is because the dequeue object may be a complex object to calculate the size.So to maximize perf,only measuring the actual value is better.
-
-                console.log('stream length: ',streamBatch.length,'mem size: ',streamMemSize);
                 client.receive({...jsonRPCResponse,result:result.value});//hanlde the response.It still receives the result whether finished or not unlike the stream batch because one-time requests only have one result where the meaningful value is under the same object that flagged th request as finsihed
-                if (!result.finished) streamBatch.push(result);//the lock behind the condition is to prevent it from pushing the dummy result that indicates its finished,to the batch which will cause subtle bugs
                 
-                if ((streamBatch.length == 10) || result.finished) {
+                console.log('stream length: ',streamBatch.length,'mem size: ',streamMemSize);
+                if (!result.finished) {//the lock behind the condition is to prevent it from pushing the dummy result that indicates its finished,to the batch which will cause subtle bugs.Im also doing the same when increasing teh batch size cuz the dummy state doesnt contribute to its size
+                    streamBatch.push(result);
+                    streamMemSize += sizeof(result.value);//only increase the size on every streamed value.The reason why im not just getting the size of the stream batch directly is because the dequeue object may be a complex object to calculate the size.So to maximize perf,only measuring the actual value is better.
+                }
+
+                const flushStreamBatch = (streamBatch.length >= batchLengthThresh) || (streamMemSize >= batchMemThresh) || result.finished;
+                if (flushStreamBatch) {
                     console.log('cleared the stream');
                     streamMemSize = 0;//we can reset the memsize here because the batch will be cleared.
                     streamResult.next(streamBatch);
