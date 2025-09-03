@@ -63,7 +63,6 @@ function processStream<R,T>(subscriber:Subscriber<any>,subscription:Subscription
     while (streamBatch.length > 0) {
         response = streamBatch.shift()!;
         if (!response.finished) {//this is to avoid subtle bugs by not calling the consumer's callback with a dummy state that indicates that the stream is finished
-            console.log('🚀 => :52 => processStream => response:', response.value);
             const returnValue = func(response!.value as T);
             subscriber.next(returnValue);
         }

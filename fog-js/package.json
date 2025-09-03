@@ -6,7 +6,7 @@
     "description": "A TypeScript library project scaffold providing ready-to-use build and debug tooling",
     "scripts": {
         "local-registry": "verdaccio",
-        "compile:full": "swc ./src -d build --delete-dir-on-start",
+        "compile:full": "swc ./src -d build --delete-dir-on-start --copy-files",
         "compile:watch": "pnpm run compile:full && jiti ./utils/watch-compile.ts",
         "bundle": "rollup -c",
         "minify": "terser ./dist/bundle.js -o ./dist/bundle-min.js --compress --mangle  --ecma 2022 --module --source-map \"content=dist/bundle.js.map,url=bundle-min.js.map,includeSources\"",
