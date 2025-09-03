@@ -8,18 +8,25 @@ const doc = await importDocFromObject<info>(resolvedDoc);
 if (!doc) process.exit(0);
 
 doc.useImplications(implications);
-const answer1 = await doc.isItImplied(fallbackTo.Membership,'brothers',["Matt","Philip"]);
-doc.printAnswer(answer1);
 
 const answer2 = await doc.isItImplied(fallbackTo.Membership,'allies',["Billy","Mark"]);
 if (answer2 !== Result.error) {//this is to check for statement validation error i.e when the query violates the statement format that a rule expects
     doc.printAnswer(answer2);
 }
 
-// const combinations = await doc.pullCandidates(2, 'friends', [], [[]]);
-// for await (const [A,B] of combinations) {
-//     console.log(A,B);
-// }
+// const answer2 = await doc.isItStated(fallbackTo.Membership,'allies',["Billy","John"]);
+// doc.printAnswer(answer2);
+
+// const answer3 = await doc.isItStated(fallbackTo.Membership,'allies',["Billy","John"]);
+// doc.printAnswer(answer3);
+
+// const combinations = await doc.pullCandidates(1, 'friends', [], [[]]);
+// console.log('🚀 => :21 => combinations:', combinations);
+
+// const combinations2 = await doc.pullCandidates(1, 'friends', [], [[]]);
+// console.log('🚀 => :21 => combinations2:', combinations2);
+
+
 // const combinations2 = await doc.pullCandidates(2, 'friends', [], [[]]);
 // for await (const [A,B] of combinations2) {
 //     console.log('AA',A,B);

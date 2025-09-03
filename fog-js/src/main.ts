@@ -343,3 +343,16 @@ export interface GeneratedCandidates<T extends string | number,N extends number>
 }
 export type Box<T> = [T];
 
+import {info} from "./examples/documents/output/doc.types.js";
+import { implications } from "./examples/rules.js";
+
+const resolvedDoc = await import("./examples/documents/output/doc.json",{with:{type:'json'}});
+const doc = await importDocFromObject<info>(resolvedDoc);
+if (!doc) process.exit(0);
+
+doc.useImplications(implications);
+
+const answer2 = await doc.isItImplied(fallbackTo.Membership,'allies',["Billy","Mark"]);
+if (answer2 !== Result.error) {//this is to check for statement validation error i.e when the query violates the statement format that a rule expects
+    doc.printAnswer(answer2);
+}
