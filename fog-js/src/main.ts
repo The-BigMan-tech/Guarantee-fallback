@@ -34,21 +34,19 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
                 const jsonRPCResponse = JSON.parse(data) as JSONRPCResponse;
                 const result = jsonRPCResponse.result as Response<any>;
                 client.receive({...jsonRPCResponse,result:result.value});//hanlde the response.It still receives the result whether finished or not unlike the stream batch because one-time requests only have one result where the meaningful value is under the same object that flagged th request as finsihed
-                const inStreamRequest = (!result.finished) || (streamBatch.length > 0);
                 
+                const inStreamRequest = (!result.finished) || (streamBatch.length > 0);
                 if (inStreamRequest) {
                     console.log('stream length: ',streamBatch.length,'mem size: ',streamMemSize);
                     streamBatch.push(result);//push this regardless of whether its the finished dummy state.Its important to clarify that the stream request is complete
-                }
-                if (!result.finished) {//the lock behind the condition is to prevent reading the dummy state when increasing the batch memory size cuz the dummy state doesnt and shouldnt contribute to its size.
+                    streamMemSize += sizeof(result.value);//only increase the size on every streamed value.The reason why im not just getting the size of the stream batch directly is because the dequeue object may be a complex object to calculate the size.So to maximize perf,only measuring the actual value is better.
 
-                }
-                const isStreamReqFinished =  (result.finished && streamBatch.length > 0);//the last part of the and condition ensures that only stream requests flushes the batch and not one time requests just because they have finished.It does this by checking teh stream batch size
-                const flushStreamBatch = (streamBatch.length >= batchLengthThresh) || (streamMemSize >= batchMemThresh) || isStreamReqFinished;
-                if (flushStreamBatch) {
-                    console.log('cleared the stream');
-                    streamMemSize = 0;//we can reset the memsize here because the batch will be cleared.
-                    streamResult.next(streamBatch);
+                    const flushStreamBatch = (streamBatch.length >= batchLengthThresh) || (streamMemSize >= batchMemThresh) || result.finished;
+                    if (flushStreamBatch) {
+                        console.log('cleared the stream');
+                        streamMemSize = 0;//we can reset the memsize here because the batch will be cleared.
+                        streamResult.next(streamBatch);
+                    }
                 }
                 if (result.finished) ipc.disconnect(ipcServerID);//close the connection when all the data for the request has been fully sent
             }catch (err) {
