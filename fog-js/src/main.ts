@@ -36,11 +36,10 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
                 client.receive({...jsonRPCResponse,result:result.value});//hanlde the response.It still receives the result whether finished or not unlike the stream batch because one-time requests only have one result where the meaningful value is under the same object that flagged th request as finsihed
                 
                 console.log('stream length: ',streamBatch.length,'mem size: ',streamMemSize);
-                if (!result.finished) {//the lock behind the condition is to prevent it from pushing the dummy result that indicates its finished,to the batch which will cause subtle bugs.Im also doing the same when increasing teh batch size cuz the dummy state doesnt contribute to its size
-                    streamBatch.push(result);
+                streamBatch.push(result);//push this regardless of whether its the finished dummy state.Its important to clarify that the stream request is complete
+                if (!result.finished) {//the lock behind the condition is to prevent reading the dummy state when increasing the batch memory size cuz the dummy state doesnt and shouldnt contribute to its size.
                     streamMemSize += sizeof(result.value);//only increase the size on every streamed value.The reason why im not just getting the size of the stream batch directly is because the dequeue object may be a complex object to calculate the size.So to maximize perf,only measuring the actual value is better.
                 }
-
                 const flushStreamBatch = (streamBatch.length >= batchLengthThresh) || (streamMemSize >= batchMemThresh) || result.finished;
                 if (flushStreamBatch) {
                     console.log('cleared the stream');
@@ -63,12 +62,15 @@ function processStream<R,T>(subscriber:Subscriber<any>,subscription:Subscription
     let response:Response<any> | null = null;
     while (streamBatch.length > 0) {
         response = streamBatch.shift()!;
-        console.log('🚀 => :52 => processStream => response:', response.value);
-        const returnValue = func(response!.value as T);
-        subscriber.next(returnValue);
+        if (!response.finished) {//this is to avoid subtle bugs by not calling the consumer's callback with a dummy state that indicates that the stream is finished
+            console.log('🚀 => :52 => processStream => response:', response.value);
+            const returnValue = func(response!.value as T);
+            subscriber.next(returnValue);
+        }
     }
+    console.log('🚀response?.finished:', response?.finished);
     if (response?.finished) {
-        console.log('queue length: ',streamBatch.length);
+        console.log('completed stream req');
         subscriber.complete();
         subscription?.unsubscribe();
     }
@@ -86,8 +88,8 @@ async function collectStream<ReturnType,ValueType>(func:(value:ValueType)=>Retur
 }
 
 async function streamRequest<R,V>({req,collector}:{req:()=>Promise<any>,collector:(value:V)=>R}):Promise<R[]> {
-    await req();
-    return await collectStream<R,V>(value=>collector(value));
+    await req();//initiate the stream request
+    return await collectStream<R,V>(value=>collector(value));//consume the stream as the values are ready
 }
 
 
