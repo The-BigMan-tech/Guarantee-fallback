@@ -1,30 +1,33 @@
-import resolvedDoc from "./documents/output/doc.json" with {type:'json'};
-import {info} from "./documents/output/doc.types.js";
-import { checkBy, fallbackTo, importDocFromObject, Result } from "../main.js";
+import {info, members} from "./documents/output/doc.types.js";
+import { Box, checkBy, fallbackTo, importDocFromObject, Result } from "../main.js";
 import { implications } from "./rules.js";
 
-
+const resolvedDoc = await import("./documents/output/doc.json",{with:{type:'json'}});
 const doc = await importDocFromObject<info>(resolvedDoc);
 if (!doc) process.exit(0);
 
 doc.useImplications(implications);
 
-const answer2 = await doc.isItImplied(fallbackTo.Membership,'allies',["Billy","Mark"]);
-if (answer2 !== Result.error) {//this is to check for statement validation error i.e when the query violates the statement format that a rule expects
-    doc.printAnswer(answer2);
-}
+// const answer2 = await doc.isItImplied(fallbackTo.Membership,'allies',["Billy","Mark"]);
+// if (answer2 !== Result.error) {//this is to check for statement validation error i.e when the query violates the statement format that a rule expects
+//     doc.printAnswer(answer2);
+// }
 
 // const answer2 = await doc.isItStated(fallbackTo.Membership,'allies',["Billy","John"]);
 // doc.printAnswer(answer2);
 
+
 // const answer3 = await doc.isItStated(fallbackTo.Membership,'allies',["Billy","John"]);
 // doc.printAnswer(answer3);
 
-// const combinations = await doc.pullCandidates(1, 'friends', [], [[]]);
-// console.log('🚀 => :21 => combinations:', combinations);
+const input:members[] = ['Billy','Mark'];
+const visited:Box<string[]> =  [[]];
+const combinations = await doc.pullCandidates(1, 'friends',input,visited);
+console.log('🚀 => :21 => combinations:', combinations);
 
-// const combinations2 = await doc.pullCandidates(1, 'friends', [], [[]]);
-// console.log('🚀 => :21 => combinations2:', combinations2);
+
+const combinations2 = await doc.pullCandidates(1, 'friends',input,visited);
+console.log('🚀 => :21 => combinations2:', combinations2);
 
 
 // const combinations2 = await doc.pullCandidates(2, 'friends', [], [[]]);

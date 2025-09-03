@@ -12,9 +12,11 @@ export interface CustomAsyncIterable<T> {
 
 export async function consumeAsyncIterable<T>(asyncIterable: AsyncIterable<T>): Promise<T[]> {
     const result: T[] = [];
+    console.log('\n🚀Starting async iterable:', result);
     for await (const item of asyncIterable) {
         result.push(item);
     }
+    console.log('\n🚀Finsihed async iterable:', result);
     return result;
 }
 

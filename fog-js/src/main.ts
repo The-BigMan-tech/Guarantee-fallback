@@ -19,7 +19,7 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
     ipc.config.silent = true;
 
     const streamBatch = new Denque<Response<any>>([]);
-    const batchLengthThresh = 6;
+    const batchLengthThresh = 10;
 
     const batchMemThresh:bytes = 1000;
     let streamMemSize:bytes = 0;
@@ -35,8 +35,7 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
             try {
                 const jsonRPCResponse = JSON.parse(data) as JSONRPCResponse;
                 const result = jsonRPCResponse.result as Response<any>;
-                client.receive({...jsonRPCResponse,result:result.value});//hanlde the response.It still receives the result whether finished or not unlike the stream batch because one-time requests only have one result where the meaningful value is under the same object that flagged th request as finsihed
-                
+                client.receive(jsonRPCResponse);//hanlde the response.It still receives the result whether finished or not unlike the stream batch because one-time requests only have one result where the meaningful value is under the same object that flagged th request as finsihed
                 if (inStreamRequest) {
                     console.log('stream length: ',streamBatch.length,'mem size: ',streamMemSize);
                     streamBatch.push(result);//push this regardless of whether its the finished dummy state.Its important to clarify that the stream request is complete
@@ -45,7 +44,6 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
                     const flushStreamBatch = (streamBatch.length >= batchLengthThresh) || (streamMemSize >= batchMemThresh) || result.finished;
                     if (flushStreamBatch) {
                         console.log('cleared the stream');
-                        console.log('🚀 => :49 => streamBatch:', streamBatch);
                         streamMemSize = 0;//we can reset the memsize here because the batch will be cleared.
                         inStreamRequest = false;
                         streamResult.next(streamBatch);
@@ -53,7 +51,10 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
                 }else {
                     inStreamRequest = (!result.finished) || (streamBatch.length > 0);
                 }
-                if (result.finished) ipc.disconnect(ipcServerID);//close the connection when all the data for the request has been fully sent
+                if (result.finished) {
+                    ipc.disconnect(ipcServerID);//close the connection when all the data for the request has been fully sent
+                    return;
+                }
             }catch (err) {
                 console.error(chalk.red('Error processing message:'));
                 throw new Error(String(err));
@@ -76,7 +77,7 @@ function processStream<R,T>(subscriber:Subscriber<any>,subscription:Subscription
     }
     console.log('🚀response?.finished:', response?.finished);
     if (response?.finished) {
-        console.log('completed stream req');
+        console.log('completed stream req\n');
         subscriber.complete();
         subscription?.unsubscribe();
     }
@@ -84,21 +85,19 @@ function processStream<R,T>(subscriber:Subscriber<any>,subscription:Subscription
 async function collectStream<ReturnType,ValueType>(func:(value:ValueType)=>ReturnType):Promise<ReturnType[]> {
     const subscriberFunc = (subscriber:Subscriber<ReturnType>):void =>{//observe the stream and inform the subscriber
         let subscription: Subscription | null = null;
-        subscription = streamObservable.pipe(skip(1))//skip the first emmission to avoid reacting to it which can cause subtle bugs
-            .subscribe(streamBatch => {
-                processStream<ReturnType,ValueType>(subscriber,subscription,streamBatch!,func);
-            });
+        subscription = streamObservable.subscribe(streamBatch => {
+            processStream<ReturnType,ValueType>(subscriber,subscription,streamBatch!,func);
+        });
     };
     const observable = new Observable<ReturnType>(subscriber=>subscriberFunc(subscriber));//create the observable
     return await consumeAsyncIterable(observableToAsyncGen(observable));//this ensures that the stream is fully consumed before returning to the client to prevent concurrency issues where the client may initiate another request which will cancel the stream
 }
 
-async function streamRequest<R,V>({req,collector}:{req:()=>Promise<any>,collector:(value:V)=>R}):Promise<R[]> {
-    await req();//initiate the stream request
+async function streamRequest<R,V>({req,collector}:{req:()=>Promise<Response<V>>,collector:(value:V)=>R}):Promise<R[]> {
+    const response = await req();//initiate the stream request
+    if (response.finished) return null;
     return await collectStream<R,V>(value=>collector(value));//consume the stream as the values are ready
 }
-
-
 
 /**It loads the server document with the data from the file using the file path provided.
  * It can take a .fog document or a .json file.
@@ -112,21 +111,24 @@ function resolutionErr(result:Result):boolean {
     }
     return false;
 }
+function unwrap<T>(res:Response<T>):T {
+    return res.value;
+}
 export async function importDocFromPath<I extends Info,P extends string=I['predicates'],R extends string=I['keyofRules'],M extends Atom=I['members']>(filePath:string,outputFolder?:string):Promise<Doc<P,R,M> | undefined> {
-    const result = await client.request("importDocFromPath",{filePath,outputFolder}) as Result;
+    const result = unwrap<Result>(await client.request("importDocFromPath",{filePath,outputFolder}));
     if (resolutionErr(result)) return;
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
     return new Doc<P,R,M>();
 }
 export async function importDocFromObject<I extends Info,P extends string=I['predicates'],R extends string=I['keyofRules'],M extends Atom=I['members']>(obj:Record<string,any>):Promise<Doc<P,R,M> | undefined> {
-    const result = await client.request("importDocFromObject",{obj}) as Result;
+    const result = unwrap<Result>(await client.request("importDocFromObject",{obj}));
     if (resolutionErr(result)) return;
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
     return new Doc<P,R,M>();
 }
 //this binding is intended for the lsp to use to get analysis report without affecting the ipc server
 export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult | undefined> {
-    const resolutionResult = await client.request("resolveDocToJson",{filePath,outputFolder:outputFolder}) as ResolutionResult;
+    const resolutionResult = unwrap<ResolutionResult>(await client.request("resolveDocToJson",{filePath,outputFolder:outputFolder}));
     if (resolutionErr(resolutionResult.result)) return;
     console.log(chalk.green('\nSuccessfully resolved the document.'));
     return resolutionResult;
