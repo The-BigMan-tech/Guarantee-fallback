@@ -5,15 +5,18 @@ import fs from "fs/promises";
 import { JSONRPCClient, JSONRPCResponse } from "json-rpc-2.0";
 import { ZodError } from 'zod';
 import * as zod from "zod";
-import { BehaviorSubject,Observable, Subscriber, Subscription } from 'rxjs';
+import { BehaviorSubject,Observable, skip, Subscriber, Subscription } from 'rxjs';
 import { observableToAsyncGen,consumeAsyncIterable } from './observable-async-gen.js';
+import Denque from 'denque';
 
-const streamResult = new BehaviorSubject<Response<any> | null>(null); // Initial value can be null or any default
+const streamResult = new BehaviorSubject<Denque<Response<any>> | null>(null); // Initial value can be null or any default
 export const streamObservable = streamResult.asObservable();
 
 const client = new JSONRPCClient(async (jsonRPCRequest) =>{
     const ipcServerID = 'fog-ipc-server';
     ipc.config.silent = true;
+
+    const streamBatch = new Denque<Response<any>>([]);
     ipc.connectTo(ipcServerID, () => {
         const server = ipc.of[ipcServerID]; 
         server.on('connect', () => {//make the request.the request should not be stringified
@@ -23,8 +26,15 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
             try {
                 const jsonRPCResponse = JSON.parse(data) as JSONRPCResponse;
                 const result = jsonRPCResponse.result as Response<any>;
+
+                console.log('stream length: ',streamBatch.length);
+                streamBatch.push(result);
                 client.receive({...jsonRPCResponse,result:result.value});//hanlde the response
-                streamResult.next(result);
+
+                if ((streamBatch.length == 10) || result.finished) {
+                    console.log('cleared the stream');
+                    streamResult.next(streamBatch);
+                }
                 if (result.finished) ipc.disconnect(ipcServerID);//close the connection when all the data for the request has been fully sent
             }catch (err) {
                 console.error(chalk.red('Error processing message:'));
@@ -37,11 +47,14 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
     });
 });
 //this function runs the following callback with the response and automatically runs cleanup logic when the stream is fully processed
-function processStream<R,T>(subscriber:Subscriber<any>,subscription:Subscription | null,response:Response<any> | null,func:(value:T)=>R):void {
-    if (!(response!.finished)) {
+function processStream<R,T>(subscriber:Subscriber<any>,subscription:Subscription | null,streamBatch:Denque<Response<any>>,func:(value:T)=>R):void {
+    const response = streamBatch.shift()!;
+    console.log('🚀 => :52 => processStream => response:', response.value);
+    if (!(response.finished) || (streamBatch.length > 0)) {
         const returnValue = func(response!.value as T);
         subscriber.next(returnValue);
     }else {
+        console.log('queue length: ',streamBatch.length);
         subscriber.complete();
         subscription?.unsubscribe();
     }
@@ -49,9 +62,10 @@ function processStream<R,T>(subscriber:Subscriber<any>,subscription:Subscription
 async function collectStream<ReturnType,ValueType>(func:(value:ValueType)=>ReturnType):Promise<ReturnType[]> {
     const subscriberFunc = (subscriber:Subscriber<ReturnType>):void =>{//observe the stream and inform the subscriber
         let subscription: Subscription | null = null;
-        subscription = streamObservable.subscribe(response => {
-            processStream<ReturnType,ValueType>(subscriber,subscription,response,func);
-        });
+        subscription = streamObservable.pipe(skip(1))//skip the first emmission to avoid reacting to it which can cause subtle bugs
+            .subscribe(streamBatch => {
+                processStream<ReturnType,ValueType>(subscriber,subscription,streamBatch!,func);
+            });
     };
     const observable = new Observable<ReturnType>(subscriber=>subscriberFunc(subscriber));//create the observable
     return await consumeAsyncIterable(observableToAsyncGen(observable));//this ensures that the stream is fully consumed before returning to the client to prevent concurrency issues where the client may initiate another request which will cancel the stream
