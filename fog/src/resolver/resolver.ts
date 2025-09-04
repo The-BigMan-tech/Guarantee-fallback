@@ -8,7 +8,7 @@ import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
-import { FullData,convMapToRecord,Rec, ResolutionResult, Result,lspAnalysis, lspSeverity } from "../utils/utils.js";
+import { FullData,convMapToRecord,Rec, ResolutionResult, Result,lspAnalysis, lspSeverity, lspDiagnostics } from "../utils/utils.js";
 import { AtomList } from "../utils/utils.js";
 import fs from 'fs/promises';
 import path from 'path';
@@ -28,12 +28,6 @@ interface ResolvedGroupedTokens {
     indices:Heap<number>,//used a descending order heap to prevent insertion issues during iteration by looping backwards
     tokens:Map<number,(null | Token[])>
 }
-
-enum ReportKind {
-    Semantic="Semantic Error at",
-    Syntax="Syntax Error at",
-    Warning="Double check"
-}
 function mapToColor(kind:ReportKind):ChalkInstance {
     switch (kind) {
     case(ReportKind.Semantic): {
@@ -47,14 +41,15 @@ function mapToColor(kind:ReportKind):ChalkInstance {
     }
     }
 }
-interface MapToSeverity {
-    Semantic:lspSeverity.Error,
-    Syntax:lspSeverity.Error,
-    Warning:lspSeverity.Warning
+
+enum ReportKind {
+    Semantic="Semantic Error at",
+    Syntax="Syntax Error at",
+    Warning="Double check"
 }
 interface Report {
     kind:ReportKind,
-    line:number,
+    line:number,//this is 0-based
     lines?:number[]
     msg:string,
     srcText:string | string[]
@@ -69,9 +64,48 @@ class Essentials {
     public static parser:DSLParser;
     public static tree:ProgramContext;
 
-    
+    private static buildDiagnosisFromReport(report:Report):void {
+        if (Resolver.lspAnalysis===null) return;//dont generate lsp analysis if not required
+        const {kind,line,lines,msg,srcText} = report;//line is 0-based
+        const mapToSeverity =  {
+            [ReportKind.Semantic]:lspSeverity.Error,
+            [ReportKind.Syntax]:lspSeverity.Error,
+            [ReportKind.Warning]:lspSeverity.Warning
+        };
+        const severity = mapToSeverity[kind];
+
+        const buildDiagnostic = (targetLine: number, text: string,message:string):lspDiagnostics => {
+            const sourceLine = Resolver.srcLine(targetLine) || "";
+            const charPos = sourceLine.indexOf(text);
+            
+            const startChar = (charPos < 0)?0:charPos;
+            const endChar = startChar + text.length;
+            return {
+                range: {
+                    start: { line: targetLine, character: startChar },
+                    end: { line: targetLine, character: endChar }
+                },
+                severity,
+                message
+            };
+        }; 
+        if (!lines && (typeof srcText === "string")) {
+            const cleanMsg = msg.replace(/\r?\n|\r/g, "; ");
+            const diagnostic = buildDiagnostic(line,srcText,cleanMsg);
+            Resolver.lspAnalysis.diagnostics.push(diagnostic);
+        }
+        else if (lines && Array.isArray(srcText)){
+            for (let i = 0; i < lines.length; i++) {
+                const targetLine = lines[i];
+                const text = srcText[i];
+                const diagnostic = buildDiagnostic(targetLine, text,`This line is involved in an error with line ${line}.`);
+                Resolver.lspAnalysis.diagnostics.push(diagnostic);
+            }
+        }
+    }
     public static castReport(report:Report):void {
-        const {kind,line,lines,msg,srcText} = report;
+        this.buildDiagnosisFromReport(report);
+        const {kind,line,lines,msg} = report;
         const messages = [];
 
         console.log('🚀 => :78 => pushLine => line:', line);
@@ -163,7 +197,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static lspAnalysis:lspAnalysis | null = null;
 
     //this method expects that the line is 0-based
-    public static srcLine = (line:number):string => Resolver.inputArr[line];
+    public static srcLine = (line:number):string | undefined => Resolver.inputArr.at(line);
     private printTokens(tokens:Token[] | null):void {
         const tokenDebug = tokens?.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
         console.log('\n Tokens:',tokenDebug);
@@ -235,7 +269,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             Essentials.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
-                srcText:[Resolver.srcLine(sameSentenceLine),Resolver.srcLine(this.lineCount)],
+                srcText:[Resolver.srcLine(sameSentenceLine)!,Resolver.srcLine(this.lineCount)!],
                 msg:`-This sentence is structurally identical to a previous one.\n-Remove it to improve resolution speed and reduce the final document size.`,
                 lines:[sameSentenceLine,this.lineCount]
             });
@@ -353,7 +387,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     kind:ReportKind.Warning,
                     line:this.lineCount,
                     msg,
-                    srcText:[Resolver.srcLine(this.prevRefCheck.line),Resolver.srcLine(this.lineCount)],
+                    srcText:[Resolver.srcLine(this.prevRefCheck.line)!,Resolver.srcLine(this.lineCount)!],
                     lines:[this.prevRefCheck.line,this.lineCount]
                 });
             }
@@ -364,7 +398,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 Essentials.castReport({
                     kind:ReportKind.Warning,
                     line:this.lineCount,
-                    srcText:Resolver.srcLine(this.lineCount),
+                    srcText:Resolver.srcLine(this.lineCount)!,
                     msg:`-Be careful with how multiple references are used in a sentence and be sure that you know what they are pointing to.`
                 });
             }
@@ -436,7 +470,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 srcText:args.srcText
             });
             const linesReport = (msg:string):Report=>({
-                ...report({srcText:[Resolver.srcLine(this.lineCount-1),ref],msg}),
+                ...report({srcText:[Resolver.srcLine(this.lineCount-1)!,ref],msg}),
                 lines:[this.lineCount-1,this.lineCount]
             });
             if (!member) {
@@ -691,7 +725,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
                 msg:'-A sentence must have one predicate or alias.',
-                srcText:Resolver.srcLine(this.lineCount)
+                srcText:Resolver.srcLine(this.lineCount)!
             });
         }else if (omittedJsonKeys.has(relation)) {
             Essentials.castReport({
@@ -717,7 +751,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
                 msg:'-A sentence must contain at least one atom.',
-                srcText:Resolver.srcLine(this.lineCount)
+                srcText:Resolver.srcLine(this.lineCount)!
             });
             const referredPredicate = this.predicates.get(relation) || this.aliases.get(relation);
             this.records[referredPredicate!].add(fact);
