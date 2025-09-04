@@ -1,63 +1,73 @@
-{
-  "name": "fog-support",
-  "displayName": "Fog language support",
-  "description": "Editor support for the fog logic language",
-  "version": "0.0.1",
+{   
+    "name": "fog-support",
+    "displayName": "Fog language support",
+    "description": "Editor support for the fog logic language",
+    "version": "0.0.1",
     "icon": "icons/fog-logo.png",
-  "engines": {
-    "vscode": "^1.103.0"
-  },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [],
-  "main": "./dist/extension.js",
-  "contributes": {
-    "languages": [
-        {
-            "id": "fog",
-            "aliases": ["Fog"],
-            "extensions": [".fog"],
-            "icon": {
-				"light": "./icons/fog.svg",
-				"dark": "./icons/fog.svg"
-			},
-            "configuration": "./fog.configuration.json"
-        }
+    "engines": {
+        "vscode": "^1.103.0"
+    },
+    "categories": [
+        "Other"
     ],
-    "grammars": [
-        {
-            "language": "fog",
-            "scopeName": "source.fog",
-            "path": "./syntaxes/fog.tmLanguage.json"
-        }
-    ]
-  },
-  "scripts": {
-    "vscode:prepublish": "pnpm run package",
-    "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
-    "watch": "npm-run-all -p watch:*",
-    "watch:esbuild": "node esbuild.js --watch",
-    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
-    "check-types": "tsc --noEmit",
-    "lint": "eslint src",
-    "test": "vscode-test"
-  },
-  "devDependencies": {
-    "@types/vscode": "^1.103.0",
-    "@types/mocha": "^10.0.10",
-    "@types/node": "22.x",
-    "@typescript-eslint/eslint-plugin": "^8.39.0",
-    "@typescript-eslint/parser": "^8.39.0",
-    "eslint": "^9.32.0",
-    "esbuild": "^0.25.8",
-    "npm-run-all": "^4.1.5",
-    "typescript": "^5.9.2",
-    "@vscode/test-cli": "^0.0.11",
-    "@vscode/test-electron": "^2.5.2"
-  }
+    "activationEvents": [],
+    "main": "./dist/extension.js",
+    "contributes": {
+        "languages": [
+            {
+                "id": "fog",
+                "aliases": [
+                    "Fog"
+                ],
+                "extensions": [
+                    ".fog"
+                ],
+                "icon": {
+                    "light": "./icons/fog.svg",
+                    "dark": "./icons/fog.svg"
+                },
+                "configuration": "./fog.configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "fog",
+                "scopeName": "source.fog",
+                "path": "./syntaxes/fog.tmLanguage.json"
+            }
+        ]
+    },
+    "scripts": {
+        "vscode:prepublish": "pnpm run package",
+        "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
+        "watch": "npm-run-all -p watch:*",
+        "watch:esbuild": "node esbuild.js --watch",
+        "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+        "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+        "compile-tests": "tsc -p . --outDir out",
+        "watch-tests": "tsc -p . -w --outDir out",
+        "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+        "check-types": "tsc --noEmit",
+        "lint": "eslint src",
+        "test": "vscode-test"
+    },
+    "devDependencies": {
+        "@types/mocha": "^10.0.10",
+        "@types/node": "22.x",
+        "@types/vscode": "^1.103.0",
+        "@typescript-eslint/eslint-plugin": "^8.39.0",
+        "@typescript-eslint/parser": "^8.39.0",
+        "@vscode/test-cli": "^0.0.11",
+        "@vscode/test-electron": "^2.5.2",
+        "esbuild": "^0.25.8",
+        "eslint": "^9.32.0",
+        "npm-run-all": "^4.1.5",
+        "typescript": "^5.9.2"
+    },
+    "dependencies": {
+        "fog-js": "^1.0.9",
+        "vscode-languageclient": "^9.0.1",
+        "vscode-languageserver": "^9.0.1",
+        "vscode-languageserver-textdocument": "^1.0.12"
+    }
 }
