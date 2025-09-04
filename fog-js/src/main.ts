@@ -110,13 +110,13 @@ function resolutionErr(result:Result):boolean {
     }
     return false;
 }
-export async function importDocFromPath<I extends Info,P extends string=I['predicates'],R extends string=I['keyofRules'],M extends Atom=I['members']>(filePath:string,outputFolder?:string):Promise<Doc<P,R,M> | undefined> {
+export async function importDocFromPath<I extends Info,P extends string=I['Predicates'],R extends string=I['KeyofRules'],M extends Atom=I['Members']>(filePath:string,outputFolder?:string):Promise<Doc<P,R,M> | undefined> {
     const result = await request<Result>("importDocFromPath",{filePath,outputFolder});
     if (resolutionErr(result)) return;
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
     return new Doc<P,R,M>();
 }
-export async function importDocFromObject<I extends Info,P extends string=I['predicates'],R extends string=I['keyofRules'],M extends Atom=I['members']>(obj:Record<string,any>):Promise<Doc<P,R,M> | undefined> {
+export async function importDocFromObject<I extends Info,P extends string=I['Predicates'],R extends string=I['KeyofRules'],M extends Atom=I['Members']>(obj:Record<string,any>):Promise<Doc<P,R,M> | undefined> {
     const result = await request<Result>("importDocFromObject",{obj});
     if (resolutionErr(result)) return;
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
@@ -301,9 +301,9 @@ interface Response<T> {
     value:T
 }
 interface Info {
-    predicates:string,
-    keyofRules:string,
-    members:Atom,
+    Predicates:string,
+    KeyofRules:string,
+    Members:Atom,
 }
 export type Rule<P extends string = ''> = ProceduralRule<P> | RecursiveRule<P>;
 export type ProceduralRule<P extends string = ''> = (doc:Doc<P>,statement:any)=>Promise<boolean>;

@@ -1,20 +1,18 @@
-import {info, members} from "./documents/output/doc.types.js";
-import { Box, checkBy, fallbackTo, importDocFromObject, Result } from "../main.js";
+import {Info } from "./documents/output/doc.types.js";
+import { fallbackTo, importDocFromObject, Result } from "../main.js";
 import { implications } from "./rules.js";
 
 const resolvedDoc = await import("./documents/output/doc.json",{with:{type:'json'}});
-const doc = await importDocFromObject<info>(resolvedDoc);
+const doc = await importDocFromObject<Info>(resolvedDoc);
 if (!doc) process.exit(0);
 
 doc.useImplications(implications);
 
-const answer2 = await doc.isItImplied(fallbackTo.Membership,'allies',["Billy","Susan"]);
-if (answer2 !== Result.error) {//this is to check for statement validation error i.e when the query violates the statement format that a rule expects
-    doc.printAnswer(answer2);
-}
+const answer1 = await doc.isItStated(fallbackTo.Membership,'allies',["Billy","Mark"]);
+doc.printAnswer(answer1);
 
-// const answer2 = await doc.isItStated(fallbackTo.Membership,'allies',["Billy","John"]);
-// doc.printAnswer(answer2);
+const answer2 = await doc.isItImplied(fallbackTo.Membership,'allies',["Billy","Mark"]);//it will return an error if the query statement broke the rule's validation schema
+if (answer2 !== Result.error) doc.printAnswer(answer2);
 
 
 // const answer3 = await doc.isItStated(fallbackTo.Membership,'allies',["Billy","John"]);

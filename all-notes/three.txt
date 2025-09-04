@@ -2406,3 +2406,7 @@ Closed stream detection
 Batching and memory thresholding
 
 Graceful disconnection
+
+*this runtime to binding architecture means that i dont have to port the inference engine to another language just to use it there.everything is self contained.the resolver takes in the logic doc and emits a json file along with a report.the inference runtime understands this  json doc to answer queries.but its the binding that generates types,enables commnuication to the inference engine and loads rules.
+
+*so the two main componentsa are the document resolver and the inference runtime that are hosted in node js as a long lived program.and the binding is the third component that can be in any language to connect to the language's component to make queries and write rules.
