@@ -1,7 +1,7 @@
 process.env.FORCE_COLOR = '1'; // Enable colors even if not detected
 
 import { Command } from 'commander';
-import { resolveDocToJson } from './resolver/resolver.js';
+import { resolveDocument } from './resolver/resolver.js';
 import { startIPCServer } from './fact-checker/rpc-server.js';
 
 const program = new Command();
@@ -16,7 +16,7 @@ async function runCLI():Promise<void> {
         .requiredOption('--src <srcPath>', 'path to DSL file')
         .option('--out <outputPath>', 'folder to output the DSL data structure')
         .action(async (options) => {
-            await resolveDocToJson(options.src, options.out);
+            await resolveDocument(options.src, options.out);
         });
     program
         .command('run')

@@ -110,30 +110,36 @@ function resolutionErr(result:Result):boolean {
     }
     return false;
 }
-export async function importDocFromPath<I extends Info,P extends string=I['Predicates'],R extends string=I['KeyofRules'],M extends Atom=I['Members']>(filePath:string,outputFolder?:string):Promise<Doc<P,R,M> | undefined> {
-    const result = await request<Result>("importDocFromPath",{filePath,outputFolder});
-    if (resolutionErr(result)) return;
+export async function importDocFromSrc<I extends Info,P extends string=I['Predicates'],R extends string=I['KeyofRules'],M extends Atom=I['Members']>(filePath:string,outputFolder?:string):Promise<Doc<P,R,M> | Result.error> {
+    const result = await request<Result>("importDocFromSrc",{filePath,outputFolder});
+    if (resolutionErr(result)) return Result.error;
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
     return new Doc<P,R,M>();
 }
-export async function importDocFromObject<I extends Info,P extends string=I['Predicates'],R extends string=I['KeyofRules'],M extends Atom=I['Members']>(obj:Record<string,any>):Promise<Doc<P,R,M> | undefined> {
+export async function importDocFromJson<I extends Info,P extends string=I['Predicates'],R extends string=I['KeyofRules'],M extends Atom=I['Members']>(filePath:string):Promise<Doc<P,R,M> | Result.error> {
+    const result = await request<Result>("importDocFromJson",{filePath});
+    if (resolutionErr(result)) return Result.error;
+    console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
+    return new Doc<P,R,M>();
+}
+export async function importDocFromObject<I extends Info,P extends string=I['Predicates'],R extends string=I['KeyofRules'],M extends Atom=I['Members']>(obj:Record<string,any>):Promise<Doc<P,R,M> | Result.error> {
     const result = await request<Result>("importDocFromObject",{obj});
-    if (resolutionErr(result)) return;
+    if (resolutionErr(result)) return Result.error;
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
     return new Doc<P,R,M>();
 }
 //this binding is intended for the lsp to use to get analysis report without affecting the ipc server
-export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult | undefined> {
-    const resolutionResult = await request<ResolutionResult>("resolveDocToJson",{filePath,outputFolder:outputFolder});
-    if (resolutionErr(resolutionResult.result)) return;
+export async function resolveDoc(filePath:string,outputFolder?:string):Promise<Result> {
+    const result = await request<Result>("resolveDocument",{filePath,outputFolder:outputFolder});
+    if (resolutionErr(result)) return Result.error;
     console.log(chalk.green('\nSuccessfully resolved the document.'));
-    return resolutionResult;
+    return result;
 }
 //this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
 export async function setupOutput<P extends string,R extends string>(srcFilePath:string,outputFolder:string,rules?:Record<R,Rule<P>>):Promise<void> {
-    const doc = await importDocFromPath(srcFilePath,outputFolder);
+    const doc = await importDocFromSrc(srcFilePath,outputFolder);
     const docName = path.basename(srcFilePath,path.extname(srcFilePath));
-    if (doc) await genTypes(docName,outputFolder,doc,rules);
+    if (doc !== Result.error) await genTypes(docName,outputFolder,doc,rules);
 }
 
 
@@ -329,13 +335,6 @@ export const fallbackTo = factCheckModes;//to be used in in the isItImplied meth
 export enum Result {
     success='success',
     error='error'
-}
-export enum NoOutput {
-    value=1//i used a number over a string to get better type safety by distinguishing it from string paths.i used 1 not 0 so that the code doesnt mistakenly treat it as a falsy value
-}
-export interface ResolutionResult {
-    result:Result,
-    jsonPath:string | NoOutput | undefined,
 }
 export type Tuple<T, N extends number, R extends unknown[] = []> = 
     R['length'] extends N ? R : Tuple<T, N, [...R, T]>;

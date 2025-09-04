@@ -6,7 +6,7 @@ import { AtomList,Atom } from "../utils/utils.js";
 import { Rec } from "../utils/utils.js";
 import fs from 'fs/promises';
 import chalk from "chalk";
-import { resolveDocument, Resolver } from "../resolver/resolver.js";
+import { resolveDocument } from "../resolver/resolver.js";
 import {v4 as uniqueID} from "uuid";
 
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
@@ -189,64 +189,59 @@ export let docOnServer:Doc | null = null;
 
 type Path = string;
 
-
+async function parseJson(json:Path):Promise<Result.error | object>  {
+    try {
+        const jsonString = await fs.readFile(json, 'utf8');
+        return JSON.parse(jsonString);
+    }catch(err) { 
+        console.log(chalk.red('\nAn error occured when attempting to read the json file.\n'),err);
+        return Result.error;
+    };
+}
 async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
     const providedPath = typeof json === "string";
     const [jsonAsPath,jsonAsObject] = (providedPath)?[json,null]:[null,json];
-
     let fullData:FullData;
     
     if (providedPath) {
-        const jsonString = await fs.readFile(jsonAsPath!, 'utf8');
-        fullData = JSON.parse(jsonString);
+        const result = await parseJson(jsonAsPath!);
+        if (result === Result.error) return Result.error;
+        fullData = result as FullData;
     }else {
         fullData = jsonAsObject! as FullData;
     }
-
     const isValid = validator.Check(fullData);
     if (!isValid) {
         const errors = [...validator.Errors(fullData)].map(({ path, message }) => ({ path, message }));
         console.error(chalk.red('Validation error in the json file:'), errors);
         return Result.error;//to prevent corruption
     }
-    
-    if (providedPath) {
-        console.info(lime('Successfully loaded the document from the path:'),jsonAsPath,'\n');
-    }else {
-        console.info(lime('Successfully loaded the document from the json object'));
-    }
+    console.info(lime('Successfully loaded the document onto the server'));
     docOnServer = new Doc(fullData.records,fullData.predicates);
     return Result.success;
 }
+
+
 export async function importDocFromObject(json:Record<string,any>):Promise<Result> {
     return await loadDocFromJson(json);
 }
-export async function importDocFromSrc(filePath:string,outputFolder:string) {
+export async function importDocFromSrc(filePath:string,outputFolder:string):Promise<Result> {
     const isSrcFile = filePath.endsWith(".fog");
+    if (!isSrcFile) {
+        console.error(chalk.red('This function must be called with a .fog src file.'));
+        return Result.error;
+    }
+    const {result,jsonPath:jsonPathResult} = await resolveDocument(filePath,outputFolder);
+    if (result === Result.error) return Result.error;
+    const loadResult = await loadDocFromJson(jsonPathResult!);//we can assert this here because if the resolver result isnt an error,then the path is guaranteed to be valid
+    return loadResult;
 }
-//This function is intended to update the server side document with the json output.it doesnt accept no-output like the resolver.For the lsp that needs analysis data without making output,it should call the resolver directlt
-export async function importDocFromPath(filePath:string,outputFolder:string):Promise<Result> {
-    
+export async function importDocFromJson(filePath:string):Promise<Result> {
     const isJsonFile = filePath.endsWith(".json");
-    let jsonPath:string | null = isSrcFile?null:filePath;//i currently set it to null if its the src file because the json file isnt yet available at this time
-    
-    if (isSrcFile) {//this block creates the json output and loads it if its a src file.
-        const {result,jsonPath:jsonPathResult} = await resolveDocument(filePath,outputFolder);
-        if (result === Result.error) return Result.error;
-        jsonPath = jsonPathResult!;//we can assert this here because if the resolver result isnt an error,then the path is guaranteed to be valid
-    }
-    else if (!isJsonFile) {
-        console.error(chalk.red('The import path must be a .fog src file or the .json output'));
+    if (!isJsonFile) {
+        console.error(chalk.red('This function must be called with a .json file.'));
         return Result.error;
     }
-
-    try {
-        const result = await loadDocFromJson(jsonPath!);//the json path at this point will be valid because if it isnt,it would have returned early.
-        return result;
-    }catch { 
-        const err = `${chalk.red.underline('\nUnable to find the resolved document.')}\n-Check for path typos or try importing the fog file directly to recreate the json file and ensure that the document doesnt contain errors that will prevent it from resolving to the json.\n`;
-        if (!Resolver.terminate) console.error(err); //only log the io read error if it had nothing to do with the resolver.
-        return Result.error;
-    };
-    
+    const loadResult = await loadDocFromJson(filePath);
+    return loadResult;
 }

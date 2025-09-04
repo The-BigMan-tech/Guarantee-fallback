@@ -678,9 +678,9 @@ function clearStaticVariables() {
     Resolver.logs = null;
     Resolver.logFile = null;
 }
-function getOutputPathNoExt(srcFilePath:string,outputFolder:string) {
+function getOutputPathNoExt(srcFilePath:string,outputFolder?:string) {
     const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
-    const outputPath = outputFolder;
+    const outputPath = outputFolder || path.dirname(srcFilePath);
     return path.join(outputPath,filePathNoExt);
 }
 async function accessOutputFolder(outputFilePath:string):Promise<void> {
@@ -718,7 +718,7 @@ function omitJsonKeys(key:string,value:any) {
     }
     return value; // include everything else
 }
-export async function resolveDocument(srcFilePath:string,outputFolder:string):Promise<ResolutionResult> {
+export async function resolveDocument(srcFilePath:string,outputFolder?:string):Promise<ResolutionResult> {
     clearStaticVariables();//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
     const start = performance.now();
     const isValidSrc = srcFilePath.endsWith(".fog");
@@ -742,10 +742,11 @@ export async function resolveDocument(srcFilePath:string,outputFolder:string):Pr
             const jsonPath = await writeToOutput(outputFilePath,stringify(fullData,omitJsonKeys,4) || '',start);
             return {result:Result.success,jsonPath};
         }else {
+            console.error(chalk.red('Unable to resolve the document at path: '),srcFilePath);
             return {result:Result.error,jsonPath:undefined};
         }
     }catch(error) {
-        console.error(chalk.red.underline(`\nA File error occured\n: `),error);
+        console.error(chalk.red.underline(`\nA File error occured: \n `),error);
         return {result:Result.error,jsonPath:undefined};
     }
 }
