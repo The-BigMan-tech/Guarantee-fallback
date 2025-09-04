@@ -77,21 +77,24 @@ class Essentials {
 
         const buildDiagnostic = (targetLine: number, text: string,message:string):lspDiagnostics => {
             const sourceLine = Resolver.srcLine(targetLine) || "";
-            const charPos = sourceLine.indexOf(text);
+            const cleanedSourceLine = sourceLine.replace(/\r+$/, ""); // remove trailing \r
+            const charPos = cleanedSourceLine.indexOf(text);//it doesnt strip out carriage return like in the src line cuz the text can be a slice into any piece of the src and altering its formatting can lead to issues
             
             const startChar = (charPos < 0)?0:charPos;
             const endChar = startChar + text.length;
             return {
+                srcLine:cleanedSourceLine,
+                text:text,
                 range: {
-                    start: { line: targetLine + 1, character: startChar },//added +1 to the line because its 0-based
-                    end: { line: targetLine + 1, character: endChar }
+                    start: { line: targetLine, character: startChar },
+                    end: { line: targetLine, character: endChar }
                 },
                 severity,
                 message
             };
         }; 
+        const cleanMsg = stripAnsi(msg.replace(/\r?\n|\r/g, ". "));//strip ansi codes and new lines
         if (!lines && (typeof srcText === "string")) {
-            const cleanMsg = stripAnsi(msg.replace(/\r?\n|\r/g, "; "));//strip ansi codes and new lines
             const diagnostic = buildDiagnostic(line,srcText,cleanMsg);
             Resolver.lspAnalysis.diagnostics.push(diagnostic);
         }
@@ -99,7 +102,8 @@ class Essentials {
             for (let i = 0; i < lines.length; i++) {
                 const targetLine = lines[i];
                 const text = srcText[i];
-                const diagnostic = buildDiagnostic(targetLine, text,`This line is involved in an error with line ${line}.`);
+                const message =(targetLine===line)?cleanMsg:`This line is involved in an issue with line ${line + 1}.`;
+                const diagnostic = buildDiagnostic(targetLine, text,message);
                 Resolver.lspAnalysis.diagnostics.push(diagnostic);
             }
         }
