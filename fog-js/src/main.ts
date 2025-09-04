@@ -2,7 +2,7 @@ import ipc from 'node-ipc';
 import chalk from "chalk";
 import path from "path";
 import fs from "fs/promises";
-import { JSONRPCClient, JSONRPCResponse } from "json-rpc-2.0";
+import { JSONRPCClient, JSONRPCParams, JSONRPCResponse } from "json-rpc-2.0";
 import { ZodError } from 'zod';
 import * as zod from "zod";
 import { BehaviorSubject,Observable,skip,Subscriber, Subscription } from 'rxjs';
@@ -86,7 +86,7 @@ async function collectStream<ReturnType,ValueType>(func:(value:ValueType)=>Retur
     return await consumeAsyncIterable(observableToAsyncGen(observable));//this ensures that the stream is fully consumed before returning to the client to prevent concurrency issues where the client may initiate another request which will cancel the stream
 }
 
-async function streamRequest<R,V>({req,collector}:{req:()=>Promise<Response<V>>,collector:(value:V)=>R}):Promise<R[] | null> {//it returns null when the caller reads a stream thats already fully consumed
+async function streamRequest<R,V>({req,collector}:{req:()=>Promise<Response<V>>,collector:(value:V)=>R}):Promise<R[] | null> {//it returns null when the caller reads a stream thats already been fully consumed.Detecting this edge case prevents starting a stream req that will hang indefintely because it assumes that the stream will hav at least a chunk.Thiis case can happen when multiple stream req are coordinated with an explicitly passed state o prevent deadlocks on recursion or other problems.So its possible that a stream request is asking for a stream that has already been consumed
     inStreamRequest = true;
     const response = await req();//initiate the stream request
     if (response.finished) return null;
@@ -94,7 +94,10 @@ async function streamRequest<R,V>({req,collector}:{req:()=>Promise<Response<V>>,
     inStreamRequest = false;
     return result;
 }
-
+async function request<T>(method: string, params: JSONRPCParams):Promise<T> {
+    const response =  await client.request(method,params) as Response<any>;
+    return response.value;
+}
 /**It loads the server document with the data from the file using the file path provided.
  * It can take a .fog document or a .json file.
  * For the .json file,it directly loads the data onto the server document but for the .fog file,it resolves the document to the provided output folder and loads the data onto the server
@@ -107,24 +110,21 @@ function resolutionErr(result:Result):boolean {
     }
     return false;
 }
-function unwrap<T>(res:Response<T>):T {
-    return res.value;
-}
 export async function importDocFromPath<I extends Info,P extends string=I['predicates'],R extends string=I['keyofRules'],M extends Atom=I['members']>(filePath:string,outputFolder?:string):Promise<Doc<P,R,M> | undefined> {
-    const result = unwrap<Result>(await client.request("importDocFromPath",{filePath,outputFolder}));
+    const result = await request<Result>("importDocFromPath",{filePath,outputFolder});
     if (resolutionErr(result)) return;
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
     return new Doc<P,R,M>();
 }
 export async function importDocFromObject<I extends Info,P extends string=I['predicates'],R extends string=I['keyofRules'],M extends Atom=I['members']>(obj:Record<string,any>):Promise<Doc<P,R,M> | undefined> {
-    const result = unwrap<Result>(await client.request("importDocFromObject",{obj}));
+    const result = await request<Result>("importDocFromObject",{obj});
     if (resolutionErr(result)) return;
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
     return new Doc<P,R,M>();
 }
 //this binding is intended for the lsp to use to get analysis report without affecting the ipc server
 export async function resolveDoc(filePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult | undefined> {
-    const resolutionResult = unwrap<ResolutionResult>(await client.request("resolveDocToJson",{filePath,outputFolder:outputFolder}));
+    const resolutionResult = await request<ResolutionResult>("resolveDocToJson",{filePath,outputFolder:outputFolder});
     if (resolutionErr(resolutionResult.result)) return;
     console.log(chalk.green('\nSuccessfully resolved the document.'));
     return resolutionResult;
@@ -241,35 +241,35 @@ export class Doc<//i used an empty string over the string type for better type s
         };
     };//the reason why i made this to take the relations query Q instead of predicates P is to have full intellisese of all the possible relations to ask regardless if its for a fact or an implication
     public isItStated = async(checkMode:FactCheckMode,relation:P | R,statement:L):Promise<boolean>=> {
-        const result:Result.error | boolean = await client.request("isItStated",{predicate:relation,statement,byMembership:checkMode}) ;
+        const result = await request<Result.error | boolean>("isItStated",{predicate:relation,statement,byMembership:checkMode}) ;
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
     //It is intended that the members type generated in the output should be passed as T.this will let ts to treat the wildcard as a valid memeber of the document even though it isnt explicitly written
     public wildCard = async():Promise<M>=>{
-        return (await client.request('wildCard',{})) as M;//this one can not return a doc error because its a static property thats always available on the server
+        return await request<M>('wildCard',{});//this one can not return a doc error because its a static property thats always available on the server
     };
     public allMembers = async ():Promise<L>=>{
-        const result:Result.error | L = await client.request('allMembers',{});
+        const result = await request<Result.error | L>('allMembers',{});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
     public predicates = async ():Promise<Record<string,string>>=>{
-        const result:Result.error | Record<string,string> = await client.request('predicates',{});
+        const result = await request<Result.error | Record<string,string>>('predicates',{});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
     public findAllFacts = async (checkMode:FactCheckMode,predicate:P,statement:L):Promise<L[]>=>{
-        const result:Result.error | L[] = await client.request("findAllFacts",{predicate,statement,byMembership:checkMode});
+        const result = await request<Result.error | L[] >("findAllFacts",{predicate,statement,byMembership:checkMode});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
     public findFirstNFacts = async (checkMode:FactCheckMode,num:number,predicate:P,statement:L):Promise<L[]>=> {
-        const result:Result.error | L[] = await client.request("findFirstNFacts",{num,predicate,statement,byMembership:checkMode});
+        const result = await request<Result.error | L[]>("findFirstNFacts",{num,predicate,statement,byMembership:checkMode});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public pullCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Promise<Tuple<M,N>[]>=> {
+    public pullCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Promise<Tuple<M,N>[] | null>=> {
         const result = await streamRequest<Tuple<M,N>,Result.error | GeneratedCandidates<M, N>>({
             req:async()=>await client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] }),
             collector:(value)=>{
@@ -281,12 +281,12 @@ export class Doc<//i used an empty string over the string type for better type s
         return result;
     };
     public selectSmallestRecord = async (predicates:P[]):Promise<P>=> {
-        const result:Result.error | P = await client.request('selectSmallestRecord',{predicates});
+        const result = await request<Result.error | P>('selectSmallestRecord',{predicates});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
     public intersection = async (arrays:L[]):Promise<L>=> {
-        const result:Result.error | L =  await client.request('intersection',{arrays});
+        const result =  await request<Result.error | L>('intersection',{arrays});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
