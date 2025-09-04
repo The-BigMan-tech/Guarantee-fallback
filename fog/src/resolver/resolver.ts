@@ -12,6 +12,7 @@ import { FullData,convMapToRecord,Rec, ResolutionResult, Result,lspAnalysis, lsp
 import { AtomList } from "../utils/utils.js";
 import fs from 'fs/promises';
 import path from 'path';
+import stripAnsi from 'strip-ansi';
 
 
 const brown = chalk.hex("#ddcba0ff");
@@ -82,15 +83,15 @@ class Essentials {
             const endChar = startChar + text.length;
             return {
                 range: {
-                    start: { line: targetLine, character: startChar },
-                    end: { line: targetLine, character: endChar }
+                    start: { line: targetLine + 1, character: startChar },//added +1 to the line because its 0-based
+                    end: { line: targetLine + 1, character: endChar }
                 },
                 severity,
                 message
             };
         }; 
         if (!lines && (typeof srcText === "string")) {
-            const cleanMsg = msg.replace(/\r?\n|\r/g, "; ");
+            const cleanMsg = stripAnsi(msg.replace(/\r?\n|\r/g, "; "));//strip ansi codes and new lines
             const diagnostic = buildDiagnostic(line,srcText,cleanMsg);
             Resolver.lspAnalysis.diagnostics.push(diagnostic);
         }

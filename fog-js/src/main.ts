@@ -128,11 +128,16 @@ export async function importDocFromObject<I extends Info,P extends string=I['Pre
     console.log(chalk.green('\nSuccessfully loaded the document onto the server.'));
     return new Doc<P,R,M>();
 }
-//this binding is intended for the lsp to use to get analysis report without affecting the ipc server
-export async function resolveDoc(filePath:string,outputFolder?:string):Promise<Result> {
+export async function resolveDocument(filePath:string,outputFolder?:string):Promise<Result> {
     const result = await request<Result>("resolveDocument",{filePath,outputFolder:outputFolder});
     if (resolutionErr(result)) return Result.error;
     console.log(chalk.green('\nSuccessfully resolved the document.'));
+    return result;
+}
+//for use by the lsp
+export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
+    const result = await request<lspAnalysis>("analyzeDocument",{srcText});
+    console.log(chalk.green('\nSuccessfully analyzed the document.'));
     return result;
 }
 //this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
@@ -328,6 +333,7 @@ const factCheckModes = {
     Membership:true,
     ExactMatch:false,
 };
+
 export type FactCheckMode = boolean;
 export const checkBy = factCheckModes;//to be used in the isItStated method
 export const fallbackTo = factCheckModes;//to be used in in the isItImplied method for clarity that the implication check fallbacks to fact checking if the statement isnt explicitly said to be true by a rule.This is more clear than writing check by ... which is because the check mode the caller passes to the implication check doesnt in any way,affect the actual implication process because its explicitly handled by the rules.
@@ -344,3 +350,27 @@ export interface GeneratedCandidates<T extends string | number,N extends number>
     checkedCombinations:string[]
 }
 export type Box<T> = [T];
+
+//These are for use by the lsp
+export enum lspSeverity {
+    Error=1,
+    Warning = 2,
+    Information = 3,
+    Hint = 4
+}
+export interface lspPosition {
+    line:number,
+    character:number
+}
+export interface lspRange {
+    start:lspPosition,
+    end:lspPosition,
+}
+export interface lspDiagnostics {
+    range:lspRange
+    severity?:lspSeverity,
+    message:string,
+}
+export interface lspAnalysis {
+    diagnostics:lspDiagnostics[]
+}
