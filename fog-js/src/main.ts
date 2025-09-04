@@ -269,8 +269,9 @@ export class Doc<//i used an empty string over the string type for better type s
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public pullCandidates = async <N extends number>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Promise<Tuple<M,N>[] | null>=> {
-        const result = await streamRequest<Tuple<M,N>,Result.error | GeneratedCandidates<M, N>>({
+    //so as it is,callers can call it alone with N inferred if they are satisfied with M(members) as the type but if they want to specify in cases where they are sure that it must be of another type outside of Ts knowledge,then they must pass both N and M
+    public pullCandidates = async <N extends number,T extends Atom=M>(howManyToReturn:N,predicate:P,inputCombination:L,visitedCombinations:Box<string[]>):Promise<Tuple<T,N>[] | null>=> {
+        const result = await streamRequest<Tuple<T,N>,Result.error | GeneratedCandidates<T, N>>({
             req:async()=>await client.request("pullCandidates", { howManyToReturn, predicate, inputCombination, visitedCombinations: visitedCombinations[0] }),
             collector:(value)=>{
                 if (value === Result.error) Doc.throwDocError();

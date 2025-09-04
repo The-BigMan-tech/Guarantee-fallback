@@ -21,11 +21,13 @@ export const rules = {//A rule is a function that takes a document and a stateme
     },
     indirectFriends:async (doc:Doc<P>,statement:[string,string],visitedCombinations:Box<string[]>)=> {
         const [X,Y] = statement;//its only handling two entities at a time to prevent unbound recursion.
-        const combinations = await doc.pullCandidates(1,'friends',statement,visitedCombinations) as Tuple<string,1>[];
-        for (const [A] of combinations) {
-            if (await rules.directFriends(doc,[X,A])) {
-                if (await rules.directFriends(doc,[A,Y]) || await rules.indirectFriends(doc,[A,Y],visitedCombinations)) {
-                    return true;
+        const combinations = await doc.pullCandidates<1,string>(1,'friends',statement,visitedCombinations);
+        if (combinations !== null) {
+            for (const [A] of combinations) {
+                if (await rules.directFriends(doc,[X,A])) {
+                    if (await rules.directFriends(doc,[A,Y]) || await rules.indirectFriends(doc,[A,Y],visitedCombinations)) {
+                        return true;
+                    }
                 }
             }
         }
