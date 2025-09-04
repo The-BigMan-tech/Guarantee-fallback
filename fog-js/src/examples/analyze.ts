@@ -1,27 +1,16 @@
 import { analyzeDocument, lspAnalysis } from "../main.js";
 import stringify from "safe-stable-stringify";
+import path from "path";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import fs from "fs/promises";
 
-const analysis:lspAnalysis = await analyzeDocument(`
-    alias friends.
-    alias friend = *friends.
+const _filename = fileURLToPath(import.meta.url);
+const _dirname = dirname(_filename);
+const parentDirFromSrc = _dirname.replace('\\build','');
 
-    alias mother = *parent.
-    alias father = *parent.
+const srcFilePath = path.join(parentDirFromSrc,'./documents/doc.fog');
+const srcText = await fs.readFile(srcFilePath, 'utf8');
 
-    alias male.
-    alias males = *male.
-
-    :Billy and :John are #friends.
-    :John,:Mark and :Zane are #friends.
-    :Zane is the #friend of :Cole.
-    :Leo is :Cole's #friend.
-
-    :Matt and :Philip are #males.
-    :Mandy is a *female.
-
-    :Susan is the #mother of :Matt.
-    :Susan is the #mother of :Philip.
-    :Susan is the #mother of :Mandy.
-
-`);
+const analysis:lspAnalysis = await analyzeDocument(srcText);
 console.log("Analysis: ",stringify(analysis,null,2));

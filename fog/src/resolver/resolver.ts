@@ -65,7 +65,7 @@ class Essentials {
     public static parser:DSLParser;
     public static tree:ProgramContext;
 
-    private static buildDiagnosisFromReport(report:Report):void {
+    private static buildDiagnosticsFromReport(report:Report):void {
         if (Resolver.lspAnalysis===null) return;//dont generate lsp analysis if not required
         const {kind,line,lines,msg,srcText} = report;//line is 0-based
         const mapToSeverity =  {
@@ -83,8 +83,6 @@ class Essentials {
             const startChar = (charPos < 0)?0:charPos;
             const endChar = startChar + text.length;
             return {
-                srcLine:cleanedSourceLine,
-                text:text,
                 range: {
                     start: { line: targetLine, character: startChar },
                     end: { line: targetLine, character: endChar }
@@ -109,7 +107,7 @@ class Essentials {
         }
     }
     public static castReport(report:Report):void {
-        this.buildDiagnosisFromReport(report);
+        this.buildDiagnosticsFromReport(report);
         const {kind,line,lines,msg} = report;
         const messages = [];
 

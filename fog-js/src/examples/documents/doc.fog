@@ -16,5 +16,5 @@ alias males = *male.
 :Mandy is a *female.
 
 :Susan is the #mother of :Matt.
-:Susan is the #mother of :Philip.
-:Susan is the #mother of :Mandy.
+<She> is the #mother of :Philip.
+<She> is the #mother of :Mandy.
