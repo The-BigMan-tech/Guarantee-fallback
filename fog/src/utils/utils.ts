@@ -23,10 +23,6 @@ export interface ResolutionResult {
     result:Result,
     jsonPath:string | undefined,
 }
-export interface Analysis {
-    diagnostics:undefined
-}
-
 const atomSchema = Type.Union([Type.String(),Type.Number()]);
 const uniqueAtomListSchema = Type.Object({
     list: Type.Array(atomSchema),
@@ -136,4 +132,27 @@ export function convMapToRecord<K extends string | number | symbol,V>(map:Map<K,
     const keys = [...map.keys()];
     keys.forEach(key=>(rec[key]=map.get(key)!));
     return rec;
+}
+//These are for use by the lsp
+export enum lspSeverity {
+    Error=1,
+    Warning = 2,
+    Information = 3,
+    Hint = 4
+}
+export interface lspPosition {
+    line:number,
+    character:number
+}
+export interface lspRange {
+    start:lspPosition,
+    end:lspPosition,
+}
+export interface lspDiagnostics {
+    range:lspRange
+    severity?:lspSeverity,
+    message:string,
+}
+export interface lspAnalysis {
+    diagnostics:lspDiagnostics[]
 }

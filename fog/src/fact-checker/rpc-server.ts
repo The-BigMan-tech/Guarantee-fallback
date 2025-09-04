@@ -5,7 +5,7 @@ import stringify from "safe-stable-stringify";
 import { Doc, importDocFromJson, importDocFromObject, importDocFromSrc } from "./fact-checker.js";
 import { Atom, AtomList, isGenerator,Result} from "../utils/utils.js";
 import {docOnServer} from "./fact-checker.js";
-import { resolveDocument } from "../resolver/resolver.js";
+import { analyzeDocument, resolveDocument } from "../resolver/resolver.js";
 
 const server = new JSONRPCServer();
 server.addMethod("importDocFromSrc", async ({ filePath, outputFolder }: { filePath: string; outputFolder: string }) => {
@@ -22,6 +22,10 @@ server.addMethod("importDocFromObject", async ({ obj }: {obj: Record<string,any>
 });
 server.addMethod("resolveDocument", async ({ filePath, outputFolder }: { filePath: string; outputFolder: string}) => {
     const {result} = await resolveDocument(filePath, outputFolder);
+    return result;
+});
+server.addMethod("analyzeDocument", async ({srcText}: {srcText:string}) => {
+    const result = await analyzeDocument(srcText);
     return result;
 });
 server.addMethod("allMembers",()=>{
