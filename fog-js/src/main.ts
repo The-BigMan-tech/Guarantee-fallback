@@ -10,6 +10,7 @@ import { observableToAsyncGen,consumeAsyncIterable } from './observable-async-ge
 import Denque from 'denque';
 import sizeof from "object-sizeof";
 
+let inStreamRequest:boolean = false;
 const streamResult = new BehaviorSubject<Denque<Response<any>>>(new Denque([])); // Initial value can be null or any default
 export const streamObservable = streamResult.asObservable();
 type bytes = number;
@@ -19,12 +20,10 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
     ipc.config.silent = true;
 
     const streamBatch = new Denque<Response<any>>([]);
-    const batchLengthThresh = 10;
+    const batchLengthThresh = 6;
 
     const batchMemThresh:bytes = 1000;
     let streamMemSize:bytes = 0;
-
-    let inStreamRequest:boolean = false;
 
     ipc.connectTo(ipcServerID, () => {
         const server = ipc.of[ipcServerID]; 
@@ -37,24 +36,18 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
                 const result = jsonRPCResponse.result as Response<any>;
                 client.receive(jsonRPCResponse);//hanlde the response.It still receives the result whether finished or not unlike the stream batch because one-time requests only have one result where the meaningful value is under the same object that flagged th request as finsihed
                 if (inStreamRequest) {
-                    console.log('stream length: ',streamBatch.length,'mem size: ',streamMemSize);
                     streamBatch.push(result);//push this regardless of whether its the finished dummy state.Its important to clarify that the stream request is complete
                     streamMemSize += sizeof(result.value);//only increase the size on every streamed value.The reason why im not just getting the size of the stream batch directly is because the dequeue object may be a complex object to calculate the size.So to maximize perf,only measuring the actual value is better.
 
+                    console.log('stream length: ',streamBatch.length,'mem size: ',streamMemSize);
                     const flushStreamBatch = (streamBatch.length >= batchLengthThresh) || (streamMemSize >= batchMemThresh) || result.finished;
                     if (flushStreamBatch) {
                         console.log('cleared the stream');
                         streamMemSize = 0;//we can reset the memsize here because the batch will be cleared.
-                        inStreamRequest = false;
                         streamResult.next(streamBatch);
                     }
-                }else {
-                    inStreamRequest = (!result.finished) || (streamBatch.length > 0);
                 }
-                if (result.finished) {
-                    ipc.disconnect(ipcServerID);//close the connection when all the data for the request has been fully sent
-                    return;
-                }
+                if (result.finished) ipc.disconnect(ipcServerID);//close the connection when all the data for the request has been fully sent
             }catch (err) {
                 console.error(chalk.red('Error processing message:'));
                 throw new Error(String(err));
@@ -85,7 +78,7 @@ function processStream<R,T>(subscriber:Subscriber<any>,subscription:Subscription
 async function collectStream<ReturnType,ValueType>(func:(value:ValueType)=>ReturnType):Promise<ReturnType[]> {
     const subscriberFunc = (subscriber:Subscriber<ReturnType>):void =>{//observe the stream and inform the subscriber
         let subscription: Subscription | null = null;
-        subscription = streamObservable.subscribe(streamBatch => {
+        subscription = streamObservable.pipe(skip(1)).subscribe(streamBatch => {
             processStream<ReturnType,ValueType>(subscriber,subscription,streamBatch!,func);
         });
     };
@@ -93,10 +86,13 @@ async function collectStream<ReturnType,ValueType>(func:(value:ValueType)=>Retur
     return await consumeAsyncIterable(observableToAsyncGen(observable));//this ensures that the stream is fully consumed before returning to the client to prevent concurrency issues where the client may initiate another request which will cancel the stream
 }
 
-async function streamRequest<R,V>({req,collector}:{req:()=>Promise<Response<V>>,collector:(value:V)=>R}):Promise<R[]> {
+async function streamRequest<R,V>({req,collector}:{req:()=>Promise<Response<V>>,collector:(value:V)=>R}):Promise<R[] | null> {//it returns null when the caller reads a stream thats already fully consumed
+    inStreamRequest = true;
     const response = await req();//initiate the stream request
     if (response.finished) return null;
-    return await collectStream<R,V>(value=>collector(value));//consume the stream as the values are ready
+    const result = await collectStream<R,V>(value=>collector(value));//consume the stream as the values are ready
+    inStreamRequest = false;
+    return result;
 }
 
 /**It loads the server document with the data from the file using the file path provided.
