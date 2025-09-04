@@ -34,7 +34,7 @@ enum ReportKind {
     Syntax="Syntax Error at",
     Warning="Double check"
 }
-function mapToColor(kind:ReportKind):ChalkInstance | null {
+function mapToColor(kind:ReportKind):ChalkInstance {
     switch (kind) {
     case(ReportKind.Semantic): {
         return chalk.red;
@@ -46,7 +46,6 @@ function mapToColor(kind:ReportKind):ChalkInstance | null {
         return orange;
     }
     }
-    return null;
 }
 interface MapToSeverity {
     Semantic:lspSeverity.Error,
@@ -58,7 +57,7 @@ interface Report {
     line:number,
     lines?:number[]
     msg:string,
-    text:string
+    srcText:string | string[]
 }
 
 
@@ -72,14 +71,13 @@ class Essentials {
 
     
     public static castReport(report:Report):void {
-        const {kind,lines,msg,text} = report;
-        const line = report.line + 1;//for 1-based line counting for the logs
+        const {kind,line,lines,msg,srcText} = report;
         const messages = [];
 
-        const srcLine = (line:number):string => Resolver.inputArr[line];
-        const pushLine = (line:number):void => {messages.push(brown(srcLine(line).trim() + '\n'));};
-        const errTitle = chalk.underline(`\n${kind} line ${line}:`);
-        const coloredTitle = mapToColor(kind)!(errTitle);
+        console.log('🚀 => :78 => pushLine => line:', line);
+        const pushLine = (line:number):void => {messages.push(brown(Resolver.srcLine(line)?.trim() + '\n'));};
+        const errTitle = chalk.underline(`\n${kind} line ${line + 1}:`);
+        const coloredTitle = mapToColor(kind)(errTitle);
 
         const subTitle1 = [chalk.green('\nCheck'),darkGreen('->')];
         const subTitle2 = chalk.green.underline('\n\nCheck these lines:\n');
@@ -94,7 +92,7 @@ class Essentials {
         else{
             messages.push(subTitle2);
             for (const line of lines) {
-                messages.push(chalk.gray(`${line}.`));//These show the line count on the side.
+                messages.push(chalk.gray(`${line+1}.`));//These show the line count on the side.
                 pushLine(line);
             }
         }
@@ -111,7 +109,7 @@ class Essentials {
             Essentials.castReport({
                 kind:ReportKind.Syntax,
                 line:line-1,//i minused one because the line were the syntax error is caught is always a line ahead of where it occured in the document.
-                text:offendingSymbol,
+                srcText:offendingSymbol,
                 msg,
             });
         };
@@ -164,6 +162,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private visitedSentences = new Map<string,number>();
     public static lspAnalysis:lspAnalysis | null = null;
 
+    //this method expects that the line is 0-based
+    public static srcLine = (line:number):string => Resolver.inputArr[line];
     private printTokens(tokens:Token[] | null):void {
         const tokenDebug = tokens?.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
         console.log('\n Tokens:',tokenDebug);
@@ -235,7 +235,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             Essentials.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
-                text:stringifiedNames,
+                srcText:[Resolver.srcLine(sameSentenceLine),Resolver.srcLine(this.lineCount)],
                 msg:`-This sentence is structurally identical to a previous one.\n-Remove it to improve resolution speed and reduce the final document size.`,
                 lines:[sameSentenceLine,this.lineCount]
             });
@@ -335,21 +335,38 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         
         const extractNumFromRef = (text:string):number=> {
             const num =  Number(text.split(":")[1].slice(0,-1));
-            if (!Number.isInteger(num)) Essentials.report(DslError.Semantic,this.lineCount,`-The reference; ${chalk.bold(text)} must use an integer`);
-            if (num > 3) Essentials.report(DslError.DoubleCheck,this.lineCount,`-Are you sure you can track what this reference; ${chalk.bold(text)} is pointing to?`);
+            const report = (kind:ReportKind,msg:string):Report => ({
+                kind,
+                line:this.lineCount,
+                msg,
+                srcText:text
+            });
+            if (!Number.isInteger(num)) Essentials.castReport(report(ReportKind.Semantic,`-The reference; ${chalk.bold(text)} must use an integer`));
+            if (num > 3) Essentials.castReport(report(ReportKind.Warning,`-Are you sure you can track what this reference; ${chalk.bold(text)} is pointing to?`));
             return num;
         };
         const checkForRefAmbiguity = ()=> {
             if (this.prevRefCheck.hasRef && hasRef) {
-                let message = `-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.`;
-                message += `\n-You may wish to write the name or array explicitly in ${chalk.bold('line:'+ (this.prevRefCheck.line+1))} to avoid confusion.`;
-                Essentials.report(DslError.DoubleCheck,this.lineCount,message,[this.prevRefCheck.line,this.lineCount]);
+                let msg = `-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.`;
+                msg += `\n-You may wish to write the name or array explicitly in ${chalk.bold('line:'+ (this.prevRefCheck.line+1))} to avoid confusion.`;
+                Essentials.castReport({
+                    kind:ReportKind.Warning,
+                    line:this.lineCount,
+                    msg,
+                    srcText:[Resolver.srcLine(this.prevRefCheck.line),Resolver.srcLine(this.lineCount)],
+                    lines:[this.prevRefCheck.line,this.lineCount]
+                });
             }
         };
         const applyResolution = ()=> {
             const numOfRefs = (resolvedSingleTokens.indices.length + resolvedGroupedTokens.indices.length);
             if (numOfRefs  > 2) {
-                Essentials.report(DslError.DoubleCheck,this.lineCount,`-Be careful with how multiple references are used in a sentence and be sure that you know what they are pointing to.`);
+                Essentials.castReport({
+                    kind:ReportKind.Warning,
+                    line:this.lineCount,
+                    srcText:Resolver.srcLine(this.lineCount),
+                    msg:`-Be careful with how multiple references are used in a sentence and be sure that you know what they are pointing to.`
+                });
             }
             for (const index of resolvedSingleTokens.indices) {//resolve the single ref
                 const resolvedToken = resolvedSingleTokens.tokens.get(index)!;
@@ -412,13 +429,23 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             return {nthMember,lastEncounteredList};
         };
         const isRefValid = (member:Token | null,refTarget:'single' | 'group' | 'any',refType:'object' | 'subject' | 'generic',ref:string,nthIndex:number):boolean=> {
+            const report = (args:{srcText:string | string[],msg:string}):Report=>({
+                kind:ReportKind.Semantic,
+                line:this.lineCount,
+                msg:args.msg,
+                srcText:args.srcText
+            });
+            const linesReport = (msg:string):Report=>({
+                ...report({srcText:[Resolver.srcLine(this.lineCount-1),ref],msg}),
+                lines:[this.lineCount-1,this.lineCount]
+            });
             if (!member) {
                 if (refType === "object") {
-                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex! + 1)} member in the prior sentence.`,[this.lineCount-1,this.lineCount]);
+                    Essentials.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex! + 1)} member in the prior sentence.`,));
                 }else if (refType === "subject") {
-                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a sentence prior to the reference.`,[this.lineCount-1,this.lineCount]);
+                    Essentials.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a sentence prior to the reference.`));
                 }else if (refType === "generic") {
-                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a sentence prior to the reference and it has a ${getOrdinalSuffix(nthIndex! + 1)} member.`,[this.lineCount-1,this.lineCount]);
+                    Essentials.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a sentence prior to the reference and it has a ${getOrdinalSuffix(nthIndex! + 1)} member.`));
                 }
                 return false;
             }
@@ -426,21 +453,30 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 return true;
             }
             else if ((refType === 'object') && (extractNumFromRef(ref) === 1)) {
-                Essentials.report(DslError.Semantic,this.lineCount,`-The reference ${chalk.bold(ref)} must point to an object and not the subject.\n-If thats the intention,then use <He>,<She> or <It>.`);
+                Essentials.castReport(report({
+                    srcText:ref,
+                    msg:`-The reference ${chalk.bold(ref)} must point to an object and not the subject.\n-If thats the intention,then use <He>,<She> or <It>.`
+                }));
                 return false;
             }
             else if ((refType === "object") && !encounteredName && !hasRef) {
-                Essentials.report(DslError.Semantic,this.lineCount,`An object reference can not be the subject of a sentence.`);
+                Essentials.castReport(report({
+                    srcText:ref,
+                    msg:`-An object reference can not be the subject of a sentence.`
+                }));
                 return false;
             }else if ((refType === "subject") && (encounteredName || hasRef)) {
-                Essentials.report(DslError.Semantic,this.lineCount,`An subject reference can not be the object of a sentence.`);
+                Essentials.castReport(report({
+                    srcText:ref,
+                    msg:`A subject reference can not be the object of a sentence.`
+                }));
                 return false;
             }
             else if (refTarget === 'single') {
                 if (member?.type === DSLLexer.NAME) {
                     return true;
                 }else {
-                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to a name of the previous sentence but found an array.`,[this.lineCount-1,this.lineCount]);
+                    Essentials.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to a name of the previous sentence but found an array.`));
                     return false;
                 }
             }
@@ -448,7 +484,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 if (member?.type === DSLLexer.LSQUARE) {
                     return true;
                 }else {
-                    Essentials.report(DslError.Semantic,this.lineCount,`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to an array of the previous sentence but found a name.`,[this.lineCount-1,this.lineCount]);
+                    Essentials.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to an array of the previous sentence but found a name.`));
                     return false;
                 }
             }
@@ -526,7 +562,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     const exclude = new Set(['is']);
                     if ((dist < 2) && !exclude.has(normText)) {//to exclude is from getting suggestions.
                         const suggestion = (objectRefs.has(nounRef))?'object ref, <'+nounRef+':n>':'subject ref, <'+nounRef+'>';
-                        Essentials.report(DslError.DoubleCheck,this.lineCount,`-Did you mean to use the ${suggestion} instead of the filler,${chalk.bold(text)}?`);
+                        Essentials.castReport({
+                            kind:ReportKind.Warning,
+                            line:this.lineCount,
+                            msg:`-Did you mean to use the ${suggestion} instead of the filler,${chalk.bold(text)}?`,
+                            srcText:text
+                        });
                     }
                 }
             }
@@ -565,7 +606,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         this.aliases.set(alias,predicate || alias);//the fallback is for when there is no predicate provided to point to in the alias declaration.its used as a shorthand where the alias points to the predicate of the same name.its a pettern to invalidate the use of those predicates for better safety.
 
         if (this.builtAFact) {
-            Essentials.report(DslError.DoubleCheck,this.lineCount,`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors sooner.`);
+            Essentials.castReport({
+                kind:ReportKind.Warning,
+                line:this.lineCount,
+                msg:`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors sooner.`,
+                srcText:alias
+            });
         }
     }
     private expandRecursively(input:any[][],flatSequences:any[][] = []):any[][] {
@@ -591,16 +637,27 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return null;
     }
     private validatePredicateType(token:Token):void {
-        const isAlias = this.aliases.has(this.stripMark(token.text!));//the aliases set stores plain words
+        const text = token.text!;
+        const isAlias = this.aliases.has(this.stripMark(text));//the aliases set stores plain words
         
-        if (isAlias && ! token.text!.startsWith('#')) {
-            Essentials.report(DslError.Semantic,this.lineCount,`-Aliases are meant to be prefixed with ${chalk.bold('#')} but found ${chalk.bold(token.text)}. Did you mean: #${chalk.bold(this.stripMark(token.text!))}?`);
+        if (isAlias && ! text.startsWith('#')) {
+            Essentials.castReport({
+                kind:ReportKind.Semantic,
+                line:this.lineCount,
+                msg:`-Aliases are meant to be prefixed with ${chalk.bold('#')} but found ${chalk.bold(text)}. Did you mean: #${chalk.bold(this.stripMark(text))}?`,
+                srcText:text
+            });
         }
-        if (!isAlias && ! token.text!.startsWith("*")) {
+        if (!isAlias && ! text.startsWith("*")) {
             let message:string = `-Predicates are meant to be prefixed with ${chalk.bold('*')} but found ${chalk.bold(token.text)}.\n-Did you forget to declare it as an alias? `;
-            const recommendedAlias = this.recommendAlias(token.text!);
+            const recommendedAlias = this.recommendAlias(text);
             message += (recommendedAlias)?`Or did you mean to type #${recommendedAlias}?`:'';
-            Essentials.report(DslError.Semantic,this.lineCount,message);
+            Essentials.castReport({
+                kind:ReportKind.Semantic,
+                line:this.lineCount,
+                msg:message,
+                srcText:text
+            });
         }
     }
     private getRelation(tokens:Token[]):string | null {
@@ -610,7 +667,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             const type = token.type;
             if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS) ) {
                 if (relation !== null) {
-                    Essentials.report(DslError.Semantic,this.lineCount,`-They can only be one alias or predicate in a sentence but found ${chalk.bold('*'+relation)} and ${chalk.bold(text)} being used at the same time.`);
+                    Essentials.castReport({
+                        kind:ReportKind.Semantic,
+                        line:this.lineCount,
+                        msg:`-They can only be one alias or predicate in a sentence but found ${chalk.bold('*'+relation)} and ${chalk.bold(text)} being used at the same time.`,
+                        srcText:text
+                    });
                 }
                 this.validatePredicateType(token);
                 relation = this.stripMark(text);
@@ -625,9 +687,19 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         });
         if (relation === null) {
-            Essentials.report(DslError.Semantic,this.lineCount,'-A sentence must have one predicate or alias.');
+            Essentials.castReport({
+                kind:ReportKind.Semantic,
+                line:this.lineCount,
+                msg:'-A sentence must have one predicate or alias.',
+                srcText:Resolver.srcLine(this.lineCount)
+            });
         }else if (omittedJsonKeys.has(relation)) {
-            Essentials.report(DslError.Semantic,this.lineCount,`The following keys should not be used as predicates or aliases as they are used to omit unnecessary data from the json document:\n${chalk.yellow(Array.from(omittedJsonKeys))}`);
+            Essentials.castReport({
+                kind:ReportKind.Semantic,
+                line:this.lineCount,
+                msg:`The following keys should not be used as predicates or aliases as they are used to omit unnecessary data from the json document:\n${chalk.yellow(Array.from(omittedJsonKeys))}`,
+                srcText:relation
+            });
         }
         return relation;
     }
@@ -641,7 +713,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
         this.expandedFacts = this.expandRecursively(groupedData!);
         for (const fact of this.expandedFacts) {;
-            if (fact.length === 0) Essentials.report(DslError.Semantic,this.lineCount,'-A sentence must contain at least one atom.');
+            if (fact.length === 0) Essentials.castReport({
+                kind:ReportKind.Semantic,
+                line:this.lineCount,
+                msg:'-A sentence must contain at least one atom.',
+                srcText:Resolver.srcLine(this.lineCount)
+            });
             const referredPredicate = this.predicates.get(relation) || this.aliases.get(relation);
             this.records[referredPredicate!].add(fact);
         }
@@ -652,9 +729,19 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const str = this.stripMark(text);
 
         if (isStrict && !(str in this.usedNames)) {
-            Essentials.report(DslError.Semantic,this.lineCount,`-Could not find an existing usage of the name; ${chalk.bold(str)}.\n-Did you meant to type: ${chalk.bold(':'+str)} instead? Assuming that this is the first time it is used.`);
+            Essentials.castReport({
+                kind:ReportKind.Semantic,
+                line:this.lineCount,
+                msg:`-Could not find an existing usage of the name; ${chalk.bold(str)}.\n-Did you meant to type: ${chalk.bold(':'+str)} instead? Assuming that this is the first time it is used.`,
+                srcText:text
+            });
         }else if (!isStrict && this.usedNames[str] > 0) {//only give the recommendation if this is not the first time it is used
-            Essentials.report(DslError.DoubleCheck,this.lineCount,`-You may wish to type ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \n-It signals that it has been used before here and it prevents errors early.`);
+            Essentials.castReport({
+                kind:ReportKind.Warning,
+                line:this.lineCount,
+                msg:`-You may wish to type ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \n-It signals that it has been used before here and it prevents errors early.`,
+                srcText:text
+            });
         }
         if (str in this.usedNames) {
             this.usedNames[str] += 1;
@@ -673,8 +760,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 const str = this.stripMark(text);
                 if (!readOnly) {
                     if (visitedNames.has(str)) {
-                        Essentials.report(DslError.Semantic,this.lineCount,`-The same name cannot be used more than once in a sentence but found; ${chalk.bold(text)} used again.`);
-                        if (Resolver.terminate) return;
+                        Essentials.castReport({
+                            kind:ReportKind.Semantic,
+                            line:this.lineCount,
+                            msg:`-The same name cannot be used more than once in a sentence but found; ${chalk.bold(text)} used again.`,
+                            srcText:text
+                        });
                     }
                     visitedNames.add(str);
                     if (Resolver.terminate) return;
@@ -696,7 +787,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 const capitalLetter = text.toUpperCase()[0];
                 const exclude = new Set(['A','I']);
                 if (text.startsWith(capitalLetter) && !exclude.has(text)) {
-                    Essentials.report(DslError.DoubleCheck,this.lineCount,`-Did you mean to write the name,${chalk.bold(":"+text)} instead of the filler,${chalk.bold(text)}?`);
+                    Essentials.castReport({
+                        kind:ReportKind.Warning,
+                        line:this.lineCount,
+                        msg:`-Did you mean to write the name,${chalk.bold(":"+text)} instead of the filler,${chalk.bold(text)}?`,
+                        srcText:text
+                    });
                 }
             }else if ((type === DSLLexer.TERMINATOR) && !readOnly) {
                 if (text.endsWith('\n')) this.targetLineCount += 1;//increment the count at every new line created at the end of the sentence
