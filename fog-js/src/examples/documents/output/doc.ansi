@@ -22,7 +22,10 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;173;239;30m[4mProcessed line 9: [24m[39m
 -Sentence: [38;2;221;203;160malias males = *male.[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 11: [24m[39m
+[38;2;173;239;30m[4mProcessed line 10: [24m[39m
+-Sentence: [38;2;221;203;160malias bros = *brothers.[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 12: [24m[39m
 -Sentence: [38;2;221;203;160m:Billy and :John are #friends.[39m
 -Alias #friends -> *friends
 -Expansion: [38;2;221;203;160m[39m
@@ -31,13 +34,13 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;221;203;160m][39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 13:[24m[39m
+[38;2;240;146;88m[4mDouble check line 14:[24m[39m
 -You may wish to type [1m!John[22m rather than loosely as [1m:John[22m. 
 -It signals that it has been used before here and it prevents errors early.[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:John :Zane are #friends.[39m
 [38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 13: [24m[39m
+[38;2;173;239;30m[4mProcessed line 14: [24m[39m
 -Sentence: [38;2;221;203;160m:John :Zane are #friends.[39m
 -Alias #friends -> *friends
 -Expansion: [38;2;221;203;160m[39m
@@ -46,28 +49,28 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;221;203;160m][39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 14:[24m[39m
+[38;2;240;146;88m[4mDouble check line 15:[24m[39m
 -Did you mean to use the subject ref, <She> instead of the filler,[1mthe[22m?[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Zane is the #friend of :Cole.[39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 14:[24m[39m
+[38;2;240;146;88m[4mDouble check line 15:[24m[39m
 -Did you mean to use the subject ref, <They> instead of the filler,[1mthe[22m?[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Zane is the #friend of :Cole.[39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 14:[24m[39m
+[38;2;240;146;88m[4mDouble check line 15:[24m[39m
 -Did you mean to use the object ref, <them:n> instead of the filler,[1mthe[22m?[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Zane is the #friend of :Cole.[39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 14:[24m[39m
+[38;2;240;146;88m[4mDouble check line 15:[24m[39m
 -You may wish to type [1m!Zane[22m rather than loosely as [1m:Zane[22m. 
 -It signals that it has been used before here and it prevents errors early.[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Zane is the #friend of :Cole.[39m
 [38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 14: [24m[39m
+[38;2;173;239;30m[4mProcessed line 15: [24m[39m
 -Sentence: [38;2;221;203;160m:Zane is the #friend of :Cole.[39m
 -Alias #friend -> *friends
 -Expansion: [38;2;221;203;160m[39m
@@ -76,13 +79,13 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;221;203;160m][39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 15:[24m[39m
+[38;2;240;146;88m[4mDouble check line 16:[24m[39m
 -You may wish to type [1m!Cole[22m rather than loosely as [1m:Cole[22m. 
 -It signals that it has been used before here and it prevents errors early.[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Leo is :Cole's #friend.[39m
 [38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 15: [24m[39m
+[38;2;173;239;30m[4mProcessed line 16: [24m[39m
 -Sentence: [38;2;221;203;160m:Leo is :Cole's #friend.[39m
 -Alias #friend -> *friends
 -Expansion: [38;2;221;203;160m[39m
@@ -91,13 +94,13 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;221;203;160m][39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 16:[24m[39m
+[38;2;240;146;88m[4mDouble check line 17:[24m[39m
 -You may wish to type [1m!Leo[22m rather than loosely as [1m:Leo[22m. 
 -It signals that it has been used before here and it prevents errors early.[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Leo and :Mark are #friends.[39m
 [38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 16: [24m[39m
+[38;2;173;239;30m[4mProcessed line 17: [24m[39m
 -Sentence: [38;2;221;203;160m:Leo and :Mark are #friends.[39m
 -Alias #friends -> *friends
 -Expansion: [38;2;221;203;160m[39m
@@ -106,7 +109,7 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;221;203;160m][39m
 [38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 18: [24m[39m
+[38;2;173;239;30m[4mProcessed line 19: [24m[39m
 -Sentence: [38;2;221;203;160m:Matt and :Philip are #males.[39m
 -Alias #males -> *male
 -Expansion: [38;2;221;203;160m[39m
@@ -115,7 +118,7 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;221;203;160m][39m
 [38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 19: [24m[39m
+[38;2;173;239;30m[4mProcessed line 20: [24m[39m
 -Sentence: [38;2;221;203;160m:Mandy is a *female.[39m
 -Predicate: *female
 -Expansion: [38;2;221;203;160m[39m
@@ -124,28 +127,28 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;221;203;160m][39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 21:[24m[39m
+[38;2;240;146;88m[4mDouble check line 22:[24m[39m
 -Did you mean to use the subject ref, <She> instead of the filler,[1mthe[22m?[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Susan is the #mother of :Matt.[39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 21:[24m[39m
+[38;2;240;146;88m[4mDouble check line 22:[24m[39m
 -Did you mean to use the subject ref, <They> instead of the filler,[1mthe[22m?[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Susan is the #mother of :Matt.[39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 21:[24m[39m
+[38;2;240;146;88m[4mDouble check line 22:[24m[39m
 -Did you mean to use the object ref, <them:n> instead of the filler,[1mthe[22m?[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Susan is the #mother of :Matt.[39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 21:[24m[39m
+[38;2;240;146;88m[4mDouble check line 22:[24m[39m
 -You may wish to type [1m!Matt[22m rather than loosely as [1m:Matt[22m. 
 -It signals that it has been used before here and it prevents errors early.[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Susan is the #mother of :Matt.[39m
 [38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 21: [24m[39m
+[38;2;173;239;30m[4mProcessed line 22: [24m[39m
 -Sentence: [38;2;221;203;160m:Susan is the #mother of :Matt.[39m
 -Alias #mother -> *parent
 -Expansion: [38;2;221;203;160m[39m
@@ -154,34 +157,34 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;221;203;160m][39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 22:[24m[39m
+[38;2;240;146;88m[4mDouble check line 23:[24m[39m
 -Did you mean to use the subject ref, <She> instead of the filler,[1mthe[22m?[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Susan is the #mother of :Philip.[39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 22:[24m[39m
+[38;2;240;146;88m[4mDouble check line 23:[24m[39m
 -Did you mean to use the subject ref, <They> instead of the filler,[1mthe[22m?[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Susan is the #mother of :Philip.[39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 22:[24m[39m
+[38;2;240;146;88m[4mDouble check line 23:[24m[39m
 -Did you mean to use the object ref, <them:n> instead of the filler,[1mthe[22m?[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Susan is the #mother of :Philip.[39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 22:[24m[39m
+[38;2;240;146;88m[4mDouble check line 23:[24m[39m
 -You may wish to type [1m!Susan[22m rather than loosely as [1m:Susan[22m. 
 -It signals that it has been used before here and it prevents errors early.[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Susan is the #mother of :Philip.[39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 22:[24m[39m
+[38;2;240;146;88m[4mDouble check line 23:[24m[39m
 -You may wish to type [1m!Philip[22m rather than loosely as [1m:Philip[22m. 
 -It signals that it has been used before here and it prevents errors early.[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m:Susan is the #mother of :Philip.[39m
 [38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 22: [24m[39m
+[38;2;173;239;30m[4mProcessed line 23: [24m[39m
 -Sentence: [38;2;221;203;160m:Susan is the #mother of :Philip.[39m
 -Alias #mother -> *parent
 -Expansion: [38;2;221;203;160m[39m
@@ -190,28 +193,28 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;221;203;160m][39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 23:[24m[39m
+[38;2;240;146;88m[4mDouble check line 24:[24m[39m
 -Did you mean to use the subject ref, <She> instead of the filler,[1mthe[22m?[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m<She> is the #mother of :Mandy.[39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 23:[24m[39m
+[38;2;240;146;88m[4mDouble check line 24:[24m[39m
 -Did you mean to use the subject ref, <They> instead of the filler,[1mthe[22m?[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m<She> is the #mother of :Mandy.[39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 23:[24m[39m
+[38;2;240;146;88m[4mDouble check line 24:[24m[39m
 -Did you mean to use the object ref, <them:n> instead of the filler,[1mthe[22m?[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m<She> is the #mother of :Mandy.[39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 23:[24m[39m
+[38;2;240;146;88m[4mDouble check line 24:[24m[39m
 -You may wish to type [1m!Mandy[22m rather than loosely as [1m:Mandy[22m. 
 -It signals that it has been used before here and it prevents errors early.[32m[39m
 [32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m<She> is the #mother of :Mandy.[39m
 [38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 23: [24m[39m
+[38;2;173;239;30m[4mProcessed line 24: [24m[39m
 -Sentence: [38;2;221;203;160m<She> is the #mother of :Mandy.[39m
 -With resolved references: [38;2;221;203;160m:Susan is the #mother of :Mandy .[39m
 [38;2;221;203;160m[39m
@@ -222,16 +225,16 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;221;203;160m][39m
 [38;2;221;203;160m[39m
 [38;2;240;146;88m[4m[24m[39m
-[38;2;240;146;88m[4mDouble check line 24:[24m[39m
+[38;2;240;146;88m[4mDouble check line 25:[24m[39m
 -Be sure that you have followed how you are referencing a member from a sentence that also has a ref.
--You may wish to write the name or array explicitly in [1mline:23[22m to avoid confusion.[32m[4m[24m[39m
+-You may wish to write the name or array explicitly in [1mline:24[22m to avoid confusion.[32m[4m[24m[39m
 [32m[4m[24m[39m
 [32m[4mCheck these lines:[24m[39m
-[32m[4m[24m[39m[90m23.[39m[38;2;221;203;160m<She> is the #mother of :Mandy.[39m
-[38;2;221;203;160m[39m[90m24.[39m[38;2;221;203;160m<ref:1> *has 9 :shoes.[39m
+[32m[4m[24m[39m[90m24.[39m[38;2;221;203;160m<She> is the #mother of :Mandy.[39m
+[38;2;221;203;160m[39m[90m25.[39m[38;2;221;203;160m<ref:1> *has 9 :shoes.[39m
 [38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 24: [24m[39m
+[38;2;173;239;30m[4mProcessed line 25: [24m[39m
 -Sentence: [38;2;221;203;160m<ref:1> *has 9 :shoes.[39m
 -With resolved references: [38;2;221;203;160m:Susan *has 9 :shoes .[39m
 -Predicate: *has
@@ -242,4 +245,4 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;221;203;160m[39m
 [32m[39m
 [32m[39m
-[32mThe document resolved in 100.747 ms (0.101 seconds)[39m
+[32mThe document resolved in 304.018 ms (0.304 seconds)[39m

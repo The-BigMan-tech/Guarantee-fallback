@@ -8,10 +8,10 @@ if (!doc) process.exit(0);
 
 doc.useImplications(implications);
 
-// const answer2 = await doc.isItImplied(fallbackTo.Membership,'allies',["Billy","Mark"]);
-// if (answer2 !== Result.error) {//this is to check for statement validation error i.e when the query violates the statement format that a rule expects
-//     doc.printAnswer(answer2);
-// }
+const answer2 = await doc.isItImplied(fallbackTo.Membership,'allies',["Billy","Susan"]);
+if (answer2 !== Result.error) {//this is to check for statement validation error i.e when the query violates the statement format that a rule expects
+    doc.printAnswer(answer2);
+}
 
 // const answer2 = await doc.isItStated(fallbackTo.Membership,'allies',["Billy","John"]);
 // doc.printAnswer(answer2);
@@ -20,15 +20,14 @@ doc.useImplications(implications);
 // const answer3 = await doc.isItStated(fallbackTo.Membership,'allies',["Billy","John"]);
 // doc.printAnswer(answer3);
 
-const input:members[] = ['Billy','Mark'];
-const visited:Box<string[]> =  [[]];
-const combinations = await doc.pullCandidates(1, 'friends',input,visited);
-console.log('🚀 => :21 => combinations:', combinations);
+// const input:members[] = ['Billy'];
+// const visited:Box<string[]> =  [[]];
 
+// const x = await doc.pullCandidates(2, 'friends',input,visited);
+// console.log('🚀 => :28 => x:', x);
 
-const combinations2 = await doc.pullCandidates(1, 'friends',input,visited);
-console.log('🚀 => :21 => combinations2:', combinations2);
-
+// const y = await doc.pullCandidates(2, 'friends',input,visited);
+// console.log('🚀 => :28 => y:', y);
 
 // const combinations2 = await doc.pullCandidates(2, 'friends', [], [[]]);
 // for await (const [A,B] of combinations2) {

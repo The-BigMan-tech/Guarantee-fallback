@@ -1,6 +1,8 @@
 {
     "predicates": {
         "allies": "friends",
+        "bros": "brothers",
+        "brothers": "brothers",
         "father": "parent",
         "female": "female",
         "friend": "friends",
@@ -13,6 +15,12 @@
     },
     "records": {
         "allies": {
+            "facts": []
+        },
+        "bros": {
+            "facts": []
+        },
+        "brothers": {
             "facts": []
         },
         "father": {
