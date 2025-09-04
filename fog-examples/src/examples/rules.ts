@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import {Box, checkBy, Doc, Implications, Tuple } from "../main.js";
-import { predicates as P } from "./documents/output/doc.types.js";
+import {Box, checkBy, Doc, Implications } from "../main.js";
+import { Predicates as P } from "./documents/output/doc.types.js";
 import * as zod from "zod";
 
 
