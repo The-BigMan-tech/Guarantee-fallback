@@ -2,16 +2,23 @@ import { CharStream, CommonTokenStream, ConsoleErrorListener,ParseTree,Token } f
 import { AliasDeclarationContext,DSLParser, FactContext,ProgramContext } from "../generated/DSLParser.js";
 import { DSLLexer } from "../generated/DSLLexer.js";
 import { DSLVisitor } from "../generated/DSLVisitor.js";
-import chalk from "chalk";
+import chalk, { ChalkInstance } from "chalk";
 import Denque from "denque";
 import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
-import { FullData,convMapToRecord,Rec, ResolutionResult, Result, Analysis } from "../utils/utils.js";
+import { FullData,convMapToRecord,Rec, ResolutionResult, Result,lspAnalysis, lspSeverity } from "../utils/utils.js";
 import { AtomList } from "../utils/utils.js";
 import fs from 'fs/promises';
 import path from 'path';
+
+
+const brown = chalk.hex("#ddcba0ff");
+const lime = chalk.hex('adef1e');
+const orange = chalk.hex('f09258f');
+const darkGreen = chalk.hex('98ce25ff');
+
 
 interface ResolvedSingleTokens {
     indices:number[],//i used an array because they may be multiple refs in a sentence to resolve
@@ -21,17 +28,38 @@ interface ResolvedGroupedTokens {
     indices:Heap<number>,//used a descending order heap to prevent insertion issues during iteration by looping backwards
     tokens:Map<number,(null | Token[])>
 }
-enum DslError{
+
+enum ReportKind {
     Semantic="Semantic Error at",
     Syntax="Syntax Error at",
-    DoubleCheck="Double check"
+    Warning="Double check"
 }
-
-const brown = chalk.hex("#ddcba0ff");
-const lime = chalk.hex('adef1e');
-const orange = chalk.hex('f09258f');
-const darkGreen = chalk.hex('98ce25ff');
-
+function mapToColor(kind:ReportKind):ChalkInstance | null {
+    switch (kind) {
+    case(ReportKind.Semantic): {
+        return chalk.red;
+    }
+    case (ReportKind.Syntax): {
+        return chalk.red;
+    }
+    case (ReportKind.Warning): {
+        return orange;
+    }
+    }
+    return null;
+}
+interface MapToSeverity {
+    Semantic:lspSeverity.Error,
+    Syntax:lspSeverity.Error,
+    Warning:lspSeverity.Warning
+}
+interface Report {
+    kind:ReportKind,
+    line:number,
+    lines?:number[]
+    msg:string,
+    text:string
+}
 
 
 //todo:Make the fuctions more typesafe by replacing all the type shortcuts i made with the any type to concrete ones.and also try to make the predicates typed instead of dynamically sized arrays of either string or number.This has to be done in the dsl if possible.
@@ -43,36 +71,49 @@ class Essentials {
     public static tree:ProgramContext;
 
     
-    public static report(errorType:string,lineCount:number,msg:string,checkLines?:number[]):void {
-        function pushLine(line:number):void {
-            messages.push(brown(Resolver.inputArr[line]?.trim() + '\n'));
-        }
+    public static castReport(report:Report):void {
+        const {kind,lines,msg,text} = report;
+        const line = report.line + 1;//for 1-based line counting for the logs
+        const messages = [];
 
-        let title = chalk.underline(`\n${errorType} line ${lineCount+1}:`);//for 1-based line counting for the logs
-        title = (errorType === DslError.DoubleCheck)?orange(title):chalk.red(title);
-        
-        const messages = [title,`\n${msg}`,];
-        if (!checkLines) {
-            messages.push(chalk.green('\nCheck'),darkGreen('->'));
-            pushLine(lineCount);
+        const srcLine = (line:number):string => Resolver.inputArr[line];
+        const pushLine = (line:number):void => {messages.push(brown(srcLine(line).trim() + '\n'));};
+        const errTitle = chalk.underline(`\n${kind} line ${line}:`);
+        const coloredTitle = mapToColor(kind)!(errTitle);
+
+        const subTitle1 = [chalk.green('\nCheck'),darkGreen('->')];
+        const subTitle2 = chalk.green.underline('\n\nCheck these lines:\n');
+
+        messages.push(coloredTitle);
+        messages.push(`\n${msg}`);
+
+        if (!lines) {
+            messages.push(...subTitle1);
+            pushLine(line);
         }
         else{
-            messages.push(chalk.green.underline('\n\nCheck these lines:\n'));
-            for (const line of checkLines) {
-                messages.push(chalk.gray(`${line+1}.`));//for 1-based line counting for the logs
+            messages.push(subTitle2);
+            for (const line of lines) {
+                messages.push(chalk.gray(`${line}.`));//These show the line count on the side.
                 pushLine(line);
             }
         }
         messages.push('\n');
         console.info(...messages);
         Resolver.logs?.push(...messages);
-        if ((errorType===DslError.Semantic) || (errorType===DslError.Syntax)) {
+
+        if ((kind===ReportKind.Semantic) || (kind===ReportKind.Syntax)) {
             Resolver.terminate = true;
         }
     }
     public static loadEssentials(input:string):void {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:any, msg: string): void =>{
-            Essentials.report(DslError.Syntax,line-1,msg);//i minused one because the line were the syntax error is caught is always a line ahead of where it occured in the document.
+            Essentials.castReport({
+                kind:ReportKind.Syntax,
+                line:line-1,//i minused one because the line were the syntax error is caught is always a line ahead of where it occured in the document.
+                text:offendingSymbol,
+                msg,
+            });
         };
         Essentials.inputStream = CharStream.fromString(input);
         Essentials.lexer = new DSLLexer(Essentials.inputStream);
@@ -121,6 +162,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private predicateForLog:string | null = null;
 
     private visitedSentences = new Map<string,number>();
+    public static lspAnalysis:lspAnalysis | null = null;
 
     private printTokens(tokens:Token[] | null):void {
         const tokenDebug = tokens?.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
@@ -190,7 +232,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         console.log('🚀 => :175 => checkForRepetition => tokenNames:', tokenNames.toArray());
         if (this.visitedSentences.has(stringifiedNames)) {
             const sameSentenceLine = this.visitedSentences.get(stringifiedNames)!;
-            Essentials.report(DslError.Semantic,this.lineCount,`-This sentence is structurally identical to a previous one.\n-Remove it to improve resolution speed and reduce the final document size.`,[sameSentenceLine,this.lineCount]);
+            Essentials.castReport({
+                kind:ReportKind.Semantic,
+                line:this.lineCount,
+                text:stringifiedNames,
+                msg:`-This sentence is structurally identical to a previous one.\n-Remove it to improve resolution speed and reduce the final document size.`,
+                lines:[sameSentenceLine,this.lineCount]
+            });
         }else {
             this.visitedSentences.set(stringifiedNames,this.lineCount);//i mapped it to its line in the src for error reporting
         }
@@ -677,6 +725,7 @@ function clearStaticVariables() {
     Resolver.inputArr.length = 0;
     Resolver.logs = null;
     Resolver.logFile = null;
+    Resolver.lspAnalysis = null;
 }
 function getOutputPathNoExt(srcFilePath:string,outputFolder?:string) {
     const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
@@ -751,8 +800,11 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
     }
 }
 
-export async function analyzeDoc(srcText:string):Promise<Analysis> {
+export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     clearStaticVariables();
-    const resolvedResult = await generateJson(srcText);
-    return {diagnostics:undefined};
+    Resolver.lspAnalysis = {
+        diagnostics:[]
+    };
+    await generateJson(srcText);
+    return Resolver.lspAnalysis;
 }

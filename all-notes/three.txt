@@ -2412,3 +2412,5 @@ Graceful disconnection
 *so the two main componentsa are the document resolver and the inference runtime that are hosted in node js as a long lived program.and the binding is the third component that can be in any language to connect to the language's component to make queries and write rules.
 
 *before i added stream batching,my indirect rule inference was a bit slow because of all the io operations.but by using a batch,its now faster because it reduces the number of io operations significantly proportionally to the max batch length or memory size.so the bigger the batch,the more the start latency and memory overhead but the faster the output once its ready but no batching has zero latency but mid processing is slow
+
+*so unlike te resolve document function,this one doesnt have to capture the resolution error because that is already in the lsp analysis thats being returned
