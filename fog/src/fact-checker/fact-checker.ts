@@ -1,12 +1,12 @@
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
-import { Tuple,validator,UniqueAtomList, UniqueList, Result, NoOutput, FullData } from "../utils/utils.js";
+import { Tuple,validator,UniqueAtomList, UniqueList, Result,FullData } from "../utils/utils.js";
 import {stringify} from "safe-stable-stringify";
 import { AtomList,Atom } from "../utils/utils.js";
 import { Rec } from "../utils/utils.js";
 import fs from 'fs/promises';
 import chalk from "chalk";
-import { resolveDocToJson, Resolver } from "../resolver/resolver.js";
+import { resolveDocument, Resolver } from "../resolver/resolver.js";
 import {v4 as uniqueID} from "uuid";
 
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
@@ -221,20 +221,18 @@ async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
 export async function importDocFromObject(json:Record<string,any>):Promise<Result> {
     return await loadDocFromJson(json);
 }
-//This function is intended to update the server side document with the json output.it doesnt accept no-output like the resolver.For the lsp that needs analysis data without making output,it should call the resolver directlt
-export async function importDocFromPath(filePath:string,outputFolder?:string):Promise<Result> {
+export async function importDocFromSrc(filePath:string,outputFolder:string) {
     const isSrcFile = filePath.endsWith(".fog");
+}
+//This function is intended to update the server side document with the json output.it doesnt accept no-output like the resolver.For the lsp that needs analysis data without making output,it should call the resolver directlt
+export async function importDocFromPath(filePath:string,outputFolder:string):Promise<Result> {
+    
     const isJsonFile = filePath.endsWith(".json");
-
-
     let jsonPath:string | null = isSrcFile?null:filePath;//i currently set it to null if its the src file because the json file isnt yet available at this time
+    
     if (isSrcFile) {//this block creates the json output and loads it if its a src file.
-        const {result,jsonPath:jsonPathResult} = await resolveDocToJson(filePath,outputFolder);
+        const {result,jsonPath:jsonPathResult} = await resolveDocument(filePath,outputFolder);
         if (result === Result.error) return Result.error;
-        if (jsonPathResult === NoOutput.value) {
-            console.error(chalk.red(`The no output flag: '${NoOutput.value}' can not be used as the output parameter when loading the document on the server.`));
-            return Result.error;
-        }
         jsonPath = jsonPathResult!;//we can assert this here because if the resolver result isnt an error,then the path is guaranteed to be valid
     }
     else if (!isJsonFile) {

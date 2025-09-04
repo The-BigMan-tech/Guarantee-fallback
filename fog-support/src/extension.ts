@@ -29,8 +29,8 @@ export function activate(context: ExtensionContext) {
         }
     };
     client = new LanguageClient(
-        'languageServerExample',
-        'Language Server Example',
+        'fogLanguaeServer',
+        'Fog Language Server',
         serverOptions,
         clientOptions
     );

@@ -19,7 +19,7 @@ connection.onInitialize(() => {
 
 documents.onDidChangeContent(change => {
     const text = change.document.getText();
-    connection.console.log(`Document changed. Current length: ${text.length}`);
+    connection.console.log(`Document changed. Current length: ${text.length} text: ${text}`);
 });
 
 documents.listen(connection);

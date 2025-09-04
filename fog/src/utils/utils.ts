@@ -19,12 +19,12 @@ export enum Result {
     success='success',
     error='error'
 }
-export enum NoOutput {
-    value=1//i used a number over a string to get better type safety by distinguishing it from string paths.i used 1 not 0 so that the code doesnt mistakenly treat it as a falsy value
-}
 export interface ResolutionResult {
     result:Result,
-    jsonPath:string | NoOutput | undefined,
+    jsonPath:string | undefined,
+}
+export interface Analysis {
+    diagnostics:undefined
 }
 
 const atomSchema = Type.Union([Type.String(),Type.Number()]);
@@ -131,7 +131,7 @@ export class UniqueList<T> {//A data structure that provides iteration and index
         return false; // Element does not exist
     }
 }
-export function mapToRecord<K extends string | number | symbol,V>(map:Map<K,V>):Record<K,V> {
+export function convMapToRecord<K extends string | number | symbol,V>(map:Map<K,V>):Record<K,V> {
     const rec:Record<K,V> = {} as Record<K,V>;
     const keys = [...map.keys()];
     keys.forEach(key=>(rec[key]=map.get(key)!));

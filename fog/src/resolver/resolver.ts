@@ -8,7 +8,7 @@ import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
-import { FullData,mapToRecord, NoOutput, Rec, ResolutionResult, Result } from "../utils/utils.js";
+import { FullData,convMapToRecord,Rec, ResolutionResult, Result, Analysis } from "../utils/utils.js";
 import { AtomList } from "../utils/utils.js";
 import fs from 'fs/promises';
 import path from 'path';
@@ -660,13 +660,17 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         Resolver.inputArr = input.split('\n');
     }
 }
-async function genStructures(input:string) {
+async function generateJson(input:string) {
     const visitor = new Resolver();
     visitor.createSentenceArray(input);
     Essentials.loadEssentials(input);
     await Resolver.flushLogs();//to capture syntax errors to the log
     await visitor.visit(Essentials.tree);
-    if (!Resolver.terminate) return {aliases:visitor.aliases,predicates:visitor.predicates,records:visitor.records};
+    if (!Resolver.terminate) {
+        return {aliases:visitor.aliases,predicates:visitor.predicates,records:visitor.records};
+    }else {
+        return Result.error;
+    }
 }
 function clearStaticVariables() {
     Resolver.terminate = false;//reset it for subsequent analyzing
@@ -674,10 +678,9 @@ function clearStaticVariables() {
     Resolver.logs = null;
     Resolver.logFile = null;
 }
-function getOutputPathNoExt(srcFilePath:string,outputFolder?:string | NoOutput) {
-    if (outputFolder === NoOutput.value) return null;
+function getOutputPathNoExt(srcFilePath:string,outputFolder:string) {
     const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
-    const outputPath = outputFolder || path.dirname(srcFilePath);//defaults to the directory of the src file as the output folder if none is provided
+    const outputPath = outputFolder;
     return path.join(outputPath,filePathNoExt);
 }
 async function accessOutputFolder(outputFilePath:string):Promise<void> {
@@ -715,40 +718,40 @@ function omitJsonKeys(key:string,value:any) {
     }
     return value; // include everything else
 }
-export async function resolveDocToJson(srcFilePath:string,outputFolder?:string | NoOutput):Promise<ResolutionResult> {
+export async function resolveDocument(srcFilePath:string,outputFolder:string):Promise<ResolutionResult> {
+    clearStaticVariables();//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
+    const start = performance.now();
+    const isValidSrc = srcFilePath.endsWith(".fog");
+    if (!isValidSrc) {
+        console.error(chalk.red('The resolver only reads .fog files.'));
+        return {result:Result.error,jsonPath:Result.error};
+    }
     try {
-        const start = performance.now();
-
-        clearStaticVariables();//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
-        const isSrcFile = srcFilePath.endsWith(".fog");
-        if (!isSrcFile) {
-            console.error(chalk.red('The resolver only reads .fog files.'));
-            return {result:Result.error,jsonPath:undefined};
-        }
-
-        const produceOutput = Number(outputFolder) !== NoOutput.value;//i converted the outputFolder to a number because passing 1 may parse it as a string
         const outputFilePath = getOutputPathNoExt(srcFilePath,outputFolder);
-        if (produceOutput) await setUpLogs(outputFilePath!);//this must be initialized before generating the struct as long as the file log is required
+        const srcText = await fs.readFile(srcFilePath, 'utf8');
 
-        const src = await fs.readFile(srcFilePath, 'utf8');
-        const resolvedData = await genStructures(src);//the result here will be undefined if there was a resolution error.
+        await setUpLogs(outputFilePath);//this must be initialized before generating the struct as long as the file log is required
+        const resolvedResult = await generateJson(srcText);//the result here will be undefined if there was a resolution error.
         
-        if (resolvedData) {
-            let jsonPath:string | NoOutput = NoOutput.value;
-            if (produceOutput) {
-                const predicateRecord:Record<string,string> = {
-                    ...mapToRecord(resolvedData.predicates),
-                    ...mapToRecord(resolvedData.aliases)
-                };
-                const fullData:FullData = {predicates:predicateRecord,records:resolvedData.records};
-                jsonPath = await writeToOutput(outputFilePath!,stringify(fullData,omitJsonKeys,4) || '',start);
-            }
+        if (resolvedResult !== Result.error) {
+            const predicateRecord:Record<string,string> = {
+                ...convMapToRecord(resolvedResult.predicates),
+                ...convMapToRecord(resolvedResult.aliases)
+            };
+            const fullData:FullData = {predicates:predicateRecord,records:resolvedResult.records};
+            const jsonPath = await writeToOutput(outputFilePath,stringify(fullData,omitJsonKeys,4) || '',start);
             return {result:Result.success,jsonPath};
         }else {
             return {result:Result.error,jsonPath:undefined};
         }
-    } catch {
-        console.error(chalk.red(`Error: Be sure this is a valid file path: `),srcFilePath);
+    }catch(error) {
+        console.error(chalk.red.underline(`\nA File error occured\n: `),error);
         return {result:Result.error,jsonPath:undefined};
     }
+}
+
+export async function analyzeDoc(srcText:string):Promise<Analysis> {
+    clearStaticVariables();
+    const resolvedResult = await generateJson(srcText);
+    return {diagnostics:undefined};
 }
