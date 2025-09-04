@@ -2395,3 +2395,14 @@ Because i consumed the combination generator all at once for the fog client,i do
 *so without an explicit queueing system,making nested async request under a stream request is unsafe,but one can nest a one-off request under another.This is because nested requests discards the previous one.so a good approach is to consume the stream before maing other requests.i stil get the benfit of streaming data and receving it as its available but i wait for the stream to complete before making another request in contrary to making another concurrent request while the stream is incomplete
 
 *so this means that two coordinated stream req will finfish fatser than two independent one because the second one will continue where the first left off and can even be null.
+
+*streaming edge cases ive tackled
+State coordination to prevent deadlocks
+
+In-stream state management
+
+Closed stream detection
+
+Batching and memory thresholding
+
+Graceful disconnection

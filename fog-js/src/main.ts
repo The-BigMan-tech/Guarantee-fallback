@@ -1,7 +1,6 @@
 import ipc from 'node-ipc';
 import chalk from "chalk";
 import path from "path";
-import fs from "fs/promises";
 import { JSONRPCClient, JSONRPCParams, JSONRPCResponse } from "json-rpc-2.0";
 import { ZodError } from 'zod';
 import * as zod from "zod";
@@ -9,6 +8,7 @@ import { BehaviorSubject,Observable,skip,Subscriber, Subscription } from 'rxjs';
 import { observableToAsyncGen,consumeAsyncIterable } from './observable-async-gen.js';
 import Denque from 'denque';
 import sizeof from "object-sizeof";
+import { Project } from "ts-morph";
 
 let inStreamRequest:boolean = false;
 const streamResult = new BehaviorSubject<Denque<Response<any>>>(new Denque([])); // Initial value can be null or any default
@@ -138,61 +138,58 @@ export async function setupOutput<P extends string,R extends string>(srcFilePath
 
 
 export async function genTypes<P extends string,R extends string>(docName:string,outputFolder:string,doc:Doc<string,string>,rules?:Record<R,Rule<P>>):Promise<void> {
-    const exportType = (declaration:string):string =>`export ${declaration}`;
-    const declareType = (name:string):string =>`type ${name} =`;
-    const kvPair = (key:string,value:string):string =>`${key}:${value}`;
-
-    const declareInterface = (name:string,pairs:string[],indentation:number):string =>{
-        const indentedPairs = pairs.map(pair=>pair.padStart(pair.length + indentation,' '));
-        return `interface ${name} {\n${indentedPairs.join(',\n')}\n}`;
-    };
-
-    const union = ' | ';
-    const terminator = ";\n";
-
     const typeFile = docName + '.types.ts';
     const typeFilePath = path.join(outputFolder,typeFile);
     
-    const [predicatesType,membersType,keyofRulesType] = ['predicates','members','keyofRules'];
+    const project = new Project();
+    const sourceFile = project.createSourceFile(typeFilePath, "", { overwrite: true });
+
+    const [predicatesType,membersType,keyofRulesType] = ['Predicates','Members','KeyofRules'];
+
+    const union = ' | ';
 
     const memberUnion =  (await doc.allMembers()).map(member=>{
         return (typeof member==="string")?`"${member}"`:member;
     }).join(union);
-    
-    const memberDeclaration = exportType(`${declareType(membersType)} ${memberUnion}`);
-    await fs.writeFile(typeFilePath,memberDeclaration + terminator);
 
     const predicates = new Set<string>();
     Object.entries(await doc.predicates()).forEach(([alias,predicate])=>{
         predicates.add(alias);
         predicates.add(predicate);
     });
-
     const predicatesUnion = Array.from(predicates).map(predicate=>`"${predicate}"`).join(union);
-    const predicatesDeclaration = exportType(`${declareType(predicatesType)} ${predicatesUnion}`);
-    await fs.appendFile(typeFilePath,predicatesDeclaration + terminator);
 
+    sourceFile.addTypeAlias({
+        name:membersType,
+        isExported: true,
+        type:memberUnion
+    });
+
+    sourceFile.addTypeAlias({
+        name:predicatesType,
+        isExported: true,
+        type:predicatesUnion
+    });
     if (rules) {
         const rulesUnion = (rules)?Object.keys(rules).map(rKey=>`"${rKey}"`).join(union):'';
-        const rulesDeclaration = exportType(`${declareType(keyofRulesType)} ${rulesUnion}`);
-        await fs.appendFile(typeFilePath,rulesDeclaration + terminator);
+        sourceFile.addTypeAlias({
+            name:keyofRulesType,
+            isExported: true,
+            type:rulesUnion
+        });
     }
-    const kvPairs = [
-        kvPair(predicatesType,predicatesType),
-        kvPair(membersType,membersType)
-    ];
-    if (rules) {
-        kvPairs.push(kvPair(keyofRulesType,keyofRulesType));
-    }else {
-        kvPairs.push(kvPair(keyofRulesType,`''`));
-    }
-    const infoInterface = exportType(declareInterface('info',kvPairs,4));
-    await fs.appendFile(typeFilePath,infoInterface + terminator);
-
+    sourceFile.addInterface({
+        name: "Info",
+        isExported: true,
+        properties: [
+            { name:predicatesType, type:predicatesType },
+            { name:membersType, type:membersType},
+            { name:keyofRulesType, type: rules ? keyofRulesType : "''" }
+        ],
+    });
+    await project.save();
     console.log(chalk.green('Sucessfully generated the types at: '),typeFilePath);
 }
-
-
 
 
 export class Doc<//i used an empty string over the string type for better type safety by preventing the generics from mathcing every string by default
