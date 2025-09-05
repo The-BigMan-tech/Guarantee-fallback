@@ -1,4 +1,4 @@
-{   
+{
     "name": "fog-support",
     "displayName": "Fog language support",
     "description": "Editor support for the fog logic language",
@@ -65,7 +65,7 @@
         "typescript": "^5.9.2"
     },
     "dependencies": {
-        "fog-js": "^1.0.9",
+        "fog-js": "^1.0.10",
         "vscode-languageclient": "^9.0.1",
         "vscode-languageserver": "^9.0.1",
         "vscode-languageserver-textdocument": "^1.0.12"

@@ -1,6 +1,9 @@
 {
 	"compilerOptions": {
-		"module": "Node16",
+		"module": "nodenext",
+        "moduleResolution": "nodenext",
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop":true,
 		"target": "ES2022",
 		"lib": [
 			"ES2022"
