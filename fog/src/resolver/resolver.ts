@@ -186,7 +186,7 @@ function replaceLastOccurrence(str:string, search:string, replacement:string):st
     return str.slice(0, lastIndex) + replacement + str.slice(lastIndex + search.length);
 }
 interface RefCheck {
-    hasRef:boolean,
+    encounteredRef:null | 'subject' | 'object' | 'generic',
     line:number
 }
 export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
@@ -210,7 +210,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private builtAFact:boolean = false;
 
     private lastSentenceTokens:Token[] = [];
-    private prevRefCheck:RefCheck = {hasRef:false,line:0};//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
+    private prevRefCheck:RefCheck = {encounteredRef:null,line:0};//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
     private predicateForLog:string | null = null;
 
@@ -244,7 +244,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
         let successMessage = lime.underline(`\nProcessed line ${this.lineCount + 1}: `);//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
         successMessage += `\n-Sentence: ${brown(originalSrc)}`;
-        successMessage += (this.prevRefCheck.hasRef)?`\n-With resolved references: ${brown(resolvedSentence)}`:'';//using prevRefCehck under the same loop accesses the ref check of the latest senetnce.
+        successMessage += (this.prevRefCheck.encounteredRef)?`\n-With resolved references: ${brown(resolvedSentence)}`:'';//using prevRefCehck under the same loop accesses the ref check of the latest senetnce.
         
         if (this.predicateForLog) {//the condition is to skip printing this on alias declarations.The lock works because this is only set on facts and not on alias declarations.Im locking this on alias declarations because they dont need extra logging cuz there is no expansion data or any need to log the predicate separately.just the declaration is enough
             const predicateFromAlias = this.aliases.get(this.predicateForLog || '');
@@ -291,7 +291,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
                 srcText:[Resolver.srcLine(sameSentenceLine)!,Resolver.srcLine(this.lineCount)!],
-                msg:`-This sentence is semantically identical to a previous one.\n-Remove it to improve resolution speed and reduce the final document size.`,
+                msg:`-This sentence is semantically identical to line ${sameSentenceLine}.\n-It is repetitive so remove it to improve resolution speed and reduce the final document size.`,
                 lines:[sameSentenceLine,this.lineCount]
             });
         }else {
@@ -385,7 +385,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
         const encounteredNames:string[] = [];
 
-        let hasRef = false;
+        let encounteredRef:RefCheck['encounteredRef'] = null;
         let encounteredName:boolean = false;//for use in ensurig safety
         
         const extractNumFromRef = (text:string):number=> {
@@ -397,11 +397,11 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 srcText:text
             });
             if (!Number.isInteger(num)) Essentials.castReport(report(ReportKind.Semantic,`-The reference; ${chalk.bold(text)} must use an integer`));
-            if (num > 3) Essentials.castReport(report(ReportKind.Warning,`-Are you sure you can track what this reference; ${chalk.bold(text)} is pointing to?`));
+            if (num > 3) Essentials.castReport(report(ReportKind.Warning,`-Are you sure you can track what this reference ${chalk.bold(text)} is pointing to?`));
             return num;
         };
         const checkForRefAmbiguity = ()=> {
-            if (this.prevRefCheck.hasRef && hasRef) {
+            if (this.prevRefCheck.encounteredRef && encounteredRef) {
                 let msg = `-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.`;
                 msg += `\n-You may wish to write the name or array explicitly in ${chalk.bold('line:'+ (this.prevRefCheck.line+1))} to avoid confusion.`;
                 Essentials.castReport({
@@ -484,23 +484,21 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             return {nthMember,lastEncounteredList};
         };
         const isRefValid = (member:Token | null,refTarget:'single' | 'group' | 'any',refType:'object' | 'subject' | 'generic',ref:string,nthIndex:number):boolean=> {
-            const report = (args:{srcText:string | string[],msg:string}):Report=>({
+            const report = (msg:string,srcText?:string | string[],):Report=>({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
-                msg:args.msg,
-                srcText:args.srcText
+                msg,
+                srcText:srcText || ref
             });
             const linesReport = (msg:string):Report=>({
-                ...report({srcText:[Resolver.srcLine(this.lineCount-1)!,ref],msg}),
+                ...report(msg,[Resolver.srcLine(this.lineCount-1)!,ref]),
                 lines:[this.lineCount-1,this.lineCount]
             });
             if (!member) {
                 if (refType === "object") {
-                    Essentials.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex! + 1)} member in the prior sentence.`,));
-                }else if (refType === "subject") {
-                    Essentials.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a sentence prior to the reference.`));
-                }else if (refType === "generic") {
-                    Essentials.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a sentence prior to the reference and it has a ${getOrdinalSuffix(nthIndex! + 1)} member.`));
+                    Essentials.castReport(report(`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex!)} member in the prior sentence.`,));
+                }else {
+                    Essentials.castReport(report(`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a sentence prior to the reference and it has a ${getOrdinalSuffix(nthIndex!)} member.`));
                 }
                 return false;
             }
@@ -508,23 +506,23 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 return true;
             }
             else if ((refType === 'object') && (extractNumFromRef(ref) === 1)) {
-                Essentials.castReport(report({
-                    srcText:ref,
-                    msg:`-The reference ${chalk.bold(ref)} must point to an object and not the subject.\n-If thats the intention,then use <He>,<She> or <It>.`
-                }));
+                Essentials.castReport(report(`-The reference ${chalk.bold(ref)} must point to an object of the prior sentence,not the subject.\n-If that is the intention,then use <He>,<She> or <It>.`));
                 return false;
             }
-            else if ((refType === "object") && !encounteredName && !hasRef) {
-                Essentials.castReport(report({
-                    srcText:ref,
-                    msg:`-An object reference can not be the subject of a sentence.`
-                }));
+            else if ((refType === "object") && !encounteredName && !encounteredRef) {
+                Essentials.castReport(report(`-An object reference can not be the subject of a sentence.`));
                 return false;
-            }else if ((refType === "subject") && (encounteredName || hasRef)) {
-                Essentials.castReport(report({
-                    srcText:ref,
-                    msg:`A subject reference can not be the object of a sentence.`
-                }));
+            }
+            else if ((refType === "object") && (encounteredRef==="object")) {
+                Essentials.castReport(report(`-A sentence can not have two object references.`));
+                return false;
+            }
+            else if ((refType === "subject") && (encounteredName || encounteredRef)) {
+                if (encounteredRef === "subject") {
+                    Essentials.castReport(report(`A sentence can not have more than one subject reference.`));
+                }else {
+                    Essentials.castReport(report(`A subject reference can not be the object of a sentence.`));
+                }
                 return false;
             }
             else if (refTarget === 'single') {
@@ -556,12 +554,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 if (Resolver.terminate) return;
                 
                 const member = getNthMember(nthIndex).nthMember;
-    
-                if (isRefValid(member,'single',(isObjectRef)?'object':'subject',text,nthIndex)) {
+                const refType = (isObjectRef)?'object':'subject';
+
+                if (isRefValid(member,'single',refType,text,nthIndex)) {
                     resolvedSingleTokens.indices.push(index);
                     resolvedSingleTokens.tokens.set(index,member);
                 }else return;
-                hasRef = true;
+                encounteredRef = refType;
             }
 
 
@@ -572,12 +571,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 
                 const result = getNthMember(nthIndex);
                 const member = result.nthMember;
+                const refType = (isObjectRef)?'object':'subject';
 
-                if (isRefValid(member,'group',(isObjectRef)?'object':'subject',text,nthIndex)) {
+                if (isRefValid(member,'group',refType,text,nthIndex)) {
                     resolvedGroupedTokens.indices.push(index);
                     resolvedGroupedTokens.tokens.set(index,result.lastEncounteredList);
                 }else return;
-                hasRef = true;
+                encounteredRef = refType;
             }
             
             else if (type === DSLLexer.GENERIC_REF) {
@@ -596,7 +596,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                         resolvedGroupedTokens.tokens.set(index,result.lastEncounteredList);
                     }
                 }else return;
-                hasRef = true;
+                encounteredRef = 'generic';
             }
 
 
@@ -630,7 +630,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         checkForRefAmbiguity();//this must be checked before updating the refCheck state
         for (const name of encounteredNames) this.validateNameUsage(name);//this has to happen before the refs are resolved.else,the names that expanded into those refs will trigger warnings.
         this.lastSentenceTokens = tokens;
-        this.prevRefCheck = {hasRef,line:this.lineCount};
+        this.prevRefCheck = {encounteredRef,line:this.lineCount};
         applyResolution();
     }
     private stripMark(text:string) {
