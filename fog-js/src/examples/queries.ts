@@ -8,10 +8,10 @@ if (doc === Result.error) process.exit(0);
 
 doc.useImplications(implications);
 
-const answer1 = await doc.isItStated(fallbackTo.Membership,'allies',["Billy","Mark"]);
+const answer1 = await doc.isItStated(fallbackTo.Membership,'friends',["Billy","Mark"]);
 doc.printAnswer(answer1);
 
-const answer2 = await doc.isItImplied(fallbackTo.Membership,'allies',["Billy","Mark"]);//it will return an error if the query statement broke the rule's validation schema
+const answer2 = await doc.isItImplied(fallbackTo.Membership,'friends',["Billy","Mark"]);//it will return an error if the query statement broke the rule's validation schema
 if (answer2 !== Result.error) doc.printAnswer(answer2);
 
 
