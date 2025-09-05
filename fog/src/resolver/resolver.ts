@@ -514,7 +514,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 return false;
             }
             else if ((refType === "object") && (encounteredRef==="object")) {
-                Essentials.castReport(report(`-A sentence can not have two object references.`));
+                Essentials.castReport(report(`-A sentence can not have more than one object reference.`));
                 return false;
             }
             else if ((refType === "subject") && (encounteredName || encounteredRef)) {
@@ -829,7 +829,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                         Essentials.castReport({
                             kind:ReportKind.Semantic,
                             line:this.lineCount,
-                            msg:`-The same name cannot be used more than once in a sentence but found; ${chalk.bold(text)} used again.`,
+                            msg:`-The same name cannot be used more than once in a sentence but found ${chalk.bold(text)} repeated.`,
                             srcText:text
                         });
                     }
