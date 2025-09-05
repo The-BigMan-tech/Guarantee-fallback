@@ -2414,3 +2414,11 @@ Graceful disconnection
 *before i added stream batching,my indirect rule inference was a bit slow because of all the io operations.but by using a batch,its now faster because it reduces the number of io operations significantly proportionally to the max batch length or memory size.so the bigger the batch,the more the start latency and memory overhead but the faster the output once its ready but no batching has zero latency but mid processing is slow
 
 *so unlike te resolve document function,this one doesnt have to capture the resolution error because that is already in the lsp analysis thats being returned
+
+
+i moved the exaples from fog-js
+i published it as a cjs module
+
+make my rollup config tuned for cjs for bundling and types for the fog-js binding.
+change back the debug config of the fog language
+test my fog-js cjs module in an es user

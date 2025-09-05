@@ -48,12 +48,17 @@ enum ReportKind {
     Syntax="Syntax Error at",
     Warning="Double check"
 }
+enum EndOfLine {
+    value=-1//i used a number for better type safety by allowing ts to differentiate it from the other src text that are strings
+}
+type InlineSrcText = string | string[] | EndOfLine;
+
 interface Report {
     kind:ReportKind,
     line:number,//this is 0-based
     lines?:number[]
     msg:string,
-    srcText:string | string[]
+    srcText:InlineSrcText
 }
 
 
@@ -75,13 +80,21 @@ class Essentials {
         };
         const severity = mapToSeverity[kind];
 
-        const buildDiagnostic = (targetLine: number, text: string,message:string):lspDiagnostics => {
+        const buildDiagnostic = (targetLine: number, text:string | EndOfLine,message:string):lspDiagnostics => {
             const sourceLine = Resolver.srcLine(targetLine) || "";
             const cleanedSourceLine = sourceLine.replace(/\r+$/, ""); // remove trailing \r
-            const charPos = cleanedSourceLine.indexOf(text);//it doesnt strip out carriage return like in the src line cuz the text can be a slice into any piece of the src and altering its formatting can lead to issues
             
-            const startChar = (charPos < 0)?0:charPos;
-            const endChar = startChar + text.length;
+            let startChar:number;
+            let endChar:number;
+
+            if (text !== EndOfLine.value) {
+                const charPos = cleanedSourceLine.indexOf(text);//it doesnt strip out carriage return like in the src line cuz the text can be a slice into any piece of the src and altering its formatting can lead to issues
+                startChar = (charPos < 0)?0:charPos;
+                endChar = startChar + text.length;
+            }else {
+                startChar = cleanedSourceLine.length - 1;
+                endChar = startChar;
+            }
             return {
                 range: {
                     start: { line: targetLine, character: startChar },
@@ -91,8 +104,8 @@ class Essentials {
                 message
             };
         }; 
-        const cleanMsg = stripAnsi(msg.replace(/\r?\n|\r/g, ". "));//strip ansi codes and new lines
-        if (!lines && (typeof srcText === "string")) {
+        const cleanMsg = stripAnsi(msg.replace(/\r?\n|\r/g, " "));//strip ansi codes and new lines
+        if (!lines && ((typeof srcText === "string") || (srcText === EndOfLine.value))) {
             const diagnostic = buildDiagnostic(line,srcText,cleanMsg);
             Resolver.lspAnalysis.diagnostics.push(diagnostic);
         }
@@ -107,7 +120,7 @@ class Essentials {
         }
     }
     public static castReport(report:Report):void {
-        this.buildDiagnosticsFromReport(report);
+        Essentials.buildDiagnosticsFromReport(report);
         const {kind,line,lines,msg} = report;
         const messages = [];
 
@@ -142,11 +155,16 @@ class Essentials {
         }
     }
     public static loadEssentials(input:string):void {
-        ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:any, msg: string): void =>{
+        ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:number, msg: string): void =>{
+            const zeroBasedLine = line - 1;//the line returned by this listenere is 1-based so i deducted 1 to make it 0-based which is the correct form the pogram understands
+            const srcLine = Resolver.srcLine(zeroBasedLine)!;
+            const srcText = srcLine[column] || EndOfLine.value;
+
+            console.log('src txt',srcText);
             Essentials.castReport({
                 kind:ReportKind.Syntax,
-                line:line-1,//i minused one because the line were the syntax error is caught is always a line ahead of where it occured in the document.
-                srcText:offendingSymbol,
+                line:zeroBasedLine,
+                srcText,
                 msg,
             });
         };
@@ -273,7 +291,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
                 srcText:[Resolver.srcLine(sameSentenceLine)!,Resolver.srcLine(this.lineCount)!],
-                msg:`-This sentence is structurally identical to a previous one.\n-Remove it to improve resolution speed and reduce the final document size.`,
+                msg:`-This sentence is semantically identical to a previous one.\n-Remove it to improve resolution speed and reduce the final document size.`,
                 lines:[sameSentenceLine,this.lineCount]
             });
         }else {
@@ -673,6 +691,14 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
         return null;
     }
+    private recommendUsedName(text:string):string | null {
+        for (const name of Object.keys(this.usedNames)) {
+            if (distance(name,text!) < 4) {
+                return name;
+            }
+        }
+        return null;
+    }
     private validatePredicateType(token:Token):void {
         const text = token.text!;
         const isAlias = this.aliases.has(this.stripMark(text));//the aliases set stores plain words
@@ -766,10 +792,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const str = this.stripMark(text);
 
         if (isStrict && !(str in this.usedNames)) {
+            let message = `-There is no existing usage of the name '${chalk.bold(str)}'`;
+            const recommendedName = this.recommendUsedName(str);
+            message += (recommendedName)?`\n-Did you mean to type ${chalk.bold('!'+recommendedName)} instead?`:`\n-It has to be written as ${chalk.bold(':'+str)} since it is just being declared.`;
             Essentials.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
-                msg:`-Could not find an existing usage of the name; ${chalk.bold(str)}.\n-Did you meant to type: ${chalk.bold(':'+str)} instead? Assuming that this is the first time it is used.`,
+                msg:message,
                 srcText:text
             });
         }else if (!isStrict && this.usedNames[str] > 0) {//only give the recommendation if this is not the first time it is used
