@@ -1,28 +1,15 @@
 {
     "predicates": {
-        "allies": "friends",
-        "bros": "brothers",
-        "brothers": "brothers",
         "father": "parent",
         "female": "female",
         "friend": "friends",
         "friends": "friends",
-        "has": "has",
         "male": "male",
         "males": "male",
         "mother": "parent",
         "parent": "parent"
     },
     "records": {
-        "allies": {
-            "facts": []
-        },
-        "bros": {
-            "facts": []
-        },
-        "brothers": {
-            "facts": []
-        },
         "father": {
             "facts": []
         },
@@ -49,6 +36,7 @@
                 {
                     "list": [
                         "John",
+                        "Mark",
                         "Zane"
                     ]
                 },
@@ -62,23 +50,6 @@
                     "list": [
                         "Leo",
                         "Cole"
-                    ]
-                },
-                {
-                    "list": [
-                        "Leo",
-                        "Mark"
-                    ]
-                }
-            ]
-        },
-        "has": {
-            "facts": [
-                {
-                    "list": [
-                        "Susan",
-                        9,
-                        "shoes"
                     ]
                 }
             ]

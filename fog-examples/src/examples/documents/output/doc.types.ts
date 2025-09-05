@@ -1,5 +1,5 @@
-export type Members = "Billy" | "John" | "Zane" | "Cole" | "Leo" | "Mark" | "Susan" | "Matt" | "Philip" | "Mandy" | 9 | "shoes";
-export type Predicates = "allies" | "friends" | "bros" | "brothers" | "father" | "parent" | "female" | "friend" | "has" | "male" | "males" | "mother";
+export type Members = "Susan" | "Matt" | "Philip" | "Mandy" | "Billy" | "John" | "Mark" | "Zane" | "Cole" | "Leo";
+export type Predicates = "father" | "parent" | "female" | "friend" | "friends" | "male" | "males" | "mother";
 export type KeyofRules = "directFriends" | "indirectFriends" | "friends" | "siblings" | "brothers";
 
 export interface Info {
