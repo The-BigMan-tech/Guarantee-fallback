@@ -5,6 +5,7 @@ import importPlugin from "eslint-plugin-import";
 
 const srcFiles =  [
     'src/**/*.ts', 
+    'src/**/*.cts', 
     'src/**/*.tsx',
     'src/**/*.js', 
     'src/**/*.jsx',

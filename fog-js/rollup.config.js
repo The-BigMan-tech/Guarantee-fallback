@@ -11,10 +11,10 @@ const __dirname = path.dirname(__filename);
 
 export default [
 	{
-		input: './build/src/main.js', // Your entry file
+		input: './build/src/main.cjs', // Your entry file
 		output: {
-			file: './dist/bundle.js',
-			format: 'es', 
+			file: './dist/bundle.cjs',
+			format: 'cjs', 
 			name: 'Bundle', 
 			sourcemap: true // Generate sourcemap
 		},
@@ -31,9 +31,9 @@ export default [
         external:['chalk']
 	},
 	{
-		input: './build/types/src/main.d.ts', // Entry point to your emitted `.d.ts` files
+		input: './build/types/src/main.d.cts', // Entry point to your emitted `.d.ts` files
 		output: {
-			file: './dist/bundle-min.d.ts', // Single bundled declaration output
+			file: './dist/bundle.d.ts', // Single bundled declaration output
 			format: 'es',
 		},
 		plugins: [dts()],
