@@ -29,7 +29,7 @@ interface ResolvedGroupedTokens {
     indices:Heap<number>,//used a descending order heap to prevent insertion issues during iteration by looping backwards
     tokens:Map<number,(null | Token[])>
 }
-function mapToColor(kind:ReportKind):ChalkInstance {
+function mapToColor(kind:ReportKind):ChalkInstance | null {
     switch (kind) {
     case(ReportKind.Semantic): {
         return chalk.red;
@@ -41,12 +41,14 @@ function mapToColor(kind:ReportKind):ChalkInstance {
         return orange;
     }
     }
+    return null;
 }
 
 enum ReportKind {
     Semantic="Semantic Error at",
     Syntax="Syntax Error at",
-    Warning="Double check"
+    Warning="Double check",
+    Hint="Hint at"
 }
 enum EndOfLine {
     value=-1//i used a number for better type safety by allowing ts to differentiate it from the other src text that are strings
@@ -70,13 +72,14 @@ class Essentials {
     public static parser:DSLParser;
     public static tree:ProgramContext;
 
-    private static buildDiagnosticsFromReport(report:Report):void {
+    public static buildDiagnosticsFromReport(report:Report):void {
         if (Resolver.lspAnalysis===null) return;//dont generate lsp analysis if not required
         const {kind,line,lines,msg,srcText} = report;//line is 0-based
         const mapToSeverity =  {
             [ReportKind.Semantic]:lspSeverity.Error,
             [ReportKind.Syntax]:lspSeverity.Error,
-            [ReportKind.Warning]:lspSeverity.Warning
+            [ReportKind.Warning]:lspSeverity.Warning,
+            [ReportKind.Hint]:lspSeverity.Hint
         };
         const severity = mapToSeverity[kind];
 
@@ -127,7 +130,7 @@ class Essentials {
         console.log('🚀 => :78 => pushLine => line:', line);
         const pushLine = (line:number):void => {messages.push(brown(Resolver.srcLine(line)?.trim() + '\n'));};
         const errTitle = chalk.underline(`\n${kind} line ${line + 1}:`);
-        const coloredTitle = mapToColor(kind)(errTitle);
+        const coloredTitle = mapToColor(kind)!(errTitle);
 
         const subTitle1 = [chalk.green('\nCheck'),darkGreen('->')];
         const subTitle2 = chalk.green.underline('\n\nCheck these lines:\n');
@@ -225,10 +228,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
     private logProgress(tokens:Token[] | null) {
         if ((tokens===null) || Resolver.terminate) return;
-        const resolvedSentence = tokens?.map(token=>token.text!).join(' ') || '';
-        const originalSrc  = Resolver.inputArr.at(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
+        const resolvedSentence = tokens?.map(token=>token.text!).join(' ') || '';//the tokens received at the time this method is called is after the senence has been resolved
+        const originalSrc  = Resolver.srcLine(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
+        
         let expansionText = stringify(this.expandedFacts);
-
         expansionText = replaceLastOccurrence(expansionText,']','\n]\n')
             .replace('[','\n[\n')
             .replaceAll(',[',',\n[')
@@ -242,15 +245,25 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             })
             .join('\n');
 
+        const resolveRefMessage = `\n-Resolves to ${brown(resolvedSentence)}`;
         let successMessage = lime.underline(`\nProcessed line ${this.lineCount + 1}: `);//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
         successMessage += `\n-Sentence: ${brown(originalSrc)}`;
-        successMessage += (this.prevRefCheck.encounteredRef)?`\n-With resolved references: ${brown(resolvedSentence)}`:'';//using prevRefCehck under the same loop accesses the ref check of the latest senetnce.
-        
+
+        if (this.prevRefCheck.encounteredRef) {//using prevRefCehck under the same loop accesses the ref check of the latest senetnce.
+            successMessage += resolveRefMessage;
+            Essentials.buildDiagnosticsFromReport({
+                kind:ReportKind.Hint,
+                line:this.lineCount,
+                msg:resolveRefMessage,
+                srcText:Resolver.srcLine(this.lineCount)!
+            });
+        }
         if (this.predicateForLog) {//the condition is to skip printing this on alias declarations.The lock works because this is only set on facts and not on alias declarations.Im locking this on alias declarations because they dont need extra logging cuz there is no expansion data or any need to log the predicate separately.just the declaration is enough
             const predicateFromAlias = this.aliases.get(this.predicateForLog || '');
             successMessage += (predicateFromAlias)?`\n-Alias #${this.predicateForLog} -> *${predicateFromAlias}`:`\n-Predicate: *${this.predicateForLog}`;
             successMessage += `\n-Expansion: ${brown(expansionText)}`; 
         };
+
         successMessage += '\n';
         console.info(successMessage);
         Resolver.logs?.push(successMessage);
