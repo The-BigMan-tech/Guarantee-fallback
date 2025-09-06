@@ -75,14 +75,6 @@ class Essentials {
 
     public static buildDiagnosticsFromReport(report:Report):void {
         if (Resolver.lspAnalysis===null) return;//dont generate lsp analysis if not required
-        const {kind,line,lines,msg,srcText} = report;//line is 0-based
-        const mapToSeverity =  {
-            [ReportKind.Semantic]:lspSeverity.Error,
-            [ReportKind.Syntax]:lspSeverity.Error,
-            [ReportKind.Warning]:lspSeverity.Warning,
-            [ReportKind.Hint]:lspSeverity.Hint
-        };
-        const severity = mapToSeverity[kind];
 
         const buildDiagnostic = (targetLine: number, text:string | EndOfLine,message:string):lspDiagnostics => {
             const sourceLine = Resolver.srcLine(targetLine) || "";
@@ -108,22 +100,37 @@ class Essentials {
                 message
             };
         }; 
+
+        const {kind,line,lines,msg,srcText} = report;//line is 0-based
+        const mapToSeverity =  {
+            [ReportKind.Semantic]:lspSeverity.Error,
+            [ReportKind.Syntax]:lspSeverity.Error,
+            [ReportKind.Warning]:lspSeverity.Warning,
+            [ReportKind.Hint]:lspSeverity.Hint
+        };
+
+        const severity = mapToSeverity[kind];
         const modifiedMsg = msg.split('\n').map(str=>str.replace('-','')).join('');//this removes the leading - sign in each sentence of the message.I use them when logging the report to a file for clarity but for in editor reports,it is unnecessary.
         const cleanMsg = stripAnsi(modifiedMsg.replace(/\r?\n|\r/g, " "));//strip ansi codes and new lines
         
-        let diagnostics:lspDiagnostics | null = null;
+        const diagnostics:lspDiagnostics[] = [];
         if (!lines && ((typeof srcText === "string") || (srcText === EndOfLine.value))) {
-            diagnostics = buildDiagnostic(line,srcText,cleanMsg);
+            diagnostics.push(buildDiagnostic(line,srcText,cleanMsg));
         }
         else if (lines && Array.isArray(srcText)){
             for (let i = 0; i < lines.length; i++) {
                 const targetLine = lines[i];
                 const text = srcText[i];
                 const message =(targetLine===line)?cleanMsg:`This line is involved in an issue with line ${line + 1}.`;
-                diagnostics = buildDiagnostic(targetLine, text,message);
+                diagnostics.push(buildDiagnostic(targetLine, text,message));
             }
         }
-        if (diagnostics !== null) Resolver.lspAnalysis.diagnostics.push(diagnostics);
+        Resolver.lspAnalysis.diagnostics.push(...diagnostics);
+        const srcLine = Resolver.srcLine(line);
+        if (srcLine) Resolver.lspDiagnosticsCache.set(Essentials.rmWhitespaces(srcLine),diagnostics);
+    }
+    public static rmWhitespaces(str:string):string {
+        return str.replace(/\s+/g, '');  // Remove all whitespaces
     }
     public static castReport(report:Report):void {
         Essentials.buildDiagnosticsFromReport(report);
@@ -210,7 +217,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static logFile:string | null = null;
     public static logs:string[] | null = null;
     public static linesToLogAtATime:number = 10;
-    public static inputArr:string[] = [];
+    public static srcLines:string[] = [];
 
     private expandedFacts:AtomList[] | null = null;
     private builtAFact:boolean = false;
@@ -222,10 +229,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
     private visitedSentences = new Map<string,number>();
     public static lspAnalysis:lspAnalysis | null = null;
-    public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:100});
+    public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:100});//i cant clear this on every resolution call like the rest because its meant to be persistent
 
     //this method expects that the line is 0-based
-    public static srcLine = (line:number):string | undefined => Resolver.inputArr.at(line);
+    public static srcLine = (line:number):string | undefined => Resolver.srcLines.at(line);
     private printTokens(tokens:Token[] | null):void {
         const tokenDebug = tokens?.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
         console.log('\n Tokens:',tokenDebug);
@@ -328,7 +335,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
             if (isNewLine) this.targetLineCount += 1;//increment the line count at every empty new line
         }
-        if (this.lineCount === (Resolver.inputArr.length-1)) {//this block is to increment the line count at the end of the file.This is because i dont directly have the eof token in the tokens array which is because they only contain sentences.so without that,the line count at the end of the file will always be a count short which s why im checking it against the input array.length - 1.Explicitly incrementing it under tis conditin fixes that.
+        if (this.lineCount === (Resolver.srcLines.length-1)) {//this block is to increment the line count at the end of the file.This is because i dont directly have the eof token in the tokens array which is because they only contain sentences.so without that,the line count at the end of the file will always be a count short which s why im checking it against the input array.length - 1.Explicitly incrementing it under tis conditin fixes that.
             this.targetLineCount += 1;
         }
         this.checkForRepetition(tokens,declaredAlias);
@@ -341,7 +348,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         for (const child of ctx.children) {
             if (Resolver.terminate) return;
             await this.resolveLine(child);
-            const EOF = this.lineCount===Resolver.inputArr.length;
+            const EOF = this.lineCount===Resolver.srcLines.length;
             const shouldFlushLogs = Resolver.terminate || EOF || ((this.lineCount % Resolver.linesToLogAtATime)===0);
             if (shouldFlushLogs) {
                 await Resolver.flushLogs();
@@ -883,13 +890,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         };
         return list;
     }
-    public createSentenceArray(input:string) {
-        Resolver.inputArr = input.split('\n');
+    public createSrcLines(input:string) {
+        return input.split('\n');
     }
 }
 async function generateJson(input:string) {
     const visitor = new Resolver();
-    visitor.createSentenceArray(input);
+    Resolver.srcLines = visitor.createSrcLines(input);
     Essentials.loadEssentials(input);
     await Resolver.flushLogs();//to capture syntax errors to the log
     await visitor.visit(Essentials.tree);
@@ -901,7 +908,7 @@ async function generateJson(input:string) {
 }
 function clearStaticVariables() {
     Resolver.terminate = false;//reset it for subsequent analyzing
-    Resolver.inputArr.length = 0;
+    Resolver.srcLines.length = 0;
     Resolver.logs = null;
     Resolver.logFile = null;
     Resolver.lspAnalysis = null;
