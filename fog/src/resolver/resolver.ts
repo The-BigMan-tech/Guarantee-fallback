@@ -992,6 +992,18 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
 export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     clearStaticVariables();
     const srcLines = Resolver.createSrcLines(srcText);
+    const srcLineQueue = new Denque(srcLines);
+    const purgedSrcLines = new Denque<string>([]);
+    
+    //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
+    while (srcLineQueue.length > 0) {
+        const srcLine = srcLineQueue.pop()!;//im taking it from the back because its easier to know the relevant sentences than forward(like knowing that an alias declaration will be usefl to a future line)
+        const lineKey = Essentials.rmWhitespaces(srcLine);
+        
+        if (!Resolver.lspDiagnosticsCache.has(lineKey)) {
+            purgedSrcLines.unshift(srcLine);
+        }
+    }
     srcLines.forEach(srcLine=>{//its important to do this before calling the resolver function
         const key = Essentials.rmWhitespaces(srcLine);
         if (!(Essentials.isWhitespace(key)) && !Resolver.lspDiagnosticsCache.get(key)) {//we dont want to override existing entries
@@ -1001,7 +1013,9 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     Resolver.lspAnalysis = {
         diagnostics:[]
     };
-    await generateJson(srcText);
+    const purgedSrcText = purgedSrcLines.toArray().join('\n');
+    console.log('🚀 => :1019 => analyzeDocument => purgedSrcText:', purgedSrcText);
+    await generateJson(purgedSrcText);
     console.log('cache: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
     return Resolver.lspAnalysis;
 }
