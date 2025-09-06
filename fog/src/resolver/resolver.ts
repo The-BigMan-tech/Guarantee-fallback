@@ -231,6 +231,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private visitedSentences = new Map<string,number>();
     public static lspAnalysis:lspAnalysis | null = null;
     public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:100});//i cant clear this on every resolution call like the rest because its meant to be persistent
+    public static sentenceDependencyMap:Record<string,string> = {};
 
     //this method expects that the line is 0-based
     public static srcLine = (line:number):string | undefined => Resolver.srcLines.at(line);
@@ -477,8 +478,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
             return membersFromSentence;
         };
-        const getNthMember = (nthIndex:number)=>{
-            const membersFromSentence:Token[] = getMembers(this.lastSentenceTokens);
+        const getNthMember = (nthIndex:number,tokens:Token[])=>{
+            const membersFromSentence:Token[] = getMembers(tokens);
             const stepToReach = nthIndex;  
 
             let nthMember:Token | null = null;
@@ -578,7 +579,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 const nthIndex = isObjectRef?extractNumFromRef(text):1;
                 if (Resolver.terminate) return;
                 
-                const member = getNthMember(nthIndex).nthMember;
+                const member = getNthMember(nthIndex,this.lastSentenceTokens).nthMember;
                 const refType = (isObjectRef)?'object':'subject';
 
                 if (isRefValid(member,'single',refType,text,nthIndex)) {
@@ -594,7 +595,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 const nthIndex = isObjectRef?extractNumFromRef(text):1;
                 if (Resolver.terminate) return;
                 
-                const result = getNthMember(nthIndex);
+                const result = getNthMember(nthIndex,this.lastSentenceTokens);
                 const member = result.nthMember;
                 const refType = (isObjectRef)?'object':'subject';
 
@@ -609,7 +610,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 const nthIndex = extractNumFromRef(text);
                 if (Resolver.terminate) return;
 
-                const result = getNthMember(nthIndex);
+                const result = getNthMember(nthIndex,this.lastSentenceTokens);
                 const member = result.nthMember;
 
                 if (isRefValid(member,'any','generic',text,nthIndex)) {
@@ -1010,7 +1011,7 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after the purging
     srcLines.forEach(srcLine=>{//its important to do this before calling the resolver function
         const key = Essentials.rmWhitespaces(srcLine);
-        if (!(Essentials.isWhitespace(key)) && !Resolver.lspDiagnosticsCache.get(key)) {//we dont want to override existing entries
+        if (!(Essentials.isWhitespace(key)) && !Resolver.lspDiagnosticsCache.has(key)) {//we dont want to override existing entries
             Resolver.lspDiagnosticsCache.set(key,[]);
         }
     });
@@ -1018,6 +1019,7 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     Resolver.lspAnalysis = {
         diagnostics:[]
     };
+
     const purgedSrcText = purgedSrcLines.toArray().join('\n');
 
     console.log('cache: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
