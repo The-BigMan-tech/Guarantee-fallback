@@ -1009,12 +1009,14 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
             cachedDiagnostics.push(...Resolver.lspDiagnosticsCache.get(lineKey)!);
         }
     }
+    //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after the purging
     srcLines.forEach(srcLine=>{//its important to do this before calling the resolver function
         const key = Essentials.rmWhitespaces(srcLine);
         if (!(Essentials.isWhitespace(key)) && !Resolver.lspDiagnosticsCache.get(key)) {//we dont want to override existing entries
             Resolver.lspDiagnosticsCache.set(key,[]);
         }
     });
+    //Reset the lsp analysis for the current text
     Resolver.lspAnalysis = {
         diagnostics:[]
     };
@@ -1024,8 +1026,8 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     console.log('🚀 => :1019 => analyzeDocument => purgedSrcText:', purgedSrcText);
     console.log('🚀 => :999 => analyzeDocument => cachedDiagnostics:', cachedDiagnostics);
     
-    await generateJson(purgedSrcText);
-    const purgedLspAnalysis = Resolver.lspAnalysis;
-    const fullLspAnalysis:lspAnalysis = {...purgedLspAnalysis,diagnostics:[...cachedDiagnostics,...purgedLspAnalysis.diagnostics]};
+    await generateJson(purgedSrcText);//this populates the lsp analysis
+    const fullDiagnostics = Resolver.lspAnalysis.diagnostics.concat(cachedDiagnostics);
+    const fullLspAnalysis:lspAnalysis = {...Resolver.lspAnalysis,diagnostics:fullDiagnostics};
     return fullLspAnalysis;
 }
