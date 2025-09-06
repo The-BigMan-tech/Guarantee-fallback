@@ -13,6 +13,7 @@ import { AtomList } from "../utils/utils.js";
 import fs from 'fs/promises';
 import path from 'path';
 import stripAnsi from 'strip-ansi';
+import { LRUCache } from "lru-cache";
 
 
 const brown = chalk.hex("#ddcba0ff");
@@ -109,19 +110,20 @@ class Essentials {
         }; 
         const modifiedMsg = msg.split('\n').map(str=>str.replace('-','')).join('');//this removes the leading - sign in each sentence of the message.I use them when logging the report to a file for clarity but for in editor reports,it is unnecessary.
         const cleanMsg = stripAnsi(modifiedMsg.replace(/\r?\n|\r/g, " "));//strip ansi codes and new lines
+        
+        let diagnostics:lspDiagnostics | null = null;
         if (!lines && ((typeof srcText === "string") || (srcText === EndOfLine.value))) {
-            const diagnostic = buildDiagnostic(line,srcText,cleanMsg);
-            Resolver.lspAnalysis.diagnostics.push(diagnostic);
+            diagnostics = buildDiagnostic(line,srcText,cleanMsg);
         }
         else if (lines && Array.isArray(srcText)){
             for (let i = 0; i < lines.length; i++) {
                 const targetLine = lines[i];
                 const text = srcText[i];
                 const message =(targetLine===line)?cleanMsg:`This line is involved in an issue with line ${line + 1}.`;
-                const diagnostic = buildDiagnostic(targetLine, text,message);
-                Resolver.lspAnalysis.diagnostics.push(diagnostic);
+                diagnostics = buildDiagnostic(targetLine, text,message);
             }
         }
+        if (diagnostics !== null) Resolver.lspAnalysis.diagnostics.push(diagnostics);
     }
     public static castReport(report:Report):void {
         Essentials.buildDiagnosticsFromReport(report);
@@ -220,6 +222,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
     private visitedSentences = new Map<string,number>();
     public static lspAnalysis:lspAnalysis | null = null;
+    public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:100});
 
     //this method expects that the line is 0-based
     public static srcLine = (line:number):string | undefined => Resolver.inputArr.at(line);
