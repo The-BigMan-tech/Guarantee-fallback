@@ -9,8 +9,11 @@ importers:
   .:
     dependencies:
       fog-js:
-        specifier: ^1.0.9
-        version: 1.0.9
+        specifier: ^1.0.14
+        version: 1.0.14
+      safe-stable-stringify:
+        specifier: ^2.5.0
+        version: 2.5.0
       zod:
         specifier: ^4.1.5
         version: 4.1.5
@@ -130,8 +133,8 @@ packages:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
     engines: {node: '>=8'}
 
-  fog-js@1.0.9:
-    resolution: {integrity: sha512-5vrmH3fOjeq0ZUA50JSvIwMgo2S05M9mtCdHbD008UAAcsRXfW5kf8hiIy+jwtdbUFDcCAx2SXVq49+Qzrv+mA==}
+  fog-js@1.0.14:
+    resolution: {integrity: sha512-TreH30+RDZ3Q3mXUwIHBTGkzzA9WEd8Qdqmycsvi/s00O7cAhbmh11R1rjOoki3mG8kAYhb3en7m1u93FYEr9w==}
 
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
@@ -263,6 +266,10 @@ packages:
 
   safe-buffer@5.1.2:
     resolution: {integrity: sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==}
+
+  safe-stable-stringify@2.5.0:
+    resolution: {integrity: sha512-b3rppTKm9T+PsVCBEOUR46GWI7fdOs00VKZ1+9c1EWDaDMvjQc6tUwuFyIprgGgTcWoVHSKrU8H31ZHA2e0RHA==}
+    engines: {node: '>=10'}
 
   string-width@4.2.3:
     resolution: {integrity: sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==}
@@ -458,7 +465,7 @@ snapshots:
     dependencies:
       to-regex-range: 5.0.1
 
-  fog-js@1.0.9:
+  fog-js@1.0.14:
     dependencies:
       '@types/node-ipc': 9.2.3
       commander: 14.0.0
@@ -597,6 +604,8 @@ snapshots:
       tslib: 2.8.1
 
   safe-buffer@5.1.2: {}
+
+  safe-stable-stringify@2.5.0: {}
 
   string-width@4.2.3:
     dependencies:

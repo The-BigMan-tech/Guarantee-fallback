@@ -1,4 +1,4 @@
-import { analyzeDocument, lspAnalysis } from "../main.js";
+import { analyzeDocument, lspAnalysis } from "fog-js";
 import stringify from "safe-stable-stringify";
 import path from "path";
 import { fileURLToPath } from 'url';

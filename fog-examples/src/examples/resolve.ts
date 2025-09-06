@@ -2,7 +2,7 @@ import path from "path";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { rules } from "./rules.js";
-import { setupOutput } from "../main.js";
+import { setupOutput } from "fog-js";
 
 const _filename = fileURLToPath(import.meta.url);
 const _dirname = dirname(_filename);

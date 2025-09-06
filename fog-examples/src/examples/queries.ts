@@ -1,5 +1,5 @@
 import {Info } from "./documents/output/doc.types.js";
-import { fallbackTo, importDocFromObject, Result } from "../main.js";
+import { fallbackTo, importDocFromObject, Result } from "fog-js";
 import { implications } from "./rules.js";
 
 const resolvedDoc = await import("./documents/output/doc.json",{with:{type:'json'}});
