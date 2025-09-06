@@ -993,8 +993,10 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     clearStaticVariables();
     const srcLines = Resolver.createSrcLines(srcText);
     const srcLineQueue = new Denque(srcLines);
+
     const purgedSrcLines = new Denque<string>([]);
-    
+    const cachedDiagnostics:lspDiagnostics[] = [];
+
     //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
     while (srcLineQueue.length > 0) {
         const srcLine = srcLineQueue.pop()!;//im taking it from the back because its easier to know the relevant sentences than forward(like knowing that an alias declaration will be usefl to a future line)
@@ -1004,6 +1006,7 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
             purgedSrcLines.unshift(srcLine);
         }else {
             purgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
+            cachedDiagnostics.push(...Resolver.lspDiagnosticsCache.get(lineKey)!);
         }
     }
     srcLines.forEach(srcLine=>{//its important to do this before calling the resolver function
@@ -1016,8 +1019,13 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
         diagnostics:[]
     };
     const purgedSrcText = purgedSrcLines.toArray().join('\n');
-    console.log('🚀 => :1019 => analyzeDocument => purgedSrcText:', purgedSrcText);
-    await generateJson(purgedSrcText);
+
     console.log('cache: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
-    return Resolver.lspAnalysis;
+    console.log('🚀 => :1019 => analyzeDocument => purgedSrcText:', purgedSrcText);
+    console.log('🚀 => :999 => analyzeDocument => cachedDiagnostics:', cachedDiagnostics);
+    
+    await generateJson(purgedSrcText);
+    const purgedLspAnalysis = Resolver.lspAnalysis;
+    const fullLspAnalysis:lspAnalysis = {...purgedLspAnalysis,diagnostics:[...cachedDiagnostics,...purgedLspAnalysis.diagnostics]};
+    return fullLspAnalysis;
 }
