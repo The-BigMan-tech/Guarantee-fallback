@@ -132,6 +132,9 @@ class Essentials {
     public static rmWhitespaces(str:string):string {
         return str.replace(/\s+/g, '');  // Remove all whitespaces
     }
+    public static isWhitespace(str?: string | null): boolean {
+        return !str || str.trim().length === 0;
+    }
     public static castReport(report:Report):void {
         Essentials.buildDiagnosticsFromReport(report);
         const {kind,line,lines,msg} = report;
@@ -890,13 +893,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         };
         return list;
     }
-    public createSrcLines(input:string) {
+    public static createSrcLines(input:string) {
         return input.split('\n');
     }
 }
 async function generateJson(input:string) {
     const visitor = new Resolver();
-    Resolver.srcLines = visitor.createSrcLines(input);
+    Resolver.srcLines = Resolver.createSrcLines(input);
     Essentials.loadEssentials(input);
     await Resolver.flushLogs();//to capture syntax errors to the log
     await visitor.visit(Essentials.tree);
@@ -988,9 +991,17 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
 
 export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     clearStaticVariables();
+    const srcLines = Resolver.createSrcLines(srcText);
+    srcLines.forEach(srcLine=>{//its important to do this before calling the resolver function
+        const key = Essentials.rmWhitespaces(srcLine);
+        if (!(Essentials.isWhitespace(key)) && !Resolver.lspDiagnosticsCache.get(key)) {//we dont want to override existing entries
+            Resolver.lspDiagnosticsCache.set(key,[]);
+        }
+    });
     Resolver.lspAnalysis = {
         diagnostics:[]
     };
     await generateJson(srcText);
+    console.log('cache: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
     return Resolver.lspAnalysis;
 }
