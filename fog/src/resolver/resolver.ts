@@ -1002,6 +1002,8 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
         
         if (!Resolver.lspDiagnosticsCache.has(lineKey)) {
             purgedSrcLines.unshift(srcLine);
+        }else {
+            purgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
         }
     }
     srcLines.forEach(srcLine=>{//its important to do this before calling the resolver function
