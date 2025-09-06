@@ -107,7 +107,8 @@ class Essentials {
                 message
             };
         }; 
-        const cleanMsg = stripAnsi(msg.replace(/\r?\n|\r/g, " "));//strip ansi codes and new lines
+        const modifiedMsg = msg.split('\n').map(str=>str.replace('-','')).join('');//this removes the leading - sign in each sentence of the message.I use them when logging the report to a file for clarity but for in editor reports,it is unnecessary.
+        const cleanMsg = stripAnsi(modifiedMsg.replace(/\r?\n|\r/g, " "));//strip ansi codes and new lines
         if (!lines && ((typeof srcText === "string") || (srcText === EndOfLine.value))) {
             const diagnostic = buildDiagnostic(line,srcText,cleanMsg);
             Resolver.lspAnalysis.diagnostics.push(diagnostic);
@@ -304,7 +305,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
                 srcText:[Resolver.srcLine(sameSentenceLine)!,Resolver.srcLine(this.lineCount)!],
-                msg:`-This sentence is semantically identical to line ${sameSentenceLine}.\n-It is repetitive so remove it to improve resolution speed and reduce the final document size.`,
+                msg:`-This sentence is semantically identical to line ${sameSentenceLine + 1}.\n-It is repetitive, so remove it to improve resolution speed and reduce the final document size.`,
                 lines:[sameSentenceLine,this.lineCount]
             });
         }else {
