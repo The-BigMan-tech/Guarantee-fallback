@@ -63,9 +63,6 @@ interface Report {
     msg:string,
     srcText:InlineSrcText
 }
-
-
-//todo:Make the fuctions more typesafe by replacing all the type shortcuts i made with the any type to concrete ones.and also try to make the predicates typed instead of dynamically sized arrays of either string or number.This has to be done in the dsl if possible.
 class Essentials {
     public static inputStream:CharStream;
     public static lexer:DSLLexer;
@@ -126,8 +123,9 @@ class Essentials {
             }
         }
         Resolver.lspAnalysis.diagnostics.push(...diagnostics);
-        const srcLine = Resolver.srcLine(line);
-        if (srcLine) Resolver.lspDiagnosticsCache.set(Essentials.rmWhitespaces(srcLine),diagnostics);
+        const key = Essentials.rmWhitespaces(Resolver.srcLine(line)!);
+        const diagnosticsAtKey = Resolver.lspDiagnosticsCache.get(key) || [];
+        Resolver.lspDiagnosticsCache.set(key,[...diagnosticsAtKey,...diagnostics]);//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
     }
     public static rmWhitespaces(str:string):string {
         return str.replace(/\s+/g, '');  // Remove all whitespaces
