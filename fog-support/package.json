@@ -65,7 +65,7 @@
         "typescript": "^5.9.2"
     },
     "dependencies": {
-        "fog-js": "^1.0.10",
+        "fog-js": "^1.0.14",
         "vscode-languageclient": "^9.0.1",
         "vscode-languageserver": "^9.0.1",
         "vscode-languageserver-textdocument": "^1.0.12"

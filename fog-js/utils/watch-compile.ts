@@ -20,7 +20,7 @@ function done() {
 }
 
 function compile(filePath:string) {
-    const cmd = `pnpm exec swc ${filePath} -d build`;
+    const cmd = `pnpm exec swc ${filePath} -d build --copy-files`;
     exec(cmd, (err, _stdout, stderr) => {
         if (err) {
             console.error(` ${chalk.red('Error: ')}Failed to compile: ${filePath},${stderr}`);

@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       fog-js:
-        specifier: ^1.0.10
-        version: 1.0.10
+        specifier: ^1.0.14
+        version: 1.0.14
       vscode-languageclient:
         specifier: ^9.0.1
         version: 9.0.1
@@ -795,8 +795,8 @@ packages:
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
 
-  fog-js@1.0.10:
-    resolution: {integrity: sha512-MTpGJ/bqoavimgw3vR6fDZPVt2m7NH/UPpFypPqBWKVCWEWZkFmA8tSFGge/zOIMHmNuj8O2QX6H+ndviwierA==}
+  fog-js@1.0.14:
+    resolution: {integrity: sha512-TreH30+RDZ3Q3mXUwIHBTGkzzA9WEd8Qdqmycsvi/s00O7cAhbmh11R1rjOoki3mG8kAYhb3en7m1u93FYEr9w==}
 
   for-each@0.3.5:
     resolution: {integrity: sha512-dKx12eRCVIzqCxFGplyFKJMPvLEWgmNtUrpTiJIR5u97zEhRG8ySrtboPHZXx7daLxQVrl643cTzbab2tkQjxg==}
@@ -2625,7 +2625,7 @@ snapshots:
 
   flatted@3.3.3: {}
 
-  fog-js@1.0.10:
+  fog-js@1.0.14:
     dependencies:
       '@types/node-ipc': 9.2.3
       commander: 14.0.0

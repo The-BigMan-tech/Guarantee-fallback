@@ -11,7 +11,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/src/examples/queries.ts",
+            "program": "${workspaceFolder}/dist/bundle.cjs",
             "sourceMaps": true
         }
     ]

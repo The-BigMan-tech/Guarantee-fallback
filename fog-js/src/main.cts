@@ -5,7 +5,7 @@ import { JSONRPCClient, JSONRPCParams, JSONRPCResponse } from "json-rpc-2.0";
 import { ZodError } from 'zod';
 import * as zod from "zod";
 import { BehaviorSubject,Observable,skip,Subscriber, Subscription } from 'rxjs';
-import { observableToAsyncGen,consumeAsyncIterable } from './observable-async-gen.js';
+import { observableToAsyncGen,consumeAsyncIterable } from './observable-async-gen.cjs';
 import Denque from 'denque';
 import sizeof from "object-sizeof";
 import { Project } from "ts-morph";
@@ -374,3 +374,5 @@ export interface lspDiagnostics {
 export interface lspAnalysis {
     diagnostics:lspDiagnostics[]
 }
+
+console.log("Hello world");

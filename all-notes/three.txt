@@ -2416,9 +2416,3 @@ Graceful disconnection
 *so unlike te resolve document function,this one doesnt have to capture the resolution error because that is already in the lsp analysis thats being returned
 
 
-i moved the exaples from fog-js
-i published it as a cjs module
-
-make my rollup config tuned for cjs for bundling and types for the fog-js binding.
-change back the debug config of the fog language
-test my fog-js cjs module in an es user
