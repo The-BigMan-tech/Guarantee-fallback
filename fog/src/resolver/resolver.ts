@@ -310,7 +310,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         });
         const stringifiedNames = stringify(tokenNames.toArray());
-        console.log('🚀 => :175 => checkForRepetition => tokenNames:', tokenNames.toArray());
         if (this.visitedSentences.has(stringifiedNames)) {
             const sameSentenceLine = this.visitedSentences.get(stringifiedNames)!;
             Essentials.castReport({
@@ -897,13 +896,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
 }
 async function generateJson(input:string) {
-    const visitor = new Resolver();
+    const resolver = new Resolver();
     Resolver.srcLines = Resolver.createSrcLines(input);
     Essentials.loadEssentials(input);
     await Resolver.flushLogs();//to capture syntax errors to the log
-    await visitor.visit(Essentials.tree);
+    await resolver.visit(Essentials.tree);
     if (!Resolver.terminate) {
-        return {aliases:visitor.aliases,predicates:visitor.predicates,records:visitor.records};
+        return {aliases:resolver.aliases,predicates:resolver.predicates,records:resolver.records};
     }else {
         return Result.error;
     }
@@ -987,7 +986,40 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
         return {result:Result.error,jsonPath:undefined};
     }
 }
-
+interface Dependents {
+    referenceLine:number,
+    aliases:string[],
+    names:string[]
+}
+class Purger extends DSLVisitor<void> {
+    private static dependents = new Denque<Dependents>();
+    public static reAnalyze:boolean = false;
+    
+    constructor() {
+        super();
+        Purger.reAnalyze = false;
+    }
+    public visitFact = (ctx:FactContext)=> {
+        const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+    };
+    public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
+        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+    };
+    public visitProgram = (ctx:ProgramContext)=> {
+        for (const child of ctx.children) {
+            if (child instanceof FactContext) {
+                this.visitFact(child);
+            }else if (child instanceof AliasDeclarationContext) {
+                this.visitAliasDeclaration(child);
+            }
+        }
+    };
+    public visit = (tree: ParseTree)=> {
+        if (tree instanceof ProgramContext) {
+            this.visitProgram(tree); // Pass the context directly
+        };
+    };
+}
 export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     clearStaticVariables();
     const srcLines = Resolver.createSrcLines(srcText);
@@ -996,16 +1028,20 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     const purgedSrcLines = new Denque<string>([]);
     const cachedDiagnostics:lspDiagnostics[] = [];
 
+    const purger = new Purger();
     //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
     while (srcLineQueue.length > 0) {
         const srcLine = srcLineQueue.pop()!;//im taking it from the back because its easier to know the relevant sentences than forward(like knowing that an alias declaration will be usefl to a future line)
         const lineKey = Essentials.rmWhitespaces(srcLine);
         
-        if (!Resolver.lspDiagnosticsCache.has(lineKey)) {
-            purgedSrcLines.unshift(srcLine);
-        }else {
-            purgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
+        Essentials.loadEssentials(srcLine);
+        purger.visit(Essentials.tree);
+
+        if (Resolver.lspDiagnosticsCache.has(lineKey) && !Purger.reAnalyze) {
             cachedDiagnostics.push(...Resolver.lspDiagnosticsCache.get(lineKey)!);
+            purgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
+        }else {
+            purgedSrcLines.unshift(srcLine);
         }
     }
     //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after the purging
