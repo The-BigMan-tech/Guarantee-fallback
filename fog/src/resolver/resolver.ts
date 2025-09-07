@@ -914,7 +914,7 @@ function clearStaticVariables() {//Note that its not all static variables that m
     Resolver.logs = null;
     Resolver.logFile = null;
     Resolver.lspAnalysis = null;
-    Purger.reAnalyze = false;
+    Purger.includeAsDependency = false;
     Purger.line = null;
 }
 function getOutputPathNoExt(srcFilePath:string,outputFolder?:string) {
@@ -996,7 +996,7 @@ interface Dependent {
     names:string[]
 }
 class Purger extends DSLVisitor<void> {
-    public static reAnalyze:boolean = false;
+    public static includeAsDependency:boolean = false;
     public static line:number | null = null;
     public static dependents = new Denque<Dependent>();
     public static visitedSentences = new Map<string,number>();
@@ -1024,7 +1024,10 @@ class Purger extends DSLVisitor<void> {
                 dependent.names.push(Resolver.stripMark(text));
             }
         }
-        Purger.dependents.push(dependent);
+        const isDependent =  (dependent.reference === true) || (dependent.alias !== null) || (dependent.names.length > 0);
+        if (isDependent) {
+            Purger.dependents.push(dependent);
+        }
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
@@ -1061,7 +1064,9 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
         Essentials.loadEssentials(srcLine);
         purger.visit(Essentials.tree);
 
-        if (Resolver.lspDiagnosticsCache.has(key) && !Purger.reAnalyze) {
+        const cacheIsEmpty = Resolver.lspDiagnosticsCache.size === 0;
+        const shouldPurge = Resolver.lspDiagnosticsCache.has(key) && !Purger.includeAsDependency;
+        if (!cacheIsEmpty && shouldPurge) {
             cachedDiagnostics.push(...Resolver.lspDiagnosticsCache.get(key)!);
             purgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
         }else {
