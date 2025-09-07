@@ -989,7 +989,9 @@ interface Dependent {
     reference:boolean,
     alias:string | null,//a sentence can only have one alias.
     names:Set<string>,
-    totalNameDependencies:number
+    settledRef:boolean,
+    settledAlias:boolean,
+    unsettledNames:Set<string>
 }
 class Purger extends DSLVisitor<boolean | undefined> {
     public static dependents:(Dependent | null)[] = [];
@@ -1002,13 +1004,15 @@ class Purger extends DSLVisitor<boolean | undefined> {
         this.line = line;
         this.srcLine = srcLine;
     }
-    private updateIfSatisfied(args:{dependencyIndex:number,settledRef:boolean,settledAlias:boolean,names:Set<string>,nameDependencies:number}) {
-        const {dependencyIndex,settledRef,settledAlias,names,nameDependencies} = args;
-        const isFullySatisfied = settledRef && settledAlias && (names.size === 0);
-        const isPartiallySatisfied = settledRef || settledAlias || (names.size < nameDependencies);
+    private checkIfDependency(dependentIndex:number) {
+        const dependent = Purger.dependents[dependentIndex]!;//this function is called under branches where the dependent isnt null.so we can safely asser it here.
+        const {settledRef,settledAlias,unsettledNames} = dependent;
+        
+        const isFullySatisfied = (settledRef) && (settledAlias) && (unsettledNames.size === 0);
+        const isPartiallySatisfied = (settledRef) || (settledAlias) || (unsettledNames.size < dependent.names.size);
         if (isPartiallySatisfied || isFullySatisfied) {
             this.includeAsDependency = true;
-            if (isFullySatisfied) Purger.dependents[dependencyIndex] = null;
+            if (isFullySatisfied) Purger.dependents[dependentIndex] = null;
         }
     }
     private checkForDependencies(tokens:Token[]):void {
@@ -1018,7 +1022,9 @@ class Purger extends DSLVisitor<boolean | undefined> {
             reference:false,
             alias:null,
             names:new Set(),
-            totalNameDependencies:0
+            settledRef:false,
+            settledAlias:false,
+            unsettledNames:new Set()
         };
         for (const token of tokens) {
             const type = token.type;
@@ -1033,10 +1039,10 @@ class Purger extends DSLVisitor<boolean | undefined> {
             }
             if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
                 dependent.names.add(Resolver.stripMark(text));
-                dependent.totalNameDependencies += 1;
             }
         }
-        const isDependent =  (dependent.reference === true) || (dependent.alias !== null) || (dependent.names.size > 0);
+        dependent.unsettledNames = new Set(dependent.names);//clone the set
+        const isDependent =  (dependent.reference === true) || (dependent.alias !== null) || (dependent.unsettledNames.size > 0);
         if (isDependent) {
             Purger.dependents.push(dependent);
             console.log('\nDependent:',dependent);
@@ -1046,32 +1052,24 @@ class Purger extends DSLVisitor<boolean | undefined> {
         for (let i=0; i < Purger.dependents.length; i++) {
             const dependent = Purger.dependents[i];
             if (dependent === null) continue;
-            let settledRef = false;
 
             if (dependent.reference) {
                 if (this.line === (dependent.line! - 1)) {//the line that helps to resolve a ref is the one immediately behind
-                    dependent.reference = false;//there is no need to mutate the ref here after settlement since the settled flag has that covered.The only reason why i did it for the names dependency si so that it can be consumed on settlement and thus prevetning more than necessary sentences from trying to settle the same names.Mutating this property here is just for consistency to mark that it has been touched
-                    settledRef = true;
+                    dependent.settledRef = true;
                 }
             }
-            if (dependent.names.size > 0) {
+            if (dependent.unsettledNames.size > 0) {
                 for (const token of tokens) {
                     const text = token.text!;
                     const type = token.type;
                     const isLooseName = (type === DSLLexer.NAME) && !Resolver.isStrict(text);
                     const strippedName = Resolver.stripMark(text);
-                    if (isLooseName && dependent.names.has(strippedName)) {
-                        dependent.names.delete(strippedName);
+                    if (isLooseName && dependent.unsettledNames.has(strippedName)) {
+                        dependent.unsettledNames.delete(strippedName);
                     }
                 }
             }
-            this.updateIfSatisfied({
-                dependencyIndex:i,
-                settledRef,
-                settledAlias:false,
-                names:dependent.names,
-                nameDependencies:dependent.nameDependencies
-            });
+            this.checkIfDependency(i);
         }
     }
     private settleAliasDependents(tokens:Token[]) {
@@ -1079,24 +1077,17 @@ class Purger extends DSLVisitor<boolean | undefined> {
             const dependent = Purger.dependents[i];
             if (dependent === null) continue;
             if (dependent.alias !== null) {
-                let settledAlias = false;
                 for (const token of tokens) {
                     const text = token.text!;
                     const type = token.type;
                     if (type === DSLLexer.PLAIN_WORD) {
                         if (dependent.alias === text) {//no need to strip the text here since its directly a plain word
-                            settledAlias = true;
-                            dependent.alias = null;
+                            dependent.settledAlias = true;
                         }
+                        break;
                     }
                 }
-                this.updateIfSatisfied({
-                    dependencyIndex:i,
-                    settledRef:false,
-                    settledAlias,
-                    names:dependent.names,
-                    nameDependencies:dependent.nameDependencies
-                });
+                this.checkIfDependency(i);
             }
         }
     }
