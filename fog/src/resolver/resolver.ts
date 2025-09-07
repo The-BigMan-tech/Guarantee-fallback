@@ -1063,10 +1063,9 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
         
         Essentials.loadEssentials(srcLine);
         purger.visit(Essentials.tree);
-
-        const cacheIsEmpty = Resolver.lspDiagnosticsCache.size === 0;
+        
         const shouldPurge = Resolver.lspDiagnosticsCache.has(key) && !Purger.includeAsDependency;
-        if (!cacheIsEmpty && shouldPurge) {
+        if (shouldPurge) {
             cachedDiagnostics.push(...Resolver.lspDiagnosticsCache.get(key)!);
             purgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
         }else {
