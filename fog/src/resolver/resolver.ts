@@ -301,7 +301,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             if (!isTerminator && !isFiller){//the for alias check is to ensure that the plain words in alias declarations are considered
                 let name:string = token.text!;
                 if (!aliasDeclaration && ((token.type === DSLLexer.ALIAS) || (token.type === DSLLexer.PREDICATE))) {//locking it to whether its an alias declaration prevents it from flagging an alias declaration as a duplicate sentence because the alias declaration itself is essentially a duplicate since it refers to a predicate and its meant to be that way.so the resolver should respect this
-                    name = this.stripMark(name);//strip their prefixes
+                    name = Resolver.stripMark(name);//strip their prefixes
                     name = this.aliases.get(name) || name;//the fallback is for the case of predicates
                     tokenNames.unshift(name);
                 }else {
@@ -626,7 +626,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
 
             else if (type === DSLLexer.NAME) {//this must be called for every name to capture them
-                const str = this.stripMark(text);
+                const str = Resolver.stripMark(text);
                 const isLoose = text.startsWith(':');
                 if (isLoose && !(str in this.usedNames)) this.usedNames[str] = 0;//we dont want to reset it if it has already been set by a previous sentence
                 encounteredNames.push(token.text!);
@@ -658,7 +658,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         this.prevRefCheck = {encounteredRef,line:this.lineCount};
         applyResolution();
     }
-    private stripMark(text:string) {
+    public static stripMark(text:string) {
         return text.slice(1);// Remove the leading '*' or '#' or : or !
     }
     private resolveAlias(tokens:Token[]) {
@@ -673,7 +673,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 alias = text;
             }
             else if (type === DSLLexer.PREDICATE) {
-                predicate = this.stripMark(text);
+                predicate = Resolver.stripMark(text);
                 this.predicates.set(predicate,predicate);
                 if (!this.records[predicate]) this.records[predicate] = new Rec([]);//this creates a record for the predicates if it doesnt have one which happens when it wasnt used elsewhere prior to the alias declaration
             }
@@ -726,13 +726,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
     private validatePredicateType(token:Token):void {
         const text = token.text!;
-        const isAlias = this.aliases.has(this.stripMark(text));//the aliases set stores plain words
+        const isAlias = this.aliases.has(Resolver.stripMark(text));//the aliases set stores plain words
         
         if (isAlias && ! text.startsWith('#')) {
             Essentials.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
-                msg:`-Aliases are meant to be prefixed with ${chalk.bold('#')} but found ${chalk.bold(text)}. Did you mean: #${chalk.bold(this.stripMark(text))}?`,
+                msg:`-Aliases are meant to be prefixed with ${chalk.bold('#')} but found ${chalk.bold(text)}. Did you mean: #${chalk.bold(Resolver.stripMark(text))}?`,
                 srcText:text
             });
         }
@@ -763,7 +763,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     });
                 }
                 this.validatePredicateType(token);
-                relation = this.stripMark(text);
+                relation = Resolver.stripMark(text);
                 this.predicateForLog = relation;
 
                 if (type===DSLLexer.PREDICATE) {
@@ -812,11 +812,11 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
         this.builtAFact = true;
     }
-    private validateNameUsage(text:string) {
-        const isStrict = text.startsWith('!');
-        const str = this.stripMark(text);
+    public static isStrict = (text:string)=>text.startsWith('!');
 
-        if (isStrict && !(str in this.usedNames)) {
+    private validateNameUsage(text:string) {
+        const str = Resolver.stripMark(text);
+        if (Resolver.isStrict(text) && !(str in this.usedNames)) {
             let message = `-There is no existing usage of the name '${chalk.bold(str)}'`;
             const recommendedName = this.recommendUsedName(str);
             message += (recommendedName)?`\n-Did you mean to type ${chalk.bold('!'+recommendedName)} instead?`:`\n-It has to be written as ${chalk.bold(':'+str)} since it is just being declared.`;
@@ -826,7 +826,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 msg:message,
                 srcText:text
             });
-        }else if (!isStrict && this.usedNames[str] > 0) {//only give the recommendation if this is not the first time it is used
+        }else if (!Resolver.isStrict(text) && this.usedNames[str] > 0) {//only give the recommendation if this is not the first time it is used
             Essentials.castReport({
                 kind:ReportKind.Warning,
                 line:this.lineCount,
@@ -838,6 +838,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             this.usedNames[str] += 1;
         }
     }
+    //the reason why it has a readonly parameter because this function was formely used in two places and one had to call it for just the tokens while the other had to call it to make some mutations.So im still leaving it in case ill use it in another place one day
     private inspectRelevantTokens(tokens:Denque<Token>,readOnly:boolean=true,level:[number]=[0],visitedNames=new Set<string>(),shouldClone:boolean=true) {
         if (Resolver.terminate) return;
         const tokenQueue = shouldClone ? new Denque(tokens.toArray()) : tokens;//to prevent unwanted mutation if the queue is to be reused elsewhere
@@ -848,7 +849,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             const type = token.type;
             const text = token.text!;
             if (type === DSLLexer.NAME) {
-                const str = this.stripMark(text);
+                const str = Resolver.stripMark(text);
                 if (!readOnly) {
                     if (visitedNames.has(str)) {
                         Essentials.castReport({
@@ -907,7 +908,7 @@ async function generateJson(input:string) {
         return Result.error;
     }
 }
-function clearStaticVariables() {
+function clearStaticVariables() {//Note that its not all static variables that must be cleared.
     Resolver.terminate = false;//reset it for subsequent analyzing
     Resolver.srcLines.length = 0;
     Resolver.logs = null;
@@ -988,21 +989,41 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
         return {result:Result.error,jsonPath:undefined};
     }
 }
-interface Dependents {
-    referenceLine:number,
+interface Dependent {
+    referenceInLine:number | null,
     aliases:string[],
     names:string[]
 }
 class Purger extends DSLVisitor<void> {
     public static  reAnalyze:boolean = false;
     public static  line:number | null = null;
-    private static dependents = new Denque<Dependents>();
+    private static dependents = new Denque<Dependent>();
+    public static visitedSentences = new Map<string,number>();
 
+    private readonly dependentFrame:Dependent = {
+        referenceInLine:null,
+        aliases:[],
+        names:[]
+    };
     public visitFact = (ctx:FactContext)=> {
         const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        tokens.forEach(token=>{
-
-        });
+        const dependent = {...this.dependentFrame};
+        for (const token of tokens) {
+            const type = token.type;
+            const text = token.text!;
+            const refTypes = new Set([DSLLexer.SINGLE_SUBJECT_REF,DSLLexer.SINGLE_OBJECT_REF,DSLLexer.GROUP_SUBJECT_REF,DSLLexer.GROUP_OBJECT_REF]);
+            
+            if (refTypes.has(type)) {
+                dependent.referenceInLine = Purger.line;
+            }
+            if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
+                dependent.names.push(Resolver.stripMark(text));
+            }
+            if (type === DSLLexer.ALIAS) {
+                dependent.aliases.push(Resolver.stripMark(text));
+            }
+        }
+        Purger.dependents.push(dependent);
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
@@ -1038,7 +1059,8 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
         
         Essentials.loadEssentials(srcLine);
         purger.visit(Essentials.tree);
-
+        
+        console.log();
         if (Resolver.lspDiagnosticsCache.has(key) && !Purger.reAnalyze) {
             cachedDiagnostics.push(...Resolver.lspDiagnosticsCache.get(key)!);
             purgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
