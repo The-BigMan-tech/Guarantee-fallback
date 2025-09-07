@@ -64,12 +64,28 @@ interface Report {
     srcText:InlineSrcText
 }
 class Essentials {
-    public static inputStream:CharStream;
-    public static lexer:DSLLexer;
-    public static tokenStream:CommonTokenStream;
-    public static parser:DSLParser;
-    public static tree:ProgramContext;
+    public tree: ProgramContext;
+    public static tokenStream: CommonTokenStream;
+    constructor(input:string) {
+        ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:number, msg: string): void =>{
+            const zeroBasedLine = line - 1;//the line returned by this listenere is 1-based so i deducted 1 to make it 0-based which is the correct form the pogram understands
+            const srcLine = Resolver.srcLine(zeroBasedLine)!;
+            const srcText = srcLine[column] || EndOfLine.value;
 
+            console.log('src txt',srcText);
+            Essentials.castReport({
+                kind:ReportKind.Syntax,
+                line:zeroBasedLine,
+                srcText,
+                msg,
+            });
+        };
+        const inputStream = CharStream.fromString(input);
+        const lexer = new DSLLexer(inputStream);
+        Essentials.tokenStream = new CommonTokenStream(lexer);
+        const parser = new DSLParser(Essentials.tokenStream);
+        this.tree = parser.program();
+    }
     public static buildDiagnosticsFromReport(report:Report):void {
         if (Resolver.lspAnalysis===null) return;//dont generate lsp analysis if not required
 
@@ -167,26 +183,6 @@ class Essentials {
         if ((kind===ReportKind.Semantic) || (kind===ReportKind.Syntax)) {
             Resolver.terminate = true;
         }
-    }
-    public static loadEssentials(input:string):void {
-        ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:number, msg: string): void =>{
-            const zeroBasedLine = line - 1;//the line returned by this listenere is 1-based so i deducted 1 to make it 0-based which is the correct form the pogram understands
-            const srcLine = Resolver.srcLine(zeroBasedLine)!;
-            const srcText = srcLine[column] || EndOfLine.value;
-
-            console.log('src txt',srcText);
-            Essentials.castReport({
-                kind:ReportKind.Syntax,
-                line:zeroBasedLine,
-                srcText,
-                msg,
-            });
-        };
-        Essentials.inputStream = CharStream.fromString(input);
-        Essentials.lexer = new DSLLexer(Essentials.inputStream);
-        Essentials.tokenStream = new CommonTokenStream(Essentials.lexer);
-        Essentials.parser = new DSLParser(Essentials.tokenStream);
-        Essentials.tree = Essentials.parser.program();
     }
 }
 function getOrdinalSuffix(n:number):string {
@@ -898,9 +894,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 async function generateJson(input:string) {
     const resolver = new Resolver();
     Resolver.srcLines = Resolver.createSrcLines(input);
-    Essentials.loadEssentials(input);
+    const essentials = new Essentials(input);
     await Resolver.flushLogs();//to capture syntax errors to the log
-    await resolver.visit(Essentials.tree);
+    await resolver.visit(essentials.tree);
     if (!Resolver.terminate) {
         return {aliases:resolver.aliases,predicates:resolver.predicates,records:resolver.records};
     }else {
@@ -1107,8 +1103,8 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
         
         const purger = new Purger(i,srcLine);
         if (!inCache) {
-            Essentials.loadEssentials(srcLine);
-            includeAsDependency = purger.visit(Essentials.tree);
+            const essentials = new Essentials(srcLine);
+            includeAsDependency = purger.visit(essentials.tree);
         }
 
         const shouldPurge = inCache && !includeAsDependency;
