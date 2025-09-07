@@ -913,7 +913,6 @@ function clearStaticVariables() {//Note that its not all static variables that m
     Resolver.logs = null;
     Resolver.logFile = null;
     Resolver.lspAnalysis = null;
-    Purger.line = null;
     Purger.dependents = [];
 }
 function getOutputPathNoExt(srcFilePath:string,outputFolder?:string) {
@@ -989,19 +988,27 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
     }
 }
 interface Dependent {
-    line:number | null
+    srcLine:string,//for debugging
+    line:number,
     reference:boolean,
     alias:string | null,//a sentence can only have one alias in a sentence
     names:Set<string>
 }
-class Purger extends DSLVisitor<void> {
-    public static includeAsDependency:boolean = false;
-    public static line:number | null = null;
+class Purger extends DSLVisitor<boolean | undefined> {
     public static dependents:(Dependent | null)[] = [];
+    private includeAsDependency:boolean = false;
+    private line:number;
+    private srcLine:string;
 
+    constructor(line:number,srcLine:string) {
+        super();
+        this.line = line;
+        this.srcLine = srcLine;
+    }
     private checkForDependencies(tokens:Token[]):void {
         const dependent:Dependent =  {
-            line:Purger.line,
+            srcLine:this.srcLine,
+            line:this.line,
             reference:false,
             alias:null,
             names:new Set()
@@ -1024,17 +1031,17 @@ class Purger extends DSLVisitor<void> {
         const isDependent =  (dependent.reference === true) || (dependent.alias !== null) || (dependent.names.size > 0);
         if (isDependent) {
             Purger.dependents.push(dependent);
+            console.log('\nDependent:',dependent);
         }
     }
     private settleDependents(tokens:Token[]) {
-        const dependents = Purger.dependents;
-        for (let i=0; i < dependents.length; i++) {
-            const dependent = dependents[i];
+        for (let i=0; i < Purger.dependents.length; i++) {
+            const dependent = Purger.dependents[i];
             if (dependent === null) continue;
             let settledRef = false;
             const nameDependencies:number = dependent.names.size ;
             if (dependent.reference) {
-                if (Purger.line === (dependent.line! - 1)) {//the line that helps to resolve a ref is the one immediately behind
+                if (this.line === (dependent.line! - 1)) {//the line that helps to resolve a ref is the one immediately behind
                     settledRef = true;
                 }
             }
@@ -1052,9 +1059,8 @@ class Purger extends DSLVisitor<void> {
             const isFullySatisfied = settledRef && (dependent.names.size === 0);
             const isPartiallySatisfied = settledRef || (dependent.names.size < nameDependencies);
             if (isPartiallySatisfied || isFullySatisfied) {
-                Purger.includeAsDependency = true;
-                console.log('settled: ',dependent);
-                if (isFullySatisfied) dependents[i] = null;
+                this.includeAsDependency = true;
+                if (isFullySatisfied) Purger.dependents[i] = null;
             }
         }
     }
@@ -1062,9 +1068,11 @@ class Purger extends DSLVisitor<void> {
         const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         this.settleDependents(tokens);
         this.checkForDependencies(tokens);
+        return undefined;
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        return undefined;
     };
     public visitProgram = (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
@@ -1074,33 +1082,39 @@ class Purger extends DSLVisitor<void> {
                 this.visitAliasDeclaration(child);
             }
         }
+        return undefined;
     };
     public visit = (tree: ParseTree)=> {
         if (tree instanceof ProgramContext) {
             this.visitProgram(tree); // Pass the context directly
-        };
+        }
+        return this.includeAsDependency;
     };
 }
 export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     clearStaticVariables();
     const srcLines = Resolver.createSrcLines(srcText);
 
-    const purger = new Purger();
     const purgedSrcLines = new Denque<string>([]);
     const cachedDiagnostics:lspDiagnostics[] = [];
 
     //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
     for (let i = (srcLines.length - 1 ); i >= 0 ;i--) {
-        Purger.line = i;
         const srcLine = srcLines[i];
-        Essentials.loadEssentials(srcLine);
-        purger.visit(Essentials.tree);
-        
         const key = Essentials.rmWhitespaces(srcLine);
-        const shouldPurge = Resolver.lspDiagnosticsCache.has(key) && !Purger.includeAsDependency;
+        const inCache = Resolver.lspDiagnosticsCache.has(key);
+        let includeAsDependency = false;
+        
+        const purger = new Purger(i,srcLine);
+        if (!inCache) {
+            Essentials.loadEssentials(srcLine);
+            includeAsDependency = purger.visit(Essentials.tree);
+        }
+
+        const shouldPurge = inCache && !includeAsDependency;
         
         console.log('src',srcLine);
-        console.log('is dep: ',Purger.includeAsDependency,'\n');
+        console.log('is dependency: ',includeAsDependency,'\n');
 
         if (shouldPurge) {
             console.log('Including line: ',srcLine);
@@ -1109,9 +1123,8 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
         }else {
             purgedSrcLines.unshift(srcLine);
         }
-        Purger.includeAsDependency = false;
     }
-    console.log('dependents: ',Purger.dependents);
+    console.log('\ndependents after purging: ',Purger.dependents);
     //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after the purging process.This is because this nintializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
     for (const srcLine of srcLines) {//its important to do this before calling the resolver function
         const key = Essentials.rmWhitespaces(srcLine);
