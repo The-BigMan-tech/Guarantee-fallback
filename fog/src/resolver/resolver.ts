@@ -69,7 +69,7 @@ class Essentials {
     constructor(input:string) {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:number, msg: string): void =>{
             const zeroBasedLine = line - 1;//the line returned by this listenere is 1-based so i deducted 1 to make it 0-based which is the correct form the pogram understands
-            const srcLine = Resolver.srcLine(zeroBasedLine)!;
+            const srcLine = Resolver.srcLine(zeroBasedLine) || '';
             const srcText = srcLine[column] || EndOfLine.value;
 
             console.log('src txt',srcText);
@@ -1004,13 +1004,20 @@ class Purger extends DSLVisitor<boolean | undefined> {
         this.line = line;
         this.srcLine = srcLine;
     }
-    private checkIfDependency(dependentIndex:number) {
+    private xand(a:boolean,b:boolean):boolean {
+        return (!a && !b) || (a && b);
+    }
+    private checkIfDependency(dependentIndex:number,contributed:boolean) {
         const dependent = Purger.dependents[dependentIndex]!;//this function is called under branches where the dependent isnt null.so we can safely asser it here.
         const {settledRef,settledAlias,unsettledNames} = dependent;
-        
-        const isFullySatisfied = (settledRef) && (settledAlias) && (unsettledNames.size === 0);
-        const isPartiallySatisfied = (settledRef) || (settledAlias) || (unsettledNames.size < dependent.names.size);
-        if (isPartiallySatisfied || isFullySatisfied) {
+
+        const hasRef = dependent.reference;
+        const hasAlias = dependent.alias !== null;
+
+        const isFullySatisfied = this.xand(hasRef,settledRef) && this.xand(hasAlias,settledAlias) && (unsettledNames.size === 0);
+        const isPartiallySatisfied = this.xand(hasRef,settledRef) || this.xand(hasRef,settledRef) || (unsettledNames.size < dependent.names.size);
+        if (contributed && (isPartiallySatisfied || isFullySatisfied)) {
+            console.log('\nDependent:',dependent);
             this.includeAsDependency = true;
             if (isFullySatisfied) Purger.dependents[dependentIndex] = null;
         }
@@ -1045,7 +1052,6 @@ class Purger extends DSLVisitor<boolean | undefined> {
         const isDependent =  (dependent.reference === true) || (dependent.alias !== null) || (dependent.unsettledNames.size > 0);
         if (isDependent) {
             Purger.dependents.push(dependent);
-            console.log('\nDependent:',dependent);
         }
     }
     private settleDependents(tokens:Token[]) {//this function doesnt try settling alias dependencies because they can only be done by alias declarations
@@ -1053,9 +1059,11 @@ class Purger extends DSLVisitor<boolean | undefined> {
             const dependent = Purger.dependents[i];
             if (dependent === null) continue;
 
+            let contributed = false;
             if (dependent.reference) {
                 if (this.line === (dependent.line! - 1)) {//the line that helps to resolve a ref is the one immediately behind
                     dependent.settledRef = true;
+                    contributed = true;
                 }
             }
             if (dependent.unsettledNames.size > 0) {
@@ -1066,16 +1074,18 @@ class Purger extends DSLVisitor<boolean | undefined> {
                     const strippedName = Resolver.stripMark(text);
                     if (isLooseName && dependent.unsettledNames.has(strippedName)) {
                         dependent.unsettledNames.delete(strippedName);
+                        contributed = true;
                     }
                 }
             }
-            this.checkIfDependency(i);
+            this.checkIfDependency(i,contributed);
         }
     }
     private settleAliasDependents(tokens:Token[]) {
         for (let i=0; i < Purger.dependents.length; i++) {
             const dependent = Purger.dependents[i];
             if (dependent === null) continue;
+            let contributed = false;
             if (dependent.alias !== null) {
                 for (const token of tokens) {
                     const text = token.text!;
@@ -1083,11 +1093,12 @@ class Purger extends DSLVisitor<boolean | undefined> {
                     if (type === DSLLexer.PLAIN_WORD) {
                         if (dependent.alias === text) {//no need to strip the text here since its directly a plain word
                             dependent.settledAlias = true;
+                            contributed = true;
                         }
                         break;
                     }
                 }
-                this.checkIfDependency(i);
+                this.checkIfDependency(i,contributed);
             }
         }
     }
