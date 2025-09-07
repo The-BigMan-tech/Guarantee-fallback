@@ -907,13 +907,12 @@ async function generateJson(input:string) {
         return Result.error;
     }
 }
-function clearStaticVariables() {//Note that its not all static variables that must be cleared.
+function clearStaticVariables() {//Note that its not all static variables that must be cleared or be cleared here.
     Resolver.terminate = false;//reset it for subsequent analyzing
     Resolver.srcLines.length = 0;
     Resolver.logs = null;
     Resolver.logFile = null;
     Resolver.lspAnalysis = null;
-    Purger.includeAsDependency = false;
     Purger.line = null;
     Purger.dependents = [];
 }
@@ -1054,6 +1053,7 @@ class Purger extends DSLVisitor<void> {
             const isPartiallySatisfied = settledRef || (dependent.names.size < nameDependencies);
             if (isPartiallySatisfied || isFullySatisfied) {
                 Purger.includeAsDependency = true;
+                console.log('settled: ',dependent);
                 if (isFullySatisfied) dependents[i] = null;
             }
         }
@@ -1093,12 +1093,15 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     for (let i = (srcLines.length - 1 ); i >= 0 ;i--) {
         Purger.line = i;
         const srcLine = srcLines[i];
-        const key = Essentials.rmWhitespaces(srcLine);
-        
         Essentials.loadEssentials(srcLine);
         purger.visit(Essentials.tree);
         
+        const key = Essentials.rmWhitespaces(srcLine);
         const shouldPurge = Resolver.lspDiagnosticsCache.has(key) && !Purger.includeAsDependency;
+        
+        console.log('src',srcLine);
+        console.log('is dep: ',Purger.includeAsDependency,'\n');
+
         if (shouldPurge) {
             console.log('Including line: ',srcLine);
             cachedDiagnostics.push(...Resolver.lspDiagnosticsCache.get(key)!);
@@ -1106,6 +1109,7 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
         }else {
             purgedSrcLines.unshift(srcLine);
         }
+        Purger.includeAsDependency = false;
     }
     console.log('dependents: ',Purger.dependents);
     //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after the purging process.This is because this nintializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
