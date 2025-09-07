@@ -231,7 +231,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private visitedSentences = new Map<string,number>();
     public static lspAnalysis:lspAnalysis | null = null;
     public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:100});//i cant clear this on every resolution call like the rest because its meant to be persistent
-    public static sentenceDependencyMap:Record<string,string> = {};
 
     //this method expects that the line is 0-based
     public static srcLine = (line:number):string | undefined => Resolver.srcLines.at(line);
@@ -916,6 +915,7 @@ function clearStaticVariables() {//Note that its not all static variables that m
     Resolver.lspAnalysis = null;
     Purger.includeAsDependency = false;
     Purger.line = null;
+    Purger.dependents = [];
 }
 function getOutputPathNoExt(srcFilePath:string,outputFolder?:string) {
     const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
@@ -993,22 +993,20 @@ interface Dependent {
     line:number | null
     reference:boolean,
     alias:string | null,//a sentence can only have one alias in a sentence
-    names:string[]
+    names:Set<string>
 }
 class Purger extends DSLVisitor<void> {
     public static includeAsDependency:boolean = false;
     public static line:number | null = null;
-    public static dependents = new Denque<Dependent>();
-    public static visitedSentences = new Map<string,number>();
+    public static dependents:(Dependent | null)[] = [];
 
-    public visitFact = (ctx:FactContext)=> {
+    private checkForDependencies(tokens:Token[]):void {
         const dependent:Dependent =  {
             line:Purger.line,
             reference:false,
             alias:null,
-            names:[]
+            names:new Set()
         };
-        const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         for (const token of tokens) {
             const type = token.type;
             const text = token.text!;
@@ -1021,13 +1019,49 @@ class Purger extends DSLVisitor<void> {
                 dependent.alias = Resolver.stripMark(text);
             }
             if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
-                dependent.names.push(Resolver.stripMark(text));
+                dependent.names.add(Resolver.stripMark(text));
             }
         }
-        const isDependent =  (dependent.reference === true) || (dependent.alias !== null) || (dependent.names.length > 0);
+        const isDependent =  (dependent.reference === true) || (dependent.alias !== null) || (dependent.names.size > 0);
         if (isDependent) {
             Purger.dependents.push(dependent);
         }
+    }
+    private settleDependents(tokens:Token[]) {
+        const dependents = Purger.dependents;
+        for (let i=0; i < dependents.length; i++) {
+            const dependent = dependents[i];
+            if (dependent === null) continue;
+            let settledRef = false;
+            const nameDependencies:number = dependent.names.size ;
+            if (dependent.reference) {
+                if (Purger.line === (dependent.line! - 1)) {//the line that helps to resolve a ref is the one immediately behind
+                    settledRef = true;
+                }
+            }
+            if (dependent.names.size > 0) {
+                for (const token of tokens) {
+                    const text = token.text!;
+                    const type = token.type;
+                    const isLooseName = (type === DSLLexer.NAME) && !Resolver.isStrict(text);
+                    const strippedName = Resolver.stripMark(text);
+                    if (isLooseName && dependent.names.has(strippedName)) {
+                        dependent.names.delete(strippedName);
+                    }
+                }
+            }
+            const isFullySatisfied = settledRef && (dependent.names.size === 0);
+            const isPartiallySatisfied = settledRef || (dependent.names.size < nameDependencies);
+            if (isPartiallySatisfied || isFullySatisfied) {
+                Purger.includeAsDependency = true;
+                if (isFullySatisfied) dependents[i] = null;
+            }
+        }
+    }
+    public visitFact = (ctx:FactContext)=> {
+        const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        this.settleDependents(tokens);
+        this.checkForDependencies(tokens);
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
@@ -1066,13 +1100,14 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
         
         const shouldPurge = Resolver.lspDiagnosticsCache.has(key) && !Purger.includeAsDependency;
         if (shouldPurge) {
+            console.log('Including line: ',srcLine);
             cachedDiagnostics.push(...Resolver.lspDiagnosticsCache.get(key)!);
             purgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
         }else {
             purgedSrcLines.unshift(srcLine);
         }
     }
-    console.log('dependents: ',Purger.dependents.toArray());
+    console.log('dependents: ',Purger.dependents);
     //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after the purging process.This is because this nintializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
     for (const srcLine of srcLines) {//its important to do this before calling the resolver function
         const key = Essentials.rmWhitespaces(srcLine);
