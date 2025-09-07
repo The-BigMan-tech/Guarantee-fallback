@@ -984,10 +984,10 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
     }
 }
 interface Dependent {
-    srcLine:string,//for debugging
+    srcLine:string,//good to keep in handy for debugging
     line:number,
     reference:boolean,
-    alias:string | null,//a sentence can only have one alias in a sentence
+    alias:string | null,//a sentence can only have one alias.
     names:Set<string>
 }
 class Purger extends DSLVisitor<boolean | undefined> {
@@ -1000,6 +1000,15 @@ class Purger extends DSLVisitor<boolean | undefined> {
         super();
         this.line = line;
         this.srcLine = srcLine;
+    }
+    private updateIfSatisfied(args:{dependencyIndex:number,settledRef:boolean,settledAlias:boolean,names:Set<string>,nameDependencies:number}) {
+        const {dependencyIndex,settledRef,settledAlias,names,nameDependencies} = args;
+        const isFullySatisfied = settledRef && settledAlias && (names.size === 0);
+        const isPartiallySatisfied = settledRef || settledAlias || (names.size < nameDependencies);
+        if (isPartiallySatisfied || isFullySatisfied) {
+            this.includeAsDependency = true;
+            if (isFullySatisfied) Purger.dependents[dependencyIndex] = null;
+        }
     }
     private checkForDependencies(tokens:Token[]):void {
         const dependent:Dependent =  {
@@ -1030,7 +1039,7 @@ class Purger extends DSLVisitor<boolean | undefined> {
             console.log('\nDependent:',dependent);
         }
     }
-    private settleDependents(tokens:Token[]) {
+    private settleDependents(tokens:Token[]) {//this function doesnt try settling alias dependencies because they can only be done by alias declarations
         for (let i=0; i < Purger.dependents.length; i++) {
             const dependent = Purger.dependents[i];
             if (dependent === null) continue;
@@ -1052,12 +1061,13 @@ class Purger extends DSLVisitor<boolean | undefined> {
                     }
                 }
             }
-            const isFullySatisfied = settledRef && (dependent.names.size === 0);
-            const isPartiallySatisfied = settledRef || (dependent.names.size < nameDependencies);
-            if (isPartiallySatisfied || isFullySatisfied) {
-                this.includeAsDependency = true;
-                if (isFullySatisfied) Purger.dependents[i] = null;
-            }
+            this.updateIfSatisfied({
+                dependencyIndex:i,
+                settledRef,
+                settledAlias:false,
+                names:dependent.names,
+                nameDependencies
+            });
         }
     }
     public visitFact = (ctx:FactContext)=> {
@@ -1068,6 +1078,10 @@ class Purger extends DSLVisitor<boolean | undefined> {
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        
+        for (const token of tokens) {
+
+        }
         return undefined;
     };
     public visitProgram = (ctx:ProgramContext)=> {
@@ -1101,18 +1115,17 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
         const inCache = Resolver.lspDiagnosticsCache.has(key);
         let includeAsDependency = false;
         
-        const purger = new Purger(i,srcLine);
         if (!inCache) {
+            const purger = new Purger(i,srcLine);
             const essentials = new Essentials(srcLine);
             includeAsDependency = purger.visit(essentials.tree);
         }
-
         const shouldPurge = inCache && !includeAsDependency;
         
         console.log('src',srcLine);
         console.log('is dependency: ',includeAsDependency,'\n');
 
-        if (shouldPurge) {
+        if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
             console.log('Including line: ',srcLine);
             cachedDiagnostics.push(...Resolver.lspDiagnosticsCache.get(key)!);
             purgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
@@ -1140,7 +1153,7 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     console.log('🚀 => :999 => analyzeDocument => cachedDiagnostics:', cachedDiagnostics);
     
     await generateJson(purgedSrcText);//this populates the lsp analysis
-    const fullDiagnostics = Resolver.lspAnalysis.diagnostics.concat(cachedDiagnostics);
+    const fullDiagnostics = Resolver.lspAnalysis.diagnostics.concat(cachedDiagnostics);//this must be done after resolving the purged text because its only then,that its diagnostics will be filled
     const fullLspAnalysis:lspAnalysis = {...Resolver.lspAnalysis,diagnostics:fullDiagnostics};
     return fullLspAnalysis;
 }
