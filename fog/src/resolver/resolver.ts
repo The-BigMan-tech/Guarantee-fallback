@@ -989,7 +989,7 @@ interface Dependent {
     reference:boolean,
     alias:string | null,//a sentence can only have one alias.
     names:Set<string>,
-    nameDependencies:number
+    totalNameDependencies:number
 }
 class Purger extends DSLVisitor<boolean | undefined> {
     public static dependents:(Dependent | null)[] = [];
@@ -1018,7 +1018,7 @@ class Purger extends DSLVisitor<boolean | undefined> {
             reference:false,
             alias:null,
             names:new Set(),
-            nameDependencies:0
+            totalNameDependencies:0
         };
         for (const token of tokens) {
             const type = token.type;
@@ -1033,7 +1033,7 @@ class Purger extends DSLVisitor<boolean | undefined> {
             }
             if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
                 dependent.names.add(Resolver.stripMark(text));
-                dependent.nameDependencies += 1;
+                dependent.totalNameDependencies += 1;
             }
         }
         const isDependent =  (dependent.reference === true) || (dependent.alias !== null) || (dependent.names.size > 0);
@@ -1074,27 +1074,41 @@ class Purger extends DSLVisitor<boolean | undefined> {
             });
         }
     }
-    public visitFact = (ctx:FactContext)=> {
-        const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        this.settleDependents(tokens);
-        this.checkForDependencies(tokens);
-        return undefined;
-    };
-    public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
-        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+    private settleAliasDependents(tokens:Token[]) {
         for (let i=0; i < Purger.dependents.length; i++) {
             const dependent = Purger.dependents[i];
             if (dependent === null) continue;
-            if (dependent.alias) {
+            if (dependent.alias !== null) {
+                let settledAlias = false;
+                for (const token of tokens) {
+                    const text = token.text!;
+                    const type = token.type;
+                    if (type === DSLLexer.PLAIN_WORD) {
+                        if (dependent.alias === text) {//no need to strip the text here since its directly a plain word
+                            settledAlias = true;
+                            dependent.alias = null;
+                        }
+                    }
+                }
                 this.updateIfSatisfied({
                     dependencyIndex:i,
                     settledRef:false,
-                    settledAlias:false,
+                    settledAlias,
                     names:dependent.names,
                     nameDependencies:dependent.nameDependencies
                 });
             }
         }
+    }
+    public visitFact = (ctx:FactContext)=> {
+        const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        this.settleDependents(tokens);//its important that this line settles any dependents if it can,before finally checking for its own dependencies.Else,it will end up trying to settle its own dependencies with itself
+        this.checkForDependencies(tokens);
+        return undefined;
+    };
+    public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
+        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        this.settleAliasDependents(tokens);
         return undefined;
     };
     public visitProgram = (ctx:ProgramContext)=> {
@@ -1107,7 +1121,7 @@ class Purger extends DSLVisitor<boolean | undefined> {
         }
         return undefined;
     };
-    public visit = (tree: ParseTree)=> {
+    public visit = (tree: ParseTree)=> {//The purger checks for dependencies and settles dependents in one visit per src line its called on.So there are no separate processes of dependency recording and then, dependency settlement
         if (tree instanceof ProgramContext) {
             this.visitProgram(tree); // Pass the context directly
         }
@@ -1128,7 +1142,7 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
         const inCache = Resolver.lspDiagnosticsCache.has(key);
         let includeAsDependency = false;
         
-        if (!inCache) {
+        if (!inCache) {//this condition is to shortcircuit checking if the line is a dependency because it will be included nontheless as long as its in the cache
             const purger = new Purger(i,srcLine);
             const essentials = new Essentials(srcLine);
             includeAsDependency = purger.visit(essentials.tree);
