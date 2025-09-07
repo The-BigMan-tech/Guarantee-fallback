@@ -913,6 +913,8 @@ function clearStaticVariables() {
     Resolver.logs = null;
     Resolver.logFile = null;
     Resolver.lspAnalysis = null;
+    Purger.reAnalyze = false;
+    Purger.line = null;
 }
 function getOutputPathNoExt(srcFilePath:string,outputFolder?:string) {
     const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
@@ -992,15 +994,15 @@ interface Dependents {
     names:string[]
 }
 class Purger extends DSLVisitor<void> {
+    public static  reAnalyze:boolean = false;
+    public static  line:number | null = null;
     private static dependents = new Denque<Dependents>();
-    public static reAnalyze:boolean = false;
-    
-    constructor() {
-        super();
-        Purger.reAnalyze = false;
-    }
+
     public visitFact = (ctx:FactContext)=> {
         const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        tokens.forEach(token=>{
+
+        });
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
@@ -1023,34 +1025,34 @@ class Purger extends DSLVisitor<void> {
 export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     clearStaticVariables();
     const srcLines = Resolver.createSrcLines(srcText);
-    const srcLineQueue = new Denque(srcLines);
 
+    const purger = new Purger();
     const purgedSrcLines = new Denque<string>([]);
     const cachedDiagnostics:lspDiagnostics[] = [];
 
-    const purger = new Purger();
     //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
-    while (srcLineQueue.length > 0) {
-        const srcLine = srcLineQueue.pop()!;//im taking it from the back because its easier to know the relevant sentences than forward(like knowing that an alias declaration will be usefl to a future line)
-        const lineKey = Essentials.rmWhitespaces(srcLine);
+    for (let i = (srcLines.length - 1 ); i >= 0 ;i--) {
+        Purger.line = i;
+        const srcLine = srcLines[i];
+        const key = Essentials.rmWhitespaces(srcLine);
         
         Essentials.loadEssentials(srcLine);
         purger.visit(Essentials.tree);
 
-        if (Resolver.lspDiagnosticsCache.has(lineKey) && !Purger.reAnalyze) {
-            cachedDiagnostics.push(...Resolver.lspDiagnosticsCache.get(lineKey)!);
+        if (Resolver.lspDiagnosticsCache.has(key) && !Purger.reAnalyze) {
+            cachedDiagnostics.push(...Resolver.lspDiagnosticsCache.get(key)!);
             purgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
         }else {
             purgedSrcLines.unshift(srcLine);
         }
     }
     //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after the purging process.This is because this nintializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
-    srcLines.forEach(srcLine=>{//its important to do this before calling the resolver function
+    for (const srcLine of srcLines) {//its important to do this before calling the resolver function
         const key = Essentials.rmWhitespaces(srcLine);
         if (!(Essentials.isWhitespace(key)) && !Resolver.lspDiagnosticsCache.has(key)) {//we dont want to override existing entries
             Resolver.lspDiagnosticsCache.set(key,[]);
         }
-    });
+    }
     //Reset the lsp analysis for the current text
     Resolver.lspAnalysis = {
         diagnostics:[]
