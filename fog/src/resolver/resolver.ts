@@ -988,7 +988,8 @@ interface Dependent {
     line:number,
     reference:boolean,
     alias:string | null,//a sentence can only have one alias.
-    names:Set<string>
+    names:Set<string>,
+    nameDependencies:number
 }
 class Purger extends DSLVisitor<boolean | undefined> {
     public static dependents:(Dependent | null)[] = [];
@@ -1016,7 +1017,8 @@ class Purger extends DSLVisitor<boolean | undefined> {
             line:this.line,
             reference:false,
             alias:null,
-            names:new Set()
+            names:new Set(),
+            nameDependencies:0
         };
         for (const token of tokens) {
             const type = token.type;
@@ -1031,6 +1033,7 @@ class Purger extends DSLVisitor<boolean | undefined> {
             }
             if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
                 dependent.names.add(Resolver.stripMark(text));
+                dependent.nameDependencies += 1;
             }
         }
         const isDependent =  (dependent.reference === true) || (dependent.alias !== null) || (dependent.names.size > 0);
@@ -1044,9 +1047,10 @@ class Purger extends DSLVisitor<boolean | undefined> {
             const dependent = Purger.dependents[i];
             if (dependent === null) continue;
             let settledRef = false;
-            const nameDependencies:number = dependent.names.size ;
+
             if (dependent.reference) {
                 if (this.line === (dependent.line! - 1)) {//the line that helps to resolve a ref is the one immediately behind
+                    dependent.reference = false;//there is no need to mutate the ref here after settlement since the settled flag has that covered.The only reason why i did it for the names dependency si so that it can be consumed on settlement and thus prevetning more than necessary sentences from trying to settle the same names.Mutating this property here is just for consistency to mark that it has been touched
                     settledRef = true;
                 }
             }
@@ -1066,7 +1070,7 @@ class Purger extends DSLVisitor<boolean | undefined> {
                 settledRef,
                 settledAlias:false,
                 names:dependent.names,
-                nameDependencies
+                nameDependencies:dependent.nameDependencies
             });
         }
     }
@@ -1078,9 +1082,18 @@ class Purger extends DSLVisitor<boolean | undefined> {
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        
-        for (const token of tokens) {
-
+        for (let i=0; i < Purger.dependents.length; i++) {
+            const dependent = Purger.dependents[i];
+            if (dependent === null) continue;
+            if (dependent.alias) {
+                this.updateIfSatisfied({
+                    dependencyIndex:i,
+                    settledRef:false,
+                    settledAlias:false,
+                    names:dependent.names,
+                    nameDependencies:dependent.nameDependencies
+                });
+            }
         }
         return undefined;
     };
