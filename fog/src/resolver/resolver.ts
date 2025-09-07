@@ -990,37 +990,38 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
     }
 }
 interface Dependent {
-    referenceInLine:number | null,
-    aliases:string[],
+    line:number | null
+    reference:boolean,
+    alias:string | null,//a sentence can only have one alias in a sentence
     names:string[]
 }
 class Purger extends DSLVisitor<void> {
-    public static  reAnalyze:boolean = false;
-    public static  line:number | null = null;
-    private static dependents = new Denque<Dependent>();
+    public static reAnalyze:boolean = false;
+    public static line:number | null = null;
+    public static dependents = new Denque<Dependent>();
     public static visitedSentences = new Map<string,number>();
 
-    private readonly dependentFrame:Dependent = {
-        referenceInLine:null,
-        aliases:[],
-        names:[]
-    };
     public visitFact = (ctx:FactContext)=> {
+        const dependent:Dependent =  {
+            line:Purger.line,
+            reference:false,
+            alias:null,
+            names:[]
+        };
         const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        const dependent = {...this.dependentFrame};
         for (const token of tokens) {
             const type = token.type;
             const text = token.text!;
             const refTypes = new Set([DSLLexer.SINGLE_SUBJECT_REF,DSLLexer.SINGLE_OBJECT_REF,DSLLexer.GROUP_SUBJECT_REF,DSLLexer.GROUP_OBJECT_REF]);
             
-            if (refTypes.has(type)) {
-                dependent.referenceInLine = Purger.line;
+            if (refTypes.has(type) && !dependent.reference) {
+                dependent.reference = true;
+            }
+            if ((type === DSLLexer.ALIAS) && !dependent.alias) {
+                dependent.alias = Resolver.stripMark(text);
             }
             if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
                 dependent.names.push(Resolver.stripMark(text));
-            }
-            if (type === DSLLexer.ALIAS) {
-                dependent.aliases.push(Resolver.stripMark(text));
             }
         }
         Purger.dependents.push(dependent);
@@ -1059,8 +1060,7 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
         
         Essentials.loadEssentials(srcLine);
         purger.visit(Essentials.tree);
-        
-        console.log();
+
         if (Resolver.lspDiagnosticsCache.has(key) && !Purger.reAnalyze) {
             cachedDiagnostics.push(...Resolver.lspDiagnosticsCache.get(key)!);
             purgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
@@ -1068,6 +1068,7 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
             purgedSrcLines.unshift(srcLine);
         }
     }
+    console.log('dependents: ',Purger.dependents.toArray());
     //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after the purging process.This is because this nintializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
     for (const srcLine of srcLines) {//its important to do this before calling the resolver function
         const key = Essentials.rmWhitespaces(srcLine);
