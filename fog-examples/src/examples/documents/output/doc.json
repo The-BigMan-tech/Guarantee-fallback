@@ -1,15 +1,27 @@
 {
     "predicates": {
+        "big": "big",
         "father": "parent",
         "female": "female",
         "friend": "friends",
         "friends": "friends",
+        "good": "good",
+        "large": "large",
         "male": "male",
         "males": "male",
         "mother": "parent",
         "parent": "parent"
     },
     "records": {
+        "big": {
+            "facts": [
+                {
+                    "list": [
+                        "ada"
+                    ]
+                }
+            ]
+        },
         "father": {
             "facts": []
         },
@@ -50,6 +62,25 @@
                     "list": [
                         "Leo",
                         "Cole"
+                    ]
+                }
+            ]
+        },
+        "good": {
+            "facts": [
+                {
+                    "list": [
+                        "ada",
+                        "girl"
+                    ]
+                }
+            ]
+        },
+        "large": {
+            "facts": [
+                {
+                    "list": [
+                        "ada"
                     ]
                 }
             ]

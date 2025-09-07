@@ -13,4 +13,4 @@ const srcFilePath = path.join(parentDirFromSrc,'./documents/doc.fog');
 const srcText = await fs.readFile(srcFilePath, 'utf8');
 
 const analysis:lspAnalysis = await analyzeDocument(srcText);
-console.log("Analysis: ",stringify(analysis,null,2));
+console.log("Analysis: ",analysis,analysis.diagnostics.length);
