@@ -1044,7 +1044,7 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
             purgedSrcLines.unshift(srcLine);
         }
     }
-    //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after the purging
+    //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after the purging process.This is because this nintializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
     srcLines.forEach(srcLine=>{//its important to do this before calling the resolver function
         const key = Essentials.rmWhitespaces(srcLine);
         if (!(Essentials.isWhitespace(key)) && !Resolver.lspDiagnosticsCache.has(key)) {//we dont want to override existing entries
