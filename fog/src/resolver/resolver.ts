@@ -64,12 +64,17 @@ interface Report {
     srcText:InlineSrcText
 }
 class Essentials {
-    public tree: ProgramContext;
-    public static tokenStream: CommonTokenStream;
-    constructor(input:string) {
+    //these properties have to be long lived(static) for it to work.else,it will cause bugs
+    public static inputStream:CharStream;
+    public static lexer:DSLLexer;
+    public static tokenStream:CommonTokenStream;
+    public static parser:DSLParser;
+    public static tree:ProgramContext;
+
+    public static parse(input:string):void {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:number, msg: string): void =>{
             const zeroBasedLine = line - 1;//the line returned by this listenere is 1-based so i deducted 1 to make it 0-based which is the correct form the pogram understands
-            const srcLine = Resolver.srcLine(zeroBasedLine) || '';
+            const srcLine = Resolver.srcLine(zeroBasedLine)!;
             const srcText = srcLine[column] || EndOfLine.value;
 
             console.log('src txt',srcText);
@@ -80,11 +85,11 @@ class Essentials {
                 msg,
             });
         };
-        const inputStream = CharStream.fromString(input);
-        const lexer = new DSLLexer(inputStream);
-        Essentials.tokenStream = new CommonTokenStream(lexer);
-        const parser = new DSLParser(Essentials.tokenStream);
-        this.tree = parser.program();
+        Essentials.inputStream = CharStream.fromString(input);
+        Essentials.lexer = new DSLLexer(Essentials.inputStream);
+        Essentials.tokenStream = new CommonTokenStream(Essentials.lexer);
+        Essentials.parser = new DSLParser(Essentials.tokenStream);
+        Essentials.tree = Essentials.parser.program();
     }
     public static buildDiagnosticsFromReport(report:Report):void {
         if (Resolver.lspAnalysis===null) return;//dont generate lsp analysis if not required
@@ -141,7 +146,9 @@ class Essentials {
         Resolver.lspAnalysis.diagnostics.push(...diagnostics);
         const key = Essentials.rmWhitespaces(Resolver.srcLine(line)!);
         const diagnosticsAtKey = Resolver.lspDiagnosticsCache.get(key) || [];
+        console.log('🚀 => :144 => buildDiagnosticsFromReport => diagnosticsAtKey:', diagnosticsAtKey);
         Resolver.lspDiagnosticsCache.set(key,[...diagnosticsAtKey,...diagnostics]);//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
+        console.log('🚀 => :146 => buildDiagnosticsFromReport => diagnostics:', diagnostics);
     }
     public static rmWhitespaces(str:string):string {
         return str.replace(/\s+/g, '');  // Remove all whitespaces
@@ -894,9 +901,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 async function generateJson(input:string) {
     const resolver = new Resolver();
     Resolver.srcLines = Resolver.createSrcLines(input);
-    const essentials = new Essentials(input);
+    Essentials.parse(input);
     await Resolver.flushLogs();//to capture syntax errors to the log
-    await resolver.visit(essentials.tree);
+    await resolver.visit(Essentials.tree);
     if (!Resolver.terminate) {
         return {aliases:resolver.aliases,predicates:resolver.predicates,records:resolver.records};
     }else {
@@ -998,11 +1005,13 @@ class Purger extends DSLVisitor<boolean | undefined> {
     private includeAsDependency:boolean = false;
     private line:number;
     private srcLine:string;
+    private inCache:boolean;
 
-    constructor(line:number,srcLine:string) {
+    constructor(line:number,srcLine:string,inCache:boolean) {
         super();
         this.line = line;
         this.srcLine = srcLine;
+        this.inCache = inCache;
     }
     private xand(a:boolean,b:boolean):boolean {
         return (!a && !b) || (a && b);
@@ -1015,7 +1024,7 @@ class Purger extends DSLVisitor<boolean | undefined> {
         const hasAlias = dependent.alias !== null;
 
         const isFullySatisfied = this.xand(hasRef,settledRef) && this.xand(hasAlias,settledAlias) && (unsettledNames.size === 0);
-        const isPartiallySatisfied = this.xand(hasRef,settledRef) || this.xand(hasRef,settledRef) || (unsettledNames.size < dependent.names.size);
+        const isPartiallySatisfied = this.xand(hasRef,settledRef) || this.xand(hasAlias,settledRef) || (unsettledNames.size < dependent.names.size);
         if (contributed && (isPartiallySatisfied || isFullySatisfied)) {
             console.log('\nDependent:',dependent);
             this.includeAsDependency = true;
@@ -1023,6 +1032,7 @@ class Purger extends DSLVisitor<boolean | undefined> {
         }
     }
     private checkForDependencies(tokens:Token[]):void {
+        if (this.inCache) return;//only check for the line's dependencies if its not already in the incremental cache
         const dependent:Dependent =  {
             srcLine:this.srcLine,
             line:this.line,
@@ -1142,13 +1152,11 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
         const srcLine = srcLines[i];
         const key = Essentials.rmWhitespaces(srcLine);
         const inCache = Resolver.lspDiagnosticsCache.has(key);
-        let includeAsDependency = false;
+
+        const purger = new Purger(i,srcLine,inCache);
+        Essentials.parse(srcLine);
+        const includeAsDependency = purger.visit(Essentials.tree);
         
-        if (!inCache) {//this condition is to shortcircuit checking if the line is a dependency because it will be included nontheless as long as its in the cache
-            const purger = new Purger(i,srcLine);
-            const essentials = new Essentials(srcLine);
-            includeAsDependency = purger.visit(essentials.tree);
-        }
         const shouldPurge = inCache && !includeAsDependency;
         
         console.log('src',srcLine);
@@ -1176,8 +1184,6 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     };
 
     const purgedSrcText = purgedSrcLines.toArray().join('\n');
-
-    console.log('cache: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
     console.log('🚀 => :1019 => analyzeDocument => purgedSrcText:', purgedSrcText);
     console.log('🚀 => :999 => analyzeDocument => cachedDiagnostics:', cachedDiagnostics);
     

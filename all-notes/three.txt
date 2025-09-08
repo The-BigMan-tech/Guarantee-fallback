@@ -2416,3 +2416,9 @@ Graceful disconnection
 *so unlike te resolve document function,this one doesnt have to capture the resolution error because that is already in the lsp analysis thats being returned
 
 *state management also has to do with loop operations(order of operations in a loop)
+
+f f -> t
+t t -> f
+
+false and false
+true and true
