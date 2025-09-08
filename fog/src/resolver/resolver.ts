@@ -913,11 +913,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return input.split('\n');
     }
 }
-async function generateJson(srcPath:string,input:string) {
+async function generateJson(srcPath:string,input:string,fullInput:string) {//the full input variabe here,is in the case where this function is called after purging and the full input is required for some state updates not for resolution.
+    const fullSrcLines = Resolver.createSrcLines(fullInput);
+    updateStaticVariables(srcPath,fullSrcLines);
+
     const resolver = new Resolver();
     Resolver.srcLines = Resolver.createSrcLines(input);
     Essentials.parse(input);
-    updateStaticVariables(srcPath,Resolver.srcLines);
     await Resolver.flushLogs();//to capture syntax errors to the log
     await resolver.visit(Essentials.tree);
     if (!Resolver.terminate) {
@@ -1005,7 +1007,7 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
         const srcText = await fs.readFile(srcFilePath, 'utf8');
 
         await setUpLogs(outputFilePath);//this must be initialized before generating the struct as long as the file log is required
-        const resolvedResult = await generateJson(srcFilePath,srcText);//the result here will be undefined if there was a resolution error.
+        const resolvedResult = await generateJson(srcFilePath,srcText,srcText);//the result here will be undefined if there was a resolution error.
         
         if (resolvedResult !== Result.error) {
             const predicateRecord:Record<string,string> = {
@@ -1239,7 +1241,7 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
         diagnostics:[]
     };
     console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
-    await generateJson(srcPath,unpurgedSrcText);//this populates the lsp analysis
+    await generateJson(srcPath,unpurgedSrcText,srcText);//this populates the lsp analysis
     // console.log('cache After: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
 
     const fullDiagnostics = Resolver.lspAnalysis.diagnostics.concat(cachedDiagnostics);//this must be done after resolving the purged text because its only then,that its diagnostics will be filled
