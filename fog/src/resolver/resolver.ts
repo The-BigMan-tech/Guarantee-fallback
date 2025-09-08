@@ -1168,6 +1168,7 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
             purgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
         }else {
             purgedSrcLines.unshift(srcLine);
+            if (inCache) Resolver.lspDiagnosticsCache.delete(key);//remove from the cache entry since its going to be reanalyzed
         }
     }
     console.log('\ndependents after purging: ',Purger.dependents);
