@@ -909,21 +909,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return input.split('\n');
     }
 }
-function updateVisitedSentences(srcLines:string[]) {
-    const srcLinesAsSet = new Set(srcLines);
-    const visitedSentences = convMapToRecord(Resolver.visitedSentences);
-    for (const sentence of Object.keys(visitedSentences)) {
-        const sentenceLine = visitedSentences[sentence];
-        const sentenceSrcLine = srcLines[sentenceLine];
-        if (!srcLinesAsSet.has(sentence)) {
-            Resolver.visitedSentences.delete(sentenceSrcLine);
-        }
-    }
-}
-async function generateJson(input:string) {
+async function generateJson(srcPath:string,input:string) {
+    updateStaticVariables(srcPath,Resolver.srcLines);//this must be called before creating the new src lines to use the previous value.not doing so will cause a state bug
     const resolver = new Resolver();
     Resolver.srcLines = Resolver.createSrcLines(input);
-    // updateVisitedSentences(Resolver.srcLines);
     Essentials.parse(input);
     await Resolver.flushLogs();//to capture syntax errors to the log
     await resolver.visit(Essentials.tree);
@@ -931,6 +920,20 @@ async function generateJson(input:string) {
         return {aliases:resolver.aliases,predicates:resolver.predicates,records:resolver.records};
     }else {
         return Result.error;
+    }
+}
+function updateStaticVariables(srcPath:string,srcLines:string[]) {
+    Resolver.lastDocumentPath = srcPath;
+
+    const srcLinesAsSet = new Set(srcLines);
+    console.log('🚀 => :929 => updateStaticVariables => srcLinesAsSet:', srcLinesAsSet);
+    
+    const visitedSentences = convMapToRecord(Resolver.visitedSentences);
+    for (const sentenceLine of Object.values(visitedSentences)) {
+        const sentenceSrcLine = srcLines[sentenceLine];
+        if (!srcLinesAsSet.has(sentenceSrcLine)) {
+            Resolver.visitedSentences.delete(sentenceSrcLine);
+        }
     }
 }
 //the srcPath variable is to tie the lifetime of some static variables to the current path rather than on each request
@@ -945,9 +948,6 @@ function clearStaticVariables(srcPath:string) {//Note that its not all static va
         console.log('\nCleared visited sentences\n',srcPath,'visi',Resolver.lastDocumentPath);
         Resolver.visitedSentences.clear();//the reason why i tied its lifetime to path changes is because the purging process used in incremental analysis will allow semantically identical sentences from being caught if the previous identical sentences wont survive the purge
     }
-}
-function updateStaticVariables(srcPath:string) {
-    Resolver.lastDocumentPath = srcPath;
 }
 function getOutputPathNoExt(srcFilePath:string,outputFolder?:string) {
     const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
@@ -991,7 +991,6 @@ function omitJsonKeys(key:string,value:any) {
 }
 export async function resolveDocument(srcFilePath:string,outputFolder?:string):Promise<ResolutionResult> {
     clearStaticVariables(srcFilePath);//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
-    updateStaticVariables(srcFilePath);//it cant update here instead of at the end before retun because it doesnt read the state here thats being updated.If so,then it must be called after where its used
     const start = performance.now();
     const isValidSrc = srcFilePath.endsWith(".fog");
     if (!isValidSrc) {
@@ -1003,7 +1002,7 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
         const srcText = await fs.readFile(srcFilePath, 'utf8');
 
         await setUpLogs(outputFilePath);//this must be initialized before generating the struct as long as the file log is required
-        const resolvedResult = await generateJson(srcText);//the result here will be undefined if there was a resolution error.
+        const resolvedResult = await generateJson(srcFilePath,srcText);//the result here will be undefined if there was a resolution error.
         
         if (resolvedResult !== Result.error) {
             const predicateRecord:Record<string,string> = {
@@ -1237,12 +1236,11 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
         diagnostics:[]
     };
     console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
-    await generateJson(unpurgedSrcText);//this populates the lsp analysis
+    await generateJson(srcPath,unpurgedSrcText);//this populates the lsp analysis
     // console.log('cache After: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
 
     const fullDiagnostics = Resolver.lspAnalysis.diagnostics.concat(cachedDiagnostics);//this must be done after resolving the purged text because its only then,that its diagnostics will be filled
     const fullLspAnalysis:lspAnalysis = {...Resolver.lspAnalysis,diagnostics:fullDiagnostics};
     console.log('visited sentences: ',Resolver.visitedSentences);
-    updateStaticVariables(srcPath);
     return fullLspAnalysis;
 }
