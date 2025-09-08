@@ -919,7 +919,7 @@ async function generateJson(srcPath:string,input:string,fullInput:string) {//the
     updateStaticVariables(srcPath,fullSrcLines);
 
     const resolver = new Resolver();
-    Resolver.srcLines = Resolver.createSrcLines(input);
+    Resolver.srcLines = fullSrcLines;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
     Essentials.parse(input);
     await Resolver.flushLogs();//to capture syntax errors to the log
     await resolver.visit(Essentials.tree);
