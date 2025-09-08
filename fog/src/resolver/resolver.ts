@@ -230,9 +230,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
     private predicateForLog:string | null = null;
 
-    private visitedSentences = new Map<string,number>();
+    public static visitedSentences = new Map<string,number>();
     public static lspAnalysis:lspAnalysis | null = null;
     public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
+    public static lastDocumentPath:string;
 
     //this method expects that the line is 0-based
     public static srcLine = (line:number):string | undefined => Resolver.srcLines.at(line);
@@ -321,8 +322,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         });
         const stringifiedNames = stringify(tokenNames.toArray());
-        if (this.visitedSentences.has(stringifiedNames)) {
-            const sameSentenceLine = this.visitedSentences.get(stringifiedNames)!;
+        if (Resolver.visitedSentences.has(stringifiedNames)) {
+            const sameSentenceLine = Resolver.visitedSentences.get(stringifiedNames)!;
             Essentials.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
@@ -331,7 +332,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 lines:[sameSentenceLine,this.lineCount]
             });
         }else {
-            this.visitedSentences.set(stringifiedNames,this.lineCount);//i mapped it to its line in the src for error reporting
+            Resolver.visitedSentences.set(stringifiedNames,this.lineCount);//i mapped it to its line in the src for error reporting
         }
     }
     private async resolveLine(child:ParseTree) {
@@ -911,6 +912,16 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 async function generateJson(input:string) {
     const resolver = new Resolver();
     Resolver.srcLines = Resolver.createSrcLines(input);
+    const srcLinesAsSet = new Set(Resolver.srcLines);
+
+    const visitedSentences = [...Resolver.visitedSentences.keys()];
+    for (const sentence of visitedSentences) {
+        if (!srcLinesAsSet.has(sentence)) {
+            console.log(`\nremoved: ${sentence} from visited sentences\n`);
+            Resolver.visitedSentences.delete(sentence);
+        }
+    }
+
     Essentials.parse(input);
     await Resolver.flushLogs();//to capture syntax errors to the log
     await resolver.visit(Essentials.tree);
@@ -920,13 +931,19 @@ async function generateJson(input:string) {
         return Result.error;
     }
 }
-function clearStaticVariables() {//Note that its not all static variables that must be cleared or be cleared here.
+//the srcPath variable is to tie the lifetime of some static variables to the current path rather than on each request
+function clearStaticVariables(srcPath:string) {//Note that its not all static variables that must be cleared or be cleared here.
     Resolver.terminate = false;//reset it for subsequent analyzing
     Resolver.srcLines.length = 0;
     Resolver.logs = null;
     Resolver.logFile = null;
     Resolver.lspAnalysis = null;
     DependencyManager.dependents = [];
+    if (srcPath !== Resolver.lastDocumentPath) {
+        console.log('\nCleared visited sentences\n');
+        Resolver.visitedSentences.clear();//the reason why i tied its lifetime to path changes is because the purging process used in incremental analysis will allow semantically identical sentences from being caught if the previous identical sentences wont survive the purge
+    }
+    Resolver.lastDocumentPath = srcPath;
 }
 function getOutputPathNoExt(srcFilePath:string,outputFolder?:string) {
     const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
@@ -969,7 +986,7 @@ function omitJsonKeys(key:string,value:any) {
     return value; // include everything else
 }
 export async function resolveDocument(srcFilePath:string,outputFolder?:string):Promise<ResolutionResult> {
-    clearStaticVariables();//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
+    clearStaticVariables(srcFilePath);//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
     const start = performance.now();
     const isValidSrc = srcFilePath.endsWith(".fog");
     if (!isValidSrc) {
@@ -1161,7 +1178,8 @@ class Purger {
         const purgedEntries:V[] = [];
 
         const srcKeysAsSet = new Set(srcLines.map(line=>Essentials.rmWhitespaces(line)));
-        for (const entry of cache.keys()) {
+        const entries = [...cache.keys()];
+        for (const entry of entries) {
             if (!srcKeysAsSet.has(entry)) {
                 console.log('Deleted entry: ',entry);
                 cache.delete(entry);
@@ -1200,8 +1218,8 @@ class Purger {
         return {unpurgedSrcText,purgedEntries};
     }
 }
-export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
-    clearStaticVariables();
+export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspAnalysis> {
+    clearStaticVariables(srcPath);
     const {unpurgedSrcText,purgedEntries} = Purger.purge(srcText,Resolver.lspDiagnosticsCache,[]);
 
     const cachedDiagnostics:lspDiagnostics[] = [];
@@ -1211,7 +1229,6 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     Resolver.lspAnalysis = {
         diagnostics:[]
     };
-
     console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
     await generateJson(unpurgedSrcText);//this populates the lsp analysis
     console.log('cache After: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
