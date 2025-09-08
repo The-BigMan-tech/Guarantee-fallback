@@ -147,6 +147,7 @@ class Essentials {
         const key = Essentials.rmWhitespaces(Resolver.srcLine(line)!);
         const diagnosticsAtKey = Resolver.lspDiagnosticsCache.get(key) || [];
         Resolver.lspDiagnosticsCache.set(key,[...diagnosticsAtKey,...diagnostics]);//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
+        console.log('Encountered diagnostics: ',);
     }
     public static rmWhitespaces(str:string):string {
         return str.replace(/\s+/g, '');  // Remove all whitespaces
@@ -358,6 +359,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return undefined;
     };
     public visit = async (tree: ParseTree)=> {
+        console.log('visited the code');
         if (tree instanceof ProgramContext) {
             await this.visitProgram(tree); // Pass the context directly
         };
@@ -1142,10 +1144,16 @@ class Purger extends DSLVisitor<boolean | undefined> {
 export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     clearStaticVariables();
     const srcLines = Resolver.createSrcLines(srcText);
-
+    
     const purgedSrcLines = new Denque<string>([]);
     const cachedDiagnostics:lspDiagnostics[] = [];
 
+    const srcKeysAsSet = new Set(srcLines.map(line=>Essentials.rmWhitespaces(line)));
+    for (const entry of Resolver.lspDiagnosticsCache.keys()) {
+        if (!srcKeysAsSet.has(entry)) {
+            console.log('Deleted entry: ',entry);
+        }
+    }
     //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
     for (let i = (srcLines.length - 1 ); i >= 0 ;i--) {
         const srcLine = srcLines[i];
@@ -1169,15 +1177,12 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
             purgedSrcLines.unshift(srcLine);
             if (inCache) Resolver.lspDiagnosticsCache.delete(key);//remove from the cache entry since its going to be reanalyzed
         }
-    }
-    console.log('\ndependents after purging: ',Purger.dependents);
-    //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after the purging process.This is because this nintializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
-    for (const srcLine of srcLines) {//its important to do this before calling the resolver function
-        const key = Essentials.rmWhitespaces(srcLine);
+        //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
         if (!(Essentials.isWhitespace(key)) && !Resolver.lspDiagnosticsCache.has(key)) {//we dont want to override existing entries
             Resolver.lspDiagnosticsCache.set(key,[]);
         }
     }
+    console.log('\ndependents after purging: ',Purger.dependents);
     //Reset the lsp analysis for the current text
     Resolver.lspAnalysis = {
         diagnostics:[]
@@ -1186,10 +1191,10 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     const purgedSrcText = purgedSrcLines.toArray().join('\n');
     
     console.log('🚀 => :1019 => analyzeDocument => purgedSrcText:', purgedSrcText);
-    console.log('🚀 => :999 => analyzeDocument => cachedDiagnostics:', cachedDiagnostics);
-    
+
     await generateJson(purgedSrcText);//this populates the lsp analysis
-    
+    console.log('cache After: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
+
     const fullDiagnostics = Resolver.lspAnalysis.diagnostics.concat(cachedDiagnostics);//this must be done after resolving the purged text because its only then,that its diagnostics will be filled
     const fullLspAnalysis:lspAnalysis = {...Resolver.lspAnalysis,diagnostics:fullDiagnostics};
     return fullLspAnalysis;
