@@ -74,8 +74,8 @@ class Essentials {
     public static parse(input:string):void {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:number, msg: string): void =>{
             const zeroBasedLine = line - 1;//the line returned by this listenere is 1-based so i deducted 1 to make it 0-based which is the correct form the pogram understands
-            const srcLine = Resolver.srcLine(zeroBasedLine)!;
-            const srcText = srcLine[column] || EndOfLine.value;
+            const srcLine = Resolver.srcLine(zeroBasedLine);
+            const srcText = ((srcLine)?srcLine[column]:undefined) || EndOfLine.value;
 
             console.log('src txt',srcText);
             Essentials.castReport({
@@ -146,9 +146,7 @@ class Essentials {
         Resolver.lspAnalysis.diagnostics.push(...diagnostics);
         const key = Essentials.rmWhitespaces(Resolver.srcLine(line)!);
         const diagnosticsAtKey = Resolver.lspDiagnosticsCache.get(key) || [];
-        console.log('🚀 => :144 => buildDiagnosticsFromReport => diagnosticsAtKey:', diagnosticsAtKey);
         Resolver.lspDiagnosticsCache.set(key,[...diagnosticsAtKey,...diagnostics]);//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
-        console.log('🚀 => :146 => buildDiagnosticsFromReport => diagnostics:', diagnostics);
     }
     public static rmWhitespaces(str:string):string {
         return str.replace(/\s+/g, '');  // Remove all whitespaces
@@ -1032,36 +1030,37 @@ class Purger extends DSLVisitor<boolean | undefined> {
         }
     }
     private checkForDependencies(tokens:Token[]):void {
-        if (this.inCache) return;//only check for the line's dependencies if its not already in the incremental cache
-        const dependent:Dependent =  {
-            srcLine:this.srcLine,
-            line:this.line,
-            reference:false,
-            alias:null,
-            names:new Set(),
-            settledRef:false,
-            settledAlias:false,
-            unsettledNames:new Set()
-        };
-        for (const token of tokens) {
-            const type = token.type;
-            const text = token.text!;
-            const refTypes = new Set([DSLLexer.SINGLE_SUBJECT_REF,DSLLexer.SINGLE_OBJECT_REF,DSLLexer.GROUP_SUBJECT_REF,DSLLexer.GROUP_OBJECT_REF]);
-            
-            if (refTypes.has(type) && !dependent.reference) {
-                dependent.reference = true;
+        if (!this.inCache || this.includeAsDependency) {//only check for its dependencies if its not in the incremental cache or it is the dependency of another line
+            const dependent:Dependent =  {
+                srcLine:this.srcLine,
+                line:this.line,
+                reference:false,
+                alias:null,
+                names:new Set(),
+                settledRef:false,
+                settledAlias:false,
+                unsettledNames:new Set()
+            };
+            for (const token of tokens) {
+                const type = token.type;
+                const text = token.text!;
+                const refTypes = new Set([DSLLexer.SINGLE_SUBJECT_REF,DSLLexer.SINGLE_OBJECT_REF,DSLLexer.GROUP_SUBJECT_REF,DSLLexer.GROUP_OBJECT_REF]);
+
+                if (refTypes.has(type) && !dependent.reference) {
+                    dependent.reference = true;
+                }
+                if ((type === DSLLexer.ALIAS) && !dependent.alias) {
+                    dependent.alias = Resolver.stripMark(text);
+                }
+                if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
+                    dependent.names.add(Resolver.stripMark(text));
+                }
             }
-            if ((type === DSLLexer.ALIAS) && !dependent.alias) {
-                dependent.alias = Resolver.stripMark(text);
+            dependent.unsettledNames = new Set(dependent.names);//clone the set
+            const isDependent =  (dependent.reference === true) || (dependent.alias !== null) || (dependent.unsettledNames.size > 0);
+            if (isDependent) {
+                Purger.dependents.push(dependent);
             }
-            if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
-                dependent.names.add(Resolver.stripMark(text));
-            }
-        }
-        dependent.unsettledNames = new Set(dependent.names);//clone the set
-        const isDependent =  (dependent.reference === true) || (dependent.alias !== null) || (dependent.unsettledNames.size > 0);
-        if (isDependent) {
-            Purger.dependents.push(dependent);
         }
     }
     private settleDependents(tokens:Token[]) {//this function doesnt try settling alias dependencies because they can only be done by alias declarations
@@ -1185,10 +1184,12 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     };
 
     const purgedSrcText = purgedSrcLines.toArray().join('\n');
+    
     console.log('🚀 => :1019 => analyzeDocument => purgedSrcText:', purgedSrcText);
     console.log('🚀 => :999 => analyzeDocument => cachedDiagnostics:', cachedDiagnostics);
     
     await generateJson(purgedSrcText);//this populates the lsp analysis
+    
     const fullDiagnostics = Resolver.lspAnalysis.diagnostics.concat(cachedDiagnostics);//this must be done after resolving the purged text because its only then,that its diagnostics will be filled
     const fullLspAnalysis:lspAnalysis = {...Resolver.lspAnalysis,diagnostics:fullDiagnostics};
     return fullLspAnalysis;
