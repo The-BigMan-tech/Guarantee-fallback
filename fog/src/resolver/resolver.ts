@@ -274,10 +274,20 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
         if (this.predicateForLog) {//the condition is to skip printing this on alias declarations.The lock works because this is only set on facts and not on alias declarations.Im locking this on alias declarations because they dont need extra logging cuz there is no expansion data or any need to log the predicate separately.just the declaration is enough
             const predicateFromAlias = this.aliases.get(this.predicateForLog || '');
-            successMessage += (predicateFromAlias)?`\n-Alias #${this.predicateForLog} -> *${predicateFromAlias}`:`\n-Predicate: *${this.predicateForLog}`;
+            if (predicateFromAlias) {
+                const aliasMsg = `\n-Alias #${this.predicateForLog} -> *${predicateFromAlias}`;
+                successMessage += aliasMsg;
+                Essentials.buildDiagnosticsFromReport({
+                    kind:ReportKind.Hint,
+                    line:this.lineCount,
+                    msg:aliasMsg,
+                    srcText:`#${this.predicateForLog}`
+                });
+            }else {
+                successMessage += `\n-Predicate: *${this.predicateForLog}`;
+            }
             successMessage += `\n-Expansion: ${brown(expansionText)}`; 
         };
-
         successMessage += '\n';
         console.info(successMessage);
         Resolver.logs?.push(successMessage);
