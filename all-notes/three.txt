@@ -2417,8 +2417,4 @@ Graceful disconnection
 
 *state management also has to do with loop operations(order of operations in a loop)
 
-f f -> t
-t t -> f
-
-false and false
-true and true
+*so now,because my resolver doesnt support incremental resolution,it must resolve the logic codument to json from top to bottom no matter the change.but to work around this,the new component called the purger,helps to make this possible by purging lines from a cache and only including teh dep and the changed line.currently,im only doing this for inc analysis not inc reoslution because not that it wont work but merging multiple inc structures for a resolved json output is tricky unlike analysis thats arrays

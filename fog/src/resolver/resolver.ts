@@ -926,7 +926,7 @@ function clearStaticVariables() {//Note that its not all static variables that m
     Resolver.logs = null;
     Resolver.logFile = null;
     Resolver.lspAnalysis = null;
-    Purger.dependents = [];
+    DependencyManager.dependents = [];
 }
 function getOutputPathNoExt(srcFilePath:string,outputFolder?:string) {
     const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
@@ -1010,7 +1010,7 @@ interface Dependent {
     settledAlias:boolean,
     unsettledNames:Set<string>
 }
-class Purger extends DSLVisitor<boolean | undefined> {
+class DependencyManager extends DSLVisitor<boolean | undefined> {
     public static dependents:(Dependent | null)[] = [];
     private includeAsDependency:boolean = false;
     private line:number;
@@ -1027,7 +1027,7 @@ class Purger extends DSLVisitor<boolean | undefined> {
         return (!a && !b) || (a && b);
     }
     private checkIfDependency(dependentIndex:number,contributed:boolean) {
-        const dependent = Purger.dependents[dependentIndex]!;//this function is called under branches where the dependent isnt null.so we can safely asser it here.
+        const dependent = DependencyManager.dependents[dependentIndex]!;//this function is called under branches where the dependent isnt null.so we can safely asser it here.
         const {settledRef,settledAlias,unsettledNames} = dependent;
 
         const hasRef = dependent.reference;
@@ -1038,7 +1038,7 @@ class Purger extends DSLVisitor<boolean | undefined> {
         if (contributed && (isPartiallySatisfied || isFullySatisfied)) {
             console.log('\nDependent:',dependent);
             this.includeAsDependency = true;
-            if (isFullySatisfied) Purger.dependents[dependentIndex] = null;
+            if (isFullySatisfied) DependencyManager.dependents[dependentIndex] = null;//Using null instead of removal prevents index shifts and improves processing integrity.
         }
     }
     private checkForDependencies(tokens:Token[]):void {
@@ -1071,13 +1071,13 @@ class Purger extends DSLVisitor<boolean | undefined> {
             dependent.unsettledNames = new Set(dependent.names);//clone the set
             const isDependent =  (dependent.reference === true) || (dependent.alias !== null) || (dependent.unsettledNames.size > 0);
             if (isDependent) {
-                Purger.dependents.push(dependent);
+                DependencyManager.dependents.push(dependent);
             }
         }
     }
     private settleDependents(tokens:Token[]) {//this function doesnt try settling alias dependencies because they can only be done by alias declarations
-        for (let i=0; i < Purger.dependents.length; i++) {
-            const dependent = Purger.dependents[i];
+        for (let i=0; i < DependencyManager.dependents.length; i++) {
+            const dependent = DependencyManager.dependents[i];
             if (dependent === null) continue;
 
             let contributed = false;
@@ -1103,8 +1103,8 @@ class Purger extends DSLVisitor<boolean | undefined> {
         }
     }
     private settleAliasDependents(tokens:Token[]) {
-        for (let i=0; i < Purger.dependents.length; i++) {
-            const dependent = Purger.dependents[i];
+        for (let i=0; i < DependencyManager.dependents.length; i++) {
+            const dependent = DependencyManager.dependents[i];
             if (dependent === null) continue;
             let contributed = false;
             if (dependent.alias !== null) {
@@ -1151,59 +1151,68 @@ class Purger extends DSLVisitor<boolean | undefined> {
         return this.includeAsDependency;
     };
 }
+//The purger expects the cache to have their keys cleaned up completely from whitespaces
+//The purger mutates the cache in place
+class Purger {
+    public static purge<V extends object>(srcText:string,cache:LRUCache<string,V>,emptyValue:V) {
+        const srcLines = Resolver.createSrcLines(srcText); 
+        const unpurgedSrcLines = new Denque<string>([]);
+        const purgedEntries:V[] = [];
+
+        const srcKeysAsSet = new Set(srcLines.map(line=>Essentials.rmWhitespaces(line)));
+        for (const entry of cache.keys()) {
+            if (!srcKeysAsSet.has(entry)) {
+                console.log('Deleted entry: ',entry);
+                cache.delete(entry);
+            }
+        }
+        //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
+        for (let line = (srcLines.length - 1 ); line >= 0 ;line--) {
+            const srcLine = srcLines[line];
+            const key = Essentials.rmWhitespaces(srcLine);
+            const inCache = cache.has(key);
+        
+            const manager = new DependencyManager(line,srcLine,inCache);
+            Essentials.parse(srcLine);
+
+            const includeAsDependency = manager.visit(Essentials.tree);
+            const shouldPurge = inCache && !includeAsDependency;
+            
+            console.log('src',srcLine);
+            console.log('is dependency: ',includeAsDependency,'\n');
+        
+            if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
+                console.log('Including line: ',srcLine);
+                unpurgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
+                purgedEntries.push(cache.get(key)!);
+            }else {
+                unpurgedSrcLines.unshift(srcLine);
+                if (inCache) cache.delete(key);//remove from the cache entry since its going to be reanalyzed
+            }
+            //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
+            if (!(Essentials.isWhitespace(key)) && !cache.has(key)) {//we dont want to override existing entries
+                cache.set(key,emptyValue);
+            }
+        }
+        console.log('\ndependents after purging: ',DependencyManager.dependents);
+        const unpurgedSrcText = unpurgedSrcLines.toArray().join('\n');
+        return {unpurgedSrcText,purgedEntries};
+    }
+}
 export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     clearStaticVariables();
-    const srcLines = Resolver.createSrcLines(srcText);
-    
-    const purgedSrcLines = new Denque<string>([]);
+    const {unpurgedSrcText,purgedEntries} = Purger.purge(srcText,Resolver.lspDiagnosticsCache,[]);
+
     const cachedDiagnostics:lspDiagnostics[] = [];
+    purgedEntries.forEach(entry=>cachedDiagnostics.push(...entry));
 
-    const srcKeysAsSet = new Set(srcLines.map(line=>Essentials.rmWhitespaces(line)));
-    for (const entry of Resolver.lspDiagnosticsCache.keys()) {
-        if (!srcKeysAsSet.has(entry)) {
-            console.log('Deleted entry: ',entry);
-            Resolver.lspDiagnosticsCache.delete(entry);
-        }
-    }
-    //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
-    for (let i = (srcLines.length - 1 ); i >= 0 ;i--) {
-        const srcLine = srcLines[i];
-        const key = Essentials.rmWhitespaces(srcLine);
-        const inCache = Resolver.lspDiagnosticsCache.has(key);
-
-        const purger = new Purger(i,srcLine,inCache);
-        Essentials.parse(srcLine);
-        const includeAsDependency = purger.visit(Essentials.tree);
-        
-        const shouldPurge = inCache && !includeAsDependency;
-        
-        console.log('src',srcLine);
-        console.log('is dependency: ',includeAsDependency,'\n');
-
-        if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
-            console.log('Including line: ',srcLine);
-            cachedDiagnostics.push(...Resolver.lspDiagnosticsCache.get(key)!);
-            purgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
-        }else {
-            purgedSrcLines.unshift(srcLine);
-            if (inCache) Resolver.lspDiagnosticsCache.delete(key);//remove from the cache entry since its going to be reanalyzed
-        }
-        //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
-        if (!(Essentials.isWhitespace(key)) && !Resolver.lspDiagnosticsCache.has(key)) {//we dont want to override existing entries
-            Resolver.lspDiagnosticsCache.set(key,[]);
-        }
-    }
-    console.log('\ndependents after purging: ',Purger.dependents);
     //Reset the lsp analysis for the current text
     Resolver.lspAnalysis = {
         diagnostics:[]
     };
 
-    const purgedSrcText = purgedSrcLines.toArray().join('\n');
-    
-    console.log('🚀 => :1019 => analyzeDocument => purgedSrcText:', purgedSrcText);
-
-    await generateJson(purgedSrcText);//this populates the lsp analysis
+    console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
+    await generateJson(unpurgedSrcText);//this populates the lsp analysis
     console.log('cache After: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
 
     const fullDiagnostics = Resolver.lspAnalysis.diagnostics.concat(cachedDiagnostics);//this must be done after resolving the purged text because its only then,that its diagnostics will be filled
