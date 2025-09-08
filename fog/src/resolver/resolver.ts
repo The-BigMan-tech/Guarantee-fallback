@@ -1152,6 +1152,7 @@ export async function analyzeDocument(srcText:string):Promise<lspAnalysis> {
     for (const entry of Resolver.lspDiagnosticsCache.keys()) {
         if (!srcKeysAsSet.has(entry)) {
             console.log('Deleted entry: ',entry);
+            Resolver.lspDiagnosticsCache.delete(entry);
         }
     }
     //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.

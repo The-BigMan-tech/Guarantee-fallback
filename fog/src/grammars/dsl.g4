@@ -3,7 +3,7 @@ fragment LETTER: [a-zA-Z];
 fragment DIGIT: [0-9];
 
 
-program: (NEW_LINE | fact | aliasDeclaration)+ EOF;
+program: (NEW_LINE | fact | aliasDeclaration)* NEW_LINE* EOF;
 
 fact: sentence TERMINATOR;
 
