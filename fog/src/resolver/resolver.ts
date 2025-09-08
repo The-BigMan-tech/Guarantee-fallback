@@ -205,6 +205,10 @@ interface RefCheck {
     encounteredRef:null | 'subject' | 'object' | 'generic',
     line:number
 }
+interface VisitedSentence {
+    line:number,
+    srcLine:string,
+}
 export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public records:Record<string,Rec> = {};
@@ -230,7 +234,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
     private predicateForLog:string | null = null;
 
-    public static visitedSentences = new Map<string,number>();
+    public static visitedSentences = new Map<string,VisitedSentence>();
     public static lspAnalysis:lspAnalysis | null = null;
     public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
     public static lastDocumentPath:string;
@@ -323,7 +327,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         });
         const stringifiedNames = stringify(tokenNames.toArray());
         if (Resolver.visitedSentences.has(stringifiedNames)) {
-            const sameSentenceLine = Resolver.visitedSentences.get(stringifiedNames)!;
+            const sameSentenceLine = Resolver.visitedSentences.get(stringifiedNames)!.line;
             Essentials.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
@@ -332,7 +336,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 lines:[sameSentenceLine,this.lineCount]
             });
         }else {
-            Resolver.visitedSentences.set(stringifiedNames,this.lineCount);//i mapped it to its line in the src for error reporting
+            Resolver.visitedSentences.set(stringifiedNames,{line:this.lineCount,srcLine:Resolver.srcLine(this.lineCount)!});//i mapped it to its line in the src for error reporting
         }
     }
     private async resolveLine(child:ParseTree) {
@@ -910,10 +914,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
 }
 async function generateJson(srcPath:string,input:string) {
-    updateStaticVariables(srcPath,Resolver.srcLines);//this must be called before creating the new src lines to use the previous value.not doing so will cause a state bug
     const resolver = new Resolver();
     Resolver.srcLines = Resolver.createSrcLines(input);
     Essentials.parse(input);
+    updateStaticVariables(srcPath,Resolver.srcLines);
     await Resolver.flushLogs();//to capture syntax errors to the log
     await resolver.visit(Essentials.tree);
     if (!Resolver.terminate) {
@@ -929,10 +933,9 @@ function updateStaticVariables(srcPath:string,srcLines:string[]) {
     console.log('🚀 => :929 => updateStaticVariables => srcLinesAsSet:', srcLinesAsSet);
     
     const visitedSentences = convMapToRecord(Resolver.visitedSentences);
-    for (const sentenceLine of Object.values(visitedSentences)) {
-        const sentenceSrcLine = srcLines[sentenceLine];
-        if (!srcLinesAsSet.has(sentenceSrcLine)) {
-            Resolver.visitedSentences.delete(sentenceSrcLine);
+    for (const [key,visitedSentence] of Object.entries(visitedSentences)) {
+        if (!srcLinesAsSet.has(visitedSentence.srcLine)) {
+            Resolver.visitedSentences.delete(key);
         }
     }
 }
