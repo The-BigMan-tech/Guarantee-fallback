@@ -326,14 +326,15 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         });
         const stringifiedNames = stringify(tokenNames.toArray());
-        if (Resolver.visitedSentences.has(stringifiedNames)) {
-            const sameSentenceLine = Resolver.visitedSentences.get(stringifiedNames)!.line;
+        const repeatedSentence = Resolver.visitedSentences.get(stringifiedNames);
+        
+        if (repeatedSentence && (repeatedSentence.line !== this.lineCount)) {//the second condition is possible because viitedSentences is persistent meaning that subsequent analysis can encounter the same line as a repeated sentence
             Essentials.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
-                srcText:[Resolver.srcLine(sameSentenceLine)!,Resolver.srcLine(this.lineCount)!],
-                msg:`-This sentence is semantically identical to line ${sameSentenceLine + 1}.\n-It is repetitive, so remove it to improve resolution speed and reduce the final document size.`,
-                lines:[sameSentenceLine,this.lineCount]
+                srcText:[Resolver.srcLine(repeatedSentence.line)!,Resolver.srcLine(this.lineCount)!],
+                msg:`-This sentence is semantically identical to line ${repeatedSentence.line + 1}.\n-It is repetitive, so remove it to improve resolution speed and reduce the final document size.`,
+                lines:[repeatedSentence.line,this.lineCount]
             });
         }else {
             Resolver.visitedSentences.set(stringifiedNames,{line:this.lineCount,srcLine:Resolver.srcLine(this.lineCount)!});//i mapped it to its line in the src for error reporting
