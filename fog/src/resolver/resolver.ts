@@ -909,19 +909,21 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return input.split('\n');
     }
 }
+function updateVisitedSentences(srcLines:string[]) {
+    const srcLinesAsSet = new Set(srcLines);
+    const visitedSentences = convMapToRecord(Resolver.visitedSentences);
+    for (const sentence of Object.keys(visitedSentences)) {
+        const sentenceLine = visitedSentences[sentence];
+        const sentenceSrcLine = srcLines[sentenceLine];
+        if (!srcLinesAsSet.has(sentence)) {
+            Resolver.visitedSentences.delete(sentenceSrcLine);
+        }
+    }
+}
 async function generateJson(input:string) {
     const resolver = new Resolver();
     Resolver.srcLines = Resolver.createSrcLines(input);
-    const srcLinesAsSet = new Set(Resolver.srcLines);
-
-    const visitedSentences = [...Resolver.visitedSentences.keys()];
-    for (const sentence of visitedSentences) {
-        if (!srcLinesAsSet.has(sentence)) {
-            console.log(`\nremoved: ${sentence} from visited sentences\n`);
-            Resolver.visitedSentences.delete(sentence);
-        }
-    }
-
+    // updateVisitedSentences(Resolver.srcLines);
     Essentials.parse(input);
     await Resolver.flushLogs();//to capture syntax errors to the log
     await resolver.visit(Essentials.tree);
@@ -940,9 +942,11 @@ function clearStaticVariables(srcPath:string) {//Note that its not all static va
     Resolver.lspAnalysis = null;
     DependencyManager.dependents = [];
     if (srcPath !== Resolver.lastDocumentPath) {
-        console.log('\nCleared visited sentences\n');
+        console.log('\nCleared visited sentences\n',srcPath,'visi',Resolver.lastDocumentPath);
         Resolver.visitedSentences.clear();//the reason why i tied its lifetime to path changes is because the purging process used in incremental analysis will allow semantically identical sentences from being caught if the previous identical sentences wont survive the purge
     }
+}
+function updateStaticVariables(srcPath:string) {
     Resolver.lastDocumentPath = srcPath;
 }
 function getOutputPathNoExt(srcFilePath:string,outputFolder?:string) {
@@ -987,6 +991,7 @@ function omitJsonKeys(key:string,value:any) {
 }
 export async function resolveDocument(srcFilePath:string,outputFolder?:string):Promise<ResolutionResult> {
     clearStaticVariables(srcFilePath);//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
+    updateStaticVariables(srcFilePath);//it cant update here instead of at the end before retun because it doesnt read the state here thats being updated.If so,then it must be called after where its used
     const start = performance.now();
     const isValidSrc = srcFilePath.endsWith(".fog");
     if (!isValidSrc) {
@@ -1053,7 +1058,7 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
         const isFullySatisfied = this.xand(hasRef,settledRef) && this.xand(hasAlias,settledAlias) && (unsettledNames.size === 0);
         const isPartiallySatisfied = this.xand(hasRef,settledRef) || this.xand(hasAlias,settledRef) || (unsettledNames.size < dependent.names.size);
         if (contributed && (isPartiallySatisfied || isFullySatisfied)) {
-            console.log('\nDependent:',dependent);
+            // console.log('\nDependent:',dependent);
             this.includeAsDependency = true;
             if (isFullySatisfied) DependencyManager.dependents[dependentIndex] = null;//Using null instead of removal prevents index shifts and improves processing integrity.
         }
@@ -1172,7 +1177,7 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
 //The purger mutates the cache in place
 //the cache should map lines to their values
 class Purger {
-    public static purge<V extends object>(srcText:string,cache:LRUCache<string,V>,emptyValue:V) {
+    public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V) {
         const srcLines = Resolver.createSrcLines(srcText); 
         const unpurgedSrcLines = new Denque<string>([]);
         const purgedEntries:V[] = [];
@@ -1189,19 +1194,21 @@ class Purger {
         for (let line = (srcLines.length - 1 ); line >= 0 ;line--) {
             const srcLine = srcLines[line];
             const key = Essentials.rmWhitespaces(srcLine);
+
             const inCache = cache.has(key);
-        
+            const inSameDocument = srcPath === Resolver.lastDocumentPath;//i tied the choice to purge to whether the document path has changed.This is to sync it properly with static variables that are also tied to te document's path
+
             const manager = new DependencyManager(line,srcLine,inCache);
             Essentials.parse(srcLine);
 
             const includeAsDependency = manager.visit(Essentials.tree);
-            const shouldPurge = inCache && !includeAsDependency;
+            const shouldPurge = inCache && inSameDocument && !includeAsDependency;
             
-            console.log('src',srcLine);
-            console.log('is dependency: ',includeAsDependency,'\n');
+            // console.log('src',srcLine);
+            // console.log('is dependency: ',includeAsDependency,'\n');
         
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
-                console.log('Including line: ',srcLine);
+                // console.log('Including line: ',srcLine);
                 unpurgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
                 purgedEntries.push(cache.get(key)!);
             }else {
@@ -1213,14 +1220,14 @@ class Purger {
                 cache.set(key,emptyValue);
             }
         }
-        console.log('\ndependents after purging: ',DependencyManager.dependents);
+        // console.log('\ndependents after purging: ',DependencyManager.dependents);
         const unpurgedSrcText = unpurgedSrcLines.toArray().join('\n');
         return {unpurgedSrcText,purgedEntries};
     }
 }
 export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspAnalysis> {
     clearStaticVariables(srcPath);
-    const {unpurgedSrcText,purgedEntries} = Purger.purge(srcText,Resolver.lspDiagnosticsCache,[]);
+    const {unpurgedSrcText,purgedEntries} = Purger.purge(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
 
     const cachedDiagnostics:lspDiagnostics[] = [];
     purgedEntries.forEach(entry=>cachedDiagnostics.push(...entry));
@@ -1231,9 +1238,11 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     };
     console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
     await generateJson(unpurgedSrcText);//this populates the lsp analysis
-    console.log('cache After: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
+    // console.log('cache After: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
 
     const fullDiagnostics = Resolver.lspAnalysis.diagnostics.concat(cachedDiagnostics);//this must be done after resolving the purged text because its only then,that its diagnostics will be filled
     const fullLspAnalysis:lspAnalysis = {...Resolver.lspAnalysis,diagnostics:fullDiagnostics};
+    console.log('visited sentences: ',Resolver.visitedSentences);
+    updateStaticVariables(srcPath);
     return fullLspAnalysis;
 }
