@@ -2418,3 +2418,15 @@ Graceful disconnection
 *state management also has to do with loop operations(order of operations in a loop)
 
 *so now,because my resolver doesnt support incremental resolution,it must resolve the logic codument to json from top to bottom no matter the change.but to work around this,the new component called the purger,helps to make this possible by purging lines from a cache and only including teh dep and the changed line.currently,im only doing this for inc analysis not inc reoslution because not that it wont work but merging multiple inc structures for a resolved json output is tricky unlike analysis thats arrays
+
+*one thing about my purger is that it solves evrything ins a single pass.this is because the dependency settlement and dependent tracking happens under the same loop.it switches between the two.not that it completely finfihses a process before the other.so at the end of the purging,if the src is semantically correct,then this will happen:dependents after purging:  [
+  null, null, null,
+  null, null, null,
+  null, null, null,
+  null, null, null,
+  null, null
+]
+
+*and the purgers's job is clean.it takes in the src text and using a cache,it purges out unnecessary ones:const {unpurgedSrcText,purgedEntries} = Purger.purge(srcText,Resolver.lspDiagnosticsCache,[]);.Its the caller's duty to fill in teh cache.which i do on every diagnostic build.but the purger will handle stale entries and empty value initialization.so callers should expect that their cache will be mutated by the purger
+
+*so the purger can be seen as a counterpart to the resolver.The purger reads teh code bottom up as opposed to top down which is because resolution is only correctly possible forward but dependnecy management is better backwards.The purger also doesnt really know the semantism of teh code in detail like the resolver.It only knows depdents and dependencies.This means that it does a far lighter job than the actual resolver even though both take in the src.The purger as a component looks very clean and solid that im even thinkking that the resolver not supporting incremenatl resolution natively is even a good thing.Its now predictable.So to properly get teh final output,one must meerge the unpurged src output with the purged cached entries.:

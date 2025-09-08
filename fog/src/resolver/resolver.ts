@@ -232,7 +232,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
     private visitedSentences = new Map<string,number>();
     public static lspAnalysis:lspAnalysis | null = null;
-    public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:100});//i cant clear this on every resolution call like the rest because its meant to be persistent
+    public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
 
     //this method expects that the line is 0-based
     public static srcLine = (line:number):string | undefined => Resolver.srcLines.at(line);
@@ -1153,6 +1153,7 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
 }
 //The purger expects the cache to have their keys cleaned up completely from whitespaces
 //The purger mutates the cache in place
+//the cache should map lines to their values
 class Purger {
     public static purge<V extends object>(srcText:string,cache:LRUCache<string,V>,emptyValue:V) {
         const srcLines = Resolver.createSrcLines(srcText); 
