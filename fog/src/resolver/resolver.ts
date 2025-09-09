@@ -139,8 +139,12 @@ class Essentials {
             for (let i = 0; i < lines.length; i++) {
                 const targetLine = lines[i];
                 const text = srcText[i];
-                const message =(targetLine===line)?cleanMsg:`This line is involved in an issue with line ${line + 1}.`;
+                const isMainLine = (targetLine===line);
+                const message = isMainLine?cleanMsg:`This line is involved in an issue with line ${line + 1}.`;
                 diagnostics.push(buildDiagnostic(targetLine, text,message));
+                if (!isMainLine) {
+                    Resolver.linesWithIssues.add(Essentials.createKey(targetLine,Resolver.srcLine(targetLine)!));
+                }
             }
         }
         Resolver.lspAnalysis.diagnostics.push(...diagnostics);
@@ -240,6 +244,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static lspAnalysis:lspAnalysis | null = null;
     public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
     public static lastDocumentPath:string | null = null;
+    public static linesWithIssues = new Set<string>();
 
     //this method expects that the line is 0-based
     public static srcLine = (line:number):string | undefined => Resolver.srcLines.at(line);
@@ -1199,9 +1204,10 @@ class Purger {
         const purgedEntries:V[] = [];
 
         for (const entry of entries) {
-            if (!srcKeysAsSet.has(entry)) {
+            if ((!srcKeysAsSet.has(entry)) || (Resolver.linesWithIssues.has(entry))) {//the second cache ensures that lines with issues are refreshed.thus,preventing them from lingering when they have been deleted.
                 console.log('Deleted entry: ',entry);
                 cache.delete(entry);
+                Resolver.linesWithIssues.delete(entry);
             }
         }
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
