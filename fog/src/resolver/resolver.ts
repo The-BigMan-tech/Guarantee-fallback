@@ -237,7 +237,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static visitedSentences = new Map<string,VisitedSentence>();
     public static lspAnalysis:lspAnalysis | null = null;
     public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
-    public static lastDocumentPath:string;
+    public static lastDocumentPath:string | null = null;
 
     //this method expects that the line is 0-based
     public static srcLine = (line:number):string | undefined => Resolver.srcLines.at(line);
@@ -1204,30 +1204,36 @@ class Purger {
                 cache.delete(entry);
             }
         }
-        const seenKeys = new Map<string,SeenKeyValue>();
+        const seenKeys = new Map<string,SeenKeyValue>();//the purpose of this is to catch duplicate sentences and add them to the final text so that they can be caught by the resolver
 
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
         for (let line = (srcLines.length - 1 ); line >= 0 ;line--) {
             const srcLine = srcLines[line];
             const key = Essentials.rmWhitespaces(srcLine);
+            const inCache = cache.has(key);
 
+            if (seenKeys.has(key) && (key !== "")) {//this must be done before overriding the value at the key.
+                console.log('Duplicate caught: ',JSON.stringify(key));
+                const duplicateSentence = seenKeys.get(key)!;//since the purge is looped backwards,the last key added is the sentence that comes after this one.thus,its the duplicate
+                survivePurge(key,duplicateSentence,inCache);
+            }
+            const stillInCache = cache.has(key);//after checking for duplicate,its possible that its cache could have been removed.so its need to be checked again.This means that one duplicate will cause all duplicates to enter the final src.So there isnt any need now for visited sentences to be persistent and it can now safely reset on every resolution call.but ill still leave it that way for correctness
             const seenKeyValue:SeenKeyValue = {line,srcLine};
             seenKeys.set(key,seenKeyValue);
 
-            const inCache = cache.has(key);
             const inSameDocument = srcPath === Resolver.lastDocumentPath;//i tied the choice to purge to whether the document path has changed.This is to sync it properly with static variables that are also tied to te document's path
 
-            const manager = new DependencyManager(line,srcLine,inCache);
+            const manager = new DependencyManager(line,srcLine,stillInCache);
             Essentials.parse(srcLine);
 
             const isADependency = manager.visit(Essentials.tree);
-            const shouldPurge = inSameDocument && inCache && !isADependency;
+            const shouldPurge = inSameDocument && stillInCache && !isADependency;
 
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
                 purgedEntries.push(cache.get(key)!);
                 Purger.unpurgedSrcLines.add({line,srcLine:' '});//i inserted whitespaces in place of the purged lines to preserve the line ordering
             }else {
-                survivePurge(key,seenKeyValue,inCache);
+                survivePurge(key,seenKeyValue,stillInCache);
             }
             //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
             if (!(Essentials.isWhitespace(key)) && !cache.has(key)) {//we dont want to override existing entries
