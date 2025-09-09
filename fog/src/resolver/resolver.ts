@@ -196,7 +196,8 @@ class Essentials {
         console.info(...messages);
         Resolver.logs?.push(...messages);
 
-        if ((kind===ReportKind.Semantic) || (kind===ReportKind.Syntax)) {
+        const errForTermination = (kind===ReportKind.Semantic) || (kind===ReportKind.Syntax);
+        if (Resolver.terminateOnError && errForTermination) {
             Resolver.terminate = true;
         }
     }
@@ -229,6 +230,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private lineCount:number = 0;//this meant to be read-only by all methods but only mutated once at the end of each resolution step to be equal to the mutable line count
     private targetLineCount:number = this.lineCount;//this is the mutable line count that is safe to increment by any method that inspects tokens and at every new line.Its not meant to be done by every method that inspects tokens but only a few.and here,only three pieces of the codebase does this.This is to prevent incorrect state bugs.
 
+    public static terminateOnError:boolean = true;
     public static terminate:boolean = false;
 
     public static logFile:string | null = null;
@@ -1008,6 +1010,8 @@ function omitJsonKeys(key:string,value:any) {
 }
 export async function resolveDocument(srcFilePath:string,outputFolder?:string):Promise<ResolutionResult> {
     clearStaticVariables(srcFilePath);//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
+    Resolver.terminateOnError = true;
+    
     const start = performance.now();
     const isValidSrc = srcFilePath.endsWith(".fog");
     if (!isValidSrc) {
@@ -1210,7 +1214,9 @@ class Purger {
         console.log('\nLines with issues: ',Resolver.linesWithIssues);
 
         for (const entry of entries) {
-            if ((!srcKeysAsSet.has(entry)) || (Resolver.linesWithIssues.has(entry))) {//the second cache ensures that lines with issues are refreshed.thus,preventing them from lingering when they have been deleted.
+            const isNotInSrc = !srcKeysAsSet.has(entry);
+            const hasAnIssue = Resolver.linesWithIssues.has(entry);
+            if (isNotInSrc || hasAnIssue) {//the second cache ensures that lines with issues are refreshed.thus,preventing them from lingering when they have been deleted.
                 console.log('Deleted entry: ',entry);
                 cache.delete(entry);
                 Resolver.linesWithIssues.delete(entry);
@@ -1248,6 +1254,7 @@ class Purger {
 }
 export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspAnalysis> {
     clearStaticVariables(srcPath);
+    Resolver.terminateOnError = false;
     const {unpurgedSrcText,purgedEntries} = Purger.purge(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
 
     const cachedDiagnostics:lspDiagnostics[] = [];
