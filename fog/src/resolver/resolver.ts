@@ -1178,14 +1178,15 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
         return this.includeAsDependency;
     };
 }
-//The purger expects the cache to have their keys cleaned up completely from whitespaces
-//The purger mutates the cache in place
-//the cache should map lines to their values
+//the cache used by the purger should map src lines to whatever value they are meant to hold
+//It expects the cache to have their keys cleaned up completely from whitespaces
+//It mutates the cache in place
 interface SeenKeyValue {
     line:number,
     srcLine:string
 }
 class Purger {
+    private static encounteredDuplicates = new Set<string>();//using this in invalidation will prevent stale entries resulting from duplicate sentences from lingering just because the original line remains and even after the duplicate is removed 
     private static unpurgedSrcLines = new Heap((a:SeenKeyValue,b:SeenKeyValue)=>a.line-b.line);
 
     public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V) {
@@ -1193,19 +1194,21 @@ class Purger {
             Purger.unpurgedSrcLines.add(value);
             if (inCache) cache.delete(key);//remove from the cache entry since its going to be reanalyzed
         }
-        const srcLines = Resolver.createSrcLines(srcText); 
-        const purgedEntries:V[] = [];
-
+        const srcLines = Resolver.createSrcLines(srcText);
         const srcKeysAsSet = new Set(srcLines.map(line=>Essentials.rmWhitespaces(line)));
+        
         const entries = [...cache.keys()];
         for (const entry of entries) {
-            if (!srcKeysAsSet.has(entry)) {
+            if ( (!srcKeysAsSet.has(entry)) || (Purger.encounteredDuplicates.has(entry))) {
                 console.log('Deleted entry: ',entry);
+                console.log('encountered duplicates: ',Purger.encounteredDuplicates);
                 cache.delete(entry);
+                Purger.encounteredDuplicates.delete(entry);
             }
         }
-        const seenKeys = new Map<string,SeenKeyValue>();//the purpose of this is to catch duplicate sentences and add them to the final text so that they can be caught by the resolver
 
+        const purgedEntries:V[] = [];
+        const seenKeys = new Map<string,SeenKeyValue>();//the purpose of this is to catch duplicate sentences and add them to the final text so that they can be caught by the resolver
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
         for (let line = (srcLines.length - 1 ); line >= 0 ;line--) {
             const srcLine = srcLines[line];
@@ -1214,6 +1217,7 @@ class Purger {
 
             if (seenKeys.has(key) && (key !== "")) {//this must be done before overriding the value at the key.
                 console.log('Duplicate caught: ',JSON.stringify(key));
+                Purger.encounteredDuplicates.add(key);
                 const duplicateSentence = seenKeys.get(key)!;//since the purge is looped backwards,the last key added is the sentence that comes after this one.thus,its the duplicate
                 survivePurge(key,duplicateSentence,inCache);
             }
