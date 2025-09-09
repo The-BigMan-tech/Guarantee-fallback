@@ -1181,10 +1181,19 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
 //The purger expects the cache to have their keys cleaned up completely from whitespaces
 //The purger mutates the cache in place
 //the cache should map lines to their values
+interface SeenKeyValue {
+    line:number,
+    srcLine:string
+}
 class Purger {
+    private static unpurgedSrcLines = new Heap((a:SeenKeyValue,b:SeenKeyValue)=>a.line-b.line);
+
     public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V) {
+        function survivePurge(key:string,value:SeenKeyValue,inCache:boolean) {
+            Purger.unpurgedSrcLines.add(value);
+            if (inCache) cache.delete(key);//remove from the cache entry since its going to be reanalyzed
+        }
         const srcLines = Resolver.createSrcLines(srcText); 
-        const unpurgedSrcLines = new Denque<string>([]);
         const purgedEntries:V[] = [];
 
         const srcKeysAsSet = new Set(srcLines.map(line=>Essentials.rmWhitespaces(line)));
@@ -1195,10 +1204,15 @@ class Purger {
                 cache.delete(entry);
             }
         }
+        const seenKeys = new Map<string,SeenKeyValue>();
+
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
         for (let line = (srcLines.length - 1 ); line >= 0 ;line--) {
             const srcLine = srcLines[line];
             const key = Essentials.rmWhitespaces(srcLine);
+
+            const seenKeyValue:SeenKeyValue = {line,srcLine};
+            seenKeys.set(key,seenKeyValue);
 
             const inCache = cache.has(key);
             const inSameDocument = srcPath === Resolver.lastDocumentPath;//i tied the choice to purge to whether the document path has changed.This is to sync it properly with static variables that are also tied to te document's path
@@ -1206,27 +1220,25 @@ class Purger {
             const manager = new DependencyManager(line,srcLine,inCache);
             Essentials.parse(srcLine);
 
-            const includeAsDependency = manager.visit(Essentials.tree);
-            const shouldPurge = inCache && inSameDocument && !includeAsDependency;
-            
-            // console.log('src',srcLine);
-            // console.log('is dependency: ',includeAsDependency,'\n');
-        
+            const isADependency = manager.visit(Essentials.tree);
+            const shouldPurge = inSameDocument && inCache && !isADependency;
+
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
-                // console.log('Including line: ',srcLine);
-                unpurgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
                 purgedEntries.push(cache.get(key)!);
+                Purger.unpurgedSrcLines.add({line,srcLine:' '});//i inserted whitespaces in place of the purged lines to preserve the line ordering
             }else {
-                unpurgedSrcLines.unshift(srcLine);
-                if (inCache) cache.delete(key);//remove from the cache entry since its going to be reanalyzed
+                survivePurge(key,seenKeyValue,inCache);
             }
             //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
             if (!(Essentials.isWhitespace(key)) && !cache.has(key)) {//we dont want to override existing entries
                 cache.set(key,emptyValue);
             }
         }
-        // console.log('\ndependents after purging: ',DependencyManager.dependents);
-        const unpurgedSrcText = unpurgedSrcLines.toArray().join('\n');
+        const unpurgedSrcArray = [];
+        for (const value of Purger.unpurgedSrcLines) {//heap-js guarantees that this will consume it in order of priority as in the documentation
+            unpurgedSrcArray.push(value.srcLine);
+        }
+        const unpurgedSrcText = unpurgedSrcArray.join('\n');
         return {unpurgedSrcText,purgedEntries};
     }
 }
