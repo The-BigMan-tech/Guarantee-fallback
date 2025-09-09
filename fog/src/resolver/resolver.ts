@@ -120,6 +120,8 @@ class Essentials {
         }; 
 
         const {kind,line,lines,msg,srcText} = report;//line is 0-based
+        const srcLine:string = Resolver.srcLine(line)!;
+
         const mapToSeverity =  {
             [ReportKind.Semantic]:lspSeverity.Error,
             [ReportKind.Syntax]:lspSeverity.Error,
@@ -143,14 +145,16 @@ class Essentials {
                 const message = isMainLine?cleanMsg:`This line is involved in an issue with line ${line + 1}.`;
                 diagnostics.push(buildDiagnostic(targetLine, text,message));
                 if (!isMainLine) {
-                    Resolver.linesWithIssues.add(Essentials.createKey(targetLine,Resolver.srcLine(targetLine)!));
+                    Resolver.linesWithIssues.add(Essentials.createKey(line,srcLine));//the diagnostics here belongs to the line not the targetLine
                 }
             }
         }
         Resolver.lspAnalysis.diagnostics.push(...diagnostics);
-        const key = Essentials.createKey(line,Resolver.srcLine(line)!);
+
+        const key = Essentials.createKey(line,srcLine);
         const diagnosticsAtKey = Resolver.lspDiagnosticsCache.get(key) || [];
         Resolver.lspDiagnosticsCache.set(key,[...diagnosticsAtKey,...diagnostics]);//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
+        
         console.log('Encountered diagnostics: ',);
     }
     public static createKey(line:number,content:string):string {
@@ -1202,6 +1206,8 @@ class Purger {
         
         const entries = [...cache.keys()];
         const purgedEntries:V[] = [];
+
+        console.log('\nLines with issues: ',Resolver.linesWithIssues);
 
         for (const entry of entries) {
             if ((!srcKeysAsSet.has(entry)) || (Resolver.linesWithIssues.has(entry))) {//the second cache ensures that lines with issues are refreshed.thus,preventing them from lingering when they have been deleted.
