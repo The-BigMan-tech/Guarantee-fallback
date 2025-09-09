@@ -69,7 +69,7 @@ class Essentials {
     public static lexer:DSLLexer;
     public static tokenStream:CommonTokenStream;
     public static parser:DSLParser;
-    public static tree:ProgramContext;
+    public static tree:ProgramContext | null;
 
     public static parse(input:string):void {
         ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:number, msg: string): void =>{
@@ -145,7 +145,7 @@ class Essentials {
                 const message = isMainLine?cleanMsg:`This line is involved in an issue with line ${line + 1}.`;
                 diagnostics.push(buildDiagnostic(targetLine, text,message));
                 if (!isMainLine) {
-                    Resolver.linesWithIssues.add(Essentials.createKey(line,srcLine));//the diagnostics here belongs to the line not the targetLine
+                    Resolver.linesWithPropagation.add(Essentials.createKey(line,srcLine));//the diagnostics here belongs to the line not the targetLine
                 }
             }
         }
@@ -197,8 +197,9 @@ class Essentials {
         Resolver.logs?.push(...messages);
 
         const errForTermination = (kind===ReportKind.Semantic) || (kind===ReportKind.Syntax);
-        if (Resolver.terminateOnError && errForTermination) {
+        if (errForTermination) {
             Resolver.terminate = true;
+            Resolver.wasTerminated = true;
         }
     }
 }
@@ -230,8 +231,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private lineCount:number = 0;//this meant to be read-only by all methods but only mutated once at the end of each resolution step to be equal to the mutable line count
     private targetLineCount:number = this.lineCount;//this is the mutable line count that is safe to increment by any method that inspects tokens and at every new line.Its not meant to be done by every method that inspects tokens but only a few.and here,only three pieces of the codebase does this.This is to prevent incorrect state bugs.
 
-    public static terminateOnError:boolean = true;
-    public static terminate:boolean = false;
+    public static terminate:boolean = false;//this is the flag that controls the termination of the resolver
+    public static wasTerminated:boolean = false;//this is just a flag for any part of the codebase to know when it forcefully terminated
 
     public static logFile:string | null = null;
     public static logs:string[] | null = null;
@@ -250,7 +251,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static lspAnalysis:lspAnalysis | null = null;
     public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
     public static lastDocumentPath:string | null = null;
-    public static linesWithIssues = new Set<string>();
+    public static linesWithPropagation = new Set<string>();
 
     //this method expects that the line is 0-based
     public static srcLine = (line:number):string | undefined => Resolver.srcLines.at(line);
@@ -338,10 +339,16 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 }
             }
         });
+        if (tokenNames.length === 0) {
+            return;//this prevents the case of an empty array string from being the key which happens when the tokens dont make a meaningful sentence.
+        }
         const stringifiedNames = stringify(tokenNames.toArray());
         const repeatedSentence = Resolver.visitedSentences.get(stringifiedNames);
+
         
         const srcLine = Resolver.srcLine(this.lineCount)!;
+        console.log('🚀 => :346 => checkForRepetition => repeatedSentence:',stringifiedNames,'src: ',srcLine);
+        
         if (repeatedSentence && (repeatedSentence.line !== this.lineCount)) {//the second condition is possible because viitedSentences is persistent meaning that subsequent analysis can encounter the same line as a repeated sentence
             Essentials.castReport({
                 kind:ReportKind.Semantic,
@@ -936,9 +943,12 @@ async function generateJson(srcPath:string,input:string,fullInput:string) {//the
     const resolver = new Resolver();
     Resolver.srcLines = fullSrcLines;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
     Essentials.parse(input);
+    if (Resolver.terminate) return Result.error;
+
     await Resolver.flushLogs();//to capture syntax errors to the log
-    await resolver.visit(Essentials.tree);
+    await resolver.visit(Essentials.tree!);
     if (!Resolver.terminate) {
+        Resolver.wasTerminated = false;
         return {aliases:resolver.aliases,predicates:resolver.predicates,records:resolver.records};
     }else {
         return Result.error;
@@ -963,6 +973,7 @@ function clearStaticVariables(srcPath:string) {//Note that its not all static va
     Resolver.logFile = null;
     Resolver.lspAnalysis = null;
     DependencyManager.dependents = [];
+    Essentials.tree = null;//to prevent accidentally reading an outadted src tree.
     if (srcPath !== Resolver.lastDocumentPath) {
         console.log('\nCleared visited sentences\n',srcPath,'visi',Resolver.lastDocumentPath);
         Resolver.visitedSentences.clear();//the reason why i tied its lifetime to path changes is because the purging process used in incremental analysis will allow semantically identical sentences from being caught if the previous identical sentences wont survive the purge
@@ -1010,8 +1021,7 @@ function omitJsonKeys(key:string,value:any) {
 }
 export async function resolveDocument(srcFilePath:string,outputFolder?:string):Promise<ResolutionResult> {
     clearStaticVariables(srcFilePath);//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
-    Resolver.terminateOnError = true;
-    
+
     const start = performance.now();
     const isValidSrc = srcFilePath.endsWith(".fog");
     if (!isValidSrc) {
@@ -1211,15 +1221,15 @@ class Purger {
         const entries = [...cache.keys()];
         const purgedEntries:V[] = [];
 
-        console.log('\nLines with issues: ',Resolver.linesWithIssues);
+        console.log('\nLines with propagation: ',Resolver.linesWithPropagation);
 
         for (const entry of entries) {
             const isNotInSrc = !srcKeysAsSet.has(entry);
-            const hasAnIssue = Resolver.linesWithIssues.has(entry);
-            if (isNotInSrc || hasAnIssue) {//the second cache ensures that lines with issues are refreshed.thus,preventing them from lingering when they have been deleted.
-                console.log('Deleted entry: ',entry);
+            const propagatesAcrossLines = Resolver.linesWithPropagation.has(entry);
+            if (isNotInSrc || propagatesAcrossLines) {//the second cache ensures that lines with issues are refreshed.thus,preventing them from lingering when they have been deleted.
+                console.log('Deleted entry: ',entry,'was terminated: ',Resolver.wasTerminated);
                 cache.delete(entry);
-                Resolver.linesWithIssues.delete(entry);
+                Resolver.linesWithPropagation.delete(entry);
             }
         }
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
@@ -1254,7 +1264,6 @@ class Purger {
 }
 export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspAnalysis> {
     clearStaticVariables(srcPath);
-    Resolver.terminateOnError = false;
     const {unpurgedSrcText,purgedEntries} = Purger.purge(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
 
     const cachedDiagnostics:lspDiagnostics[] = [];
