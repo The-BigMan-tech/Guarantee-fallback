@@ -1191,6 +1191,7 @@ class Purger {
 
     public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V) {
         function survivePurge(key:string,value:SeenKeyValue,inCache:boolean) {
+            Purger.unpurgedSrcLines.remove(value);
             Purger.unpurgedSrcLines.add(value);
             if (inCache) cache.delete(key);//remove from the cache entry since its going to be reanalyzed
         }
