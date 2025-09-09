@@ -24,8 +24,8 @@ server.addMethod("resolveDocument", async ({ filePath, outputFolder }: { filePat
     const {result} = await resolveDocument(filePath, outputFolder);
     return result;
 });
-server.addMethod("analyzeDocument", async ({srcText}: {srcText:string}) => {
-    const result = await analyzeDocument(srcText);
+server.addMethod("analyzeDocument", async ({srcText,srcPath}: {srcText:string,srcPath:string}) => {
+    const result = await analyzeDocument(srcText,srcPath);
     return result;
 });
 server.addMethod("allMembers",()=>{

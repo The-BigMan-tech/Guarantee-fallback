@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       fog-js:
-        specifier: ^1.0.14
-        version: 1.0.14
+        specifier: ^1.0.15
+        version: 1.0.15
       safe-stable-stringify:
         specifier: ^2.5.0
         version: 2.5.0
@@ -133,8 +133,8 @@ packages:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
     engines: {node: '>=8'}
 
-  fog-js@1.0.14:
-    resolution: {integrity: sha512-TreH30+RDZ3Q3mXUwIHBTGkzzA9WEd8Qdqmycsvi/s00O7cAhbmh11R1rjOoki3mG8kAYhb3en7m1u93FYEr9w==}
+  fog-js@1.0.15:
+    resolution: {integrity: sha512-MQ7gj6T7hluIX+Zofgu31qAbYC5XQKrWJT/zSNePOiRuLO8JGDJTD+j4tRZbvsFeDPPCyA4IOCFhaFqiBhmJLg==}
 
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
@@ -465,7 +465,7 @@ snapshots:
     dependencies:
       to-regex-range: 5.0.1
 
-  fog-js@1.0.14:
+  fog-js@1.0.15:
     dependencies:
       '@types/node-ipc': 9.2.3
       commander: 14.0.0

@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "fog-js": "^1.0.14",
+    "fog-js": "^1.0.15",
     "safe-stable-stringify": "^2.5.0",
     "zod": "^4.1.5"
   }
