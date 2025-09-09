@@ -955,6 +955,7 @@ async function generateJson(srcPath:string,input:string,fullInput:string) {//the
     }
 }
 function updateStaticVariables(srcPath:string,srcLines:string[]) {
+    Resolver.terminate = false;
     Resolver.lastDocumentPath = srcPath;
     const srcKeysAsSet = new Set(srcLines.map((content,line)=>Essentials.createKey(line,content)));
     const visitedSentences = convMapToRecord(Resolver.visitedSentences);
@@ -1261,9 +1262,6 @@ class Purger {
             if (!(Essentials.isWhitespace(key)) && !cache.has(key)) {//we dont want to override existing entries
                 cache.set(key,emptyValue);
             }
-            // if (Resolver.terminate) {
-            //     break;//the reason why i placed this last is so that the errored text will still register in the unpurged text where it will be later caught by the resolver as a syntax error.Breaking here when a syntax error occurs saves computation
-            // };
         }
         const unpurgedSrcText:string = unpurgedSrcLines.toArray().join('\n');
         return {unpurgedSrcText,purgedEntries};
