@@ -1212,8 +1212,12 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
 //the cache used by the purger should map src lines to whatever value they are meant to hold
 //It expects the cache to have a particular key format as defined in the createKey function
 //It mutates the cache in place
+interface PurgeResult<V> {
+    unpurgedSrcText:string,
+    purgedEntries:V[]
+}
 class Purger {
-    public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V) {
+    public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V):PurgeResult<V> {
         const srcLines = Resolver.createSrcLines(srcText);
         const unpurgedSrcLines = new Denque<string>([]);
         const srcKeysAsSet = new Set(srcLines.map((content,line)=>Essentials.createKey(line,content)));
@@ -1226,7 +1230,7 @@ class Purger {
         for (const entry of entries) {
             const isNotInSrc = !srcKeysAsSet.has(entry);
             const propagatesAcrossLines = Resolver.linesWithPropagation.has(entry);
-            if (isNotInSrc || propagatesAcrossLines) {//the second cache ensures that lines with issues are refreshed.thus,preventing them from lingering when they have been deleted.
+            if (!Resolver.wasTerminated && (isNotInSrc || propagatesAcrossLines)) {//the second cache ensures that lines with issues are refreshed.thus,preventing them from lingering when they have been deleted.
                 console.log('Deleted entry: ',entry,'was terminated: ',Resolver.wasTerminated);
                 cache.delete(entry);
                 Resolver.linesWithPropagation.delete(entry);
@@ -1243,7 +1247,7 @@ class Purger {
             const manager = new DependencyManager(line,srcLine,srcLines,inCache);
             Essentials.parse(srcLine);
 
-            const isADependency = manager.visit(Essentials.tree);
+            const isADependency = (!Resolver.terminate)?manager.visit(Essentials.tree!):false;
             const shouldPurge = inSameDocument && inCache && !isADependency;
 
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
@@ -1257,15 +1261,17 @@ class Purger {
             if (!(Essentials.isWhitespace(key)) && !cache.has(key)) {//we dont want to override existing entries
                 cache.set(key,emptyValue);
             }
+            // if (Resolver.terminate) {
+            //     break;//the reason why i placed this last is so that the errored text will still register in the unpurged text where it will be later caught by the resolver as a syntax error.Breaking here when a syntax error occurs saves computation
+            // };
         }
-        const unpurgedSrcText = unpurgedSrcLines.toArray().join('\n');
+        const unpurgedSrcText:string = unpurgedSrcLines.toArray().join('\n');
         return {unpurgedSrcText,purgedEntries};
     }
 }
 export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspAnalysis> {
     clearStaticVariables(srcPath);
     const {unpurgedSrcText,purgedEntries} = Purger.purge(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
-
     const cachedDiagnostics:lspDiagnostics[] = [];
     purgedEntries.forEach(entry=>cachedDiagnostics.push(...entry));
 
@@ -1276,7 +1282,7 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
     await generateJson(srcPath,unpurgedSrcText,srcText);//this populates the lsp analysis
     console.log('cache After: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
-
+    
     const fullDiagnostics = Resolver.lspAnalysis.diagnostics.concat(cachedDiagnostics);//this must be done after resolving the purged text because its only then,that its diagnostics will be filled
     const fullLspAnalysis:lspAnalysis = {...Resolver.lspAnalysis,diagnostics:fullDiagnostics};
     console.log('visited sentences: ',Resolver.visitedSentences);
