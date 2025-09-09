@@ -8,7 +8,7 @@ import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
-import { FullData,convMapToRecord,Rec, ResolutionResult, Result,lspAnalysis, lspSeverity, lspDiagnostics } from "../utils/utils.js";
+import { FullData,convMapToRecord,Rec, ResolutionResult, Result,lspAnalysis, lspSeverity, lspDiagnostics, isWhitespace } from "../utils/utils.js";
 import { AtomList } from "../utils/utils.js";
 import fs from 'fs/promises';
 import path from 'path';
@@ -209,7 +209,7 @@ interface RefCheck {
 }
 interface VisitedSentence {
     line:number,
-    srcLine:string,
+    uniqueKey:string//the unique key is used to identify itself in relative to the src which is used to invalidate the entry if its stale
 }
 export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
@@ -330,16 +330,18 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const stringifiedNames = stringify(tokenNames.toArray());
         const repeatedSentence = Resolver.visitedSentences.get(stringifiedNames);
         
+        const srcLine = Resolver.srcLine(this.lineCount)!;
         if (repeatedSentence && (repeatedSentence.line !== this.lineCount)) {//the second condition is possible because viitedSentences is persistent meaning that subsequent analysis can encounter the same line as a repeated sentence
             Essentials.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
-                srcText:[Resolver.srcLine(repeatedSentence.line)!,Resolver.srcLine(this.lineCount)!],
+                srcText:[Resolver.srcLine(repeatedSentence.line)!,srcLine],
                 msg:`-This sentence is semantically identical to line ${repeatedSentence.line + 1}.\n-It is repetitive, so remove it to improve resolution speed and reduce the final document size.`,
                 lines:[repeatedSentence.line,this.lineCount]
             });
         }else {
-            Resolver.visitedSentences.set(stringifiedNames,{line:this.lineCount,srcLine:Resolver.srcLine(this.lineCount)!});//i mapped it to its line in the src for error reporting
+            const uniqueKey = Essentials.createKey(this.lineCount,srcLine);
+            Resolver.visitedSentences.set(stringifiedNames,{line:this.lineCount,uniqueKey});//i mapped it to its line in the src for error reporting
         }
     }
     private async resolveLine(child:ParseTree) {
@@ -933,16 +935,14 @@ async function generateJson(srcPath:string,input:string,fullInput:string) {//the
 }
 function updateStaticVariables(srcPath:string,srcLines:string[]) {
     Resolver.lastDocumentPath = srcPath;
-
-    const srcLinesAsSet = new Set(srcLines);
-    console.log('🚀 => :929 => updateStaticVariables => srcLinesAsSet:', srcLinesAsSet);
-    
+    const srcKeysAsSet = new Set(srcLines.map((content,line)=>Essentials.createKey(line,content)));
     const visitedSentences = convMapToRecord(Resolver.visitedSentences);
     for (const [key,visitedSentence] of Object.entries(visitedSentences)) {
-        if (!srcLinesAsSet.has(visitedSentence.srcLine)) {
+        if (!srcKeysAsSet.has(visitedSentence.uniqueKey)) {
             Resolver.visitedSentences.delete(key);
         }
     }
+    console.log('🚀 => :929 => updateStaticVariables => srcLinesAsSet:', srcKeysAsSet);
 }
 //the srcPath variable is to tie the lifetime of some static variables to the current path rather than on each request
 function clearStaticVariables(srcPath:string) {//Note that its not all static variables that must be cleared or be cleared here.
@@ -1044,13 +1044,15 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
     private includeAsDependency:boolean = false;
     private line:number;
     private srcLine:string;
+    private srcLines:string[];
     private inCache:boolean;
 
-    constructor(line:number,srcLine:string,inCache:boolean) {
+    constructor(line:number,srcLine:string,srcLines:string[],inCache:boolean) {
         super();
         this.line = line;
         this.srcLine = srcLine;
         this.inCache = inCache;
+        this.srcLines = srcLines;
     }
     private xand(a:boolean,b:boolean):boolean {
         return (!a && !b) || (a && b);
@@ -1111,7 +1113,11 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
 
             let contributed = false;
             if (dependent.reference) {
-                if (this.line === (dependent.line! - 1)) {//the line that helps to resolve a ref is the one immediately behind
+                let checkLine = dependent.line! - 1;
+                while ((checkLine > this.line) && isWhitespace(this.srcLines[checkLine])) {
+                    checkLine--; // skip whitespace lines above dependent
+                }
+                if (checkLine === this.line) {
                     dependent.settledRef = true;
                     contributed = true;
                 }
@@ -1206,7 +1212,7 @@ class Purger {
 
             const inSameDocument = srcPath === Resolver.lastDocumentPath;//i tied the choice to purge to whether the document path has changed.This is to sync it properly with static variables that are also tied to te document's path
 
-            const manager = new DependencyManager(line,srcLine,inCache);
+            const manager = new DependencyManager(line,srcLine,srcLines,inCache);
             Essentials.parse(srcLine);
 
             const isADependency = manager.visit(Essentials.tree);

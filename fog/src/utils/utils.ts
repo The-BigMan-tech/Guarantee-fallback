@@ -133,6 +133,10 @@ export function convMapToRecord<K extends string | number | symbol,V>(map:Map<K,
     keys.forEach(key=>(rec[key]=map.get(key)!));
     return rec;
 }
+export function isWhitespace(line: string): boolean {
+    return line.trim().length === 0;
+}
+
 //These are for use by the lsp
 export enum lspSeverity {
     Error=1,
