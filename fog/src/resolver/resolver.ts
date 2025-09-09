@@ -144,13 +144,15 @@ class Essentials {
             }
         }
         Resolver.lspAnalysis.diagnostics.push(...diagnostics);
-        const key = Essentials.rmWhitespaces(Resolver.srcLine(line)!);
+        const key = Essentials.createKey(line,Resolver.srcLine(line)!);
         const diagnosticsAtKey = Resolver.lspDiagnosticsCache.get(key) || [];
         Resolver.lspDiagnosticsCache.set(key,[...diagnosticsAtKey,...diagnostics]);//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
         console.log('Encountered diagnostics: ',);
     }
-    public static rmWhitespaces(str:string):string {
-        return str.replace(/\s+/g, '');  // Remove all whitespaces
+    public static createKey(line:number,content:string):string {
+        const contentNoWhitespaces = content.replace(/\s+/g, '');  // Remove all whitespaces
+        const key = `${line}|${contentNoWhitespaces}`;
+        return key;
     }
     public static isWhitespace(str?: string | null): boolean {
         return !str || str.trim().length === 0;
@@ -1179,77 +1181,50 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
     };
 }
 //the cache used by the purger should map src lines to whatever value they are meant to hold
-//It expects the cache to have their keys cleaned up completely from whitespaces
+//It expects the cache to have a particular key format as defined in the createKey function
 //It mutates the cache in place
-interface SeenKeyValue {
-    line:number,
-    srcLine:string
-}
 class Purger {
-    private static encounteredDuplicates = new Set<string>();//using this in invalidation will prevent stale entries resulting from duplicate sentences from lingering just because the original line remains and even after the duplicate is removed 
-    private static unpurgedSrcLines = new Heap((a:SeenKeyValue,b:SeenKeyValue)=>a.line-b.line);
-
     public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V) {
-        function survivePurge(key:string,value:SeenKeyValue,inCache:boolean) {
-            Purger.unpurgedSrcLines.remove(value);
-            Purger.unpurgedSrcLines.add(value);
-            if (inCache) cache.delete(key);//remove from the cache entry since its going to be reanalyzed
-        }
         const srcLines = Resolver.createSrcLines(srcText);
-        const srcKeysAsSet = new Set(srcLines.map(line=>Essentials.rmWhitespaces(line)));
+        const unpurgedSrcLines = new Denque<string>([]);
+        const srcKeysAsSet = new Set(srcLines.map((content,line)=>Essentials.createKey(line,content)));
         
         const entries = [...cache.keys()];
+        const purgedEntries:V[] = [];
+
         for (const entry of entries) {
-            if ( (!srcKeysAsSet.has(entry)) || (Purger.encounteredDuplicates.has(entry))) {
+            if (!srcKeysAsSet.has(entry)) {
                 console.log('Deleted entry: ',entry);
-                console.log('encountered duplicates: ',Purger.encounteredDuplicates);
                 cache.delete(entry);
-                Purger.encounteredDuplicates.delete(entry);
             }
         }
-
-        const purgedEntries:V[] = [];
-        const seenKeys = new Map<string,SeenKeyValue>();//the purpose of this is to catch duplicate sentences and add them to the final text so that they can be caught by the resolver
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
         for (let line = (srcLines.length - 1 ); line >= 0 ;line--) {
             const srcLine = srcLines[line];
-            const key = Essentials.rmWhitespaces(srcLine);
+            const key = Essentials.createKey(line,srcLine);
             const inCache = cache.has(key);
-
-            if (seenKeys.has(key) && (key !== "")) {//this must be done before overriding the value at the key.
-                console.log('Duplicate caught: ',JSON.stringify(key));
-                Purger.encounteredDuplicates.add(key);
-                const duplicateSentence = seenKeys.get(key)!;//since the purge is looped backwards,the last key added is the sentence that comes after this one.thus,its the duplicate
-                survivePurge(key,duplicateSentence,inCache);
-            }
-            const stillInCache = cache.has(key);//after checking for duplicate,its possible that its cache could have been removed.so its need to be checked again.This means that one duplicate will cause all duplicates to enter the final src.So there isnt any need now for visited sentences to be persistent and it can now safely reset on every resolution call.but ill still leave it that way for correctness
-            const seenKeyValue:SeenKeyValue = {line,srcLine};
-            seenKeys.set(key,seenKeyValue);
 
             const inSameDocument = srcPath === Resolver.lastDocumentPath;//i tied the choice to purge to whether the document path has changed.This is to sync it properly with static variables that are also tied to te document's path
 
-            const manager = new DependencyManager(line,srcLine,stillInCache);
+            const manager = new DependencyManager(line,srcLine,inCache);
             Essentials.parse(srcLine);
 
             const isADependency = manager.visit(Essentials.tree);
-            const shouldPurge = inSameDocument && stillInCache && !isADependency;
+            const shouldPurge = inSameDocument && inCache && !isADependency;
 
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
                 purgedEntries.push(cache.get(key)!);
-                Purger.unpurgedSrcLines.add({line,srcLine:' '});//i inserted whitespaces in place of the purged lines to preserve the line ordering
+                unpurgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
             }else {
-                survivePurge(key,seenKeyValue,stillInCache);
+                unpurgedSrcLines.unshift(srcLine);
+                if (inCache) cache.delete(key);//remove from the cache entry since its going to be reanalyzed
             }
             //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
             if (!(Essentials.isWhitespace(key)) && !cache.has(key)) {//we dont want to override existing entries
                 cache.set(key,emptyValue);
             }
         }
-        const unpurgedSrcArray = [];
-        for (const value of Purger.unpurgedSrcLines) {//heap-js guarantees that this will consume it in order of priority as in the documentation
-            unpurgedSrcArray.push(value.srcLine);
-        }
-        const unpurgedSrcText = unpurgedSrcArray.join('\n');
+        const unpurgedSrcText = unpurgedSrcLines.toArray().join('\n');
         return {unpurgedSrcText,purgedEntries};
     }
 }
@@ -1266,7 +1241,7 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     };
     console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
     await generateJson(srcPath,unpurgedSrcText,srcText);//this populates the lsp analysis
-    // console.log('cache After: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
+    console.log('cache After: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
 
     const fullDiagnostics = Resolver.lspAnalysis.diagnostics.concat(cachedDiagnostics);//this must be done after resolving the purged text because its only then,that its diagnostics will be filled
     const fullLspAnalysis:lspAnalysis = {...Resolver.lspAnalysis,diagnostics:fullDiagnostics};
