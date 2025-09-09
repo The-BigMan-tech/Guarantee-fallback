@@ -2434,3 +2434,10 @@ Graceful disconnection
 *The purger's role is mainly to manage which sentences survive for re-analysis by deciding what to keep or discard based on dependencies and caching, but it does not enforce semantic correctness rules itself.
 *Sentences that get purged are effectively excluded from the current resolution cycle, so any semantic errors or duplicates within purged sentences cannot be detected during that cycle.
 *This means bugs or issues can appear undetected if the purger’s logic is too aggressive or incorrect, accidentally protecting or skipping problematic sentences.
+
+*because resolution turns the src to teh final json output.it cant be afforded to be corrupted.so the purger stays in incremental analysis.Its actually easy to use my purger for incremental resolution because of its clean interface but edge cases and thinking about how ill even mergre compiled outputs as opposed to diagnostic arrays is complex
+
+*he incremental LSP analysis is designed to show feedback quickly as you type, progressively updating diagnostics and other features with low latency.
+*Your purger can theoretically be used for incremental resolution too, thanks to its clean design, but actual adoption for resolution must wait until it reliably handles all edge cases. This is important because:
+*Incremental analysis can tolerate some approximation; it focuses on quickly identifying changed text regions.
+*Incremental resolution produces the final semantic JSON output, which demands full correctness to avoid corrupted results.
