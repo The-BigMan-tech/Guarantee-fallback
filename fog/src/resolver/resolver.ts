@@ -1069,6 +1069,7 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
 }
 interface Dependent {
     uniqueKey:string,
+    includeDependency:boolean,
     srcLine:string,//good to keep in handy for debugging
     line:number,
     reference:boolean,
@@ -1102,6 +1103,7 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
     private xand(a:boolean,b:boolean):boolean {
         return (!a && !b) || (a && b);
     }
+    //please note that the properties on the dependnet,although looking identical to the ones under the current this context,arent the same.the ones on the this context used here is for the potential dependency but a dependency can also be a dependnent which is why the this context is used when adding it as a dependent
     private checkIfDependency(dependentIndex:number,contributed:boolean) {
         const dependent = DependencyManager.dependents[dependentIndex]!;//this function is called under branches where the dependent isnt null.so we can safely asser it here.
         const {settledRef,settledAlias,unsettledNames} = dependent;
@@ -1111,8 +1113,9 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
 
         const isFullySatisfied = this.xand(hasRef,settledRef) && this.xand(hasAlias,settledAlias) && (unsettledNames.size === 0);
         const isPartiallySatisfied = this.xand(hasRef,settledRef) || this.xand(hasAlias,settledRef) || (unsettledNames.size < dependent.names.size);
+        
         if (contributed && (isPartiallySatisfied || isFullySatisfied)) {
-            this.includeAsDependency = true;
+            if (dependent.includeDependency) this.includeAsDependency = true;
             this.satisfiedDependentsAsKeys.push(dependent.uniqueKey);
             if (isFullySatisfied) {
                 DependencyManager.dependents[dependentIndex] = null;//Using null instead of removal prevents index shifts and improves processing integrity.
@@ -1120,38 +1123,37 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
         }
     }
     private checkForDependencies(tokens:Token[]):void {
-        if (!this.inCache || this.includeAsDependency) {//only check for its dependencies if its not in the incremental cache or it is the dependency of another line
-            const dependent:Dependent =  {
-                uniqueKey:this.unqiueKey,
-                srcLine:this.srcLine,
-                line:this.line,
-                reference:false,
-                alias:null,
-                names:new Set(),
-                settledRef:false,
-                settledAlias:false,
-                unsettledNames:new Set()
-            };
-            for (const token of tokens) {
-                const type = token.type;
-                const text = token.text!;
-                const refTypes = new Set([DSLLexer.SINGLE_SUBJECT_REF,DSLLexer.SINGLE_OBJECT_REF,DSLLexer.GROUP_SUBJECT_REF,DSLLexer.GROUP_OBJECT_REF]);
-
-                if (refTypes.has(type) && !dependent.reference) {
-                    dependent.reference = true;
-                }
-                if ((type === DSLLexer.ALIAS) && !dependent.alias) {
-                    dependent.alias = Resolver.stripMark(text);
-                }
-                if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
-                    dependent.names.add(Resolver.stripMark(text));
-                }
+        const includeDependency = (!this.inCache || this.includeAsDependency);
+        const dependent:Dependent =  {
+            uniqueKey:this.unqiueKey,
+            includeDependency,
+            srcLine:this.srcLine,
+            line:this.line,
+            reference:false,
+            alias:null,
+            names:new Set(),
+            settledRef:false,
+            settledAlias:false,
+            unsettledNames:new Set()
+        };
+        for (const token of tokens) {
+            const type = token.type;
+            const text = token.text!;
+            const refTypes = new Set([DSLLexer.SINGLE_SUBJECT_REF,DSLLexer.SINGLE_OBJECT_REF,DSLLexer.GROUP_SUBJECT_REF,DSLLexer.GROUP_OBJECT_REF]);
+            if (refTypes.has(type) && !dependent.reference) {
+                dependent.reference = true;
             }
-            dependent.unsettledNames = new Set(dependent.names);//clone the set
-            const isDependent =  (dependent.reference === true) || (dependent.alias !== null) || (dependent.unsettledNames.size > 0);
-            if (isDependent) {
-                DependencyManager.dependents.push(dependent);
+            if ((type === DSLLexer.ALIAS) && !dependent.alias) {
+                dependent.alias = Resolver.stripMark(text);
             }
+            if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
+                dependent.names.add(Resolver.stripMark(text));
+            }
+        }
+        dependent.unsettledNames = new Set(dependent.names);//clone the set
+        const isDependent =  (dependent.reference === true) || (dependent.alias !== null) || (dependent.unsettledNames.size > 0);
+        if (isDependent) {
+            DependencyManager.dependents.push(dependent);
         }
     }
     private settleDependents(tokens:Token[]) {//this function doesnt try settling alias dependencies because they can only be done by alias declarations
@@ -1279,10 +1281,9 @@ class Purger {
 
             const isADependency = (!Resolver.terminate)?manager.visit(Essentials.tree!):false;
             const shouldPurge = inSameDocument && inCache && !isADependency;
-            
-            if (isADependency) {
-                Purger.dependencyToDependents.set(key,manager.satisfiedDependentsAsKeys);
-            }
+                
+            Purger.dependencyToDependents.set(key,manager.satisfiedDependentsAsKeys);
+        
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
                 purgedEntries.push(cache.get(key)!);
                 unpurgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
