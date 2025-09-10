@@ -2441,3 +2441,5 @@ Graceful disconnection
 *Your purger can theoretically be used for incremental resolution too, thanks to its clean design, but actual adoption for resolution must wait until it reliably handles all edge cases. This is important because:
 *Incremental analysis can tolerate some approximation; it focuses on quickly identifying changed text regions.
 *Incremental resolution produces the final semantic JSON output, which demands full correctness to avoid corrupted results.
+
+*the reason why semantic errors preents corruption is because they allow my resolver to continue under assumptions.so if it doesnt rerminate,it will proceed to mutate state under the assumptions that the semantic errors guaranteed will be enforced

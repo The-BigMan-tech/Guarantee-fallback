@@ -735,6 +735,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
     }
     private expandRecursively(input:any[][],flatSequences:any[][] = []):any[][] {
+        console.log('\n expa recursive input: ',input,'\n');
         for (const product of cartesianProduct(...input)) {
             if (product.some(value=>value instanceof Array)) {
                 const boxedProduct = product.map(value=>{
@@ -837,9 +838,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     
         const tokenQueue = new Denque(tokens);
         const groupedData = this.inspectRelevantTokens(tokenQueue,false);
+        console.log('\ngrouped data: ',groupedData,'\n');
         if (Resolver.terminate) return;
 
         this.expandedFacts = this.expandRecursively(groupedData!);
+        console.log('expansion: ',this.expandedFacts);
+
         for (const fact of this.expandedFacts) {;
             if (fact.length === 0) Essentials.castReport({
                 kind:ReportKind.Semantic,
@@ -910,7 +914,17 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
             else if (type === DSLLexer.LSQUARE) {
                 level[0] += 1;
-                list.push(this.inspectRelevantTokens(tokenQueue,readOnly,level,visitedNames,false));// explicitly pass false for shouldClone, so that the method uses the existing queue directly without cloning.
+                const arr = this.inspectRelevantTokens(tokenQueue,readOnly,level,visitedNames,false);// explicitly pass false for shouldClone, so that the method uses the existing queue directly without cloning.
+                if (arr && (arr.length > 0)) {
+                    list.push(arr);
+                }else {
+                    Essentials.castReport({
+                        kind:ReportKind.Warning,
+                        line:this.lineCount,
+                        msg:`-The empty array is ignored.`,
+                        srcText:'[]'
+                    });
+                }
             }
             else if (type === DSLLexer.RSQUARE) {
                 level[0] -= 1;
