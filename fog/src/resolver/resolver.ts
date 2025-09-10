@@ -984,8 +984,8 @@ function clearStaticVariables(srcPath:string) {//Note that its not all static va
     Resolver.logs = null;
     Resolver.logFile = null;
     Resolver.lspAnalysis = null;
-    DependencyManager.dependents = [];
     Essentials.tree = null;//to prevent accidentally reading an outadted src tree.
+    DependencyManager.dependents = [];
     if (srcPath !== Resolver.lastDocumentPath) {
         console.log('\nCleared visited sentences\n',srcPath,'visi',Resolver.lastDocumentPath);
         Resolver.visitedSentences.clear();//the reason why i tied its lifetime to path changes is because the purging process used in incremental analysis will allow semantically identical sentences from being caught if the previous identical sentences wont survive the purge
@@ -1087,15 +1087,17 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
     private srcLines:string[];
     private inCache:boolean;
     private uniqueKey:string;
+    private unpurgedKeys:Set<string>;
 
-    constructor(args:{key:string,line:number,srcLine:string,srcLines:string[],inCache:boolean}) {
-        const {line,srcLine,srcLines,inCache,key} = args;
+    constructor(args:{key:string,line:number,srcLine:string,srcLines:string[],inCache:boolean,unpurgedKeys:Set<string>}) {
+        const {line,srcLine,srcLines,inCache,key,unpurgedKeys} = args;
         super();
         this.line = line;
         this.srcLine = srcLine;
         this.inCache = inCache;
         this.srcLines = srcLines;
         this.uniqueKey = key;
+        this.unpurgedKeys = unpurgedKeys;
     }
     private xand(a:boolean,b:boolean):boolean {
         return (!a && !b) || (a && b);
@@ -1113,7 +1115,7 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
         
         if (contributed && (isPartiallySatisfied || isFullySatisfied)) {
             this.satisfiedDependents.push(dependent);
-            if (Purger.dependencyCallers.has(dependent.uniqueKey)) {
+            if (this.unpurgedKeys.has(dependent.uniqueKey)) {
                 this.satisfiedDependents = [];
             }
             if (dependent.includeDependency) this.includeAsDependency = true;
@@ -1244,8 +1246,6 @@ interface PurgeResult<V> {
     purgedEntries:V[]
 }
 class Purger {
-    public static dependencyCallers = new Set<string>();
-
     public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V):PurgeResult<V> {
         const srcLines = Resolver.createSrcLines(srcText);
         const unpurgedSrcLines = new CustomQueue<string>([]);
@@ -1254,8 +1254,11 @@ class Purger {
         const entries = [...cache.keys()];
         const purgedEntries:V[] = [];
 
-        
+        const unpurgedKeys = new Set<string>();
+
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
+        console.log('unpurged keys: ',unpurgedKeys);
+
         for (const entry of entries) {
             const isNotInSrc = !srcKeysAsSet.has(entry);
             if (isNotInSrc) {
@@ -1272,7 +1275,7 @@ class Purger {
 
             const inSameDocument = srcPath === Resolver.lastDocumentPath;//i tied the choice to purge to whether the document path has changed.This is to sync it properly with static variables that are also tied to te document's path
 
-            const manager = new DependencyManager({key,line,srcLine,srcLines,inCache});
+            const manager = new DependencyManager({key,line,srcLine,srcLines,inCache,unpurgedKeys});
             Essentials.parse(srcLine);
 
             const isADependency = manager.visit(Essentials.tree!);
@@ -1282,17 +1285,17 @@ class Purger {
                 purgedEntries.push(cache.get(key)!);
                 unpurgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
             }else {
-                console.log('unshifting src line: ',key);
-                Purger.dependencyCallers.add(key);
-                
+                console.log('unshifting src line: ',key);   
+                unpurgedKeys.add(key);     
                 unpurgedSrcLines.unshift(srcLine);
-                if (inCache) cache.delete(key);//remove from the cache entry since its going to be reanalyzed
+                cache.delete(key);//remove from the cache entry since its going to be reanalyzed
                 
                 const satisfiedDependents = manager.satisfiedDependents;
                 if (satisfiedDependents.length > 0 )console.log('dependent of key: ',key);
 
                 for (const dependent of satisfiedDependents) {
                     console.log(dependent.uniqueKey);
+                    cache.delete(dependent.uniqueKey);
                     unpurgedSrcLines.set(dependent.line,dependent.srcLine);
                 }
             }
