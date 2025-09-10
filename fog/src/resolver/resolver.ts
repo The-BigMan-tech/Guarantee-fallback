@@ -1115,9 +1115,6 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
         
         if (contributed && (isPartiallySatisfied || isFullySatisfied)) {
             this.satisfiedDependents.push(dependent);
-            if (this.unpurgedKeys.has(dependent.uniqueKey)) {
-                this.satisfiedDependents = [];
-            }
             if (dependent.includeDependency) this.includeAsDependency = true;
             if (isFullySatisfied) {
                 DependencyManager.dependents[dependentIndex] = null;//Using null instead of removal prevents index shifts and improves processing integrity.
@@ -1296,7 +1293,8 @@ class Purger {
                 for (const dependent of satisfiedDependents) {
                     console.log(dependent.uniqueKey);
                     cache.delete(dependent.uniqueKey);
-                    unpurgedSrcLines.set(dependent.line,dependent.srcLine);
+                    console.log('\nunpurged: ',unpurgedSrcLines);
+                    unpurgedSrcLines.set(dependent.line-line,dependent.srcLine);
                 }
             }
             //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
