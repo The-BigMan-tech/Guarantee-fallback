@@ -94,6 +94,7 @@ class Essentials {
     public static buildDiagnosticsFromReport(report:Report):void {
         if (Resolver.lspAnalysis===null) return;//dont generate lsp analysis if not required
 
+        const diagnostics:lspDiagnostics[] = [];
         const buildDiagnostic = (targetLine: number, text:string | EndOfLine,message:string):lspDiagnostics => {
             const sourceLine = Resolver.srcLine(targetLine) || "";
             const cleanedSourceLine = sourceLine.replace(/\r+$/, ""); // remove trailing \r
@@ -118,7 +119,11 @@ class Essentials {
                 message
             };
         }; 
-
+        function registerDiagnostics(key:string):void {
+            Resolver.lspAnalysis!.diagnostics.push(...diagnostics);
+            const diagnosticsAtKey = Resolver.lspDiagnosticsCache.get(key) || [];
+            Resolver.lspDiagnosticsCache.set(key,[...diagnosticsAtKey,...diagnostics]);//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
+        }
         const {kind,line,lines,msg,srcText} = report;//line is 0-based
         const srcLine:string = Resolver.srcLine(line)!;
 
@@ -133,9 +138,10 @@ class Essentials {
         const modifiedMsg = msg.split('\n').map(str=>str.replace('-','')).join('');//this removes the leading - sign in each sentence of the message.I use them when logging the report to a file for clarity but for in editor reports,it is unnecessary.
         const cleanMsg = stripAnsi(modifiedMsg.replace(/\r?\n|\r/g, " "));//strip ansi codes and new lines
         
-        const diagnostics:lspDiagnostics[] = [];
+        const key = Essentials.createKey(line,srcLine);
         if (!lines && ((typeof srcText === "string") || (srcText === EndOfLine.value))) {
             diagnostics.push(buildDiagnostic(line,srcText,cleanMsg));
+            registerDiagnostics(key);
         }
         else if (lines && Array.isArray(srcText)){
             for (let i = 0; i < lines.length; i++) {
@@ -143,19 +149,14 @@ class Essentials {
                 const text = srcText[i];
                 const isMainLine = (targetLine===line);
                 const message = isMainLine?cleanMsg:`This line is involved in an issue with line ${line + 1}.`;
-                diagnostics.push(buildDiagnostic(targetLine, text,message));
-                if (!isMainLine) {
-                    Resolver.linesWithPropagation.add(Essentials.createKey(line,srcLine));//the diagnostics here belongs to the line not the targetLine
+                diagnostics.push(buildDiagnostic(targetLine,text,message));
+                if (isMainLine) {
+                    registerDiagnostics(key);
+                }else {
+                    registerDiagnostics(Essentials.createKey(targetLine,Resolver.srcLines[targetLine]));
                 }
             }
         }
-        Resolver.lspAnalysis.diagnostics.push(...diagnostics);
-
-        const key = Essentials.createKey(line,srcLine);
-        const diagnosticsAtKey = Resolver.lspDiagnosticsCache.get(key) || [];
-        Resolver.lspDiagnosticsCache.set(key,[...diagnosticsAtKey,...diagnostics]);//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
-        
-        console.log('Encountered diagnostics: ',);
     }
     public static createKey(line:number,content:string):string {
         const contentNoWhitespaces = content.replace(/\s+/g, '');  // Remove all whitespaces
@@ -251,7 +252,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static lspAnalysis:lspAnalysis | null = null;
     public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
     public static lastDocumentPath:string | null = null;
-    public static linesWithPropagation = new Set<string>();
 
     //this method expects that the line is 0-based
     public static srcLine = (line:number):string | undefined => Resolver.srcLines.at(line);
@@ -1240,15 +1240,11 @@ class Purger {
         const entries = [...cache.keys()];
         const purgedEntries:V[] = [];
 
-        console.log('\nLines with propagation: ',Resolver.linesWithPropagation);
-
         for (const entry of entries) {
             const isNotInSrc = !srcKeysAsSet.has(entry);
-            const propagatesAcrossLines = Resolver.linesWithPropagation.has(entry);
-            if (!Resolver.wasTerminated && (isNotInSrc || propagatesAcrossLines)) {//the second cache ensures that lines with issues are refreshed.thus,preventing them from lingering when they have been deleted.
+            if (!Resolver.wasTerminated && isNotInSrc) {//the was terminated flag allows diagnotics to remain even when other errors show up
                 console.log('Deleted entry: ',entry,'was terminated: ',Resolver.wasTerminated);
                 cache.delete(entry);
-                Resolver.linesWithPropagation.delete(entry);
             }
         }
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
