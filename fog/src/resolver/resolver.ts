@@ -1269,24 +1269,23 @@ class Purger {
             const manager = new DependencyManager({key,line,srcLine,srcLines,inCache});
             Essentials.parse(srcLine);
 
-            const isADependency = (!Resolver.terminate)?manager.visit(Essentials.tree!):false;
+            const isADependency = manager.visit(Essentials.tree!);
             const shouldPurge = inSameDocument && inCache && !isADependency;
         
-            const satisfiedDependents = manager.satisfiedDependents;
-            if (satisfiedDependents.length > 0 )console.log('dependent of key: ',key);
-
-            for (const dependent of satisfiedDependents) {
-                console.log(dependent.srcLine);
-                cache.delete(dependent.uniqueKey);
-                unpurgedSrcLines.set(dependent.line,dependent.srcLine);
-            }
-
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
                 purgedEntries.push(cache.get(key)!);
                 unpurgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
             }else {
                 unpurgedSrcLines.unshift(srcLine);
                 if (inCache) cache.delete(key);//remove from the cache entry since its going to be reanalyzed
+                
+                const satisfiedDependents = manager.satisfiedDependents;
+                if (satisfiedDependents.length > 0 )console.log('dependent of key: ',key);
+
+                for (const dependent of satisfiedDependents) {
+                    console.log(dependent.srcLine);
+                    unpurgedSrcLines.set(dependent.line,dependent.srcLine);
+                }
             }
             //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
             if (!(Essentials.isWhitespace(key)) && !cache.has(key)) {//we dont want to override existing entries
