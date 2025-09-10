@@ -979,7 +979,6 @@ function updateStaticVariables(srcPath:string,srcLines:string[]) {
             Resolver.visitedSentences.delete(key);
         }
     }
-    console.log('🚀 => :929 => updateStaticVariables => srcLinesAsSet:', srcKeysAsSet);
 }
 //the srcPath variable is to tie the lifetime of some static variables to the current path rather than on each request
 function clearStaticVariables(srcPath:string) {//Note that its not all static variables that must be cleared or be cleared here.
@@ -1250,14 +1249,21 @@ class Purger {
         const unpurgedSrcLines = new CustomQueue<string>([]);
         const srcKeysAsSet = new Set(srcLines.map((content,line)=>Essentials.createKey(line,content)));
         
-        const entries = [...cache.keys()];
+        const entries = [...cache.keys(),...Purger.dependencyToDependents.keys()];
         const purgedEntries:V[] = [];
 
+        console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
         for (const entry of entries) {
             const isNotInSrc = !srcKeysAsSet.has(entry);
-            if (!Resolver.wasTerminated && isNotInSrc) {//the was terminated flag allows diagnotics to remain even when other errors show up
-                console.log('Deleted entry: ',entry,'was terminated: ',Resolver.wasTerminated);
-                cache.delete(entry);
+            if (isNotInSrc) {
+                const isCacheEntry = cache.has(entry);
+                const isDependencyEntry = Purger.dependencyToDependents.has(entry);
+                if (isCacheEntry && !Resolver.wasTerminated) {//the was terminated flag allows diagnotics to remain even when other errors show up
+                    cache.delete(entry);
+                }
+                if (isDependencyEntry) {//i didnt use elif here because a key can be in both caches
+                    Purger.dependencyToDependents.delete(entry);//we want to delete this regardless of whether it was terminated or not
+                }
             }
         }
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
