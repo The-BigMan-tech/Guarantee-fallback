@@ -1113,6 +1113,9 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
         
         if (contributed && (isPartiallySatisfied || isFullySatisfied)) {
             this.satisfiedDependents.push(dependent);
+            if (Purger.dependencyCallers.has(dependent.uniqueKey)) {
+                this.satisfiedDependents = [];
+            }
             if (dependent.includeDependency) this.includeAsDependency = true;
             if (isFullySatisfied) {
                 DependencyManager.dependents[dependentIndex] = null;//Using null instead of removal prevents index shifts and improves processing integrity.
@@ -1241,6 +1244,8 @@ interface PurgeResult<V> {
     purgedEntries:V[]
 }
 class Purger {
+    public static dependencyCallers = new Set<string>();
+
     public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V):PurgeResult<V> {
         const srcLines = Resolver.createSrcLines(srcText);
         const unpurgedSrcLines = new CustomQueue<string>([]);
@@ -1249,6 +1254,7 @@ class Purger {
         const entries = [...cache.keys()];
         const purgedEntries:V[] = [];
 
+        
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
         for (const entry of entries) {
             const isNotInSrc = !srcKeysAsSet.has(entry);
@@ -1276,6 +1282,9 @@ class Purger {
                 purgedEntries.push(cache.get(key)!);
                 unpurgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
             }else {
+                console.log('unshifting src line: ',key);
+                Purger.dependencyCallers.add(key);
+                
                 unpurgedSrcLines.unshift(srcLine);
                 if (inCache) cache.delete(key);//remove from the cache entry since its going to be reanalyzed
                 
@@ -1283,7 +1292,7 @@ class Purger {
                 if (satisfiedDependents.length > 0 )console.log('dependent of key: ',key);
 
                 for (const dependent of satisfiedDependents) {
-                    console.log(dependent.srcLine);
+                    console.log(dependent.uniqueKey);
                     unpurgedSrcLines.set(dependent.line,dependent.srcLine);
                 }
             }
