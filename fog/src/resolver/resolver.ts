@@ -839,12 +839,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     
         const tokenQueue = new Denque(tokens);
         const groupedData = this.inspectRelevantTokens(tokenQueue,false);
-        console.log('\ngrouped data: ',groupedData,'\n');
         if (Resolver.terminate) return;
 
         this.expandedFacts = this.expandRecursively(groupedData!);
-        console.log('expansion: ',this.expandedFacts);
-
         for (const fact of this.expandedFacts) {;
             if (fact.length === 0) Essentials.castReport({
                 kind:ReportKind.Semantic,
@@ -1068,8 +1065,8 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
     }
 }
 interface Dependent {
-    uniqueKey:string,
     includeDependency:boolean,
+    uniqueKey:string,
     srcLine:string,//good to keep in handy for debugging
     line:number,
     reference:boolean,
@@ -1082,23 +1079,23 @@ interface Dependent {
 class DependencyManager extends DSLVisitor<boolean | undefined> {
     public static dependents:(Dependent | null)[] = [];
 
-    public satisfiedDependentsAsKeys:string[] = [];
+    public satisfiedDependents:Dependent[] = [];//this one unlike dependents collects dependents for the particular dependency
     private includeAsDependency:boolean = false;
 
     private line:number;
     private srcLine:string;
     private srcLines:string[];
     private inCache:boolean;
-    private unqiueKey:string;
+    private uniqueKey:string;
 
     constructor(args:{key:string,line:number,srcLine:string,srcLines:string[],inCache:boolean}) {
-        const {line,srcLine,srcLines,key,inCache} = args;
+        const {line,srcLine,srcLines,inCache,key} = args;
         super();
         this.line = line;
         this.srcLine = srcLine;
         this.inCache = inCache;
         this.srcLines = srcLines;
-        this.unqiueKey = key;
+        this.uniqueKey = key;
     }
     private xand(a:boolean,b:boolean):boolean {
         return (!a && !b) || (a && b);
@@ -1115,8 +1112,8 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
         const isPartiallySatisfied = this.xand(hasRef,settledRef) || this.xand(hasAlias,settledRef) || (unsettledNames.size < dependent.names.size);
         
         if (contributed && (isPartiallySatisfied || isFullySatisfied)) {
+            this.satisfiedDependents.push(dependent);
             if (dependent.includeDependency) this.includeAsDependency = true;
-            this.satisfiedDependentsAsKeys.push(dependent.uniqueKey);
             if (isFullySatisfied) {
                 DependencyManager.dependents[dependentIndex] = null;//Using null instead of removal prevents index shifts and improves processing integrity.
             }
@@ -1125,8 +1122,8 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
     private checkForDependencies(tokens:Token[]):void {
         const includeDependency = (!this.inCache || this.includeAsDependency);
         const dependent:Dependent =  {
-            uniqueKey:this.unqiueKey,
             includeDependency,
+            uniqueKey:this.uniqueKey,
             srcLine:this.srcLine,
             line:this.line,
             reference:false,
@@ -1244,27 +1241,20 @@ interface PurgeResult<V> {
     purgedEntries:V[]
 }
 class Purger {
-    public static dependencyToDependents = new Map<string,string[]>();
-
     public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V):PurgeResult<V> {
         const srcLines = Resolver.createSrcLines(srcText);
         const unpurgedSrcLines = new CustomQueue<string>([]);
         const srcKeysAsSet = new Set(srcLines.map((content,line)=>Essentials.createKey(line,content)));
         
-        const entries = [...cache.keys(),...Purger.dependencyToDependents.keys()];
+        const entries = [...cache.keys()];
         const purgedEntries:V[] = [];
 
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
         for (const entry of entries) {
             const isNotInSrc = !srcKeysAsSet.has(entry);
             if (isNotInSrc) {
-                const isCacheEntry = cache.has(entry);
-                const isDependencyEntry = Purger.dependencyToDependents.has(entry);
-                if (isCacheEntry && !Resolver.wasTerminated) {//the was terminated flag allows diagnotics to remain even when other errors show up
+                if (!Resolver.wasTerminated) {//the was terminated flag allows diagnotics to remain even when other errors show up
                     cache.delete(entry);
-                }
-                if (isDependencyEntry) {//i didnt use elif here because a key can be in both caches
-                    Purger.dependencyToDependents.delete(entry);//we want to delete this regardless of whether it was terminated or not
                 }
             }
         }
@@ -1281,9 +1271,16 @@ class Purger {
 
             const isADependency = (!Resolver.terminate)?manager.visit(Essentials.tree!):false;
             const shouldPurge = inSameDocument && inCache && !isADependency;
-                
-            Purger.dependencyToDependents.set(key,manager.satisfiedDependentsAsKeys);
         
+            const satisfiedDependents = manager.satisfiedDependents;
+            if (satisfiedDependents.length > 0 )console.log('dependent of key: ',key);
+
+            for (const dependent of satisfiedDependents) {
+                console.log(dependent.srcLine);
+                cache.delete(dependent.uniqueKey);
+                unpurgedSrcLines.set(dependent.line,dependent.srcLine);
+            }
+
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
                 purgedEntries.push(cache.get(key)!);
                 unpurgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
@@ -1297,7 +1294,6 @@ class Purger {
             }
         }
         const unpurgedSrcText:string = unpurgedSrcLines.array().join('\n');
-        console.log('\nDependents: ',Purger.dependencyToDependents,'\n');
         return {unpurgedSrcText,purgedEntries};
     }
 }
