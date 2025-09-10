@@ -779,8 +779,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             });
         }
         if (!isAlias && ! text.startsWith("*")) {
+            const recommendedAlias = this.recommendAlias(Resolver.stripMark(text));
             let message:string = `-Predicates are meant to be prefixed with ${chalk.bold('*')} but found ${chalk.bold(token.text)}.\n-Did you forget to declare it as an alias? `;
-            const recommendedAlias = this.recommendAlias(text);
             message += (recommendedAlias)?`Or did you mean to type #${recommendedAlias}?`:'';
             Essentials.castReport({
                 kind:ReportKind.Semantic,
