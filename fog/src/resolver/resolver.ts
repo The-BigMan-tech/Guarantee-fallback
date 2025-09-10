@@ -14,6 +14,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import stripAnsi from 'strip-ansi';
 import { LRUCache } from "lru-cache";
+import CustomQueue from "./custom-queue.js";
 
 
 const brown = chalk.hex("#ddcba0ff");
@@ -1068,6 +1069,7 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
     }
 }
 interface Dependent {
+    uniqueKey:string,
     srcLine:string,//good to keep in handy for debugging
     line:number,
     reference:boolean,
@@ -1079,18 +1081,24 @@ interface Dependent {
 }
 class DependencyManager extends DSLVisitor<boolean | undefined> {
     public static dependents:(Dependent | null)[] = [];
+
+    public satisfiedDependentsAsKeys:string[] = [];
     private includeAsDependency:boolean = false;
+
     private line:number;
     private srcLine:string;
     private srcLines:string[];
     private inCache:boolean;
+    private unqiueKey:string;
 
-    constructor(line:number,srcLine:string,srcLines:string[],inCache:boolean) {
+    constructor(args:{key:string,line:number,srcLine:string,srcLines:string[],inCache:boolean}) {
+        const {line,srcLine,srcLines,key,inCache} = args;
         super();
         this.line = line;
         this.srcLine = srcLine;
         this.inCache = inCache;
         this.srcLines = srcLines;
+        this.unqiueKey = key;
     }
     private xand(a:boolean,b:boolean):boolean {
         return (!a && !b) || (a && b);
@@ -1105,14 +1113,17 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
         const isFullySatisfied = this.xand(hasRef,settledRef) && this.xand(hasAlias,settledAlias) && (unsettledNames.size === 0);
         const isPartiallySatisfied = this.xand(hasRef,settledRef) || this.xand(hasAlias,settledRef) || (unsettledNames.size < dependent.names.size);
         if (contributed && (isPartiallySatisfied || isFullySatisfied)) {
-            // console.log('\nDependent:',dependent);
             this.includeAsDependency = true;
-            if (isFullySatisfied) DependencyManager.dependents[dependentIndex] = null;//Using null instead of removal prevents index shifts and improves processing integrity.
+            this.satisfiedDependentsAsKeys.push(dependent.uniqueKey);
+            if (isFullySatisfied) {
+                DependencyManager.dependents[dependentIndex] = null;//Using null instead of removal prevents index shifts and improves processing integrity.
+            }
         }
     }
     private checkForDependencies(tokens:Token[]):void {
         if (!this.inCache || this.includeAsDependency) {//only check for its dependencies if its not in the incremental cache or it is the dependency of another line
             const dependent:Dependent =  {
+                uniqueKey:this.unqiueKey,
                 srcLine:this.srcLine,
                 line:this.line,
                 reference:false,
@@ -1232,9 +1243,11 @@ interface PurgeResult<V> {
     purgedEntries:V[]
 }
 class Purger {
+    public static dependencyToDependents = new Map<string,string[]>();
+
     public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V):PurgeResult<V> {
         const srcLines = Resolver.createSrcLines(srcText);
-        const unpurgedSrcLines = new Denque<string>([]);
+        const unpurgedSrcLines = new CustomQueue<string>([]);
         const srcKeysAsSet = new Set(srcLines.map((content,line)=>Essentials.createKey(line,content)));
         
         const entries = [...cache.keys()];
@@ -1255,12 +1268,15 @@ class Purger {
 
             const inSameDocument = srcPath === Resolver.lastDocumentPath;//i tied the choice to purge to whether the document path has changed.This is to sync it properly with static variables that are also tied to te document's path
 
-            const manager = new DependencyManager(line,srcLine,srcLines,inCache);
+            const manager = new DependencyManager({key,line,srcLine,srcLines,inCache});
             Essentials.parse(srcLine);
 
             const isADependency = (!Resolver.terminate)?manager.visit(Essentials.tree!):false;
             const shouldPurge = inSameDocument && inCache && !isADependency;
-
+            
+            if (isADependency) {
+                Purger.dependencyToDependents.set(key,manager.satisfiedDependentsAsKeys);
+            }
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
                 purgedEntries.push(cache.get(key)!);
                 unpurgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
@@ -1273,7 +1289,8 @@ class Purger {
                 cache.set(key,emptyValue);
             }
         }
-        const unpurgedSrcText:string = unpurgedSrcLines.toArray().join('\n');
+        const unpurgedSrcText:string = unpurgedSrcLines.array().join('\n');
+        console.log('\nDependents: ',Purger.dependencyToDependents,'\n');
         return {unpurgedSrcText,purgedEntries};
     }
 }

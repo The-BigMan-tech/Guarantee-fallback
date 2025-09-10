@@ -1,4 +1,4 @@
-export class CustomQueue<T> {
+export default class CustomQueue<T> {
     private arr:(T | undefined)[];
     private start:number;
     private compactionFraction:number = 0.25;//a weight between 0 and 1
