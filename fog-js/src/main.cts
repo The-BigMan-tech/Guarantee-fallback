@@ -135,8 +135,8 @@ export async function resolveDocument(filePath:string,outputFolder?:string):Prom
     return result;
 }
 //for use by the lsp
-export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspAnalysis> {
-    const result = await request<lspAnalysis>("analyzeDocument",{srcText,srcPath});
+export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspDiagnostics[]> {
+    const result = await request<lspDiagnostics[]>("analyzeDocument",{srcText,srcPath});
     console.log(chalk.green('\nSuccessfully analyzed the document.'));
     return result;
 }
@@ -371,6 +371,4 @@ export interface lspDiagnostics {
     severity?:lspSeverity,
     message:string,
 }
-export interface lspAnalysis {
-    diagnostics:lspDiagnostics[]
-}
+

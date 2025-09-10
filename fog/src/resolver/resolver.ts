@@ -8,7 +8,7 @@ import { cartesianProduct } from "combinatorial-generators";
 import {distance} from "fastest-levenshtein";
 import {Heap} from "heap-js";
 import stringify from "safe-stable-stringify";
-import { FullData,convMapToRecord,Rec, ResolutionResult, Result,lspAnalysis, lspSeverity, lspDiagnostics, isWhitespace } from "../utils/utils.js";
+import { FullData,convMapToRecord,Rec, ResolutionResult, Result, lspSeverity, lspDiagnostics, isWhitespace } from "../utils/utils.js";
 import { AtomList } from "../utils/utils.js";
 import fs from 'fs/promises';
 import path from 'path';
@@ -93,7 +93,7 @@ class Essentials {
         Essentials.tree = Essentials.parser.program();
     }
     public static buildDiagnosticsFromReport(report:Report):void {
-        if (Resolver.lspAnalysis===null) return;//dont generate lsp analysis if not required
+        if (Resolver.lspDiagnostics===null) return;//dont generate lsp analysis if not required
 
         const diagnostics:lspDiagnostics[] = [];
         const buildDiagnostic = (targetLine: number, text:string | EndOfLine,message:string):lspDiagnostics => {
@@ -121,7 +121,7 @@ class Essentials {
             };
         }; 
         function registerDiagnostics(key:string):void {
-            Resolver.lspAnalysis!.diagnostics.push(...diagnostics);
+            Resolver.lspDiagnostics!.push(...diagnostics);
             const diagnosticsAtKey = Resolver.lspDiagnosticsCache.get(key) || [];
             Resolver.lspDiagnosticsCache.set(key,[...diagnosticsAtKey,...diagnostics]);//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
         }
@@ -250,7 +250,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private predicateForLog:string | null = null;
 
     public static visitedSentences = new Map<string,VisitedSentence>();
-    public static lspAnalysis:lspAnalysis | null = null;
+    public static lspDiagnostics:lspDiagnostics[] | null = null;
     public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
     public static lastDocumentPath:string | null = null;
 
@@ -983,7 +983,7 @@ function clearStaticVariables(srcPath:string) {//Note that its not all static va
     Resolver.srcLines.length = 0;
     Resolver.logs = null;
     Resolver.logFile = null;
-    Resolver.lspAnalysis = null;
+    Resolver.lspDiagnostics = null;
     Essentials.tree = null;//to prevent accidentally reading an outadted src tree.
     DependencyManager.dependents = [];
     if (srcPath !== Resolver.lastDocumentPath) {
@@ -1302,22 +1302,19 @@ class Purger {
         return {unpurgedSrcText,purgedEntries};
     }
 }
-export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspAnalysis> {
+export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspDiagnostics[]> {
     clearStaticVariables(srcPath);
     const {unpurgedSrcText,purgedEntries} = Purger.purge(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
     const cachedDiagnostics:lspDiagnostics[] = [];
+    
     purgedEntries.forEach(entry=>cachedDiagnostics.push(...entry));
-
-    //Reset the lsp analysis for the current text
-    Resolver.lspAnalysis = {
-        diagnostics:[]
-    };
+    Resolver.lspDiagnostics = [];
+    
     console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
     await generateJson(srcPath,unpurgedSrcText,srcText);//this populates the lsp analysis
     console.log('cache After: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
     
-    const fullDiagnostics = Resolver.lspAnalysis.diagnostics.concat(cachedDiagnostics);//this must be done after resolving the purged text because its only then,that its diagnostics will be filled
-    const fullLspAnalysis:lspAnalysis = {...Resolver.lspAnalysis,diagnostics:fullDiagnostics};
+    const fullDiagnostics = Resolver.lspDiagnostics.concat(cachedDiagnostics);//this must be done after resolving the purged text because its only then,that its diagnostics will be filled
     console.log('visited sentences: ',Resolver.visitedSentences);
-    return fullLspAnalysis;
+    return fullDiagnostics;
 }

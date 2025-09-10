@@ -157,6 +157,4 @@ export interface lspDiagnostics {
     severity?:lspSeverity,
     message:string,
 }
-export interface lspAnalysis {
-    diagnostics:lspDiagnostics[]
-}
+

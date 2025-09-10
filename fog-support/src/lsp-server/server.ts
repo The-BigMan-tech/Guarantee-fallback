@@ -20,11 +20,12 @@ connection.onInitialize(() => {
 
 documents.onDidChangeContent(change => {
     const text = change.document.getText();
-    analyzeDocument(text).then(analysis=>{
-        console.log('🚀 => :24 => analysis:',analysis);
+    const srcPath = change.document.uri;
+    analyzeDocument(text,srcPath).then(diagnostics=>{
+        console.log('🚀 => :24 => analysis:',diagnostics);
         connection.sendDiagnostics({
             uri: change.document.uri,
-            diagnostics: analysis.diagnostics
+            diagnostics:diagnostics
         });
     });
     connection.console.log(`Document changed. Current length: ${text.length} text: ${text}`);
