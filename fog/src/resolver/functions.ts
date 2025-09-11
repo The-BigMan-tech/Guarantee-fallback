@@ -49,8 +49,7 @@ function updateStaticVariables(srcPath:string,srcLines:string[]):void {
     Resolver.terminate = false;
     Resolver.lastDocumentPath = srcPath;
     const srcKeysAsSet = new Set(srcLines.map((content,line)=>createKey(line,content)));
-    const visitedSentences = convMapToRecord(Resolver.visitedSentences);
-    for (const [key,visitedSentence] of Object.entries(visitedSentences)) {
+    for (const [key,visitedSentence] of Resolver.visitedSentences.entries()) {
         if (!srcKeysAsSet.has(visitedSentence.uniqueKey)) {
             Resolver.visitedSentences.delete(key);
         }
