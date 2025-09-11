@@ -1,5 +1,6 @@
 import {v4 as uniqueID} from "uuid";
 import { Static, Type} from '@sinclair/typebox';
+import chalk from "chalk";
 import { TypeCompiler } from '@sinclair/typebox/compiler';
 
 export type Tuple<T, N extends number, R extends unknown[] = []> = 
@@ -136,6 +137,28 @@ export function convMapToRecord<K extends string | number | symbol,V>(map:Map<K,
 export function isWhitespace(line: string): boolean {
     return line.trim().length === 0;
 }
+export function getOrdinalSuffix(n:number):string {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+export function replaceLastOccurrence(str:string, search:string, replacement:string):string {
+    const lastIndex = str.lastIndexOf(search);
+    if (lastIndex === -1) return str; // string not found, return original
+    return str.slice(0, lastIndex) + replacement + str.slice(lastIndex + search.length);
+}
+export function createKey(line:number,content:string):string {
+    const contentNoWhitespaces = content.replace(/\s+/g, '');  // Remove all whitespaces
+    const key = `${line}|${contentNoWhitespaces}`;
+    return key;
+}
+export enum EndOfLine {
+    value=-1//i used a number for better type safety by allowing ts to differentiate it from the other src text that are strings
+}
+export const brown = chalk.hex("#ddcba0ff");
+export const lime = chalk.hex('adef1e');
+export const orange = chalk.hex('f09258f');
+export const darkGreen = chalk.hex('98ce25ff');
 
 //These are for use by the lsp
 export enum lspSeverity {
