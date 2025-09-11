@@ -122,16 +122,20 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
 }
 export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspDiagnostics[]> {
     clearStaticVariables(srcPath);
-    const {unpurgedSrcText,purgedEntries} = Purger.purge(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
-    const cachedDiagnostics:lspDiagnostics[] = [];
-    
-    purgedEntries.forEach(entry=>cachedDiagnostics.push(...entry));
+    const unpurgedSrcText = Purger.purge(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
     Resolver.lspDiagnostics = [];
-    
     console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
+
     await generateJson(srcPath,unpurgedSrcText,srcText);//this populates the lsp analysis
-    console.log('cache After: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
-    
+
+    const cachedDiagnostics:lspDiagnostics[] = [];
+    for (const diagnostics of Resolver.lspDiagnosticsCache.values()) {
+        for (const diagnostic of diagnostics) {
+            cachedDiagnostics.push(diagnostic);
+        }
+    }
+    console.log('cached Diagnostics: ',cachedDiagnostics);
+
     const fullDiagnostics = Resolver.lspDiagnostics.concat(cachedDiagnostics);//this must be done after resolving the purged text because its only then,that its diagnostics will be filled
     console.log('visited sentences: ',Resolver.visitedSentences);
     return fullDiagnostics;

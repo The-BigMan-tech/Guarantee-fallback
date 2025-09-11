@@ -1,6 +1,6 @@
 import CustomQueue from "./custom-queue.js";
 import { LRUCache } from "lru-cache";
-import { createKey, isWhitespace, PurgeResult } from "../utils/utils.js";
+import { createKey, isWhitespace } from "../utils/utils.js";
 import { DependencyManager } from "./dependency-manager.js";
 import { Resolver } from "./resolver.js";
 import { ParseHelper } from "./parse-helper.js";
@@ -10,13 +10,12 @@ import { ParseHelper } from "./parse-helper.js";
 // It expects the cache to have a particular key format.So ensure the cache uses the createKey function in the utils to make the keys.It also manages stale entries and initializes new ones by using the given src document.So there is no need to manage that yourself but expect it to be mutated.
 
 export class Purger {
-    public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V):PurgeResult<V> {
+    public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V):string {
         const srcLines = Resolver.createSrcLines(srcText);
         const unpurgedSrcLines = new CustomQueue<string>([]);
         const srcKeysAsSet = new Set(srcLines.map((content,line)=>createKey(line,content)));
         
         const entries = [...cache.keys()];
-        const purgedEntries:V[] = [];
         const unpurgedKeys = new Set<string>();
 
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
@@ -44,7 +43,6 @@ export class Purger {
             const shouldPurge = inSameDocument && inCache && !isADependency;
         
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
-                purgedEntries.push(cache.get(key)!);
                 unpurgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
             }else {
                 console.log('\nunshifting src line: ',key,'isDependency: ',isADependency,'inCache: ',inCache);   
@@ -70,6 +68,6 @@ export class Purger {
             }
         }
         const unpurgedSrcText:string = unpurgedSrcLines.array().join('\n');
-        return {unpurgedSrcText,purgedEntries};
+        return unpurgedSrcText;
     }
 }
