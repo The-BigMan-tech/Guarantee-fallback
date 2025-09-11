@@ -152,6 +152,27 @@ export function createKey(line:number,content:string):string {
     const key = `${line}|${contentNoWhitespaces}`;
     return key;
 }
+export function contentFromKey(key:string):string {//this function assumes that the key was created from the createKey function
+    return key.slice(key.indexOf('|') + 1);
+}
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function getSrcKeysAndContentFreqs(srcLines:string[]) {
+    const srcKeysAsSet = new Set<string>();
+    const contentFrequencies:Record<string,number> = {};//this is made particularly for catching exact duplicates and ensuring that they dont get purged.Else,identical duplicates wont be caught because one of them,if not related to the change,will be purged and thus,not caught by the resolver.This is to prevent that
+    srcLines.forEach((content,line)=>{
+        const key = createKey(line,content);
+        srcKeysAsSet.add(key);
+        const trimmedContent = contentFromKey(key);//im using this over content directly because this one is stripped off whitespaces
+        if (!isWhitespace(trimmedContent)) {
+            if (contentFrequencies[trimmedContent] === undefined) {
+                contentFrequencies[trimmedContent] = 1;
+            }else {
+                contentFrequencies[trimmedContent] += 1;
+            }
+        }
+    });
+    return {srcKeysAsSet,contentFrequencies};
+}
 export function xand(a:boolean,b:boolean):boolean {
     return (!a && !b) || (a && b);
 }

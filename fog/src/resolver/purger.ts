@@ -1,6 +1,6 @@
 import CustomQueue from "./custom-queue.js";
 import { LRUCache } from "lru-cache";
-import { contentFromKey, createKey, isWhitespace } from "../utils/utils.js";
+import { contentFromKey, createKey, getSrcKeysAndContentFreqs, isWhitespace } from "../utils/utils.js";
 import { DependencyManager } from "./dependency-manager.js";
 import { Resolver } from "./resolver.js";
 import { ParseHelper } from "./parse-helper.js";
@@ -20,22 +20,8 @@ export class Purger {
         ConsoleErrorListener.instance.syntaxError = ():void =>{syntaxError = true;};
 
         const srcLines = Resolver.createSrcLines(srcText);
-        const srcKeysAsSet = new Set<string>();
-
-        const contentFrequencies:Record<string,number> = {};//this is made particularly for catching exact duplicates and ensuring that they dont get purged.Else,identical duplicates wont be caught because one of them,if not related to the change,will be purged and thus,not caught by the resolver.This is to prevent that
-        srcLines.forEach((content,line)=>{
-            const key = createKey(line,content);
-            srcKeysAsSet.add(key);
-            const trimmedContent = contentFromKey(key);//im using this over content directly because this one is stripped off whitespaces
-            if (!isWhitespace(trimmedContent)) {
-                if (contentFrequencies[trimmedContent] === undefined) {
-                    contentFrequencies[trimmedContent] = 1;
-                }else {
-                    contentFrequencies[trimmedContent] += 1;
-                }
-            }
-        });
-
+        const {srcKeysAsSet,contentFrequencies} = getSrcKeysAndContentFreqs(srcLines);
+        
         const unpurgedSrcLines = new CustomQueue<string>([]);
         const unpurgedKeys = new Set<string>();
 
