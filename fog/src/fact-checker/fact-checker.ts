@@ -6,7 +6,7 @@ import { AtomList,Atom } from "../utils/utils.js";
 import { Rec } from "../utils/utils.js";
 import fs from 'fs/promises';
 import chalk from "chalk";
-import { resolveDocument } from "../resolver/resol.js";
+import { resolveDocument } from "../resolver/functions.js";
 import {v4 as uniqueID} from "uuid";
 
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;

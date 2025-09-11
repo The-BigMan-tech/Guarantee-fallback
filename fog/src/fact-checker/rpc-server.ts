@@ -5,7 +5,7 @@ import stringify from "safe-stable-stringify";
 import { Doc, importDocFromJson, importDocFromObject, importDocFromSrc } from "./fact-checker.js";
 import { Atom, AtomList, isGenerator,Result} from "../utils/utils.js";
 import {docOnServer} from "./fact-checker.js";
-import { analyzeDocument, resolveDocument } from "../resolver/resol.js";
+import { analyzeDocument, resolveDocument } from "../resolver/functions.js";
 
 const server = new JSONRPCServer();
 server.addMethod("importDocFromSrc", async ({ filePath, outputFolder }: { filePath: string; outputFolder: string }) => {
