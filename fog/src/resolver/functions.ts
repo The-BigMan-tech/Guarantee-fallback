@@ -29,6 +29,10 @@ function overrideErrorListener():void {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
     const fullSrcLines = Resolver.createSrcLines(fullSrcText);
+    const srcKeysAsSet = new Set(fullSrcLines.map((content,line)=>createKey(line,content)));
+
+    updateStaticVariables(srcKeysAsSet,srcPath);//this must be called before resolution
+    
     const resolver = new Resolver();
     Resolver.srcLines = fullSrcLines;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
     
@@ -38,7 +42,7 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
 
     if (Resolver.terminate) return Result.error;
     await resolver.visit(ParseHelper.tree!);
-    updateStaticVariables(srcPath,fullSrcLines);//this must be called after resolution
+    reupdateVisitedSentences();//this one must be called after resolution
 
     if (!Resolver.terminate) {
         Resolver.wasTerminated = false;
@@ -47,18 +51,23 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
         return Result.error;
     }
 }
-
-function updateStaticVariables(srcPath:string,srcLines:string[]):void {
+function updateStaticVariables(srcKeysAsSet:Set<string>,srcPath:string):void {
+    Resolver.terminate = false;
     Resolver.lastDocumentPath = srcPath;
+    for (const [key,visitedSentence] of Resolver.visitedSentences.entries()) {
+        if (!srcKeysAsSet.has(visitedSentence.uniqueKey)) {
+            Resolver.visitedSentences.delete(key);
+        }
+    }
+}
 
-    const srcKeysAsSet = new Set(srcLines.map((content,line)=>createKey(line,content)));
+function reupdateVisitedSentences():void {
     const seenSrcKeys = new Set<string>();//This is to prevent a src key from having more than one entry which happens because visited sentences is keyed by its semantic content structure,not by the src key and only removing entries with src keys not included in the src protects old entries because they have a current src key tied to their value
-
     const reversedVisitedSentences = [...Resolver.visitedSentences.entries()].reverse();//im doing it in the reverse order because its allows it to delete the earlier entries if they have already been seen.
     for (const [key,visitedSentence] of reversedVisitedSentences) {
         const srcKey = visitedSentence.uniqueKey;
         console.log('has seen:',srcKey,seenSrcKeys.has(srcKey));
-        if (!srcKeysAsSet.has(srcKey) || seenSrcKeys.has(srcKey)) {
+        if (seenSrcKeys.has(srcKey)) {
             Resolver.visitedSentences.delete(key);
         }else {
             seenSrcKeys.add(srcKey);
