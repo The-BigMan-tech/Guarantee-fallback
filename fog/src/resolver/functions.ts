@@ -9,13 +9,13 @@ import { DependencyManager } from "./dependency-manager.js";
 import { Purger } from "./purger.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-async function generateJson(srcPath:string,input:string,fullInput:string) {//the full input variabe here,is in the case where this function is called after purging and the full input is required for some state updates not for resolution.
-    const fullSrcLines = Resolver.createSrcLines(fullInput);
+async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
+    const fullSrcLines = Resolver.createSrcLines(fullSrcText);
     updateStaticVariables(srcPath,fullSrcLines);
 
     const resolver = new Resolver();
     Resolver.srcLines = fullSrcLines;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
-    ParseHelper.parse(input);
+    ParseHelper.parse(srcText);
     if (Resolver.terminate) return Result.error;
 
     await Resolver.flushLogs();//to capture syntax errors to the log
