@@ -44,7 +44,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private targetLineCount:number = this.lineCount;//this is the mutable line count that is safe to increment by any method that inspects tokens and at every new line.Its not meant to be done by every method that inspects tokens but only a few.and here,only three pieces of the codebase does this.This is to prevent incorrect state bugs.
 
     public static terminate:boolean = false;//this is the flag that controls the termination of the resolver
-    public static wasTerminated:boolean = false;//this is just a flag for any part of the codebase to know when it forcefully terminated
 
     public static logFile:string | null = null;
     public static logs:string[] | null = null;
@@ -171,7 +170,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const errForTermination = (kind===ReportKind.Semantic) || (kind===ReportKind.Syntax);
         if (errForTermination) {
             Resolver.terminate = true;
-            Resolver.wasTerminated = true;
         }
     }
     private logProgress(tokens:Token[] | null) {

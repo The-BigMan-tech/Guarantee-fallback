@@ -22,14 +22,13 @@ export class Purger {
         const unpurgedKeys = new Set<string>();
 
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
-        
+
         const entries = [...cache.keys()];
         for (const entry of entries) {
             const isNotInSrc = !srcKeysAsSet.has(entry);
             if (isNotInSrc) {
-                if (!Resolver.wasTerminated) {//the was terminated flag allows diagnotics to remain even when other errors show up
-                    cache.delete(entry);
-                }
+                console.log('\nEntry not in src: ',entry);
+                cache.delete(entry);
             }
         }
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.

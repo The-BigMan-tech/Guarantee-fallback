@@ -45,7 +45,6 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
     reupdateVisitedSentences();//this one must be called after resolution
 
     if (!Resolver.terminate) {
-        Resolver.wasTerminated = false;
         return {aliases:resolver.aliases,predicates:resolver.predicates,records:resolver.records};
     }else {
         return Result.error;
