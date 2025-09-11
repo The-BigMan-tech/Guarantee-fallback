@@ -1,12 +1,14 @@
 import CustomQueue from "./custom-queue.js";
 import { LRUCache } from "lru-cache";
-import { createKey, isWhitespace } from "../utils/utils.js";
+import { contentFromKey, createKey, isWhitespace } from "../utils/utils.js";
 import { DependencyManager } from "./dependency-manager.js";
 import { Resolver } from "./resolver.js";
 import { ParseHelper } from "./parse-helper.js";
 import { ConsoleErrorListener } from "antlr4ng";
 
 //The purger takes in a src document and by using a cache that maps each line to any arbitary data,the purger will compare it against the cached keys and return a purged src document which only contains the lines that changed and all other lines that the change depends on and the lines that also depends on that change.
+
+//The caller should handle the responsibility of adding items to the cache.The purger just uses it to purge the input.
 
 // It expects the cache to have a particular key format.So ensure the cache uses the createKey function in the utils to make the keys.It also manages stale entries and initializes new ones by using the given src document.So there is no need to manage that yourself but expect it to be mutated.
 
@@ -18,14 +20,29 @@ export class Purger {
         ConsoleErrorListener.instance.syntaxError = ():void =>{syntaxError = true;};
 
         const srcLines = Resolver.createSrcLines(srcText);
-        const srcKeysAsSet = new Set(srcLines.map((content,line)=>createKey(line,content)));
-        
+        const srcKeysAsSet = new Set<string>();
+
+        const contentFrequency:Record<string,number> = {}; 
+        srcLines.forEach((content,line)=>{
+            const key = createKey(line,content);
+            srcKeysAsSet.add(key);
+            const trimmedContent = contentFromKey(key);//im using this over content directly because this one is stripped off whitespaces
+            if (!isWhitespace(trimmedContent)) {
+                if (contentFrequency[trimmedContent] === undefined) {
+                    contentFrequency[trimmedContent] = 1;
+                }else {
+                    contentFrequency[trimmedContent] += 1;
+                }
+            }
+        });
+
         const unpurgedSrcLines = new CustomQueue<string>([]);
         const unpurgedKeys = new Set<string>();
 
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
-        
+        console.log('\nContent frequency: ',contentFrequency);
+
         function refreshDependents(entry:string):void {
             const dependentsAsKeys = Purger.dependencyToDependents.get(entry);
             if (dependentsAsKeys) {
@@ -37,6 +54,9 @@ export class Purger {
         }
         const entries = [...cache.keys()];
         for (const entry of entries) {
+            const lineContent = contentFromKey(entry);
+            console.log('line content: ',lineContent,'content frequency: ',contentFrequency[lineContent]);
+
             const isNotInSrc = !srcKeysAsSet.has(entry);
             if (isNotInSrc) {
                 console.log('\nEntry not in src: ',entry);
