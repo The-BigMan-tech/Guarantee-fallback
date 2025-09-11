@@ -259,7 +259,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
         const stringifiedNames = stringify(tokenNames.toArray());
         const repeatedSentence = Resolver.visitedSentences.get(stringifiedNames);
-
         
         const srcLine = Resolver.srcLine(this.lineCount)!;
         console.log('🚀 => :346 => checkForRepetition => repeatedSentence:',stringifiedNames,'src: ',srcLine);

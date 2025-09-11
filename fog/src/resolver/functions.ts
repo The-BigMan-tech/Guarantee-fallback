@@ -25,11 +25,10 @@ function overrideErrorListener():void {
         });
     };
 }
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
     const fullSrcLines = Resolver.createSrcLines(fullSrcText);
-    updateStaticVariables(srcPath,fullSrcLines);
-
     const resolver = new Resolver();
     Resolver.srcLines = fullSrcLines;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
     
@@ -39,6 +38,7 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
 
     if (Resolver.terminate) return Result.error;
     await resolver.visit(ParseHelper.tree!);
+    updateStaticVariables(srcPath,fullSrcLines);//this must be called after resolution
 
     if (!Resolver.terminate) {
         Resolver.wasTerminated = false;
@@ -47,16 +47,25 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
         return Result.error;
     }
 }
+
 function updateStaticVariables(srcPath:string,srcLines:string[]):void {
-    Resolver.terminate = false;
     Resolver.lastDocumentPath = srcPath;
+
     const srcKeysAsSet = new Set(srcLines.map((content,line)=>createKey(line,content)));
-    for (const [key,visitedSentence] of Resolver.visitedSentences.entries()) {
-        if (!srcKeysAsSet.has(visitedSentence.uniqueKey)) {
+    const seenSrcKeys = new Set<string>();//This is to prevent a src key from having more than one entry which happens because visited sentences is keyed by its semantic content structure,not by the src key and only removing entries with src keys not included in the src protects old entries because they have a current src key tied to their value
+
+    const reversedVisitedSentences = [...Resolver.visitedSentences.entries()].reverse();//im doing it in the reverse order because its allows it to delete the earlier entries if they have already been seen.
+    for (const [key,visitedSentence] of reversedVisitedSentences) {
+        const srcKey = visitedSentence.uniqueKey;
+        console.log('has seen:',srcKey,seenSrcKeys.has(srcKey));
+        if (!srcKeysAsSet.has(srcKey) || seenSrcKeys.has(srcKey)) {
             Resolver.visitedSentences.delete(key);
+        }else {
+            seenSrcKeys.add(srcKey);
         }
     }
 }
+
 //the srcPath variable is to tie the lifetime of some static variables to the current path rather than on each request
 function clearStaticVariables(srcPath:string):void {//Note that its not all static variables that must be cleared or be cleared here.
     Resolver.terminate = false;//reset it for subsequent analyzing
@@ -72,11 +81,13 @@ function clearStaticVariables(srcPath:string):void {//Note that its not all stat
         Resolver.visitedSentences.clear();//the reason why i tied its lifetime to path changes is because the purging process used in incremental analysis will allow semantically identical sentences from being caught if the previous identical sentences wont survive the purge
     }
 }
+
 function getOutputPathNoExt(srcFilePath:string,outputFolder?:string):string {
     const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
     const outputPath = outputFolder || path.dirname(srcFilePath);
     return path.join(outputPath,filePathNoExt);
 }
+
 async function accessOutputFolder(outputFilePath:string):Promise<void> {
     const outputFolder = path.dirname(outputFilePath);
     try {
@@ -86,6 +97,7 @@ async function accessOutputFolder(outputFilePath:string):Promise<void> {
         await fs.mkdir(outputFolder);
     };
 }
+
 async function setUpLogs(outputFilePath:string):Promise<void> {
     await accessOutputFolder(outputFilePath);
     const logPath = outputFilePath + '.ansi';
@@ -93,6 +105,7 @@ async function setUpLogs(outputFilePath:string):Promise<void> {
     Resolver.logs = [];
     await fs.writeFile(Resolver.logFile, 'THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.\n\n');
 }
+
 async function writeToOutput(outputFilePath:string,jsonInput:string,start:number):Promise<string> {
     await accessOutputFolder(outputFilePath);
     const jsonPath = outputFilePath + ".json";
@@ -105,6 +118,7 @@ async function writeToOutput(outputFilePath:string,jsonInput:string,start:number
     console.log(messages.join(''));
     return jsonPath;
 }
+
 export async function resolveDocument(srcFilePath:string,outputFolder?:string):Promise<ResolutionResult> {
     clearStaticVariables(srcFilePath);//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
 
@@ -138,6 +152,7 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
         return {result:Result.error,jsonPath:undefined};
     }
 }
+
 export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspDiagnostics[]> {
     clearStaticVariables(srcPath);
     Resolver.includeDiagnostics = true;
@@ -157,8 +172,6 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     return fullDiagnostics;
 }
 
-
-
 async function parseJson(json:Path):Promise<Result.error | object>  {
     try {
         const jsonString = await fs.readFile(json, 'utf8');
@@ -168,6 +181,7 @@ async function parseJson(json:Path):Promise<Result.error | object>  {
         return Result.error;
     };
 }
+
 async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
     const providedPath = typeof json === "string";
     const [jsonAsPath,jsonAsObject] = (providedPath)?[json,null]:[null,json];
@@ -190,9 +204,11 @@ async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
     serverDoc[0] = new Doc(fullData.records,fullData.predicates);
     return Result.success;
 }
+
 export async function importDocFromObject(json:Record<string,any>):Promise<Result> {
     return await loadDocFromJson(json);
 }
+
 export async function importDocFromSrc(filePath:string,outputFolder:string):Promise<Result> {
     const isSrcFile = filePath.endsWith(".fog");
     if (!isSrcFile) {
@@ -204,6 +220,7 @@ export async function importDocFromSrc(filePath:string,outputFolder:string):Prom
     const loadResult = await loadDocFromJson(jsonPathResult!);//we can assert this here because if the resolver result isnt an error,then the path is guaranteed to be valid
     return loadResult;
 }
+
 export async function importDocFromJson(filePath:string):Promise<Result> {
     const isJsonFile = filePath.endsWith(".json");
     if (!isJsonFile) {
