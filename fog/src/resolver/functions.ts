@@ -142,8 +142,6 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     Resolver.includeDiagnostics = true;
     
     const unpurgedSrcText = Purger.purge(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
-    console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
-
     await generateJson(srcPath,unpurgedSrcText,srcText);//this populates the lsp analysis
 
     const fullDiagnostics:lspDiagnostics[] = [];
@@ -152,6 +150,7 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
             fullDiagnostics.push(diagnostic);
         }
     }
+    console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
     console.log('cached Diagnostics: ',fullDiagnostics);
     console.log('visited sentences: ',Resolver.visitedSentences);
     return fullDiagnostics;

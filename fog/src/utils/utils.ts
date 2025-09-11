@@ -158,10 +158,6 @@ export function xand(a:boolean,b:boolean):boolean {
 export enum EndOfLine {
     value=-1//i used a number for better type safety by allowing ts to differentiate it from the other src text that are strings
 }
-export interface PurgeResult<V> {
-    unpurgedSrcText:string,
-    purgedEntries:V[]
-}
 export const brown = chalk.hex("#ddcba0ff");
 export const lime = chalk.hex('adef1e');
 export const orange = chalk.hex('f09258f');

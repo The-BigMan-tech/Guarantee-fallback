@@ -4,6 +4,7 @@ import { createKey, isWhitespace } from "../utils/utils.js";
 import { DependencyManager } from "./dependency-manager.js";
 import { Resolver } from "./resolver.js";
 import { ParseHelper } from "./parse-helper.js";
+import { ConsoleErrorListener } from "antlr4ng";
 
 //The purger takes in a src document and by using a cache that maps each line to any arbitary data,the purger will compare it against the cached keys and return a purged src document which only contains the lines that changed and all other lines that the change depends on and the lines that depends on that change.
 
@@ -11,6 +12,9 @@ import { ParseHelper } from "./parse-helper.js";
 
 export class Purger {
     public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V):string {
+        let syntaxError:boolean = false;
+        ConsoleErrorListener.instance.syntaxError = ():void =>{syntaxError = true;};
+
         const srcLines = Resolver.createSrcLines(srcText);
         const unpurgedSrcLines = new CustomQueue<string>([]);
         const srcKeysAsSet = new Set(srcLines.map((content,line)=>createKey(line,content)));
@@ -38,14 +42,14 @@ export class Purger {
 
             const manager = new DependencyManager({key,line,srcLine,srcLines,inCache});
             ParseHelper.parse(srcLine);
-
-            const isADependency = manager.visit(ParseHelper.tree!);
-            const shouldPurge = inSameDocument && inCache && !isADependency;
+        
+            const isADependency:boolean | undefined = (syntaxError)?undefined:manager.visit(ParseHelper.tree!);
+            const shouldPurge = !syntaxError && inSameDocument && inCache && (isADependency === false);
         
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
                 unpurgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
             }else {
-                console.log('\nunshifting src line: ',key,'isDependency: ',isADependency,'inCache: ',inCache);   
+                console.log('\nunshifting src line: ',key,'isDependency: ',isADependency,'inCache: ',inCache,'syntax err: ',syntaxError);   
                 unpurgedSrcLines.unshift(srcLine);
                 cache.delete(key);//remove from the cache entry since its going to be reanalyzed
                 unpurgedKeys.add(key);
@@ -66,6 +70,7 @@ export class Purger {
             if (!isWhitespace(key) && !cache.has(key)) {//we dont want to override existing entries
                 cache.set(key,emptyValue);
             }
+            syntaxError = false;
         }
         const unpurgedSrcText:string = unpurgedSrcLines.array().join('\n');
         return unpurgedSrcText;
