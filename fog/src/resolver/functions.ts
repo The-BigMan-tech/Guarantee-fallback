@@ -74,13 +74,6 @@ async function writeToOutput(outputFilePath:string,jsonInput:string,start:number
     console.log(messages.join(''));
     return jsonPath;
 }
-const omittedJsonKeys = new Set(['set','indexMap','recID','members']);//I didnt preserve recID because they are just for caching and not lookups.New ones can be reliably generated at runtime for caching.
-function omitJsonKeys(key:string,value:any) {
-    if (omittedJsonKeys.has(key)) {
-        return undefined; // exclude 'password'
-    }
-    return value; // include everything else
-}
 export async function resolveDocument(srcFilePath:string,outputFolder?:string):Promise<ResolutionResult> {
     clearStaticVariables(srcFilePath);//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
 

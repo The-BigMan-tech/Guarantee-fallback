@@ -3,7 +3,7 @@ import { DSLLexer } from "../generated/DSLLexer.js";
 import { Token } from "antlr4ng";
 import { ParseTree } from "antlr4ng";
 import { ProgramContext,FactContext,AliasDeclarationContext } from "../generated/DSLParser.js";
-import { Rec,AtomList,lspDiagnostics,replaceLastOccurrence, brown, lime, createKey } from "../utils/utils.js";
+import { Rec,AtomList,lspDiagnostics,replaceLastOccurrence, brown, lime, createKey, ReportKind, darkGreen, mapToColor, Report, EndOfLine, lspSeverity, getOrdinalSuffix, omittedJsonKeys } from "../utils/utils.js";
 import { LRUCache } from "lru-cache";
 import stringify from "safe-stable-stringify";
 import fs from "fs/promises";
@@ -12,6 +12,9 @@ import {Heap} from "heap-js";
 import chalk from "chalk";
 import { distance } from "fastest-levenshtein";
 import { cartesianProduct } from "combinatorial-generators";
+import stripAnsi from "strip-ansi";
+import { ConsoleErrorListener } from "antlr4ng";
+import { ParseHelper } from "./parse-helper.js";
 
 interface ResolvedSingleTokens {
     indices:number[],//i used an array because they may be multiple refs in a sentence to resolve
@@ -62,11 +65,132 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
     public static lastDocumentPath:string | null = null;
 
+    constructor() {
+        super();
+        ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:number, msg: string): void =>{
+            const zeroBasedLine = line - 1;//the line returned by this listenere is 1-based so i deducted 1 to make it 0-based which is the correct form the pogram understands
+            const srcLine = Resolver.srcLine(zeroBasedLine);
+            const srcText = ((srcLine)?srcLine[column]:undefined) || EndOfLine.value;
+
+            console.log('src txt',srcText);
+            Resolver.castReport({
+                kind:ReportKind.Syntax,
+                line:zeroBasedLine,
+                srcText,
+                msg,
+            });
+        };
+    }
     //this method expects that the line is 0-based
     public static srcLine = (line:number):string | undefined => Resolver.srcLines.at(line);
+
     private printTokens(tokens:Token[] | null):void {
         const tokenDebug = tokens?.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
         console.log('\n Tokens:',tokenDebug);
+    }
+
+    public static buildDiagnosticsFromReport(report:Report):void {
+        if (Resolver.lspDiagnostics===null) return;//dont generate lsp analysis if not required
+        const diagnostics:lspDiagnostics[] = [];
+        const buildDiagnostic = (targetLine: number, text:string | EndOfLine,message:string):lspDiagnostics => {
+            const sourceLine = Resolver.srcLine(targetLine) || "";
+            const cleanedSourceLine = sourceLine.replace(/\r+$/, ""); // remove trailing \r
+            
+            let startChar:number;
+            let endChar:number;
+
+            if (text !== EndOfLine.value) {
+                const charPos = cleanedSourceLine.indexOf(text);//it doesnt strip out carriage return like in the src line cuz the text can be a slice into any piece of the src and altering its formatting can lead to issues
+                startChar = (charPos < 0)?0:charPos;
+                endChar = startChar + text.length;
+            }else {
+                startChar = cleanedSourceLine.length - 1;
+                endChar = startChar;
+            }
+            return {
+                range: {
+                    start: { line: targetLine, character: startChar },
+                    end: { line: targetLine, character: endChar }
+                },
+                severity,
+                message
+            };
+        }; 
+        function registerDiagnostics(key:string):void {
+            Resolver.lspDiagnostics!.push(...diagnostics);
+            const diagnosticsAtKey = Resolver.lspDiagnosticsCache.get(key) || [];
+            Resolver.lspDiagnosticsCache.set(key,[...diagnosticsAtKey,...diagnostics]);//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
+        }
+        const {kind,line,lines,msg,srcText} = report;//line is 0-based
+        const srcLine:string = Resolver.srcLine(line)!;
+
+        const mapToSeverity =  {
+            [ReportKind.Semantic]:lspSeverity.Error,
+            [ReportKind.Syntax]:lspSeverity.Error,
+            [ReportKind.Warning]:lspSeverity.Warning,
+            [ReportKind.Hint]:lspSeverity.Hint
+        };
+
+        const severity = mapToSeverity[kind];
+        const modifiedMsg = msg.split('\n').map(str=>str.replace('-','')).join('');//this removes the leading - sign in each sentence of the message.I use them when logging the report to a file for clarity but for in editor reports,it is unnecessary.
+        const cleanMsg = stripAnsi(modifiedMsg.replace(/\r?\n|\r/g, " "));//strip ansi codes and new lines
+        
+        const key = createKey(line,srcLine);
+        if (!lines && ((typeof srcText === "string") || (srcText === EndOfLine.value))) {
+            diagnostics.push(buildDiagnostic(line,srcText,cleanMsg));
+            registerDiagnostics(key);
+        }
+        else if (lines && Array.isArray(srcText)){
+            for (let i = 0; i < lines.length; i++) {
+                const targetLine = lines[i];
+                const text = srcText[i];
+                const isMainLine = (targetLine===line);
+                const message = isMainLine?cleanMsg:`This line is involved in an issue with line ${line + 1}.`;
+                diagnostics.push(buildDiagnostic(targetLine,text,message));
+                if (isMainLine) {
+                    registerDiagnostics(key);
+                }else {
+                    registerDiagnostics(createKey(targetLine,Resolver.srcLines[targetLine]));
+                }
+            }
+        }
+    }
+    public static castReport(report:Report):void {
+        Resolver.buildDiagnosticsFromReport(report);
+        const {kind,line,lines,msg} = report;
+        const messages = [];
+
+        console.log('🚀 => :78 => pushLine => line:', line);
+        const pushLine = (line:number):void => {messages.push(brown(Resolver.srcLine(line)?.trim() + '\n'));};
+        const errTitle = chalk.underline(`\n${kind} line ${line + 1}:`);
+        const coloredTitle = mapToColor(kind)!(errTitle);
+
+        const subTitle1 = [chalk.green('\nCheck'),darkGreen('->')];
+        const subTitle2 = chalk.green.underline('\n\nCheck these lines:\n');
+
+        messages.push(coloredTitle);
+        messages.push(`\n${msg}`);
+
+        if (!lines) {
+            messages.push(...subTitle1);
+            pushLine(line);
+        }
+        else{
+            messages.push(subTitle2);
+            for (const line of lines) {
+                messages.push(chalk.gray(`${line+1}.`));//These show the line count on the side.
+                pushLine(line);
+            }
+        }
+        messages.push('\n');
+        console.info(...messages);
+        Resolver.logs?.push(...messages);
+
+        const errForTermination = (kind===ReportKind.Semantic) || (kind===ReportKind.Syntax);
+        if (errForTermination) {
+            Resolver.terminate = true;
+            Resolver.wasTerminated = true;
+        }
     }
     private logProgress(tokens:Token[] | null) {
         if ((tokens===null) || Resolver.terminate) return;
@@ -93,7 +217,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
         if (this.prevRefCheck.encounteredRef) {//using prevRefCehck under the same loop accesses the ref check of the latest senetnce.
             successMessage += resolveRefMessage;
-            Essentials.buildDiagnosticsFromReport({
+            Resolver.buildDiagnosticsFromReport({
                 kind:ReportKind.Hint,
                 line:this.lineCount,
                 msg:resolveRefMessage,
@@ -105,7 +229,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             if (predicateFromAlias) {
                 const aliasMsg = `\n-Alias #${this.predicateForLog} -> *${predicateFromAlias}`;
                 successMessage += aliasMsg;
-                Essentials.buildDiagnosticsFromReport({
+                Resolver.buildDiagnosticsFromReport({
                     kind:ReportKind.Hint,
                     line:this.lineCount,
                     msg:aliasMsg,
@@ -159,7 +283,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         console.log('🚀 => :346 => checkForRepetition => repeatedSentence:',stringifiedNames,'src: ',srcLine);
         
         if (repeatedSentence && (repeatedSentence.line !== this.lineCount)) {//the second condition is possible because viitedSentences is persistent meaning that subsequent analysis can encounter the same line as a repeated sentence
-            Essentials.castReport({
+            Resolver.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
                 srcText:[Resolver.srcLine(repeatedSentence.line)!,srcLine],
@@ -213,13 +337,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return undefined;
     };
     public visitFact = async (ctx:FactContext)=> {
-        const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        const tokens:Token[] = ParseHelper.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         this.resolveRefs(tokens);
         if (!Resolver.terminate) this.buildFact(tokens);//i checked for termination here because ref resolution can fail
         return tokens;
     };
     public visitAliasDeclaration = async (ctx:AliasDeclarationContext)=> {
-        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        const tokens = ParseHelper.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         this.resolveAlias(tokens);
         return tokens;
     };
@@ -270,15 +394,15 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 msg,
                 srcText:text
             });
-            if (!Number.isInteger(num)) Essentials.castReport(report(ReportKind.Semantic,`-The reference; ${chalk.bold(text)} must use an integer`));
-            if (num > 3) Essentials.castReport(report(ReportKind.Warning,`-Are you sure you can track what this reference ${chalk.bold(text)} is pointing to?`));
+            if (!Number.isInteger(num)) Resolver.castReport(report(ReportKind.Semantic,`-The reference; ${chalk.bold(text)} must use an integer`));
+            if (num > 3) Resolver.castReport(report(ReportKind.Warning,`-Are you sure you can track what this reference ${chalk.bold(text)} is pointing to?`));
             return num;
         };
         const checkForRefAmbiguity = ()=> {
             if (this.prevRefCheck.encounteredRef && encounteredRef) {
                 let msg = `-Be sure that you have followed how you are referencing a member from a sentence that also has a ref.`;
                 msg += `\n-You may wish to write the name or array explicitly in ${chalk.bold('line:'+ (this.prevRefCheck.line+1))} to avoid confusion.`;
-                Essentials.castReport({
+                Resolver.castReport({
                     kind:ReportKind.Warning,
                     line:this.lineCount,
                     msg,
@@ -290,7 +414,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const applyResolution = ()=> {
             const numOfRefs = (resolvedSingleTokens.indices.length + resolvedGroupedTokens.indices.length);
             if (numOfRefs  > 2) {
-                Essentials.castReport({
+                Resolver.castReport({
                     kind:ReportKind.Warning,
                     line:this.lineCount,
                     srcText:Resolver.srcLine(this.lineCount)!,
@@ -370,9 +494,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             });
             if (!member) {
                 if (refType === "object") {
-                    Essentials.castReport(report(`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex!)} member in the prior sentence.`,));
+                    Resolver.castReport(report(`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a ${getOrdinalSuffix(nthIndex!)} member in the prior sentence.`,));
                 }else {
-                    Essentials.castReport(report(`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a sentence prior to the reference and it has a ${getOrdinalSuffix(nthIndex!)} member.`));
+                    Resolver.castReport(report(`-Failed to resolve the reference ${chalk.bold(ref)}. \n-Be sure that there is a sentence prior to the reference and it has a ${getOrdinalSuffix(nthIndex!)} member.`));
                 }
                 return false;
             }
@@ -380,22 +504,22 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 return true;
             }
             else if ((refType === 'object') && (extractNumFromRef(ref) === 1)) {
-                Essentials.castReport(report(`-The reference ${chalk.bold(ref)} must point to an object of the prior sentence,not the subject.\n-If that is the intention,then use <He>,<She> or <It>.`));
+                Resolver.castReport(report(`-The reference ${chalk.bold(ref)} must point to an object of the prior sentence,not the subject.\n-If that is the intention,then use <He>,<She> or <It>.`));
                 return false;
             }
             else if ((refType === "object") && !encounteredName && !encounteredRef) {
-                Essentials.castReport(report(`-An object reference can not be the subject of a sentence.`));
+                Resolver.castReport(report(`-An object reference can not be the subject of a sentence.`));
                 return false;
             }
             else if ((refType === "object") && (encounteredRef==="object")) {
-                Essentials.castReport(report(`-A sentence can not have more than one object reference.`));
+                Resolver.castReport(report(`-A sentence can not have more than one object reference.`));
                 return false;
             }
             else if ((refType === "subject") && (encounteredName || encounteredRef)) {
                 if (encounteredRef === "subject") {
-                    Essentials.castReport(report(`A sentence can not have more than one subject reference.`));
+                    Resolver.castReport(report(`A sentence can not have more than one subject reference.`));
                 }else {
-                    Essentials.castReport(report(`A subject reference can not be the object of a sentence.`));
+                    Resolver.castReport(report(`A subject reference can not be the object of a sentence.`));
                 }
                 return false;
             }
@@ -403,7 +527,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 if (member?.type === DSLLexer.NAME) {
                     return true;
                 }else {
-                    Essentials.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to a name of the previous sentence but found an array.`));
+                    Resolver.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to a name of the previous sentence but found an array.`));
                     return false;
                 }
             }
@@ -411,7 +535,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 if (member?.type === DSLLexer.LSQUARE) {
                     return true;
                 }else {
-                    Essentials.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to an array of the previous sentence but found a name.`));
+                    Resolver.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to an array of the previous sentence but found a name.`));
                     return false;
                 }
             }
@@ -485,13 +609,11 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
             else if (type === DSLLexer.PLAIN_WORD) {//this branch is to warn users if they forgot to place angle brackets around the ref and may have also added a typo on top of that.If they made a typo within the angle brackets,it will be caught as a syntax error.This one catches typos not within the bracket as a warning
                 for (const nounRef of nounRefs) {
-                    const normText = (text.length > 2)?text.toLowerCase():text;//by only lower casing the text if its more than two letters,i prevent the text from being treated leniently when its too small(since lower casing the inputs reduces distance).Else,it will falsely match words that are few distances away but are not semantically similar.
-                    const normNounRef = (nounRef.length > 2)?nounRef.toLowerCase():nounRef;
-                    const dist = distance(normText,normNounRef);
-                    const exclude = new Set(['is']);
-                    if ((dist < 2) && !exclude.has(normText)) {//to exclude is from getting suggestions.
+                    const normText = text.toLowerCase();//by only lower casing the text if its more than two letters,i prevent the text from being treated leniently when its too small(since lower casing the inputs reduces distance).Else,it will falsely match words that are few distances away but are not semantically similar.
+                    const normNounRef = nounRef.toLowerCase();
+                    if (normText === normNounRef) {//to exclude is from getting suggestions.
                         const suggestion = (objectRefs.has(nounRef))?'object ref, <'+nounRef+':n>':'subject ref, <'+nounRef+'>';
-                        Essentials.castReport({
+                        Resolver.castReport({
                             kind:ReportKind.Warning,
                             line:this.lineCount,
                             msg:`-Did you mean to use the ${suggestion} instead of the filler,${chalk.bold(text)}?`,
@@ -535,7 +657,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         this.aliases.set(alias,predicate || alias);//the fallback is for when there is no predicate provided to point to in the alias declaration.its used as a shorthand where the alias points to the predicate of the same name.its a pettern to invalidate the use of those predicates for better safety.
 
         if (this.builtAFact) {
-            Essentials.castReport({
+            Resolver.castReport({
                 kind:ReportKind.Warning,
                 line:this.lineCount,
                 msg:`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors sooner.`,
@@ -579,7 +701,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const isAlias = this.aliases.has(Resolver.stripMark(text));//the aliases set stores plain words
         
         if (isAlias && ! text.startsWith('#')) {
-            Essentials.castReport({
+            Resolver.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
                 msg:`-Aliases are meant to be prefixed with ${chalk.bold('#')} but found ${chalk.bold(text)}. Did you mean: #${chalk.bold(Resolver.stripMark(text))}?`,
@@ -590,7 +712,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             const recommendedAlias = this.recommendAlias(Resolver.stripMark(text));
             let message:string = `-Predicates are meant to be prefixed with ${chalk.bold('*')} but found ${chalk.bold(token.text)}.\n-Did you forget to declare it as an alias? `;
             message += (recommendedAlias)?`Or did you mean to type #${recommendedAlias}?`:'';
-            Essentials.castReport({
+            Resolver.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
                 msg:message,
@@ -605,7 +727,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             const type = token.type;
             if ((type === DSLLexer.PREDICATE) || (type === DSLLexer.ALIAS) ) {
                 if (relation !== null) {
-                    Essentials.castReport({
+                    Resolver.castReport({
                         kind:ReportKind.Semantic,
                         line:this.lineCount,
                         msg:`-They can only be one alias or predicate in a sentence but found ${chalk.bold('*'+relation)} and ${chalk.bold(text)} being used at the same time.`,
@@ -625,14 +747,14 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         });
         if (relation === null) {
-            Essentials.castReport({
+            Resolver.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
                 msg:'-A sentence must have one predicate or alias.',
                 srcText:Resolver.srcLine(this.lineCount)!
             });
         }else if (omittedJsonKeys.has(relation)) {
-            Essentials.castReport({
+            Resolver.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
                 msg:`The following keys should not be used as predicates or aliases as they are used to omit unnecessary data from the json document:\n${chalk.yellow(Array.from(omittedJsonKeys))}`,
@@ -651,7 +773,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
         this.expandedFacts = this.expandRecursively(groupedData!);
         for (const fact of this.expandedFacts) {;
-            if (fact.length === 0) Essentials.castReport({
+            if (fact.length === 0) Resolver.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
                 msg:'-A sentence must contain at least one atom.',
@@ -670,14 +792,14 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             let message = `-There is no existing usage of the name '${chalk.bold(str)}'`;
             const recommendedName = this.recommendUsedName(str);
             message += (recommendedName)?`\n-Did you mean to type ${chalk.bold('!'+recommendedName)} instead?`:`\n-It has to be written as ${chalk.bold(':'+str)} since it is just being declared.`;
-            Essentials.castReport({
+            Resolver.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
                 msg:message,
                 srcText:text
             });
         }else if (!Resolver.isStrict(text) && this.usedNames[str] > 0) {//only give the recommendation if this is not the first time it is used
-            Essentials.castReport({
+            Resolver.castReport({
                 kind:ReportKind.Warning,
                 line:this.lineCount,
                 msg:`-You may wish to type ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \n-It signals that it has been used before here and it prevents errors early.`,
@@ -702,7 +824,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 const str = Resolver.stripMark(text);
                 if (!readOnly) {
                     if (visitedNames.has(str)) {
-                        Essentials.castReport({
+                        Resolver.castReport({
                             kind:ReportKind.Semantic,
                             line:this.lineCount,
                             msg:`-The same name cannot be used more than once in a sentence but found ${chalk.bold(text)} repeated.`,
@@ -724,7 +846,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 if (arr && (arr.length > 0)) {
                     list.push(arr);
                 }else {
-                    Essentials.castReport({
+                    Resolver.castReport({
                         kind:ReportKind.Warning,
                         line:this.lineCount,
                         msg:`-The empty array is ignored.`,
@@ -739,7 +861,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 const capitalLetter = text.toUpperCase()[0];
                 const exclude = new Set(['A','I']);
                 if (text.startsWith(capitalLetter) && !exclude.has(text)) {
-                    Essentials.castReport({
+                    Resolver.castReport({
                         kind:ReportKind.Warning,
                         line:this.lineCount,
                         msg:`-Did you mean to write the name,${chalk.bold(":"+text)} instead of the filler,${chalk.bold(text)}?`,

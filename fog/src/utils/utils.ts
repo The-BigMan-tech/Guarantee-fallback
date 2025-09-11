@@ -1,6 +1,6 @@
 import {v4 as uniqueID} from "uuid";
 import { Static, Type} from '@sinclair/typebox';
-import chalk from "chalk";
+import chalk, { ChalkInstance } from "chalk";
 import { TypeCompiler } from '@sinclair/typebox/compiler';
 
 export type Tuple<T, N extends number, R extends unknown[] = []> = 
@@ -160,6 +160,44 @@ export const lime = chalk.hex('adef1e');
 export const orange = chalk.hex('f09258f');
 export const darkGreen = chalk.hex('98ce25ff');
 
+export function mapToColor(kind:ReportKind):ChalkInstance | null {
+    switch (kind) {
+    case(ReportKind.Semantic): {
+        return chalk.red;
+    }
+    case (ReportKind.Syntax): {
+        return chalk.red;
+    }
+    case (ReportKind.Warning): {
+        return orange;
+    }
+    }
+    return null;
+}
+export const omittedJsonKeys = new Set(['set','indexMap','recID','members']);//I didnt preserve recID because they are just for caching and not lookups.New ones can be reliably generated at runtime for caching.
+
+export function omitJsonKeys(key:string,value:any):any | undefined {
+    if (omittedJsonKeys.has(key)) {
+        return undefined; // exclude 'password'
+    }
+    return value; // include everything else
+}
+
+export enum ReportKind {
+    Semantic="Semantic Error at",
+    Syntax="Syntax Error at",
+    Warning="Double check",
+    Hint="Hint at"
+}
+export type InlineSrcText = string | string[] | EndOfLine;
+
+export interface Report {
+    kind:ReportKind,
+    line:number,//this is 0-based
+    lines?:number[]
+    msg:string,
+    srcText:InlineSrcText
+}
 //These are for use by the lsp
 export enum lspSeverity {
     Error=1,
