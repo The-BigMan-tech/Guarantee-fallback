@@ -4,7 +4,8 @@ import { Token } from "antlr4ng";
 import { ParseTree } from "antlr4ng";
 import { ProgramContext,FactContext,AliasDeclarationContext } from "../generated/DSLParser.js";
 import { isWhitespace } from "../utils/utils.js";
-
+import { Resolver } from "./resolver.js";
+import { ParseHelper } from "./parse-helper.js";
 
 export interface Dependent {
     includeDependency:boolean,
@@ -148,13 +149,13 @@ export class DependencyManager extends DSLVisitor<boolean | undefined> {
         }
     }
     public visitFact = (ctx:FactContext):undefined => {
-        const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        const tokens:Token[] = ParseHelper.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         this.settleDependents(tokens);//its important that this line settles any dependents if it can,before finally checking for its own dependencies.Else,it will end up trying to settle its own dependencies with itself
         this.checkForDependencies(tokens);
         return undefined;
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext):undefined => {
-        const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
+        const tokens = ParseHelper.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         this.settleAliasDependents(tokens);
         return undefined;
     };

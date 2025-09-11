@@ -1,14 +1,25 @@
+import { convMapToRecord, createKey, FullData, lime, lspDiagnostics, omitJsonKeys, ResolutionResult, Result } from "../utils/utils.js";
+import { ParseHelper } from "./parse-helper.js";
+import { Resolver } from "./resolver.js";
+import path from "path";
+import fs from "fs/promises";
+import chalk from "chalk";
+import stringify from "safe-stable-stringify";
+import { DependencyManager } from "./dependency-manager.js";
+import { Purger } from "./purger.js";
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function generateJson(srcPath:string,input:string,fullInput:string) {//the full input variabe here,is in the case where this function is called after purging and the full input is required for some state updates not for resolution.
     const fullSrcLines = Resolver.createSrcLines(fullInput);
     updateStaticVariables(srcPath,fullSrcLines);
 
     const resolver = new Resolver();
     Resolver.srcLines = fullSrcLines;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
-    Essentials.parse(input);
+    ParseHelper.parse(input);
     if (Resolver.terminate) return Result.error;
 
     await Resolver.flushLogs();//to capture syntax errors to the log
-    await resolver.visit(Essentials.tree!);
+    await resolver.visit(ParseHelper.tree!);
     if (!Resolver.terminate) {
         Resolver.wasTerminated = false;
         return {aliases:resolver.aliases,predicates:resolver.predicates,records:resolver.records};
@@ -16,10 +27,10 @@ async function generateJson(srcPath:string,input:string,fullInput:string) {//the
         return Result.error;
     }
 }
-function updateStaticVariables(srcPath:string,srcLines:string[]) {
+function updateStaticVariables(srcPath:string,srcLines:string[]):void {
     Resolver.terminate = false;
     Resolver.lastDocumentPath = srcPath;
-    const srcKeysAsSet = new Set(srcLines.map((content,line)=>Essentials.createKey(line,content)));
+    const srcKeysAsSet = new Set(srcLines.map((content,line)=>createKey(line,content)));
     const visitedSentences = convMapToRecord(Resolver.visitedSentences);
     for (const [key,visitedSentence] of Object.entries(visitedSentences)) {
         if (!srcKeysAsSet.has(visitedSentence.uniqueKey)) {
@@ -28,20 +39,20 @@ function updateStaticVariables(srcPath:string,srcLines:string[]) {
     }
 }
 //the srcPath variable is to tie the lifetime of some static variables to the current path rather than on each request
-function clearStaticVariables(srcPath:string) {//Note that its not all static variables that must be cleared or be cleared here.
+function clearStaticVariables(srcPath:string):void {//Note that its not all static variables that must be cleared or be cleared here.
     Resolver.terminate = false;//reset it for subsequent analyzing
     Resolver.srcLines.length = 0;
     Resolver.logs = null;
     Resolver.logFile = null;
     Resolver.lspDiagnostics = null;
-    Essentials.tree = null;//to prevent accidentally reading an outadted src tree.
+    ParseHelper.tree = null;//to prevent accidentally reading an outadted src tree.
     DependencyManager.dependents = [];
     if (srcPath !== Resolver.lastDocumentPath) {
         console.log('\nCleared visited sentences\n',srcPath,'visi',Resolver.lastDocumentPath);
         Resolver.visitedSentences.clear();//the reason why i tied its lifetime to path changes is because the purging process used in incremental analysis will allow semantically identical sentences from being caught if the previous identical sentences wont survive the purge
     }
 }
-function getOutputPathNoExt(srcFilePath:string,outputFolder?:string) {
+function getOutputPathNoExt(srcFilePath:string,outputFolder?:string):string {
     const filePathNoExt = path.basename(srcFilePath, path.extname(srcFilePath));
     const outputPath = outputFolder || path.dirname(srcFilePath);
     return path.join(outputPath,filePathNoExt);
@@ -55,7 +66,7 @@ async function accessOutputFolder(outputFilePath:string):Promise<void> {
         await fs.mkdir(outputFolder);
     };
 }
-async function setUpLogs(outputFilePath:string) {
+async function setUpLogs(outputFilePath:string):Promise<void> {
     await accessOutputFolder(outputFilePath);
     const logPath = outputFilePath + '.ansi';
     Resolver.logFile = logPath;
