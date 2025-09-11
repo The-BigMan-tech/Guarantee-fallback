@@ -22,16 +22,16 @@ export class Purger {
         const srcLines = Resolver.createSrcLines(srcText);
         const srcKeysAsSet = new Set<string>();
 
-        const contentFrequency:Record<string,number> = {}; 
+        const contentFrequencies:Record<string,number> = {};//this is made particularly for catching exact duplicates and ensuring that they dont get purged.Else,identical duplicates wont be caught because one of them,if not related to the change,will be purged and thus,not caught by the resolver.This is to prevent that
         srcLines.forEach((content,line)=>{
             const key = createKey(line,content);
             srcKeysAsSet.add(key);
             const trimmedContent = contentFromKey(key);//im using this over content directly because this one is stripped off whitespaces
             if (!isWhitespace(trimmedContent)) {
-                if (contentFrequency[trimmedContent] === undefined) {
-                    contentFrequency[trimmedContent] = 1;
+                if (contentFrequencies[trimmedContent] === undefined) {
+                    contentFrequencies[trimmedContent] = 1;
                 }else {
-                    contentFrequency[trimmedContent] += 1;
+                    contentFrequencies[trimmedContent] += 1;
                 }
             }
         });
@@ -41,7 +41,7 @@ export class Purger {
 
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
-        console.log('\nContent frequency: ',contentFrequency);
+        console.log('\nContent frequency: ',contentFrequencies);
 
         function refreshDependents(entry:string):void {
             const dependentsAsKeys = Purger.dependencyToDependents.get(entry);
@@ -55,10 +55,11 @@ export class Purger {
         const entries = [...cache.keys()];
         for (const entry of entries) {
             const lineContent = contentFromKey(entry);
-            console.log('line content: ',lineContent,'content frequency: ',contentFrequency[lineContent]);
+            const contentFreq = contentFrequencies[lineContent];
+            console.log('line content: ',lineContent,'content frequency: ',contentFreq);
 
             const isNotInSrc = !srcKeysAsSet.has(entry);
-            if (isNotInSrc) {
+            if (isNotInSrc || (contentFreq > 1)) {
                 console.log('\nEntry not in src: ',entry);
                 refreshDependents(entry);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted.
                 cache.delete(entry);
