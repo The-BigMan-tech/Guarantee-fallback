@@ -1280,8 +1280,8 @@ class Purger {
                 cache.delete(key);//remove from the cache entry since its going to be reanalyzed
                 unpurgedKeys.add(key);
 
-                //This block only includes the dependents of this src line if it is part of the lines that changed,it is unpurged and its dependents are not unpurged already.
-                if (true) {
+                //This block only includes the dependents of this src line if it is part of the lines that changed(by chdcking its presence in the cache),it is unpurged and its dependents are not unpurged already.
+                if (!inCache) {
                     const satisfiedDependents = manager.satisfiedDependents;
                     for (const dependent of satisfiedDependents) {
                         if (!unpurgedKeys.has(dependent.uniqueKey)) {//this prevents depencies from wiping out the progress of dependnets
