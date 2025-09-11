@@ -1,4 +1,4 @@
-import { convMapToRecord, createKey, FullData, lime, lspDiagnostics, omitJsonKeys, Path, ResolutionResult, Result } from "../utils/utils.js";
+import { convMapToRecord, createKey, EndOfLine, FullData, lime, lspDiagnostics, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -9,7 +9,22 @@ import { DependencyManager } from "./dependency-manager.js";
 import { Purger } from "./purger.js";
 import { validator } from "../utils/utils.js";
 import { Doc, serverDoc } from "../fact-checker/fact-checker.js";
+import { ConsoleErrorListener } from "antlr4ng";
 
+function overrideErrorListener():void {
+    ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:number, msg: string): void =>{
+        const zeroBasedLine = line - 1;//the line returned by this listenere is 1-based so i deducted 1 to make it 0-based which is the correct form the pogram understands
+        const srcLine = Resolver.srcLine(zeroBasedLine);
+        const srcText = ((srcLine)?srcLine[column]:undefined) || EndOfLine.value;
+        console.log('src txt',srcText);
+        Resolver.castReport({
+            kind:ReportKind.Syntax,
+            line:zeroBasedLine,
+            srcText,
+            msg,
+        });
+    };
+}
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
     const fullSrcLines = Resolver.createSrcLines(fullSrcText);
@@ -17,6 +32,7 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
 
     const resolver = new Resolver();
     Resolver.srcLines = fullSrcLines;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
+    overrideErrorListener();
     ParseHelper.parse(srcText);
     if (Resolver.terminate) return Result.error;
 
@@ -46,9 +62,10 @@ function clearStaticVariables(srcPath:string):void {//Note that its not all stat
     Resolver.srcLines.length = 0;
     Resolver.logs = null;
     Resolver.logFile = null;
-    Resolver.lspDiagnostics = null;
+    Resolver.includeDiagnostics = false;
     ParseHelper.tree = null;//to prevent accidentally reading an outadted src tree.
     DependencyManager.dependents = [];
+    ConsoleErrorListener.instance.syntaxError = ():undefined =>undefined;
     if (srcPath !== Resolver.lastDocumentPath) {
         console.log('\nCleared visited sentences\n',srcPath,'visi',Resolver.lastDocumentPath);
         Resolver.visitedSentences.clear();//the reason why i tied its lifetime to path changes is because the purging process used in incremental analysis will allow semantically identical sentences from being caught if the previous identical sentences wont survive the purge
@@ -122,21 +139,20 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
 }
 export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspDiagnostics[]> {
     clearStaticVariables(srcPath);
+    Resolver.includeDiagnostics = true;
+    
     const unpurgedSrcText = Purger.purge(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
-    Resolver.lspDiagnostics = [];
     console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
 
     await generateJson(srcPath,unpurgedSrcText,srcText);//this populates the lsp analysis
 
-    const cachedDiagnostics:lspDiagnostics[] = [];
-    for (const diagnostics of Resolver.lspDiagnosticsCache.values()) {
+    const fullDiagnostics:lspDiagnostics[] = [];
+    for (const diagnostics of Resolver.lspDiagnosticsCache.values()) {//this must be done after resolving the purged text because its only then,that the cache will be filled with the latest data
         for (const diagnostic of diagnostics) {
-            cachedDiagnostics.push(diagnostic);
+            fullDiagnostics.push(diagnostic);
         }
     }
-    console.log('cached Diagnostics: ',cachedDiagnostics);
-
-    const fullDiagnostics = Resolver.lspDiagnostics.concat(cachedDiagnostics);//this must be done after resolving the purged text because its only then,that its diagnostics will be filled
+    console.log('cached Diagnostics: ',fullDiagnostics);
     console.log('visited sentences: ',Resolver.visitedSentences);
     return fullDiagnostics;
 }

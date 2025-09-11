@@ -13,7 +13,6 @@ import chalk from "chalk";
 import { distance } from "fastest-levenshtein";
 import { cartesianProduct } from "combinatorial-generators";
 import stripAnsi from "strip-ansi";
-import { ConsoleErrorListener } from "antlr4ng";
 import { ParseHelper } from "./parse-helper.js";
 
 interface ResolvedSingleTokens {
@@ -61,26 +60,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private predicateForLog:string | null = null;
 
     public static visitedSentences = new Map<string,VisitedSentence>();
-    public static lspDiagnostics:lspDiagnostics[] | null = null;
+    public static includeDiagnostics:boolean = false;
     public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
     public static lastDocumentPath:string | null = null;
 
-    constructor() {
-        super();
-        ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:number, msg: string): void =>{
-            const zeroBasedLine = line - 1;//the line returned by this listenere is 1-based so i deducted 1 to make it 0-based which is the correct form the pogram understands
-            const srcLine = Resolver.srcLine(zeroBasedLine);
-            const srcText = ((srcLine)?srcLine[column]:undefined) || EndOfLine.value;
-
-            console.log('src txt',srcText);
-            Resolver.castReport({
-                kind:ReportKind.Syntax,
-                line:zeroBasedLine,
-                srcText,
-                msg,
-            });
-        };
-    }
     //this method expects that the line is 0-based
     public static srcLine = (line:number):string | undefined => Resolver.srcLines.at(line);
 
@@ -90,7 +73,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
 
     public static buildDiagnosticsFromReport(report:Report):void {
-        if (Resolver.lspDiagnostics===null) return;//dont generate lsp analysis if not required
+        if (!Resolver.includeDiagnostics) return;//dont generate lsp analysis if not required
         const diagnostics:lspDiagnostics[] = [];
         const buildDiagnostic = (targetLine: number, text:string | EndOfLine,message:string):lspDiagnostics => {
             const sourceLine = Resolver.srcLine(targetLine) || "";
@@ -117,7 +100,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             };
         }; 
         function registerDiagnostics(key:string):void {
-            Resolver.lspDiagnostics!.push(...diagnostics);
             const diagnosticsAtKey = Resolver.lspDiagnosticsCache.get(key) || [];
             Resolver.lspDiagnosticsCache.set(key,[...diagnosticsAtKey,...diagnostics]);//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
         }
