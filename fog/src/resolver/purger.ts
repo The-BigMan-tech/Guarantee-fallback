@@ -16,14 +16,14 @@ export class Purger {
         ConsoleErrorListener.instance.syntaxError = ():void =>{syntaxError = true;};
 
         const srcLines = Resolver.createSrcLines(srcText);
-        const unpurgedSrcLines = new CustomQueue<string>([]);
         const srcKeysAsSet = new Set(srcLines.map((content,line)=>createKey(line,content)));
         
-        const entries = [...cache.keys()];
+        const unpurgedSrcLines = new CustomQueue<string>([]);
         const unpurgedKeys = new Set<string>();
 
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
-
+        
+        const entries = [...cache.keys()];
         for (const entry of entries) {
             const isNotInSrc = !srcKeysAsSet.has(entry);
             if (isNotInSrc) {
@@ -36,8 +36,8 @@ export class Purger {
         for (let line = (srcLines.length - 1 ); line >= 0 ;line--) {
             const srcLine = srcLines[line];
             const key = createKey(line,srcLine);
-            const inCache = cache.has(key);
 
+            const inCache = cache.has(key);
             const inSameDocument = srcPath === Resolver.lastDocumentPath;//i tied the choice to purge to whether the document path has changed.This is to sync it properly with static variables that are also tied to te document's path
 
             const manager = new DependencyManager({key,line,srcLine,srcLines,inCache});
