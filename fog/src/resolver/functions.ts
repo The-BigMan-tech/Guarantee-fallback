@@ -36,11 +36,11 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
     const resolver = new Resolver();
     Resolver.srcLines = fullSrcLines;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
     
-    overrideErrorListener();
+    overrideErrorListener();//this must be called before calling the parser
     ParseHelper.parse(srcText);
     await Resolver.flushLogs();//to capture syntax errors,if any, to the log
 
-    if (Resolver.terminate) return Result.error;
+    if (Resolver.terminate) return Result.error;//this is to return ealry if there is a syntax error
     await resolver.visit(ParseHelper.tree!);
     reupdateVisitedSentences();//this one must be called after resolution
 
@@ -52,7 +52,6 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
     }
 }
 function updateStaticVariables(srcKeysAsSet:Set<string>,srcPath:string):void {
-    Resolver.terminate = false;
     Resolver.lastDocumentPath = srcPath;
     for (const [key,visitedSentence] of Resolver.visitedSentences.entries()) {
         if (!srcKeysAsSet.has(visitedSentence.uniqueKey)) {
