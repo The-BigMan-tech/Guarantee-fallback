@@ -11,6 +11,7 @@ import { validator } from "../utils/utils.js";
 import { Doc, serverDoc } from "../fact-checker/fact-checker.js";
 import { ConsoleErrorListener } from "antlr4ng";
 
+
 function overrideErrorListener():void {
     ConsoleErrorListener.instance.syntaxError = (recognizer:any, offendingSymbol:any, line: number, column:number, msg: string): void =>{
         const zeroBasedLine = line - 1;//the line returned by this listenere is 1-based so i deducted 1 to make it 0-based which is the correct form the pogram understands
@@ -84,8 +85,9 @@ function clearStaticVariables(srcPath:string):void {//Note that its not all stat
     DependencyManager.dependents = [];
     ConsoleErrorListener.instance.syntaxError = ():undefined =>undefined;
     if (srcPath !== Resolver.lastDocumentPath) {
-        console.log('\nCleared visited sentences\n',srcPath,'visi',Resolver.lastDocumentPath);
+        console.log('\nCleared visited sentences\n');
         Resolver.visitedSentences.clear();//the reason why i tied its lifetime to path changes is because the purging process used in incremental analysis will allow semantically identical sentences from being caught if the previous identical sentences wont survive the purge
+        Purger.dependencyToDependents.clear();
     }
 }
 
@@ -165,7 +167,7 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     Resolver.includeDiagnostics = true;
     
     const unpurgedSrcText = Purger.purge(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
-    await generateJson(srcPath,unpurgedSrcText,srcText);//this populates the lsp analysis
+    await generateJson(srcPath,unpurgedSrcText,srcText);//this populates the lsp diagostics
 
     const fullDiagnostics:lspDiagnostics[] = [];
     for (const diagnostics of Resolver.lspDiagnosticsCache.values()) {//this must be done after resolving the purged text because its only then,that the cache will be filled with the latest data
@@ -173,7 +175,6 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
             fullDiagnostics.push(diagnostic);
         }
     }
-    console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
     console.log('cached Diagnostics: ',fullDiagnostics);
     console.log('visited sentences: ',Resolver.visitedSentences);
     return fullDiagnostics;
