@@ -1,17 +1,14 @@
 import CustomQueue from "./custom-queue.js";
 import { LRUCache } from "lru-cache";
-import { createKey, isWhitespace } from "../utils/utils.js";
+import { createKey, isWhitespace, PurgeResult } from "../utils/utils.js";
 import { DependencyManager } from "./dependency-manager.js";
 import { Resolver } from "./resolver.js";
 import { ParseHelper } from "./parse-helper.js";
 
-//the cache used by the purger should map src lines to whatever value they are meant to hold
-//It expects the cache to have a particular key format as defined in the createKey function
-//It mutates the cache in place
-interface PurgeResult<V> {
-    unpurgedSrcText:string,
-    purgedEntries:V[]
-}
+//The purger takes in a src document and by using a cache that maps each line to any arbitary data,the purger will compare it against the cached keys and return a purged src document which only contains the lines that changed and all other lines that the change depends on and the lines that depends on that change.
+
+// It expects the cache to have a particular key format.So ensure the cache uses the createKey function in the utils to make the keys.It also manages stale entries and initializes new ones by using the given src document.So there is no need to manage that yourself but expect it to be mutated.
+
 export class Purger {
     public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V):PurgeResult<V> {
         const srcLines = Resolver.createSrcLines(srcText);
