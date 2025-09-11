@@ -1,4 +1,4 @@
-import { convMapToRecord, createKey, FullData, lime, lspDiagnostics, omitJsonKeys, ResolutionResult, Result } from "../utils/utils.js";
+import { convMapToRecord, createKey, FullData, lime, lspDiagnostics, omitJsonKeys, Path, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -7,6 +7,8 @@ import chalk from "chalk";
 import stringify from "safe-stable-stringify";
 import { DependencyManager } from "./dependency-manager.js";
 import { Purger } from "./purger.js";
+import { validator } from "../utils/utils.js";
+import { Doc, serverDoc } from "../fact-checker/fact-checker.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
@@ -133,4 +135,61 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     const fullDiagnostics = Resolver.lspDiagnostics.concat(cachedDiagnostics);//this must be done after resolving the purged text because its only then,that its diagnostics will be filled
     console.log('visited sentences: ',Resolver.visitedSentences);
     return fullDiagnostics;
+}
+
+
+
+async function parseJson(json:Path):Promise<Result.error | object>  {
+    try {
+        const jsonString = await fs.readFile(json, 'utf8');
+        return JSON.parse(jsonString);
+    }catch(err) { 
+        console.log(chalk.red('\nAn error occured when attempting to read the json file.\n'),err);
+        return Result.error;
+    };
+}
+async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
+    const providedPath = typeof json === "string";
+    const [jsonAsPath,jsonAsObject] = (providedPath)?[json,null]:[null,json];
+    let fullData:FullData;
+    
+    if (providedPath) {
+        const result = await parseJson(jsonAsPath!);
+        if (result === Result.error) return Result.error;
+        fullData = result as FullData;
+    }else {
+        fullData = jsonAsObject! as FullData;
+    }
+    const isValid = validator.Check(fullData);
+    if (!isValid) {
+        const errors = [...validator.Errors(fullData)].map(({ path, message }) => ({ path, message }));
+        console.error(chalk.red('Validation error in the json file:'), errors);
+        return Result.error;//to prevent corruption
+    }
+    console.info(lime('Successfully loaded the document onto the server'));
+    serverDoc[0] = new Doc(fullData.records,fullData.predicates);
+    return Result.success;
+}
+export async function importDocFromObject(json:Record<string,any>):Promise<Result> {
+    return await loadDocFromJson(json);
+}
+export async function importDocFromSrc(filePath:string,outputFolder:string):Promise<Result> {
+    const isSrcFile = filePath.endsWith(".fog");
+    if (!isSrcFile) {
+        console.error(chalk.red('This function must be called with a .fog src file.'));
+        return Result.error;
+    }
+    const {result,jsonPath:jsonPathResult} = await resolveDocument(filePath,outputFolder);
+    if (result === Result.error) return Result.error;
+    const loadResult = await loadDocFromJson(jsonPathResult!);//we can assert this here because if the resolver result isnt an error,then the path is guaranteed to be valid
+    return loadResult;
+}
+export async function importDocFromJson(filePath:string):Promise<Result> {
+    const isJsonFile = filePath.endsWith(".json");
+    if (!isJsonFile) {
+        console.error(chalk.red('This function must be called with a .json file.'));
+        return Result.error;
+    }
+    const loadResult = await loadDocFromJson(filePath);
+    return loadResult;
 }

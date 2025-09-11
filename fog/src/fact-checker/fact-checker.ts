@@ -1,19 +1,16 @@
 import { permutations } from "combinatorial-generators";
 import { LRUCache } from 'lru-cache';
-import { Tuple,validator,UniqueAtomList, UniqueList, Result,FullData } from "../utils/utils.js";
+import { Tuple,UniqueAtomList, UniqueList } from "../utils/utils.js";
 import {stringify} from "safe-stable-stringify";
 import { AtomList,Atom } from "../utils/utils.js";
 import { Rec } from "../utils/utils.js";
-import fs from 'fs/promises';
-import chalk from "chalk";
-import { resolveDocument } from "../resolver/functions.js";
 import {v4 as uniqueID} from "uuid";
+
+export const serverDoc:[Doc | null] = [null];
 
 export type Rule<T extends AtomList> = (doc:Doc,statement:T)=>boolean;
 export type RecursiveRule<T extends AtomList> = (doc:Doc,statement:T,visitedCombinations:Set<string>)=>boolean;
 
-
-const lime = chalk.hex('adef1e');
 export class Doc {//I named it Doc instead of Document to avoid ambiguity with the default Document class which is for the DOM
     private _allMembers:UniqueAtomList = new UniqueList();//this is used by the binding to generate the types of the memebers.this will help catch subtle typos during querying.
     public records:Record<string,Rec> = {};
@@ -177,71 +174,4 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         }
         return intersection;
     }
-}
-/**
- * It loads the document from the specifed path.If the path is directly to the json output,it directly imports it.Else,if its to the .fog file,it will transform it to the json output and then,import it.
- * 
- * This means that you can set the import path to the .fog src file to load it up and on subsequent queries,you can import the resolved json file to ensure that the document is only transformed when needed.
- * @param importPath 
- * @returns 
- */
-export let docOnServer:Doc | null = null;
-
-type Path = string;
-
-async function parseJson(json:Path):Promise<Result.error | object>  {
-    try {
-        const jsonString = await fs.readFile(json, 'utf8');
-        return JSON.parse(jsonString);
-    }catch(err) { 
-        console.log(chalk.red('\nAn error occured when attempting to read the json file.\n'),err);
-        return Result.error;
-    };
-}
-async function loadDocFromJson(json:Path | Record<string,any>):Promise<Result> {
-    const providedPath = typeof json === "string";
-    const [jsonAsPath,jsonAsObject] = (providedPath)?[json,null]:[null,json];
-    let fullData:FullData;
-    
-    if (providedPath) {
-        const result = await parseJson(jsonAsPath!);
-        if (result === Result.error) return Result.error;
-        fullData = result as FullData;
-    }else {
-        fullData = jsonAsObject! as FullData;
-    }
-    const isValid = validator.Check(fullData);
-    if (!isValid) {
-        const errors = [...validator.Errors(fullData)].map(({ path, message }) => ({ path, message }));
-        console.error(chalk.red('Validation error in the json file:'), errors);
-        return Result.error;//to prevent corruption
-    }
-    console.info(lime('Successfully loaded the document onto the server'));
-    docOnServer = new Doc(fullData.records,fullData.predicates);
-    return Result.success;
-}
-
-
-export async function importDocFromObject(json:Record<string,any>):Promise<Result> {
-    return await loadDocFromJson(json);
-}
-export async function importDocFromSrc(filePath:string,outputFolder:string):Promise<Result> {
-    const isSrcFile = filePath.endsWith(".fog");
-    if (!isSrcFile) {
-        console.error(chalk.red('This function must be called with a .fog src file.'));
-        return Result.error;
-    }
-    const {result,jsonPath:jsonPathResult} = await resolveDocument(filePath,outputFolder);
-    if (result === Result.error) return Result.error;
-    const loadResult = await loadDocFromJson(jsonPathResult!);//we can assert this here because if the resolver result isnt an error,then the path is guaranteed to be valid
-    return loadResult;
-}
-export async function importDocFromJson(filePath:string):Promise<Result> {
-    const isJsonFile = filePath.endsWith(".json");
-    if (!isJsonFile) {
-        console.error(chalk.red('This function must be called with a .json file.'));
-        return Result.error;
-    }
-    const loadResult = await loadDocFromJson(filePath);
-    return loadResult;
 }

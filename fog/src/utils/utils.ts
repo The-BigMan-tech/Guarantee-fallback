@@ -198,6 +198,8 @@ export enum ReportKind {
 }
 export type InlineSrcText = string | string[] | EndOfLine;
 
+export type Path = string;
+
 export interface Report {
     kind:ReportKind,
     line:number,//this is 0-based

@@ -2,9 +2,10 @@ import chalk from "chalk";
 import ipc from 'node-ipc';
 import { JSONRPCServer } from "json-rpc-2.0";
 import stringify from "safe-stable-stringify";
-import { Doc, importDocFromJson, importDocFromObject, importDocFromSrc } from "./fact-checker.js";
+import { Doc } from "./fact-checker.js";
+import {importDocFromJson, importDocFromObject, importDocFromSrc} from "../resolver/functions.js";
 import { Atom, AtomList, isGenerator,Result} from "../utils/utils.js";
-import {docOnServer} from "./fact-checker.js";
+import {serverDoc} from "./fact-checker.js";
 import { analyzeDocument, resolveDocument } from "../resolver/functions.js";
 
 const server = new JSONRPCServer();
@@ -29,51 +30,59 @@ server.addMethod("analyzeDocument", async ({srcText,srcPath}: {srcText:string,sr
     return result;
 });
 server.addMethod("allMembers",()=>{
-    if (!docOnServer) return Result.error;
-    return docOnServer.allMembers;
+    const doc = serverDoc[0];
+    if (!doc) return Result.error;
+    return doc.allMembers;
 });
 server.addMethod("predicates",()=>{
-    if (!docOnServer) return Result.error;
-    console.log('🚀 => :30 => docOnServer.aliases:', docOnServer.predicates);
-    return docOnServer.predicates;
+    const doc = serverDoc[0];
+    if (!doc) return Result.error;
+    console.log('🚀 => :30 => docOnServer.aliases:', doc.predicates);
+    return doc.predicates;
 });
 server.addMethod('wildCard',()=>{
     return Doc.wildCard;
 });
 server.addMethod("findAllFacts",({predicate,statement,byMembership}:{predicate:string,statement:AtomList,byMembership:boolean})=>{
-    if (!docOnServer) return Result.error;
-    const result = docOnServer.consumeAllFacts(docOnServer.records[predicate],statement,byMembership);
+    const doc = serverDoc[0];
+    if (!doc) return Result.error;
+    const result = doc.consumeAllFacts(doc.records[predicate],statement,byMembership);
     return result;
 });
 server.addMethod("findFirstNFacts",({num,predicate,statement,byMembership}:{num:number,predicate:string,statement:AtomList,byMembership:boolean})=>{
-    if (!docOnServer) return Result.error;
-    const result = docOnServer.findFirstNFacts(num,docOnServer.records[predicate],statement,byMembership);
+    const doc = serverDoc[0];
+    if (!doc) return Result.error;
+    const result = doc.findFirstNFacts(num,doc.records[predicate],statement,byMembership);
     return result;
 });
 server.addMethod("isItStated",({predicate,statement,byMembership}:{predicate:string,statement:AtomList,byMembership:boolean})=>{
-    if (!docOnServer) return Result.error;
-    const result = docOnServer.isItStated(docOnServer.records[predicate],statement,byMembership);
+    const doc = serverDoc[0];
+    if (!doc) return Result.error;
+    const result = doc.isItStated(doc.records[predicate],statement,byMembership);
     return result;
 });
 server.addMethod("pullCandidates",function* ({howManyToReturn,predicate,inputCombination,visitedCombinations}:{howManyToReturn: number,predicate:string, inputCombination:Atom[], visitedCombinations:string[]}) {
-    if (!docOnServer) return Result.error;
+    const doc = serverDoc[0];
+    if (!doc) return Result.error;
     const visitedSet = new Set(visitedCombinations);
-    for (const combination of docOnServer.pullCandidates(howManyToReturn,docOnServer.records[predicate],inputCombination,visitedSet)) {
+    for (const combination of doc.pullCandidates(howManyToReturn,doc.records[predicate],inputCombination,visitedSet)) {
         yield {combination,checkedCombinations:Array.from(visitedSet)};//stream the data to the client
     }
 });
 server.addMethod("intersection",({arrays}:{arrays:any[][]})=>{
-    if (!docOnServer) return Result.error;
+    const doc = serverDoc[0];
+    if (!doc) return Result.error;
     const sets = arrays.map(arr=>new Set(arr));
     const result =  [...Doc.intersection(...sets)];
     return result;
 });
 server.addMethod("selectSmallestRecord",({predicates}:{predicates:string[]})=>{
-    if (!docOnServer) return Result.error;
-    const relevantRecords = predicates.map(predicate=>docOnServer!.records[predicate]);
+    const doc = serverDoc[0];
+    if (!doc) return Result.error;
+    const relevantRecords = predicates.map(predicate=>doc!.records[predicate]);
     const smallestRecord = Doc.selectSmallestRecord(...relevantRecords);
     for (const predicate of predicates) {
-        if (docOnServer.records[predicate] === smallestRecord) {
+        if (doc.records[predicate] === smallestRecord) {
             return predicate;
         }
     }
