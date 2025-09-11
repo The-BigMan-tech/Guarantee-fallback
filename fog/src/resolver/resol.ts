@@ -1075,7 +1075,6 @@ interface Dependent {
 }
 class DependencyManager extends DSLVisitor<boolean | undefined> {
     public static dependents:(Dependent | null)[] = [];
-    public static aliasMap = new Map<string,string>();
 
     public satisfiedDependents:Dependent[] = [];//this one unlike dependents collects dependents for the particular dependency
     private includeAsDependency:boolean = false;
@@ -1139,8 +1138,7 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
                 dependent.reference = true;
             }
             if ((type === DSLLexer.ALIAS) && !dependent.alias) {
-                const alias = Resolver.stripMark(text);
-                dependent.alias = DependencyManager.aliasMap.get(alias)!;
+                dependent.alias = Resolver.stripMark(text);
             }
             if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
                 dependent.names.add(Resolver.stripMark(text));
@@ -1193,7 +1191,7 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
                     const text = token.text!;
                     const type = token.type;
                     if (type === DSLLexer.PLAIN_WORD) {
-                        if (dependent.alias === DependencyManager.aliasMap.get(text)) {//no need to strip the text here since its directly a plain word
+                        if (dependent.alias === text) {//no need to strip the text here since its directly a plain word
                             dependent.settledAlias = true;
                             contributed = true;
                         }
@@ -1204,21 +1202,6 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
             }
         }
     }
-    private buildAliasMap(tokens:Token[]) {
-        let alias = '';
-        let predicate:string | null = null;
-        for (const token of tokens) {
-            const text = token.text!;
-            const type = token.type;
-            if (type === DSLLexer.PLAIN_WORD) {
-                alias = text;
-            }
-            else if (type === DSLLexer.PREDICATE) {
-                predicate = Resolver.stripMark(text);
-            }
-        }
-        DependencyManager.aliasMap.set(alias,predicate || alias);
-    }
     public visitFact = (ctx:FactContext)=> {
         const tokens:Token[] = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
         this.settleDependents(tokens);//its important that this line settles any dependents if it can,before finally checking for its own dependencies.Else,it will end up trying to settle its own dependencies with itself
@@ -1227,7 +1210,6 @@ class DependencyManager extends DSLVisitor<boolean | undefined> {
     };
     public visitAliasDeclaration = (ctx:AliasDeclarationContext)=> {
         const tokens = Essentials.tokenStream.getTokens(ctx.start?.tokenIndex, ctx.stop?.tokenIndex);
-        this.buildAliasMap(tokens);
         this.settleAliasDependents(tokens);
         return undefined;
     };
@@ -1266,8 +1248,7 @@ class Purger {
         const unpurgedKeys = new Set<string>();
 
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
-        console.log('\nDep alias map: ',DependencyManager.aliasMap);
-        
+
         for (const entry of entries) {
             const isNotInSrc = !srcKeysAsSet.has(entry);
             if (isNotInSrc) {
@@ -1300,7 +1281,7 @@ class Purger {
                 unpurgedKeys.add(key);
 
                 //This block only includes the dependents of this src line if it is part of the lines that changed,it is unpurged and its dependents are not unpurged already.
-                if (!inCache) {
+                if (true) {
                     const satisfiedDependents = manager.satisfiedDependents;
                     for (const dependent of satisfiedDependents) {
                         if (!unpurgedKeys.has(dependent.uniqueKey)) {//this prevents depencies from wiping out the progress of dependnets
