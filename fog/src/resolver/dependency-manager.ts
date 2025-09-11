@@ -3,7 +3,7 @@ import { DSLLexer } from "../generated/DSLLexer.js";
 import { Token } from "antlr4ng";
 import { ParseTree } from "antlr4ng";
 import { ProgramContext,FactContext,AliasDeclarationContext } from "../generated/DSLParser.js";
-import { isWhitespace } from "../utils/utils.js";
+import { isWhitespace, xand } from "../utils/utils.js";
 import { Resolver } from "./resolver.js";
 import { ParseHelper } from "./parse-helper.js";
 
@@ -40,9 +40,6 @@ export class DependencyManager extends DSLVisitor<boolean | undefined> {
         this.srcLines = srcLines;
         this.uniqueKey = key;
     }
-    private xand(a:boolean,b:boolean):boolean {
-        return (!a && !b) || (a && b);
-    }
     //please note that the properties on the dependnet,although looking identical to the ones under the current this context,arent the same.the ones on the this context used here is for the potential dependency but a dependency can also be a dependnent which is why the this context is used when adding it as a dependent
     private checkIfDependency(dependentIndex:number,contributed:boolean):void {
         const dependent = DependencyManager.dependents[dependentIndex]!;//this function is called under branches where the dependent isnt null.so we can safely asser it here.
@@ -51,14 +48,14 @@ export class DependencyManager extends DSLVisitor<boolean | undefined> {
         const hasRef = dependent.reference;
         const hasAlias = dependent.alias !== null;
 
-        const isFullySatisfied = this.xand(hasRef,settledRef) && this.xand(hasAlias,settledAlias) && (unsettledNames.size === 0);
-        const isPartiallySatisfied = this.xand(hasRef,settledRef) || this.xand(hasAlias,settledRef) || (unsettledNames.size < dependent.names.size);
+        const isFullySatisfied = xand(hasRef,settledRef) && xand(hasAlias,settledAlias) && (unsettledNames.size === 0);
+        const isPartiallySatisfied = xand(hasRef,settledRef) || xand(hasAlias,settledRef) || (unsettledNames.size < dependent.names.size);
         
         if (contributed && (isPartiallySatisfied || isFullySatisfied)) {
             this.satisfiedDependents.push(dependent);
             if (dependent.includeDependency) this.includeAsDependency = true;//i gated the inclusion of dependencies for the deoendents to a flag to prevent them from polluting the final text if they are unrelated to the change.
             if (isFullySatisfied) {
-                DependencyManager.dependents[dependentIndex] = null;//Using null instead of removal prevents index shifts and improves processing integrity.
+                DependencyManager.dependents[dependentIndex] = null;//Using null to remove the dependent from further processing instead of direct deleting prevents index shifts and improves performance.
             }
         }
     }

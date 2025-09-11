@@ -152,6 +152,9 @@ export function createKey(line:number,content:string):string {
     const key = `${line}|${contentNoWhitespaces}`;
     return key;
 }
+export function xand(a:boolean,b:boolean):boolean {
+    return (!a && !b) || (a && b);
+}
 export enum EndOfLine {
     value=-1//i used a number for better type safety by allowing ts to differentiate it from the other src text that are strings
 }
