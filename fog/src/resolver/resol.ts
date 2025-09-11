@@ -1281,7 +1281,7 @@ class Purger {
                 unpurgedKeys.add(key);
 
                 //This block only includes the dependents of this src line if it is part of the lines that changed(by chdcking its presence in the cache),it is unpurged and its dependents are not unpurged already.
-                if (!inCache) {
+                if (!inCache) {//without this particular check,the purger will create a cascading effect where a changed line will load its dependencies,which in turn,will load all their dependents,which in turn will also load their dependencies and so fort,creating a ripple effect where a wide range of the document will be relaoded from one line alone.
                     const satisfiedDependents = manager.satisfiedDependents;
                     for (const dependent of satisfiedDependents) {
                         if (!unpurgedKeys.has(dependent.uniqueKey)) {//this prevents depencies from wiping out the progress of dependnets
