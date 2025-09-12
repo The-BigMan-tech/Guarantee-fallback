@@ -1,6 +1,6 @@
 import CustomQueue from "./custom-queue.js";
 import { LRUCache } from "lru-cache";
-import { contentFromKey, createKey, getSrcKeysAndContentFreqs, isWhitespace } from "../utils/utils.js";
+import { createKey,isWhitespace } from "../utils/utils.js";
 import { DependencyManager } from "./dependency-manager.js";
 import { Resolver } from "./resolver.js";
 import { ParseHelper } from "./parse-helper.js";
@@ -20,14 +20,13 @@ export class Purger {
         ConsoleErrorListener.instance.syntaxError = ():void =>{syntaxError = true;};
 
         const srcLines = Resolver.createSrcLines(srcText);
-        const {srcKeysAsSet,contentFrequencies} = getSrcKeysAndContentFreqs(srcLines);
+        const srcKeysAsSet = new Set(srcLines.map((content,line)=>createKey(line,content)));
         
         const unpurgedSrcLines = new CustomQueue<string>([]);
         const unpurgedKeys = new Set<string>();
 
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
-        console.log('\nContent frequency: ',contentFrequencies);
 
         function refreshDependents(entry:string):void {
             const dependentsAsKeys = Purger.dependencyToDependents.get(entry);
@@ -40,12 +39,8 @@ export class Purger {
         }
         const entries = [...cache.keys()];
         for (const entry of entries) {
-            const lineContent = contentFromKey(entry);
-            const contentFreq = contentFrequencies[lineContent];
-            // console.log('line content: ',lineContent,'content frequency: ',contentFreq);
-
             const isNotInSrc = !srcKeysAsSet.has(entry);
-            if (isNotInSrc || (contentFreq > 1)) {
+            if (isNotInSrc) {
                 console.log('\nEntry not in src: ',entry);
                 refreshDependents(entry);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted.
                 cache.delete(entry);

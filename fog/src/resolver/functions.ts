@@ -1,4 +1,4 @@
-import { contentFromKey, convMapToRecord, EndOfLine, FullData, getSrcKeysAndContentFreqs, lime, lspDiagnostics, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
+import { convMapToRecord, EndOfLine, FullData,lime, lspDiagnostics, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -51,11 +51,8 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
 }
 function updateStaticVariables(srcLines:string[],srcPath:string):void {
     Resolver.lastDocumentPath = srcPath;
-    const {srcKeysAsSet,contentFrequencies} = getSrcKeysAndContentFreqs(srcLines);
     for (const [key,visitedSentence] of Resolver.visitedSentences.entries()) {
-        const lineContent = contentFromKey(visitedSentence.uniqueKey);
-        // console.log('🚀 => lineContent: in visited:',contentFrequencies[lineContent] > 1);
-        if ((!srcKeysAsSet.has(visitedSentence.uniqueKey)) || (contentFrequencies[lineContent] > 1)) {
+        if ((!Resolver.lspDiagnosticsCache.has(visitedSentence.uniqueKey))) {
             Resolver.visitedSentences.delete(key);
         }
     }
@@ -66,7 +63,6 @@ function reupdateVisitedSentences():void {
     const reversedVisitedSentences = [...Resolver.visitedSentences.entries()].reverse();//im doing it in the reverse order because its allows it to delete the earlier entries if they have already been seen.
     for (const [key,visitedSentence] of reversedVisitedSentences) {
         const srcKey = visitedSentence.uniqueKey;
-        // console.log('has seen:',srcKey,seenSrcKeys.has(srcKey));
         if (seenSrcKeys.has(srcKey)) {
             Resolver.visitedSentences.delete(key);
         }else {
