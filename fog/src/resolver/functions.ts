@@ -54,7 +54,7 @@ function updateStaticVariables(srcLines:string[],srcPath:string):void {
     const {srcKeysAsSet,contentFrequencies} = getSrcKeysAndContentFreqs(srcLines);
     for (const [key,visitedSentence] of Resolver.visitedSentences.entries()) {
         const lineContent = contentFromKey(visitedSentence.uniqueKey);
-        console.log('🚀 => lineContent: in visited:',contentFrequencies[lineContent] > 1);
+        // console.log('🚀 => lineContent: in visited:',contentFrequencies[lineContent] > 1);
         if ((!srcKeysAsSet.has(visitedSentence.uniqueKey)) || (contentFrequencies[lineContent] > 1)) {
             Resolver.visitedSentences.delete(key);
         }
@@ -66,7 +66,7 @@ function reupdateVisitedSentences():void {
     const reversedVisitedSentences = [...Resolver.visitedSentences.entries()].reverse();//im doing it in the reverse order because its allows it to delete the earlier entries if they have already been seen.
     for (const [key,visitedSentence] of reversedVisitedSentences) {
         const srcKey = visitedSentence.uniqueKey;
-        console.log('has seen:',srcKey,seenSrcKeys.has(srcKey));
+        // console.log('has seen:',srcKey,seenSrcKeys.has(srcKey));
         if (seenSrcKeys.has(srcKey)) {
             Resolver.visitedSentences.delete(key);
         }else {
@@ -176,7 +176,7 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
             fullDiagnostics.push(diagnostic);
         }
     }
-    console.log('cached Diagnostics: ',fullDiagnostics);
+    console.log('cached Diagnostics: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
     console.log('visited sentences: ',Resolver.visitedSentences);
     return fullDiagnostics;
 }

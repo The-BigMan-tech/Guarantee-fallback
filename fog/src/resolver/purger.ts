@@ -42,7 +42,7 @@ export class Purger {
         for (const entry of entries) {
             const lineContent = contentFromKey(entry);
             const contentFreq = contentFrequencies[lineContent];
-            console.log('line content: ',lineContent,'content frequency: ',contentFreq);
+            // console.log('line content: ',lineContent,'content frequency: ',contentFreq);
 
             const isNotInSrc = !srcKeysAsSet.has(entry);
             if (isNotInSrc || (contentFreq > 1)) {

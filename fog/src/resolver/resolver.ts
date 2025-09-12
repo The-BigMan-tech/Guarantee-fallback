@@ -73,7 +73,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
     public static buildDiagnosticsFromReport(report:Report):void {
         if (!Resolver.includeDiagnostics) return;//dont generate lsp analysis if not required
-        const diagnostics:lspDiagnostics[] = [];
         const buildDiagnostic = (targetLine: number, text:string | EndOfLine,message:string):lspDiagnostics => {
             const sourceLine = Resolver.srcLine(targetLine) || "";
             const cleanedSourceLine = sourceLine.replace(/\r+$/, ""); // remove trailing \r
@@ -98,7 +97,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 message
             };
         }; 
-        function registerDiagnostics(key:string):void {
+        function registerDiagnostics(key:string,diagnostics:lspDiagnostics[]):void {
             const diagnosticsAtKey = Resolver.lspDiagnosticsCache.get(key) || [];
             Resolver.lspDiagnosticsCache.set(key,[...diagnosticsAtKey,...diagnostics]);//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
         }
@@ -118,20 +117,23 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         
         const key = createKey(line,srcLine);
         if (!lines && ((typeof srcText === "string") || (srcText === EndOfLine.value))) {
-            diagnostics.push(buildDiagnostic(line,srcText,cleanMsg));
-            registerDiagnostics(key);
+            registerDiagnostics(key,[buildDiagnostic(line,srcText,cleanMsg)]);
         }
         else if (lines && Array.isArray(srcText)){
+            const mainDiagnostics:lspDiagnostics[] = [];
+            const includedDiagnostics:lspDiagnostics[] = [];
+
             for (let i = 0; i < lines.length; i++) {
                 const targetLine = lines[i];
                 const text = srcText[i];
                 const isMainLine = (targetLine===line);
                 const message = isMainLine?cleanMsg:`This line is involved in an issue with line ${line + 1}.`;
-                diagnostics.push(buildDiagnostic(targetLine,text,message));
                 if (isMainLine) {
-                    registerDiagnostics(key);
+                    mainDiagnostics.push(buildDiagnostic(targetLine,text,message));
+                    registerDiagnostics(key,mainDiagnostics);
                 }else {
-                    registerDiagnostics(createKey(targetLine,Resolver.srcLines[targetLine]));
+                    includedDiagnostics.push(buildDiagnostic(targetLine,text,message));
+                    registerDiagnostics(createKey(targetLine,Resolver.srcLines[targetLine]),includedDiagnostics);
                 }
             }
         }
