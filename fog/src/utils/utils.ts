@@ -2,6 +2,8 @@ import {v4 as uniqueID} from "uuid";
 import { Static, Type} from '@sinclair/typebox';
 import chalk, { ChalkInstance } from "chalk";
 import { TypeCompiler } from '@sinclair/typebox/compiler';
+import stringify from "safe-stable-stringify";
+import { LRUCache } from "lru-cache";
 
 export type Tuple<T, N extends number, R extends unknown[] = []> = 
     R['length'] extends N ? R : Tuple<T, N, [...R, T]>;
@@ -155,8 +157,21 @@ export function createKey(line:number,content:string):string {
 export function contentFromKey(key:string):string {//this function assumes that the key was created from the createKey function
     return key.slice(key.indexOf('|') + 1);
 }
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function getSrcKeysAndContentFreqs(srcLines:string[]) {
+
+const someUtilCache = new LRUCache<string,SrcKeysAndFreqs>({max:30});
+
+interface SrcKeysAndFreqs {
+    srcKeysAsSet:Set<string>,
+    contentFrequencies:Record<string,number>
+}
+export function getSrcKeysAndContentFreqs(srcLines:string[]):SrcKeysAndFreqs {
+    const cacheKey = stringify(srcLines);
+    const cachedResult = someUtilCache.get(cacheKey);
+    if (cachedResult !== undefined) {
+        console.log('\nhit some cache.\n');
+        return cachedResult;
+    }
+    
     const srcKeysAsSet = new Set<string>();
     const contentFrequencies:Record<string,number> = {};//this is made particularly for catching exact duplicates and ensuring that they dont get purged.Else,identical duplicates wont be caught because one of them,if not related to the change,will be purged and thus,not caught by the resolver.This is to prevent that
     srcLines.forEach((content,line)=>{
@@ -171,7 +186,9 @@ export function getSrcKeysAndContentFreqs(srcLines:string[]) {
             }
         }
     });
-    return {srcKeysAsSet,contentFrequencies};
+    const result =  {srcKeysAsSet,contentFrequencies};
+    someUtilCache.set(cacheKey,result);
+    return result;
 }
 export function xand(a:boolean,b:boolean):boolean {
     return (!a && !b) || (a && b);
