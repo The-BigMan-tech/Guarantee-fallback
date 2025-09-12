@@ -15,6 +15,22 @@ import { ConsoleErrorListener } from "antlr4ng";
 export class Purger {
     public static dependencyToDependents:Record<string,string[]> = {};
 
+    private static refreshDependents(cache:LRUCache<string,any>,entry:string):void {
+        const dependentsAsKeys = Purger.dependencyToDependents[entry];
+        if (dependentsAsKeys) {
+            console.log('\nDependents upon deletion: ',dependentsAsKeys);
+            for (const dependentAsKey of dependentsAsKeys) {
+                cache.delete(dependentAsKey);
+            }
+        }
+    }
+    private static deleteFromDependents(key:string):void {
+        const refreshedMap:Record<string,string[]> = {};
+        Object.entries(Purger.dependencyToDependents).forEach(([k,v])=>{
+            if (k !== key) refreshedMap[k] = v;
+        });
+        Purger.dependencyToDependents = refreshedMap;
+    }
     public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V):string {
         let syntaxError:boolean = false;
         ConsoleErrorListener.instance.syntaxError = ():void =>{syntaxError = true;};
@@ -25,33 +41,27 @@ export class Purger {
         const unpurgedSrcLines = new CustomQueue<string>([]);
         const unpurgedKeys = new Set<string>();
 
-        Purger.dependencyToDependents = {...Purger.dependencyToDependents,...Resolver.lineToAffectedLines};
-        Resolver.lineToAffectedLines = {};//clear it as soon as its used because its only needed for merging into the main one and it shouldnt linger any longer to prevent stale entries
-        
+        const dependencyKeys = [...Object.keys(Purger.dependencyToDependents),...Object.keys(Resolver.lineToAffectedLines)];
+        const refreshedMap:Record<string,string[]> = {};
+        for (const dependencyKey of dependencyKeys) {
+            const regularDependents = Purger.dependencyToDependents[dependencyKey] || [];
+            const dependentsAffectedFromErr = Resolver.lineToAffectedLines[dependencyKey] || [];
+            refreshedMap[dependencyKey] = [...regularDependents,...dependentsAffectedFromErr];
+        }
+        Purger.dependencyToDependents = refreshedMap;
+        Resolver.lineToAffectedLines = {};//clear it because its only needed for merging into the main one and it shouldnt linger any longer to prevent stale entries
+
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
-
-        function refreshDependents(entry:string):void {
-            const dependentsAsKeys = Purger.dependencyToDependents[entry];
-            if (dependentsAsKeys) {
-                console.log('\nDependents upon deletion: ',dependentsAsKeys);
-                for (const dependentAsKey of dependentsAsKeys) {
-                    cache.delete(dependentAsKey);
-                }
-            }
-        }
+        
         const uniqueKeys = [...cache.keys()];
         for (const key of uniqueKeys) {
             const isNotInSrc = !srcKeysAsSet.has(key);
             if (isNotInSrc) {
                 console.log('\nEntry not in src: ',key);
-                refreshDependents(key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted.
+                Purger.refreshDependents(cache,key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
                 cache.delete(key);
-                const refreshedMap:Record<string,string[]> = {};
-                Object.entries(Purger.dependencyToDependents).forEach(([k,v])=>{
-                    if (k !== key) refreshedMap[k] = v;
-                });//afterwards,remove it from the map.
-                Purger.dependencyToDependents = refreshedMap;
+                Purger.deleteFromDependents(key);//afterwards,remove it from the map.
             }
         }
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
