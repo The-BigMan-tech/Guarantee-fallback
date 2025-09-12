@@ -25,8 +25,8 @@ export class Purger {
         const unpurgedSrcLines = new CustomQueue<string>([]);
         const unpurgedKeys = new Set<string>();
 
-        Purger.dependencyToDependents = {...Purger.dependencyToDependents,...Resolver.inheritedErrors};
-        Resolver.inheritedErrors = {};//clear it as soon as its used because its only needed for merging into the main one and it shouldnt linger any longer to prevent stale entries
+        Purger.dependencyToDependents = {...Purger.dependencyToDependents,...Resolver.lineToAffectedLines};
+        Resolver.lineToAffectedLines = {};//clear it as soon as its used because its only needed for merging into the main one and it shouldnt linger any longer to prevent stale entries
         
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);

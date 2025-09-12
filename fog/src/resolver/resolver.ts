@@ -70,7 +70,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const tokenDebug = tokens?.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
         console.log('\n Tokens:',tokenDebug);
     }
-    public static inheritedErrors:Record<string,string[]> = {};
+    public static lineToAffectedLines:Record<string,string[]> = {};
 
     public static buildDiagnosticsFromReport(report:Report):void {
         if (!Resolver.includeDiagnostics) return;//dont generate lsp analysis if not required
@@ -138,9 +138,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     const includedKey = createKey(targetLine,Resolver.srcLines[targetLine]);
                     registerDiagnostics(includedKey,includedDiagnostics);
                     includedKeys.push(includedKey);
+                    Resolver.lineToAffectedLines[includedKey] = [mainKey];
                 }
             }
-            Resolver.inheritedErrors[mainKey] = includedKeys;
+            Resolver.lineToAffectedLines[mainKey] = includedKeys;
         }
     }
     public static castReport(report:Report):void {
