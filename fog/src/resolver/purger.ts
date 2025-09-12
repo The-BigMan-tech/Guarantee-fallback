@@ -31,16 +31,7 @@ export class Purger {
         });
         Purger.dependencyToDependents = refreshedMap;
     }
-    public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V):string {
-        let syntaxError:boolean = false;
-        ConsoleErrorListener.instance.syntaxError = ():void =>{syntaxError = true;};
-
-        const srcLines = Resolver.createSrcLines(srcText);
-        const srcKeysAsSet = new Set(srcLines.map((content,line)=>createKey(line,content)));
-        
-        const unpurgedSrcLines = new CustomQueue<string>([]);
-        const unpurgedKeys = new Set<string>();
-
+    private static prepareDependencyMap():void {
         const dependencyKeys = [...Object.keys(Purger.dependencyToDependents),...Object.keys(Resolver.lineToAffectedLines)];
         const refreshedMap:Record<string,string[]> = {};
         for (const dependencyKey of dependencyKeys) {
@@ -50,7 +41,18 @@ export class Purger {
         }
         Purger.dependencyToDependents = refreshedMap;
         Resolver.lineToAffectedLines = {};//clear it because its only needed for merging into the main one and it shouldnt linger any longer to prevent stale entries
+    }
+    public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V):string {
+        let syntaxError:boolean = false;
+        ConsoleErrorListener.instance.syntaxError = ():void =>{syntaxError = true;};
 
+        const srcLines = Resolver.createSrcLines(srcText);
+        const srcKeysAsSet = new Set(srcLines.map((content,line)=>createKey(line,content)));
+        
+        const unpurgedSrcLines = new CustomQueue<string>([]);
+        const unpurgedKeys = new Set<string>();
+        Purger.prepareDependencyMap();//this must be called before the below for loop
+        
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
         
