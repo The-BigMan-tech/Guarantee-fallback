@@ -1,4 +1,4 @@
-import { convMapToRecord, createKey, EndOfLine, FullData, lime, lspDiagnostics, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
+import { convMapToRecord, createKey, EndOfLine, FullData, getSrcKeysAndContentFreqs, lime, lspDiagnostics, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -30,9 +30,7 @@ function overrideErrorListener():void {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
     const fullSrcLines = Resolver.createSrcLines(fullSrcText);
-    const srcKeysAsSet = new Set(fullSrcLines.map((content,line)=>createKey(line,content)));
-
-    updateStaticVariables(srcKeysAsSet,srcPath);//this must be called before resolution
+    updateStaticVariables(fullSrcLines,srcPath);//this must be called before resolution
     
     const resolver = new Resolver();
     Resolver.srcLines = fullSrcLines;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
@@ -51,8 +49,9 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
         return Result.error;
     }
 }
-function updateStaticVariables(srcKeysAsSet:Set<string>,srcPath:string):void {
+function updateStaticVariables(srcLines:string[],srcPath:string):void {
     Resolver.lastDocumentPath = srcPath;
+    const {srcKeysAsSet,contentFrequencies} = getSrcKeysAndContentFreqs(srcLines);
     for (const [key,visitedSentence] of Resolver.visitedSentences.entries()) {
         if (!srcKeysAsSet.has(visitedSentence.uniqueKey)) {
             Resolver.visitedSentences.delete(key);
