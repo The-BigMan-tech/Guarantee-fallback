@@ -116,9 +116,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const modifiedMsg = msg.split('\n').map(str=>str.replace('-','')).join('');//this removes the leading - sign in each sentence of the message.I use them when logging the report to a file for clarity but for in editor reports,it is unnecessary.
         const cleanMsg = stripAnsi(modifiedMsg.replace(/\r?\n|\r/g, " "));//strip ansi codes and new lines
         
-        const key = createKey(line,srcLine);
+        const mainKey = createKey(line,srcLine);
         if (!lines && ((typeof srcText === "string") || (srcText === EndOfLine.value))) {
-            registerDiagnostics(key,[buildDiagnostic(line,srcText,cleanMsg)]);
+            registerDiagnostics(mainKey,[buildDiagnostic(line,srcText,cleanMsg)]);
         }
         else if (lines && Array.isArray(srcText)){
             const mainDiagnostics:lspDiagnostics[] = [];
@@ -132,7 +132,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 const message = isMainLine?cleanMsg:`This line is involved in an issue with line ${line + 1}.`;
                 if (isMainLine) {
                     mainDiagnostics.push(buildDiagnostic(targetLine,text,message));
-                    registerDiagnostics(key,mainDiagnostics);
+                    registerDiagnostics(mainKey,mainDiagnostics);
                 }else {
                     includedDiagnostics.push(buildDiagnostic(targetLine,text,message));
                     const includedKey = createKey(targetLine,Resolver.srcLines[targetLine]);
@@ -140,7 +140,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     includedKeys.push(includedKey);
                 }
             }
-            Resolver.inheritedErrors[key] = includedKeys;
+            Resolver.inheritedErrors[mainKey] = includedKeys;
         }
     }
     public static castReport(report:Report):void {
