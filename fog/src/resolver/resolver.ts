@@ -235,7 +235,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         }
     }
-    public static getSemanticForm(tokens:Token[] | null,aliasDeclaration:boolean,aliases:Map<string,string>):string | null {
+    private getSemanticForm(tokens:Token[] | null,aliasDeclaration:boolean):string | null {
         if ((tokens===null) || (tokens.length === 0)) return null;
         //im using a queue because it will be inserting predicates to the front of the array.This is because no matter the position of the predicate in a sentence,it always produces the same output meaning that the semantic meaning of the sentence is the same.So by inserting them to the front and not pushing them to the ends,i ensure that the position of the predicate doesnt affect its reasoning of duplicates because they will always be at the front
         const tokenNames = new Denque<string>([]);//im going to be checking against the token names and not the raw objects to make stringofying computationally easier
@@ -247,7 +247,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 let name:string = token.text!;
                 if (!aliasDeclaration && ((token.type === DSLLexer.ALIAS) || (token.type === DSLLexer.PREDICATE))) {//locking it to whether its an alias declaration prevents it from flagging an alias declaration as a duplicate sentence because the alias declaration itself is essentially a duplicate since it refers to a predicate and its meant to be that way.so the resolver should respect this
                     name = Resolver.stripMark(name);//strip their prefixes
-                    name = aliases.get(name) || name;//the fallback is for the case of predicates
+                    name = this.aliases.get(name) || name;//the fallback is for the case of predicates
                     tokenNames.unshift(name);
                 }else {
                     tokenNames.push(name);
@@ -261,7 +261,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return stringifiedNames;
     }
     private checkForRepetition(tokens:Token[] | null,aliasDeclaration:boolean) {//twi sentences are structurally identical if they have the same predicate or alias and the same number of atoms in the exact same order regardless of fillers.The resolver will flag this to prevent the final document from being bloated with unnecessary duplicate information.
-        const semanticForm = Resolver.getSemanticForm(tokens,aliasDeclaration,this.aliases);
+        const semanticForm = this.getSemanticForm(tokens,aliasDeclaration);
         if (semanticForm === null) {
             //i may cast a report here
             return;
