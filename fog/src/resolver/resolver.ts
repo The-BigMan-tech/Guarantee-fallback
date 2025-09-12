@@ -70,6 +70,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const tokenDebug = tokens?.map(t => ({ text: t.text,name:DSLLexer.symbolicNames[t.type]}));
         console.log('\n Tokens:',tokenDebug);
     }
+    public static inheritedErrors:Record<string,string[]> = {};
 
     public static buildDiagnosticsFromReport(report:Report):void {
         if (!Resolver.includeDiagnostics) return;//dont generate lsp analysis if not required
@@ -122,6 +123,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         else if (lines && Array.isArray(srcText)){
             const mainDiagnostics:lspDiagnostics[] = [];
             const includedDiagnostics:lspDiagnostics[] = [];
+            const includedKeys = [];
 
             for (let i = 0; i < lines.length; i++) {
                 const targetLine = lines[i];
@@ -133,9 +135,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     registerDiagnostics(key,mainDiagnostics);
                 }else {
                     includedDiagnostics.push(buildDiagnostic(targetLine,text,message));
-                    registerDiagnostics(createKey(targetLine,Resolver.srcLines[targetLine]),includedDiagnostics);
+                    const includedKey = createKey(targetLine,Resolver.srcLines[targetLine]);
+                    registerDiagnostics(includedKey,includedDiagnostics);
+                    includedKeys.push(includedKey);
                 }
             }
+            Resolver.inheritedErrors[key] = includedKeys;
         }
     }
     public static castReport(report:Report):void {

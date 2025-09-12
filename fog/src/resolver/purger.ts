@@ -13,7 +13,7 @@ import { ConsoleErrorListener } from "antlr4ng";
 // It expects the cache to have a particular key format.So ensure the cache uses the createKey function in the utils to make the keys.It also manages stale entries and initializes new ones by using the given src document.So there is no need to manage that yourself but expect it to be mutated.
 
 export class Purger {
-    public static dependencyToDependents = new Map<string,string[]>();
+    public static dependencyToDependents:Record<string,string[]> = {};
 
     public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V):string {
         let syntaxError:boolean = false;
@@ -25,11 +25,14 @@ export class Purger {
         const unpurgedSrcLines = new CustomQueue<string>([]);
         const unpurgedKeys = new Set<string>();
 
+        Purger.dependencyToDependents = {...Purger.dependencyToDependents,...Resolver.inheritedErrors};
+        Resolver.inheritedErrors = {};//clear it as soon as its used because its only needed for merging into the main one and it shouldnt linger any longer to prevent stale entries
+        
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
 
         function refreshDependents(entry:string):void {
-            const dependentsAsKeys = Purger.dependencyToDependents.get(entry);
+            const dependentsAsKeys = Purger.dependencyToDependents[entry];
             if (dependentsAsKeys) {
                 console.log('\nDependents upon deletion: ',dependentsAsKeys);
                 for (const dependentAsKey of dependentsAsKeys) {
@@ -37,14 +40,18 @@ export class Purger {
                 }
             }
         }
-        const entries = [...cache.keys()];
-        for (const entry of entries) {
-            const isNotInSrc = !srcKeysAsSet.has(entry);
+        const uniqueKeys = [...cache.keys()];
+        for (const key of uniqueKeys) {
+            const isNotInSrc = !srcKeysAsSet.has(key);
             if (isNotInSrc) {
-                console.log('\nEntry not in src: ',entry);
-                refreshDependents(entry);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted.
-                cache.delete(entry);
-                Purger.dependencyToDependents.delete(entry);//afterwards,remove it from the map.
+                console.log('\nEntry not in src: ',key);
+                refreshDependents(key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted.
+                cache.delete(key);
+                const refreshedMap:Record<string,string[]> = {};
+                Object.entries(Purger.dependencyToDependents).forEach(([k,v])=>{
+                    if (k !== key) refreshedMap[k] = v;
+                });//afterwards,remove it from the map.
+                Purger.dependencyToDependents = refreshedMap;
             }
         }
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
@@ -73,8 +80,8 @@ export class Purger {
                 if (!inCache) {//without this particular check,the purger will create a cascading effect where a changed line will load its dependencies,which in turn,will load all their dependents,which in turn will also load their dependencies and so fort,creating a ripple effect where a wide range of the document will be relaoded from one line alone.
                     const satisfiedDependents = manager.satisfiedDependents;
                     for (const dependent of satisfiedDependents) {
-                        const dependentsInMap =  Purger.dependencyToDependents.get(key) || [];
-                        Purger.dependencyToDependents.set(key,[...dependentsInMap,dependent.uniqueKey]);
+                        const dependentsInMap =  Purger.dependencyToDependents[key] || [];
+                        Purger.dependencyToDependents[key] = [...dependentsInMap,dependent.uniqueKey];
 
                         if (!unpurgedKeys.has(dependent.uniqueKey)) {//this prevents depencies from wiping out the progress of dependnets
                             console.log('Inserting dependent: ',dependent.uniqueKey);

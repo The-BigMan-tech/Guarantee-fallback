@@ -82,7 +82,7 @@ function clearStaticVariables(srcPath:string):void {//Note that its not all stat
     if (srcPath !== Resolver.lastDocumentPath) {
         console.log('\nCleared visited sentences\n');
         Resolver.visitedSentences.clear();//the reason why i tied its lifetime to path changes is because the purging process used in incremental analysis will allow semantically identical sentences from being caught if the previous identical sentences wont survive the purge
-        Purger.dependencyToDependents.clear();
+        Purger.dependencyToDependents = {};
     }
 }
 
