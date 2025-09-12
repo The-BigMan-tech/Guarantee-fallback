@@ -1,4 +1,4 @@
-import { convMapToRecord, createKey, EndOfLine, FullData, getSrcKeysAndContentFreqs, lime, lspDiagnostics, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
+import { contentFromKey, convMapToRecord, EndOfLine, FullData, getSrcKeysAndContentFreqs, lime, lspDiagnostics, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -53,7 +53,9 @@ function updateStaticVariables(srcLines:string[],srcPath:string):void {
     Resolver.lastDocumentPath = srcPath;
     const {srcKeysAsSet,contentFrequencies} = getSrcKeysAndContentFreqs(srcLines);
     for (const [key,visitedSentence] of Resolver.visitedSentences.entries()) {
-        if (!srcKeysAsSet.has(visitedSentence.uniqueKey)) {
+        const lineContent = contentFromKey(visitedSentence.uniqueKey);
+        console.log('🚀 => lineContent: in visited:',contentFrequencies[lineContent] > 1);
+        if ((!srcKeysAsSet.has(visitedSentence.uniqueKey)) || (contentFrequencies[lineContent] > 1)) {
             Resolver.visitedSentences.delete(key);
         }
     }
