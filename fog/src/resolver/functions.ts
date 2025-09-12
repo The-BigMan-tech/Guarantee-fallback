@@ -29,11 +29,9 @@ function overrideErrorListener():void {
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
-    const fullSrcLines = Resolver.createSrcLines(fullSrcText);
-    updateStaticVariables(fullSrcLines,srcPath);//this must be called before resolution
-    
+    updateStaticVariables(srcPath);//this must be called before resolution
     const resolver = new Resolver();
-    Resolver.srcLines = fullSrcLines;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
+    Resolver.srcLines = Resolver.createSrcLines(fullSrcText);;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
     
     overrideErrorListener();//this must be called before calling the parser
     ParseHelper.parse(srcText);
@@ -49,7 +47,7 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
         return Result.error;
     }
 }
-function updateStaticVariables(srcLines:string[],srcPath:string):void {
+function updateStaticVariables(srcPath:string):void {
     Resolver.lastDocumentPath = srcPath;
     for (const [key,visitedSentence] of Resolver.visitedSentences.entries()) {
         if ((!Resolver.lspDiagnosticsCache.has(visitedSentence.uniqueKey))) {
