@@ -138,7 +138,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     const includedKey = createKey(targetLine,Resolver.srcLines[targetLine]);
                     registerDiagnostics(includedKey,includedDiagnostics);
                     includedKeys.push(includedKey);
-                    Resolver.lineToAffectedLines[includedKey] = [mainKey];
                 }
             }
             Resolver.lineToAffectedLines[mainKey] = includedKeys;

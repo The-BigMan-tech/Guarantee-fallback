@@ -14,7 +14,7 @@ import { ConsoleErrorListener } from "antlr4ng";
 
 export class Purger {
     public static dependencyToDependents:Record<string,Set<string>> = {};
-
+    
     private static refreshDependents(cache:LRUCache<string,any>,entry:string):void {
         const dependentsAsKeys = Purger.dependencyToDependents[entry];
         if (dependentsAsKeys) {
@@ -31,14 +31,18 @@ export class Purger {
         });
         Purger.dependencyToDependents = refreshedMap;
     }
-    private static prepareDependencyMap(srcKeysAsSet:Set<string>):void {
+    private static prepareDependencyMap(cache:LRUCache<string,any>,srcKeysAsSet:Set<string>):void {
         const dependencyKeys = [...Object.keys(Purger.dependencyToDependents),...Object.keys(Resolver.lineToAffectedLines)];
         const refreshedMap:Record<string,Set<string>> = {};
         
         for (const dependencyKey of dependencyKeys) {
             const regularDependents = Purger.dependencyToDependents[dependencyKey] || [];
             const dependentsAffectedFromErr = Resolver.lineToAffectedLines[dependencyKey] || [];
-            refreshedMap[dependencyKey] = new Set([...regularDependents,...dependentsAffectedFromErr]);
+            const dependentKeys =  [...regularDependents,...dependentsAffectedFromErr];
+            refreshedMap[dependencyKey] = new Set(dependentKeys);
+            if (dependentKeys.some(key=>!srcKeysAsSet.has(key))) {
+                cache.delete(dependencyKey);//refresh the dependeny if any of the dependents change.but this doesnt mean that the dependency isnt in the src.It may still be in the src,but we want it to be reanalyzed.If its still in the src,the effect of this is to reanalyze only this line without reanalyzing all its dependents.So a change in dependent will only reanalyze the dependency without hacving to reanalyze all other depdnents
+            }
         }
         Purger.dependencyToDependents = refreshedMap;
         Resolver.lineToAffectedLines = {};//clear it because its only needed for merging into the main one and it shouldnt linger any longer to prevent stale entries
@@ -52,7 +56,7 @@ export class Purger {
         
         const unpurgedSrcLines = new CustomQueue<string>([]);
         const unpurgedKeys = new Set<string>();
-        Purger.prepareDependencyMap(srcKeysAsSet);//this must be called before the below for loop
+        Purger.prepareDependencyMap(cache,srcKeysAsSet);//this must be called before the below for loop
         
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
@@ -62,8 +66,8 @@ export class Purger {
             const isNotInSrc = !srcKeysAsSet.has(key);
             if (isNotInSrc) {
                 console.log('\nEntry not in src: ',key);
-                Purger.refreshDependents(cache,key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
                 cache.delete(key);
+                Purger.refreshDependents(cache,key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
                 Purger.deleteFromDependents(key);//afterwards,remove it from the map.
             }
         }
