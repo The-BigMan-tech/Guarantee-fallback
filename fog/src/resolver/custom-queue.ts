@@ -14,14 +14,6 @@ export default class CustomQueue<T> {//i made this q because denque diesnt allow
             }
         }
     }
-    private allocateHeadSpace(size:number):void {
-        const newArr = new Array(size + this.arr.length);
-        for (let i=0; i < this.arr.length; i++ ) {
-            newArr[size + i] = this.arr[i];
-        }
-        this.arr = newArr;
-        this.start += size;
-    }
     public push(element:T):void {//O1
         this.arr.push(element);
     }
@@ -29,7 +21,7 @@ export default class CustomQueue<T> {//i made this q because denque diesnt allow
         if (this.arr.length === this.start) return undefined;
         return this.arr.pop() as T;
     }
-    public shift():T | undefined {//O1
+    public shift():T | undefined {//O1 with infrequent O(n)
         if (this.start >= this.arr.length) return undefined;
         const value = this.arr[this.start];
         this.arr[this.start] = undefined; // Help garbage collector
@@ -41,7 +33,7 @@ export default class CustomQueue<T> {//i made this q because denque diesnt allow
         this.start--;
         this.arr[this.start] = element;
     }
-    public unshift(element:T):void {//O(n) or O1
+    public unshift(element:T):void {//O(1) with infrequent O(n)
         if (this.start === 0) {
             this.allocateHeadSpace(this.arr.length);
             this.insert(element);
@@ -65,6 +57,14 @@ export default class CustomQueue<T> {//i made this q because denque diesnt allow
     }
     public get length():number {//O1
         return this.arr.length - this.start;
+    }
+    private allocateHeadSpace(size:number):void {//O(n)
+        const newArr = new Array(size + this.arr.length);
+        for (let i=0; i < this.arr.length; i++ ) {
+            newArr[size + i] = this.arr[i];
+        }
+        this.arr = newArr;
+        this.start += size;
     }
     private compactIfLarge():void {//O(n)
         const reachedThreshold = (this.start / this.arr.length) >= this.compactionFraction;
