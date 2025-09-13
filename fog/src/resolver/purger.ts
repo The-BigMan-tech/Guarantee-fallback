@@ -24,7 +24,7 @@ export class Purger {
             }
         }
     }
-    private static deleteFromDependents(key:string):void {
+    private static deleteFromDependencies(key:string):void {
         const refreshedMap:Record<string,Set<string>> = {};
         Object.entries(Purger.dependencyToDependents).forEach(([k,v])=>{
             if (k !== key) refreshedMap[k] = v;
@@ -67,7 +67,7 @@ export class Purger {
                 console.log('\nEntry not in src: ',key);
                 cache.delete(key);
                 Purger.refreshDependents(cache,key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
-                Purger.deleteFromDependents(key);//afterwards,remove it from the map.
+                Purger.deleteFromDependencies(key);//afterwards,remove it from the map.
             }
         }
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
