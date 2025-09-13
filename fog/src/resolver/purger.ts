@@ -11,26 +11,27 @@ import { ConsoleErrorListener } from "antlr4ng";
 
 // It expects the cache to have a particular key format.So ensure the cache uses the createKey function in the utils to make the keys.It also manages stale entries and initializes new ones by using the given src document.So there is no need to manage that yourself but expect it to be mutated.
 
-export class Purger {
+export class Purger<V extends object> {
     public static dependencyToDependents:Record<string,Set<string>> = {};
-    
-    private static refreshDependents(cache:LRUCache<string,any>,entry:string):void {
-        const dependentsAsKeys = Purger.dependencyToDependents[entry];
-        if (dependentsAsKeys) {
-            console.log('\nDependents upon deletion: ',dependentsAsKeys);
-            for (const dependentAsKey of dependentsAsKeys) {
-                cache.delete(dependentAsKey);
-            }
-        }
+
+    private inSameDocument:boolean;
+    private cache:LRUCache<string,V>;
+    private emptyValue:V;
+    private syntaxError:boolean = false;
+    private unpurgedSrcLines:string[] = [];
+    private srcKeysAsSet = new Set<string>();
+    private srcLines:(string | null)[] = [];
+    private unpurgedKeys = new Set<string>();
+
+    constructor(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V) {
+        this.cache = cache;
+        this.emptyValue = emptyValue;
+        this.srcLines = Resolver.createSrcLines(srcText);
+        this.srcKeysAsSet = new Set(this.srcLines.map((content,line)=>createKey(line,content as string)));
+        this.inSameDocument = srcPath === Resolver.lastDocumentPath;//i tied the choice to purge to whether the document path has changed.This is to sync it properly with static variables that are also tied to te document's path
+        ConsoleErrorListener.instance.syntaxError = ():void =>{this.syntaxError = true;};
     }
-    private static deleteFromDependencies(key:string):void {
-        const refreshedMap:Record<string,Set<string>> = {};
-        Object.entries(Purger.dependencyToDependents).forEach(([k,v])=>{
-            if (k !== key) refreshedMap[k] = v;
-        });
-        Purger.dependencyToDependents = refreshedMap;
-    }
-    private static prepareDependencyMap(cache:LRUCache<string,any>,srcKeysAsSet:Set<string>):void {
+    private prepareDependencyMap():void {
         const dependencyKeys = [...Object.keys(Purger.dependencyToDependents),...Object.keys(Resolver.lineToAffectedLines)];
         const refreshedMap:Record<string,Set<string>> = {};
         
@@ -39,58 +40,61 @@ export class Purger {
             const dependentsAffectedFromErr = Resolver.lineToAffectedLines[dependencyKey] || [];
             const dependentKeys =  [...regularDependents,...dependentsAffectedFromErr];
             refreshedMap[dependencyKey] = new Set(dependentKeys);
-            if (dependentKeys.some(key=>!srcKeysAsSet.has(key))) {
-                cache.delete(dependencyKey);//refresh the dependeny if any of the dependents change.but this doesnt mean that the dependency isnt in the src.It may still be in the src,but we want it to be reanalyzed.If its still in the src,the effect of this is to reanalyze only this line without reanalyzing all its dependents.So a change in dependent will only reanalyze the dependency without hacving to reanalyze all other depdnents
+            if (dependentKeys.some(key=>!this.srcKeysAsSet.has(key))) {
+                this.cache.delete(dependencyKey);//refresh the dependeny if any of the dependents change.but this doesnt mean that the dependency isnt in the src.It may still be in the src,but we want it to be reanalyzed.If its still in the src,the effect of this is to reanalyze only this line without reanalyzing all its dependents.So a change in dependent will only reanalyze the dependency without hacving to reanalyze all other depdnents
             }
         }
         Purger.dependencyToDependents = refreshedMap;
         Resolver.lineToAffectedLines = {};//clear it because its only needed for merging into the main one and it shouldnt linger any longer to prevent stale entries
     }
-    public static purge<V extends object>(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V):string {
-        let syntaxError:boolean = false;
-        ConsoleErrorListener.instance.syntaxError = ():void =>{syntaxError = true;};
-
-        const srcLines = Resolver.createSrcLines(srcText);
-        const srcKeysAsSet = new Set(srcLines.map((content,line)=>createKey(line,content)));
-        
-        const unpurgedSrcLines:string[] = [];
-        const unpurgedKeys = new Set<string>();
-        Purger.prepareDependencyMap(cache,srcKeysAsSet);//this must be called before the below for loop
-        
-        console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
-        
-        const uniqueKeys = [...cache.keys()];
-        for (const key of uniqueKeys) {
-            const isNotInSrc = !srcKeysAsSet.has(key);
-            if (isNotInSrc) {
-                console.log('\nEntry not in src: ',key);
-                cache.delete(key);
-                Purger.refreshDependents(cache,key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
-                Purger.deleteFromDependencies(key);//afterwards,remove it from the map.
+    private refreshItsDependents(key:string):void {
+        const dependentsAsKeys = Purger.dependencyToDependents[key];
+        if (dependentsAsKeys) {
+            for (const dependentAsKey of dependentsAsKeys) {
+                this.cache.delete(dependentAsKey);
             }
         }
+    }
+    private deleteFromDependencies(key:string):void {
+        const refreshedMap:Record<string,Set<string>> = {};
+        Object.entries(Purger.dependencyToDependents).forEach(([k,v])=>{
+            if (k !== key) refreshedMap[k] = v;
+        });
+        Purger.dependencyToDependents = refreshedMap;
+    }
+    private updateCache():void {
+        const uniqueKeys = [...this.cache.keys()];
+        for (const key of uniqueKeys) {
+            const isNotInSrc = !this.srcKeysAsSet.has(key);
+            if (isNotInSrc) {
+                console.log('\nEntry not in src: ',key);
+                this.cache.delete(key);
+                this.refreshItsDependents(key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
+                this.deleteFromDependencies(key);//afterwards,remove it from the map.
+            }
+        }
+    }
+    private produceFinalSrc():void {
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
-        for (let line = (srcLines.length - 1 ); line >= 0 ;line--) {
-            const srcLine = srcLines[line];
+        for (let line = (this.srcLines.length - 1 ); line >= 0 ;line--) {
+            const srcLine = this.srcLines[line];
+            if (srcLine === null) return;
+
             const key = createKey(line,srcLine);
+            const inCache = this.cache.has(key);//notice that i used inCache and not inSrc to determine the purge decision here.This is because (inCache == inSrc) but (inSrc !== inCache).The presence in the cache is the ultimate factor because it needs to be synchronized completely with what is actually in the cache to avoid state bugs.
 
-            const inCache = cache.has(key);
-            const inSameDocument = srcPath === Resolver.lastDocumentPath;//i tied the choice to purge to whether the document path has changed.This is to sync it properly with static variables that are also tied to te document's path
-
-            const manager = new DependencyManager({key,line,srcLine,srcLines,inCache});
+            const manager = new DependencyManager({key,line,srcLine,srcLines:this.srcLines as string[],inCache});
             ParseHelper.parse(srcLine);
         
-            const isADependency:boolean | undefined = (syntaxError)?undefined:manager.visit(ParseHelper.tree!);
-            const shouldPurge = !syntaxError && inSameDocument && inCache && (isADependency === false);
+            const isADependency:boolean | undefined = (this.syntaxError)?undefined:manager.visit(ParseHelper.tree!);
+            const shouldPurge = !this.syntaxError && this.inSameDocument && inCache && (isADependency === false);
         
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
-                unpurgedSrcLines[line] = " ";//i inserted whitespaces in place of the purged lines to preserve the line ordering
+                this.unpurgedSrcLines[line] = " ";//i inserted whitespaces in place of the purged lines to preserve the line ordering
             }else {
-                console.log('\nunshifting src line: ',key,'isDependency: ',isADependency,'inCache: ',inCache,'syntax err: ',syntaxError);   
-                unpurgedSrcLines[line] = srcLine;
-                cache.delete(key);//remove from the cache entry since its going to be reanalyzed
-                unpurgedKeys.add(key);
-
+                console.log('\nunshifting src line: ',key,'isDependency: ',isADependency,'inCache: ',inCache,'syntax err: ',this.syntaxError);   
+                this.unpurgedSrcLines[line] = srcLine;
+                
                 //This block only includes the dependents of this src line if it is part of the lines that changed(by chdcking its presence in the cache),it is unpurged and its dependents are not unpurged already.
                 if (!inCache) {//without this particular check,the purger will create a cascading effect where a changed line will load its dependencies,which in turn,will load all their dependents,which in turn will also load their dependencies and so fort,creating a ripple effect where a wide range of the document will be relaoded from one line alone.
                     const satisfiedDependents = manager.satisfiedDependents;
@@ -98,22 +102,31 @@ export class Purger {
 
                     for (const dependent of satisfiedDependents) {
                         dependentKeys.push(dependent.uniqueKey);
-                        if (!unpurgedKeys.has(dependent.uniqueKey)) {//this prevents depencies from wiping out the progress of dependnets
+                        if (!this.unpurgedKeys.has(dependent.uniqueKey)) {//this prevents depencies from wiping out the progress of dependnets
                             console.log('Inserting dependent: ',dependent.uniqueKey);
-                            cache.delete(dependent.uniqueKey);
-                            unpurgedSrcLines[dependent.line] = dependent.srcLine;
+                            this.cache.delete(dependent.uniqueKey);
+                            this.unpurgedSrcLines[dependent.line] = dependent.srcLine;
                         }
                     }
                     Purger.dependencyToDependents[key] = new Set(dependentKeys);
                 }
+                this.cache.delete(key);//remove from the cache entry since its going to be reanalyzed
+                this.unpurgedKeys.add(key);
             }
             //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
-            if (!isWhitespace(key) && !cache.has(key)) {//we dont want to override existing entries
-                cache.set(key,emptyValue);
+            if (!isWhitespace(key) && !this.cache.has(key)) {//we dont want to override existing entries
+                this.cache.set(key,this.emptyValue);
             }
-            syntaxError = false;
+            this.syntaxError = false;
         }
-        const unpurgedSrcText:string = unpurgedSrcLines.join('\n');
+    }
+    public purge():string {//the order of operations here is very important.
+        this.prepareDependencyMap();
+        this.updateCache();
+        this.produceFinalSrc();
+        const unpurgedSrcText:string = this.unpurgedSrcLines.join('\n');
+
+        console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', this.srcKeysAsSet);
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
         console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
         return unpurgedSrcText;
