@@ -56,15 +56,6 @@ export type AtomList = Atom[];
 export type UniqueAtomList = UniqueList<Atom>
 export type Facts = UniqueAtomList[];
 
-export function isGenerator(value: any): value is Generator {
-    return (
-        value !== null && 
-        value !== undefined &&
-        typeof value === 'object' && 
-        typeof value.next === 'function' && 
-        typeof value.throw === 'function'
-    );
-}
 export class Rec<T extends Facts = Facts> implements RecType {
     public members:UniqueAtomList = new UniqueList();//i used a unique list to prevent duplicate entries which prevents the number of iterations when testing for a fact against an arbitrary member.its a list but uses a set to ensure that elements are unique which allows me to benefit from list iteration and uniqueness at the same time.I also localized this structure to per fact to only test against arbotrary members that are atually involved in a fact
     public facts:Facts = [];
@@ -129,14 +120,27 @@ export class UniqueList<T> {//A data structure that provides iteration and index
         return false; // Element does not exist
     }
 }
+export function isGenerator(value: any): value is Generator {
+    return (
+        value !== null && 
+        value !== undefined &&
+        typeof value === 'object' && 
+        typeof value.next === 'function' && 
+        typeof value.throw === 'function'
+    );
+}
+export function stripLineBreaks(str:string,replaceWith?:string):string {
+    return str.replace(/\r?\n|\r/g,replaceWith || "");
+}
 export function convMapToRecord<K extends string | number | symbol,V>(map:Map<K,V>):Record<K,V> {
     const rec:Record<K,V> = {} as Record<K,V>;
     const keys = [...map.keys()];
     keys.forEach(key=>(rec[key]=map.get(key)!));
     return rec;
 }
-export function isWhitespace(line: string): boolean {
-    return line.trim().length === 0;
+export function isWhitespace(str: string): boolean {
+    const strippedStr = stripLineBreaks(str).trim();
+    return strippedStr.length === 0;
 }
 export function getOrdinalSuffix(n:number):string {
     const s = ["th", "st", "nd", "rd"];
@@ -149,8 +153,7 @@ export function replaceLastOccurrence(str:string, search:string, replacement:str
     return str.slice(0, lastIndex) + replacement + str.slice(lastIndex + search.length);
 }
 export function createKey(line:number,content:string):string {
-    const contentNoWhitespaces = content.replace(/\s+/g, '');  // Remove all whitespaces
-    const key = `${line}|${contentNoWhitespaces}`;
+    const key = stripLineBreaks(`${line}|${content}`);
     return key;
 }
 export function contentFromKey(key:string):string {//this function assumes that the key was created from the createKey function

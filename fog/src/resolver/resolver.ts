@@ -3,7 +3,7 @@ import { DSLLexer } from "../generated/DSLLexer.js";
 import { Token } from "antlr4ng";
 import { ParseTree } from "antlr4ng";
 import { ProgramContext,FactContext,AliasDeclarationContext } from "../generated/DSLParser.js";
-import { Rec,AtomList,lspDiagnostics,replaceLastOccurrence, brown, lime, createKey, ReportKind, darkGreen, mapToColor, Report, EndOfLine, lspSeverity, getOrdinalSuffix, omittedJsonKeys } from "../utils/utils.js";
+import { Rec,AtomList,lspDiagnostics,replaceLastOccurrence, brown, lime, createKey, ReportKind, darkGreen, mapToColor, Report, EndOfLine, lspSeverity, getOrdinalSuffix, omittedJsonKeys, stripLineBreaks } from "../utils/utils.js";
 import { LRUCache } from "lru-cache";
 import stringify from "safe-stable-stringify";
 import fs from "fs/promises";
@@ -114,7 +114,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
         const severity = mapToSeverity[kind];
         const modifiedMsg = msg.split('\n').map(str=>str.replace('-','')).join('');//this removes the leading - sign in each sentence of the message.I use them when logging the report to a file for clarity but for in editor reports,it is unnecessary.
-        const cleanMsg = stripAnsi(modifiedMsg.replace(/\r?\n|\r/g, " "));//strip ansi codes and new lines
+        const cleanMsg = stripAnsi(stripLineBreaks(modifiedMsg));//strip ansi codes and new lines
         
         const mainKey = createKey(line,srcLine);
         if (!lines && ((typeof srcText === "string") || (srcText === EndOfLine.value))) {

@@ -95,7 +95,7 @@ export class Purger<V extends object> {
                 this.cache.delete(key);//remove from the cache entry since its going to be reanalyzed
             }
             //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
-            if (!isWhitespace(key) && !this.cache.has(key)) {//we dont want to override existing entries
+            if (!isWhitespace(srcLine) && !this.cache.has(key)) {//we dont want to override existing entries
                 this.cache.set(key,this.emptyValue);
             }
             Purger.dependencyToDependents[key] = new Set(manager.satisfiedDependents.map(dependent=>dependent.uniqueKey));
