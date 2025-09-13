@@ -166,6 +166,7 @@ export class DependencyManager extends DSLVisitor<boolean | undefined> {
         }
         return undefined;
     };
+    //this algorithm is intended to be called per line for correctness and precision and not a whole src text.
     public visit = (tree: ParseTree):boolean => {//The purger checks for dependencies and settles dependents in one visit per src line its called on.So there are no separate processes of dependency recording and then, dependency settlement
         if (tree instanceof ProgramContext) {
             this.visitProgram(tree); // Pass the context directly

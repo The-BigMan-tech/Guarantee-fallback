@@ -21,12 +21,14 @@ export class Purger<V extends object> {
     private unpurgedSrcLines:string[] = [];
     private srcKeysAsSet = new Set<string>();
     private srcLines:(string | null)[] = [];
+    private nonNullableSrcLines:string[] = [];
     private unpurgedKeys = new Set<string>();
 
     constructor(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V) {
         this.cache = cache;
         this.emptyValue = emptyValue;
         this.srcLines = Resolver.createSrcLines(srcText);
+        this.nonNullableSrcLines = [...this.srcLines] as string[];
         this.srcKeysAsSet = new Set(this.srcLines.map((content,line)=>createKey(line,content as string)));
         this.inSameDocument = srcPath === Resolver.lastDocumentPath;//i tied the choice to purge to whether the document path has changed.This is to sync it properly with static variables that are also tied to te document's path
         ConsoleErrorListener.instance.syntaxError = ():void =>{this.syntaxError = true;};
@@ -78,14 +80,12 @@ export class Purger<V extends object> {
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
         for (let line = (this.srcLines.length - 1 ); line >= 0 ;line--) {
             const srcLine = this.srcLines[line];
-
             if (srcLine === null) return;    
-            this.srcLines[line] = null;
-
+            
             const key = createKey(line,srcLine);
             const inCache = this.cache.has(key);//notice that i used inCache and not inSrc to determine the purge decision here.This is because (inCache == inSrc) but (inSrc !== inCache).The presence in the cache is the ultimate factor because it needs to be synchronized completely with what is actually in the cache to avoid state bugs.
 
-            const manager = new DependencyManager({key,line,srcLine,srcLines:this.srcLines as string[],inCache});
+            const manager = new DependencyManager({key,line,srcLine,srcLines:this.nonNullableSrcLines,inCache});//i passed in non nullable src lines here because the manager expects the full src lines as string for some operations.so this keeps it sepaaret from the main one which is actively mutated during the purge
             ParseHelper.parse(srcLine);
 
             const syntaxError = this.syntaxError;//save this into a local copy.
@@ -94,6 +94,7 @@ export class Purger<V extends object> {
             const isADependency:boolean | undefined = (syntaxError)?undefined:manager.visit(ParseHelper.tree!);        
             const shouldPurge = !syntaxError && this.inSameDocument && inCache && (isADependency === false);
             
+            this.srcLines[line] = null;//this marks this line as visited.It has to be done before the following block because it may do s recursion but after every other line hs used it
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
                 this.unpurgedSrcLines[line] = " ";//i inserted whitespaces in place of the purged lines to preserve the line ordering
             }else {
@@ -110,7 +111,7 @@ export class Purger<V extends object> {
                         if (!this.unpurgedKeys.has(dependent.uniqueKey)) {//this prevents depencies from wiping out the progress of dependnets
                             console.log('Inserting dependent: ',dependent.uniqueKey);
                             this.cache.delete(dependent.uniqueKey);
-                            this.unpurgedSrcLines[dependent.line] = dependent.srcLine;
+                            this.srcLines[dependent.line] = dependent.srcLine;//mark the line for revisit
                         }
                     }
                     Purger.dependencyToDependents[key] = new Set(dependentKeys);
@@ -133,6 +134,7 @@ export class Purger<V extends object> {
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', this.srcKeysAsSet);
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
         console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
+        console.log('\nSrc lines: ',this.srcLines);
         return unpurgedSrcText;
     }
 }

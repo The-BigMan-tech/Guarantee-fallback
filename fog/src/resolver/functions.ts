@@ -161,7 +161,8 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     clearStaticVariables(srcPath);
     Resolver.includeDiagnostics = true;
     
-    const unpurgedSrcText = Purger.purge(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
+    const purger = new Purger(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
+    const unpurgedSrcText = purger.purge();
     await generateJson(srcPath,unpurgedSrcText,srcText);//this populates the lsp diagostics
 
     const fullDiagnostics:lspDiagnostics[] = [];
