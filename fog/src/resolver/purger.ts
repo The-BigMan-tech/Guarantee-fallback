@@ -31,13 +31,20 @@ export class Purger {
         });
         Purger.dependencyToDependents = refreshedMap;
     }
-    private static prepareDependencyMap():void {
+    private static prepareDependencyMap(srcKeysAsSet:Set<string>):void {
         const dependencyKeys = [...Object.keys(Purger.dependencyToDependents),...Object.keys(Resolver.lineToAffectedLines)];
         const refreshedMap:Record<string,string[]> = {};
         for (const dependencyKey of dependencyKeys) {
             const regularDependents = Purger.dependencyToDependents[dependencyKey] || [];
             const dependentsAffectedFromErr = Resolver.lineToAffectedLines[dependencyKey] || [];
-            refreshedMap[dependencyKey] = [...regularDependents,...dependentsAffectedFromErr];
+            refreshedMap[dependencyKey] = [];
+            
+            const dependentKeys = [...regularDependents,...dependentsAffectedFromErr];
+            for (const dependentKey of dependentKeys) {
+                if (srcKeysAsSet.has(dependentKey)) {
+                    refreshedMap[dependencyKey].push(dependentKey);
+                }
+            }
         }
         Purger.dependencyToDependents = refreshedMap;
         Resolver.lineToAffectedLines = {};//clear it because its only needed for merging into the main one and it shouldnt linger any longer to prevent stale entries
@@ -51,7 +58,7 @@ export class Purger {
         
         const unpurgedSrcLines = new CustomQueue<string>([]);
         const unpurgedKeys = new Set<string>();
-        Purger.prepareDependencyMap();//this must be called before the below for loop
+        Purger.prepareDependencyMap(srcKeysAsSet);//this must be called before the below for loop
         
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
