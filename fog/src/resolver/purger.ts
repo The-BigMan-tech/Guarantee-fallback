@@ -78,31 +78,28 @@ export class Purger<V extends object> {
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
         for (let line = (this.srcLines.length - 1 ); line >= 0 ;line--) {
             const srcLine = this.srcLines[line];
-            
+            ParseHelper.parse(srcLine);
+
             const key = createKey(line,srcLine);
             const inCache = this.cache.has(key);//notice that i used inCache and not inSrc to determine the purge decision here.This is because (inCache == inSrc) but (inSrc !== inCache).The presence in the cache is the ultimate factor because it needs to be synchronized completely with what is actually in the cache to avoid state bugs.
 
             const manager = new DependencyManager({key,line,srcLine,srcLines:this.srcLines,inCache});//i passed in non nullable src lines here because the manager expects the full src lines as string for some operations.so this keeps it sepaaret from the main one which is actively mutated during the purge
-            ParseHelper.parse(srcLine);
-
-            const syntaxError = this.syntaxError;//save this into a local copy.
-            this.syntaxError = false;//then we can reset it since its copied
-
-            const isADependency:boolean | undefined = (syntaxError)?undefined:manager.visit(ParseHelper.tree!);        
-            const shouldPurge = !syntaxError && this.inSameDocument && inCache && (isADependency === false);
-
+            const isADependency:boolean | undefined = (this.syntaxError)?undefined:manager.visit(ParseHelper.tree!);        
+            
+            const shouldPurge = !this.syntaxError && this.inSameDocument && inCache && (isADependency === false);
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
                 this.unpurgedSrcLines[line] = " ";//i inserted whitespaces in place of the purged lines to preserve the line ordering
             }else {
-                console.log('\nunshifting src line: ',key,'isDependency: ',isADependency,'inCache: ',inCache,'syntax err: ',syntaxError);   
+                console.log('\nunshifting src line: ',key,'isDependency: ',isADependency,'inCache: ',inCache,'syntax err: ',this.syntaxError);   
                 this.unpurgedSrcLines[line] = srcLine;
                 this.cache.delete(key);//remove from the cache entry since its going to be reanalyzed
-                Purger.dependencyToDependents[key] = new Set(manager.satisfiedDependents.map(dependent=>dependent.uniqueKey));
             }
             //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
             if (!isWhitespace(key) && !this.cache.has(key)) {//we dont want to override existing entries
                 this.cache.set(key,this.emptyValue);
             }
+            Purger.dependencyToDependents[key] = new Set(manager.satisfiedDependents.map(dependent=>dependent.uniqueKey));
+            this.syntaxError = false;
         }
     }
     public purge():string {//the order of operations here is very important.
