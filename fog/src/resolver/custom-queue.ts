@@ -1,4 +1,9 @@
-export default class CustomQueue<T> {//i made this q because denque diesnt allow mutation at any arbitrary index.
+//i made this deque because the denque pkg doesnt allow mutation at any arbitrary index but only efficient O1 queu operations.
+//This structure helps to solve that by using a headspaced array implementation for efficient 01 queue operations while still supporting O1 arbitary mutation
+//But it has inferequent O(n) operations at certain conditions and it doesnt save memory as the circular buffer dequeu which is used in denque
+//it is ot used in this project but will be in the future.
+
+export default class CustomQueue<T> {
     private arr:(T | undefined)[];
     private start:number;
     private compactionFraction:number = 0.40;//a weight between 0 and 1

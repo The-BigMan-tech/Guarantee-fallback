@@ -4,6 +4,7 @@ import { DependencyManager } from "./dependency-manager.js";
 import { Resolver } from "./resolver.js";
 import { ParseHelper } from "./parse-helper.js";
 import { ConsoleErrorListener } from "antlr4ng";
+import Denque from "denque";
 
 //The purger takes in a src document and by using a cache that maps each line to any arbitary data,the purger will compare it against the cached keys and return a purged src document which only contains the lines that changed and all other lines that the change depends on and the lines that also depends on that change.
 
@@ -18,9 +19,9 @@ export class Purger<V extends object> {
     private cache:LRUCache<string,V>;
     private emptyValue:V;
     private syntaxError:boolean = false;
-    private unpurgedSrcLines:string[] = [];
+    private unpurgedSrcLines = new Denque<string>();
     private srcKeysAsSet = new Set<string>();
-    private srcLines:string[] = [];
+    private srcLines:string[];
 
     constructor(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V) {
         this.cache = cache;
@@ -88,10 +89,10 @@ export class Purger<V extends object> {
             
             const shouldPurge = !this.syntaxError && this.inSameDocument && inCache && (isADependency === false);
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
-                this.unpurgedSrcLines[line] = " ";//i inserted whitespaces in place of the purged lines to preserve the line ordering
+                this.unpurgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
             }else {
                 console.log('\nunshifting src line: ',key,'isDependency: ',isADependency,'inCache: ',inCache,'syntax err: ',this.syntaxError);   
-                this.unpurgedSrcLines[line] = srcLine;
+                this.unpurgedSrcLines.unshift(srcLine);
                 this.cache.delete(key);//remove from the cache entry since its going to be reanalyzed
             }
             //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
@@ -106,7 +107,7 @@ export class Purger<V extends object> {
         this.prepareDependencyMap();
         this.updateCache();
         this.produceFinalSrc();
-        const unpurgedSrcText:string = this.unpurgedSrcLines.join('\n');
+        const unpurgedSrcText:string = this.unpurgedSrcLines.toArray().join('\n');
 
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', this.srcKeysAsSet);
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
