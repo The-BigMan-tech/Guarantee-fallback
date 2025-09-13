@@ -1,4 +1,3 @@
-import CustomQueue from "./custom-queue.js";
 import { LRUCache } from "lru-cache";
 import { createKey,isWhitespace } from "../utils/utils.js";
 import { DependencyManager } from "./dependency-manager.js";
@@ -54,7 +53,7 @@ export class Purger {
         const srcLines = Resolver.createSrcLines(srcText);
         const srcKeysAsSet = new Set(srcLines.map((content,line)=>createKey(line,content)));
         
-        const unpurgedSrcLines = new CustomQueue<string>([]);
+        const unpurgedSrcLines:string[] = [];
         const unpurgedKeys = new Set<string>();
         Purger.prepareDependencyMap(cache,srcKeysAsSet);//this must be called before the below for loop
         
@@ -85,10 +84,10 @@ export class Purger {
             const shouldPurge = !syntaxError && inSameDocument && inCache && (isADependency === false);
         
             if (shouldPurge) {//if this condition is true,then this line will be purged out(not included) in the final text
-                unpurgedSrcLines.unshift(" ");//i inserted whitespaces in place of the purged lines to preserve the line ordering
+                unpurgedSrcLines[line] = " ";//i inserted whitespaces in place of the purged lines to preserve the line ordering
             }else {
                 console.log('\nunshifting src line: ',key,'isDependency: ',isADependency,'inCache: ',inCache,'syntax err: ',syntaxError);   
-                unpurgedSrcLines.unshift(srcLine);
+                unpurgedSrcLines[line] = srcLine;
                 cache.delete(key);//remove from the cache entry since its going to be reanalyzed
                 unpurgedKeys.add(key);
 
@@ -102,7 +101,7 @@ export class Purger {
                         if (!unpurgedKeys.has(dependent.uniqueKey)) {//this prevents depencies from wiping out the progress of dependnets
                             console.log('Inserting dependent: ',dependent.uniqueKey);
                             cache.delete(dependent.uniqueKey);
-                            unpurgedSrcLines.set(dependent.line - line,dependent.srcLine);
+                            unpurgedSrcLines[dependent.line] = dependent.srcLine;
                         }
                     }
                     Purger.dependencyToDependents[key] = new Set(dependentKeys);
@@ -114,7 +113,7 @@ export class Purger {
             }
             syntaxError = false;
         }
-        const unpurgedSrcText:string = unpurgedSrcLines.array().join('\n');
+        const unpurgedSrcText:string = unpurgedSrcLines.join('\n');
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
         console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
         return unpurgedSrcText;
