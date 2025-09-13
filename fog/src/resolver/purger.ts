@@ -13,7 +13,7 @@ import { ConsoleErrorListener } from "antlr4ng";
 // It expects the cache to have a particular key format.So ensure the cache uses the createKey function in the utils to make the keys.It also manages stale entries and initializes new ones by using the given src document.So there is no need to manage that yourself but expect it to be mutated.
 
 export class Purger {
-    public static dependencyToDependents:Record<string,string[]> = {};
+    public static dependencyToDependents:Record<string,Set<string>> = {};
 
     private static refreshDependents(cache:LRUCache<string,any>,entry:string):void {
         const dependentsAsKeys = Purger.dependencyToDependents[entry];
@@ -25,7 +25,7 @@ export class Purger {
         }
     }
     private static deleteFromDependents(key:string):void {
-        const refreshedMap:Record<string,string[]> = {};
+        const refreshedMap:Record<string,Set<string>> = {};
         Object.entries(Purger.dependencyToDependents).forEach(([k,v])=>{
             if (k !== key) refreshedMap[k] = v;
         });
@@ -33,18 +33,12 @@ export class Purger {
     }
     private static prepareDependencyMap(srcKeysAsSet:Set<string>):void {
         const dependencyKeys = [...Object.keys(Purger.dependencyToDependents),...Object.keys(Resolver.lineToAffectedLines)];
-        const refreshedMap:Record<string,string[]> = {};
+        const refreshedMap:Record<string,Set<string>> = {};
+        
         for (const dependencyKey of dependencyKeys) {
             const regularDependents = Purger.dependencyToDependents[dependencyKey] || [];
             const dependentsAffectedFromErr = Resolver.lineToAffectedLines[dependencyKey] || [];
-            refreshedMap[dependencyKey] = [];
-            
-            const dependentKeys = [...regularDependents,...dependentsAffectedFromErr];
-            for (const dependentKey of dependentKeys) {
-                if (srcKeysAsSet.has(dependentKey)) {
-                    refreshedMap[dependencyKey].push(dependentKey);
-                }
-            }
+            refreshedMap[dependencyKey] = new Set([...regularDependents,...dependentsAffectedFromErr]);
         }
         Purger.dependencyToDependents = refreshedMap;
         Resolver.lineToAffectedLines = {};//clear it because its only needed for merging into the main one and it shouldnt linger any longer to prevent stale entries
@@ -98,16 +92,17 @@ export class Purger {
                 //This block only includes the dependents of this src line if it is part of the lines that changed(by chdcking its presence in the cache),it is unpurged and its dependents are not unpurged already.
                 if (!inCache) {//without this particular check,the purger will create a cascading effect where a changed line will load its dependencies,which in turn,will load all their dependents,which in turn will also load their dependencies and so fort,creating a ripple effect where a wide range of the document will be relaoded from one line alone.
                     const satisfiedDependents = manager.satisfiedDependents;
-                    for (const dependent of satisfiedDependents) {
-                        const dependentsInMap =  Purger.dependencyToDependents[key] || [];
-                        Purger.dependencyToDependents[key] = [...dependentsInMap,dependent.uniqueKey];
+                    const dependentKeys:string[] = [];
 
+                    for (const dependent of satisfiedDependents) {
+                        dependentKeys.push(dependent.uniqueKey);
                         if (!unpurgedKeys.has(dependent.uniqueKey)) {//this prevents depencies from wiping out the progress of dependnets
                             console.log('Inserting dependent: ',dependent.uniqueKey);
                             cache.delete(dependent.uniqueKey);
                             unpurgedSrcLines.set(dependent.line - line,dependent.srcLine);
                         }
                     }
+                    Purger.dependencyToDependents[key] = new Set(dependentKeys);
                 }
             }
             //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
