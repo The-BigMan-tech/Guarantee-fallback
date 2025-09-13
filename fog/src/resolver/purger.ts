@@ -59,7 +59,6 @@ export class Purger {
         Purger.prepareDependencyMap(cache,srcKeysAsSet);//this must be called before the below for loop
         
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', srcKeysAsSet);
-        console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
         
         const uniqueKeys = [...cache.keys()];
         for (const key of uniqueKeys) {
@@ -116,6 +115,7 @@ export class Purger {
             syntaxError = false;
         }
         const unpurgedSrcText:string = unpurgedSrcLines.array().join('\n');
+        console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
         console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
         return unpurgedSrcText;
     }
