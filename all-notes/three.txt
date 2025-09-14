@@ -2449,3 +2449,7 @@ Graceful disconnection
 *so in summary,the purger moves backwards because backwards is the only feasible way to gather dependencies because it allows dependents to be discovered early.It uses a queue to retain the insertion order of the original src.Dependents are stockpiled across the iteration and dependent satisfaction and discovery are interleaved where depenentes are nullified on satisfaction under the single pass.But the pruger lacked the ability to refresh dependents of the changed line.so by using a scoped view into the stockpiled dependents, and using a set to prevent a cycle like case and a custom queue i made that uses a linear pointer,is able to reinsert lines that it missed but were only discovered as dependts later.This creates the perfect cascading effect where that one line i changed made the purger to remove all unrelated text but all dependents and dependencies were included over and over as if it crwaled the code
 
 *sparse arrays can lead to ambiguity,unused space and unsafe code.so its better to always use other data structures even though it will incur some extra performance
+
+*so what my purger does is to load only the lines that changed,the lines dependent on that and the lines that change depends on
+
+*My language has full suport for incremental resolution but is it reasonable that its only used for live analysis and final output use cases can be considered later.But for most use cases,i believe incremental resolution will be best for anaysis where the final output should be fully correct
