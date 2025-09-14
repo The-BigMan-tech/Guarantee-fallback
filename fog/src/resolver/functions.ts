@@ -1,4 +1,4 @@
-import { convMapToRecord, EndOfLine, FullData,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
+import { convMapToRecord, EndOfLine, FullData,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspInsertTextFormat, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -10,6 +10,8 @@ import { Purger } from "./purger.js";
 import { validator } from "../utils/utils.js";
 import { Doc, serverDoc } from "../fact-checker/fact-checker.js";
 import { ConsoleErrorListener } from "antlr4ng";
+import {Heap} from "heap-js";
+import { distance } from "fastest-levenshtein";
 
 
 function overrideErrorListener():void {
@@ -175,23 +177,41 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     console.log('visited sentences: ',Resolver.visitedSentences);
     return fullDiagnostics;
 }
+interface Completion {
+    dist:number,
+    suggestion:lspCompletionItem
+}
+const completions = new Heap<Completion>((a,b)=>a.dist-b.dist);
+
 export function autoComplete(word:string):lspCompletionItem[] {
+    completions.clear();
     const suggestions: lspCompletionItem[] = [
-        { label: 'ref', kind: lspCompletionItemKind.Keyword },
         { label: 'alias', kind: lspCompletionItemKind.Keyword },
-        { label: 'He', kind: lspCompletionItemKind.Constant },
-        { label: 'She', kind: lspCompletionItemKind.Constant },
-        { label: 'It', kind: lspCompletionItemKind.Constant },
+        { label: 'He',insertText:"<He>",kind: lspCompletionItemKind.Keyword },
+        { label: 'She',insertText:"<She>", kind: lspCompletionItemKind.Keyword },
+        { label: 'It',insertText:"<It>", kind: lspCompletionItemKind.Keyword },
+        { label: 'They',insertText:"<They>", kind: lspCompletionItemKind.Keyword },
+        { label: 'them', insertText: "<them:${0}>",insertTextFormat:lspInsertTextFormat.Snippet,kind: lspCompletionItemKind.Keyword },
+        { label: 'their', insertText: "<their:${0}>",insertTextFormat:lspInsertTextFormat.Snippet,kind: lspCompletionItemKind.Keyword },
+        { label: 'him', insertText: "<him:${0}>",insertTextFormat:lspInsertTextFormat.Snippet,kind: lspCompletionItemKind.Keyword },
+        { label: 'her', insertText: "<her:${0}>",insertTextFormat:lspInsertTextFormat.Snippet,kind: lspCompletionItemKind.Keyword },
+        { label: 'it', insertText: "<it:${0}>",insertTextFormat:lspInsertTextFormat.Snippet,kind: lspCompletionItemKind.Keyword },
+        { label: 'his', insertText: "<his:${0}>",insertTextFormat:lspInsertTextFormat.Snippet,kind: lspCompletionItemKind.Keyword },
     ];
-    const filteredSuggestions = [];
     for (const suggestion of suggestions) {
         const lowerWord = word.toLowerCase();
         const label = suggestion.label.toLowerCase();
-        if (label.startsWith(lowerWord)) {
-            filteredSuggestions.push(suggestion);
+        const dist = distance(label,lowerWord);
+        console.log(`dist between: ${label} and ${lowerWord}: `,dist);
+        if (dist <= 5) {
+            completions.add({dist,suggestion});
         }
     }
-    return filteredSuggestions;
+    const relevantSuggestions:lspCompletionItem[] = [];
+    for (const completion of completions) {//heap js doc guarantees that for loops consume the heap in the sorted order
+        relevantSuggestions.push(completion.suggestion);
+    }
+    return relevantSuggestions;
 }
 async function parseJson(json:Path):Promise<Result.error | object>  {
     try {

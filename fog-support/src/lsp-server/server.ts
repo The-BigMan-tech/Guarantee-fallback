@@ -50,7 +50,7 @@ connection.onInitialize(() => {
             textDocumentSync: TextDocumentSyncKind.Incremental,
             completionProvider: {
               resolveProvider: false, // Optional: implement if you want to resolve additional info after select
-              triggerCharacters: ['a', '!', '<', '#'], //a for alias keyword suggesion.! for name suggestion.# for alias suggestion.< is for ref suggestion
+              triggerCharacters: ['!','#'], //so ! is for name suggestion.# for alias suggestion.
             },
         },
     };

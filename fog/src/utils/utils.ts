@@ -233,10 +233,16 @@ export interface lspDiagnostics {
 export interface lspCompletionItem {
     label:string; 
     kind:lspCompletionItemKind
+    insertText?:string
+    insertTextFormat?:lspInsertTextFormat
 }
 export enum lspCompletionItemKind {
     Keyword=14,//for the alias and the different refs keywords 
     Constant=21,//for name and alias suggestion
+}
+export enum lspInsertTextFormat {
+  PlainText = 1, // The insertText is treated as plain text.
+  Snippet = 2    // The insertText is treated as a snippet, supporting placeholders/tab stops.
 }
 
 
