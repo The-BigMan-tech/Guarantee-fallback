@@ -59,13 +59,6 @@ export class Purger<V extends object> {
             }
         }
     }
-    private deleteFromDependencies(key:string):void {
-        const refreshedMap:Record<string,Set<string>> = {};
-        Object.entries(Purger.dependencyToDependents).forEach(([k,v])=>{
-            if (k !== key) refreshedMap[k] = v;
-        });
-        Purger.dependencyToDependents = refreshedMap;
-    }
     private updateCache():void {
         const uniqueKeys = [...this.cache.keys()];
         for (const key of uniqueKeys) {
@@ -74,7 +67,7 @@ export class Purger<V extends object> {
                 console.log('\nEntry not in src: ',key);
                 this.cache.delete(key);
                 this.refreshItsDependents(key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
-                this.deleteFromDependencies(key);//afterwards,remove it from the map.
+                delete Purger.dependencyToDependents[key];//afterwards,remove it from the map.
             }
         }
     }

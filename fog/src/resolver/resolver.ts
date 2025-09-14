@@ -55,10 +55,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
     private lastSentenceTokens:Token[] = [];
     private prevRefCheck:RefCheck = {encounteredRef:null,line:0};//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
-    private usedNames:Record<string,number> = {};//ive made it a record keeping track of how many times the token was discovered
+    public static usedNames:Record<string,{freq:number,uniqueKeys:string[]}> = {};//ive made it a record keeping track of how many times the token was discovered
     private predicateForLog:string | null = null;
 
-    public static visitedSentences = new Map<string,VisitedSentence>();
+    public static visitedSentences = new Map<string,VisitedSentence>();//this is static because of incremental resolution as used by the lsp
     public static includeDiagnostics:boolean = false;
     public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
     public static lastDocumentPath:string | null = null;
@@ -595,7 +595,14 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             else if (type === DSLLexer.NAME) {//this must be called for every name to capture them
                 const str = Resolver.stripMark(text);
                 const isLoose = text.startsWith(':');
-                if (isLoose && !(str in this.usedNames)) this.usedNames[str] = 0;//we dont want to reset it if it has already been set by a previous sentence
+                const uniqueKey = createKey(this.lineCount,Resolver.srcLine(this.lineCount)!);
+                if (isLoose) {
+                    if (!(str in Resolver.usedNames)) {
+                        Resolver.usedNames[str] = {freq:0,uniqueKeys:[uniqueKey]};//we dont want to reset it if it has already been set by a previous sentence
+                    }else {
+                        Resolver.usedNames[str].uniqueKeys.push(uniqueKey);
+                    }
+                }
                 encounteredNames.push(token.text!);
                 encounteredName = true;
             }
@@ -683,7 +690,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return null;
     }
     private recommendUsedName(text:string):string | null {
-        for (const name of Object.keys(this.usedNames)) {
+        for (const name of Object.keys(Resolver.usedNames)) {
             if (distance(name,text!) < 4) {
                 return name;
             }
@@ -782,7 +789,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
     private validateNameUsage(text:string) {
         const str = Resolver.stripMark(text);
-        if (Resolver.isStrict(text) && !(str in this.usedNames)) {
+        if (Resolver.isStrict(text) && !(str in Resolver.usedNames)) {
             let message = `-There is no existing usage of the name '${chalk.bold(str)}'`;
             const recommendedName = this.recommendUsedName(str);
             message += (recommendedName)?`\n-Did you mean to type ${chalk.bold('!'+recommendedName)} instead?`:`\n-It has to be written as ${chalk.bold(':'+str)} since it is just being declared.`;
@@ -792,7 +799,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 msg:message,
                 srcText:text
             });
-        }else if (!Resolver.isStrict(text) && this.usedNames[str] > 0) {//only give the recommendation if this is not the first time it is used
+        }else if (!Resolver.isStrict(text) && Resolver.usedNames[str].freq > 0) {//only give the recommendation if this is not the first time it is used
             Resolver.castReport({
                 kind:ReportKind.Warning,
                 line:this.lineCount,
@@ -800,8 +807,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 srcText:text
             });
         }
-        if (str in this.usedNames) {
-            this.usedNames[str] += 1;
+        if (str in Resolver.usedNames) {
+            Resolver.usedNames[str].freq += 1;
         }
     }
     //the reason why it has a readonly parameter because this function was formely used in two places and one had to call it for just the tokens while the other had to call it to make some mutations.So im still leaving it in case ill use it in another place one day

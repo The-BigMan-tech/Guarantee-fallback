@@ -51,9 +51,19 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
 }
 function updateStaticVariables(srcPath:string):void {
     Resolver.lastDocumentPath = srcPath;
-    for (const [key,visitedSentence] of Resolver.visitedSentences.entries()) {
-        if ((!Resolver.lspDiagnosticsCache.has(visitedSentence.uniqueKey))) {
+    if (!Resolver.includeDiagnostics) {//this always refershes this on full resolution mode that doesnt build diagnostics
+        Resolver.visitedSentences.clear();
+        Resolver.usedNames = {}
+        return
+    }
+    for (const [key,value] of Resolver.visitedSentences.entries()) {
+        if ((!Resolver.lspDiagnosticsCache.has(value.uniqueKey))) {
             Resolver.visitedSentences.delete(key);
+        }
+    }
+    for (const [key,value] of Object.entries(Resolver.usedNames)) {
+        if (value.uniqueKeys.some(uniqueKey=>!Resolver.lspDiagnosticsCache.has(uniqueKey))) {
+            delete Resolver.usedNames[key];
         }
     }
 }
@@ -84,6 +94,7 @@ function clearStaticVariables(srcPath:string):void {//Note that its not all stat
     if (srcPath !== Resolver.lastDocumentPath) {
         console.log('\nCleared visited sentences\n');
         Resolver.visitedSentences.clear();//the reason why i tied its lifetime to path changes is because the purging process used in incremental analysis will allow semantically identical sentences from being caught if the previous identical sentences wont survive the purge
+        Resolver.usedNames = {};
         Purger.dependencyToDependents = {};
     }
 }
@@ -175,6 +186,7 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     }
     console.log('cached Diagnostics: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
     console.log('visited sentences: ',Resolver.visitedSentences);
+    console.log('used names: ',Resolver.usedNames);
     return fullDiagnostics;
 }
 interface Completion {
