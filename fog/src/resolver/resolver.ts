@@ -3,7 +3,7 @@ import { DSLLexer } from "../generated/DSLLexer.js";
 import { Token } from "antlr4ng";
 import { ParseTree } from "antlr4ng";
 import { ProgramContext,FactContext,AliasDeclarationContext } from "../generated/DSLParser.js";
-import { Rec,AtomList,lspDiagnostics,replaceLastOccurrence, brown, lime, createKey, ReportKind, darkGreen, mapToColor, Report, EndOfLine, lspSeverity, getOrdinalSuffix, omittedJsonKeys, stripLineBreaks } from "../utils/utils.js";
+import { Rec,AtomList,lspDiagnostics,replaceLastOccurrence, brown, lime, createKey, ReportKind, darkGreen, mapToColor, Report, EndOfLine, lspSeverity, getOrdinalSuffix, omittedJsonKeys, stripLineBreaks, UniqueList } from "../utils/utils.js";
 import { LRUCache } from "lru-cache";
 import stringify from "safe-stable-stringify";
 import fs from "fs/promises";
@@ -55,7 +55,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
     private lastSentenceTokens:Token[] = [];
     private prevRefCheck:RefCheck = {encounteredRef:null,line:0};//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
-    public static usedNames:Record<string,{freq:number,uniqueKeys:string[]}> = {};//ive made it a record keeping track of how many times the token was discovered
+    public static usedNames:Record<string,{freq:number,uniqueKeys:UniqueList<string>}> = {};//the unqiue keys hold the keys of the line where the names were declared
     private predicateForLog:string | null = null;
 
     public static visitedSentences = new Map<string,VisitedSentence>();//this is static because of incremental resolution as used by the lsp
@@ -598,9 +598,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 const uniqueKey = createKey(this.lineCount,Resolver.srcLine(this.lineCount)!);
                 if (isLoose) {
                     if (!(str in Resolver.usedNames)) {
-                        Resolver.usedNames[str] = {freq:0,uniqueKeys:[uniqueKey]};//we dont want to reset it if it has already been set by a previous sentence
+                        Resolver.usedNames[str] = {freq:0,uniqueKeys:new UniqueList([uniqueKey])};//we dont want to reset it if it has already been set by a previous sentence
                     }else {
-                        Resolver.usedNames[str].uniqueKeys.push(uniqueKey);
+                        Resolver.usedNames[str].uniqueKeys.add(uniqueKey);
                     }
                 }
                 encounteredNames.push(token.text!);

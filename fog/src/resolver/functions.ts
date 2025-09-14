@@ -61,9 +61,15 @@ function updateStaticVariables(srcPath:string):void {
             Resolver.visitedSentences.delete(key);
         }
     }
-    for (const [key,value] of Object.entries(Resolver.usedNames)) {
-        if (value.uniqueKeys.some(uniqueKey=>!Resolver.lspDiagnosticsCache.has(uniqueKey))) {
-            delete Resolver.usedNames[key];
+    for (const [name,value] of Object.entries(Resolver.usedNames)) {
+        for (const uniqueKey of value.uniqueKeys.list) {
+            if (!Resolver.lspDiagnosticsCache.has(uniqueKey)) {
+                value.uniqueKeys.delete(uniqueKey)
+                value.freq -= 1;
+                if (value.freq === 0) {
+                    delete Resolver.usedNames[name];
+                }
+            }
         }
     }
 }
