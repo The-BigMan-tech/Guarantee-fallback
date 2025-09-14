@@ -1,33 +1,64 @@
 import {
+    CompletionItem,
     createConnection,
     ProposedFeatures,
+    TextDocumentPositionParams,
     TextDocuments,
     TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {analyzeDocument} from "fog-js";
+import { debounce } from 'throttle-debounce';
 
 const connection = createConnection(ProposedFeatures.all);
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
-connection.onInitialize(() => {
-    return {
-        capabilities: {
-            textDocumentSync: TextDocumentSyncKind.Incremental
-        }
-    };
-});
-
-documents.onDidChangeContent(change => {
-    const text = change.document.getText();
-    const srcPath = change.document.uri;
+function analyzeDoc(text:string,srcPath:string) {
     analyzeDocument(text,srcPath).then(diagnostics=>{
         console.log('🚀 => :24 => analysis:',diagnostics);
         connection.sendDiagnostics({
-            uri: change.document.uri,
+            uri:srcPath,
             diagnostics:diagnostics
         });
     });
+}
+const debouncedAnalysis = debounce(300,
+    (text:string,srcPath:string) =>{
+        analyzeDoc(text,srcPath);
+    },
+    {atBegin:false}
+);
+connection.onCompletion(async (params: TextDocumentPositionParams): Promise<CompletionItem[]> => {
+    const doc = documents.get(params.textDocument.uri);
+    if (doc) {
+        const lineText = doc.getText({
+            start: { line: params.position.line, character: 0 },
+            end: params.position,
+        });
+        const match = lineText.match(/(\w+)$/);
+        const lastWord = match ? match[1] : '';
+        console.log('\nLast word: ',lastWord);
+
+        const completions:CompletionItem[] = [];
+        return completions;
+    }
+    return [];
+});
+connection.onInitialize(() => {
+    return {
+        capabilities: {
+            textDocumentSync: TextDocumentSyncKind.Incremental,
+            completionProvider: {
+              resolveProvider: false, // Optional: implement if you want to resolve additional info after select
+              triggerCharacters: ['a', '!', '<', '#'], //a for alias keyword suggesion.! for name suggestion.# for alias suggestion.< is for ref suggestion
+            },
+        },
+    };
+});
+documents.onDidChangeContent(change => {
+    const text = change.document.getText();
+    const srcPath = change.document.uri;
+    debouncedAnalysis(text,srcPath);
     connection.console.log(`Document changed. Current length: ${text.length} text: ${text}`);
 });
 
