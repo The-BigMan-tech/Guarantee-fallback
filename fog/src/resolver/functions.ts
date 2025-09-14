@@ -62,9 +62,9 @@ function updateStaticVariables(srcPath:string):void {
         }
     }
     for (const [name,value] of Object.entries(Resolver.usedNames)) {
-        for (const uniqueKey of value.uniqueKeys.list) {
+        for (const uniqueKey of value.uniqueKeysForDeclarations.list) {
             if (!Resolver.lspDiagnosticsCache.has(uniqueKey)) {
-                value.uniqueKeys.delete(uniqueKey)
+                value.uniqueKeysForDeclarations.delete(uniqueKey)
                 value.freq -= 1;
                 if (value.freq === 0) {
                     delete Resolver.usedNames[name];
@@ -205,16 +205,22 @@ export function autoComplete(word:string):lspCompletionItem[] {
     completions.clear();
     const suggestions: lspCompletionItem[] = [
         { label: 'alias', kind: lspCompletionItemKind.Keyword },
-        { label: 'He',insertText:"<He>",kind: lspCompletionItemKind.Keyword },
-        { label: 'She',insertText:"<She>", kind: lspCompletionItemKind.Keyword },
-        { label: 'It',insertText:"<It>", kind: lspCompletionItemKind.Keyword },
-        { label: 'They',insertText:"<They>", kind: lspCompletionItemKind.Keyword },
-        { label: 'them', insertText: "<them:${0}>",insertTextFormat:lspInsertTextFormat.Snippet,kind: lspCompletionItemKind.Keyword },
-        { label: 'their', insertText: "<their:${0}>",insertTextFormat:lspInsertTextFormat.Snippet,kind: lspCompletionItemKind.Keyword },
-        { label: 'him', insertText: "<him:${0}>",insertTextFormat:lspInsertTextFormat.Snippet,kind: lspCompletionItemKind.Keyword },
-        { label: 'her', insertText: "<her:${0}>",insertTextFormat:lspInsertTextFormat.Snippet,kind: lspCompletionItemKind.Keyword },
-        { label: 'it', insertText: "<it:${0}>",insertTextFormat:lspInsertTextFormat.Snippet,kind: lspCompletionItemKind.Keyword },
-        { label: 'his', insertText: "<his:${0}>",insertTextFormat:lspInsertTextFormat.Snippet,kind: lspCompletionItemKind.Keyword },
+        ...['them','their','him','her','it','his'].map(ref=>({
+            label:ref,
+            insertText:`<${ref}:${'${0}'}>`,
+            insertTextFormat:lspInsertTextFormat.Snippet,
+            kind: lspCompletionItemKind.Keyword
+        })),
+        ...['He','She','It','They'].map(ref=>({
+            label:ref,
+            insertText:`<${ref}>`,
+            kind:lspCompletionItemKind.Keyword
+        })),
+        ...Object.keys(Resolver.usedNames).map(name=>({
+            label:`!${name}`,
+            insertText:name,
+            kind:lspCompletionItemKind.Constant
+        }))
     ];
     for (const suggestion of suggestions) {
         const lowerWord = word.toLowerCase();

@@ -55,7 +55,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
     private lastSentenceTokens:Token[] = [];
     private prevRefCheck:RefCheck = {encounteredRef:null,line:0};//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
-    public static usedNames:Record<string,{freq:number,uniqueKeys:UniqueList<string>}> = {};//the unqiue keys hold the keys of the line where the names were declared
+    public static usedNames:Record<string,{freq:number,uniqueKeysForDeclarations:UniqueList<string>}> = {};//the unqiue keys hold the keys of the line where the names were declared
     private predicateForLog:string | null = null;
 
     public static visitedSentences = new Map<string,VisitedSentence>();//this is static because of incremental resolution as used by the lsp
@@ -598,9 +598,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 const uniqueKey = createKey(this.lineCount,Resolver.srcLine(this.lineCount)!);
                 if (isLoose) {
                     if (!(str in Resolver.usedNames)) {
-                        Resolver.usedNames[str] = {freq:0,uniqueKeys:new UniqueList([uniqueKey])};//we dont want to reset it if it has already been set by a previous sentence
+                        Resolver.usedNames[str] = {freq:0,uniqueKeysForDeclarations:new UniqueList([uniqueKey])};//we dont want to reset it if it has already been set by a previous sentence
                     }else {
-                        Resolver.usedNames[str].uniqueKeys.add(uniqueKey);
+                        Resolver.usedNames[str].uniqueKeysForDeclarations.add(uniqueKey);
                     }
                 }
                 encounteredNames.push(token.text!);
