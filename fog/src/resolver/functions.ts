@@ -1,4 +1,4 @@
-import { convMapToRecord, EndOfLine, FullData,lime, lspCompletionItem, lspDiagnostics, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
+import { convMapToRecord, EndOfLine, FullData,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -176,7 +176,22 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     return fullDiagnostics;
 }
 export function autoComplete(word:string):lspCompletionItem[] {
-    return [];
+    const suggestions: lspCompletionItem[] = [
+        { label: 'ref', kind: lspCompletionItemKind.Keyword },
+        { label: 'alias', kind: lspCompletionItemKind.Keyword },
+        { label: 'He', kind: lspCompletionItemKind.Constant },
+        { label: 'She', kind: lspCompletionItemKind.Constant },
+        { label: 'It', kind: lspCompletionItemKind.Constant },
+    ];
+    const filteredSuggestions = [];
+    for (const suggestion of suggestions) {
+        const lowerWord = word.toLowerCase();
+        const label = suggestion.label.toLowerCase();
+        if (label.startsWith(lowerWord)) {
+            filteredSuggestions.push(suggestion);
+        }
+    }
+    return filteredSuggestions;
 }
 async function parseJson(json:Path):Promise<Result.error | object>  {
     try {
