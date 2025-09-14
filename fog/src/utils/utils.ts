@@ -230,4 +230,13 @@ export interface lspDiagnostics {
     severity?:lspSeverity,
     message:string,
 }
+export interface lspCompletionItem {
+    label:string; 
+    kind:lspCompletionItemKind
+}
+export enum lspCompletionItemKind {
+    Keyword=14,//for the alias and the different refs keywords 
+    Constant=21,//for name and alias suggestion
+}
+
 

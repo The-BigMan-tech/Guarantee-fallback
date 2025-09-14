@@ -140,6 +140,11 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     console.log(chalk.green('\nSuccessfully analyzed the document.'));
     return result;
 }
+export async function autoComplete(word:string):Promise<lspCompletionItem[]> {
+    const result = await request<lspCompletionItem[]>("autoComplete",{word});
+    console.log(chalk.green('\nSuccessfully returned auto completions.'));
+    return result;
+}
 //this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
 export async function setupOutput<P extends string,R extends string>(srcFilePath:string,outputFolder:string,rules?:Record<R,Rule<P>>):Promise<void> {
     const doc = await importDocFromSrc(srcFilePath,outputFolder);
@@ -371,4 +376,11 @@ export interface lspDiagnostics {
     severity?:lspSeverity,
     message:string,
 }
-
+export interface lspCompletionItem {
+    label:string; 
+    kind:lspCompletionItemKind
+}
+export enum lspCompletionItemKind {
+    Keyword=14,//for the alias and the different refs keywords 
+    Constant=21,//for name and alias suggestion
+}

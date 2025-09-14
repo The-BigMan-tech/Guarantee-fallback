@@ -1,4 +1,4 @@
-import { convMapToRecord, EndOfLine, FullData,lime, lspDiagnostics, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
+import { convMapToRecord, EndOfLine, FullData,lime, lspCompletionItem, lspDiagnostics, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -175,7 +175,9 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     console.log('visited sentences: ',Resolver.visitedSentences);
     return fullDiagnostics;
 }
-
+export function autoComplete(word:string):lspCompletionItem[] {
+    return [];
+}
 async function parseJson(json:Path):Promise<Result.error | object>  {
     try {
         const jsonString = await fs.readFile(json, 'utf8');

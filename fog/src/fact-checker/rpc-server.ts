@@ -3,7 +3,7 @@ import ipc from 'node-ipc';
 import { JSONRPCServer } from "json-rpc-2.0";
 import stringify from "safe-stable-stringify";
 import { Doc } from "./fact-checker.js";
-import {importDocFromJson, importDocFromObject, importDocFromSrc} from "../resolver/functions.js";
+import {autoComplete, importDocFromJson, importDocFromObject, importDocFromSrc} from "../resolver/functions.js";
 import { Atom, AtomList, isGenerator,Result} from "../utils/utils.js";
 import {serverDoc} from "./fact-checker.js";
 import { analyzeDocument, resolveDocument } from "../resolver/functions.js";
@@ -27,6 +27,10 @@ server.addMethod("resolveDocument", async ({ filePath, outputFolder }: { filePat
 });
 server.addMethod("analyzeDocument", async ({srcText,srcPath}: {srcText:string,srcPath:string}) => {
     const result = await analyzeDocument(srcText,srcPath);
+    return result;
+});
+server.addMethod("autoComplete",({word}: {word:string}) => {
+    const result = autoComplete(word);
     return result;
 });
 server.addMethod("allMembers",()=>{

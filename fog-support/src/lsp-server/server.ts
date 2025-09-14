@@ -7,7 +7,7 @@ import {
     TextDocumentSyncKind
 } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import {analyzeDocument} from "fog-js";
+import {analyzeDocument, autoComplete} from "fog-js";
 import { debounce } from 'throttle-debounce';
 
 const connection = createConnection(ProposedFeatures.all);
@@ -39,7 +39,7 @@ connection.onCompletion(async (params: TextDocumentPositionParams): Promise<Comp
         const lastWord = match ? match[1] : '';
         console.log('\nLast word: ',lastWord);
 
-        const completions:CompletionItem[] = [];
+        const completions:CompletionItem[] = await autoComplete(lastWord);
         return completions;
     }
     return [];
