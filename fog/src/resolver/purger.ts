@@ -12,6 +12,9 @@ import Denque from "denque";
 
 // It expects the cache to have a particular key format.So ensure the cache uses the createKey function in the utils to make the keys.It also manages stale entries and initializes new ones by using the given src document.So there is no need to manage that yourself but expect it to be mutated.
 
+//The purger may be one input event behind in delivering updates because of the operation order but is required for predictability and correctness.
+
+//Although it delivers the document incrementally,its more stable to use for live analysis where some of its limitations are acceptable than to produce incremental output
 export class Purger<V extends object> {
     public static dependencyToDependents:Record<string,Set<string>> = {};
 

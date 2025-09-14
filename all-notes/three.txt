@@ -2453,3 +2453,5 @@ Graceful disconnection
 *so what my purger does is to load only the lines that changed,the lines dependent on that and the lines that change depends on
 
 *My language has full suport for incremental resolution but is it reasonable that its only used for live analysis and final output use cases can be considered later.But for most use cases,i believe incremental resolution will be best for anaysis where the final output should be fully correct
+
+*it essentially comes down to this trade-off: either you call your purge process twice per input event to catch all dependency updates and reflect changes immediately (ensuring no input lag but at some performance cost), or you accept that the analysis state will always be behind by one input event (one character late), which is lighter in CPU usage but affects immediacy of feedback.
