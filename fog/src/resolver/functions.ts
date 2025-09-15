@@ -63,11 +63,10 @@ function updateStaticVariables(srcPath:string):void {
         }
     }
     for (const [name,value] of Object.entries(Resolver.usedNames)) {
-        for (const uniqueKey of value.uniqueKeysForDeclarations.list) {
+        for (const uniqueKey of value.uniqueKeys.list) {
             if (!Resolver.lspDiagnosticsCache.has(uniqueKey)) {
-                value.uniqueKeysForDeclarations.delete(uniqueKey)
-                value.freq -= 1;
-                if (value.freq === 0) {
+                value.uniqueKeys.delete(uniqueKey)
+                if (value.uniqueKeys.list.length === 0) {
                     delete Resolver.usedNames[name];
                 }
             }
@@ -223,16 +222,18 @@ export function autoComplete(word:string):lspCompletionItem[] {
             insertText:`<${ref}>`,
             kind:lspCompletionItemKind.Keyword
         })),
-        ...Object.keys(Resolver.usedNames).map(name=>({
+        ...(Object.keys(Resolver.usedNames).map(name=>({
             label:`!${name}`,
             insertText:name,
             kind:lspCompletionItemKind.Constant
-        })),
-        ...Object.keys(Resolver.aliases).map(alias=>({
-            label:`#${alias}`,
-            insertText:alias,
-            kind:lspCompletionItemKind.Constant
-        }))
+        }))),
+        ...(
+            [...Resolver.aliases.keys()].map(alias=>({
+                label:`#${alias}`,
+                insertText:alias,
+                kind:lspCompletionItemKind.Constant
+            }))
+        )
     ];
     for (const suggestion of suggestions) {
         const lowerWord = word.toLowerCase();
