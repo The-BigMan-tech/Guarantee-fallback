@@ -159,6 +159,13 @@ export function createKey(line:number,content:string):string {
 export function contentFromKey(key:string):string {//this function assumes that the key was created from the createKey function
     return key.slice(key.indexOf('|') + 1);
 }
+export function lineFromKey(key: string):number {
+    const pipeIndex = key.indexOf('|');
+    const linePart = key.slice(0, pipeIndex);
+    const lineNumber = Number(linePart);
+    if (Number.isNaN(lineNumber))throw new Error('Invalid key format: line number is not a number');
+    return lineNumber;
+}
 export function xand(a:boolean,b:boolean):boolean {
     return (!a && !b) || (a && b);
 }

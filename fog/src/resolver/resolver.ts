@@ -3,7 +3,7 @@ import { DSLLexer } from "../generated/DSLLexer.js";
 import { Token } from "antlr4ng";
 import { ParseTree } from "antlr4ng";
 import { ProgramContext,FactContext,AliasDeclarationContext } from "../generated/DSLParser.js";
-import { Rec,AtomList,lspDiagnostics,replaceLastOccurrence, brown, lime, createKey, ReportKind, darkGreen, mapToColor, Report, EndOfLine, lspSeverity, getOrdinalSuffix, omittedJsonKeys, stripLineBreaks, UniqueList } from "../utils/utils.js";
+import { Rec,AtomList,lspDiagnostics,replaceLastOccurrence, brown, lime, createKey, ReportKind, darkGreen, mapToColor, Report, EndOfLine, lspSeverity, getOrdinalSuffix, omittedJsonKeys, stripLineBreaks, UniqueList, lineFromKey } from "../utils/utils.js";
 import { LRUCache } from "lru-cache";
 import stringify from "safe-stable-stringify";
 import fs from "fs/promises";
@@ -55,7 +55,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
     private lastSentenceTokens:Token[] = [];
     private prevRefCheck:RefCheck = {encounteredRef:null,line:0};//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
-    public static usedNames:Record<string,{freq:number,uniqueKeysForDeclarations:UniqueList<string>}> = {};//the unqiue keys hold the keys of the line where the names were declared
+    public static usedNames:Record<string,{uniqueKeys:UniqueList<string>}> = {};//the unqiue keys hold the keys of the line where the names were declared
     private predicateForLog:string | null = null;
 
     public static visitedSentences = new Map<string,VisitedSentence>();//this is static because of incremental resolution as used by the lsp
@@ -605,12 +605,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 const uniqueKey = createKey(this.lineCount,Resolver.srcLine(this.lineCount)!);
                 if (isLoose) {
                     if (!(str in Resolver.usedNames)) {
-                        Resolver.usedNames[str] = {freq:0,uniqueKeysForDeclarations:new UniqueList([uniqueKey])};//we dont want to reset it if it has already been set by a previous sentence
+                        Resolver.usedNames[str] = {uniqueKeys:new UniqueList([uniqueKey])};//we dont want to reset it if it has already been set by a previous sentence
                     }else {
-                        Resolver.usedNames[str].uniqueKeysForDeclarations.add(uniqueKey);
+                        Resolver.usedNames[str].uniqueKeys.add(uniqueKey);
                     }
                 }
-                encounteredNames.push(token.text!);
+                encounteredNames.push(text);
                 encounteredName = true;
             }
 
@@ -690,9 +690,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return flatSequences;
     }
     private recommendAlias(text:string):string | null {
-        for (const alias of Resolver.aliases.values()) {
-            if (distance(alias.predicate,text!) < 4) {
-                return alias.predicate;
+        for (const alias of Resolver.aliases.keys()) {
+            if (distance(alias,text!) < 4) {
+                return alias;
             }
         }
         return null;
@@ -707,9 +707,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
     private validatePredicateType(token:Token):void {
         const text = token.text!;
-        const isAlias = Resolver.aliases.has(Resolver.stripMark(text));//the aliases set stores plain words
-        
-        if (isAlias && ! text.startsWith('#')) {
+        const alias = Resolver.aliases.get(Resolver.stripMark(text));//the aliases set stores plain words
+        const aliasOccuredBefore = alias && (lineFromKey(alias.uniqueKey) < this.lineCount);
+
+        if (aliasOccuredBefore && ! text.startsWith('#')) {
             Resolver.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
@@ -717,7 +718,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 srcText:text
             });
         }
-        if (!isAlias && ! text.startsWith("*")) {
+        else if (!aliasOccuredBefore && ! text.startsWith("*")) {
             const recommendedAlias = this.recommendAlias(Resolver.stripMark(text));
             let message:string = `-Predicates are meant to be prefixed with ${chalk.bold('*')} but found ${chalk.bold(token.text)}.\n-Did you forget to declare it as an alias? `;
             message += (recommendedAlias)?`Or did you mean to type #${recommendedAlias}?`:'';
@@ -797,7 +798,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
     private validateNameUsage(text:string) {
         const str = Resolver.stripMark(text);
-        if (Resolver.isStrict(text) && !(str in Resolver.usedNames)) {
+        const usedName = Resolver.usedNames[str];
+        const usedNameBefore = usedName && ( Math.min(...usedName.uniqueKeys.list.map(lineFromKey)) < this.lineCount );
+
+        if (Resolver.isStrict(text) && !usedNameBefore) {
             let message = `-There is no existing usage of the name '${chalk.bold(str)}'`;
             const recommendedName = this.recommendUsedName(str);
             message += (recommendedName)?`\n-Did you mean to type ${chalk.bold('!'+recommendedName)} instead?`:`\n-It has to be written as ${chalk.bold(':'+str)} since it is just being declared.`;
@@ -807,16 +811,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 msg:message,
                 srcText:text
             });
-        }else if (!Resolver.isStrict(text) && Resolver.usedNames[str].freq > 0) {//only give the recommendation if this is not the first time it is used
+        }else if (!Resolver.isStrict(text) && usedNameBefore) {//The third condition is not to recommened it for the line that declared it
             Resolver.castReport({
                 kind:ReportKind.Warning,
                 line:this.lineCount,
                 msg:`-You may wish to type ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \n-It signals that it has been used before here and it prevents errors early.`,
                 srcText:text
             });
-        }
-        if (str in Resolver.usedNames) {
-            Resolver.usedNames[str].freq += 1;
         }
     }
     //the reason why it has a readonly parameter because this function was formely used in two places and one had to call it for just the tokens while the other had to call it to make some mutations.So im still leaving it in case ill use it in another place one day
