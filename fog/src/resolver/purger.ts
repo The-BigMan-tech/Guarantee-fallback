@@ -67,6 +67,7 @@ export class Purger<V extends object> {
                 console.log('\nEntry not in src: ',key);
                 this.cache.delete(key);
                 this.refreshItsDependents(key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
+                Resolver.linesWithSemanticErrs.delete(key)
                 delete Purger.dependencyToDependents[key];//afterwards,remove it from the map.
             }
         }
