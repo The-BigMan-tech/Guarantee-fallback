@@ -1,4 +1,4 @@
-import { convMapToRecord, EndOfLine, FullData,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspInsertTextFormat, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
+import { convMapToRecord, EndOfLine, FullData,isWhitespace,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspInsertTextFormat, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -11,7 +11,7 @@ import { validator } from "../utils/utils.js";
 import { Doc, serverDoc } from "../fact-checker/fact-checker.js";
 import { ConsoleErrorListener } from "antlr4ng";
 import {Heap} from "heap-js";
-import { distance } from "fastest-levenshtein";
+import fuzzysort from 'fuzzysort'
 
 
 function overrideErrorListener():void {
@@ -202,10 +202,10 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     return fullDiagnostics;
 }
 interface Completion {
-    dist:number,
+    score:number,
     suggestion:lspCompletionItem
 }
-const completions = new Heap<Completion>((a,b)=>a.dist-b.dist);
+const completions = new Heap<Completion>((a,b)=>b.score-a.score);
 
 export function autoComplete(word:string):lspCompletionItem[] {
     completions.clear();
@@ -238,10 +238,15 @@ export function autoComplete(word:string):lspCompletionItem[] {
     for (const suggestion of suggestions) {
         const lowerWord = word.toLowerCase();
         const label = suggestion.label.toLowerCase();
-        const dist = distance(label,lowerWord);
-        console.log(`dist between: ${label} and ${lowerWord}: `,dist);
-        if (dist <= 5) {
-            completions.add({dist,suggestion});
+        const result = fuzzysort.single(lowerWord,label);//i decided to use a subsequence matching algorithm over edit distance because its reduces noise during autocomplete.
+        if (result !== null) {  // only proceed if matched
+            const score = result.score;
+            console.log(`score between: ${label} and ${lowerWord}: `, score);
+            if (score >= 0.80) {
+                completions.add({ score, suggestion });
+            }
+        }else if (isWhitespace(lowerWord)) {//show all suggestions on whitespace
+            completions.add({ score:0, suggestion });
         }
     }
     const relevantSuggestions:lspCompletionItem[] = [];
