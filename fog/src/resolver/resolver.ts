@@ -59,7 +59,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private predicateForLog:string | null = null;
 
     public static visitedSentences = new Map<string,VisitedSentence>();//this is static because of incremental resolution as used by the lsp
-    public static includeDiagnostics:boolean = false;
+    public static workingIncrementally:boolean = false;
     public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
     public static lastDocumentPath:string | null = null;
 
@@ -74,7 +74,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static linesWithSemanticErrs = new Set<string>();
 
     public static buildDiagnosticsFromReport(report:Report):void {
-        if (!Resolver.includeDiagnostics) return;//dont generate lsp analysis if not required
+        if (!Resolver.workingIncrementally) return;//dont generate lsp analysis if not required
         const buildDiagnostic = (targetLine: number, text:string | EndOfLine,message:string):lspDiagnostics => {
             const sourceLine = Resolver.srcLine(targetLine) || "";
             const cleanedSourceLine = sourceLine.replace(/\r+$/, ""); // remove trailing \r

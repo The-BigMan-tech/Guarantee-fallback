@@ -51,11 +51,6 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
 }
 function updateStaticVariables(srcPath:string):void {
     Resolver.lastDocumentPath = srcPath;
-    if (!Resolver.includeDiagnostics) {//this always refershes this on full resolution mode that doesnt build diagnostics
-        Resolver.visitedSentences.clear();
-        Resolver.usedNames = {}
-        return
-    }
     for (const [key,value] of [...Resolver.visitedSentences.entries(),...Resolver.aliases.entries()]) {
         if ((!Resolver.lspDiagnosticsCache.has(value.uniqueKey))) {
             Resolver.visitedSentences.delete(key);
@@ -93,16 +88,19 @@ function clearStaticVariables(srcPath:string):void {//Note that its not all stat
     Resolver.srcLines.length = 0;
     Resolver.logs = null;
     Resolver.logFile = null;
-    Resolver.includeDiagnostics = false;
+    Resolver.workingIncrementally = false;
     ParseHelper.tree = null;//to prevent accidentally reading an outadted src tree.
     DependencyManager.dependents = [];
     ConsoleErrorListener.instance.syntaxError = ():undefined =>undefined;
-    if (srcPath !== Resolver.lastDocumentPath) {
+    if ((srcPath !== Resolver.lastDocumentPath) || !Resolver.workingIncrementally) {
         console.log('\nCleared visited sentences\n');
-        Resolver.visitedSentences.clear();//the reason why i tied its lifetime to path changes is because the purging process used in incremental analysis will allow semantically identical sentences from being caught if the previous identical sentences wont survive the purge
-        Resolver.usedNames = {};
+        Resolver.visitedSentences.clear();
         Resolver.aliases.clear();
+        Resolver.usedNames = {};
         Purger.dependencyToDependents = {};
+        Resolver.lineToAffectedLines = {};
+        Resolver.linesWithSemanticErrs.clear();
+        Resolver.lspDiagnosticsCache.clear();
     }
 }
 
@@ -183,7 +181,7 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
 
 export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspDiagnostics[]> {
     clearStaticVariables(srcPath);
-    Resolver.includeDiagnostics = true;
+    Resolver.workingIncrementally = true;
     
     const purger = new Purger(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
     const unpurgedSrcText = purger.purge();
