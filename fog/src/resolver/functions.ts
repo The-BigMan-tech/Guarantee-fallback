@@ -60,7 +60,7 @@ function updateStaticVariables(srcPath:string):void {
     for (const [name,value] of Object.entries(Resolver.usedNames)) {
         for (const uniqueKey of value.uniqueKeys.list) {
             if (!Resolver.lspDiagnosticsCache.has(uniqueKey)) {
-                value.uniqueKeys.delete(uniqueKey)
+                value.uniqueKeys.delete(uniqueKey);
                 if (value.uniqueKeys.list.length === 0) {
                     delete Resolver.usedNames[name];
                 }
@@ -92,7 +92,7 @@ function clearStaticVariables(srcPath:string):void {//Note that its not all stat
     ParseHelper.tree = null;//to prevent accidentally reading an outadted src tree.
     DependencyManager.dependents = [];
     ConsoleErrorListener.instance.syntaxError = ():undefined =>undefined;
-    if ((srcPath !== Resolver.lastDocumentPath) || !Resolver.workingIncrementally) {
+    if ((srcPath !== Resolver.lastDocumentPath) || !Resolver.workingIncrementally) {//im clearing it on full resolution to prevent any incremental data from lingering into full resolution to avoid corrupting the state during full resolution.it will start on a clean slate to ensure correctness.but it means that incremental analysis will have to start over each time this is done.so the best thing is to resolve the document once its ready for use and use the analysis during authoring
         console.log('\nCleared visited sentences\n');
         Resolver.visitedSentences.clear();
         Resolver.aliases.clear();
@@ -161,7 +161,7 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
             const aliases:Record<string,string> = {};
             [...resolvedResult.aliases.entries()].forEach(([k,v])=>{
                 aliases[k] = v.predicate;
-            })
+            });
             const predicateRecord:Record<string,string> = {
                 ...convMapToRecord(resolvedResult.predicates),
                 ...aliases

@@ -63,6 +63,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
     public static lastDocumentPath:string | null = null;
 
+    private currentStringifiedStatement:string | null = null;
     //this method expects that the line is 0-based
     public static srcLine = (line:number):string | undefined => Resolver.srcLines.at(line);
 
@@ -73,8 +74,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static lineToAffectedLines:Record<string,string[]> = {};
     public static linesWithSemanticErrs = new Set<string>();
 
+    //the ansi report is generated on full resolution but skipped in incremenal resolution.while editor diagnostic are made in incremental resolution but they are skipped in full resolution
     public static buildDiagnosticsFromReport(report:Report):void {
-        if (!Resolver.workingIncrementally) return;//dont generate lsp analysis if not required
+        if (!Resolver.workingIncrementally) return;//this function mutates incremental data which is not wanted in full resolution and also,its mainly for in editor reports.The language already generates a full file report as an ansi file during full resolution.
         const buildDiagnostic = (targetLine: number, text:string | EndOfLine,message:string):lspDiagnostics => {
             const sourceLine = Resolver.srcLine(targetLine) || "";
             const cleanedSourceLine = sourceLine.replace(/\r+$/, ""); // remove trailing \r
@@ -189,20 +191,21 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const resolvedSentence = tokens?.map(token=>token.text!).join(' ') || '';//the tokens received at the time this method is called is after the senence has been resolved
         const originalSrc  = Resolver.srcLine(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
         
-        let expansionText = stringify(this.expandedFacts);
-        expansionText = replaceLastOccurrence(expansionText,']','\n]\n')
-            .replace('[','\n[\n')
-            .replaceAll(',[',',\n[')
-            .split('\n')
-            .map(line => {
-                const trimmed = line?.trim();
-                if (trimmed.startsWith('[') && (trimmed.endsWith(']') || trimmed.endsWith('],'))) {
-                    return trimmed.padStart(trimmed.length + 4,' '); // trim original and add two spaces indentation
-                }
-                return line;
-            })
-            .join('\n');
-
+        let expansionText:string = brown('none.'); 
+        if (this.expandedFacts && this.expandedFacts.length > 1) {//this ensures that expansions with only one array are skipped because the sentence semantic form already covers up that iformation.so this will only show for sentences that uses arrays
+            expansionText = replaceLastOccurrence(stringify(this.expandedFacts),']','\n]\n')
+                .replace('[','\n[\n')
+                .replaceAll(',[',',\n[')
+                .split('\n')
+                .map(line => {
+                    const trimmed = line?.trim();
+                    if (trimmed.startsWith('[') && (trimmed.endsWith(']') || trimmed.endsWith('],'))) {
+                        return trimmed.padStart(trimmed.length + 4,' '); // trim original and add two spaces indentation
+                    }
+                    return line;
+                })
+                .join('\n');
+        }
         const resolveRefMessage = `\n-Resolves to ${brown(resolvedSentence)}`;
         let successMessage = lime.underline(`\nProcessed line ${this.lineCount + 1}: `);//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
         successMessage += `\n-Sentence: ${brown(originalSrc)}`;
@@ -216,10 +219,11 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 srcText:Resolver.srcLine(this.lineCount)!
             });
         }
+        successMessage += `\n-Semantic form: ${brown(this.currentStringifiedStatement)}`;
         if (this.predicateForLog) {//the condition is to skip printing this on alias declarations.The lock works because this is only set on facts and not on alias declarations.Im locking this on alias declarations because they dont need extra logging cuz there is no expansion data or any need to log the predicate separately.just the declaration is enough
             const predicateFromAlias = Resolver.aliases.get(this.predicateForLog)?.predicate || '';
             if (predicateFromAlias) {
-                const aliasMsg = `\n-Alias #${this.predicateForLog} -> *${predicateFromAlias}`;
+                const aliasMsg = `\n-Alias #${this.predicateForLog} -> ${brown(`*${predicateFromAlias}`)}`;
                 successMessage += aliasMsg;
                 Resolver.buildDiagnosticsFromReport({
                     kind:ReportKind.Hint,
@@ -277,16 +281,15 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         console.log('🚀 => :266 => getSemanticForm => stringifiedNames:', stringifiedNames);
         return stringifiedNames;
     }
-    private checkForRepetition(tokens:Token[] | null,aliasDeclaration:boolean) {//twi sentences are structurally identical if they have the same predicate or alias and the same number of atoms in the exact same order regardless of fillers.The resolver will flag this to prevent the final document from being bloated with unnecessary duplicate information.
-        const semanticForm = this.stringifyStatement(tokens,aliasDeclaration);
-        if (semanticForm === null) {
-            //i may cast a report here
+    private checkForRepetition() {//twi sentences are structurally identical if they have the same predicate or alias and the same number of atoms in the exact same order regardless of fillers.The resolver will flag this to prevent the final document from being bloated with unnecessary duplicate information.
+        const statement = this.currentStringifiedStatement;
+        if (statement === null) { //i may cast a report under this block
             return;
         }
-        const repeatedSentence = Resolver.visitedSentences.get(semanticForm);
+        const repeatedSentence = Resolver.visitedSentences.get(statement);
         const srcLine = Resolver.srcLine(this.lineCount)!;
         
-        console.log('🚀 => :346 => checkForRepetition => repeatedSentence:',semanticForm,'src: ',srcLine);
+        console.log('🚀 => :346 => checkForRepetition => repeatedSentence:',statement,'src: ',srcLine);
         
         if (repeatedSentence && (repeatedSentence.line !== this.lineCount)) {//the second condition is possible because viitedSentences is persistent meaning that subsequent analysis can encounter the same line as a repeated sentence
             Resolver.castReport({
@@ -298,7 +301,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             });
         }else {
             const uniqueKey = createKey(this.lineCount,srcLine);
-            Resolver.visitedSentences.set(semanticForm,{line:this.lineCount,uniqueKey});//i mapped it to its line in the src for error reporting
+            Resolver.visitedSentences.set(statement,{line:this.lineCount,uniqueKey});//i mapped it to its line in the src for error reporting
         }
     }
     private async resolveLine(child:ParseTree) {
@@ -317,11 +320,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         if (this.lineCount === (Resolver.srcLines.length-1)) {//this block is to increment the line count at the end of the file.This is because i dont directly have the eof token in the tokens array which is because they only contain sentences.so without that,the line count at the end of the file will always be a count short which s why im checking it against the input array.length - 1.Explicitly incrementing it under tis conditin fixes that.
             this.targetLineCount += 1;
         }
-        this.checkForRepetition(tokens,declaredAlias);
+        this.currentStringifiedStatement = this.stringifyStatement(tokens,declaredAlias);
+        this.checkForRepetition();
         this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.   
         this.lineCount = this.targetLineCount;
         this.expandedFacts = null;
         this.predicateForLog = null;
+        this.currentStringifiedStatement = null;
         const uniqueKey = createKey(this.lineCount,Resolver.srcLine(this.lineCount)!);
         Resolver.linesWithSemanticErrs.delete(uniqueKey);
     }
