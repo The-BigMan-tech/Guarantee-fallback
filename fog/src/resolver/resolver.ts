@@ -212,7 +212,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             });
         }
         if (this.predicateForLog) {//the condition is to skip printing this on alias declarations.The lock works because this is only set on facts and not on alias declarations.Im locking this on alias declarations because they dont need extra logging cuz there is no expansion data or any need to log the predicate separately.just the declaration is enough
-            const predicateFromAlias = Resolver.aliases.get(this.predicateForLog || '');
+            const predicateFromAlias = Resolver.aliases.get(this.predicateForLog)?.predicate || '';
             if (predicateFromAlias) {
                 const aliasMsg = `\n-Alias #${this.predicateForLog} -> *${predicateFromAlias}`;
                 successMessage += aliasMsg;
@@ -690,8 +690,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return flatSequences;
     }
     private recommendAlias(text:string):string | null {
-        for (const alias of Resolver.aliases.keys()) {
-            if (distance(alias,text!) < 4) {
+        for (const [alias,value] of Resolver.aliases.entries()) {
+            const occuredBefore = (lineFromKey(value.uniqueKey) < this.lineCount);
+            if (occuredBefore && (distance(alias,text!) <= 3)) {
                 return alias;
             }
         }
@@ -710,7 +711,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const alias = Resolver.aliases.get(Resolver.stripMark(text));//the aliases set stores plain words
         const aliasOccuredBefore = alias && (lineFromKey(alias.uniqueKey) < this.lineCount);
 
-        if (aliasOccuredBefore && ! text.startsWith('#')) {
+        if (aliasOccuredBefore && text.startsWith('*')) {
             Resolver.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
@@ -718,7 +719,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 srcText:text
             });
         }
-        else if (!aliasOccuredBefore && ! text.startsWith("*")) {
+        else if (!aliasOccuredBefore && text.startsWith("#")) {
             const recommendedAlias = this.recommendAlias(Resolver.stripMark(text));
             let message:string = `-Predicates are meant to be prefixed with ${chalk.bold('*')} but found ${chalk.bold(token.text)}.\n-Did you forget to declare it as an alias? `;
             message += (recommendedAlias)?`Or did you mean to type #${recommendedAlias}?`:'';
