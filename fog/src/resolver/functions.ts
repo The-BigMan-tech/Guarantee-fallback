@@ -44,7 +44,7 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
     reupdateVisitedSentences();//this one must be called after resolution
 
     if (!Resolver.terminate) {
-        return {aliases:resolver.aliases,predicates:resolver.predicates,records:resolver.records};
+        return {aliases:Resolver.aliases,predicates:resolver.predicates,records:resolver.records};
     }else {
         return Result.error;
     }
@@ -56,9 +56,10 @@ function updateStaticVariables(srcPath:string):void {
         Resolver.usedNames = {}
         return
     }
-    for (const [key,value] of Resolver.visitedSentences.entries()) {
+    for (const [key,value] of [...Resolver.visitedSentences.entries(),...Resolver.aliases.entries()]) {
         if ((!Resolver.lspDiagnosticsCache.has(value.uniqueKey))) {
             Resolver.visitedSentences.delete(key);
+            Resolver.aliases.delete(key);
         }
     }
     for (const [name,value] of Object.entries(Resolver.usedNames)) {
@@ -101,6 +102,7 @@ function clearStaticVariables(srcPath:string):void {//Note that its not all stat
         console.log('\nCleared visited sentences\n');
         Resolver.visitedSentences.clear();//the reason why i tied its lifetime to path changes is because the purging process used in incremental analysis will allow semantically identical sentences from being caught if the previous identical sentences wont survive the purge
         Resolver.usedNames = {};
+        Resolver.aliases.clear();
         Purger.dependencyToDependents = {};
     }
 }
@@ -159,9 +161,13 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
         const resolvedResult = await generateJson(srcFilePath,srcText,srcText);//the result here will be undefined if there was a resolution error.
         
         if (resolvedResult !== Result.error) {
+            const aliases:Record<string,string> = {};
+            [...resolvedResult.aliases.entries()].forEach(([k,v])=>{
+                aliases[k] = v.predicate;
+            })
             const predicateRecord:Record<string,string> = {
                 ...convMapToRecord(resolvedResult.predicates),
-                ...convMapToRecord(resolvedResult.aliases)
+                ...aliases
             };
             const fullData:FullData = {predicates:predicateRecord,records:resolvedResult.records};
             const jsonPath = await writeToOutput(outputFilePath,stringify(fullData,omitJsonKeys,4) || '',start);
@@ -193,6 +199,7 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     console.log('cached Diagnostics: ',convMapToRecord(Resolver.lspDiagnosticsCache as Map<any,any>));
     console.log('visited sentences: ',Resolver.visitedSentences);
     console.log('used names: ',Resolver.usedNames);
+    console.log('aliases : ',Resolver.aliases);
     return fullDiagnostics;
 }
 interface Completion {
@@ -205,7 +212,7 @@ export function autoComplete(word:string):lspCompletionItem[] {
     completions.clear();
     const suggestions: lspCompletionItem[] = [
         { label: 'alias', kind: lspCompletionItemKind.Keyword },
-        ...['them','their','him','her','it','his'].map(ref=>({
+        ...['them','their','him','her','it','his','ref'].map(ref=>({
             label:ref,
             insertText:`<${ref}:${'${0}'}>`,
             insertTextFormat:lspInsertTextFormat.Snippet,
@@ -219,6 +226,11 @@ export function autoComplete(word:string):lspCompletionItem[] {
         ...Object.keys(Resolver.usedNames).map(name=>({
             label:`!${name}`,
             insertText:name,
+            kind:lspCompletionItemKind.Constant
+        })),
+        ...Object.keys(Resolver.aliases).map(alias=>({
+            label:`#${alias}`,
+            insertText:alias,
             kind:lspCompletionItemKind.Constant
         }))
     ];

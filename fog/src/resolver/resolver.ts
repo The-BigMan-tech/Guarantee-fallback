@@ -36,7 +36,7 @@ interface VisitedSentence {
 export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public records:Record<string,Rec> = {};
-    public aliases = new Map<string,string>();//this is used for semantic safety by usin it to know which relations are declared as aliases or not so as to enforce checks when resolving the document.its also used in conjuction with the predicates map to clarify which records need full fact data to themselves and to build the final predicate map
+    public static aliases = new Map<string,{predicate:string,uniqueKey:string}>();//this is used for semantic safety by usin it to know which relations are declared as aliases or not so as to enforce checks when resolving the document.its also used in conjuction with the predicates map to clarify which records need full fact data to themselves and to build the final predicate map
     public predicates = new Map<string,string>();//this is used in conjuction with the aliases map to understand what records need their facts built into their own record.This mechanism ensures that only preidcates get a built record of facts to themsleves and aliases dont.it is comined with the alias map into a single oobject that maps the relations(predicates or aliases) to the conccrete predicates they refer to.This allows the json document to contain info about what record points to what(in the case of aliases).This greatly reduces the document size by having alias records completely empty and all the facts that belongs to the are transferred to the concrete proedicate.so at loading time,the fact chcekcer can know what they point to by using the predicate map.
 
     //the reason why im explicitly managing the line count instead of the index at every program context visit iteration is because that method assumes that the each context is a line which isnt the case when there are multiple snetences in a line.
@@ -212,7 +212,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             });
         }
         if (this.predicateForLog) {//the condition is to skip printing this on alias declarations.The lock works because this is only set on facts and not on alias declarations.Im locking this on alias declarations because they dont need extra logging cuz there is no expansion data or any need to log the predicate separately.just the declaration is enough
-            const predicateFromAlias = this.aliases.get(this.predicateForLog || '');
+            const predicateFromAlias = Resolver.aliases.get(this.predicateForLog || '');
             if (predicateFromAlias) {
                 const aliasMsg = `\n-Alias #${this.predicateForLog} -> *${predicateFromAlias}`;
                 successMessage += aliasMsg;
@@ -250,12 +250,18 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             
             if (!isTerminator && !isFiller){//the for alias check is to ensure that the plain words in alias declarations are considered
                 let name:string = token.text!;
-                if (!aliasDeclaration && ((token.type === DSLLexer.ALIAS) || (token.type === DSLLexer.PREDICATE))) {//locking it to whether its an alias declaration prevents it from flagging an alias declaration as a duplicate sentence because the alias declaration itself is essentially a duplicate since it refers to a predicate and its meant to be that way.so the resolver should respect this
-                    name = Resolver.stripMark(name);//strip their prefixes
-                    name = this.aliases.get(name) || name;//the fallback is for the case of predicates
-                    tokenNames.unshift(name);
+                if (!aliasDeclaration) {//locking it to whether its an alias declaration prevents it from flagging an alias declaration as a duplicate sentence because the alias declaration itself is essentially a duplicate since it refers to a predicate and its meant to be that way.so the resolver should respect this
+                    if ((token.type === DSLLexer.ALIAS) || (token.type === DSLLexer.PREDICATE)) {
+                        name = Resolver.stripMark(name);//strip their prefixes
+                        name = Resolver.aliases.get(name)?.predicate || name;//the fallback is for the case of predicates
+                        tokenNames.unshift(name);
+                    }else {
+                        tokenNames.push(name);
+                    }
                 }else {
-                    tokenNames.push(name);
+                    if(!(token.type === DSLLexer.PREDICATE) && !(token.type === DSLLexer.EQUALS)) {
+                        tokenNames.push(name)
+                    }
                 }
             }
         });
@@ -263,6 +269,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             return null;//this prevents the case of an empty array string from being the key which happens when the tokens dont make a meaningful sentence.
         }
         const stringifiedNames = stringify(tokenNames.toArray());
+        console.log('🚀 => :266 => getSemanticForm => stringifiedNames:', stringifiedNames);
         return stringifiedNames;
     }
     private checkForRepetition(tokens:Token[] | null,aliasDeclaration:boolean) {//twi sentences are structurally identical if they have the same predicate or alias and the same number of atoms in the exact same order regardless of fillers.The resolver will flag this to prevent the final document from being bloated with unnecessary duplicate information.
@@ -655,7 +662,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         });
         //i intially made it to point to the predicate record in memory if it existed,but after moving to json outputs,it led to duplicate entries that only increased the final document size for every alias.so i prevented it from pointing to the predicate record if it existed and had it its own unique but empty record.
         this.records[alias] = new Rec([]);
-        this.aliases.set(alias,predicate || alias);//the fallback is for when there is no predicate provided to point to in the alias declaration.its used as a shorthand where the alias points to the predicate of the same name.its a pettern to invalidate the use of those predicates for better safety.
+        const uniqueKey = createKey(this.lineCount,Resolver.srcLine(this.lineCount)!);
+        Resolver.aliases.set(alias,{uniqueKey,predicate:predicate || alias});//the fallback is for when there is no predicate provided to point to in the alias declaration.its used as a shorthand where the alias points to the predicate of the same name.its a pettern to invalidate the use of those predicates for better safety.
 
         if (this.builtAFact) {
             Resolver.castReport({
@@ -682,9 +690,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         return flatSequences;
     }
     private recommendAlias(text:string):string | null {
-        for (const alias of this.aliases.values()) {
-            if (distance(alias,text!) < 4) {
-                return alias;
+        for (const alias of Resolver.aliases.values()) {
+            if (distance(alias.predicate,text!) < 4) {
+                return alias.predicate;
             }
         }
         return null;
@@ -699,7 +707,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
     private validatePredicateType(token:Token):void {
         const text = token.text!;
-        const isAlias = this.aliases.has(Resolver.stripMark(text));//the aliases set stores plain words
+        const isAlias = Resolver.aliases.has(Resolver.stripMark(text));//the aliases set stores plain words
         
         if (isAlias && ! text.startsWith('#')) {
             Resolver.castReport({
@@ -780,7 +788,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 msg:'-A sentence must contain at least one atom.',
                 srcText:Resolver.srcLine(this.lineCount)!
             });
-            const referredPredicate = this.predicates.get(relation) || this.aliases.get(relation);
+            const referredPredicate = this.predicates.get(relation) || Resolver.aliases.get(relation)?.predicate;//if its a predicate,return it,else return the predicate it refers to from the alias
             this.records[referredPredicate!].add(fact);
         }
         this.builtAFact = true;
