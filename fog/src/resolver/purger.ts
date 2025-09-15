@@ -40,8 +40,8 @@ export class Purger<V extends object> {
         
         for (const dependencyKey of dependencyKeys) {
             const regularDependents = Purger.dependencyToDependents[dependencyKey] || [];
-            const dependentsAffectedFromErr = Resolver.lineToAffectedLines[dependencyKey] || [];
-            const dependentKeys =  [...regularDependents,...dependentsAffectedFromErr];
+            const dependentsAffectedFromLine = Resolver.lineToAffectedLines[dependencyKey] || [];
+            const dependentKeys =  [...regularDependents,...dependentsAffectedFromLine];
             refreshedMap[dependencyKey] = new Set(dependentKeys);
             if (dependentKeys.some(key=>!this.srcKeysAsSet.has(key))) {
                 this.cache.delete(dependencyKey);//refresh the dependeny if any of the dependents change.but this doesnt mean that the dependency isnt in the src.It may still be in the src,but we want it to be reanalyzed.If its still in the src,the effect of this is to reanalyze only this line without reanalyzing all its dependents.So a change in dependent will only reanalyze the dependency without hacving to reanalyze all other depdnents
@@ -63,7 +63,7 @@ export class Purger<V extends object> {
         const uniqueKeys = [...this.cache.keys()];
         for (const key of uniqueKeys) {
             const isNotInSrc = !this.srcKeysAsSet.has(key);
-            if (isNotInSrc) {
+            if (isNotInSrc || Resolver.linesWithSemanticErrs.has(key)) {
                 console.log('\nEntry not in src: ',key);
                 this.cache.delete(key);
                 this.refreshItsDependents(key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.

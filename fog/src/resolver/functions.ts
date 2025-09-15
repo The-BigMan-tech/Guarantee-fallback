@@ -199,6 +199,7 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     console.log('visited sentences: ',Resolver.visitedSentences);
     console.log('used names: ',Resolver.usedNames);
     console.log('aliases : ',Resolver.aliases);
+    console.log('lines with semantic errs: ',Resolver.linesWithSemanticErrs);
     return fullDiagnostics;
 }
 interface Completion {
