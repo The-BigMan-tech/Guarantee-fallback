@@ -83,15 +83,15 @@ function reupdateVisitedSentences():void {
 }
 
 //the srcPath variable is to tie the lifetime of some static variables to the current path rather than on each request
-function clearStaticVariables(srcPath:string):void {//Note that its not all static variables that must be cleared or be cleared here.
+function clearStaticVariables(srcPath:string,workingIncrementally:boolean):void {//Note that its not all static variables that must be cleared or be cleared here.
     Resolver.terminate = false;//reset it for subsequent analyzing
     Resolver.srcLines.length = 0;
     Resolver.logs = null;
     Resolver.logFile = null;
-    Resolver.workingIncrementally = false;
     ParseHelper.tree = null;//to prevent accidentally reading an outadted src tree.
     DependencyManager.dependents = [];
     ConsoleErrorListener.instance.syntaxError = ():undefined =>undefined;
+    Resolver.workingIncrementally = workingIncrementally;
     if ((srcPath !== Resolver.lastDocumentPath) || !Resolver.workingIncrementally) {//im clearing it on full resolution to prevent any incremental data from lingering into full resolution to avoid corrupting the state during full resolution.it will start on a clean slate to ensure correctness.but it means that incremental analysis will have to start over each time this is done.so the best thing is to resolve the document once its ready for use and use the analysis during authoring
         console.log('\nCleared visited sentences\n');
         Resolver.visitedSentences.clear();
@@ -142,7 +142,7 @@ async function writeToOutput(outputFilePath:string,jsonInput:string,start:number
 }
 
 export async function resolveDocument(srcFilePath:string,outputFolder?:string):Promise<ResolutionResult> {
-    clearStaticVariables(srcFilePath);//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
+    clearStaticVariables(srcFilePath,false);//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
 
     const start = performance.now();
     const isValidSrc = srcFilePath.endsWith(".fog");
@@ -180,9 +180,8 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
 }
 
 export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspDiagnostics[]> {
-    clearStaticVariables(srcPath);
-    Resolver.workingIncrementally = true;
-    
+    clearStaticVariables(srcPath,true);
+
     const purger = new Purger(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
     const unpurgedSrcText = purger.purge();
     await generateJson(srcPath,unpurgedSrcText,srcText);//this populates the lsp diagostics
