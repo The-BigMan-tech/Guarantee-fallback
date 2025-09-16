@@ -74,6 +74,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static lineToAffectedLines:Record<string,string[]> = {};
     public static linesWithSemanticErrs = new Set<string>();
     public static linesToSkipDiagnostics = new Set<string>();
+    public static readonly SILENCE_REPORT = '//silence-report';
 
     //the ansi report is generated on full resolution but skipped in incremenal resolution.while editor diagnostic are made in incremental resolution but they are skipped in full resolution
     public static buildDiagnosticsFromReport(report:Report):void {
@@ -111,8 +112,18 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }; 
         function registerDiagnostics(key:string,diagnostics:lspDiagnostics[]):void {
             const existingDiagnostics = Resolver.lspDiagnosticsCache.get(key) || [];//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
-            const diagnosticsForKey = new UniqueList([...existingDiagnostics,...diagnostics]);//i used a unique list to prevent duplicates.
-            Resolver.lspDiagnosticsCache.set(key,diagnosticsForKey.list);
+            const diagnosticsForKey = [...existingDiagnostics,...diagnostics];
+            
+            const diagnosticsToSend:lspDiagnostics[] = [];
+            const encounteredMessages = new Set<string>();
+
+            diagnosticsForKey.forEach(diagnostic=>{
+                if (!encounteredMessages.has(diagnostic.message)) {
+                    diagnosticsToSend.push(diagnostic);
+                    encounteredMessages.add(diagnostic.message);
+                }
+            });
+            Resolver.lspDiagnosticsCache.set(key,diagnosticsToSend);
         }
         const mapToSeverity =  {
             [ReportKind.Semantic]:lspSeverity.Error,
@@ -182,13 +193,17 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         console.info(...messages);
         Resolver.logs?.push(...messages);
 
-        const errForTermination = (kind===ReportKind.Semantic) || (kind===ReportKind.Syntax);
-        if (errForTermination) {
-            Resolver.terminate = true;
-        }
-        if ((kind===ReportKind.Semantic) || (kind===ReportKind.Warning)) {//warning may not be a semantic err,but im adding it here cuz its convenient.it leverages the same data structure but also for warnings without having a separate one.
+        const isSemanticErr = kind===ReportKind.Semantic;
+        const isWarning = kind===ReportKind.Warning;
+        const isSyntaxErr = kind===ReportKind.Syntax;
+
+        if ((isSemanticErr) || (isWarning)) {//warning may not be a semantic err,but im adding it here cuz its convenient.it leverages the same data structure but also for warnings without having a separate one.
             const keyWithErr = createKey(line,Resolver.srcLine(line)!);
             Resolver.linesWithSemanticErrs.add(keyWithErr);
+        }
+        const errForTermination = (isSemanticErr) || (isSyntaxErr);
+        if (errForTermination) {
+            Resolver.terminate = true;
         }
     }
     private logProgress(tokens:Token[] | null) {
