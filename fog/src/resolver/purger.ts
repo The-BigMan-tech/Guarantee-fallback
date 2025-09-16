@@ -14,7 +14,7 @@ import Denque from "denque";
 
 //The purger may be one input event behind in delivering updates because of the operation order but is required for predictability and correctness.
 
-//Although it delivers the document incrementally,its more stable to use for live analysis where some of its limitations are acceptable than to produce incremental output
+//Although it is robust for incremental resolution,its more stable to use for live analysis where some of its limitations are acceptable than to produce incremental output
 export class Purger<V extends object> {
     public static dependencyToDependents:Record<string,Set<string>> = {};
 
@@ -68,9 +68,7 @@ export class Purger<V extends object> {
                 this.cache.delete(key);
                 this.refreshItsDependents(key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
                 delete Purger.dependencyToDependents[key];//afterwards,remove it from the map.
-                if (isNotInSrc) {
-                    Resolver.linesWithSemanticErrs.delete(key);//this is to ensure it only deletes it when it isnt in the src not just because it has a semantic error.This state is also updated elseqhere in the resolver to keep it up to date.
-                }
+                if (isNotInSrc) Resolver.linesWithSemanticErrs.delete(key);//this is to ensure it only deletes it when it isnt in the src not just because it has a semantic error.This state is also updated elseqhere in the resolver to keep it up to date.
             }
         }
     }
@@ -92,7 +90,6 @@ export class Purger<V extends object> {
             }else {
                 console.log('\nunshifting src line: ',key,'isDependency: ',isADependency,'inCache: ',inCache,'syntax err: ',this.syntaxError);   
                 this.unpurgedSrcLines.unshift(srcLine);
-                this.cache.delete(key);//remove from the cache entry since its going to be reanalyzed
             }
             //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
             if (!isWhitespace(srcLine) && !this.cache.has(key)) {//we dont want to override existing entries
@@ -111,7 +108,6 @@ export class Purger<V extends object> {
         console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', this.srcKeysAsSet);
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
         console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
-        console.log('\nSrc lines: ',this.srcLines);
         return unpurgedSrcText;
     }
 }

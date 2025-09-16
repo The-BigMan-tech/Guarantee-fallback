@@ -58,6 +58,7 @@
     "@lezer/javascript": "^1.5.1",
     "@lezer/lr": "^1.4.2",
     "@sinclair/typebox": "^0.34.40",
+    "@tensorflow/tfjs-node": "^4.22.0",
     "@types/deep-equal": "^1.0.4",
     "@types/node-ipc": "^9.2.3",
     "antlr-ng": "^1.0.10",

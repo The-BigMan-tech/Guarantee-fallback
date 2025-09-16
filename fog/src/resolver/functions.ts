@@ -11,7 +11,7 @@ import { validator } from "../utils/utils.js";
 import { Doc, serverDoc } from "../fact-checker/fact-checker.js";
 import { ConsoleErrorListener } from "antlr4ng";
 import {Heap} from "heap-js";
-import fuzzysort from 'fuzzysort'
+import fuzzysort from 'fuzzysort';
 
 
 function overrideErrorListener():void {
@@ -101,6 +101,7 @@ function clearStaticVariables(srcPath:string,workingIncrementally:boolean):void 
         Resolver.lineToAffectedLines = {};
         Resolver.linesWithSemanticErrs.clear();
         Resolver.lspDiagnosticsCache.clear();
+        Resolver.linesToSkipDiagnostics.clear();
     }
 }
 
@@ -197,6 +198,7 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     console.log('used names: ',Resolver.usedNames);
     console.log('aliases : ',Resolver.aliases);
     console.log('lines with semantic errs: ',Resolver.linesWithSemanticErrs);
+    console.log('lines to skip diagnostics: ',Resolver.linesToSkipDiagnostics,'\n');
     return fullDiagnostics;
 }
 interface Completion {
@@ -209,6 +211,7 @@ export function autoComplete(word:string):lspCompletionItem[] {
     completions.clear();
     const suggestions: lspCompletionItem[] = [
         { label: 'alias', kind: lspCompletionItemKind.Keyword },
+        { label: 'ignore',insertText:'//ignore',kind: lspCompletionItemKind.Text },
         ...['them','their','him','her','it','his','ref'].map(ref=>({
             label:ref,
             insertText:`<${ref}:${'${0}'}>`,

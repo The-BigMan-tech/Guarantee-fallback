@@ -244,6 +244,7 @@ export interface lspCompletionItem {
     insertTextFormat?:lspInsertTextFormat
 }
 export enum lspCompletionItemKind {
+    Text=1,//for comments or general text
     Keyword=14,//for the alias and the different refs keywords 
     Constant=21,//for name and alias suggestion
 }

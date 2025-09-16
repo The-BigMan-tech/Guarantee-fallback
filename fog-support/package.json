@@ -2,7 +2,7 @@
     "name": "fog-support",
     "displayName": "Fog language support",
     "description": "Editor support for the fog logic language",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "icon": "icons/fog-logo.png",
     "engines": {
         "vscode": "^1.103.0"
@@ -38,12 +38,13 @@
         ]
     },
     "scripts": {
+        "package:ext":"pnpm vsce package --no-dependencies",
         "vscode:prepublish": "pnpm run package",
         "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
         "watch": "npm-run-all -p watch:*",
         "watch:esbuild": "node esbuild.js --watch",
         "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-        "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+        "package": "pnpm run check-types && node esbuild.js --production",
         "compile-tests": "tsc -p . --outDir out",
         "watch-tests": "tsc -p . -w --outDir out",
         "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
