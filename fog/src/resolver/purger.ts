@@ -69,12 +69,8 @@ export class Purger<V extends object> {
                 this.cache.delete(key);
                 this.refreshItsDependents(key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
                 delete Purger.dependencyToDependents[key];//afterwards,remove it from the map.
+                Resolver.linesToSkipDiagnostics.delete(key);
                 if (isNotInSrc) Resolver.linesWithSemanticErrs.delete(key);//this is to ensure it only deletes it when it isnt in the src not just because it has a semantic error.This state is also updated elseqhere in the resolver to keep it up to date.
-                // if (key.endsWith(Resolver.SILENCE_REPORT)) {
-                //     Resolver.linesToSkipDiagnostics.add(key);
-                // }else {
-                //     Resolver.linesToSkipDiagnostics.delete(key);
-                // }
             }
         }
     }
@@ -103,6 +99,9 @@ export class Purger<V extends object> {
             ParseHelper.parse(srcLine);
 
             const key = createKey(line,srcLine);
+            if (key.trim().endsWith(Resolver.SILENCE_REPORT)) {
+                Resolver.linesToSkipDiagnostics.add(key);
+            }
             const inCache = this.cache.has(key);//notice that i used inCache and not inSrc to determine the purge decision here.This is because (inCache == inSrc) but (inSrc !== inCache).The presence in the cache is the ultimate factor because it needs to be synchronized completely with what is actually in the cache to avoid state bugs.
 
             const manager = new DependencyManager({key,line,srcLine,srcLines:this.srcLines,inCache});//i passed in non nullable src lines here because the manager expects the full src lines as string for some operations.so this keeps it sepaaret from the main one which is actively mutated during the purge
