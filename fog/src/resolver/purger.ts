@@ -90,7 +90,6 @@ export class Purger<V extends object> {
             }else {
                 console.log('\nunshifting src line: ',key,'isDependency: ',isADependency,'inCache: ',inCache,'syntax err: ',this.syntaxError);   
                 this.unpurgedSrcLines.unshift(srcLine);
-                //i removed the cache deletion because its primary purpose here was to prevent a dependency which is still in teh cache from having duplicate diagnostics.but that was already fixed when i used a unique list to temporraily hold the diagnostics before setting it.
             }
             //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
             if (!isWhitespace(srcLine) && !this.cache.has(key)) {//we dont want to override existing entries
