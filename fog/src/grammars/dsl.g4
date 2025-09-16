@@ -3,7 +3,7 @@ fragment LETTER: [a-zA-Z];
 fragment DIGIT: [0-9];
 
 
-program: (NEW_LINE | fact | aliasDeclaration)* NEW_LINE* EOF;
+program: (NEW_LINE | ( (fact | aliasDeclaration) NEW_LINE? ) )* NEW_LINE* EOF;
 
 fact: sentence TERMINATOR;
 
@@ -31,7 +31,7 @@ APOSTROPHE:'\'';
 EQUALS: '=';
 ALIAS_KW:'alias';//
 
-TERMINATOR:PERIOD (NEW_LINE)?;
+TERMINATOR:PERIOD;
 fragment PERIOD:'.';
 fragment COLON:':';
 
