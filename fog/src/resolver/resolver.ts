@@ -73,10 +73,18 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
     public static lineToAffectedLines:Record<string,string[]> = {};
     public static linesWithSemanticErrs = new Set<string>();
+    public static linesToSkipDiagnostics = new Set<string>();
 
     //the ansi report is generated on full resolution but skipped in incremenal resolution.while editor diagnostic are made in incremental resolution but they are skipped in full resolution
     public static buildDiagnosticsFromReport(report:Report):void {
         if (!Resolver.workingIncrementally) return;//this function mutates incremental data which is not wanted in full resolution and also,its mainly for in editor reports.The language already generates a full file report as an ansi file during full resolution.
+        const {kind,line,lines,msg,srcText} = report;//line is 0-based
+        const srcLine:string = Resolver.srcLine(line)!;
+        const mainKey = createKey(line,srcLine);
+        
+        if (Resolver.linesToSkipDiagnostics.has(mainKey)) {
+            return;
+        }
         const buildDiagnostic = (targetLine: number, text:string | EndOfLine,message:string):lspDiagnostics => {
             const sourceLine = Resolver.srcLine(targetLine) || "";
             const cleanedSourceLine = sourceLine.replace(/\r+$/, ""); // remove trailing \r
@@ -102,12 +110,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             };
         }; 
         function registerDiagnostics(key:string,diagnostics:lspDiagnostics[]):void {
-            const diagnosticsAtKey = Resolver.lspDiagnosticsCache.get(key) || [];
-            Resolver.lspDiagnosticsCache.set(key,[...diagnosticsAtKey,...diagnostics]);//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
+            const existingDiagnostics = Resolver.lspDiagnosticsCache.get(key) || [];//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
+            const diagnosticsForKey = new UniqueList([...existingDiagnostics,...diagnostics]);//i used a unique list to prevent duplicates.
+            Resolver.lspDiagnosticsCache.set(key,diagnosticsForKey.list);
         }
-        const {kind,line,lines,msg,srcText} = report;//line is 0-based
-        const srcLine:string = Resolver.srcLine(line)!;
-
         const mapToSeverity =  {
             [ReportKind.Semantic]:lspSeverity.Error,
             [ReportKind.Syntax]:lspSeverity.Error,
@@ -119,7 +125,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const modifiedMsg = msg.split('\n').map(str=>str.replace('-','')).join('');//this removes the leading - sign in each sentence of the message.I use them when logging the report to a file for clarity but for in editor reports,it is unnecessary.
         const cleanMsg = stripAnsi(stripLineBreaks(modifiedMsg));//strip ansi codes and new lines
         
-        const mainKey = createKey(line,srcLine);
         if (!lines && ((typeof srcText === "string") || (srcText === EndOfLine.value))) {
             registerDiagnostics(mainKey,[buildDiagnostic(line,srcText,cleanMsg)]);
         }
@@ -181,7 +186,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         if (errForTermination) {
             Resolver.terminate = true;
         }
-        if (kind===ReportKind.Semantic) {
+        if ((kind===ReportKind.Semantic) || (kind===ReportKind.Warning)) {//warning may not be a semantic err,but im adding it here cuz its convenient.it leverages the same data structure but also for warnings without having a separate one.
             const keyWithErr = createKey(line,Resolver.srcLine(line)!);
             Resolver.linesWithSemanticErrs.add(keyWithErr);
         }
@@ -269,7 +274,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     }
                 }else {
                     if(!(token.type === DSLLexer.PREDICATE) && !(token.type === DSLLexer.EQUALS)) {
-                        tokenNames.push(name)
+                        tokenNames.push(name);
                     }
                 }
             }
@@ -328,7 +333,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         this.predicateForLog = null;
         this.currentStringifiedStatement = null;
         const uniqueKey = createKey(this.lineCount,Resolver.srcLine(this.lineCount)!);
-        Resolver.linesWithSemanticErrs.delete(uniqueKey);
+        Resolver.linesWithSemanticErrs.delete(uniqueKey);//placing this delete here ensures that its only deleted when the line is included which will cause this function to be called
     }
     public visitProgram = async (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
