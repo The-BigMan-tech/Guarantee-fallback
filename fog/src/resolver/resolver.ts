@@ -73,7 +73,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
     public static lineToAffectedLines:Record<string,string[]> = {};
     public static linesWithSemanticErrs = new Set<string>();
-    public static linesToSkipDiagnostics = new Set<string>();
     public static readonly OMIT_WARNING = '//omit-warning';
 
     //the ansi report is generated on full resolution but skipped in incremenal resolution.while editor diagnostic are made in incremental resolution but they are skipped in full resolution
@@ -171,7 +170,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         if (!isWarning) {
             Resolver.buildDiagnosticsFromReport(report);
         }else {
-            if (!Resolver.linesToSkipDiagnostics.has(keyForLine)) {
+            if (!keyForLine.trim().endsWith(Resolver.OMIT_WARNING)) {//Two things to note is that omit warnings is a comment and not part of the actual syntax.so its just a resolver flag and also,it has to be placed at the src of the warning not the lines affected from the src else,it will be ignored.
                 Resolver.buildDiagnosticsFromReport(report);
             }else return;//this early return prevents omitted warnings from appearing the final .ansi report in addition to not showing in the diagnostics
         }

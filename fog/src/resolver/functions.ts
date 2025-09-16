@@ -82,7 +82,6 @@ function clearStaticVariables(srcPath:string,workingIncrementally:boolean):void 
         Resolver.lineToAffectedLines = {};
         Resolver.linesWithSemanticErrs.clear();
         Resolver.lspDiagnosticsCache.clear();
-        Resolver.linesToSkipDiagnostics.clear();
     }
 }
 
@@ -179,7 +178,6 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     console.log('used names: ',Resolver.usedNames);
     console.log('aliases : ',Resolver.aliases);
     console.log('lines with semantic errs: ',Resolver.linesWithSemanticErrs);
-    console.log('lines to skip diagnostics: ',Resolver.linesToSkipDiagnostics,'\n');
     return fullDiagnostics;
 }
 interface Completion {
