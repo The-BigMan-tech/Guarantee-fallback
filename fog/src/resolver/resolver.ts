@@ -301,7 +301,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         if (tokenNames.length === 0) {
             return null;//this prevents the case of an empty array string from being the key which happens when the tokens dont make a meaningful sentence.
         }
-        const stringifiedNames = stringify(tokenNames.toArray()).replaceAll('",',`"${chalk.gray(',')} `);
+        const stringifiedNames = stringify(tokenNames.toArray()).replaceAll(',',', ');
         console.log('🚀 => :266 => getSemanticForm => stringifiedNames:', stringifiedNames);
         return stringifiedNames;
     }
@@ -344,8 +344,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         if (this.lineCount === (Resolver.srcLines.length-1)) {//this block is to increment the line count at the end of the file.This is because i dont directly have the eof token in the tokens array which is because they only contain sentences.so without that,the line count at the end of the file will always be a count short which s why im checking it against the input array.length - 1.Explicitly incrementing it under tis conditin fixes that.
             this.targetLineCount += 1;
         }
-        this.printTokens(tokens);
-
         this.currentStringifiedStatement = this.stringifyStatement(tokens,declaredAlias);
         this.checkForRepetition();
         this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.   
