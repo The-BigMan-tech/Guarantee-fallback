@@ -132,6 +132,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const modifiedMsg = msg.split('\n').map(str=>str.replace('-','')).join('');//this removes the leading - sign in each sentence of the message.I use them when logging the report to a file for clarity but for in editor reports,it is unnecessary.
         const cleanMsg = stripAnsi(stripLineBreaks(modifiedMsg));//strip ansi codes and new lines
         
+        const isSemanticErr = kind===ReportKind.Semantic;
+        const isWarning = kind===ReportKind.Warning;
+
+        if ((isSemanticErr) || (isWarning)) {//warning may not be a semantic err,but im adding it here cuz its convenient.it leverages the same data structure but also for warnings without having a separate one.
+            Resolver.linesWithSemanticErrs.add(mainKey);
+        }
         if (!lines && ((typeof srcText === "string") || (srcText === EndOfLine.value))) {
             registerDiagnostics(mainKey,[buildDiagnostic(line,srcText,cleanMsg)]);
         }
@@ -153,6 +159,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     const includedKey = createKey(targetLine,Resolver.srcLines[targetLine]);
                     registerDiagnostics(includedKey,includedDiagnostics);
                     includedKeys.push(includedKey);
+                    if ((isSemanticErr) || (isWarning)) {
+                        Resolver.linesWithSemanticErrs.add(includedKey);
+                    }
                 }
             }
             Resolver.lineToAffectedLines[mainKey] = includedKeys;
@@ -202,9 +211,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         console.info(...messages);
         Resolver.logs?.push(...messages);
 
-        if ((isSemanticErr) || (isWarning)) {//warning may not be a semantic err,but im adding it here cuz its convenient.it leverages the same data structure but also for warnings without having a separate one.
-            Resolver.linesWithSemanticErrs.add(keyForLine);
-        }
         const errForTermination = (isSemanticErr) || (isSyntaxErr);
         if (errForTermination) {
             Resolver.terminate = true;
@@ -282,18 +288,21 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             const isFiller = ((token.type === DSLLexer.PLAIN_WORD) && !aliasDeclaration);//the condition for alias declaration prevents it from conidering the name of the alias as filler just because its a plain word
             
             if (!isTerminator && !isFiller){//the for alias check is to ensure that the plain words in alias declarations are considered
-                let name:string = token.text!;
-                if (!aliasDeclaration) {//locking it to whether its an alias declaration prevents it from flagging an alias declaration as a duplicate sentence because the alias declaration itself is essentially a duplicate since it refers to a predicate and its meant to be that way.so the resolver should respect this
-                    if ((token.type === DSLLexer.ALIAS) || (token.type === DSLLexer.PREDICATE)) {
-                        name = Resolver.stripMark(name);//strip their prefixes
-                        name = Resolver.aliases.get(name)?.predicate || name;//the fallback is for the case of predicates
-                        tokenNames.unshift(name);
-                    }else {
-                        tokenNames.push(name);
+                let text:string = token.text!;
+                if (aliasDeclaration) {//locking it to whether its an alias declaration prevents it from flagging an alias declaration as a duplicate sentence because the alias declaration itself is essentially a duplicate since it refers to a predicate and its meant to be that way.so the resolver should respect this
+                    if(!(token.type === DSLLexer.PREDICATE) && !(token.type === DSLLexer.EQUALS)) {
+                        tokenNames.push(text);
                     }
                 }else {
-                    if(!(token.type === DSLLexer.PREDICATE) && !(token.type === DSLLexer.EQUALS)) {
-                        tokenNames.push(name);
+                    if ((token.type === DSLLexer.ALIAS) || (token.type === DSLLexer.PREDICATE)) {
+                        text = Resolver.stripMark(text);//strip their prefixes
+                        text = Resolver.aliases.get(text)?.predicate || text;//the fallback is for the case of predicates
+                        tokenNames.unshift(text);
+                    }else if (token.type === DSLLexer.NAME) {
+                        text = Resolver.stripMark(text);
+                        tokenNames.push(text);
+                    }else {
+                        tokenNames.push(text);
                     }
                 }
             }
