@@ -72,6 +72,24 @@ export class Purger<V extends object> {
             }
         }
     }
+    private updateStateUsingCache():void {//the reason why the deletions under this function cant go directly in updateCache where the rest are deleted is because these structures arent keyed by the src line's unique key,but by other strings used for the various purposes of the structure.the unique key is part of the value but not the key of the following structures themselves which updateCache assumes.
+        for (const [key,value] of [...Resolver.visitedSentences.entries(),...Resolver.aliases.entries()]) {
+            if ((!Resolver.lspDiagnosticsCache.has(value.uniqueKey))) {
+                Resolver.visitedSentences.delete(key);
+                Resolver.aliases.delete(key);
+            }
+        }
+        for (const [name,value] of Object.entries(Resolver.usedNames)) {
+            for (const uniqueKey of value.uniqueKeys.list) {
+                if (!Resolver.lspDiagnosticsCache.has(uniqueKey)) {
+                    value.uniqueKeys.delete(uniqueKey);
+                    if (value.uniqueKeys.list.length === 0) {
+                        delete Resolver.usedNames[name];
+                    }
+                }
+            }
+        }
+    }
     private produceFinalSrc():void {
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
         for (let line = (this.srcLines.length - 1 ); line >= 0 ;line--) {
@@ -102,6 +120,7 @@ export class Purger<V extends object> {
     public purge():string {//the order of operations here is very important.
         this.prepareDependencyMap();
         this.updateCache();
+        this.updateStateUsingCache();
         this.produceFinalSrc();
         const unpurgedSrcText:string = this.unpurgedSrcLines.toArray().join('\n');
 

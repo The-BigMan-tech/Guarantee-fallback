@@ -31,8 +31,8 @@ function overrideErrorListener():void {
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
-    updateStaticVariables(srcPath);//this must be called before resolution
     const resolver = new Resolver();
+    Resolver.lastDocumentPath = srcPath;
     Resolver.srcLines = Resolver.createSrcLines(fullSrcText);;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
     
     overrideErrorListener();//this must be called before calling the parser
@@ -47,25 +47,6 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
         return {aliases:Resolver.aliases,predicates:resolver.predicates,records:resolver.records};
     }else {
         return Result.error;
-    }
-}
-function updateStaticVariables(srcPath:string):void {
-    Resolver.lastDocumentPath = srcPath;
-    for (const [key,value] of [...Resolver.visitedSentences.entries(),...Resolver.aliases.entries()]) {
-        if ((!Resolver.lspDiagnosticsCache.has(value.uniqueKey))) {
-            Resolver.visitedSentences.delete(key);
-            Resolver.aliases.delete(key);
-        }
-    }
-    for (const [name,value] of Object.entries(Resolver.usedNames)) {
-        for (const uniqueKey of value.uniqueKeys.list) {
-            if (!Resolver.lspDiagnosticsCache.has(uniqueKey)) {
-                value.uniqueKeys.delete(uniqueKey);
-                if (value.uniqueKeys.list.length === 0) {
-                    delete Resolver.usedNames[name];
-                }
-            }
-        }
     }
 }
 
