@@ -54,7 +54,7 @@ export class Purger<V extends object> {
         const dependentsAsKeys = Purger.dependencyToDependents[key];
         if (dependentsAsKeys) {
             for (const dependentAsKey of dependentsAsKeys) {
-                console.log('\nremoved dep: ',dependentAsKey);
+                console.log('\nremoved dependent: ',dependentAsKey);
                 this.cache.delete(dependentAsKey);
             }
         }
@@ -63,12 +63,18 @@ export class Purger<V extends object> {
         const uniqueKeys = [...this.cache.keys()];
         for (const key of uniqueKeys) {
             const isNotInSrc = !this.srcKeysAsSet.has(key);
-            if (isNotInSrc || Resolver.linesWithSemanticErrs.has(key)) {
+            const sentencesAreEmpty = Resolver.visitedSentences.size === 0;
+            if (sentencesAreEmpty || isNotInSrc || Resolver.linesWithSemanticErrs.has(key)) {
                 console.log('\nEntry not in src: ',key);
                 this.cache.delete(key);
                 this.refreshItsDependents(key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
                 delete Purger.dependencyToDependents[key];//afterwards,remove it from the map.
                 if (isNotInSrc) Resolver.linesWithSemanticErrs.delete(key);//this is to ensure it only deletes it when it isnt in the src not just because it has a semantic error.This state is also updated elseqhere in the resolver to keep it up to date.
+                // if (key.endsWith(Resolver.SILENCE_REPORT)) {
+                //     Resolver.linesToSkipDiagnostics.add(key);
+                // }else {
+                //     Resolver.linesToSkipDiagnostics.delete(key);
+                // }
             }
         }
     }

@@ -74,7 +74,7 @@ function clearStaticVariables(srcPath:string,workingIncrementally:boolean):void 
     ConsoleErrorListener.instance.syntaxError = ():undefined =>undefined;
     Resolver.workingIncrementally = workingIncrementally;
     if ((srcPath !== Resolver.lastDocumentPath) || !Resolver.workingIncrementally) {//im clearing it on full resolution to prevent any incremental data from lingering into full resolution to avoid corrupting the state during full resolution.it will start on a clean slate to ensure correctness.but it means that incremental analysis will have to start over each time this is done.so the best thing is to resolve the document once its ready for use and use the analysis during authoring
-        console.log('\nCleared visited sentences\n');
+        console.log('\nCLEANED THE STATE.\n');
         Resolver.visitedSentences.clear();
         Resolver.aliases.clear();
         Resolver.usedNames = {};
@@ -192,7 +192,7 @@ export function autoComplete(word:string):lspCompletionItem[] {
     completions.clear();
     const suggestions: lspCompletionItem[] = [
         { label: 'alias', kind: lspCompletionItemKind.Keyword },
-        { label: 'ignore',insertText:'//ignore',kind: lspCompletionItemKind.Text },
+        { label: 'silence-report',insertText:Resolver.SILENCE_REPORT,kind: lspCompletionItemKind.Text },
         ...['them','their','him','her','it','his','ref'].map(ref=>({
             label:ref,
             insertText:`<${ref}:${'${0}'}>`,
