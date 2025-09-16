@@ -347,8 +347,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         this.expandedFacts = null;
         this.predicateForLog = null;
         this.currentStringifiedStatement = null;
-        const uniqueKey = createKey(this.lineCount,Resolver.srcLine(this.lineCount)!);
-        Resolver.linesWithSemanticErrs.delete(uniqueKey);//placing this delete here ensures that its only deleted when the line is included which will cause this function to be called
     }
     public visitProgram = async (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
@@ -732,7 +730,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
     private recommendUsedName(text:string):string | null {
         for (const name of Object.keys(Resolver.usedNames)) {
-            if (distance(name,text!) < 4) {
+            if (distance(name,text!) <= 3) {
                 return name;
             }
         }
