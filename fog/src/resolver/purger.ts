@@ -99,7 +99,7 @@ export class Purger<V extends object> {
             ParseHelper.parse(srcLine);
 
             const key = createKey(line,srcLine);
-            if (key.trim().endsWith(Resolver.SILENCE_REPORT)) {
+            if (key.trim().endsWith(Resolver.OMIT_WARNING)) {
                 Resolver.linesToSkipDiagnostics.add(key);
             }
             const inCache = this.cache.has(key);//notice that i used inCache and not inSrc to determine the purge decision here.This is because (inCache == inSrc) but (inSrc !== inCache).The presence in the cache is the ultimate factor because it needs to be synchronized completely with what is actually in the cache to avoid state bugs.

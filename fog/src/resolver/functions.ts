@@ -192,7 +192,7 @@ export function autoComplete(word:string):lspCompletionItem[] {
     completions.clear();
     const suggestions: lspCompletionItem[] = [
         { label: 'alias', kind: lspCompletionItemKind.Keyword },
-        { label: 'silence-report',insertText:Resolver.SILENCE_REPORT,kind: lspCompletionItemKind.Text },
+        { label: 'omit-warning',insertText:Resolver.OMIT_WARNING,kind: lspCompletionItemKind.Text },
         ...['them','their','him','her','it','his','ref'].map(ref=>({
             label:ref,
             insertText:`<${ref}:${'${0}'}>`,
