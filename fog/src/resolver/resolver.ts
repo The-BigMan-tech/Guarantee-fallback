@@ -74,7 +74,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static lineToAffectedLines:Record<string,string[]> = {};
     public static linesWithSemanticErrs = new Set<string>();
     public static linesToSkipDiagnostics = new Set<string>();
-    public static readonly SILENCE_REPORT = '//silence-report';
+    public static readonly OMIT_WARNING = '//omit-warning';
 
     //the ansi report is generated on full resolution but skipped in incremenal resolution.while editor diagnostic are made in incremental resolution but they are skipped in full resolution
     public static buildDiagnosticsFromReport(report:Report):void {
@@ -83,9 +83,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const srcLine:string = Resolver.srcLine(line)!;
         const mainKey = createKey(line,srcLine);
         
-        if (Resolver.linesToSkipDiagnostics.has(mainKey)) {
-            return;
-        }
         const buildDiagnostic = (targetLine: number, text:string | EndOfLine,message:string):lspDiagnostics => {
             const sourceLine = Resolver.srcLine(targetLine) || "";
             const cleanedSourceLine = sourceLine.replace(/\r+$/, ""); // remove trailing \r
@@ -163,8 +160,21 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
     }
     public static castReport(report:Report):void {
-        Resolver.buildDiagnosticsFromReport(report);
         const {kind,line,lines,msg} = report;
+
+        const isSemanticErr = kind===ReportKind.Semantic;
+        const isWarning = kind===ReportKind.Warning;
+        const isSyntaxErr = kind===ReportKind.Syntax;
+
+        const keyForLine = createKey(line,Resolver.srcLine(line)!);
+
+        if (!isWarning) {
+            Resolver.buildDiagnosticsFromReport(report);
+        }else {
+            if (!Resolver.linesToSkipDiagnostics.has(keyForLine)) {
+                Resolver.buildDiagnosticsFromReport(report);
+            }else return;//this early return prevents omitted warnings from appearing the final .ansi report in addition to not showing in the diagnostics
+        }
         const messages = [];
 
         console.log('🚀 => :78 => pushLine => line:', line);
@@ -193,13 +203,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         console.info(...messages);
         Resolver.logs?.push(...messages);
 
-        const isSemanticErr = kind===ReportKind.Semantic;
-        const isWarning = kind===ReportKind.Warning;
-        const isSyntaxErr = kind===ReportKind.Syntax;
-
         if ((isSemanticErr) || (isWarning)) {//warning may not be a semantic err,but im adding it here cuz its convenient.it leverages the same data structure but also for warnings without having a separate one.
-            const keyWithErr = createKey(line,Resolver.srcLine(line)!);
-            Resolver.linesWithSemanticErrs.add(keyWithErr);
+            Resolver.linesWithSemanticErrs.add(keyForLine);
         }
         const errForTermination = (isSemanticErr) || (isSyntaxErr);
         if (errForTermination) {
@@ -340,6 +345,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         if (this.lineCount === (Resolver.srcLines.length-1)) {//this block is to increment the line count at the end of the file.This is because i dont directly have the eof token in the tokens array which is because they only contain sentences.so without that,the line count at the end of the file will always be a count short which s why im checking it against the input array.length - 1.Explicitly incrementing it under tis conditin fixes that.
             this.targetLineCount += 1;
         }
+        this.printTokens(tokens);
+
         this.currentStringifiedStatement = this.stringifyStatement(tokens,declaredAlias);
         this.checkForRepetition();
         this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.   
