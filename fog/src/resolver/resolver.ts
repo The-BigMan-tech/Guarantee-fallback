@@ -301,7 +301,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         if (tokenNames.length === 0) {
             return null;//this prevents the case of an empty array string from being the key which happens when the tokens dont make a meaningful sentence.
         }
-        const stringifiedNames = stringify(tokenNames.toArray()).replaceAll(',',' , ');
+        const stringifiedNames = stringify(tokenNames.toArray()).replaceAll('",',`"${chalk.gray(',')} `);
         console.log('🚀 => :266 => getSemanticForm => stringifiedNames:', stringifiedNames);
         return stringifiedNames;
     }
