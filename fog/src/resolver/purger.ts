@@ -69,7 +69,7 @@ export class Purger<V extends object> {
                 this.refreshItsDependents(key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
                 delete Purger.dependencyToDependents[key];//afterwards,remove it from the map.
                 if (isNotInSrc) {
-                    Resolver.linesWithSemanticErrs.delete(key)//this is to ensure it only deletes it when it isnt in the src not just because it has a semantic error.This state is also updated elseqhere in the resolver to keep it up to date.
+                    Resolver.linesWithSemanticErrs.delete(key);//this is to ensure it only deletes it when it isnt in the src not just because it has a semantic error.This state is also updated elseqhere in the resolver to keep it up to date.
                 }
             }
         }
