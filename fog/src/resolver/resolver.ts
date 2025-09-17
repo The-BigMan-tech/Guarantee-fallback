@@ -182,8 +182,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             Resolver.terminate = true;
         }
         if (isWarning) {
-            Resolver.foundWarning = true;
             if (!keyForLine.trim().endsWith(Resolver.OMIT_WARNING)) {//Two things to note is that omit warnings is a comment and not part of the actual syntax.so its just a resolver flag and also,it has to be placed at the src of the warning not the lines affected from the src else,it will be ignored.
+                Resolver.foundWarning = true;
                 Resolver.buildDiagnosticsFromReport(report);
             }else return;//this early return prevents omitted warnings from appearing the final .ansi report in addition to not showing in the diagnostics
         }else {
@@ -339,7 +339,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
     }
     public perLineResolution:((lineKey:string)=>void) | null = null;
-    
+
     private async resolveLine(child:ParseTree) {
         let tokens:Token[] | null = null;
         let declaredAlias = false;
