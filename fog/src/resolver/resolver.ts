@@ -279,7 +279,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         }
     }
-    private stringifyStatement(tokens:Token[] | null,aliasDeclaration:boolean):string | null {
+    private static stringifyStatement(tokens:Token[] | null,aliasDeclaration:boolean):string | null {
         if ((tokens===null) || (tokens.length === 0)) return null;
         //im using a queue because it will be inserting predicates to the front of the array.This is because no matter the position of the predicate in a sentence,it always produces the same output meaning that the semantic meaning of the sentence is the same.So by inserting them to the front and not pushing them to the ends,i ensure that the position of the predicate doesnt affect its reasoning of duplicates because they will always be at the front
         const tokenNames = new Denque<string>([]);//im going to be checking against the token names and not the raw objects to make stringofying computationally easier
@@ -353,12 +353,15 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         if (this.lineCount === (Resolver.srcLines.length-1)) {//this block is to increment the line count at the end of the file.This is because i dont directly have the eof token in the tokens array which is because they only contain sentences.so without that,the line count at the end of the file will always be a count short which s why im checking it against the input array.length - 1.Explicitly incrementing it under tis conditin fixes that.
             this.targetLineCount += 1;
         }
-        this.currentStringifiedStatement = this.stringifyStatement(tokens,declaredAlias);
+        this.currentStringifiedStatement = Resolver.stringifyStatement(tokens,declaredAlias);
         this.checkForRepetition();
         this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.  
         this.expandedFacts = null;
         this.predicateForLog = null;
         this.currentStringifiedStatement = null;
+        if (!Resolver.terminate) {//this has to be done before updating the line count
+            Resolver.linesWithSemanticErrs.delete(createKey(this.lineCount,Resolver.srcLine(this.lineCount)!));
+        }
         this.lineCount = this.targetLineCount;
     }
     public visitProgram = async (ctx:ProgramContext)=> {
