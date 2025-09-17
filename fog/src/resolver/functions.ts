@@ -45,6 +45,7 @@ async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {/
     reupdateVisitedSentences();//this one must be called after resolution
 
     if (!Resolver.terminate) {
+        Resolver.linesWithSemanticErrs.clear();
         return {aliases:Resolver.aliases,predicates:resolver.predicates,records:resolver.records};
     }else {
         return Result.error;
@@ -197,7 +198,7 @@ export function autoComplete(word:string):lspCompletionItem[] {
             insertTextFormat:lspInsertTextFormat.Snippet,
             kind: lspCompletionItemKind.Keyword
         })),
-        ...['He','She','It','They'].map(ref=>({
+        ...['He','She','It','They','His','Her'].map(ref=>({
             label:ref,
             insertText:`<${ref}>`,
             kind:lspCompletionItemKind.Keyword

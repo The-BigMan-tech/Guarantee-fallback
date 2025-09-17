@@ -64,9 +64,6 @@ export class Purger<V extends object> {
         for (const key of uniqueKeys) {
             const isNotInSrc = !this.srcKeysAsSet.has(key);
             const sentencesAreEmpty = Resolver.visitedSentences.size === 0;
-            if (!Resolver.terminate) {
-                Resolver.linesWithSemanticErrs.delete(key);
-            }
             if (sentencesAreEmpty || isNotInSrc || Resolver.linesWithSemanticErrs.has(key)) {
                 console.log('\nEntry not in src: ',key);
                 this.cache.delete(key);
@@ -113,7 +110,7 @@ export class Purger<V extends object> {
                 console.log('\nunshifting src line: ',key,'isDependency: ',isADependency,'inCache: ',inCache,'syntax err: ',this.syntaxError);   
                 this.unpurgedSrcLines.unshift(srcLine);
             }
-            //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
+            //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited to prevent lines with empty diagnostics from always being reanalyzed.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
             if (!isWhitespace(srcLine) && !this.cache.has(key)) {//we dont want to override existing entries
                 this.cache.set(key,this.emptyValue);
             }
