@@ -76,7 +76,7 @@ export class DependencyManager extends DSLVisitor<boolean | undefined> {
         for (const token of tokens) {
             const type = token.type;
             const text = token.text!;
-            const refTypes = new Set([DSLLexer.SINGLE_SUBJECT_REF,DSLLexer.SINGLE_OBJECT_REF,DSLLexer.GROUP_SUBJECT_REF,DSLLexer.GROUP_OBJECT_REF]);
+            const refTypes = new Set([DSLLexer.SINGLE_SUBJECT_REF,DSLLexer.SINGLE_OBJECT_REF,DSLLexer.GROUP_SUBJECT_REF,DSLLexer.GROUP_OBJECT_REF,DSLLexer.GENERIC_REF]);
             if (refTypes.has(type) && !dependent.reference) {
                 dependent.reference = true;
             }
