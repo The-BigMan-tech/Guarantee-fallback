@@ -11,6 +11,8 @@ aliasDeclaration: ALIAS_KW PLAIN_WORD (EQUALS PREDICATE)? TERMINATOR;
 
 sentence: token+ ;
 
+//the standalone hash and exclamation are allowed for better autocomplete(for aliases and name assertions)
+//the apostrophe is a helper when constructing sentences to show possession like mark's
 token: (primitive | list | ref | PREDICATE | ALIAS | PLAIN_WORD ) |
     (COMMA | LPAREN | RPAREN | SEMICOLON | QUESTION | EXCLAMATION | APOSTROPHE | HASH);
 
@@ -53,7 +55,7 @@ GROUP_OBJECT_REF:'<' GROUP_NOUN_OBJECT_REF COLON NUMBER '>';
 fragment SINGLE_NOUN_OBJECT_REF:'him' | 'her' | 'it' | 'his';
 fragment GROUP_NOUN_OBJECT_REF:'them' | 'their';
 
-fragment SINGLE_NOUN_REF:'He' | 'She' | 'It';
+fragment SINGLE_NOUN_REF:'He' | 'She' | 'It' | 'His' | 'Her';
 fragment GROUP_NOUN_REF:'They';
 
 NEW_LINE:('\r\n' | '\r' | '\n');
