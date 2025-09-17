@@ -32,6 +32,7 @@ function overrideErrorListener():void {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
     const resolver = new Resolver();
+    Resolver.terminate = false;//reset it for subsequent analyzing
     Resolver.lastDocumentPath = srcPath;
     Resolver.srcLines = Resolver.createSrcLines(fullSrcText);;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
     
@@ -65,7 +66,6 @@ function reupdateVisitedSentences():void {
 
 //the srcPath variable is to tie the lifetime of some static variables to the current path rather than on each request
 function clearStaticVariables(srcPath:string,workingIncrementally:boolean):void {//Note that its not all static variables that must be cleared or be cleared here.
-    Resolver.terminate = false;//reset it for subsequent analyzing
     Resolver.srcLines.length = 0;
     Resolver.logs = null;
     Resolver.logFile = null;

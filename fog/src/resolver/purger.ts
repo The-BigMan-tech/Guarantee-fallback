@@ -64,6 +64,9 @@ export class Purger<V extends object> {
         for (const key of uniqueKeys) {
             const isNotInSrc = !this.srcKeysAsSet.has(key);
             const sentencesAreEmpty = Resolver.visitedSentences.size === 0;
+            if (!Resolver.terminate) {
+                Resolver.linesWithSemanticErrs.delete(key);
+            }
             if (sentencesAreEmpty || isNotInSrc || Resolver.linesWithSemanticErrs.has(key)) {
                 console.log('\nEntry not in src: ',key);
                 this.cache.delete(key);

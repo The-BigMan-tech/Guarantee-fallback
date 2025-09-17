@@ -80,7 +80,7 @@ export class DependencyManager extends DSLVisitor<boolean | undefined> {
             if (refTypes.has(type) && !dependent.reference) {
                 dependent.reference = true;
             }
-            if ((type === DSLLexer.ALIAS) && !dependent.alias) {
+            if ((type === DSLLexer.ALIAS) || (type === DSLLexer.PREDICATE)) {//the alias dependent was originally for marking sentences with alias usage as dependents.but since i have a semantic rule that prevents a predicate of the same name with an alias to go through,i also had to add their predicates as well.This means that all sentences are essentially dependent by at least an alias declaration.but,this will ensure correctness by loading all sentences with the same predicate name of an alias when that alias declaration is added.
                 dependent.alias = Resolver.stripMark(text);
             }
             if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {

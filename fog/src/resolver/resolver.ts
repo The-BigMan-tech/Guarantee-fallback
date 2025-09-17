@@ -355,11 +355,11 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
         this.currentStringifiedStatement = this.stringifyStatement(tokens,declaredAlias);
         this.checkForRepetition();
-        this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.   
-        this.lineCount = this.targetLineCount;
+        this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.  
         this.expandedFacts = null;
         this.predicateForLog = null;
         this.currentStringifiedStatement = null;
+        this.lineCount = this.targetLineCount;
     }
     public visitProgram = async (ctx:ProgramContext)=> {
         for (const child of ctx.children) {
