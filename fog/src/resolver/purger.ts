@@ -48,7 +48,7 @@ export class Purger<V extends object> {
         Purger.dependencyToDependents = refreshedMap;
         Resolver.lineToAffectedLines = {};//clear it because its only needed for merging into the main one and it shouldnt linger any longer to prevent stale entries
     }
-    private refreshItsDependents(key:string):void {
+    private refreshDependents(key:string):void {
         const dependentsAsKeys = Purger.dependencyToDependents[key];
         if (dependentsAsKeys) {
             for (const dependentAsKey of dependentsAsKeys) {
@@ -65,7 +65,7 @@ export class Purger<V extends object> {
             if (sentencesAreEmpty || isNotInSrc || Resolver.linesWithIssues.has(key)) {
                 console.log('\nEntry not in src: ',key);
                 this.cache.delete(key);
-                this.refreshItsDependents(key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
+                this.refreshDependents(key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
                 delete Purger.dependencyToDependents[key];//afterwards,remove it from the map.
                 if (isNotInSrc) Resolver.linesWithIssues.delete(key);//this is to ensure it only deletes it when it isnt in the src not just because it has a semantic error.This state is also updated elseqhere in the resolver to keep it up to date.
             }
