@@ -8,6 +8,8 @@ import { AliasDeclarationContext } from "./DSLParser.js";
 import { SentenceContext } from "./DSLParser.js";
 import { TokenContext } from "./DSLParser.js";
 import { ListContext } from "./DSLParser.js";
+import { PrimitiveContext } from "./DSLParser.js";
+import { RefContext } from "./DSLParser.js";
 
 
 /**
@@ -54,5 +56,17 @@ export class DSLVisitor<Result> extends AbstractParseTreeVisitor<Result> {
      * @return the visitor result
      */
     visitList?: (ctx: ListContext) => Result;
+    /**
+     * Visit a parse tree produced by `DSLParser.primitive`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitPrimitive?: (ctx: PrimitiveContext) => Result;
+    /**
+     * Visit a parse tree produced by `DSLParser.ref`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitRef?: (ctx: RefContext) => Result;
 }
 

@@ -8,6 +8,8 @@ import { AliasDeclarationContext } from "./DSLParser.js";
 import { SentenceContext } from "./DSLParser.js";
 import { TokenContext } from "./DSLParser.js";
 import { ListContext } from "./DSLParser.js";
+import { PrimitiveContext } from "./DSLParser.js";
+import { RefContext } from "./DSLParser.js";
 
 
 /**
@@ -75,6 +77,26 @@ export class DSLListener implements ParseTreeListener {
      * @param ctx the parse tree
      */
     exitList?: (ctx: ListContext) => void;
+    /**
+     * Enter a parse tree produced by `DSLParser.primitive`.
+     * @param ctx the parse tree
+     */
+    enterPrimitive?: (ctx: PrimitiveContext) => void;
+    /**
+     * Exit a parse tree produced by `DSLParser.primitive`.
+     * @param ctx the parse tree
+     */
+    exitPrimitive?: (ctx: PrimitiveContext) => void;
+    /**
+     * Enter a parse tree produced by `DSLParser.ref`.
+     * @param ctx the parse tree
+     */
+    enterRef?: (ctx: RefContext) => void;
+    /**
+     * Exit a parse tree produced by `DSLParser.ref`.
+     * @param ctx the parse tree
+     */
+    exitRef?: (ctx: RefContext) => void;
 
     visitTerminal(node: TerminalNode): void {}
     visitErrorNode(node: ErrorNode): void {}
