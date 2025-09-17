@@ -32,8 +32,8 @@ function overrideErrorListener():void {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
     const resolver = new Resolver();
-    Resolver.terminate = false;//reset it for subsequent analyzing
-    Resolver.lastDocumentPath = srcPath;
+
+    Resolver.lastDocumentPath = srcPath;//this static variable is updated here instead of clear static variables because its meant to be observed by an outside code after resolution but must be reset before the next one
     Resolver.srcLines = Resolver.createSrcLines(fullSrcText);;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
     
     overrideErrorListener();//this must be called before calling the parser
@@ -73,6 +73,8 @@ function clearStaticVariables(srcPath:string,workingIncrementally:boolean):void 
     DependencyManager.dependents = [];
     ConsoleErrorListener.instance.syntaxError = ():undefined =>undefined;
     Resolver.workingIncrementally = workingIncrementally;
+    Resolver.foundWarning = false;
+    Resolver.terminate = false;//reset it for subsequent analyzing
     if ((srcPath !== Resolver.lastDocumentPath) || !Resolver.workingIncrementally) {//im clearing it on full resolution to prevent any incremental data from lingering into full resolution to avoid corrupting the state during full resolution.it will start on a clean slate to ensure correctness.but it means that incremental analysis will have to start over each time this is done.so the best thing is to resolve the document once its ready for use and use the analysis during authoring
         console.log('\nCLEANED THE STATE.\n');
         Resolver.visitedSentences.clear();
@@ -80,7 +82,7 @@ function clearStaticVariables(srcPath:string,workingIncrementally:boolean):void 
         Resolver.usedNames = {};
         Purger.dependencyToDependents = {};
         Resolver.lineToAffectedLines = {};
-        Resolver.linesWithSemanticErrs.clear();
+        Resolver.linesWithIssues.clear();
         Resolver.lspDiagnosticsCache.clear();
     }
 }
@@ -177,7 +179,7 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     console.log('visited sentences: ',Resolver.visitedSentences);
     console.log('used names: ',Resolver.usedNames);
     console.log('aliases : ',Resolver.aliases);
-    console.log('lines with semantic errs: ',Resolver.linesWithSemanticErrs);
+    console.log('lines with issues: ',Resolver.linesWithIssues);
     return fullDiagnostics;
 }
 interface Completion {

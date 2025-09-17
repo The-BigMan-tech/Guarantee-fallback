@@ -44,6 +44,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private targetLineCount:number = this.lineCount;//this is the mutable line count that is safe to increment by any method that inspects tokens and at every new line.Its not meant to be done by every method that inspects tokens but only a few.and here,only three pieces of the codebase does this.This is to prevent incorrect state bugs.
 
     public static terminate:boolean = false;//this is the flag that controls the termination of the resolver
+    public static foundWarning:boolean = false;
 
     public static logFile:string | null = null;
     public static logs:string[] | null = null;
@@ -72,7 +73,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         console.log('\n Tokens:',tokenDebug);
     }
     public static lineToAffectedLines:Record<string,string[]> = {};
-    public static linesWithSemanticErrs = new Set<string>();
+    public static linesWithIssues = new Set<string>();
     public static readonly OMIT_WARNING = '//omit-warning';
 
     //the ansi report is generated on full resolution but skipped in incremenal resolution.while editor diagnostic are made in incremental resolution but they are skipped in full resolution
@@ -135,8 +136,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const isSemanticErr = kind===ReportKind.Semantic;
         const isWarning = kind===ReportKind.Warning;
 
-        if ((isSemanticErr) || (isWarning)) {//warning may not be a semantic err,but im adding it here cuz its convenient.it leverages the same data structure but also for warnings without having a separate one.
-            Resolver.linesWithSemanticErrs.add(mainKey);
+        if ((isSemanticErr) || (isWarning)) {
+            Resolver.linesWithIssues.add(mainKey);
         }
         if (!lines && ((typeof srcText === "string") || (srcText === EndOfLine.value))) {
             registerDiagnostics(mainKey,[buildDiagnostic(line,srcText,cleanMsg)]);
@@ -160,7 +161,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     registerDiagnostics(includedKey,includedDiagnostics);
                     includedKeys.push(includedKey);
                     if ((isSemanticErr) || (isWarning)) {
-                        Resolver.linesWithSemanticErrs.add(includedKey);
+                        Resolver.linesWithIssues.add(includedKey);
                     }
                 }
             }
@@ -176,17 +177,22 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
         const keyForLine = createKey(line,Resolver.srcLine(line)!);
 
-        if (!isWarning) {
-            Resolver.buildDiagnosticsFromReport(report);
-        }else {
+        const errForTermination = (isSemanticErr) || (isSyntaxErr);
+        if (errForTermination) {
+            Resolver.terminate = true;
+        }
+        if (isWarning) {
+            Resolver.foundWarning = true;
             if (!keyForLine.trim().endsWith(Resolver.OMIT_WARNING)) {//Two things to note is that omit warnings is a comment and not part of the actual syntax.so its just a resolver flag and also,it has to be placed at the src of the warning not the lines affected from the src else,it will be ignored.
                 Resolver.buildDiagnosticsFromReport(report);
             }else return;//this early return prevents omitted warnings from appearing the final .ansi report in addition to not showing in the diagnostics
+        }else {
+            Resolver.buildDiagnosticsFromReport(report);
         }
-        const messages = [];
 
-        console.log('🚀 => :78 => pushLine => line:', line);
+        const messages = [];
         const pushLine = (lineArg:number):void => {messages.push(brown(Resolver.srcLine(lineArg)?.trim() + '\n'));};
+        
         const errTitle = chalk.underline(`\n${kind} line ${line + 1}:`);
         const coloredTitle = mapToColor(kind)!(errTitle);
 
@@ -210,11 +216,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         messages.push('\n');
         console.info(...messages);
         Resolver.logs?.push(...messages);
-
-        const errForTermination = (isSemanticErr) || (isSyntaxErr);
-        if (errForTermination) {
-            Resolver.terminate = true;
-        }
     }
     private logProgress(tokens:Token[] | null) {
         if ((tokens===null) || Resolver.terminate) return;
@@ -359,8 +360,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         this.expandedFacts = null;
         this.predicateForLog = null;
         this.currentStringifiedStatement = null;
-        if (!Resolver.terminate) {//this has to be done before updating the line count
-            Resolver.linesWithSemanticErrs.delete(createKey(this.lineCount,Resolver.srcLine(this.lineCount)!));
+        if ( (!Resolver.terminate) && (!Resolver.foundWarning) ) {//this has to be done before updating the line count
+            Resolver.linesWithIssues.delete(createKey(this.lineCount,Resolver.srcLine(this.lineCount)!));
         }
         this.lineCount = this.targetLineCount;
     }

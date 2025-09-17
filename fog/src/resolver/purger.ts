@@ -64,12 +64,12 @@ export class Purger<V extends object> {
         for (const key of uniqueKeys) {
             const isNotInSrc = !this.srcKeysAsSet.has(key);
             const sentencesAreEmpty = Resolver.visitedSentences.size === 0;
-            if (sentencesAreEmpty || isNotInSrc || Resolver.linesWithSemanticErrs.has(key)) {
+            if (sentencesAreEmpty || isNotInSrc || Resolver.linesWithIssues.has(key)) {
                 console.log('\nEntry not in src: ',key);
                 this.cache.delete(key);
                 this.refreshItsDependents(key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
                 delete Purger.dependencyToDependents[key];//afterwards,remove it from the map.
-                if (isNotInSrc) Resolver.linesWithSemanticErrs.delete(key);//this is to ensure it only deletes it when it isnt in the src not just because it has a semantic error.This state is also updated elseqhere in the resolver to keep it up to date.
+                if (isNotInSrc) Resolver.linesWithIssues.delete(key);//this is to ensure it only deletes it when it isnt in the src not just because it has a semantic error.This state is also updated elseqhere in the resolver to keep it up to date.
             }
         }
     }
