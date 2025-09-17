@@ -534,7 +534,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             });
             const linesReport = (msg:string):Report=>({
                 ...report(msg,[Resolver.srcLine(this.lineCount-1)!,ref]),
-                lines:[this.lineCount-1,this.lineCount]
+                lines:[this.prevRefCheck.line,this.lineCount]
             });
             if (!member) {
                 if (refType === "object") {
