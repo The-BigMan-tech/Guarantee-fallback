@@ -12,6 +12,7 @@ import { Doc, serverDoc } from "../fact-checker/fact-checker.js";
 import { ConsoleErrorListener } from "antlr4ng";
 import {Heap} from "heap-js";
 import fuzzysort from 'fuzzysort';
+import { LRUCache } from "lru-cache";
 
 
 function overrideErrorListener():void {
@@ -30,12 +31,13 @@ function overrideErrorListener():void {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
+async function generateJson(args:{srcPath:string,srcText:string,fullSrcText:string,cache?:LRUCache<string,any>}) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
+    const {srcPath,srcText,fullSrcText,cache} = args;
+
     const resolver = new Resolver();
     resolver.perLineResolution = (lineKey:string):void =>{
-        if ( (!Resolver.terminate) && (!Resolver.foundWarning) ) {
-            Resolver.linesWithIssues.delete(lineKey);
-        }
+        const noIssues = (!Resolver.terminate) && (!Resolver.foundWarning);
+        if (noIssues) Resolver.linesWithIssues.delete(lineKey);
     };
     Resolver.lastDocumentPath = srcPath;//this static variable is updated here instead of clear static variables because its meant to be observed by an outside code after resolution but must be reset before the next one
     Resolver.srcLines = Resolver.createSrcLines(fullSrcText);;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
@@ -142,7 +144,7 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
         const srcText = await fs.readFile(srcFilePath, 'utf8');
 
         await setUpLogs(outputFilePath);//this must be initialized before generating the struct as long as the file log is required
-        const resolvedResult = await generateJson(srcFilePath,srcText,srcText);//the result here will be undefined if there was a resolution error.
+        const resolvedResult = await generateJson({srcPath:srcFilePath,srcText:srcText,fullSrcText:srcText});//the result here will be undefined if there was a resolution error.
         
         if (resolvedResult !== Result.error) {
             const aliases:Record<string,string> = {};
@@ -171,7 +173,7 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
 
     const purger = new Purger(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
     const unpurgedSrcText = purger.purge();
-    await generateJson(srcPath,unpurgedSrcText,srcText);//this populates the lsp diagostics
+    await generateJson({srcPath,srcText:unpurgedSrcText,fullSrcText:srcText,cache:Resolver.lspDiagnosticsCache});//this populates the lsp diagostics
 
     const fullDiagnostics:lspDiagnostics[] = [];
     for (const diagnostics of Resolver.lspDiagnosticsCache.values()) {//this must be done after resolving the purged text because its only then,that the cache will be filled with the latest data
