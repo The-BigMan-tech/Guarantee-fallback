@@ -1,4 +1,4 @@
-import { convMapToRecord,EndOfLine, FullData,isWhitespace,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspInsertTextFormat, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
+import { contentFromKey, convMapToRecord,EndOfLine, FullData,isWhitespace,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspInsertTextFormat, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -31,13 +31,19 @@ function overrideErrorListener():void {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-async function generateJson(args:{srcPath:string,srcText:string,fullSrcText:string,cache?:LRUCache<string,any>}) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
-    const {srcPath,srcText,fullSrcText,cache} = args;
+async function generateJson<V extends object>(args:{srcPath:string,srcText:string,fullSrcText:string,cache?:LRUCache<string,V>,emptyCacheEntry?:V}) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
+    const {srcPath,srcText,fullSrcText,cache,emptyCacheEntry} = args;
 
     const resolver = new Resolver();
     resolver.perLineResolution = (lineKey:string):void =>{
         const noIssues = (!Resolver.terminate) && (!Resolver.foundWarning);
         if (noIssues) Resolver.linesWithIssues.delete(lineKey);
+        if (cache && !cache.has(lineKey) && !isWhitespace(contentFromKey(lineKey))) {//Initiate all src lines without entries into the cache to mark them as visited which prevent lines with no cache values from always being reanalyzed
+            if (emptyCacheEntry === undefined) {
+                throw new Error('The empty cache entry value must be passed if the cache is supplied.And it cant be undefined because it will delete the entry');
+            }
+            cache.set(lineKey,emptyCacheEntry);
+        }
     };
     Resolver.lastDocumentPath = srcPath;//this static variable is updated here instead of clear static variables because its meant to be observed by an outside code after resolution but must be reset before the next one
     Resolver.srcLines = Resolver.createSrcLines(fullSrcText);;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
@@ -171,9 +177,9 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
 export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspDiagnostics[]> {
     clearStaticVariables(srcPath,true);
 
-    const purger = new Purger(srcText,srcPath,Resolver.lspDiagnosticsCache,[]);
+    const purger = new Purger(srcText,srcPath,Resolver.lspDiagnosticsCache);
     const unpurgedSrcText = purger.purge();
-    await generateJson({srcPath,srcText:unpurgedSrcText,fullSrcText:srcText,cache:Resolver.lspDiagnosticsCache});//this populates the lsp diagostics
+    await generateJson({srcPath,srcText:unpurgedSrcText,fullSrcText:srcText,cache:Resolver.lspDiagnosticsCache,emptyCacheEntry:[]});//this populates the lsp diagostics
 
     const fullDiagnostics:lspDiagnostics[] = [];
     for (const diagnostics of Resolver.lspDiagnosticsCache.values()) {//this must be done after resolving the purged text because its only then,that the cache will be filled with the latest data

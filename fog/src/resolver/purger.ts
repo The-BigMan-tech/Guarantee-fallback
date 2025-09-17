@@ -1,5 +1,5 @@
 import { LRUCache } from "lru-cache";
-import { createKey,isWhitespace } from "../utils/utils.js";
+import { createKey } from "../utils/utils.js";
 import { DependencyManager } from "./dependency-manager.js";
 import { Resolver } from "./resolver.js";
 import { ParseHelper } from "./parse-helper.js";
@@ -20,15 +20,13 @@ export class Purger<V extends object> {
 
     private inSameDocument:boolean;
     private cache:LRUCache<string,V>;
-    private emptyValue:V;
     private syntaxError:boolean = false;
     private unpurgedSrcLines = new Denque<string>();
     private srcKeysAsSet = new Set<string>();
     private srcLines:string[];
 
-    constructor(srcText:string,srcPath:string,cache:LRUCache<string,V>,emptyValue:V) {
+    constructor(srcText:string,srcPath:string,cache:LRUCache<string,V>) {
         this.cache = cache;
-        this.emptyValue = emptyValue;
         this.srcLines = Resolver.createSrcLines(srcText);
         this.srcKeysAsSet = new Set(this.srcLines.map((content,line)=>createKey(line,content as string)));
         this.inSameDocument = srcPath === Resolver.lastDocumentPath;//i tied the choice to purge to whether the document path has changed.This is to sync it properly with static variables that are also tied to te document's path
@@ -105,7 +103,7 @@ export class Purger<V extends object> {
             const key = createKey(line,srcLine);
             const inCache = this.cache.has(key);//notice that i used inCache and not inSrc to determine the purge decision here.This is because (inCache == inSrc) but (inSrc !== inCache).The presence in the cache is the ultimate factor because it needs to be synchronized completely with what is actually in the cache to avoid state bugs.
 
-            const manager = new DependencyManager({key,line,srcLine,srcLines:this.srcLines,inCache});//i passed in non nullable src lines here because the manager expects the full src lines as string for some operations.so this keeps it sepaaret from the main one which is actively mutated during the purge
+            const manager = new DependencyManager({key,line,srcLine,srcLines:this.srcLines,inCache});
             const isADependency:boolean | undefined = (this.syntaxError)?undefined:manager.visit(ParseHelper.tree!);        
             
             const shouldPurge = !this.syntaxError && this.inSameDocument && inCache && (isADependency === false);
@@ -114,10 +112,6 @@ export class Purger<V extends object> {
             }else {
                 console.log('\nunshifting src line: ',key,'isDependency: ',isADependency,'inCache: ',inCache,'syntax err: ',this.syntaxError);   
                 this.unpurgedSrcLines.unshift(srcLine);
-            }
-            //Initiate all src lines into the cache with empty diagnostics to mark the lines as visited to prevent lines with empty diagnostics from always being reanalyzed.It must be done after deciding to purge it and before calling the resolver function.This is because this it intializes all keys in the cache with empty diagnostics and as such,purging after this will falsely prevent every text from entering the purged text to be analyzed.
-            if (!isWhitespace(srcLine) && !this.cache.has(key)) {//we dont want to override existing entries
-                this.cache.set(key,this.emptyValue);
             }
             Purger.dependencyToDependents[key] = new Set(manager.satisfiedDependents.map(dependent=>dependent.uniqueKey));
             this.syntaxError = false;
