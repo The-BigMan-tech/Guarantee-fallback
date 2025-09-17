@@ -338,6 +338,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             Resolver.visitedSentences.set(statement,{line:this.lineCount,uniqueKey});//i mapped it to its line in the src for error reporting
         }
     }
+    public perLineResolution:((lineKey:string)=>void) | null = null;
+    
     private async resolveLine(child:ParseTree) {
         let tokens:Token[] | null = null;
         let declaredAlias = false;
@@ -356,13 +358,14 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
         this.currentStringifiedStatement = Resolver.stringifyStatement(tokens,declaredAlias);
         this.checkForRepetition();
-        this.logProgress(tokens);//This must be logged before the line updates as observed from the logs.  
+        this.logProgress(tokens);//This must be logged before the line updates as observed from the logs. 
+        if (this.perLineResolution) { 
+            const lineKey = createKey(this.lineCount,Resolver.srcLine(this.lineCount)!);
+            this.perLineResolution(lineKey);//this has to be done before updating the line count
+        }
         this.expandedFacts = null;
         this.predicateForLog = null;
         this.currentStringifiedStatement = null;
-        if ( (!Resolver.terminate) && (!Resolver.foundWarning) ) {//this has to be done before updating the line count
-            Resolver.linesWithIssues.delete(createKey(this.lineCount,Resolver.srcLine(this.lineCount)!));
-        }
         this.lineCount = this.targetLineCount;
     }
     public visitProgram = async (ctx:ProgramContext)=> {

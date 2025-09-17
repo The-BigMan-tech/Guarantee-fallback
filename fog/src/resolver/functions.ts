@@ -1,4 +1,4 @@
-import { convMapToRecord, EndOfLine, FullData,isWhitespace,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspInsertTextFormat, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
+import { convMapToRecord,EndOfLine, FullData,isWhitespace,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspInsertTextFormat, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -32,7 +32,11 @@ function overrideErrorListener():void {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function generateJson(srcPath:string,srcText:string,fullSrcText:string) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
     const resolver = new Resolver();
-
+    resolver.perLineResolution = (lineKey:string):void =>{
+        if ( (!Resolver.terminate) && (!Resolver.foundWarning) ) {
+            Resolver.linesWithIssues.delete(lineKey);
+        }
+    };
     Resolver.lastDocumentPath = srcPath;//this static variable is updated here instead of clear static variables because its meant to be observed by an outside code after resolution but must be reset before the next one
     Resolver.srcLines = Resolver.createSrcLines(fullSrcText);;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
     
