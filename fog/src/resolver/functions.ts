@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 import { contentFromKey, convMapToRecord,EndOfLine, FullData,isWhitespace,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspInsertTextFormat, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
@@ -38,7 +39,7 @@ async function generateJson<V extends object>(args:{srcPath:string,srcText:strin
     resolver.perLineResolution = (lineKey:string):void =>{
         const noIssues = (!Resolver.terminate) && (!Resolver.foundWarning);
         if (noIssues) Resolver.linesWithIssues.delete(lineKey);
-        if (cache && !cache.has(lineKey) && !isWhitespace(contentFromKey(lineKey))) {//Initiate all src lines without entries into the cache to mark them as visited which prevent lines with no cache values from always being reanalyzed
+        if (noIssues && cache && !cache.has(lineKey) && !isWhitespace(contentFromKey(lineKey))) {//Initiate all src lines without entries into the cache to mark them as visited which prevent lines with no cache values from always being reanalyzed
             if (emptyCacheEntry === undefined) {
                 throw new Error('The empty cache entry value must be passed if the cache is supplied.And it cant be undefined because it will delete the entry');
             }
@@ -233,13 +234,27 @@ export function autoComplete(word:string):lspCompletionItem[] {
         const lowerWord = word.toLowerCase();
         const label = suggestion.label.toLowerCase();
         const result = fuzzysort.single(lowerWord,label);//i decided to use a subsequence matching algorithm over edit distance because its reduces noise during autocomplete.
+        console.log(`🚀 => :241 => autoComplete => { score, suggestion }:`, {score:result?.score, suggestion:suggestion.label });
         if (result !== null) {  // only proceed if matched
             const score = result.score;
             if (score >= 0.80) {
                 completions.add({ score, suggestion });
             }
         }else if (isWhitespace(lowerWord)) {//show all suggestions on whitespace
-            completions.add({ score:0, suggestion });
+            switch (suggestion.kind) {//this orders the suggestions properly when all suggestions are queried.But,vscode doesnt respect this order for some rason.I have to fix it
+                case (lspCompletionItemKind.Text):{
+                    completions.add({ score:10, suggestion });
+                    break;
+                }
+                case (lspCompletionItemKind.Keyword):{
+                    completions.add({ score:20, suggestion });
+                    break;
+                }
+                case (lspCompletionItemKind.Constant):{
+                    completions.add({ score:30, suggestion });
+                    break;
+                }
+            }
         }
     }
     const relevantSuggestions:lspCompletionItem[] = [];
