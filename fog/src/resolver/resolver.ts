@@ -79,12 +79,14 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     //the ansi report is generated on full resolution but skipped in incremenal resolution.while editor diagnostic are made in incremental resolution but they are skipped in full resolution
     public static buildDiagnosticsFromReport(report:Report):void {
         if (!Resolver.workingIncrementally) return;//this function mutates incremental data which is not wanted in full resolution and also,its mainly for in editor reports.The language already generates a full file report as an ansi file during full resolution.
-        const {kind,line,lines,msg,srcText} = report;//line is 0-based
-        const srcLine:string = Resolver.srcLine(line)!;
+        const {kind,line,lines,msg,srcText,usingSrcLines} = report;//line is 0-based
+
+        const srcFromLine = (line:number)=>(usingSrcLines)?usingSrcLines[line]:Resolver.srcLine(line)!;
+        const srcLine:string = srcFromLine(line);
         const mainKey = createKey(line,srcLine);
         
         const buildDiagnostic = (targetLine: number, text:string | EndOfLine,message:string):lspDiagnostics => {
-            const sourceLine = Resolver.srcLine(targetLine) || "";
+            const sourceLine = srcFromLine(targetLine) || "";
             const cleanedSourceLine = sourceLine.replace(/\r+$/, ""); // remove trailing \r
             
             let startChar:number;
@@ -169,13 +171,14 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
     }
     public static castReport(report:Report):void {
-        const {kind,line,lines,msg} = report;
+        const {kind,line,lines,msg,usingSrcLines} = report;
 
         const isSemanticErr = kind===ReportKind.Semantic;
         const isWarning = kind===ReportKind.Warning;
         const isSyntaxErr = kind===ReportKind.Syntax;
 
-        const keyForLine = createKey(line,Resolver.srcLine(line)!);
+        const srcFromLine = (line:number)=>(usingSrcLines)?usingSrcLines[line]:Resolver.srcLine(line)!;
+        const keyForLine = createKey(line,srcFromLine(line));
 
         const errForTermination = (isSemanticErr) || (isSyntaxErr);
         if (errForTermination) {
@@ -191,7 +194,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
 
         const messages = [];
-        const pushLine = (lineArg:number):void => {messages.push(brown(Resolver.srcLine(lineArg)?.trim() + '\n'));};
+        const pushLine = (lineArg:number):void => {messages.push(brown(srcFromLine(lineArg)?.trim() + '\n'));};
         
         const errTitle = chalk.underline(`\n${kind} line ${line + 1}:`);
         const coloredTitle = mapToColor(kind)!(errTitle);

@@ -216,6 +216,7 @@ export interface Report {
     lines?:number[]
     msg:string,
     srcText:InlineSrcText
+    usingSrcLines?:string[]
 }
 //These are for use by the lsp
 export enum lspSeverity {

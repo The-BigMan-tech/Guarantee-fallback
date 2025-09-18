@@ -3,7 +3,7 @@ import { DSLLexer } from "../generated/DSLLexer.js";
 import { Token } from "antlr4ng";
 import { ParseTree } from "antlr4ng";
 import { ProgramContext,FactContext,AliasDeclarationContext } from "../generated/DSLParser.js";
-import { isWhitespace, xand } from "../utils/utils.js";
+import { isWhitespace,ReportKind,xand } from "../utils/utils.js";
 import { Resolver } from "./resolver.js";
 import { ParseHelper } from "./parse-helper.js";
 
@@ -127,24 +127,34 @@ export class DependencyManager extends DSLVisitor<boolean | undefined> {
         }
     }
     private settleAliasDependents(tokens:Token[]):void {
+        let alias:string | null = null;
+        for (const token of tokens) {
+            const text = token.text!;
+            const type = token.type;
+            if (type === DSLLexer.PLAIN_WORD) {
+                alias = text;//no need to strip the text here since its directly a plain word
+                break;
+            }
+        }
         for (let i=0; i < DependencyManager.dependents.length; i++) {
             const dependent = DependencyManager.dependents[i];
             if (dependent === null) continue;
+            
             let contributed = false;
-            if (dependent.alias !== null) {
-                for (const token of tokens) {
-                    const text = token.text!;
-                    const type = token.type;
-                    if (type === DSLLexer.PLAIN_WORD) {
-                        if (dependent.alias === text) {//no need to strip the text here since its directly a plain word
-                            dependent.settledAlias = true;
-                            contributed = true;
-                        }
-                        break;
-                    }
-                }
+            if ((dependent.alias !== null) && (dependent.alias === alias)) {
+                dependent.settledAlias = true;
+                contributed = true;
                 this.checkIfDependency(i,contributed);
             }
+        }
+        if (this.satisfiedDependents.length === 0) {
+            Resolver.castReport({
+                line:this.line,
+                msg:'This is unused',
+                kind:ReportKind.Warning,
+                srcText:alias!,
+                usingSrcLines:this.srcLines
+            });
         }
     }
     public visitFact = (ctx:FactContext):undefined => {
