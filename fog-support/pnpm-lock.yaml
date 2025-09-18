@@ -12,8 +12,8 @@ importers:
         specifier: ^5.0.2
         version: 5.0.2
       fog-js:
-        specifier: ^1.0.18
-        version: 1.0.18
+        specifier: ^1.1.0
+        version: 1.1.0
       throttle-debounce:
         specifier: ^5.0.2
         version: 5.0.2
@@ -804,8 +804,8 @@ packages:
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
 
-  fog-js@1.0.18:
-    resolution: {integrity: sha512-aeLQ9r0fHaVTwsjq+n2Bmov8My+B+0rdPYOJchQxeE6b/ezU+DXcbeh/9xOmk2nDEa8DpsKjWQShknpw6I5WwA==}
+  fog-js@1.1.0:
+    resolution: {integrity: sha512-98oxJRV7u/r002GgdTOLVexocNRPu+So1aokqaMeEkv4y8yhEcNnyJ13ugG+bKRrT0fc6wQIAp1igVtu1KTVgA==}
 
   for-each@0.3.5:
     resolution: {integrity: sha512-dKx12eRCVIzqCxFGplyFKJMPvLEWgmNtUrpTiJIR5u97zEhRG8ySrtboPHZXx7daLxQVrl643cTzbab2tkQjxg==}
@@ -2640,7 +2640,7 @@ snapshots:
 
   flatted@3.3.3: {}
 
-  fog-js@1.0.18:
+  fog-js@1.1.0:
     dependencies:
       '@types/node-ipc': 9.2.3
       commander: 14.0.0

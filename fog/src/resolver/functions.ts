@@ -235,7 +235,6 @@ export function autoComplete(word:string):lspCompletionItem[] {
         const result = fuzzysort.single(lowerWord,label);//i decided to use a subsequence matching algorithm over edit distance because its reduces noise during autocomplete.
         if (result !== null) {  // only proceed if matched
             const score = result.score;
-            console.log(`score between: ${label} and ${lowerWord}: `, score);
             if (score >= 0.80) {
                 completions.add({ score, suggestion });
             }
@@ -247,6 +246,7 @@ export function autoComplete(word:string):lspCompletionItem[] {
     for (const completion of completions) {//heap js doc guarantees that for loops consume the heap in the sorted order
         relevantSuggestions.push(completion.suggestion);
     }
+    console.log('🚀 => :250 => autoComplete => relevantSuggestions:', relevantSuggestions);
     return relevantSuggestions;
 }
 async function parseJson(json:Path):Promise<Result.error | object>  {

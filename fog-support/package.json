@@ -38,7 +38,7 @@
         ]
     },
     "scripts": {
-        "package:ext":"pnpm vsce package --no-dependencies",
+        "package:ext": "pnpm vsce package --no-dependencies",
         "vscode:prepublish": "pnpm run package",
         "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
         "watch": "npm-run-all -p watch:*",
@@ -67,7 +67,7 @@
     },
     "dependencies": {
         "@types/throttle-debounce": "^5.0.2",
-        "fog-js": "^1.0.18",
+        "fog-js": "^1.1.0",
         "throttle-debounce": "^5.0.2",
         "vscode-languageclient": "^9.0.1",
         "vscode-languageserver": "^9.0.1",

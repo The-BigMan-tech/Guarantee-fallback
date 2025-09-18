@@ -12,34 +12,39 @@ import { debounce } from 'throttle-debounce';
 
 const connection = createConnection(ProposedFeatures.all);
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
+let analysisUpToDate = false;
 
-function analyzeDoc(text:string,srcPath:string) {
+function analyzeDoc(text:string,srcPath:string):void {
     analyzeDocument(text,srcPath).then(diagnostics=>{
         console.log('🚀 => :24 => analysis:',diagnostics);
         connection.sendDiagnostics({
             uri:srcPath,
             diagnostics:diagnostics
         });
+        analysisUpToDate = true;
     });
 }
 const debouncedAnalysis = debounce(300,
     (text:string,srcPath:string) =>{
+        analysisUpToDate = false;
         analyzeDoc(text,srcPath);
     },
     {atBegin:false}
 );
 connection.onCompletion(async (params: TextDocumentPositionParams): Promise<CompletionItem[]> => {
+    if (!analysisUpToDate) { return []; };
     const doc = documents.get(params.textDocument.uri);
     if (doc) {
         const lineText = doc.getText({
             start: { line: params.position.line, character: 0 },
             end: params.position,
         });
-        const match = lineText.match(/(\w+)$/);
+        const match = lineText.match(/([#@!$%\w-]+)$/);
         const lastWord = match ? match[1] : '';
         console.log('\nLast word: ',lastWord);
 
         const completions:CompletionItem[] = await autoComplete(lastWord);
+        console.log('🚀 => :47 => completions:', completions);
         return completions;
     }
     return [];
