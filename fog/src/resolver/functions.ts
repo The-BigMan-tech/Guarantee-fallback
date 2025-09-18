@@ -211,7 +211,7 @@ export function autoComplete(word:string):lspCompletionItem[] {
             insertTextFormat:lspInsertTextFormat.Snippet,
             kind: lspCompletionItemKind.Keyword
         })),
-        ...['He','She','It','They','His','Her'].map(ref=>({
+        ...['He','She','It','They','His','Her','Their'].map(ref=>({
             label:ref,
             insertText:`<${ref}>`,
             kind:lspCompletionItemKind.Keyword

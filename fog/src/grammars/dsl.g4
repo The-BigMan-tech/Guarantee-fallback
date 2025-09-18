@@ -55,7 +55,7 @@ GROUP_OBJECT_REF:'<' GROUP_NOUN_OBJECT_REF COLON NUMBER '>';
 fragment SINGLE_NOUN_OBJECT_REF:'him' | 'her' | 'it' | 'his';
 fragment GROUP_NOUN_OBJECT_REF:'them' | 'their';
 
-fragment SINGLE_NOUN_REF:'He' | 'She' | 'It' | 'His' | 'Her';
+fragment SINGLE_NOUN_REF:'He' | 'She' | 'It' | 'His' | 'Her' | 'Their';
 fragment GROUP_NOUN_REF:'They';
 
 NEW_LINE:('\r\n' | '\r' | '\n');
