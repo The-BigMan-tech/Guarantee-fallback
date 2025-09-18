@@ -76,11 +76,13 @@ export class DependencyManager extends DSLVisitor<boolean | undefined> {
         for (const token of tokens) {
             const type = token.type;
             const text = token.text!;
+
             const refTypes = new Set([DSLLexer.SINGLE_SUBJECT_REF,DSLLexer.SINGLE_OBJECT_REF,DSLLexer.GROUP_SUBJECT_REF,DSLLexer.GROUP_OBJECT_REF,DSLLexer.GENERIC_REF]);
+
             if (refTypes.has(type) && !dependent.reference) {
                 dependent.reference = true;
             }
-            if ((type === DSLLexer.ALIAS) || (type === DSLLexer.PREDICATE)) {//the alias dependent was originally for marking sentences with alias usage as dependents.but since i have a semantic rule that prevents a predicate of the same name with an alias to go through,i also had to add their predicates as well.This means that all sentences are essentially dependent by at least an alias declaration.but,this will ensure correctness by loading all sentences with the same predicate name of an alias when that alias declaration is added.
+            if ((type === DSLLexer.ALIAS) || (type === DSLLexer.PREDICATE)) {//i made them be dependent because of their predicate so that alias declarations with the same name can reload them as dependents which will help catch the error of a predicate with the same name as an alias.This will essentially make all lines dependent and they wont be null unless there is a counter alias declaration.But it wont cause unnecessary reanalysis of lines.This is required for correctness
                 dependent.alias = Resolver.stripMark(text);
             }
             if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
