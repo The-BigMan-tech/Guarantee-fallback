@@ -73,13 +73,6 @@ server.addMethod("pullCandidates",function* ({howManyToReturn,predicate,inputCom
         yield {combination,checkedCombinations:Array.from(visitedSet)};//stream the data to the client
     }
 });
-server.addMethod("intersection",({arrays}:{arrays:any[][]})=>{
-    const doc = serverDoc[0];
-    if (!doc) return Result.error;
-    const sets = arrays.map(arr=>new Set(arr));
-    const result =  [...Doc.intersection(...sets)];
-    return result;
-});
 server.addMethod("selectSmallestRecord",({predicates}:{predicates:string[]})=>{
     const doc = serverDoc[0];
     if (!doc) return Result.error;

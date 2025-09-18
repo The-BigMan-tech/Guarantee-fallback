@@ -21,7 +21,7 @@ export const rules = {//A rule is a function that takes a document and a stateme
     },
     indirectFriends:async (doc:Doc<P>,statement:[string,string],visitedCombinations:Box<string[]>)=> {
         const [X,Y] = statement;//its only handling two entities at a time to prevent unbound recursion.
-        const combinations = await doc.pullCandidates<1,string>(1,'friends',statement,visitedCombinations);
+        const combinations = await doc.pullCandidates(1,'friends',statement,visitedCombinations) as [string][] | null;
         if (combinations !== null) {
             for (const [A] of combinations) {
                 if (await rules.directFriends(doc,[X,A])) {
@@ -43,7 +43,7 @@ export const rules = {//A rule is a function that takes a document and a stateme
             .map(fact=>fact[0]);
         const parentsOfY = (await doc.findAllFacts(checkBy.ExactMatch,'parent',[await doc.wildCard(),Y]))
             .map(fact=>fact[0]);
-        const commonParent = await doc.intersection([parentsOfX,parentsOfY]);
+        const commonParent = doc.intersection(parentsOfX,parentsOfY);//u can use a your own set intersection function instead
         return Boolean(commonParent.length);
     },
     brothers:async (doc:Doc<P>,statement:[string,string]) => {
