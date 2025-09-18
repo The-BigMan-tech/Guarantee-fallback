@@ -715,7 +715,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const uniqueKey = createKey(this.lineCount,Resolver.srcLine(this.lineCount)!);
         Resolver.aliases.set(alias,{uniqueKey,predicate:predicate || alias});//the fallback is for when there is no predicate provided to point to in the alias declaration.its used as a shorthand where the alias points to the predicate of the same name.its a pettern to invalidate the use of those predicates for better safety.
 
-        if (this.builtAFact) {
+        if (this.builtAFact) {//this warning may already be reported in the dependency manager but the dep manager is only called in incremental resolution.So in full resolution,this is the mechanism that will help flag the same warning
             Resolver.castReport({
                 kind:ReportKind.Warning,
                 line:this.lineCount,

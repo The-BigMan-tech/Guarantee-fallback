@@ -84,10 +84,12 @@ function clearStaticVariables(srcPath:string,workingIncrementally:boolean):void 
     Resolver.logFile = null;
     ParseHelper.tree = null;//to prevent accidentally reading an outadted src tree.
     DependencyManager.dependents = [];
+    DependencyManager.encounteredAliasLine = null;
     ConsoleErrorListener.instance.syntaxError = ():undefined =>undefined;
     Resolver.workingIncrementally = workingIncrementally;
     Resolver.foundWarning = false;
     Resolver.terminate = false;//reset it for subsequent analyzing
+    
     if ((srcPath !== Resolver.lastDocumentPath) || !Resolver.workingIncrementally) {//im clearing it on full resolution to prevent any incremental data from lingering into full resolution to avoid corrupting the state during full resolution.it will start on a clean slate to ensure correctness.but it means that incremental analysis will have to start over each time this is done.so the best thing is to resolve the document once its ready for use and use the analysis during authoring
         console.log('\nCLEANED THE STATE.\n');
         Resolver.visitedSentences.clear();

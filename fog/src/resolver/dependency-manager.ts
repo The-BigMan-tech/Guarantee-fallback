@@ -21,6 +21,7 @@ export interface Dependent {
 }
 export class DependencyManager extends DSLVisitor<boolean | undefined> {
     public static dependents:(Dependent | null)[] = [];
+    public static encounteredAliasLine:number | null = null;
 
     public satisfiedDependents:Dependent[] = [];//this one unlike dependents collects dependents for the particular dependency
     private includeAsDependency:boolean = false;
@@ -79,10 +80,10 @@ export class DependencyManager extends DSLVisitor<boolean | undefined> {
 
             const refTypes = new Set([DSLLexer.SINGLE_SUBJECT_REF,DSLLexer.SINGLE_OBJECT_REF,DSLLexer.GROUP_SUBJECT_REF,DSLLexer.GROUP_OBJECT_REF,DSLLexer.GENERIC_REF]);
 
-            if (refTypes.has(type) && !dependent.reference) {
+            if (!dependent.reference && refTypes.has(type)) {
                 dependent.reference = true;
             }
-            if ((type === DSLLexer.ALIAS) || (type === DSLLexer.PREDICATE)) {//i made them be dependent because of their predicate so that alias declarations with the same name can reload them as dependents which will help catch the error of a predicate with the same name as an alias.This will essentially make all lines dependent and they wont be null unless there is a counter alias declaration.But it wont cause unnecessary reanalysis of lines.This is required for correctness
+            if (!dependent.alias && ((type === DSLLexer.ALIAS) || (type === DSLLexer.PREDICATE))) {//i made them be dependent because of their predicate so that alias declarations with the same name can reload them as dependents which will help catch the error of a predicate with the same name as an alias.This will essentially make all lines dependent and they wont be null unless there is a counter alias declaration.But it wont cause unnecessary reanalysis of lines.This is required for correctness
                 dependent.alias = Resolver.stripMark(text);
             }
             if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
@@ -125,8 +126,18 @@ export class DependencyManager extends DSLVisitor<boolean | undefined> {
             }
             this.checkIfDependency(i,contributed);
         }
+        if (DependencyManager.encounteredAliasLine) {//this will help warn against defining a fact before declaring all of the aliases
+            Resolver.castReport({
+                kind:ReportKind.Warning,
+                line:DependencyManager.encounteredAliasLine,
+                msg:`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors sooner.`,
+                srcText:this.srcLines[DependencyManager.encounteredAliasLine],
+                usingSrcLines:this.srcLines
+            });
+        }
     }
     private settleAliasDependents(tokens:Token[]):void {
+        DependencyManager.encounteredAliasLine = this.line;
         let alias:string | null = null;
         for (const token of tokens) {
             const text = token.text!;
