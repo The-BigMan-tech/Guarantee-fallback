@@ -3,7 +3,7 @@ import { DSLLexer } from "../generated/DSLLexer.js";
 import { Token } from "antlr4ng";
 import { ParseTree } from "antlr4ng";
 import { ProgramContext,FactContext,AliasDeclarationContext } from "../generated/DSLParser.js";
-import { Rec,AtomList,lspDiagnostics,replaceLastOccurrence, brown, lime, createKey, ReportKind, darkGreen, mapToColor, Report, EndOfLine, lspSeverity, getOrdinalSuffix, omittedJsonKeys, stripLineBreaks, UniqueList, lineFromKey } from "../utils/utils.js";
+import { Rec,AtomList,lspDiagnostics,replaceLastOccurrence, brown, lime, createKey, ReportKind, darkGreen, mapToColor, Report, EndOfLine, lspSeverity, getOrdinalSuffix, omittedJsonKeys, stripLineBreaks, UniqueList, lineFromKey, lspRange } from "../utils/utils.js";
 import { LRUCache } from "lru-cache";
 import stringify from "safe-stable-stringify";
 import fs from "fs/promises";
@@ -77,40 +77,37 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static readonly OMIT_WARNING = '//omit-warning';
 
     private refToTokens = new Map<string,Token[]>();//this is purely for hover information
+    
+    private static buildLspRange(text:string | EndOfLine,targetLine: number,targetSrcLine:string):lspRange {
+        const cleanedSourceLine = targetSrcLine.replace(/\r+$/, ""); // remove trailing \r
+        let startChar:number;
+        let endChar:number;
 
+        if (text !== EndOfLine.value) {
+            const charPos = cleanedSourceLine.indexOf(text);//it doesnt strip out carriage return like in the src line cuz the text can be a slice into any piece of the src and altering its formatting can lead to issues
+            startChar = (charPos < 0)?0:charPos;
+            endChar = startChar + text.length;
+        }else {
+            startChar = cleanedSourceLine.length - 1;
+            endChar = startChar;
+        }
+        return {
+            start: { line: targetLine, character: startChar },
+            end: { line: targetLine, character: endChar }
+        };
+    }; 
     //the ansi report is generated on full resolution but skipped in incremenal resolution.while editor diagnostic are made in incremental resolution but they are skipped in full resolution
     public static buildDiagnosticsFromReport(report:Report):void {
         if (!Resolver.workingIncrementally) return;//this function mutates incremental data which is not wanted in full resolution and also,its mainly for in editor reports.The language already generates a full file report as an ansi file during full resolution.
         const {kind,line,lines,msg,srcText,usingSrcLines} = report;//line is 0-based
 
-        const srcFromLine = (line:number)=>(usingSrcLines)?usingSrcLines[line]:Resolver.srcLine(line)!;
+        const srcFromLine = (targetLine:number)=>(usingSrcLines)?usingSrcLines[targetLine]:Resolver.srcLine(targetLine)!;
+        const buildDiagnostic = (text:string | EndOfLine,targetLine:number,message:string):lspDiagnostics =>( { severity, message, range:Resolver.buildLspRange(text,targetLine,srcFromLine(targetLine) || "") } );
+
         const srcLine:string = srcFromLine(line);
         const mainKey = createKey(line,srcLine);
         
-        const buildDiagnostic = (targetLine: number, text:string | EndOfLine,message:string):lspDiagnostics => {
-            const sourceLine = srcFromLine(targetLine) || "";
-            const cleanedSourceLine = sourceLine.replace(/\r+$/, ""); // remove trailing \r
-            
-            let startChar:number;
-            let endChar:number;
-
-            if (text !== EndOfLine.value) {
-                const charPos = cleanedSourceLine.indexOf(text);//it doesnt strip out carriage return like in the src line cuz the text can be a slice into any piece of the src and altering its formatting can lead to issues
-                startChar = (charPos < 0)?0:charPos;
-                endChar = startChar + text.length;
-            }else {
-                startChar = cleanedSourceLine.length - 1;
-                endChar = startChar;
-            }
-            return {
-                range: {
-                    start: { line: targetLine, character: startChar },
-                    end: { line: targetLine, character: endChar }
-                },
-                severity,
-                message
-            };
-        }; 
+        
         function registerDiagnostics(key:string,diagnostics:lspDiagnostics[]):void {
             const existingDiagnostics = Resolver.lspDiagnosticsCache.get(key) || [];//the reason why im concatenating the new diagonostics to a previously defined one is because its possible for there to be multiple sentences in a line,and overrding on each new sentence will remove the diagonosis of the prior sentences on the same line
             const diagnosticsForKey = [...existingDiagnostics,...diagnostics];
@@ -144,7 +141,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             Resolver.linesWithIssues.add(mainKey);
         }
         if (!lines && ((typeof srcText === "string") || (srcText === EndOfLine.value))) {
-            registerDiagnostics(mainKey,[buildDiagnostic(line,srcText,cleanMsg)]);
+            registerDiagnostics(mainKey,[buildDiagnostic(srcText,line,cleanMsg)]);
         }
         else if (lines && Array.isArray(srcText)){
             const mainDiagnostics:lspDiagnostics[] = [];
@@ -157,10 +154,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 const isMainLine = (targetLine===line);
                 const message = isMainLine?cleanMsg:`This line is involved in an issue with line ${line + 1}.`;
                 if (isMainLine) {
-                    mainDiagnostics.push(buildDiagnostic(targetLine,text,message));
+                    mainDiagnostics.push(buildDiagnostic(text,targetLine,message));
                     registerDiagnostics(mainKey,mainDiagnostics);
                 }else {
-                    includedDiagnostics.push(buildDiagnostic(targetLine,text,message));
+                    includedDiagnostics.push(buildDiagnostic(text,targetLine,message));
                     const includedKey = createKey(targetLine,Resolver.srcLines[targetLine]);
                     registerDiagnostics(includedKey,includedDiagnostics);
                     includedKeys.push(includedKey);
@@ -377,7 +374,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             const lineKey = createKey(this.lineCount,Resolver.srcLine(this.lineCount)!);
             this.perLineResolution(lineKey);//this has to be done before updating the line count
         }
-        
+
         this.expandedFacts = null;
         this.predicateForLog = null;
         this.currentStringifiedStatement = null;
