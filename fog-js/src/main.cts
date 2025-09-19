@@ -146,10 +146,10 @@ export async function autoComplete(word:string):Promise<lspCompletionItem[]> {
     return result;
 }
 //this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
-export async function setupOutput<P extends string,R extends string>(srcFilePath:string,outputFolder:string,rules?:Record<R,Rule<P>>):Promise<void> {
+export async function setupOutput<P extends string,R extends string>(srcFilePath:string,outputFolder:string,implications?:Implications<R,P>):Promise<void> {
     const doc = await importDocFromSrc(srcFilePath,outputFolder);
     const docName = path.basename(srcFilePath,path.extname(srcFilePath));
-    if (doc !== Result.error) await genTypes(docName,outputFolder,doc,rules);
+    if (doc !== Result.error) await genTypes(docName,outputFolder,doc,implications?.rules);
 }
 
 
@@ -218,12 +218,13 @@ export class Doc<//i used an empty string over the string type for better type s
     //this method allows the user to query for the truthiness of a statement of a rule the same way they do with facts.So that rather than calling methods directly on the rule object,they write the name of the rule they want to check against as they would for fact querying and this method will forward it to the correct rule by key.It also includes aliases allowing users to also query rules with aliases that will still forward to the correct rule even though the rule's name isnt the alias.
     //this is recommended to use for querying rather direct function calls on a rule object but use the rule object to directly build functions or other rules for better type safety and control and use this mainly as a convenience for querying.
     //it will also fallback to direct fact checking if the statement doesnt satisfy any of the given rules making it a good useful utility for querying the document against all known facts and rules with alias support in a single call.Rules will be given priority first over direct fact checking because this method unlike isItAFact is designed for checking with inference.The check mode is used as part of the fallback to fact querying
-    public isItImplied:(relation:R,statement:L,visitedCombinations?:Box<string[]>)=>Promise<boolean | Result.error> = async ()=>false;
+    public isItImplied:(checkMode:FallbackCheck,relation:P | R,statement:L,visitedCombinations?:Box<string[]>)=>Promise<boolean | Result.error> = async ()=>false;
     
     public useImplications(implications:Implications<R,P>):void {
         const rules = implications.rules;
         const rKeys = Object.keys(rules);
-        this.isItImplied = async (relation,statement,visitedCombinations):Promise<boolean | Result.error> => {//this is a pattern to query rules with the same interface design as querying a fact
+
+        this.isItImplied = async (checkMode:FallbackCheck,relation,statement,visitedCombinations):Promise<boolean | Result.error> => {//this is a pattern to query rules with the same interface design as querying a fact
             const predicates = await this.predicates();
             for (const rKey of rKeys) {
                 const queryKey = predicates[relation] || relation;
@@ -250,11 +251,12 @@ export class Doc<//i used an empty string over the string type for better type s
                     }
                 }
             }
-            return false;
+            const statementCheckMode = (checkMode==="fallback-exact")?'exact':'membership';
+            return this.isItStated(statementCheckMode,relation as P,statement);
         };
     };
-    public isItStated = async(checkMode:FactCheckMode,relation:P,statement:L):Promise<boolean>=> {
-        const result = await request<Result.error | boolean>("isItStated",{predicate:relation,statement,byMembership:checkMode}) ;
+    public isItStated = async(checkMode:StatementCheck,relation:P,statement:L):Promise<boolean>=> {
+        const result = await request<Result.error | boolean>("isItStated",{predicate:relation,statement,byMembership:modeToBool(checkMode)}) ;
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
@@ -272,13 +274,13 @@ export class Doc<//i used an empty string over the string type for better type s
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public findAllFacts = async (checkMode:FactCheckMode,predicate:P,statement:L):Promise<L[]>=>{
-        const result = await request<Result.error | L[] >("findAllFacts",{predicate,statement,byMembership:checkMode});
+    public findAllFacts = async (checkMode:StatementCheck,predicate:P,statement:L):Promise<L[]>=>{
+        const result = await request<Result.error | L[] >("findAllFacts",{predicate,statement,byMembership:modeToBool(checkMode)});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
-    public findFirstNFacts = async (checkMode:FactCheckMode,num:number,predicate:P,statement:L):Promise<L[]>=> {
-        const result = await request<Result.error | L[]>("findFirstNFacts",{num,predicate,statement,byMembership:checkMode});
+    public findFirstNFacts = async (checkMode:StatementCheck,num:number,predicate:P,statement:L):Promise<L[]>=> {
+        const result = await request<Result.error | L[]>("findFirstNFacts",{num,predicate,statement,byMembership:modeToBool(checkMode)});
         if (result === Result.error) Doc.throwDocError();
         return result;
     };
@@ -342,12 +344,17 @@ export interface Implications<K extends string,P extends string> {//The statemen
     statements:Record<K,()=>zod.ZodType>,//i made it map to arrow functions so that defined validations can be reused for different keys under the same definition
     rules:Record<K,Rule<P>>
 }
-type FactCheckMode = boolean;
-export const checkBy = {//to be used in the isItStated method
-    Membership:true,
-    ExactMatch:false,
-};
+export type StatementCheck =   "membership" | "exact";
+export type FallbackCheck =  "fallback-membership" | "fallback-exact"
+export type CheckMode = StatementCheck | FallbackCheck;
 
+function modeToBool(mode:CheckMode):boolean | undefined {
+    if ((mode ==="membership") || (mode === "fallback-membership")) {
+        return true;
+    }else if ((mode ==="exact") || (mode === "fallback-exact")) {//i wrote this out in full over just using the else block to be explicit and clear
+        return false;
+    }
+}
 export enum Result {
     success='success',
     error='error'
@@ -386,6 +393,7 @@ export interface lspCompletionItem {
     kind:lspCompletionItemKind
     insertText?:string
     insertTextFormat?:lspInsertTextFormat
+    sortText?:string
 }
 export enum lspCompletionItemKind {
     Text=1,//for comments or general text
@@ -396,4 +404,3 @@ export enum lspInsertTextFormat {
   PlainText = 1, // The insertText is treated as plain text.
   Snippet = 2    // The insertText is treated as a snippet, supporting placeholders/tab stops.
 }
-
