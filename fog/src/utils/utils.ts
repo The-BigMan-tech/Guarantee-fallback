@@ -254,5 +254,16 @@ export enum lspInsertTextFormat {
   PlainText = 1, // The insertText is treated as plain text.
   Snippet = 2    // The insertText is treated as a snippet, supporting placeholders/tab stops.
 }
-
-
+export interface lspMarkupContent {
+    kind: 'plaintext' | 'markdown';
+    value: string;
+}
+export interface lspHover {
+    contents:lspMarkupContent;
+    range?:lspRange;
+}
+export interface HoverData {
+    code:string,
+    doc?:string,
+    range?:lspRange
+}

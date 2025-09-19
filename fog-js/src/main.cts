@@ -145,6 +145,11 @@ export async function autoComplete(word:string):Promise<lspCompletionItem[]> {
     console.log(chalk.green('\nSuccessfully returned auto completions.'));
     return result;
 }
+export async function getHoverInfo(line:number,hoverText:string):Promise<lspHover> {
+    const result = await request<lspHover>("getHoverInfo",{line,hoverText});
+    console.log(chalk.green('\nSuccessfully returned hover information.'));
+    return result;
+}
 //this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
 export async function setupOutput<P extends string,R extends string>(srcFilePath:string,outputFolder:string,implications?:Implications<R,P>):Promise<void> {
     const doc = await importDocFromSrc(srcFilePath,outputFolder);
@@ -403,4 +408,12 @@ export enum lspCompletionItemKind {
 export enum lspInsertTextFormat {
   PlainText = 1, // The insertText is treated as plain text.
   Snippet = 2    // The insertText is treated as a snippet, supporting placeholders/tab stops.
+}
+export interface lspMarkupContent {
+    kind: 'plaintext' | 'markdown';
+    value: string;
+}
+export interface lspHover {
+    contents:lspMarkupContent;
+    range?:lspRange;
 }

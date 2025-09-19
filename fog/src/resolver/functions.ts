@@ -1,5 +1,5 @@
 /* eslint-disable indent */
-import { contentFromKey, convMapToRecord,EndOfLine, FullData,isWhitespace,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspHover, lspHoverText, lspInsertTextFormat, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
+import { contentFromKey, convMapToRecord,createKey,EndOfLine, FullData,isWhitespace,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspHover,lspInsertTextFormat, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -90,10 +90,11 @@ export function updateStateUsingCache<V extends object>(cache:LRUCache<string,V>
             Resolver.linesWithIssues.delete(key);
         }
     }
-    for (const [key,value] of [...Resolver.visitedSentences.entries(),...Resolver.aliases.entries()]) {
+    for (const [key,value] of [...Resolver.visitedSentences.entries(),...Resolver.aliases.entries(),...Resolver.hoverInfo.entries()]) {
         if ((!cache.has(value.uniqueKey))) {
             Resolver.visitedSentences.delete(key);
             Resolver.aliases.delete(key);
+            Resolver.hoverInfo.delete(key);
         }
     }
     for (const [name,value] of Object.entries(Resolver.usedNames)) {
@@ -129,6 +130,7 @@ function cleanState(srcPath:string,workingIncrementally:boolean):void {//Note th
         Resolver.lineToAffectedLines = {};
         Resolver.linesWithIssues.clear();
         Resolver.lspDiagnosticsCache.clear();
+        Resolver.hoverInfo.clear();
     }
 }
 
@@ -225,6 +227,8 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     console.log('used names: ',Resolver.usedNames);
     console.log('aliases : ',Resolver.aliases);
     console.log('lines with issues: ',Resolver.linesWithIssues);
+    console.log('hover info: ',Resolver.hoverInfo);
+    console.log('');//for new line
     return fullDiagnostics;
 }
 function scoreToString(score:number):string {
@@ -267,8 +271,7 @@ export function autoComplete(word:string):lspCompletionItem[] {
         const lowerWord = word.toLowerCase();
         const label = suggestion.label.toLowerCase();
         const result = fuzzysort.single(lowerWord,label);//i decided to use a subsequence matching algorithm over edit distance because its reduces noise during autocomplete.
-        console.log(`🚀 => :241 => autoComplete => { score, suggestion }:`, {score:result?.score, suggestion:suggestion.label });
-        
+
         if (result !== null) {  // only proceed if matched
             const score = Math.round(result.score * 100);
             if (score >= 80) {
@@ -352,13 +355,17 @@ export async function importDocFromJson(filePath:string):Promise<Result> {
     const loadResult = await loadDocFromJson(filePath);
     return loadResult;
 }
-export function getHoverInfo(srcPath:string,pos:string):lspHover {
-    const hoverText:lspHoverText = {code:'',doc:''};
-    return {
-        contents: {
-            kind: 'markdown',  // or 'plaintext'
-            value: `\`\`\`fog\n${hoverText.code}\n\`\`\`\n${hoverText.doc}`
-        },
-        range: hoverText.range // optional range the hover applies to
-    };
+
+export function getHoverInfo(line:number,hoverText:string):lspHover | undefined {
+    const hoverData = Resolver.hoverInfo.get(createKey(line,hoverText))?.data;
+    if (hoverData) {
+        return {
+            contents: {
+                kind: 'markdown',  // or 'plaintext'
+                value: `${hoverData.doc}\`\`\`fog\n${hoverData.code}\n\`\`\`\n`
+            },
+            range: hoverData.range // optional range the hover applies to
+        };
+    }
+    return undefined;
 }

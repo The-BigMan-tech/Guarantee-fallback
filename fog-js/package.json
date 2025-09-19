@@ -2,7 +2,7 @@
     "name": "fog-js",
     "main": "./dist/bundle.cjs",
     "types": "./dist/bundle.d.ts",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "description": "A TypeScript library project scaffold providing ready-to-use build and debug tooling",
     "scripts": {
         "local-registry": "verdaccio",

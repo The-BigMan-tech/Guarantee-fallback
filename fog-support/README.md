@@ -1,9 +1,9 @@
-This brings syntax highlighting,live analysis and autocompletions for the fog logic language.
+This brings syntax highlighting,live analysis,hover information and autocompletions for the fog logic language.
 
 - Please note that the live analysis is under development and may be buggy some times.So you may need to edit the same line twice to correct the analysis.
 
 - Add this to your token color settings under textMateRules for the recommended highlighting
-
+  
 ```json
         {
             "scope": "constant.name.fog", 

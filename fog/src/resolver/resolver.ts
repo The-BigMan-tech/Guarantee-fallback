@@ -3,7 +3,7 @@ import { DSLLexer } from "../generated/DSLLexer.js";
 import { Token } from "antlr4ng";
 import { ParseTree } from "antlr4ng";
 import { ProgramContext,FactContext,AliasDeclarationContext } from "../generated/DSLParser.js";
-import { Rec,AtomList,lspDiagnostics,replaceLastOccurrence, brown, lime, createKey, ReportKind, darkGreen, mapToColor, Report, EndOfLine, lspSeverity, getOrdinalSuffix, omittedJsonKeys, stripLineBreaks, UniqueList, lineFromKey, lspRange } from "../utils/utils.js";
+import { Rec,AtomList,lspDiagnostics,replaceLastOccurrence, brown, lime, createKey, ReportKind, darkGreen, mapToColor, Report, EndOfLine, lspSeverity, getOrdinalSuffix, omittedJsonKeys, stripLineBreaks, UniqueList, lineFromKey, lspRange,HoverData } from "../utils/utils.js";
 import { LRUCache } from "lru-cache";
 import stringify from "safe-stable-stringify";
 import fs from "fs/promises";
@@ -96,6 +96,19 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             end: { line: targetLine, character: endChar }
         };
     }; 
+    public static hoverInfo = new Map<string,{data:HoverData,uniqueKey:string}>();
+
+    private static createHoverInfo(line:number,hoverText:string,code:string,doc?:string) {
+        const srcLine = Resolver.srcLine(line)!;
+        Resolver.hoverInfo.set(createKey(line,hoverText),{
+            data:{
+                code:stripAnsi(code),
+                doc,
+                range:Resolver.buildLspRange(hoverText,line,srcLine)
+            },
+            uniqueKey:createKey(line,srcLine)
+        });
+    }
     //the ansi report is generated on full resolution but skipped in incremenal resolution.while editor diagnostic are made in incremental resolution but they are skipped in full resolution
     public static buildDiagnosticsFromReport(report:Report):void {
         if (!Resolver.workingIncrementally) return;//this function mutates incremental data which is not wanted in full resolution and also,its mainly for in editor reports.The language already generates a full file report as an ansi file during full resolution.
@@ -255,12 +268,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             if (predicateFromAlias) {
                 const aliasMsg = `\n alias ${this.predicateForLog} = ${brown(`*${predicateFromAlias}`)}.`;
                 successMessage += aliasMsg;
-                Resolver.buildDiagnosticsFromReport({
-                    kind:ReportKind.Hint,
-                    line:this.lineCount,
-                    msg:'-' + aliasMsg,
-                    srcText:`#${this.predicateForLog}`
-                });
+                Resolver.createHoverInfo(this.lineCount,`#${this.predicateForLog}`,aliasMsg);
             }else {
                 successMessage += `\n-Predicate: *${this.predicateForLog}`;
             }
@@ -271,12 +279,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         Resolver.logs?.push(successMessage);
 
         for (const ref of [...this.refToTokens.keys()]) {
-            Resolver.buildDiagnosticsFromReport({
-                kind:ReportKind.Hint,
-                line:this.lineCount,
-                msg:this.tokensToString(this.refToTokens.get(ref)!),
-                srcText:ref
-            });
+            Resolver.createHoverInfo(this.lineCount,ref,this.tokensToString(this.refToTokens.get(ref)!),'Resolves to: ');
         }
     }
     public static async flushLogs() {

@@ -3,7 +3,7 @@ import ipc from 'node-ipc';
 import { JSONRPCServer } from "json-rpc-2.0";
 import stringify from "safe-stable-stringify";
 import { Doc } from "./fact-checker.js";
-import {autoComplete, importDocFromJson, importDocFromObject, importDocFromSrc} from "../resolver/functions.js";
+import {autoComplete, getHoverInfo, importDocFromJson, importDocFromObject, importDocFromSrc} from "../resolver/functions.js";
 import { Atom, AtomList, isGenerator,Result} from "../utils/utils.js";
 import {serverDoc} from "./fact-checker.js";
 import { analyzeDocument, resolveDocument } from "../resolver/functions.js";
@@ -31,6 +31,10 @@ server.addMethod("analyzeDocument", async ({srcText,srcPath}: {srcText:string,sr
 });
 server.addMethod("autoComplete",({word}: {word:string}) => {
     const result = autoComplete(word);
+    return result;
+});
+server.addMethod("getHoverInfo",({line,hoverText}: {line:number,hoverText:string}) => {
+    const result = getHoverInfo(line,hoverText);
     return result;
 });
 server.addMethod("allMembers",()=>{
