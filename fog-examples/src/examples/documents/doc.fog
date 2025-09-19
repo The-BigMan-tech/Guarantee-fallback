@@ -4,8 +4,7 @@ alias friend = *friends.
 alias mother = *parent.
 alias males = *male.
 
-alias hh. 
-
+alias hh. //omit-warning
 
 :Billy and :John are #friends. 
 
