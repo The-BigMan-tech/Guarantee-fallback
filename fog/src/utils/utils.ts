@@ -242,7 +242,8 @@ export interface lspCompletionItem {
     label:string; 
     kind:lspCompletionItemKind
     insertText?:string
-    insertTextFormat?:lspInsertTextFormat
+    insertTextFormat?:lspInsertTextFormat,
+    sortText?:string
 }
 export enum lspCompletionItemKind {
     Text=1,//for comments or general text

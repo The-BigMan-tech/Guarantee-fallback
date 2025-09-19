@@ -11,7 +11,6 @@ import { Purger } from "./purger.js";
 import { validator } from "../utils/utils.js";
 import { Doc, serverDoc } from "../fact-checker/fact-checker.js";
 import { ConsoleErrorListener } from "antlr4ng";
-import {Heap} from "heap-js";
 import fuzzysort from 'fuzzysort';
 import { LRUCache } from "lru-cache";
 
@@ -197,14 +196,15 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     console.log('lines with issues: ',Resolver.linesWithIssues);
     return fullDiagnostics;
 }
-interface Completion {
-    score:number,
-    suggestion:lspCompletionItem
+function scoreToString(score:number):string {
+    return score.toString().padStart(5,'0');
 }
-const completions = new Heap<Completion>((a,b)=>b.score-a.score);
-
+function invertScore(score:number):number {//this is to make completions with higher scores come on top because vscode sorts tem lexico graphically which makes higher ones apear at the bottom
+    return 100 - score;
+}
 export function autoComplete(word:string):lspCompletionItem[] {
-    completions.clear();
+    const relevantSuggestions:lspCompletionItem[] = [];
+
     const suggestions: lspCompletionItem[] = [
         { label: 'alias', kind: lspCompletionItemKind.Keyword },
         { label: 'omit-warning',insertText:Resolver.OMIT_WARNING,kind: lspCompletionItemKind.Text },
@@ -237,31 +237,28 @@ export function autoComplete(word:string):lspCompletionItem[] {
         const label = suggestion.label.toLowerCase();
         const result = fuzzysort.single(lowerWord,label);//i decided to use a subsequence matching algorithm over edit distance because its reduces noise during autocomplete.
         console.log(`🚀 => :241 => autoComplete => { score, suggestion }:`, {score:result?.score, suggestion:suggestion.label });
+        
         if (result !== null) {  // only proceed if matched
-            const score = result.score;
-            if (score >= 0.80) {
-                completions.add({ score, suggestion });
+            const score = Math.round(result.score * 100);
+            if (score >= 80) {
+                relevantSuggestions.push({ ...suggestion,sortText:scoreToString(invertScore(score)) });
             }
         }else if (isWhitespace(lowerWord)) {//show all suggestions on whitespace
             switch (suggestion.kind) {//this orders the suggestions properly when all suggestions are queried.But,vscode doesnt respect this order for some rason.I have to fix it
                 case (lspCompletionItemKind.Text):{
-                    completions.add({ score:10, suggestion });
+                    relevantSuggestions.push({ ...suggestion,sortText:scoreToString(invertScore(10)) });
                     break;
                 }
                 case (lspCompletionItemKind.Keyword):{
-                    completions.add({ score:20, suggestion });
+                    relevantSuggestions.push({ ...suggestion,sortText:scoreToString(invertScore(20)) });
                     break;
                 }
                 case (lspCompletionItemKind.Constant):{
-                    completions.add({ score:30, suggestion });
+                    relevantSuggestions.push({ ...suggestion,sortText:scoreToString(invertScore(30)) });
                     break;
                 }
             }
         }
-    }
-    const relevantSuggestions:lspCompletionItem[] = [];
-    for (const completion of completions) {//heap js doc guarantees that for loops consume the heap in the sorted order
-        relevantSuggestions.push(completion.suggestion);
     }
     console.log('🚀 => :250 => autoComplete => relevantSuggestions:', relevantSuggestions);
     return relevantSuggestions;

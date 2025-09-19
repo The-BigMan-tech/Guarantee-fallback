@@ -16,7 +16,6 @@ let analysisUpToDate = false;
 
 function analyzeDoc(text:string,srcPath:string):void {
     analyzeDocument(text,srcPath).then(diagnostics=>{
-        console.log('🚀 => :24 => analysis:',diagnostics);
         connection.sendDiagnostics({
             uri:srcPath,
             diagnostics:diagnostics
@@ -64,7 +63,7 @@ documents.onDidChangeContent(change => {
     const text = change.document.getText();
     const srcPath = change.document.uri;
     debouncedAnalysis(text,srcPath);
-    connection.console.log(`Document changed. Current length: ${text.length} text: ${text}`);
+    connection.console.log(`Document changed. Current length: ${text.length}`);
 });
 
 documents.listen(connection);
