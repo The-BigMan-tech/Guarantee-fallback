@@ -60,37 +60,14 @@ export class Purger<V extends object> {
     private updateCache():void {
         const uniqueKeys = [...this.cache.keys()];
         for (const key of uniqueKeys) {
-            const isNotInSrc = !this.srcKeysAsSet.has(key);
+            const isInSrc = this.srcKeysAsSet.has(key);
             const sentencesAreEmpty = Resolver.visitedSentences.size === 0;
-            if (sentencesAreEmpty || isNotInSrc || Resolver.linesWithIssues.has(key)) {
-                console.log('\nEntry not in src: ',key);
+            if (sentencesAreEmpty || !isInSrc || Resolver.linesWithIssues.has(key)) {
+                console.log('\nEntry to refresh: ',key,'in src: ',isInSrc,'issues: ',Resolver.linesWithIssues.has(key));
                 this.cache.delete(key);
                 this.refreshDependents(key);//this block will cause all dependents to be reanalyzed upon deletetion.This must be done right before the key is deleted from the depedency map.
                 delete Purger.dependencyToDependents[key];//afterwards,remove it from the map.
-                if (isNotInSrc) Resolver.linesWithIssues.delete(key);//this is to ensure it only deletes it when it isnt in the src not just because it has a semantic error.This state is also updated elseqhere in the resolver to keep it up to date.
-            }
-        }
-    }
-    private updateStateUsingCache():void {//the reason why the deletions under this function cant go directly in updateCache where the rest are deleted is because these structures arent keyed by the src line's unique key,but by other strings used for the various purposes of the structure.the unique key is part of the value but not the key of the following structures themselves which updateCache assumes.
-        for (const key of Resolver.linesWithIssues.values()) {
-            if (!this.cache.has(key)) {
-                Resolver.linesWithIssues.delete(key);
-            }
-        }
-        for (const [key,value] of [...Resolver.visitedSentences.entries(),...Resolver.aliases.entries()]) {
-            if ((!this.cache.has(value.uniqueKey))) {
-                Resolver.visitedSentences.delete(key);
-                Resolver.aliases.delete(key);
-            }
-        }
-        for (const [name,value] of Object.entries(Resolver.usedNames)) {
-            for (const uniqueKey of value.uniqueKeys.list) {
-                if (!this.cache.has(uniqueKey)) {
-                    value.uniqueKeys.delete(uniqueKey);
-                    if (value.uniqueKeys.list.length === 0) {
-                        delete Resolver.usedNames[name];
-                    }
-                }
+                if (!isInSrc) Resolver.linesWithIssues.delete(key);//this is to ensure it only deletes it when it isnt in the src not just because it has a semantic error.This state is also updated elseqhere in the resolver to keep it up to date.
             }
         }
     }
@@ -120,7 +97,6 @@ export class Purger<V extends object> {
     public purge():string {//the order of operations here is very important.
         this.prepareDependencyMap();
         this.updateCache();
-        this.updateStateUsingCache();
         this.produceFinalSrc();
         const unpurgedSrcText:string = this.unpurgedSrcLines.toArray().join('\n');
 

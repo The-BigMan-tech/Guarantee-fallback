@@ -29,32 +29,36 @@ function overrideErrorListener():void {
         });
     };
 }
-
+function createResolver<V extends object>(cache?:LRUCache<string,V>,emptyCacheEntry?:V):Resolver {
+    const resolver = new Resolver();
+    resolver.perLineResolution = (lineKey:string):void =>{
+        if ((!Resolver.terminate) && (!Resolver.foundWarning)) {
+            Resolver.linesWithIssues.delete(lineKey);
+        }
+        if (!Resolver.terminate) {//the reason why i didnt tie this block to a found warning because its major function is to mark lines as visited by intiating them in the cache,if empty, to a value.Termination prevents them from beng visited.so on terminaion,we dont mark it.But warnings dont terminate the resolver.so those lines will be visited and be marked as so.
+            const isNotWhitespace = !isWhitespace(contentFromKey(lineKey));
+            if (cache && !cache.has(lineKey) && isNotWhitespace) {//Initiate all src lines without entries into the cache to mark them as visited which prevent lines with no cache values from always being reanalyzed
+                if (emptyCacheEntry === undefined) {
+                    throw new Error('The empty cache entry value must be passed if the cache is supplied.And it cant be undefined because it will delete the entry');
+                }
+                cache.set(lineKey,emptyCacheEntry);
+            }
+        }
+    };
+    return resolver;
+}
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 async function generateJson<V extends object>(args:{srcPath:string,srcText:string,fullSrcText:string,cache?:LRUCache<string,V>,emptyCacheEntry?:V}) {//the full src text variabe here,is in the case where this function is called with a purged src text and the full one is required for some state updates not for resolution.
     const {srcPath,srcText,fullSrcText,cache,emptyCacheEntry} = args;
+    const resolver = createResolver(cache,emptyCacheEntry);
 
-    const resolver = new Resolver();
-    resolver.perLineResolution = (lineKey:string):void =>{
-        const noIssues = (!Resolver.terminate) && (!Resolver.foundWarning);
-        if (noIssues) Resolver.linesWithIssues.delete(lineKey);
-        if (noIssues && cache && !cache.has(lineKey) && !isWhitespace(contentFromKey(lineKey))) {//Initiate all src lines without entries into the cache to mark them as visited which prevent lines with no cache values from always being reanalyzed
-            if (emptyCacheEntry === undefined) {
-                throw new Error('The empty cache entry value must be passed if the cache is supplied.And it cant be undefined because it will delete the entry');
-            }
-            cache.set(lineKey,emptyCacheEntry);
-        }
-    };
-    Resolver.lastDocumentPath = srcPath;//this static variable is updated here instead of clear static variables because its meant to be observed by an outside code after resolution but must be reset before the next one
-    Resolver.srcLines = Resolver.createSrcLines(fullSrcText);;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
-    
-    overrideErrorListener();//this must be called before calling the parser
+    updateStatePreParsing(srcPath,fullSrcText);
     ParseHelper.parse(srcText);
     await Resolver.flushLogs();//to capture syntax errors,if any, to the log
-
     if (Resolver.terminate) return Result.error;//this is to return ealry if there is a syntax error
+    
     await resolver.visit(ParseHelper.tree!);
-    reupdateVisitedSentences();//this one must be called after resolution
+    updateStatePostResolution(cache);
 
     if (!Resolver.terminate) {
         return {aliases:Resolver.aliases,predicates:resolver.predicates,records:resolver.records};
@@ -63,7 +67,8 @@ async function generateJson<V extends object>(args:{srcPath:string,srcText:strin
     }
 }
 
-function reupdateVisitedSentences():void {
+function updateStatePostResolution<V extends object>(cache?:LRUCache<string,V>):void {
+    if (cache) updateStateUsingCache(cache);
     const seenSrcKeys = new Set<string>();//This is to prevent a src key from having more than one entry which happens because visited sentences is keyed by its semantic content structure,not by the src key and only removing entries with src keys not included in the src protects old entries because they have a current src key tied to their value
     const reversedVisitedSentences = [...Resolver.visitedSentences.entries()].reverse();//im doing it in the reverse order because its allows it to delete the earlier entries if they have already been seen.
     for (const [key,visitedSentence] of reversedVisitedSentences) {
@@ -75,9 +80,36 @@ function reupdateVisitedSentences():void {
         }
     }
 }
-
+function updateStateUsingCache<V extends object>(cache:LRUCache<string,V>):void {//the reason why the deletions under this function cant go directly in updateCache where the rest are deleted is because these structures arent keyed by the src line's unique key,but by other strings used for the various purposes of the structure.the unique key is part of the value but not the key of the following structures themselves which updateCache assumes.
+    for (const key of Resolver.linesWithIssues.values()) {
+        if (!cache.has(key)) {
+            Resolver.linesWithIssues.delete(key);
+        }
+    }
+    for (const [key,value] of [...Resolver.visitedSentences.entries(),...Resolver.aliases.entries()]) {
+        if ((!cache.has(value.uniqueKey))) {
+            Resolver.visitedSentences.delete(key);
+            Resolver.aliases.delete(key);
+        }
+    }
+    for (const [name,value] of Object.entries(Resolver.usedNames)) {
+        for (const uniqueKey of value.uniqueKeys.list) {
+            if (!cache.has(uniqueKey)) {
+                value.uniqueKeys.delete(uniqueKey);
+                if (value.uniqueKeys.list.length === 0) {
+                    delete Resolver.usedNames[name];
+                }
+            }
+        }
+    }
+}
+function updateStatePreParsing(srcPath:string,fullSrcText:string):void {
+    Resolver.lastDocumentPath = srcPath;//this static variable is updated here instead of clear static variables because its meant to be observed by an outside code after resolution but must be reset before the next one
+    Resolver.srcLines = Resolver.createSrcLines(fullSrcText);;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
+    overrideErrorListener();//this must be called before calling the parser
+}
 //the srcPath variable is to tie the lifetime of some static variables to the current path rather than on each request
-function clearStaticVariables(srcPath:string,workingIncrementally:boolean):void {//Note that its not all static variables that must be cleared or be cleared here.
+function cleanState(srcPath:string,workingIncrementally:boolean):void {//Note that its not all static variables that must be cleared or be cleared here.
     Resolver.srcLines.length = 0;
     Resolver.logs = null;
     Resolver.logFile = null;
@@ -139,7 +171,7 @@ async function writeToOutput(outputFilePath:string,jsonInput:string,start:number
 }
 
 export async function resolveDocument(srcFilePath:string,outputFolder?:string):Promise<ResolutionResult> {
-    clearStaticVariables(srcFilePath,false);//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
+    cleanState(srcFilePath,false);//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
 
     const start = performance.now();
     const isValidSrc = srcFilePath.endsWith(".fog");
@@ -177,7 +209,7 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
 }
 
 export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspDiagnostics[]> {
-    clearStaticVariables(srcPath,true);
+    cleanState(srcPath,true);
 
     const purger = new Purger(srcText,srcPath,Resolver.lspDiagnosticsCache);
     const unpurgedSrcText = purger.purge();
