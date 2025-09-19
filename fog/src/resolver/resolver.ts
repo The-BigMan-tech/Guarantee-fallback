@@ -76,6 +76,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static linesWithIssues = new Set<string>();
     public static readonly OMIT_WARNING = '//omit-warning';
 
+    private refToTokens = new Map<string,Token[]>();//this is purely for hover information
+
     //the ansi report is generated on full resolution but skipped in incremenal resolution.while editor diagnostic are made in incremental resolution but they are skipped in full resolution
     public static buildDiagnosticsFromReport(report:Report):void {
         if (!Resolver.workingIncrementally) return;//this function mutates incremental data which is not wanted in full resolution and also,its mainly for in editor reports.The language already generates a full file report as an ansi file during full resolution.
@@ -220,9 +222,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         console.info(...messages);
         Resolver.logs?.push(...messages);
     }
-    private logProgress(tokens:Token[] | null) {
+    private tokensToString(tokens:Token[]) {
+        return tokens?.map(token=>token.text!).join(' ') || '';
+    }
+    private logProgress(tokens:Token[] | null) {//this is a bit rough.Cleanup later.
         if ((tokens===null) || Resolver.terminate) return;
-        const resolvedSentence = tokens?.map(token=>token.text!).join(' ') || '';//the tokens received at the time this method is called is after the senence has been resolved
+        const resolvedSentence = this.tokensToString(tokens);//the tokens received at the time this method is called is after the senence has been resolved
         const originalSrc  = Resolver.srcLine(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
         
         let expansionText:string = brown('none.'); 
@@ -246,23 +251,17 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
         if (this.prevRefCheck.encounteredRef) {//using prevRefCehck under the same loop accesses the ref check of the latest senetnce.
             successMessage += resolveRefMessage;
-            Resolver.buildDiagnosticsFromReport({
-                kind:ReportKind.Hint,
-                line:this.lineCount,
-                msg:resolveRefMessage,
-                srcText:Resolver.srcLine(this.lineCount)!
-            });
         }
         successMessage += `\n-Semantic form: ${brown(this.currentStringifiedStatement)}`;
         if (this.predicateForLog) {//the condition is to skip printing this on alias declarations.The lock works because this is only set on facts and not on alias declarations.Im locking this on alias declarations because they dont need extra logging cuz there is no expansion data or any need to log the predicate separately.just the declaration is enough
             const predicateFromAlias = Resolver.aliases.get(this.predicateForLog)?.predicate || '';
             if (predicateFromAlias) {
-                const aliasMsg = `\n-Alias #${this.predicateForLog} -> ${brown(`*${predicateFromAlias}`)}`;
+                const aliasMsg = `\n alias ${this.predicateForLog} = ${brown(`*${predicateFromAlias}`)}.`;
                 successMessage += aliasMsg;
                 Resolver.buildDiagnosticsFromReport({
                     kind:ReportKind.Hint,
                     line:this.lineCount,
-                    msg:aliasMsg,
+                    msg:'-' + aliasMsg,
                     srcText:`#${this.predicateForLog}`
                 });
             }else {
@@ -273,6 +272,15 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         successMessage += '\n';
         console.info(successMessage);
         Resolver.logs?.push(successMessage);
+
+        for (const ref of [...this.refToTokens.keys()]) {
+            Resolver.buildDiagnosticsFromReport({
+                kind:ReportKind.Hint,
+                line:this.lineCount,
+                msg:this.tokensToString(this.refToTokens.get(ref)!),
+                srcText:ref
+            });
+        }
     }
     public static async flushLogs() {
         if (Resolver.logs && Resolver.logFile) {
@@ -347,6 +355,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     private async resolveLine(child:ParseTree) {
         let tokens:Token[] | null = null;
         let declaredAlias = false;
+
         if (child instanceof FactContext) {
             tokens = await this.visitFact(child);
         }else if (child instanceof AliasDeclarationContext) {
@@ -360,6 +369,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         if (this.lineCount === (Resolver.srcLines.length-1)) {//this block is to increment the line count at the end of the file.This is because i dont directly have the eof token in the tokens array which is because they only contain sentences.so without that,the line count at the end of the file will always be a count short which s why im checking it against the input array.length - 1.Explicitly incrementing it under tis conditin fixes that.
             this.targetLineCount += 1;
         }
+
         this.currentStringifiedStatement = Resolver.stringifyStatement(tokens,declaredAlias);
         this.checkForRepetition();
         this.logProgress(tokens);//This must be logged before the line updates as observed from the logs. 
@@ -367,6 +377,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             const lineKey = createKey(this.lineCount,Resolver.srcLine(this.lineCount)!);
             this.perLineResolution(lineKey);//this has to be done before updating the line count
         }
+        
         this.expandedFacts = null;
         this.predicateForLog = null;
         this.currentStringifiedStatement = null;
@@ -433,9 +444,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const resolvedSingleTokens:ResolvedSingleTokens = {indices:[],tokens:new Map()};
         const resolvedGroupedTokens:ResolvedGroupedTokens = {indices:new Heap((a:number,b:number)=>b-a),tokens:new Map()};//used a descending order heap so that insertion during resolution doesnt cause index shift that will unexpectedly affect the final result
 
-        const objectRefs = new Set(['him','her','it','them','their']);
-        const nounRefs = ['He','She','It','They',...objectRefs];
-
         const encounteredNames:string[] = [];
 
         let encounteredRef:RefCheck['encounteredRef'] = null;
@@ -478,10 +486,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
             for (const index of resolvedSingleTokens.indices) {//resolve the single ref
                 const resolvedToken = resolvedSingleTokens.tokens.get(index)!;
+                this.refToTokens.set(tokens[index].text!,[resolvedToken]);
                 tokens[index] = resolvedToken;
             }
             for (const index of resolvedGroupedTokens.indices) {//this is a heap unlike the one for single tokens which is an array.so it will be consumed after this iteration
                 const resolvedTokens = resolvedGroupedTokens.tokens.get(index)!;
+                this.refToTokens.set(tokens[index].text!,resolvedTokens);
                 tokens.splice(index,1,...resolvedTokens);
             }
         };
@@ -677,7 +687,10 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
 
 
-            else if (type === DSLLexer.PLAIN_WORD) {//this branch is to warn users if they forgot to place angle brackets around the ref and may have also added a typo on top of that.If they made a typo within the angle brackets,it will be caught as a syntax error.This one catches typos not within the bracket as a warning
+            else if (type === DSLLexer.PLAIN_WORD) {//this branch is to warn users if they forgot to place angle brackets around the ref and may have also added a typo on top of that.If they made a typo within the angle brackets,it will be caught as a syntax error.This one catches typos not within the bracket as a warning    
+                const objectRefs = new Set(['him','her','it','them','their','his']);
+                const nounRefs = ['He','She','It','His','Her','Their','They',...objectRefs];
+
                 for (const nounRef of nounRefs) {
                     const normText = text.toLowerCase();//by only lower casing the text if its more than two letters,i prevent the text from being treated leniently when its too small(since lower casing the inputs reduces distance).Else,it will falsely match words that are few distances away but are not semantically similar.
                     const normNounRef = nounRef.toLowerCase();
