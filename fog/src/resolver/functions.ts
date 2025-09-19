@@ -1,5 +1,5 @@
 /* eslint-disable indent */
-import { contentFromKey, convMapToRecord,EndOfLine, FullData,isWhitespace,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspInsertTextFormat, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
+import { contentFromKey, convMapToRecord,EndOfLine, FullData,isWhitespace,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspHover, lspHoverText, lspInsertTextFormat, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -52,13 +52,13 @@ async function generateJson<V extends object>(args:{srcPath:string,srcText:strin
     const {srcPath,srcText,fullSrcText,cache,emptyCacheEntry} = args;
     const resolver = createResolver(cache,emptyCacheEntry);
 
-    updateStatePreParsing(srcPath,fullSrcText);
+    updateStatePreParsing(srcPath,fullSrcText,cache);
     ParseHelper.parse(srcText);
     await Resolver.flushLogs();//to capture syntax errors,if any, to the log
     if (Resolver.terminate) return Result.error;//this is to return ealry if there is a syntax error.Note that this required for correctness but it will prevent different states from being populated with new line entries till its fixed.
     
     await resolver.visit(ParseHelper.tree!);
-    updateStatePostResolution(cache);
+    updateStatePostResolution();
 
     if (!Resolver.terminate) {
         return {aliases:Resolver.aliases,predicates:resolver.predicates,records:resolver.records};
@@ -66,9 +66,13 @@ async function generateJson<V extends object>(args:{srcPath:string,srcText:strin
         return Result.error;
     }
 }
-
-function updateStatePostResolution<V extends object>(cache?:LRUCache<string,V>):void {
-    if (cache) updateStateUsingCache(cache);//i called this post resolution because the cache may be mutated at the end of a line resolution.
+function updateStatePreParsing<V extends object>(srcPath:string,fullSrcText:string,cache?:LRUCache<string,V>):void {
+    if (cache) updateStateUsingCache(cache);
+    Resolver.lastDocumentPath = srcPath;//this static variable is updated here instead of clear static variables because its meant to be observed by an outside code after resolution but must be reset before the next one
+    Resolver.srcLines = Resolver.createSrcLines(fullSrcText);;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
+    overrideErrorListener();//this must be called before calling the parser
+}
+function updateStatePostResolution():void {
     const seenSrcKeys = new Set<string>();//This is to prevent a src key from having more than one entry which happens because visited sentences is keyed by its semantic content structure,not by the src key and only removing entries with src keys not included in the src protects old entries because they have a current src key tied to their value
     const reversedVisitedSentences = [...Resolver.visitedSentences.entries()].reverse();//im doing it in the reverse order because its allows it to delete the earlier entries if they have already been seen.
     for (const [key,visitedSentence] of reversedVisitedSentences) {
@@ -102,11 +106,6 @@ export function updateStateUsingCache<V extends object>(cache:LRUCache<string,V>
             }
         }
     }
-}
-function updateStatePreParsing(srcPath:string,fullSrcText:string):void {
-    Resolver.lastDocumentPath = srcPath;//this static variable is updated here instead of clear static variables because its meant to be observed by an outside code after resolution but must be reset before the next one
-    Resolver.srcLines = Resolver.createSrcLines(fullSrcText);;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
-    overrideErrorListener();//this must be called before calling the parser
 }
 //the srcPath variable is to tie the lifetime of some static variables to the current path rather than on each request
 function cleanState(srcPath:string,workingIncrementally:boolean):void {//Note that its not all static variables that must be cleared or be cleared here.
@@ -352,4 +351,14 @@ export async function importDocFromJson(filePath:string):Promise<Result> {
     }
     const loadResult = await loadDocFromJson(filePath);
     return loadResult;
+}
+export function getHoverInfo(srcPath:string,pos:string):lspHover {
+    const hoverText:lspHoverText = {code:'',doc:''};
+    return {
+        contents: {
+            kind: 'markdown',  // or 'plaintext'
+            value: `\`\`\`fog\n${hoverText.code}\n\`\`\`\n${hoverText.doc}`
+        },
+        range: hoverText.range // optional range the hover applies to
+    };
 }
