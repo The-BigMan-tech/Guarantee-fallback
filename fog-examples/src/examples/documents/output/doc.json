@@ -1,35 +1,27 @@
 {
     "predicates": {
-        "big": "big",
-        "father": "parent",
         "female": "female",
         "friend": "friends",
         "friends": "friends",
         "good": "good",
-        "large": "large",
+        "hh": "hh",
         "male": "male",
         "males": "male",
         "mother": "parent",
-        "parent": "parent"
+        "parent": "parent",
+        "tall": "tall"
     },
     "records": {
-        "big": {
-            "facts": [
-                {
-                    "list": [
-                        "ada"
-                    ]
-                }
-            ]
-        },
-        "father": {
-            "facts": []
-        },
         "female": {
             "facts": [
                 {
                     "list": [
                         "Mandy"
+                    ]
+                },
+                {
+                    "list": [
+                        "ada"
                     ]
                 }
             ]
@@ -73,17 +65,35 @@
                         "ada",
                         "girl"
                     ]
-                }
-            ]
-        },
-        "large": {
-            "facts": [
+                },
                 {
                     "list": [
-                        "ada"
+                        "ada",
+                        "a"
+                    ]
+                },
+                {
+                    "list": [
+                        "ada",
+                        "b"
+                    ]
+                },
+                {
+                    "list": [
+                        "ada",
+                        "c"
+                    ]
+                },
+                {
+                    "list": [
+                        "ada",
+                        "d"
                     ]
                 }
             ]
+        },
+        "hh": {
+            "facts": []
         },
         "male": {
             "facts": [
@@ -105,20 +115,23 @@
             "facts": [
                 {
                     "list": [
-                        "Susan",
-                        "Matt"
-                    ]
-                },
-                {
-                    "list": [
-                        "Susan",
+                        "Mandy",
                         "Philip"
                     ]
                 },
                 {
                     "list": [
-                        "Susan",
-                        "Mandy"
+                        "Mandy",
+                        "Matt"
+                    ]
+                }
+            ]
+        },
+        "tall": {
+            "facts": [
+                {
+                    "list": [
+                        "ada"
                     ]
                 }
             ]

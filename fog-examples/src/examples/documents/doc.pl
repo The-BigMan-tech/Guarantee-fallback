@@ -1,0 +1,2 @@
+friends(ada,boy).
+

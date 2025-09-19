@@ -84,6 +84,7 @@ connection.onHover(async (params) => {
 
     const token = getTokenAtPosition(doc, params.position)!;
     const hoverInfo = await getHoverInfo(params.position.line, token);
+
     console.log('🚀 => :86 => hoverInfo:', hoverInfo,);
     return hoverInfo;
 });

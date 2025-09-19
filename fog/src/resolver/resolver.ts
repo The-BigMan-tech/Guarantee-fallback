@@ -279,7 +279,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         Resolver.logs?.push(successMessage);
 
         for (const ref of [...this.refToTokens.keys()]) {
-            Resolver.createHoverInfo(this.lineCount,ref,this.tokensToString(this.refToTokens.get(ref)!),'Resolves to: ');
+            Resolver.createHoverInfo(this.lineCount,ref,this.tokensToString(this.refToTokens.get(ref)!),'reference to ');
         }
     }
     public static async flushLogs() {

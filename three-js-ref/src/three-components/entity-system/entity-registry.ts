@@ -26,6 +26,6 @@ export const entityMapping:Record<EntityWrapper,EntitySpawnData> = {
     },
     NPC: {
         groupID:groupIDs.npc,
-        spawnWeight:0
+        spawnWeight:10
     }
 }
