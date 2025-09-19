@@ -55,7 +55,7 @@ async function generateJson<V extends object>(args:{srcPath:string,srcText:strin
     updateStatePreParsing(srcPath,fullSrcText);
     ParseHelper.parse(srcText);
     await Resolver.flushLogs();//to capture syntax errors,if any, to the log
-    if (Resolver.terminate) return Result.error;//this is to return ealry if there is a syntax error
+    if (Resolver.terminate) return Result.error;//this is to return ealry if there is a syntax error.Note that this required for correctness but it will prevent different states from being populated with new line entries till its fixed.
     
     await resolver.visit(ParseHelper.tree!);
     updateStatePostResolution(cache);
@@ -68,7 +68,7 @@ async function generateJson<V extends object>(args:{srcPath:string,srcText:strin
 }
 
 function updateStatePostResolution<V extends object>(cache?:LRUCache<string,V>):void {
-    if (cache) updateStateUsingCache(cache);
+    if (cache) updateStateUsingCache(cache);//i called this post resolution because the cache may be mutated at the end of a line resolution.
     const seenSrcKeys = new Set<string>();//This is to prevent a src key from having more than one entry which happens because visited sentences is keyed by its semantic content structure,not by the src key and only removing entries with src keys not included in the src protects old entries because they have a current src key tied to their value
     const reversedVisitedSentences = [...Resolver.visitedSentences.entries()].reverse();//im doing it in the reverse order because its allows it to delete the earlier entries if they have already been seen.
     for (const [key,visitedSentence] of reversedVisitedSentences) {
@@ -80,7 +80,7 @@ function updateStatePostResolution<V extends object>(cache?:LRUCache<string,V>):
         }
     }
 }
-function updateStateUsingCache<V extends object>(cache:LRUCache<string,V>):void {//the reason why the deletions under this function cant go directly in updateCache where the rest are deleted is because these structures arent keyed by the src line's unique key,but by other strings used for the various purposes of the structure.the unique key is part of the value but not the key of the following structures themselves which updateCache assumes.
+export function updateStateUsingCache<V extends object>(cache:LRUCache<string,V>):void {//the reason why the deletions under this function cant go directly in updateCache where the rest are deleted is because these structures arent keyed by the src line's unique key,but by other strings used for the various purposes of the structure.the unique key is part of the value but not the key of the following structures themselves which updateCache assumes.
     for (const key of Resolver.linesWithIssues.values()) {
         if (!cache.has(key)) {
             Resolver.linesWithIssues.delete(key);
