@@ -359,10 +359,12 @@ export async function importDocFromJson(filePath:string):Promise<Result> {
 export function getHoverInfo(line:number,hoverText:string):lspHover | undefined {
     const hoverData = Resolver.hoverInfo.get(createKey(line,hoverText))?.data;
     if (hoverData) {
+        const code = `\`\`\`fog\n${hoverData.code}`;
+        const doc = `${(hoverData.doc)?hoverData.doc + '\n':""}`;
         return {
             contents: {
-                kind: 'markdown',  // or 'plaintext'
-                value: `${hoverData.doc}\`\`\`fog\n${hoverData.code}\n\`\`\`\n`
+                kind: 'markdown',  
+                value: `${doc} ${code} \n`
             },
             range: hoverData.range // optional range the hover applies to
         };
