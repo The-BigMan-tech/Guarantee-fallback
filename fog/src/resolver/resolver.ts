@@ -56,7 +56,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
     private lastSentenceTokens:Token[] = [];
     private prevRefCheck:RefCheck = {encounteredRef:null,line:0};//for debugging purposes.It tracks the sentences that have refs in them and it is synec with lastTokenForSIngle.It assumes that the same tokens array will be used consistently and not handling duplicates to ensure that the keys work properly
-    public static usedNames:Record<string,{uniqueKeys:UniqueList<string>}> = {};//the unqiue keys hold the keys of the line where the names were declared
+    public static usedNames:Record<string,{src:string,uniqueKeys:UniqueList<string>}> = {};//the unqiue keys hold the keys of the line where the names were declared
     private predicateForLog:string | null = null;
 
     public static visitedSentences = new Map<string,VisitedSentence>();//this is static because of incremental resolution as used by the lsp
@@ -279,7 +279,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         Resolver.logs?.push(successMessage);
 
         for (const ref of [...this.refToTokens.keys()]) {
-            Resolver.createHoverInfo(this.lineCount,ref,this.tokensToString(this.refToTokens.get(ref)!),'reference to ');
+            Resolver.createHoverInfo(this.lineCount,ref,this.tokensToString(this.refToTokens.get(ref)!),'reference to :');
         }
     }
     public static async flushLogs() {
@@ -677,7 +677,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 const uniqueKey = createKey(this.lineCount,Resolver.srcLine(this.lineCount)!);
                 if (isLoose) {
                     if (!(str in Resolver.usedNames)) {
-                        Resolver.usedNames[str] = {uniqueKeys:new UniqueList([uniqueKey])};//we dont want to reset it if it has already been set by a previous sentence
+                        Resolver.usedNames[str] = {uniqueKeys:new UniqueList([uniqueKey]),src:Resolver.srcLine(this.lineCount)!};//we dont want to reset it if it has already been set by a previous sentence
                     }else {
                         Resolver.usedNames[str].uniqueKeys.add(uniqueKey);
                     }
@@ -890,6 +890,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 msg:`-You may wish to type ${chalk.bold("!"+str)} rather than loosely as ${chalk.bold(":"+str)}. \n-It signals that it has been used before here and it prevents errors early.`,
                 srcText:text
             });
+        }else if (Resolver.isStrict(text) && usedNameBefore) {
+            Resolver.createHoverInfo(this.lineCount,text,usedName.src,'This name was first used in :');
         }
     }
     //the reason why it has a readonly parameter because this function was formely used in two places and one had to call it for just the tokens while the other had to call it to make some mutations.So im still leaving it in case ill use it in another place one day
