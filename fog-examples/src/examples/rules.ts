@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import {Box, checkBy, Doc, Implications } from "fog-js";
+import {Box,Doc, Implications } from "fog-js";
 import { Predicates as P } from "./documents/output/doc.types.js";
 import * as zod from "zod";
 
@@ -15,9 +15,9 @@ const statements = {//this is entirely for input validation.You just define the 
     brothers:()=>statements.siblings(),
 };
 
-export const rules = {//A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
+const rules = {//A rule is a function that takes a document and a statement and tells if that statement is true from the given facts in the document whether it was explicitly stated or by inference from the rule itself.
     directFriends:async (doc:Doc<P>,statement:[string,string])=> {
-        return doc.isItStated(checkBy.Membership,'friends',statement);//its checking by membership not strict order to handle a statement of variable args and also when the order requirement isnt strict
+        return doc.isItStated('membership','friends',statement);//its checking by membership not strict order to handle a statement of variable args and also when the order requirement isnt strict
     },
     indirectFriends:async (doc:Doc<P>,statement:[string,string],visitedCombinations:Box<string[]>)=> {
         const [X,Y] = statement;//its only handling two entities at a time to prevent unbound recursion.
@@ -39,9 +39,9 @@ export const rules = {//A rule is a function that takes a document and a stateme
     },
     siblings:async (doc:Doc<P>,statement:[string,string])=> {
         const [X,Y] = statement;
-        const parentsOfX = (await doc.findAllFacts(checkBy.ExactMatch,'parent',[await doc.wildCard(),X]))//do not check for truthiness by membership because a parent relationship is a strict order of parent to child not inseneitive to positions like as it is for friends
+        const parentsOfX = (await doc.findAllFacts('exact','parent',[await doc.wildCard(),X]))//do not check for truthiness by membership because a parent relationship is a strict order of parent to child not inseneitive to positions like as it is for friends
             .map(fact=>fact[0]);
-        const parentsOfY = (await doc.findAllFacts(checkBy.ExactMatch,'parent',[await doc.wildCard(),Y]))
+        const parentsOfY = (await doc.findAllFacts('exact','parent',[await doc.wildCard(),Y]))
             .map(fact=>fact[0]);
         const commonParent = doc.intersection(parentsOfX,parentsOfY);//u can use a your own set intersection function instead
         return Boolean(commonParent.length);
@@ -49,8 +49,8 @@ export const rules = {//A rule is a function that takes a document and a stateme
     brothers:async (doc:Doc<P>,statement:[string,string]) => {
         const [X,Y] = statement;
         if (X === Y) return false;
-        const isXMale = await doc.isItStated(checkBy.Membership,'male',[X],);
-        const isYMale = await doc.isItStated(checkBy.Membership,'male',[Y]);
+        const isXMale = await doc.isItStated('membership','male',[X],);
+        const isYMale = await doc.isItStated('membership','male',[Y]);
         if (isXMale && isYMale && await rules.siblings(doc,[X,Y])) return true;
         return false;
     }

@@ -1,7 +1,7 @@
 import path from "path";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { rules } from "./rules.js";
+import { implications } from "./rules.js";
 import { setupOutput } from "fog-js";
 
 const _filename = fileURLToPath(import.meta.url);
@@ -12,7 +12,7 @@ const srcFilePath = path.join(parentDirFromSrc,'./documents/doc.fog');
 const outputPath = path.join(dirname(srcFilePath),'./output');
 
 async function resolveDoc():Promise<void> {
-    await setupOutput(srcFilePath,outputPath,rules);
+    await setupOutput(srcFilePath,outputPath,implications);
 }
 await resolveDoc();
 
