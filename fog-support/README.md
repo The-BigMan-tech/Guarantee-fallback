@@ -1,16 +1,20 @@
-### Add this to your token color settings under textMateRules for the recommended highliting
+This brings syntax highlighting,live analysis and autocompletions for the fog logic language.
+
+- Please note that the live analysis is under development and may be buggy some times.So you may need to edit the same line twice to correct the analysis.
+
+- Add this to your token color settings under textMateRules for the recommended highlighting
 
 ```json
-    {
+        {
             "scope": "constant.name.fog", 
             "settings": {
-                "foreground": "#95ebc4"
+                "foreground": "#a6f5d1"
             }
         }, 
         {
             "scope": "constant.name.strict.fog",
             "settings": {
-                "foreground": "#f17171"
+                "foreground": "#f1a671"
             }
         }, 
         {
@@ -22,19 +26,19 @@
         {
             "scope": "constant.alias.fog",
             "settings": {
-                "foreground": "#ecb38d"
+                "foreground": "#ee857e"
             }
         }, 
         {
             "scope": "constant.predicate.fog",  
             "settings": {
-                "foreground": "#e79090"
+                "foreground": "#f0be8a"
             }
         }, 
         {
             "scope": "keyword.alias.fog", 
             "settings": {
-                "foreground": "#ffc096"
+                "foreground": "#ee857e"
             }
         }, 
         {
@@ -52,13 +56,13 @@
         {
             "scope": "reference.fog", 
             "settings": {
-                "foreground": "#b3f2e9"
+                "foreground": "#bcf7ee"
             }
         }, 
         {
             "scope": "punctuation.fog", 
             "settings": {
-                "foreground": "#ffc096"
+                "foreground": "#ee857e"
             }
         }, 
         {
@@ -80,7 +84,3 @@
             }
         },
 ```
-
-### Also add this to code runner extension settings under executorMapByFileExtension to directly resolve fog files from the gui:
-
-".fog" : "fog resolve --src"

@@ -329,6 +329,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         console.log('🚀 => :346 => checkForRepetition => repeatedSentence:',statement,'src: ',srcLine);
         
         if (repeatedSentence && (repeatedSentence.line !== this.lineCount)) {//the second condition is possible because viitedSentences is persistent meaning that subsequent analysis can encounter the same line as a repeated sentence
+            console.log('visited sentences at the time: ',Resolver.visitedSentences);
             Resolver.castReport({
                 kind:ReportKind.Semantic,
                 line:this.lineCount,
@@ -494,7 +495,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 }else if (token.type === DSLLexer.RSQUARE) {
                     bracketCount.r += 1;
                     membersFromSentence.push(token);
-                }else if (token.type === DSLLexer.NAME) {
+                }else if ((token.type === DSLLexer.NAME) || (token.type === DSLLexer.NUMBER)) {
                     membersFromSentence.push(token);
                 }else if (token.type === DSLLexer.COMMA) {
                     if (bracketCount.l !== bracketCount.r) {//only capture commas that are within the bounds of an array
@@ -529,7 +530,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 else if (memberToken.type === DSLLexer.LSQUARE) {
                     increment = lastEncounteredList!.length;
                     nthArray += 1;
-                }else if (memberToken.type === DSLLexer.NAME) {
+                }else if ((memberToken.type === DSLLexer.NAME) || (memberToken.type === DSLLexer.NUMBER)) {
                     increment = 1;
                 }
             }
@@ -581,7 +582,11 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 if (member?.type === DSLLexer.NAME) {
                     return true;
                 }else {
-                    Resolver.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to a name of the previous sentence but found an array.`));
+                    if (member.type === DSLLexer.LSQUARE) {
+                        Resolver.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to a name of the previous sentence but found an array.`));
+                    }else if (member.type === DSLLexer.NUMBER) {
+                        Resolver.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to a name of the previous sentence but found a number.`));
+                    }
                     return false;
                 }
             }
@@ -589,7 +594,11 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 if (member?.type === DSLLexer.LSQUARE) {
                     return true;
                 }else {
-                    Resolver.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to an array of the previous sentence but found a name.`));
+                    if (member.type === DSLLexer.NAME) {
+                        Resolver.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to an array of the previous sentence but found a name.`));
+                    }else if (member.type === DSLLexer.NUMBER) {
+                        Resolver.castReport(linesReport(`-Failed to resolve the reference ${chalk.bold(ref)}.\n-It can only point to an array of the previous sentence but found a number.`));
+                    }
                     return false;
                 }
             }
@@ -640,7 +649,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 const member = result.nthMember;
 
                 if (isRefValid(member,'any','generic',text,nthIndex)) {
-                    if (member!.type === DSLLexer.NAME) {
+                    if ((member!.type === DSLLexer.NAME) || (member!.type === DSLLexer.NUMBER)) {
                         resolvedSingleTokens.indices.push(index);
                         resolvedSingleTokens.tokens.set(index,member);
                     }else if (member!.type === DSLLexer.LSQUARE) {
@@ -725,7 +734,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         }
     }
     private expandRecursively(input:any[][],flatSequences:any[][] = []):any[][] {
-        console.log('\n expa recursive input: ',input,'\n');
         for (const product of cartesianProduct(...input)) {
             if (product.some(value=>value instanceof Array)) {
                 const boxedProduct = product.map(value=>{
