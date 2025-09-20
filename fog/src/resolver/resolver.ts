@@ -78,7 +78,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
 
     private refToTokens = new Map<string,Token[]>();//this is purely for hover information
     
-    private static buildLspRange(text:string | EndOfLine,targetLine: number,targetSrcLine:string):lspRange {
+    public static buildLspRange(text:string | EndOfLine,targetLine: number,targetSrcLine:string):lspRange {
         const cleanedSourceLine = targetSrcLine.replace(/\r+$/, ""); // remove trailing \r
         let startChar:number;
         let endChar:number;
@@ -96,17 +96,23 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             end: { line: targetLine, character: endChar }
         };
     }; 
-    public static hoverInfo = new Map<string,{data:HoverData,uniqueKey:string}>();
+    public static hoverInfo = new Map<string,{data:HoverData,refTo:{line:number,text:string},uniqueKey:string}>();
 
-    private static createHoverInfo(line:number,hoverText:string,code:string,doc?:string) {
+    private static createHoverInfo(args:{line:number,hoverText:string,code:string,doc:string | undefined,refLine:number,refText:string}) {
+        const {line,hoverText,code,doc,refLine,refText} = args;
+
         const srcLine = Resolver.srcLine(line)!;
         Resolver.hoverInfo.set(createKey(line,hoverText),{
             data:{
                 code:stripAnsi(code),
                 doc,
-                range:Resolver.buildLspRange(hoverText,line,srcLine)
+                range:Resolver.buildLspRange(hoverText,line,srcLine),
             },
-            uniqueKey:createKey(line,srcLine)
+            uniqueKey:createKey(line,srcLine),
+            refTo:{
+                line:refLine,
+                text:refText
+            }
         });
     }
     //the ansi report is generated on full resolution but skipped in incremenal resolution.while editor diagnostic are made in incremental resolution but they are skipped in full resolution
@@ -268,7 +274,11 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             if (predicateFromAlias) {
                 const aliasMsg = `\n alias ${this.predicateForLog} = ${brown(`*${predicateFromAlias}`)}.`;
                 successMessage += aliasMsg;
-                Resolver.createHoverInfo(this.lineCount,`#${this.predicateForLog}`,aliasMsg);
+                Resolver.createHoverInfo({
+                    line:this.lineCount,
+                    hoverText:`#${this.predicateForLog}`,
+                    code:aliasMsg,
+                });
             }else {
                 successMessage += `\n-Predicate: *${this.predicateForLog}`;
             }
@@ -279,7 +289,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         Resolver.logs?.push(successMessage);
 
         for (const ref of [...this.refToTokens.keys()]) {
-            Resolver.createHoverInfo(this.lineCount,ref,this.tokensToString(this.refToTokens.get(ref)!),'reference to :');
+            Resolver.createHoverInfo({
+                line:this.lineCount,
+                hoverText:ref,
+                code:this.tokensToString(this.refToTokens.get(ref)!),
+                doc:'reference to :'
+            });
         }
     }
     public static async flushLogs() {
@@ -873,6 +888,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const usedName = Resolver.usedNames[str];
         const usedNameBefore = usedName && ( Math.min(...usedName.uniqueKeys.list.map(lineFromKey)) < this.lineCount );
 
+        const firstUsage = usedName.uniqueKeys.list[0];
         if (Resolver.isStrict(text) && !usedNameBefore) {
             let message = `-There is no existing usage of the name '${chalk.bold(str)}'`;
             const recommendedName = this.recommendUsedName(str);
@@ -891,7 +907,14 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 srcText:text
             });
         }else if (Resolver.isStrict(text) && usedNameBefore) {
-            Resolver.createHoverInfo(this.lineCount,text,usedName.src,'This name was first used in :');
+            Resolver.createHoverInfo({
+                line:this.lineCount,
+                hoverText:text,
+                code:usedName.src,
+                doc:'This name was first used in :',
+                refLine:lineFromKey(firstUsage),
+                refText:Resolver.stripMark(text)
+            });
         }
     }
     //the reason why it has a readonly parameter because this function was formely used in two places and one had to call it for just the tokens while the other had to call it to make some mutations.So im still leaving it in case ill use it in another place one day

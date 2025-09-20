@@ -372,10 +372,11 @@ export function getHoverInfo(line:number,hoverText:string):lspHover | null {
     return null;
 }
 export function findDefLocation(line:number,word:string):lspLocation | null {
-    const range = Resolver.hoverInfo.get(createKey(line,word))?.data.range;
-    if ((Resolver.lastDocumentPath === null) || (range === undefined)) {
+    const reference = Resolver.hoverInfo.get(createKey(line,word))?.refTo;
+    if ((Resolver.lastDocumentPath === null) || (reference === undefined)) {
         return null;
     }
+    const range = Resolver.buildLspRange(reference.text,reference.line,Resolver.srcLine(reference.line)!);
     return {
         uri:Resolver.lastDocumentPath,
         range
