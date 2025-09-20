@@ -76,7 +76,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static linesWithIssues = new Set<string>();
     public static readonly OMIT_WARNING = '//omit-warning';
 
-    private refToTokens = new Map<string,Token[]>();//this is purely for hover information
+    private refToTokens = new Map<string,{tokens:Token[],referencedLine:number}>();//this is purely for hover information
     
     public static buildLspRange(text:string | EndOfLine,targetLine: number,targetSrcLine:string):lspRange {
         const cleanedSourceLine = targetSrcLine.replace(/\r+$/, ""); // remove trailing \r
@@ -277,7 +277,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             
             if (predicateFromAlias) {
                 const aliasMsg = `\n alias ${this.predicateForLog} = ${brown(`*${predicateFromAlias}`)}.`;
-                successMessage += aliasMsg;
+                successMessage += '-' + aliasMsg;
                 Resolver.createHoverInfo({
                     line:this.lineCount,
                     hoverText:`#${this.predicateForLog}`,
@@ -297,13 +297,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         Resolver.logs?.push(successMessage);
 
         for (const ref of [...this.refToTokens.keys()]) {
-            const refValue = this.tokensToString(this.refToTokens.get(ref)!);
+            const refValue = this.tokensToString(this.refToTokens.get(ref)!.tokens);
             Resolver.createHoverInfo({
                 line:this.lineCount,
                 hoverText:ref,
                 code:refValue,
                 doc:'reference to :',
-                refLine:this.prevRefCheck.line,
+                refLine:this.refToTokens.get(ref)!.referencedLine,
                 refText:refValue
             });
         }
@@ -403,7 +403,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             const lineKey = createKey(this.lineCount,Resolver.srcLine(this.lineCount)!);
             this.perLineResolution(lineKey);//this has to be done before updating the line count
         }
-
         this.expandedFacts = null;
         this.predicateForLog = null;
         this.currentStringifiedStatement = null;
@@ -512,12 +511,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
             for (const index of resolvedSingleTokens.indices) {//resolve the single ref
                 const resolvedToken = resolvedSingleTokens.tokens.get(index)!;
-                this.refToTokens.set(tokens[index].text!,[resolvedToken]);
+                this.refToTokens.set(tokens[index].text!,{tokens: [resolvedToken],referencedLine:this.prevRefCheck.line });
                 tokens[index] = resolvedToken;
             }
             for (const index of resolvedGroupedTokens.indices) {//this is a heap unlike the one for single tokens which is an array.so it will be consumed after this iteration
                 const resolvedTokens = resolvedGroupedTokens.tokens.get(index)!;
-                this.refToTokens.set(tokens[index].text!,resolvedTokens);
+                this.refToTokens.set(tokens[index].text!,{tokens: resolvedTokens,referencedLine:this.prevRefCheck.line});
                 tokens.splice(index,1,...resolvedTokens);
             }
         };
@@ -734,9 +733,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         };   
         checkForRefAmbiguity();//this must be checked before updating the refCheck state
         for (const name of encounteredNames) this.validateNameUsage(name);//this has to happen before the refs are resolved.else,the names that expanded into those refs will trigger warnings.
+        applyResolution();
         this.lastSentenceTokens = tokens;
         this.prevRefCheck = {encounteredRef,line:this.lineCount};
-        applyResolution();
     }
     public static stripMark(text:string) {
         return text.slice(1);// Remove the leading '*' or '#' or : or !
