@@ -1,5 +1,5 @@
 /* eslint-disable indent */
-import { contentFromKey, convMapToRecord,createKey,EndOfLine, FullData,isWhitespace,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspHover,lspInsertTextFormat, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
+import { contentFromKey, convMapToRecord,createKey,EndOfLine, FullData,isWhitespace,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspHover,lspInsertTextFormat, lspLocation, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -356,7 +356,7 @@ export async function importDocFromJson(filePath:string):Promise<Result> {
     return loadResult;
 }
 
-export function getHoverInfo(line:number,hoverText:string):lspHover | undefined {
+export function getHoverInfo(line:number,hoverText:string):lspHover | null {
     const hoverData = Resolver.hoverInfo.get(createKey(line,hoverText))?.data;
     if (hoverData) {
         const code = `\`\`\`fog\n${hoverData.code}\n\`\`\``;
@@ -369,5 +369,15 @@ export function getHoverInfo(line:number,hoverText:string):lspHover | undefined 
             range: hoverData.range // optional range the hover applies to
         };
     }
-    return undefined;
+    return null;
+}
+export function findDefLocation(line:number,word:string):lspLocation | null {
+    const range = Resolver.hoverInfo.get(createKey(line,word))?.data.range;
+    if ((Resolver.lastDocumentPath === null) || (range === undefined)) {
+        return null;
+    }
+    return {
+        uri:Resolver.lastDocumentPath,
+        range
+    };
 }

@@ -9,10 +9,11 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {analyzeDocument, autoComplete,getHoverInfo} from "fog-js";
 import { debounce } from 'throttle-debounce';
+import { lockFree } from './req-lock';
 
 const connection = createConnection(ProposedFeatures.all);
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
-let analysisUpToDate = false;
+
 
 function analyzeDoc(text:string,srcPath:string):void {
     analyzeDocument(text,srcPath).then(diagnostics=>{
@@ -20,12 +21,12 @@ function analyzeDoc(text:string,srcPath:string):void {
             uri:srcPath,
             diagnostics:diagnostics
         });
-        analysisUpToDate = true;
+        lockFree[0] = true;
     });
 }
 const debouncedAnalysis = debounce(300,
     (text:string,srcPath:string) =>{
-        analysisUpToDate = false;
+        lockFree[0] = false;
         analyzeDoc(text,srcPath);
     },
     {atBegin:false}
@@ -65,7 +66,7 @@ function getTokenAtPosition(doc: TextDocument, position: { line: number; charact
 
 
 connection.onCompletion(async (params): Promise<CompletionItem[]> => {
-    if (!analysisUpToDate) { return []; };
+    if (!lockFree[0]) { return []; };
     const doc = documents.get(params.textDocument.uri);
     if (doc) {
         const lastWord = getLastWord(params);
@@ -78,7 +79,8 @@ connection.onCompletion(async (params): Promise<CompletionItem[]> => {
     return [];
 });
 connection.onHover(async (params) => {
-    if (!analysisUpToDate) { return null; };
+    if (!lockFree[0]) { return null; };
+
     const doc = documents.get(params.textDocument.uri);
     if (!doc) { return null; };
 

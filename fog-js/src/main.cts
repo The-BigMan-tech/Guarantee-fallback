@@ -134,6 +134,13 @@ export async function resolveDocument(filePath:string,outputFolder?:string):Prom
     console.log(chalk.green('\nSuccessfully resolved the document.'));
     return result;
 }
+//this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
+export async function setupOutput<P extends string,R extends string>(srcFilePath:string,outputFolder:string,implications?:Implications<R,P>):Promise<void> {
+    const doc = await importDocFromSrc(srcFilePath,outputFolder);
+    const docName = path.basename(srcFilePath,path.extname(srcFilePath));
+    if (doc !== Result.error) await genTypes(docName,outputFolder,doc,implications?.rules);
+}
+
 //for use by the lsp
 export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspDiagnostics[]> {
     const result = await request<lspDiagnostics[]>("analyzeDocument",{srcText,srcPath});
@@ -150,11 +157,10 @@ export async function getHoverInfo(line:number,hoverText:string):Promise<lspHove
     console.log(chalk.green('\nSuccessfully returned hover information.'));
     return result;
 }
-//this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
-export async function setupOutput<P extends string,R extends string>(srcFilePath:string,outputFolder:string,implications?:Implications<R,P>):Promise<void> {
-    const doc = await importDocFromSrc(srcFilePath,outputFolder);
-    const docName = path.basename(srcFilePath,path.extname(srcFilePath));
-    if (doc !== Result.error) await genTypes(docName,outputFolder,doc,implications?.rules);
+export async function findDefLocation(line:number,word:string):Promise<lspLocation> {
+    const result = await request<lspLocation>("findDefLocation",{line,word});
+    console.log(chalk.green('\nSuccessfully returned the definition location.'));
+    return result;
 }
 
 
@@ -415,5 +421,9 @@ export interface lspMarkupContent {
 }
 export interface lspHover {
     contents:lspMarkupContent;
-    range?:lspRange;
+    range:lspRange;
+}
+export interface lspLocation {
+    uri:string,
+    range:lspRange
 }

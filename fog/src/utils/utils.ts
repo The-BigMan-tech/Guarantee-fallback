@@ -260,10 +260,14 @@ export interface lspMarkupContent {
 }
 export interface lspHover {
     contents:lspMarkupContent;
-    range?:lspRange;
+    range:lspRange;
 }
 export interface HoverData {
     code:string,
     doc?:string,
-    range?:lspRange
+    range:lspRange
+}
+export interface lspLocation {
+    uri:string,
+    range:lspRange
 }

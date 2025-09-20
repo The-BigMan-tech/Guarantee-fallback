@@ -67,7 +67,7 @@
     },
     "dependencies": {
         "@types/throttle-debounce": "^5.0.2",
-        "fog-js": "^1.1.2",
+        "fog-js": "^1.1.3",
         "throttle-debounce": "^5.0.2",
         "vscode-languageclient": "^9.0.1",
         "vscode-languageserver": "^9.0.1",
