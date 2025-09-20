@@ -4,7 +4,6 @@ alias friend = *friends.
 alias mother = *parent.
 alias males = *male.
 
-alias hh. //omit-warning
 
 :Billy and :John are #friends. 
 
@@ -26,4 +25,4 @@ alias hh. //omit-warning
 !ada is a *female.
 
 [:l,2] :h *tall.
-<They> <him:2> [:a,:b,:c,:d] are  #good.
+ [:a,:b,:c,:d] are  #good.

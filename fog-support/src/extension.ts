@@ -8,7 +8,6 @@ import {
     ServerOptions,
     TransportKind
 } from 'vscode-languageclient/node';
-import { lockFree } from './lsp-server/req-lock';
 
 let client: LanguageClient;
 

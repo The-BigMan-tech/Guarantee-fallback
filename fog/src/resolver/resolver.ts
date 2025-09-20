@@ -898,7 +898,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         const usedName = Resolver.usedNames[str];
         const usedNameBefore = usedName && ( Math.min(...usedName.uniqueKeys.list.map(lineFromKey)) < this.lineCount );
 
-        const firstUsage = usedName.uniqueKeys.list[0];
         if (Resolver.isStrict(text) && !usedNameBefore) {
             let message = `-There is no existing usage of the name '${chalk.bold(str)}'`;
             const recommendedName = this.recommendUsedName(str);
@@ -917,6 +916,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 srcText:text
             });
         }else if (Resolver.isStrict(text) && usedNameBefore) {
+            const firstUsage = usedName.uniqueKeys.list[0];
             Resolver.createHoverInfo({
                 line:this.lineCount,
                 hoverText:text,

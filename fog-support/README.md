@@ -68,7 +68,7 @@ This brings syntax highlighting,live analysis,hover information,autocompletions 
     {
         "scope": "reference.fog", 
         "settings": {
-            "foreground": "#bcf7ee"
+            "foreground": "#ee857e"
         }
     }, 
     {
