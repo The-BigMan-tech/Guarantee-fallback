@@ -76,8 +76,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static linesWithIssues = new Set<string>();
     public static readonly OMIT_WARNING = '//omit-warning';
 
-    private refToTokens = new Map<string,{tokens:Token[],referencedLine:number}>();//this is purely for hover information
-    
+
     public static buildLspRange(text:string | EndOfLine,targetLine: number,targetSrcLine:string):lspRange {
         const cleanedSourceLine = targetSrcLine.replace(/\r+$/, ""); // remove trailing \r
         let startChar:number;
@@ -278,14 +277,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             if (predicateFromAlias) {
                 const aliasMsg = `\n alias ${this.predicateForLog} = ${brown(`*${predicateFromAlias}`)}.`;
                 successMessage += '-' + aliasMsg;
-                Resolver.createHoverInfo({
-                    line:this.lineCount,
-                    hoverText:`#${this.predicateForLog}`,
-                    code:aliasMsg,
-                    refLine:lineFromKey(aliasAtKey!.uniqueKey),
-                    refText:'.',//this takes the cursor to the end of the alias declaration
-                    doc:undefined
-                });
             }else {
                 successMessage += `\n-Predicate: *${this.predicateForLog}`;
             }
@@ -295,18 +286,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         successMessage += '\n';
         console.info(successMessage);
         Resolver.logs?.push(successMessage);
-
-        for (const ref of [...this.refToTokens.keys()]) {
-            const refValue = this.tokensToString(this.refToTokens.get(ref)!.tokens);
-            Resolver.createHoverInfo({
-                line:this.lineCount,
-                hoverText:ref,
-                code:refValue,
-                doc:'reference to :',
-                refLine:this.refToTokens.get(ref)!.referencedLine,
-                refText:refValue
-            });
-        }
     }
     public static async flushLogs() {
         if (Resolver.logs && Resolver.logFile) {
@@ -499,6 +478,17 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 });
             }
         };
+        const showHoverInfoForRef = (referencedTokens:Token[],refText:string)=>{
+            const refValue = this.tokensToString(referencedTokens);
+            Resolver.createHoverInfo({
+                line:this.lineCount,
+                hoverText:refText,
+                code:refValue,
+                doc:'reference to :',
+                refLine:this.prevRefCheck.line,
+                refText:refValue
+            });
+        };
         const applyResolution = ()=> {
             const numOfRefs = (resolvedSingleTokens.indices.length + resolvedGroupedTokens.indices.length);
             if (numOfRefs  > 2) {
@@ -511,12 +501,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
             for (const index of resolvedSingleTokens.indices) {//resolve the single ref
                 const resolvedToken = resolvedSingleTokens.tokens.get(index)!;
-                this.refToTokens.set(tokens[index].text!,{tokens: [resolvedToken],referencedLine:this.prevRefCheck.line });
+                showHoverInfoForRef([resolvedToken],tokens[index].text!);
                 tokens[index] = resolvedToken;
             }
             for (const index of resolvedGroupedTokens.indices) {//this is a heap unlike the one for single tokens which is an array.so it will be consumed after this iteration
                 const resolvedTokens = resolvedGroupedTokens.tokens.get(index)!;
-                this.refToTokens.set(tokens[index].text!,{tokens: resolvedTokens,referencedLine:this.prevRefCheck.line});
+                showHoverInfoForRef(resolvedTokens,tokens[index].text!);
                 tokens.splice(index,1,...resolvedTokens);
             }
         };
@@ -837,7 +827,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     Resolver.castReport({
                         kind:ReportKind.Semantic,
                         line:this.lineCount,
-                        msg:`-They can only be one alias or predicate in a sentence but found ${chalk.bold('*'+relation)} and ${chalk.bold(text)} being used at the same time.`,
+                        msg:`-There can only be one alias or predicate in a sentence but found ${chalk.bold('*'+relation)} and ${chalk.bold(text)} being used at the same time.`,
                         srcText:text
                     });
                 }
@@ -876,9 +866,22 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     
         const tokenQueue = new Denque(tokens);
         const groupedData = this.inspectRelevantTokens(tokenQueue,false);
-        if (Resolver.terminate) return;
+        const referredAlias = Resolver.aliases.get(relation);
 
+        if (referredAlias) {
+            Resolver.createHoverInfo({
+                line:this.lineCount,
+                hoverText:`#${relation}`,
+                code:`alias ${relation} = ${referredAlias.predicate}.`,
+                refLine:lineFromKey(referredAlias.uniqueKey),
+                refText:'.',//this takes the cursor to the end of the alias declaration
+                doc:undefined
+            });
+        }
+
+        if (Resolver.terminate) return;
         this.expandedFacts = this.expandRecursively(groupedData!);
+
         for (const fact of this.expandedFacts) {;
             if (fact.length === 0) Resolver.castReport({
                 kind:ReportKind.Semantic,
@@ -886,7 +889,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 msg:'-A sentence must contain at least one atom.',
                 srcText:Resolver.srcLine(this.lineCount)!
             });
-            const referredPredicate = this.predicates.get(relation) || Resolver.aliases.get(relation)?.predicate;//if its a predicate,return it,else return the predicate it refers to from the alias
+            const referredPredicate = this.predicates.get(relation) || referredAlias?.predicate;//if its a predicate,return it,else return the predicate it refers to from the alias
             this.records[referredPredicate!].add(fact);
         }
         this.builtAFact = true;
