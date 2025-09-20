@@ -74,8 +74,9 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
     public static lineToAffectedLines:Record<string,string[]> = {};
     public static linesWithIssues = new Set<string>();
-    public static readonly OMIT_WARNING = '//omit-warning';
 
+    public static readonly OMIT_WARNING = '//omit-warning';
+    public static readonly AND_TERMINATOR = '&and';
 
     public static buildLspRange(text:string | EndOfLine,targetLine: number,targetSrcLine:string):lspRange {
         const cleanedSourceLine = targetSrcLine.replace(/\r+$/, ""); // remove trailing \r
@@ -741,6 +742,16 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 predicate = Resolver.stripMark(text);
                 this.predicates.set(predicate,predicate);
                 if (!this.records[predicate]) this.records[predicate] = new Rec([]);//this creates a record for the predicates if it doesnt have one which happens when it wasnt used elsewhere prior to the alias declaration
+            }
+            else if (type === DSLLexer.TERMINATOR) {
+                if (text === Resolver.AND_TERMINATOR) {
+                    Resolver.castReport({
+                        line:this.lineCount,
+                        kind:ReportKind.Semantic,
+                        msg:'This must end with a period terminator',
+                        srcText:Resolver.AND_TERMINATOR
+                    });
+                }
             }
         });
         //i intially made it to point to the predicate record in memory if it existed,but after moving to json outputs,it led to duplicate entries that only increased the final document size for every alias.so i prevented it from pointing to the predicate record if it existed and had it its own unique but empty record.
