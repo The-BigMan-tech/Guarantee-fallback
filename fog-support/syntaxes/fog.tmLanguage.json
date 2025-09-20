@@ -53,6 +53,10 @@
                     "match": "\\."
                 },
                 {
+                    "name": "terminator.and.fog",
+                    "match": "\\&and"
+                },
+                {
                     "name": "comment.line.fog",
                     "begin": "//",
                     "end": "$" 

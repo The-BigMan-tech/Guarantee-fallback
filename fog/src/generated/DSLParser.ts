@@ -48,7 +48,7 @@ export class DSLParser extends antlr.Parser {
 
     public static readonly literalNames = [
         null, "','", "'('", "')'", "'['", "']'", "';'", "'?'", "'!'", "'#'", 
-        "'''", "'='", "'alias'", "'.'"
+        "'''", "'='", "'alias'"
     ];
 
     public static readonly symbolicNames = [

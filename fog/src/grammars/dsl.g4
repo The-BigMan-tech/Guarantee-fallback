@@ -32,7 +32,7 @@ APOSTROPHE:'\'';
 EQUALS: '=';
 ALIAS_KW:'alias';//
 
-TERMINATOR:'.';
+TERMINATOR:'.' | '&and';
 fragment COLON:':';
 
 PREDICATE: '*' PLAIN_WORD;
