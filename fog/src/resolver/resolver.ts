@@ -238,7 +238,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         Resolver.logs?.push(...messages);
     }
     private tokensToString(tokens:Token[]) {
-        return tokens?.map(token=>token.text!).join(' ') || '';
+        return tokens?.map(token=>token.text!).join('') || '';
     }
     private logProgress(tokens:Token[] | null) {//this is a bit rough.Cleanup later.
         if ((tokens===null) || Resolver.terminate) return;
