@@ -1,5 +1,5 @@
 {
-    "wordPattern": "#\\w+|!\\w+|<\\w+(?::\\d+)?>",
+    "wordPattern": "#\\w+|!\\w+|<\\w+(?::\\d+)?>|\\w+",
     "comments": {
         "lineComment": "//"
     },

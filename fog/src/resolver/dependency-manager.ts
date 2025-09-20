@@ -31,6 +31,7 @@ export class DependencyManager extends DSLVisitor<boolean | undefined> {
     private srcLines:string[];
     private inCache:boolean;
     private uniqueKey:string;
+    private seenTerminator:boolean = false;
 
     constructor(args:{key:string,line:number,srcLine:string,srcLines:string[],inCache:boolean}) {
         const {line,srcLine,srcLines,inCache,key} = args;
@@ -80,14 +81,17 @@ export class DependencyManager extends DSLVisitor<boolean | undefined> {
 
             const refTypes = new Set([DSLLexer.SINGLE_SUBJECT_REF,DSLLexer.SINGLE_OBJECT_REF,DSLLexer.GROUP_SUBJECT_REF,DSLLexer.GROUP_OBJECT_REF,DSLLexer.GENERIC_REF]);
 
-            if (!dependent.reference && refTypes.has(type)) {
+            if (!dependent.reference && refTypes.has(type) && (this.seenTerminator === false)) {//if there are multiple terminators and thus sentences,in a line,then the line itself has the sentence that the other depends on.Its a dependency thats already available inline
                 dependent.reference = true;
             }
-            if (!dependent.alias && ((type === DSLLexer.ALIAS) || (type === DSLLexer.PREDICATE))) {//i made them be dependent because of their predicate so that alias declarations with the same name can reload them as dependents which will help catch the error of a predicate with the same name as an alias.This will essentially make all lines dependent and they wont be null unless there is a counter alias declaration.But it wont cause unnecessary reanalysis of lines.This is required for correctness
+            else if (!dependent.alias && ((type === DSLLexer.ALIAS) || (type === DSLLexer.PREDICATE))) {//i made them be dependent because of their predicate so that alias declarations with the same name can reload them as dependents which will help catch the error of a predicate with the same name as an alias.This will essentially make all lines dependent and they wont be null unless there is a counter alias declaration.But it wont cause unnecessary reanalysis of lines.This is required for correctness
                 dependent.alias = Resolver.stripMark(text);
             }
-            if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
+            else if ((type === DSLLexer.NAME) && Resolver.isStrict(text)) {
                 dependent.names.add(Resolver.stripMark(text));
+            }
+            else if (type === DSLLexer.TERMINATOR) {
+                this.seenTerminator = true;
             }
         }
         dependent.unsettledNames = new Set(dependent.names);//clone the set

@@ -246,7 +246,7 @@ export function autoComplete(word:string):lspCompletionItem[] {
 
     const suggestions: lspCompletionItem[] = [
         { label: 'alias', kind: lspCompletionItemKind.Keyword },
-        { label: 'and',insertText:"&and", kind: lspCompletionItemKind.Keyword },
+        { label: 'and',insertText:Resolver.AND_TERMINATOR, kind: lspCompletionItemKind.Keyword },
         { label: 'omit-warning',insertText:Resolver.OMIT_WARNING,kind: lspCompletionItemKind.Text },
         ...['them','their','him','her','it','his','ref'].map(ref=>({
             label:ref,
