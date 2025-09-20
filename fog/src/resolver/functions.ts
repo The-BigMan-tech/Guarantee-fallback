@@ -20,6 +20,7 @@ function overrideErrorListener():void {
         const zeroBasedLine = line - 1;//the line returned by this listenere is 1-based so i deducted 1 to make it 0-based which is the correct form the pogram understands
         const srcLine = Resolver.srcLine(zeroBasedLine);
         const srcText = ((srcLine)?srcLine[column]:undefined) || EndOfLine.value;
+        
         console.log('src txt',srcText);
         Resolver.castReport({
             kind:ReportKind.Syntax,
@@ -52,9 +53,11 @@ async function generateJson<V extends object>(args:{srcPath:string,srcText:strin
     const {srcPath,srcText,fullSrcText,cache,emptyCacheEntry} = args;
     const resolver = createResolver(cache,emptyCacheEntry);
 
-    updateStatePreParsing(srcPath,fullSrcText,cache);
+    updateStatePreParsing(srcPath,fullSrcText);
+
     ParseHelper.parse(srcText);
     await Resolver.flushLogs();//to capture syntax errors,if any, to the log
+
     if (Resolver.terminate) return Result.error;//this is to return ealry if there is a syntax error.Note that this required for correctness but it will prevent different states from being populated with new line entries till its fixed.
     
     await resolver.visit(ParseHelper.tree!);
@@ -66,8 +69,8 @@ async function generateJson<V extends object>(args:{srcPath:string,srcText:strin
         return Result.error;
     }
 }
-function updateStatePreParsing<V extends object>(srcPath:string,fullSrcText:string,cache?:LRUCache<string,V>):void {
-    if (cache) updateStateUsingCache(cache);
+function updateStatePreParsing(srcPath:string,fullSrcText:string):void {
+    updateStateUsingSrc();
     Resolver.lastDocumentPath = srcPath;//this static variable is updated here instead of clear static variables because its meant to be observed by an outside code after resolution but must be reset before the next one
     Resolver.srcLines = Resolver.createSrcLines(fullSrcText);;//im using the full src lines for this state over the input because the regular input is possibly purged and as such,some lines that will be accessed may be missing.It wont cause any state bugs because the purged and the full text are identical except that empty lines are put in place of the purged ones.
     overrideErrorListener();//this must be called before calling the parser
@@ -84,14 +87,14 @@ function updateStatePostResolution():void {
         }
     }
 }
-export function updateStateUsingCache<V extends object>(cache:LRUCache<string,V>):void {//the reason why the deletions under this function cant go directly in updateCache where the rest are deleted is because these structures arent keyed by the src line's unique key,but by other strings used for the various purposes of the structure.the unique key is part of the value but not the key of the following structures themselves which updateCache assumes.
+export function updateStateUsingSrc():void {//the reason why the deletions under this function cant go directly in updateCache where the rest are deleted is because these structures arent keyed by the src line's unique key,but by other strings used for the various purposes of the structure.the unique key is part of the value but not the key of the following structures themselves which updateCache assumes.
     for (const key of Resolver.linesWithIssues.values()) {
-        if (!cache.has(key)) {
+        if (!Purger.srcKeysAsSet.has(key)) {
             Resolver.linesWithIssues.delete(key);
         }
     }
     for (const [key,value] of [...Resolver.visitedSentences.entries(),...Resolver.aliases.entries(),...Resolver.hoverInfo.entries()]) {
-        if ((!cache.has(value.uniqueKey))) {
+        if ((!Purger.srcKeysAsSet.has(value.uniqueKey))) {
             Resolver.visitedSentences.delete(key);
             Resolver.aliases.delete(key);
             Resolver.hoverInfo.delete(key);
@@ -99,7 +102,7 @@ export function updateStateUsingCache<V extends object>(cache:LRUCache<string,V>
     }
     for (const [name,value] of Object.entries(Resolver.usedNames)) {
         for (const uniqueKey of value.uniqueKeys.list) {
-            if (!cache.has(uniqueKey)) {
+            if (!Purger.srcKeysAsSet.has(uniqueKey)) {
                 value.uniqueKeys.delete(uniqueKey);
                 if (value.uniqueKeys.list.length === 0) {
                     delete Resolver.usedNames[name];
@@ -120,6 +123,7 @@ function cleanState(srcPath:string,workingIncrementally:boolean):void {//Note th
     Resolver.workingIncrementally = workingIncrementally;
     Resolver.foundWarning = false;
     Resolver.terminate = false;//reset it for subsequent analyzing
+    Purger.srcKeysAsSet.clear();
     
     if ((srcPath !== Resolver.lastDocumentPath) || !Resolver.workingIncrementally) {//im clearing it on full resolution to prevent any incremental data from lingering into full resolution to avoid corrupting the state during full resolution.it will start on a clean slate to ensure correctness.but it means that incremental analysis will have to start over each time this is done.so the best thing is to resolve the document once its ready for use and use the analysis during authoring
         console.log('\nCLEANED THE STATE.\n');

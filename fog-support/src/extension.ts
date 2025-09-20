@@ -23,7 +23,7 @@ export function activate(context: ExtensionContext) {
             options: debugOptions
         }   
     };
-    let clientOptions: LanguageClientOptions = {
+    let clientOptions: LanguageClientOptions = { 
         documentSelector: [{ scheme: 'file', language: 'fog' }],
         synchronize: {
             fileEvents: workspace.createFileSystemWatcher('**/.fog')

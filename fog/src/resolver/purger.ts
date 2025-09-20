@@ -22,13 +22,13 @@ export class Purger<V extends object> {
     private cache:LRUCache<string,V>;
     private syntaxError:boolean = false;
     private unpurgedSrcLines = new Denque<string>();
-    private srcKeysAsSet = new Set<string>();
+    public static srcKeysAsSet = new Set<string>();
     private srcLines:string[];
 
     constructor(srcText:string,srcPath:string,cache:LRUCache<string,V>) {
         this.cache = cache;
         this.srcLines = Resolver.createSrcLines(srcText);
-        this.srcKeysAsSet = new Set(this.srcLines.map((content,line)=>createKey(line,content as string)));
+        Purger.srcKeysAsSet = new Set(this.srcLines.map((content,line)=>createKey(line,content as string)));
         this.inSameDocument = srcPath === Resolver.lastDocumentPath;//i tied the choice to purge to whether the document path has changed.This is to sync it properly with static variables that are also tied to te document's path
         ConsoleErrorListener.instance.syntaxError = ():void =>{this.syntaxError = true;};
     }
@@ -41,7 +41,7 @@ export class Purger<V extends object> {
             const dependentsAffectedFromLine = Resolver.lineToAffectedLines[dependencyKey] || [];
             const dependentKeys =  [...regularDependents,...dependentsAffectedFromLine];
             refreshedMap[dependencyKey] = new Set(dependentKeys);
-            if (dependentKeys.some(key=>!this.srcKeysAsSet.has(key))) {
+            if (dependentKeys.some(key=>!Purger.srcKeysAsSet.has(key))) {
                 this.cache.delete(dependencyKey);//refresh the dependeny if any of the dependents change.but this doesnt mean that the dependency isnt in the src.It may still be in the src,but we want it to be reanalyzed.If its still in the src,the effect of this is to reanalyze only this line without reanalyzing all its dependents.So a change in dependent will only reanalyze the dependency without hacving to reanalyze all other depdnents
             }
         }
@@ -60,7 +60,7 @@ export class Purger<V extends object> {
     private updateCache():void {
         const uniqueKeys = [...this.cache.keys()];
         for (const key of uniqueKeys) {
-            const isInSrc = this.srcKeysAsSet.has(key);
+            const isInSrc = Purger.srcKeysAsSet.has(key);
             const sentencesAreEmpty = Resolver.visitedSentences.size === 0;
             if (sentencesAreEmpty || !isInSrc || Resolver.linesWithIssues.has(key)) {
                 console.log('\nEntry to refresh: ',key,'in src: ',isInSrc,'issues: ',Resolver.linesWithIssues.has(key));
@@ -100,7 +100,7 @@ export class Purger<V extends object> {
         this.produceFinalSrc();
         const unpurgedSrcText:string = this.unpurgedSrcLines.toArray().join('\n');
 
-        console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:', this.srcKeysAsSet);
+        console.log('🚀 => :929 => updateStaticVariables => srcKeysAsSet:',Purger.srcKeysAsSet);
         console.log('\nDependency to dependents: ',Purger.dependencyToDependents);
         console.log('🚀 => :1019 => analyzeDocument => unpurgedSrcText:', unpurgedSrcText);
         return unpurgedSrcText;
