@@ -237,12 +237,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         console.info(...messages);
         Resolver.logs?.push(...messages);
     }
-    private tokensToString(tokens:Token[]) {
-        return tokens?.map(token=>token.text!).join('') || '';
+    private tokensToString(tokens:Token[],joinBy:string) {
+        return tokens?.map(token=>token.text!).join(joinBy) || '';
     }
     private logProgress(tokens:Token[] | null) {//this is a bit rough.Cleanup later.
         if ((tokens===null) || Resolver.terminate) return;
-        const resolvedSentence = this.tokensToString(tokens);//the tokens received at the time this method is called is after the senence has been resolved
+        const resolvedSentence = this.tokensToString(tokens,' ');//the tokens received at the time this method is called is after the senence has been resolved
         const originalSrc  = Resolver.srcLine(this.lineCount)?.trim() || '';//i used index based line count because 1-based line count works for error reporting during the analyzation process but not for logging it after the process
         
         let expansionText:string = brown('none.'); 
@@ -371,10 +371,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             const isNewLine = (payload as Token).type === DSLLexer.NEW_LINE;
             if (isNewLine) this.targetLineCount += 1;//increment the line count at every empty new line
         }
-        if (this.lineCount === (Resolver.srcLines.length-1)) {//this block is to increment the line count at the end of the file.This is because i dont directly have the eof token in the tokens array which is because they only contain sentences.so without that,the line count at the end of the file will always be a count short which s why im checking it against the input array.length - 1.Explicitly incrementing it under tis conditin fixes that.
-            this.targetLineCount += 1;
-        }
-
         this.currentStringifiedStatement = Resolver.stringifyStatement(tokens,declaredAlias);
         this.checkForRepetition();
         this.logProgress(tokens);//This must be logged before the line updates as observed from the logs. 
@@ -391,7 +387,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         for (const child of ctx.children) {
             if (Resolver.terminate) return;
             await this.resolveLine(child);
-            const EOF = this.lineCount===Resolver.srcLines.length;
+            const EOF = this.lineCount === (Resolver.srcLines.length-1);//this block is to increment the line count at the end of the file.This is because i dont directly have the eof token in the tokens array which is because they only contain sentences.so without that,the line count at the end of the file will always be a count short which s why im checking it against the input array.length - 1.Explicitly incrementing it under tis conditin fixes that.
             const shouldFlushLogs = Resolver.terminate || EOF || ((this.lineCount % Resolver.linesToLogAtATime)===0);
             if (shouldFlushLogs) {
                 await Resolver.flushLogs();
@@ -479,7 +475,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             }
         };
         const showHoverInfoForRef = (referencedTokens:Token[],refText:string)=>{
-            const refValue = this.tokensToString(referencedTokens);
+            const refValue = this.tokensToString(referencedTokens,'');
             Resolver.createHoverInfo({
                 line:this.lineCount,
                 hoverText:refText,
