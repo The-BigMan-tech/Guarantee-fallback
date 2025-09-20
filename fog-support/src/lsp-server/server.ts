@@ -6,9 +6,11 @@ import {
     TextDocuments,
     TextDocumentSyncKind
 } from 'vscode-languageserver/node';
+
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {analyzeDocument, autoComplete,getHoverInfo} from "fog-js";
 import { debounce } from 'throttle-debounce';
+import { URI } from 'vscode-uri';
 import { lockFree } from './req-lock';
 
 const connection = createConnection(ProposedFeatures.all);
@@ -104,7 +106,7 @@ connection.onInitialize(() => {
 });
 documents.onDidChangeContent(change => {
     const text = change.document.getText();
-    const srcPath = change.document.uri;
+    const srcPath = URI.parse(change.document.uri).fsPath;
     debouncedAnalysis(text,srcPath);
     connection.console.log(`Document changed. Current length: ${text.length}`);
 });
