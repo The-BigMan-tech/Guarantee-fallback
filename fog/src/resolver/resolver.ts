@@ -261,6 +261,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                 })
                 .join('\n');
         }
+
         const resolveRefMessage = `\n-Resolves to ${brown(resolvedSentence)}`;
         let successMessage = lime.underline(`\nProcessed line ${this.lineCount + 1}: `);//the +1 to the line count is because the document is numbered by 1-based line counts even though teh underlying array is 0-based
         successMessage += `\n-Sentence: ${brown(originalSrc)}`;
@@ -268,9 +269,12 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         if (this.prevRefCheck.encounteredRef) {//using prevRefCehck under the same loop accesses the ref check of the latest senetnce.
             successMessage += resolveRefMessage;
         }
+
         successMessage += `\n-Semantic form: ${brown(this.currentStringifiedStatement)}`;
         if (this.predicateForLog) {//the condition is to skip printing this on alias declarations.The lock works because this is only set on facts and not on alias declarations.Im locking this on alias declarations because they dont need extra logging cuz there is no expansion data or any need to log the predicate separately.just the declaration is enough
-            const predicateFromAlias = Resolver.aliases.get(this.predicateForLog)?.predicate || '';
+            const aliasAtKey = Resolver.aliases.get(this.predicateForLog);
+            const predicateFromAlias = aliasAtKey?.predicate || '';
+            
             if (predicateFromAlias) {
                 const aliasMsg = `\n alias ${this.predicateForLog} = ${brown(`*${predicateFromAlias}`)}.`;
                 successMessage += aliasMsg;
@@ -278,22 +282,29 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
                     line:this.lineCount,
                     hoverText:`#${this.predicateForLog}`,
                     code:aliasMsg,
+                    refLine:lineFromKey(aliasAtKey!.uniqueKey),
+                    refText:'.',//this takes the cursor to the end of the alias declaration
+                    doc:undefined
                 });
             }else {
                 successMessage += `\n-Predicate: *${this.predicateForLog}`;
             }
             successMessage += `\n-Expansion: ${brown(expansionText)}`; 
         };
+
         successMessage += '\n';
         console.info(successMessage);
         Resolver.logs?.push(successMessage);
 
         for (const ref of [...this.refToTokens.keys()]) {
+            const refValue = this.tokensToString(this.refToTokens.get(ref)!);
             Resolver.createHoverInfo({
                 line:this.lineCount,
                 hoverText:ref,
-                code:this.tokensToString(this.refToTokens.get(ref)!),
-                doc:'reference to :'
+                code:refValue,
+                doc:'reference to :',
+                refLine:this.prevRefCheck.line,
+                refText:refValue
             });
         }
     }
