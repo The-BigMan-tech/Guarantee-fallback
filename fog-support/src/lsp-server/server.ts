@@ -16,19 +16,20 @@ const connection = createConnection(ProposedFeatures.all);
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 let analysisUpToDate:boolean = false;
 
-function analyzeDoc(text:string,srcPath:string):void {
+function analyzeDoc(text:string,srcPath:string,uri:string):void {
     analyzeDocument(text,srcPath).then(diagnostics=>{
         connection.sendDiagnostics({
-            uri:srcPath,
+            uri,
             diagnostics:diagnostics
         });
+        console.log('diagnostics: ',diagnostics);
         analysisUpToDate = true;
     });
 }
 const debouncedAnalysis = debounce(300,
-    (text:string,srcPath:string) =>{
+    (text:string,srcPath:string,uri:string) =>{
         analysisUpToDate = false;
-        analyzeDoc(text,srcPath);
+        analyzeDoc(text,srcPath,uri);
     },
     {atBegin:false}
 );
@@ -104,9 +105,10 @@ connection.onInitialize(() => {
     };
 });
 documents.onDidChangeContent(change => {
+    const uri = change.document.uri;
     const text = change.document.getText();
-    const srcPath = URI.parse(change.document.uri).fsPath;
-    debouncedAnalysis(text,srcPath);
+    const srcPath = URI.parse(uri).fsPath;
+    debouncedAnalysis(text,srcPath,uri);
     connection.console.log(`Document changed. Current length: ${text.length}`);
 });
 
