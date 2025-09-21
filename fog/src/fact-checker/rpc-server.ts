@@ -99,7 +99,7 @@ server.addMethod("selectSmallestRecord",({predicates}:{predicates:string[]})=>{
 async function handleRequest(data:any,socket:any):Promise<void> {
     const response = await server.receive(data);//route request to the appropriate controller
     const result = response?.result;
-    if (isGenerator(result)) {
+    if (isGenerator(result)) {//this block streams the results froma generator
         for await (const value of result) {
             const responseToClient = stringify({...response,result:{finished:false,value}});
             ipc.server.emit(socket, 'message', responseToClient); // Send each value to the client
@@ -125,8 +125,13 @@ export async function startIPCServer(): Promise<void> {
     ipc.serve(() => {
         ipc.server.on('message', async (data, socket) => {//receive request from the client
             try {
-                correctObjProperty(data);
-                await handleRequest(data,socket);
+                const release = await mutex.acquire();
+                try {
+                    correctObjProperty(data);
+                    await handleRequest(data,socket);
+                }finally {
+                    release();
+                }
             } catch (err) {
                 console.error('Error handling JSON-RPC request:', err);
             }
