@@ -10,20 +10,40 @@ import Denque from 'denque';
 import sizeof from "object-sizeof";
 import { Project } from "ts-morph";
 
+type bytes = number;
+
 let inStreamRequest:boolean = false;
+let streamMemSize:bytes = 0;
+
 const streamResult = new BehaviorSubject<Denque<Response<any>>>(new Denque([])); // Initial value can be null or any default
 export const streamObservable = streamResult.asObservable();
-type bytes = number;
+
+const streamBatch = new Denque<Response<any>>([]); 
+const batchLengthThresh = 6;
+const batchMemThresh:bytes = 1000;
+
+
+function handleResponse(serverID:string,data:string):void {
+    const jsonRPCResponse = JSON.parse(data) as JSONRPCResponse;
+    const result = jsonRPCResponse.result as Response<any>;
+    client.receive(jsonRPCResponse);//hanlde the response.It still receives the result whether finished or not unlike the stream batch because one-time requests only have one result where the meaningful value is under the same object that flagged th request as finsihed
+    if (inStreamRequest) {
+        streamBatch.push(result);//push this regardless of whether its the finished dummy state.Its important to clarify that the stream request is complete
+        streamMemSize += sizeof(result.value);//only increase the size on every streamed value.The reason why im not just getting the size of the stream batch directly is because the dequeue object may be a complex object to calculate the size.So to maximize perf,only measuring the actual value is bette
+        // console.log('stream length: ',streamBatch.length,'mem size: ',streamMemSize);
+        const flushStreamBatch = (streamBatch.length >= batchLengthThresh) || (streamMemSize >= batchMemThresh) || result.finished;
+        if (flushStreamBatch) {
+            // console.log('cleared the stream');
+            streamMemSize = 0;//we can reset the memsize here because the batch will be cleared.
+            streamResult.next(streamBatch);
+        }
+    }
+    if (result.finished) ipc.disconnect(serverID);//close the connection when all the data for the request has been fully sent
+}
 
 const client = new JSONRPCClient(async (jsonRPCRequest) =>{
     const ipcServerID = 'fog-ipc-server';
     ipc.config.silent = true;
-
-    const streamBatch = new Denque<Response<any>>([]);
-    const batchLengthThresh = 6;
-
-    const batchMemThresh:bytes = 1000;
-    let streamMemSize:bytes = 0;
 
     ipc.connectTo(ipcServerID, () => {
         const server = ipc.of[ipcServerID]; 
@@ -32,22 +52,7 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
         });
         server.on('message', (data: string) => {//get the response
             try {
-                const jsonRPCResponse = JSON.parse(data) as JSONRPCResponse;
-                const result = jsonRPCResponse.result as Response<any>;
-                client.receive(jsonRPCResponse);//hanlde the response.It still receives the result whether finished or not unlike the stream batch because one-time requests only have one result where the meaningful value is under the same object that flagged th request as finsihed
-                if (inStreamRequest) {
-                    streamBatch.push(result);//push this regardless of whether its the finished dummy state.Its important to clarify that the stream request is complete
-                    streamMemSize += sizeof(result.value);//only increase the size on every streamed value.The reason why im not just getting the size of the stream batch directly is because the dequeue object may be a complex object to calculate the size.So to maximize perf,only measuring the actual value is better.
-
-                    // console.log('stream length: ',streamBatch.length,'mem size: ',streamMemSize);
-                    const flushStreamBatch = (streamBatch.length >= batchLengthThresh) || (streamMemSize >= batchMemThresh) || result.finished;
-                    if (flushStreamBatch) {
-                        // console.log('cleared the stream');
-                        streamMemSize = 0;//we can reset the memsize here because the batch will be cleared.
-                        streamResult.next(streamBatch);
-                    }
-                }
-                if (result.finished) ipc.disconnect(ipcServerID);//close the connection when all the data for the request has been fully sent
+                handleResponse(ipcServerID,data);
             }catch (err) {
                 console.error(chalk.red('Error processing message:'));
                 throw new Error(String(err));
