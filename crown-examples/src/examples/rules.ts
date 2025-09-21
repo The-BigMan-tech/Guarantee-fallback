@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import {Box,Doc, Implications } from "fog-js";
+import {Box,Doc, Implications } from "crown-js";
 import { Predicates as P } from "./documents/output/doc.types.js";
 import * as zod from "zod";
 

@@ -8,7 +8,7 @@ importers:
 
   .:
     dependencies:
-      fog-js:
+      crown-js:
         specifier: ^1.1.4
         version: 1.1.4
       safe-stable-stringify:
@@ -110,6 +110,9 @@ packages:
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
 
+  crown-js@1.1.4:
+    resolution: {integrity: sha512-IW+Ox2+jbVhqLuOjexKiQQ/WHhEWKG7+WbtcJndiFi1IKRl1juzohrXnadyPtJHLBTpgOydAnXUQCtL4kQr4+w==}
+
   denque@2.1.0:
     resolution: {integrity: sha512-HVQE3AAb/pxF8fQAoiqpvg9i3evqug3hoiwakOyZAwJm+6vZehbkYXZ0l4JxS+I3QxM97v5aaRNhj8v5oBhekw==}
     engines: {node: '>=0.10'}
@@ -142,9 +145,6 @@ packages:
   fill-range@7.1.1:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
     engines: {node: '>=8'}
-
-  fog-js@1.1.4:
-    resolution: {integrity: sha512-+iQbaIkU2FkdMOrpD1SiC4kt4ci96CLy6/KaCqlSh/CFnazQsILvSjA2nMgVXZ8LQSh4cQWNdpPI+yFt24AXDQ==}
 
   fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
@@ -454,6 +454,21 @@ snapshots:
 
   core-util-is@1.0.3: {}
 
+  crown-js@1.1.4:
+    dependencies:
+      '@types/node-ipc': 9.2.3
+      async-mutex: 0.5.0
+      commander: 14.0.0
+      denque: 2.1.0
+      es-main: 1.4.0
+      json-rpc-2.0: 1.7.1
+      node-ipc: 12.0.0
+      object-sizeof: 2.6.5
+      rxjs: 7.8.2
+      ts-morph: 26.0.0
+      uuid: 11.1.0
+      zod: 4.1.5
+
   denque@2.1.0: {}
 
   easy-stack@1.0.1: {}
@@ -484,21 +499,6 @@ snapshots:
   fill-range@7.1.1:
     dependencies:
       to-regex-range: 5.0.1
-
-  fog-js@1.1.4:
-    dependencies:
-      '@types/node-ipc': 9.2.3
-      async-mutex: 0.5.0
-      commander: 14.0.0
-      denque: 2.1.0
-      es-main: 1.4.0
-      json-rpc-2.0: 1.7.1
-      node-ipc: 12.0.0
-      object-sizeof: 2.6.5
-      rxjs: 7.8.2
-      ts-morph: 26.0.0
-      uuid: 11.1.0
-      zod: 4.1.5
 
   fs.realpath@1.0.0: {}
 

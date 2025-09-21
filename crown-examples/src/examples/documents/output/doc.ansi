@@ -18,7 +18,7 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 -Semantic form: [38;2;221;203;160m["alias", "mother"][39m
 [38;2;173;239;30m[4m[24m[39m
 [38;2;173;239;30m[4mProcessed line 5: [24m[39m
--Sentence: [38;2;221;203;160malias males = *male .[39m
+-Sentence: [38;2;221;203;160malias males = *male.[39m
 -Semantic form: [38;2;221;203;160m["alias", "males"][39m
 [38;2;173;239;30m[4m[24m[39m
 [38;2;173;239;30m[4mProcessed line 7: [24m[39m
@@ -71,7 +71,7 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
 [38;2;173;239;30m[4mProcessed line 20: [24m[39m
--Sentence: [38;2;221;203;160m!Mandy is the #mother of !Matt.[39m
+-Sentence: [38;2;221;203;160m!Mandy is the #mother of !Matt .[39m
 -Semantic form: [38;2;221;203;160m["parent", "Mandy", "Matt"][39m-
  alias mother = [38;2;221;203;160m*parent[39m.
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
@@ -113,4 +113,4 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;221;203;160m[39m
 [32m[39m
 [32m[39m
-[32mThe document resolved in 126.495 ms (0.126 seconds)[39m
+[32mThe document resolved in 68.092 ms (0.068 seconds)[39m
