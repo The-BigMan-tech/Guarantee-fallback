@@ -9,6 +9,7 @@ import { observableToAsyncGen,consumeAsyncIterable } from './observable-async-ge
 import Denque from 'denque';
 import sizeof from "object-sizeof";
 import { Project } from "ts-morph";
+import {Mutex} from 'async-mutex';
 
 type bytes = number;
 
@@ -16,12 +17,13 @@ let inStreamRequest:boolean = false;
 let streamMemSize:bytes = 0;
 
 const streamResult = new BehaviorSubject<Denque<Response<any>>>(new Denque([])); // Initial value can be null or any default
-export const streamObservable = streamResult.asObservable();
+const streamObservable = streamResult.asObservable();
 
 const streamBatch = new Denque<Response<any>>([]); 
 const batchLengthThresh = 6;
 const batchMemThresh:bytes = 1000;
 
+const mutex = new Mutex();
 
 function handleResponse(serverID:string,data:string):void {
     const jsonRPCResponse = JSON.parse(data) as JSONRPCResponse;
@@ -50,7 +52,7 @@ const client = new JSONRPCClient(async (jsonRPCRequest) =>{
         server.on('connect', () => {//make the request.the request should not be stringified
             server.emit('message',jsonRPCRequest);
         });
-        server.on('message', (data: string) => {//get the response
+        server.on('message',(data: string) => {//get the response
             try {
                 handleResponse(ipcServerID,data);
             }catch (err) {
@@ -92,16 +94,26 @@ async function collectStream<ReturnType,ValueType>(func:(value:ValueType)=>Retur
 }
 
 async function streamRequest<R,V>({req,collector}:{req:()=>Promise<Response<V>>,collector:(value:V)=>R}):Promise<R[] | null> {//it returns null when the caller reads a stream thats already been fully consumed.Detecting this edge case prevents starting a stream req that will hang indefintely because it assumes that the stream will hav at least a chunk.Thiis case can happen when multiple stream req are coordinated with an explicitly passed state o prevent deadlocks on recursion or other problems.So its possible that a stream request is asking for a stream that has already been consumed
-    inStreamRequest = true;
-    const response = await req();//initiate the stream request
-    if (response.finished) return null;
-    const result = await collectStream<R,V>(value=>collector(value));//consume the stream as the values are ready
-    inStreamRequest = false;
-    return result;
+    const release = await mutex.acquire();
+    try {
+        inStreamRequest = true;
+        const response = await req();//initiate the stream request
+        if (response.finished) return null;
+        const result = await collectStream<R,V>(value=>collector(value));//consume the stream as the values are ready
+        inStreamRequest = false;
+        return result;
+    }finally {
+        release();
+    }
 }
 async function request<T>(method: string, params: JSONRPCParams):Promise<T> {
-    const response =  await client.request(method,params) as Response<any>;
-    return response.value;
+    const release = await mutex.acquire();
+    try {
+        const response =  await client.request(method,params) as Response<any>;
+        return response.value;
+    }finally {
+        release();
+    }
 }
 /**It loads the server document with the data from the file using the file path provided.
  * It can take a .fog document or a .json file.
@@ -432,3 +444,9 @@ export interface lspLocation {
     uri:string,
     range:lspRange
 }
+const doc = new Doc();
+doc.isItStated('exact','h',['s']).then(x=>{
+    console.log(x);
+});
+doc.isItStated('exact','f',['s']).then(x=>console.log(x));
+
