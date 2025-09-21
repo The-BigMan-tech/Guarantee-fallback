@@ -7,8 +7,11 @@ import {autoComplete, findDefLocation, getHoverInfo, importDocFromJson, importDo
 import { Atom, AtomList, isGenerator,Result} from "../utils/utils.js";
 import {serverDoc} from "./fact-checker.js";
 import { analyzeDocument, resolveDocument } from "../resolver/functions.js";
+import {Mutex} from 'async-mutex';
 
 const server = new JSONRPCServer();
+const mutex = new Mutex();
+
 server.addMethod("importDocFromSrc", async ({ filePath, outputFolder }: { filePath: string; outputFolder: string }) => {
     const result = await importDocFromSrc(filePath, outputFolder);
     return result;
@@ -93,7 +96,28 @@ server.addMethod("selectSmallestRecord",({predicates}:{predicates:string[]})=>{
         }
     }
 });
-
+async function handleRequest(data:any,socket:any):Promise<void> {
+    const response = await server.receive(data);//route request to the appropriate controller
+    const result = response?.result;
+    if (isGenerator(result)) {
+        for await (const value of result) {
+            const responseToClient = stringify({...response,result:{finished:false,value}});
+            ipc.server.emit(socket, 'message', responseToClient); // Send each value to the client
+        }
+        const endResponse = stringify({...response,result:{finished:true,value:null}});
+        ipc.server.emit(socket, 'message',endResponse);//end of streaming
+    }else {
+        const responseToClient = stringify({...response,result:{finished:true,value:result}});//the response must be stringified to the client
+        ipc.server.emit(socket, 'message', responseToClient); // Return response back to the client
+    }
+}
+function correctObjProperty(data:any):void {
+    const obj = data.params?.obj;
+    if (obj) {
+        const defaultProp = 'default' in obj;//this is to handle js environment differences like between swc and jiti
+        data.params.obj = (defaultProp)?obj['default']:obj;
+    }
+}
 export async function startIPCServer(): Promise<void> {
     ipc.config.id = 'fog-ipc-server';
     ipc.config.silent = false;
@@ -101,24 +125,8 @@ export async function startIPCServer(): Promise<void> {
     ipc.serve(() => {
         ipc.server.on('message', async (data, socket) => {//receive request from the client
             try {
-                const obj = data.params?.obj;
-                if (obj) {
-                    const defaultProp = 'default' in obj;//this is to handle js environment differences like between swc and jiti
-                    data.params.obj = (defaultProp)?obj['default']:obj;
-                }
-                const response = await server.receive(data);//route request to the appropriate controller
-                const result = response?.result;
-                if (isGenerator(result)) {
-                    for await (const value of result) {
-                        const responseToClient = stringify({...response,result:{finished:false,value}});
-                        ipc.server.emit(socket, 'message', responseToClient); // Send each value to the client
-                    }
-                    const endResponse = stringify({...response,result:{finished:true,value:null}});
-                    ipc.server.emit(socket, 'message',endResponse);//end of streaming
-                }else {
-                    const responseToClient = stringify({...response,result:{finished:true,value:result}});//the response must be stringified to the client
-                    ipc.server.emit(socket, 'message', responseToClient); // Return response back to the client
-                }
+                correctObjProperty(data);
+                await handleRequest(data,socket);
             } catch (err) {
                 console.error('Error handling JSON-RPC request:', err);
             }
