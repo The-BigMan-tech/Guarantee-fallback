@@ -2,7 +2,7 @@ alias friends.
 alias good.
 alias friend = *friends.
 alias mother = *parent.
-alias males = *male .
+alias males = *male.
 
 :Billy and :John are #friends.
 
@@ -17,7 +17,7 @@ alias males = *male .
 :Mandy is a *female.  
 
 !Mandy is the #mother of  !Philip.
-!Mandy is the #mother of !Matt.
+!Mandy is the #mother of !Matt .
 
 :ada is a #good  :girl.
 
