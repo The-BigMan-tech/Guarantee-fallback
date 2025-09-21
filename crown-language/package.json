@@ -1,5 +1,5 @@
 {
-  "name": "@Crown",
+  "name": "@crown",
   "main": "./dist/bundle-min.js",
   "types": "./dist/bundle-min.d.ts",
   "bin": {
