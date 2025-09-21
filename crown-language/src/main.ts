@@ -7,12 +7,12 @@ import { startIPCServer } from './fact-checker/rpc-server.js';
 const program = new Command();
 async function runCLI():Promise<void> {
     program
-        .name('fog')
+        .name('crown')
         .description('Example CLI that calls a function using flags/options')
         .version('1.0.0');
     program
         .command('resolve')  // define the subcommand 'resolve'
-        .description('Resolve .fog files to json')
+        .description('Resolve .crown files to json')
         .requiredOption('--src <srcPath>', 'path to DSL file')
         .option('--out <outputPath>', 'folder to output the DSL data structure')
         .action(async (options) => {

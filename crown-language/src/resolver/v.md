@@ -1,4 +1,0 @@
-````typescript 
-console.log()
-````
-**s**

@@ -11,7 +11,7 @@ importers:
       '@types/throttle-debounce':
         specifier: ^5.0.2
         version: 5.0.2
-      fog-js:
+      crown-js:
         specifier: ^1.1.4
         version: 1.1.4
       throttle-debounce:
@@ -585,8 +585,8 @@ packages:
   color-name@1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
 
-  commander@14.0.0:
-    resolution: {integrity: sha512-2uM9rYjPvyq39NwLRqaiLtWHyDC1FvryJDa2ATTVims5YAS4PupsEQsDvP14FqhFr0P49CYDugi59xaxJlTXRA==}
+  commander@14.0.1:
+    resolution: {integrity: sha512-2JkV3gUZUVrbNA+1sjBOYLsMZ5cEEl8GTFP2a4AVz5hvasAMCQ1D2l2le/cX+pV4N6ZU17zjUahLpIXRrnWL8A==}
     engines: {node: '>=20'}
 
   concat-map@0.0.1:
@@ -609,6 +609,9 @@ packages:
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
+
+  crown-js@1.1.4:
+    resolution: {integrity: sha512-IW+Ox2+jbVhqLuOjexKiQQ/WHhEWKG7+WbtcJndiFi1IKRl1juzohrXnadyPtJHLBTpgOydAnXUQCtL4kQr4+w==}
 
   data-view-buffer@1.0.2:
     resolution: {integrity: sha512-EmKO5V3OLXh1rtK2wgXRansaK1/mtVdTUEiEI0W8RkvgT05kfxaH29PliLnpLP73yYO6142Q72QNa8Wx/A5CqQ==}
@@ -809,9 +812,6 @@ packages:
 
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
-
-  fog-js@1.1.4:
-    resolution: {integrity: sha512-+iQbaIkU2FkdMOrpD1SiC4kt4ci96CLy6/KaCqlSh/CFnazQsILvSjA2nMgVXZ8LQSh4cQWNdpPI+yFt24AXDQ==}
 
   for-each@0.3.5:
     resolution: {integrity: sha512-dKx12eRCVIzqCxFGplyFKJMPvLEWgmNtUrpTiJIR5u97zEhRG8ySrtboPHZXx7daLxQVrl643cTzbab2tkQjxg==}
@@ -2325,7 +2325,7 @@ snapshots:
 
   color-name@1.1.4: {}
 
-  commander@14.0.0: {}
+  commander@14.0.1: {}
 
   concat-map@0.0.1: {}
 
@@ -2356,6 +2356,21 @@ snapshots:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
+
+  crown-js@1.1.4:
+    dependencies:
+      '@types/node-ipc': 9.2.3
+      async-mutex: 0.5.0
+      commander: 14.0.1
+      denque: 2.1.0
+      es-main: 1.4.0
+      json-rpc-2.0: 1.7.1
+      node-ipc: 12.0.0
+      object-sizeof: 2.6.5
+      rxjs: 7.8.2
+      ts-morph: 26.0.0
+      uuid: 11.1.0
+      zod: 4.1.5
 
   data-view-buffer@1.0.2:
     dependencies:
@@ -2652,21 +2667,6 @@ snapshots:
   flat@5.0.2: {}
 
   flatted@3.3.3: {}
-
-  fog-js@1.1.4:
-    dependencies:
-      '@types/node-ipc': 9.2.3
-      async-mutex: 0.5.0
-      commander: 14.0.0
-      denque: 2.1.0
-      es-main: 1.4.0
-      json-rpc-2.0: 1.7.1
-      node-ipc: 12.0.0
-      object-sizeof: 2.6.5
-      rxjs: 7.8.2
-      ts-morph: 26.0.0
-      uuid: 11.1.0
-      zod: 4.1.5
 
   for-each@0.3.5:
     dependencies:

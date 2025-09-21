@@ -8,7 +8,7 @@ import {
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import {analyzeDocument, autoComplete,getHoverInfo} from "fog-js";
+import {analyzeDocument, autoComplete,getHoverInfo} from "crown-js";
 import { debounce } from 'throttle-debounce';
 import { URI } from 'vscode-uri';
 

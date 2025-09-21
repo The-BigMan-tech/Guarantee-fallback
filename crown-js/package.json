@@ -1,9 +1,9 @@
 {
-    "name": "fog-js",
+    "name": "crown-js",
     "main": "./dist/bundle.cjs",
     "types": "./dist/bundle.d.ts",
     "version": "1.1.4",
-    "description": "A javascript binding to the fog logic language",
+    "description": "A javascript binding to the crown logic language",
     "scripts": {
         "local-registry": "verdaccio",
         "compile:full": "swc ./src -d build --delete-dir-on-start --copy-files",

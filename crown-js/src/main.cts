@@ -44,7 +44,7 @@ function handleResponse(serverID:string,data:string):void {
 }
 
 const client = new JSONRPCClient(async (jsonRPCRequest) =>{
-    const ipcServerID = 'fog-ipc-server';
+    const ipcServerID = 'crown-ipc-server';
     ipc.config.silent = true;
 
     ipc.connectTo(ipcServerID, () => {
@@ -116,8 +116,8 @@ async function request<T>(method: string, params: JSONRPCParams):Promise<T> {
     }
 }
 /**It loads the server document with the data from the file using the file path provided.
- * It can take a .fog document or a .json file.
- * For the .json file,it directly loads the data onto the server document but for the .fog file,it resolves the document to the provided output folder and loads the data onto the server
+ * It can take a .crown document or a .json file.
+ * For the .json file,it directly loads the data onto the server document but for the .crown file,it resolves the document to the provided output folder and loads the data onto the server
  */
 function resolutionErr(result:Result):boolean {
     if (result === Result.error) {
@@ -151,7 +151,7 @@ export async function resolveDocument(filePath:string,outputFolder?:string):Prom
     console.log(chalk.green('\nSuccessfully resolved the document.'));
     return result;
 }
-//this takes in a .fog src file,an output folder and the rules.It then loads the document on the server as well as generating the types
+//this takes in a .crown src file,an output folder and the rules.It then loads the document on the server as well as generating the types
 export async function setupOutput<P extends string,R extends string>(srcFilePath:string,outputFolder:string,implications?:Implications<R,P>):Promise<void> {
     const doc = await importDocFromSrc(srcFilePath,outputFolder);
     const docName = path.basename(srcFilePath,path.extname(srcFilePath));

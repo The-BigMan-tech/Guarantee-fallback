@@ -179,9 +179,9 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
     cleanState(srcFilePath,false);//one particular reason i cleared the variables before resolution as opposed to after,is because i may need to access the static variables even after the resolution process.an example is the aliases state that i save into the document even after resolution
 
     const start = performance.now();
-    const isValidSrc = srcFilePath.endsWith(".fog");
+    const isValidSrc = srcFilePath.endsWith(".crown");
     if (!isValidSrc) {
-        console.error(chalk.red('The resolver only reads .fog files.'));
+        console.error(chalk.red('The resolver only reads .crown files.'));
         return {result:Result.error,jsonPath:Result.error};
     }
     try {
@@ -340,9 +340,9 @@ export async function importDocFromObject(json:Record<string,any>):Promise<Resul
 }
 
 export async function importDocFromSrc(filePath:string,outputFolder:string):Promise<Result> {
-    const isSrcFile = filePath.endsWith(".fog");
+    const isSrcFile = filePath.endsWith(".crown");
     if (!isSrcFile) {
-        console.error(chalk.red('This function must be called with a .fog src file.'));
+        console.error(chalk.red('This function must be called with a .crown src file.'));
         return Result.error;
     }
     const {result,jsonPath:jsonPathResult} = await resolveDocument(filePath,outputFolder);
@@ -364,7 +364,7 @@ export async function importDocFromJson(filePath:string):Promise<Result> {
 export function getHoverInfo(line:number,hoverText:string):lspHover | null {
     const hoverData = Resolver.hoverInfo.get(createKey(line,hoverText))?.data;
     if (hoverData) {
-        const code = `\`\`\`fog\n${hoverData.code}\n\`\`\``;
+        const code = `\`\`\`crown\n${hoverData.code}\n\`\`\``;
         const doc = `${(hoverData.doc)?hoverData.doc + '\n':""}`;
         return {
             contents: {

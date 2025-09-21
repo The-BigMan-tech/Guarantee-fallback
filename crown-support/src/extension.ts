@@ -1,4 +1,4 @@
-import { findDefLocation } from 'fog-js';
+import { findDefLocation } from 'crown-js';
 import * as path from 'path';
 import { workspace, ExtensionContext,languages, DefinitionProvider, CancellationToken, Definition, DefinitionLink, Position,TextDocument,Uri,Location,Range} from 'vscode';
 

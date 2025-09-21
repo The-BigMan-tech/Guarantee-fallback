@@ -119,7 +119,7 @@ function correctObjProperty(data:any):void {
     }
 }
 export async function startIPCServer(): Promise<void> {
-    ipc.config.id = 'fog-ipc-server';
+    ipc.config.id = 'crown-ipc-server';
     ipc.config.silent = false;
 
     ipc.serve(() => {
@@ -138,5 +138,5 @@ export async function startIPCServer(): Promise<void> {
         });
     });
     ipc.server.start();
-    console.log(chalk.green(`The fog fact checker is listening with the id '${ipc.config.id}'`));
+    console.log(chalk.green(`The crown fact checker is listening with the id '${ipc.config.id}'`));
 }

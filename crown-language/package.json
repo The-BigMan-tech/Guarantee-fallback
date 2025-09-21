@@ -1,9 +1,9 @@
 {
-  "name": "@fog",
+  "name": "@Crown",
   "main": "./dist/bundle-min.js",
   "types": "./dist/bundle-min.d.ts",
   "bin": {
-    "fog": "./dist/bundle-min.js"
+    "crown": "./dist/bundle-min.js"
   },
   "version": "1.0.15",
   "description": "A TypeScript library project scaffold providing ready-to-use build and debug tooling",

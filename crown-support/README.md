@@ -32,7 +32,7 @@ This brings syntax highlighting,live analysis,hover information,autocompletions 
     {
         "scope": "terminator.and.crown",
         "settings": {
-            "foreground": "#ee857e"
+            "foreground": "#ef6157"
         }
     }, 
     {
@@ -68,7 +68,7 @@ This brings syntax highlighting,live analysis,hover information,autocompletions 
     {
         "scope": "reference.crown", 
         "settings": {
-            "foreground": "#ee857e"
+            "foreground": "#b8edd5"
         }
     }, 
     {
