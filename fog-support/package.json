@@ -2,7 +2,7 @@
     "name": "fog-support",
     "displayName": "Fog language support",
     "description": "Editor support for the fog logic language",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "icon": "icons/fog-logo.png",
     "engines": {
         "vscode": "^1.103.0"

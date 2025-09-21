@@ -444,9 +444,3 @@ export interface lspLocation {
     uri:string,
     range:lspRange
 }
-const doc = new Doc();
-doc.isItStated('exact','h',['s']).then(x=>{
-    console.log(x);
-});
-doc.isItStated('exact','f',['s']).then(x=>console.log(x));
-

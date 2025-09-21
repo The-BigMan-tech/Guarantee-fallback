@@ -4,10 +4,10 @@
         "friend": "friends",
         "friends": "friends",
         "good": "good",
-        "hh": "hh",
         "male": "male",
         "males": "male",
         "mother": "parent",
+        "nice": "nice",
         "parent": "parent",
         "tall": "tall"
     },
@@ -68,32 +68,25 @@
                 },
                 {
                     "list": [
-                        "ada",
                         "a"
                     ]
                 },
                 {
                     "list": [
-                        "ada",
                         "b"
                     ]
                 },
                 {
                     "list": [
-                        "ada",
                         "c"
                     ]
                 },
                 {
                     "list": [
-                        "ada",
                         "d"
                     ]
                 }
             ]
-        },
-        "hh": {
-            "facts": []
         },
         "male": {
             "facts": [
@@ -110,6 +103,15 @@
         },
         "mother": {
             "facts": []
+        },
+        "nice": {
+            "facts": [
+                {
+                    "list": [
+                        "Leo"
+                    ]
+                }
+            ]
         },
         "parent": {
             "facts": [
@@ -131,7 +133,14 @@
             "facts": [
                 {
                     "list": [
-                        "ada"
+                        "l",
+                        "h"
+                    ]
+                },
+                {
+                    "list": [
+                        2,
+                        "h"
                     ]
                 }
             ]

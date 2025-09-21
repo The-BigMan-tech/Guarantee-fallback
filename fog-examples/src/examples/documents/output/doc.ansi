@@ -18,93 +18,99 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 -Semantic form: [38;2;221;203;160m["alias", "mother"][39m
 [38;2;173;239;30m[4m[24m[39m
 [38;2;173;239;30m[4mProcessed line 5: [24m[39m
--Sentence: [38;2;221;203;160malias males = *male.[39m
+-Sentence: [38;2;221;203;160malias males = *male .[39m
 -Semantic form: [38;2;221;203;160m["alias", "males"][39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 6: [24m[39m
--Sentence: [38;2;221;203;160malias hh. //omit-warning[39m
--Semantic form: [38;2;221;203;160m["alias", "hh"][39m
+[38;2;173;239;30m[4mProcessed line 7: [24m[39m
+-Sentence: [38;2;221;203;160m:Billy and :John are #friends.[39m
+-Semantic form: [38;2;221;203;160m["friends", "Billy", "John"][39m-
+ alias friends = [38;2;221;203;160m*friends[39m.
+-Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
 [38;2;173;239;30m[4mProcessed line 9: [24m[39m
--Sentence: [38;2;221;203;160m:Billy and :John are #friends.[39m
--Semantic form: [38;2;221;203;160m["friends", "Billy", "John"][39m
--Alias #friends -> [38;2;221;203;160m*friends[39m
+-Sentence: [38;2;221;203;160m!John,:Mark and :Zane are  #friends.[39m
+-Semantic form: [38;2;221;203;160m["friends", "John", ", ", "Mark", "Zane"][39m-
+ alias friends = [38;2;221;203;160m*friends[39m.
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
 [38;2;173;239;30m[4mProcessed line 11: [24m[39m
--Sentence: [38;2;221;203;160m!John,:Mark and :Zane are  #friends.[39m
--Semantic form: [38;2;221;203;160m["friends", "John", ", ", "Mark", "Zane"][39m
--Alias #friends -> [38;2;221;203;160m*friends[39m
+-Sentence: [38;2;221;203;160m!Zane  is the #friend of :Cole.[39m
+-Semantic form: [38;2;221;203;160m["friends", "Zane", "Cole"][39m-
+ alias friend = [38;2;221;203;160m*friends[39m.
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
 [38;2;173;239;30m[4mProcessed line 13: [24m[39m
--Sentence: [38;2;221;203;160m!Zane  is the #friend of :Cole.[39m
--Semantic form: [38;2;221;203;160m["friends", "Zane", "Cole"][39m
--Alias #friend -> [38;2;221;203;160m*friends[39m
+-Sentence: [38;2;221;203;160m:Leo is !Cole's #friend &and <He> is *nice.[39m
+-Semantic form: [38;2;221;203;160m["friends", "Leo", "Cole", "'"][39m-
+ alias friend = [38;2;221;203;160m*friends[39m.
+-Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 13: [24m[39m
+-Sentence: [38;2;221;203;160m:Leo is !Cole's #friend &and <He> is *nice.[39m
+-Resolves to [38;2;221;203;160m:Leo is *nice .[39m
+-Semantic form: [38;2;221;203;160m["nice", "Leo"][39m
+-Predicate: *nice
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
 [38;2;173;239;30m[4mProcessed line 15: [24m[39m
--Sentence: [38;2;221;203;160m:Leo is !Cole's #friend.[39m
--Semantic form: [38;2;221;203;160m["friends", "Leo", "Cole", "'"][39m
--Alias #friend -> [38;2;221;203;160m*friends[39m
+-Sentence: [38;2;221;203;160m:Matt and :Philip  are #males.[39m
+-Semantic form: [38;2;221;203;160m["male", "Matt", "Philip"][39m-
+ alias males = [38;2;221;203;160m*male[39m.
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
 [38;2;173;239;30m[4mProcessed line 17: [24m[39m
--Sentence: [38;2;221;203;160m:Matt and :Philip  are #males.[39m
--Semantic form: [38;2;221;203;160m["male", "Matt", "Philip"][39m
--Alias #males -> [38;2;221;203;160m*male[39m
--Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
-[38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 19: [24m[39m
 -Sentence: [38;2;221;203;160m:Mandy is a *female.[39m
 -Semantic form: [38;2;221;203;160m["female", "Mandy"][39m
 -Predicate: *female
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 21: [24m[39m
+[38;2;173;239;30m[4mProcessed line 19: [24m[39m
 -Sentence: [38;2;221;203;160m!Mandy is the #mother of  !Philip.[39m
--Semantic form: [38;2;221;203;160m["parent", "Mandy", "Philip"][39m
--Alias #mother -> [38;2;221;203;160m*parent[39m
+-Semantic form: [38;2;221;203;160m["parent", "Mandy", "Philip"][39m-
+ alias mother = [38;2;221;203;160m*parent[39m.
+-Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 20: [24m[39m
+-Sentence: [38;2;221;203;160m!Mandy is the #mother of !Matt.[39m
+-Semantic form: [38;2;221;203;160m["parent", "Mandy", "Matt"][39m-
+ alias mother = [38;2;221;203;160m*parent[39m.
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
 [38;2;173;239;30m[4mProcessed line 22: [24m[39m
--Sentence: [38;2;221;203;160m!Mandy is the #mother of !Matt.[39m
--Semantic form: [38;2;221;203;160m["parent", "Mandy", "Matt"][39m
--Alias #mother -> [38;2;221;203;160m*parent[39m
+-Sentence: [38;2;221;203;160m:ada is a #good  :girl.[39m
+-Semantic form: [38;2;221;203;160m["good", "ada", "girl"][39m-
+ alias good = [38;2;221;203;160m*good[39m.
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
 [38;2;173;239;30m[4mProcessed line 24: [24m[39m
--Sentence: [38;2;221;203;160m:ada is a #good :girl .[39m
--Semantic form: [38;2;221;203;160m["good", "ada", "girl"][39m
--Alias #good -> [38;2;221;203;160m*good[39m
--Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
-[38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 26: [24m[39m
 -Sentence: [38;2;221;203;160m!ada is a *female.[39m
 -Semantic form: [38;2;221;203;160m["female", "ada"][39m
 -Predicate: *female
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 28: [24m[39m
--Sentence: [38;2;221;203;160m<She> *tall.[39m
--Resolves to [38;2;221;203;160m!ada *tall .[39m
--Semantic form: [38;2;221;203;160m["tall", "ada"][39m
+[38;2;173;239;30m[4mProcessed line 26: [24m[39m
+-Sentence: [38;2;221;203;160m[:l,2] :h *tall.[39m
+-Semantic form: [38;2;221;203;160m["tall", "[", "l", ", ", "2", "]", "h"][39m
 -Predicate: *tall
--Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
-[38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 29: [24m[39m
--Sentence: [38;2;221;203;160m<ref:1> [:a,:b,:c,:d] are  #good !.//omit-warning[39m
--Resolves to [38;2;221;203;160m!ada [ :a , :b , :c , :d ] are #good ! .[39m
--Semantic form: [38;2;221;203;160m["good", "ada", "[", "a", ", ", "b", ", ", "c", ", ", "d", "]", "!"][39m
--Alias #good -> [38;2;221;203;160m*good[39m
 -Expansion: [38;2;221;203;160m[39m
 [38;2;221;203;160m[[39m
-[38;2;221;203;160m    ["ada","a"],[39m
-[38;2;221;203;160m    ["ada","b"],[39m
-[38;2;221;203;160m    ["ada","c"],[39m
-[38;2;221;203;160m    ["ada","d"][39m
+[38;2;221;203;160m    ["l","h"],[39m
+[38;2;221;203;160m    [2,"h"][39m
+[38;2;221;203;160m][39m
+[38;2;221;203;160m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 27: [24m[39m
+-Sentence: [38;2;221;203;160m[:a,:b,:c,:d] are  #good.[39m
+-Semantic form: [38;2;221;203;160m["good", "[", "a", ", ", "b", ", ", "c", ", ", "d", "]"][39m-
+ alias good = [38;2;221;203;160m*good[39m.
+-Expansion: [38;2;221;203;160m[39m
+[38;2;221;203;160m[[39m
+[38;2;221;203;160m    ["a"],[39m
+[38;2;221;203;160m    ["b"],[39m
+[38;2;221;203;160m    ["c"],[39m
+[38;2;221;203;160m    ["d"][39m
 [38;2;221;203;160m][39m
 [38;2;221;203;160m[39m
 [32m[39m
 [32m[39m
-[32mThe document resolved in 102.296 ms (0.102 seconds)[39m
+[32mThe document resolved in 126.495 ms (0.126 seconds)[39m
