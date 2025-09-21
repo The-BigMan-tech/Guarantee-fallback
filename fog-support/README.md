@@ -1,4 +1,4 @@
-This brings syntax highlighting,live analysis,hover information,autocompletions and go to definitions for the fog logic language.
+This brings syntax highlighting,live analysis,hover information,autocompletions and go to definitions for the crown logic language.
 
 - Please note that the live analysis is under development and may be buggy some times.So you may need to edit the same line twice to correct the analysis.
 
@@ -6,91 +6,91 @@ This brings syntax highlighting,live analysis,hover information,autocompletions 
   
 ```json
     {
-        "scope": "comment.line.fog", 
+        "scope": "comment.line.crown", 
         "settings": {
             "foreground": "#69676C"
         }
     },
     {
-        "scope": "constant.name.fog", 
+        "scope": "constant.name.crown", 
         "settings": {
             "foreground": "#a6f5d1"
         }
     }, 
     {
-        "scope": "constant.name.strict.fog",
+        "scope": "constant.name.strict.crown",
         "settings": {
             "foreground": "#f1a671"
         }
     }, 
     {
-        "scope": "constant.number.fog",  
+        "scope": "constant.number.crown",  
         "settings": {
             "foreground": "#84cae8"
         }
     },
     {
-        "scope": "terminator.and.fog",
+        "scope": "terminator.and.crown",
         "settings": {
             "foreground": "#ee857e"
         }
     }, 
     {
-        "scope": "constant.alias.fog",
+        "scope": "constant.alias.crown",
         "settings": {
             "foreground": "#ee857e"
         }
     }, 
     {
-        "scope": "constant.predicate.fog",  
+        "scope": "constant.predicate.crown",  
         "settings": {
             "foreground": "#f0be8a"
         }
     }, 
     {
-        "scope": "keyword.alias.fog", 
+        "scope": "keyword.alias.crown", 
         "settings": {
             "foreground": "#ee857e"
         }
     }, 
     {
-        "scope": "constant.plainword.fog",
+        "scope": "constant.plainword.crown",
         "settings": {
             "foreground": "#ffffff"
         }
     },
     {
-        "scope": "terminator.fog", 
+        "scope": "terminator.crown", 
         "settings": {
             "foreground": "#ffc096"
         }
     }, 
     {
-        "scope": "reference.fog", 
+        "scope": "reference.crown", 
         "settings": {
             "foreground": "#ee857e"
         }
     }, 
     {
-        "scope": "punctuation.fog", 
+        "scope": "punctuation.crown", 
         "settings": {
             "foreground": "#ee857e"
         }
     }, 
     {
-        "scope": "angle.brackets.fog",
+        "scope": "angle.brackets.crown",
         "settings": {
             "foreground": "#ffc096"
         }
     },
     {
-        "scope": "punctuation.angle.begin.fog",
+        "scope": "punctuation.angle.begin.crown",
         "settings": {
             "foreground": "#e79090"
         }
     },
     {
-        "scope": "punctuation.angle.end.fog",
+        "scope": "punctuation.angle.end.crown",
         "settings": {
             "foreground": "#e79090"
         }

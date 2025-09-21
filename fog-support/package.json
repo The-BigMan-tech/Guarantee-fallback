@@ -1,9 +1,9 @@
 {
-    "name": "fog-support",
-    "displayName": "Fog language support",
-    "description": "Editor support for the fog logic language",
-    "version": "0.0.5",
-    "icon": "icons/fog-logo.png",
+    "name": "crown-language-support",
+    "displayName": "Crown language support",
+    "description": "Editor support for the crown logic language",
+    "version": "0.0.6",
+    "icon": "icons/crown.png",
     "engines": {
         "vscode": "^1.103.0"
     },
@@ -15,25 +15,25 @@
     "contributes": {
         "languages": [
             {
-                "id": "fog",
+                "id": "crown",
                 "aliases": [
-                    "Fog"
+                    "Crown"
                 ],
                 "extensions": [
-                    ".fog"
+                    ".crown"
                 ],
                 "icon": {
-                    "light": "./icons/fog.svg",
-                    "dark": "./icons/fog.svg"
+                    "light": "./icons/crown.png",
+                    "dark": "./icons/crown.png"
                 },
-                "configuration": "./fog.configuration.json"
+                "configuration": "./crown.configuration.json"
             }
         ],
         "grammars": [
             {
-                "language": "fog",
-                "scopeName": "source.fog",
-                "path": "./syntaxes/fog.tmLanguage.json"
+                "language": "crown",
+                "scopeName": "source.crown",
+                "path": "./syntaxes/crown.tmLanguage.json"
             }
         ]
     },
@@ -67,7 +67,7 @@
     },
     "dependencies": {
         "@types/throttle-debounce": "^5.0.2",
-        "fog-js": "^1.1.3",
+        "fog-js": "^1.1.4",
         "throttle-debounce": "^5.0.2",
         "vscode-languageclient": "^9.0.1",
         "vscode-languageserver": "^9.0.1",

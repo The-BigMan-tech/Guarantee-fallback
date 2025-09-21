@@ -24,20 +24,20 @@ export function activate(context: ExtensionContext) {
         }   
     };
     let clientOptions: LanguageClientOptions = { 
-        documentSelector: [{ scheme: 'file', language: 'fog' }],
+        documentSelector: [{ scheme: 'file', language: 'crown' }],
         synchronize: {
-            fileEvents: workspace.createFileSystemWatcher('**/.fog')
+            fileEvents: workspace.createFileSystemWatcher('**/.crown')
         }
     };
     context.subscriptions.push(
         languages.registerDefinitionProvider(
-            {scheme:'file',language:'fog'},
+            {scheme:'file',language:'crown'},
             new DefProvider()
         )
     );
     client = new LanguageClient(
-        'fogLanguaeServer',
-        'Fog Language Server',
+        'crownLanguaeServer',
+        'Crown Language Server',
         serverOptions,
         clientOptions
     );
