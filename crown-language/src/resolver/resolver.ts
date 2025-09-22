@@ -793,7 +793,8 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
     private recommendUsedName(text:string):string | null {
         for (const name of Object.keys(Resolver.usedNames)) {
-            if (distance(name,text!) <= 3) {
+            const occuredBefore = this.usedNameBefore(Resolver.usedNames[name].uniqueKeys.list);
+            if (occuredBefore && ( distance(name,text!) <= 3 )) {
                 return name;
             }
         }
@@ -903,10 +904,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
     public static isStrict = (text:string)=>text.startsWith('!');
 
+    private usedNameBefore(list:string[]):boolean {
+        return (Math.min(...list.map(value=>lineFromKey(value))) < this.lineCount );
+    }
     private validateNameUsage(text:string) {
         const str = Resolver.stripMark(text);
         const usedName = Resolver.usedNames[str];
-        const usedNameBefore = usedName && ( Math.min(...usedName.uniqueKeys.list.map(lineFromKey)) < this.lineCount );
+        const usedNameBefore = usedName && this.usedNameBefore(usedName.uniqueKeys.list);
 
         if (Resolver.isStrict(text) && !usedNameBefore) {
             let message = `-There is no existing usage of the name '${chalk.bold(str)}'`;
