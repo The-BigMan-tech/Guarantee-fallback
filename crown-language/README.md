@@ -1,115 +1,78 @@
-# LIB-SCAFFOLD
+### Welcome To Crown
+It is a lightweight,expressive and declarative logic language inspired from Prolog.
 
-A reusable scaffold for building TypeScript libraries with modern tooling and optimized bundles.
 
----
+### Applications of the language
+- Scalable knowledge representation
+- Expert systems 
+- Problem solving
 
-## NOTE
 
-- Open this scaffold in VSCode as the root workspace folder for proper debugging and path resolution.
+You can skip the following secctions straight to environment setup.
+
+### Difference between it and Prolog 
+- It does'nt use an interpreter but rather,it uses a resolver which is a component that converts the declarative document to a json file which is machine readable.This means that syntax overhead only happens once where subsequent queries work directly on the json document.
+
+- It has a declarative logic document language solely for declaring facts but requires the use of its imperative api through language bindings in a host language for writing rules and making queries.
+
+
+### Why learn or use it ?
+- It does'nt branch away from the foundational principles of prolog.
+- It is easy to read and write.
+- It's syntax is very flexible yet safe for scale.
+- It has integration potential with any imperative language.
+- Despite the imperative rule centric design,it allows domain experts to document their facts separately and in parallel to those who will write the inferences.
+
+
+### But why the design choice ?
+- By using a resolver over an interpreter :
+    
+    - There is zero overhead of syntax interpretation during querying.It also allows for faster collaboration as team members dont have to resolve the document on their own end to query it.One can just directly send the lean json document and it can be queried on immediately.
+    
+    - It can also enforce more semantic safety through static analysis that wont be possible if interpreted because of the dynamic nature of interpretation.This can make it written at scale with no safety costs.
+
+- The main reason for having rules and queries in an imperative language instead of directly in the declarative document like in prolog was:
+
+    - For clean separation of concerns where the facts of the knowledge base are written declaratively while the rules are written imperatively to control exactly how the inference is made.
   
-- The clean scripts assume a windows environment.So configure for your target platform if its different.
-  
-- All source files should be under the src folder, with main.ts as the entry point of your program.
-  
-- Import aliases must be consistent in both Rollup and tsconfig.json.
-  
-  - @alias imports only work in .ts source files during bundling, not when running compiled files directly, because path aliases are resolved at bundling time due to compiler limitations.
-  
-  - @alias imports work seamlessly in test files since tests run directly from source .ts files.
-  
-- The target js environment must be consistent in the swc,typescript and terser configs
-  
-- Set **Insert Spaces on Tab** to true in VSCode to prevent false indentation errors flagged by ESLint.
+    - To make the rules less ambiguous and highly explicit.No complex unification or backtracking under the hood.It's executed as it is written and it is easier to debug.It also increases adoption because it prevents the extra step of learning a new language's constructs just to use it.But it does also mean that it may not be eaily accessible to non programmers without some coding knowledge.
+    
 
-- Test files are **not compiled** but executed directly via jiti; they’re not part of the final build.
+### Important note
+Since the language uses an ipc-server architecture,it means that integration with any imperative language is just to port the lightweight binding which is a client written in a specific language to interop its host with the logic language without having to port the entire codebase to each language.This increases integration capabilities but as of now,only a javascript binding is available.You are free to port the binding to your target language and share it with the community.
 
-- Watchers and other Node.js tools are dev-only and will **not be included** in the final browser-ready build.
 
----
+### Environment Setup
+- To use this language,you must install nodeJS because the language is written in javascript.This is for cross compatibility across machines by just installing the nodeJS runtime.It requires at least v22 because it was the version that was used during the time of writing the language.
 
-## USAGE
-
-### Automatic setup
-
-Use the CLI tool:
+- After installing the language,open a terminal and run:
 ```shell
-    ts-scaff --name <project-name>
+    crown run
 ```
+This will run the language as a long lived program through an ipc server.
 
-### Manual setup
+- Install the javascript binding; crown js in a separate npm project to write rules and make queries.
+  
+- It is encouraged for you to use this language in vscode as it has editor support through the crown language extension.It makes constant requests to the language so it's expected that you always have the language running on a terminal as a long lived program.Else,the extension will crahs and may require a restart.
 
-1. Clone or download this scaffold repository.
 
-2. Remove the .git folder to avoid inadvertently pushing changes to the original repo.
+### Basics
+Facts: They are eclarative statements that describes what is true.They are an explicit relationship between objects, and properties these objects might have.They are unconditionally true.
 
-3. Run:
-```shell
-    pnpm install
-```
+Rules: These are instructions that infer what is true even though it is'nt explicitly written.
 
-4. Use the provided npm scripts in package.json to run,build, bundle, minify, and debug your library.
+Queries: They are questions on the relationships between objects and their properties
 
-5. Open the folder as the workspace root in VSCode to ensure proper debugging with source maps.
+Knowledge base: A collection of facts and rules as a whole.
 
----
 
-## PREREQUISITES
-
-This scaffold assumes the following software and packages are installed globally on your system:
-
-- Node.js runtime — to execute JavaScript code. Compatible with any version, provided SWC is configured correctly.
-
-- SWC compiler — to compile TypeScript source files.
-
-- pnpm package manager — to install dependencies and run scripts.
-
-- Rollup bundler — to bundle compiled source and dependencies.
-
-- Terser — to minify the bundle into a production-ready script.
-
-- TypeScript compiler (tsc) — to generate type declaration files (.d.ts) preserving JSDoc.
-
-- Nodemon — to watch src files and restart execution on changes.
-
-- VSCode — recommended for IntelliSense and debugging.
-
-- Git — for version control.
-
-- Verdaccio — to create a local registry where you can publish to and install packages from for development purposes and to proxy installs from the npm-registry for caching to allow the packages to be reinstalled anywhere offline on subsequent installs.
-
----
-
-## OPTIONAL VSCode EXTENSIONS
-
-For an improved developer experience, consider installing:
-
-- ESLint:To integrate the project's eslint configuration seamlessly with vscode
-
-- Error Lens:To flag errors using highlited inline text in the editor.
-
-- Terminal keeper:To save commonly used commands as terminals that can easily be spawned with its gui.It can be better than runnig scripts from pkg.json directly in situations where the command shouldnt be scoped to a particular project and can be reused everywhere like starting up the verdaccio server.
-
----
-
-## FEATURES
-
-- Well-configured npm scripts covering commonly needed tasks like linting, compiling, bundling, minifying, and testing.
-
-- Source maps along with a .vscode/launch.json configuration for seamless debugging within VSCode.
-
-- Tunable configuration files (rollup.config.js, .swcrc, tsconfig.json, etc.) ready for customization.
-
-- Testing environment that runs TypeScript test files directly — no separate compilation step needed.
-
-- A watch-compile command which recompiles **only the files that changed** in the src directory for faster development.
-
-- Output structure:
-
-  - dist/ — production-ready, minified bundles.
-
-  - build/ — compiled JavaScript files for debugging purposes.
-
-- The final published package includes **only** the dist and build folders.
-
----
+### Table of Contents
+- Facts
+- Names
+- Numbers
+- Predicates
+- Aliases
+- Fillers
+- Arrays
+- Comments
+- Semanti
