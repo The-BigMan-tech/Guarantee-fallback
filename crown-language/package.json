@@ -29,8 +29,7 @@
   },
   "files": [
     "dist",
-    "build",
-    "syntaxes"
+    "build"
   ],
   "type": "module",
   "keywords": [],

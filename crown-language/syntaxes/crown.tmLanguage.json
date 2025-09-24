@@ -4,7 +4,7 @@
         { "include": "#angleBrackets" },
         { "include": "#otherPatterns" }
     ],
-    "repository": { 
+    "repository": {
         "angleBrackets": {
             "name": "angle.brackets.crown",
             "begin": "<",
