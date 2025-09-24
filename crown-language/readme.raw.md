@@ -45,19 +45,25 @@ As of now,only a javascript binding is available.You are free to port the bindin
 
 
 ### Environment Setup
-- To use this language,you must install nodeJS because the language is written in javascript.This is for cross compatibility across machines by just installing the nodeJS runtime.It requires at least v22 because it was the version that was used during the time of writing the language.
+- To use this language,you must install nodeJS because the language is written in javascript.It requires at least v22 because it was the version that was used during the time of writing the language.
 
-- After installing the language,open a terminal and run the following command which will run the language as a long lived program as an ipc server.
-```shell
-    crown run
-```
+- Install the language with npm or pnpm and make sure that you do so as a global installation.
+  
+  ```shell
+    npm install -g @crown
+  ```
 
+- After installing the language,open a terminal and run the following command which will run the language as a long lived program.
+  ```shell
+      crown run
+  ```
+
+- It is recommended that you use this language in vscode and install the crown language extension for editor support.It makes constant requests to the language so it's expected that you always have the language running on a terminal as a long lived program.Else,the extension will crash and may require a restart.
+ 
 - Create and open a file ending with .crown to start editing it.
   
 - Install the javascript binding; crown-js in a separate npm project to write rules and make queries.
   
-- It is recommended that you use this language in vscode through the crown language extension for editor support.It makes constant requests to the language so it's expected that you always have the language running on a terminal as a long lived program.Else,the extension will crash and may require a restart.
-
 
 ### An Overview of the Concepts
 **Facts :** They are declarative statements that describes what is true.They are an explicit relationship between objects, and properties these objects might have.They are unconditionally true.
@@ -97,6 +103,11 @@ Facts are written with a single relationship(predicate or alias) with one to man
 
 #### Examples:
 
+```crown
+:Billy is a *boy.
+:Mandy is a *girl.
+:Wally is a *teacher.
+```
 
 Here,Billy,Mandy and Wally are the objects and boy,girl and teacher are the relationships.These facts state what is true about the different people.These few examples dont fully capture the syntax so we must walkthrough the data types in order to effectively write in it.
 
@@ -109,5 +120,6 @@ These are the objects we are talking about and want to relate with in a sentence
 Names are usually prefixed with colons but one can also prefix it with an exclamation mark **'!'**.Writing names with this prefix instead is name usage assertion.What it does is that it tells the resolver that the name has been used before(with the colon prefix)
 
 ```crown
-    alias h.
+:k is *big.
+!k is *n.
 ```
