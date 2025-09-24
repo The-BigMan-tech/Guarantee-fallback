@@ -24,6 +24,6 @@ const md = new MarkdownIt({
         return '<pre><code>' + md.utils.escapeHtml(code) + '</code></pre>';
     }
 })
-const mdContent = await fs.readFile('./README.raw.md','utf-8');
+const mdContent = await fs.readFile('./readme.raw.md','utf-8');
 const result = md.render(mdContent);
 await fs.writeFile('./README.md',result);
