@@ -1,4 +1,6 @@
 import {createHighlighter} from "shiki"
+import MarkdownIt from "markdown-it";
+import fs from "fs/promises";
 import grammar from "./syntaxes/crown.tmLanguage.json" with {type:'json'};
 import crownTokenColors from "./syntaxes/crown-token-colors.json" with {type:"json"};
 
@@ -11,10 +13,17 @@ const highlighter = await createHighlighter({
         }
     ], // Specify languages you need
 });
- 
-const code = `
-    alias d.
-`;
-
-const html = highlighter.codeToHtml(code,{lang:'crown',theme:'crown-theme'});
-console.log(html);
+const md = new MarkdownIt({
+    highlight:(code,lang)=>{
+        if (lang === "crown") {
+            try {
+                const html = highlighter.codeToHtml(code,{lang:'crown',theme:'crown-theme'});
+                return html;
+            } catch {return ''}
+        }
+        return '<pre><code>' + md.utils.escapeHtml(code) + '</code></pre>';
+    }
+})
+const mdContent = await fs.readFile('./README.raw.md','utf-8');
+const result = md.render(mdContent);
+await fs.writeFile('./README.md',result);
