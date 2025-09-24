@@ -1,4 +1,4 @@
-### Welcome To Crown
+### Welcome To Crown 👑
 It is a lightweight,expressive and declarative logic language inspired from Prolog.
 
 
@@ -37,42 +37,74 @@ You can skip the following secctions straight to environment setup.
   
     - To make the rules less ambiguous and highly explicit.No complex unification or backtracking under the hood.It's executed as it is written and it is easier to debug.It also increases adoption because it prevents the extra step of learning a new language's constructs just to use it.But it does also mean that it may not be eaily accessible to non programmers without some coding knowledge.
     
+    - It also prevents accidents in queries by leveraging the host language's type system.
+  
 
 ### Important note
-Since the language uses an ipc-server architecture,it means that integration with any imperative language is just to port the lightweight binding which is a client written in a specific language to interop its host with the logic language without having to port the entire codebase to each language.This increases integration capabilities but as of now,only a javascript binding is available.You are free to port the binding to your target language and share it with the community.
+As of now,only a javascript binding is available.You are free to port the binding to your target language and share it with the community.
 
 
 ### Environment Setup
 - To use this language,you must install nodeJS because the language is written in javascript.This is for cross compatibility across machines by just installing the nodeJS runtime.It requires at least v22 because it was the version that was used during the time of writing the language.
 
-- After installing the language,open a terminal and run:
+- After installing the language,open a terminal and run the following command which will run the language as a long lived program as an ipc server.
 ```shell
     crown run
 ```
-This will run the language as a long lived program through an ipc server.
 
-- Install the javascript binding; crown js in a separate npm project to write rules and make queries.
+- Create and open a file ending with .crown to start editing it.
   
-- It is encouraged for you to use this language in vscode as it has editor support through the crown language extension.It makes constant requests to the language so it's expected that you always have the language running on a terminal as a long lived program.Else,the extension will crahs and may require a restart.
+- Install the javascript binding; crown-js in a separate npm project to write rules and make queries.
+  
+- It is recommended that you use this language in vscode through the crown language extension for editor support.It makes constant requests to the language so it's expected that you always have the language running on a terminal as a long lived program.Else,the extension will crash and may require a restart.
 
 
-### Basics
-Facts: They are eclarative statements that describes what is true.They are an explicit relationship between objects, and properties these objects might have.They are unconditionally true.
+### An Overview of the Concepts
+**Facts :** They are declarative statements that describes what is true.They are an explicit relationship between objects, and properties these objects might have.They are unconditionally true.
 
-Rules: These are instructions that infer what is true even though it is'nt explicitly written.
+**Rules :** These are instructions that infer what is true even though it is'nt explicitly written.
 
-Queries: They are questions on the relationships between objects and their properties
+**Queries :** They are questions on the relationships between objects and their properties
 
-Knowledge base: A collection of facts and rules as a whole.
+**Knowledge base :** A collection of facts and rules as a whole.
 
 
-### Table of Contents
+### WalkThrough 
+- Syntax notation
+- Quick intro to errors
 - Facts
+- Expected output
 - Names
+- Name Usage assertion
 - Numbers
 - Predicates
 - Aliases
+- Comments
 - Fillers
 - Arrays
-- Comments
-- Semanti
+- References
+- Concatenation
+- Errors
+- Queries
+- Statement check modes (exact match or membership)
+- Query types (statement vs implication)
+- Rules
+- Wild card candidate vs Arbitrary candidate
+
+
+### Facts
+Facts are written with a single relationship(predicate or alias) with one to many names or numbers and it ends with a terminator.
+
+#### Examples:
+
+
+Here,Billy,Mandy and Wally are the objects and boy,girl and teacher are the relationships.These facts state what is true about the different people.These few examples dont fully capture the syntax so we must walkthrough the data types in order to effectively write in it.
+
+
+### Names
+These are the objects we are talking about and want to relate with in a sentence.It is mostly for nouns but can also be used as modifiers like adjectives and adverbs.They are denoted by words prefixed with a colon **':'**. Examples are :plane, :sword, :umbrella, :Nicole,etc.
+
+
+### Name usage assertion
+Names are usually prefixed with colons but one can also prefix it with an exclamation mark **'!'**.Writing names with this prefix instead is name usage assertion.What it does is that it tells the resolver that the name has been used before(with the colon prefix)
+

@@ -1,12 +1,11 @@
-## Crown language Support
-This brings syntax highlighting, live analysis, hover information, autocompletions and go-to definitions for the crown logic language.
-
-- Please note that the live analysis is under development and may be buggy some times.So you may need to edit the same line twice to correct the analysis.
-
-- Add this to your token color settings under textMateRules for the recommended highlighting
-  
-```json
-            {
+{
+    "name":"crown-theme",
+    "colors":{
+        "editor.background":"#222222",
+        "editor.foreground":"#ffffff"
+    },
+    "settings":[
+        {
             "scope": "comment.line.crown", 
             "settings": {
                 "foreground": "#69676C"
@@ -95,6 +94,6 @@ This brings syntax highlighting, live analysis, hover information, autocompletio
             "settings": {
                 "foreground": "#e79090"
             }
-        },
-    
-```
+        }
+    ]
+}
