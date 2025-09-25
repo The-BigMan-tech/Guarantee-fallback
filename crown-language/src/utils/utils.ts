@@ -271,3 +271,15 @@ export interface lspLocation {
     uri:string,
     range:lspRange
 }
+export interface Dependent {
+    includeDependency:boolean,
+    uniqueKey:string,
+    srcLine:string,//good to keep in handy for debugging
+    line:number,
+    reference:boolean,
+    alias:string | null,//a sentence can only have one alias.
+    names:Set<string>,
+    settledRef:boolean,
+    settledAlias:boolean,
+    unsettledNames:Set<string>
+}

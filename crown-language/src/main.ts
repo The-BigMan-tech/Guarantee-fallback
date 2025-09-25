@@ -2,7 +2,7 @@ process.env.FORCE_COLOR = '1'; // Enable colors even if not detected
 
 import { Command } from 'commander';
 import { resolveDocument } from './resolver/functions.js';
-import { startIPCServer } from './fact-checker/rpc-server.js';
+import { startIPCServer } from './rule-based-model/rpc-server.js';
 
 const program = new Command();
 async function runCLI():Promise<void> {

@@ -9,7 +9,7 @@ import stringify from "safe-stable-stringify";
 import { DependencyManager } from "./dependency-manager.js";
 import { Purger } from "./purger.js";
 import { validator } from "../utils/utils.js";
-import { Doc, serverDoc } from "../fact-checker/fact-checker.js";
+import { Doc, serverDoc } from "../rule-based-model/rule-model.js";
 import { ConsoleErrorListener } from "antlr4ng";
 import fuzzysort from 'fuzzysort';
 import { LRUCache } from "lru-cache";
@@ -117,7 +117,6 @@ function cleanState(srcPath:string,workingIncrementally:boolean):void {//Note th
     Resolver.logs = null;
     Resolver.logFile = null;
     ParseHelper.tree = null;//to prevent accidentally reading an outadted src tree.
-    DependencyManager.dependents = [];
     DependencyManager.encounteredAliasLine = null;
     ConsoleErrorListener.instance.syntaxError = ():undefined =>undefined;
     Resolver.workingIncrementally = workingIncrementally;

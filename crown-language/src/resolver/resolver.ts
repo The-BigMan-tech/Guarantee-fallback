@@ -32,7 +32,6 @@ interface VisitedSentence {
     uniqueKey:string//the unique key is used to identify itself in relative to the src which is used to invalidate the entry if its stale
 }
 
-
 export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     /* eslint-disable @typescript-eslint/explicit-function-return-type */
     public records:Record<string,Rec> = {};

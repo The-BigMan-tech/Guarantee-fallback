@@ -5,6 +5,7 @@ import { Resolver } from "./resolver.js";
 import { ParseHelper } from "./parse-helper.js";
 import { ConsoleErrorListener } from "antlr4ng";
 import Denque from "denque";
+import { phaseManager, ResolutionState, state } from "./state.js";
 
 //The purger takes in a src document and by using a cache that maps each line to any arbitary data,the purger will compare it against the cached keys and return a purged src document which only contains the lines that changed and all other lines that the change depends on and the lines that also depends on that change.
 
@@ -17,6 +18,7 @@ import Denque from "denque";
 //Although it is robust for incremental resolution,its more stable to use for live analysis where some of its limitations are acceptable than to produce incremental output
 export class Purger<V extends object> {
     public static dependencyToDependents:Record<string,Set<string>> = {};
+    private dependents:ResolutionState['dependents'];
 
     private inSameDocument:boolean;
     private cache:LRUCache<string,V>;
@@ -26,6 +28,8 @@ export class Purger<V extends object> {
     private srcLines:string[];
 
     constructor(srcText:string,srcPath:string,cache:LRUCache<string,V>) {
+        phaseManager.sendToActor('READ');
+        this.dependents = state('dependents');
         this.cache = cache;
         this.srcLines = Resolver.createSrcLines(srcText);
         Purger.srcKeysAsSet = new Set(this.srcLines.map((content,line)=>createKey(line,content as string)));
@@ -72,6 +76,7 @@ export class Purger<V extends object> {
         }
     }
     private produceFinalSrc():void {
+        phaseManager.sendToActor('UPDATE');
         //it purges the src text backwards to correctly include sentences that are dependencies of others.But the final purged text is still in the order it was written because i insert them at the front of another queue.backwards purging prevents misses by ensuring that usage is processed before declaration.
         for (let line = (this.srcLines.length - 1 ); line >= 0 ;line--) {
             const srcLine = this.srcLines[line];
@@ -80,7 +85,7 @@ export class Purger<V extends object> {
             const key = createKey(line,srcLine);
             const inCache = this.cache.has(key);//notice that i used inCache and not inSrc to determine the purge decision here.This is because (inCache == inSrc) but (inSrc !== inCache).The presence in the cache is the ultimate factor because it needs to be synchronized completely with what is actually in the cache to avoid state bugs.
 
-            const manager = new DependencyManager({key,line,srcLine,srcLines:this.srcLines,inCache});
+            const manager = new DependencyManager({key,line,srcLine,srcLines:this.srcLines,inCache,dependents:this.dependents});
             const isADependency:boolean | undefined = (this.syntaxError)?undefined:manager.visit(ParseHelper.tree!);        
             
             const shouldPurge = !this.syntaxError && this.inSameDocument && inCache && (isADependency === false);
@@ -92,6 +97,7 @@ export class Purger<V extends object> {
             }
             Purger.dependencyToDependents[key] = new Set(manager.satisfiedDependents.map(dependent=>dependent.uniqueKey));
             this.syntaxError = false;
+            state('updateDependents')(this.dependents);
         }
     }
     public purge():string {//the order of operations here is very important.
