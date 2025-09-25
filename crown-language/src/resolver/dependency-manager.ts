@@ -6,16 +6,12 @@ import { ProgramContext,FactContext,AliasDeclarationContext } from "../generated
 import { Dependent, isWhitespace,ReportKind,xand } from "../utils/utils.js";
 import { Resolver } from "./resolver.js";
 import { ParseHelper } from "./parse-helper.js";
-import { ResolutionState } from "./state.js";
-
 
 export class DependencyManager extends DSLVisitor<boolean | undefined> {
-    public static encounteredAliasLine:number | null = null;
-
     public  satisfiedDependents:Dependent[] = [];//this one unlike dependents collects dependents for the particular dependency
     private includeAsDependency:boolean = false;
-    private dependents:ResolutionState['dependents'];
-
+    private dependents:(Dependent | null)[] = [];
+    private encounteredAliasLine:number | null = null;
     private line:number;
     private srcLine:string;
     private srcLines:string[];
@@ -23,15 +19,16 @@ export class DependencyManager extends DSLVisitor<boolean | undefined> {
     private uniqueKey:string;
     private seenTerminator:boolean = false;
 
-    constructor(args:{key:string,line:number,srcLine:string,srcLines:string[],inCache:boolean,dependents:ResolutionState['dependents']}) {
-        const {line,srcLine,srcLines,inCache,key,dependents} = args;
+    constructor(args:{key:string,line:number,srcLine:string,srcLines:string[],inCache:boolean,dependents:(Dependent | null)[],encounteredAliasLine:number | null}) {
+        const {line,srcLine,srcLines,inCache,key,dependents,encounteredAliasLine} = args;
         super();
-        this.dependents = dependents;
+        this.dependents = dependents;//to prevent over writing the global state
         this.line = line;
         this.srcLine = srcLine;
         this.inCache = inCache;
         this.srcLines = srcLines;
         this.uniqueKey = key;
+        this.encounteredAliasLine = encounteredAliasLine;
     }
     //please note that the properties on the dependnet,although looking identical to the ones under the current this context,arent the same.the ones on the this context used here is for the potential dependency but a dependency can also be a dependnent which is why the this context is used when adding it as a dependent
     private checkIfDependency(dependentIndex:number,contributed:boolean):void {
@@ -121,18 +118,18 @@ export class DependencyManager extends DSLVisitor<boolean | undefined> {
             }
             this.checkIfDependency(i,contributed);
         }
-        if (DependencyManager.encounteredAliasLine) {//this will help warn against defining a fact before declaring all of the aliases
+        if (this.encounteredAliasLine) {//this will help warn against defining a fact before declaring all of the aliases
             Resolver.castReport({
                 kind:ReportKind.Warning,
-                line:DependencyManager.encounteredAliasLine,
+                line:this.encounteredAliasLine,
                 msg:`-It is best to declare aliases at the top to invalidate the use of their predicate counterpart early.\n-This will help catch errors sooner.`,
-                srcText:this.srcLines[DependencyManager.encounteredAliasLine],
+                srcText:this.srcLines[this.encounteredAliasLine],
                 usingSrcLines:this.srcLines
             });
         }
     }
     private settleAliasDependents(tokens:Token[]):void {
-        DependencyManager.encounteredAliasLine = this.line;
+        this.encounteredAliasLine = this.line;
         let alias:string | null = null;
         for (const token of tokens) {
             const text = token.text!;

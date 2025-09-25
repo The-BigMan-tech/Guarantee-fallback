@@ -4,18 +4,18 @@ import {create} from "zustand";
 import {immer} from "zustand/middleware/immer";
 
 export interface ResolutionState {
-    dependents:(Dependent | null)[],
-    updateDependents:(dependents:(Dependent | null)[])=>void,
+    dependen:(Dependent | null)[],
+    updateDependen:(dependents:(Dependent | null)[])=>void,
 };
 
 export const phaseManager = new PhaseManager();
 
 const resolutionStore = create<ResolutionState>()(
     immer((set)=>({
-        dependents:[],
-        updateDependents:(dependents):void => {
+        dependen:[],
+        updateDependen:(dependents):void => {
             phaseManager.protect(['write','update','clear'],()=>set(state=>{
-                state.dependents = [...dependents];
+                state.dependen = [...dependents];
             }));
         }
     }))
@@ -24,7 +24,7 @@ const resolutionStore = create<ResolutionState>()(
 export function state<T extends keyof ResolutionState>(value:T):ResolutionState[T] {
     if (typeof value !== "function") {
         return phaseManager.protect(['read'],()=>{
-            const data = resolutionStore.getState()[value];
+            const data = structuredClone(resolutionStore.getState()[value]);
             return data;
         });
     }
@@ -33,5 +33,5 @@ export function state<T extends keyof ResolutionState>(value:T):ResolutionState[
 
 phaseManager.clearFn = ():void =>{
     console.log('called the clear func');
-    state('updateDependents')([]);
+
 };

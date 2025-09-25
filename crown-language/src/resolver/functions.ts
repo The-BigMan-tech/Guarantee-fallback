@@ -117,7 +117,6 @@ function cleanState(srcPath:string,workingIncrementally:boolean):void {//Note th
     Resolver.logs = null;
     Resolver.logFile = null;
     ParseHelper.tree = null;//to prevent accidentally reading an outadted src tree.
-    DependencyManager.encounteredAliasLine = null;
     ConsoleErrorListener.instance.syntaxError = ():undefined =>undefined;
     Resolver.workingIncrementally = workingIncrementally;
     Resolver.foundWarning = false;

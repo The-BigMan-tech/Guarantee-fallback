@@ -1,33 +1,35 @@
 ### Welcome To Crown 👑
-It is a lightweight,expressive and declarative logic language inspired from Prolog.
+It is a lightweight,expressive and declarative knowledge representation language inspired from Prolog.
 
 
 ### Applications of the language
-- Scalable knowledge representation
-- Expert systems 
-- Problem solving
+- Scalable knowledge representation.
+- Expert systems.
+- Problem solving.
 
-
-You can skip the following secctions straight to environment setup.
 
 ### Difference between it and Prolog 
-- It does'nt use an interpreter but rather,it uses a resolver which is a component that converts the declarative document to a json file which is machine readable.This means that syntax overhead only happens once where subsequent queries work directly on the json document.
+- It does'nt use an interpreter but rather,it uses a resolver which is a component that converts the declarative document to a json file which is machine readable.This means that syntax overhead only happens once and queries work directly on the json document.
 
 - It has a declarative logic document language solely for declaring facts but requires the use of its imperative api through language bindings in a host language for writing rules and making queries.
 
+- It focuses more on knowledge representation than symbolic reasoning
+  
 
 ### Why learn or use it ?
 - It does'nt branch away from the foundational principles of prolog.
 - It is easy to read and write.
 - It's syntax is very flexible yet safe for scale.
 - It has integration potential with any imperative language.
-- Despite the imperative rule centric design,it allows domain experts to document their facts separately and in parallel to those who will write the inferences.
+- It allows domain experts to document their facts separately and in parallel to those who will write the inferences.
 
 
 ### But why the design choice ?
 - By using a resolver over an interpreter :
     
-    - There is zero overhead of syntax interpretation during querying.It also allows for faster collaboration as team members dont have to resolve the document on their own end to query it.One can just directly send the lean json document and it can be queried on immediately.
+    - There is zero overhead of syntax interpretation during querying or making inferences.
+  
+    - Collaboration is faster as team members dont have to resolve the document on their own end to query.The lean json document can be shared along with the src and it can be queried on immediately.
     
     - It can also enforce more semantic safety through static analysis that wont be possible if interpreted because of the dynamic nature of interpretation.This can make it written at scale with no safety costs.
 
@@ -35,9 +37,9 @@ You can skip the following secctions straight to environment setup.
 
     - For clean separation of concerns where the facts of the knowledge base are written declaratively while the rules are written imperatively to control exactly how the inference is made.
   
-    - To make the rules less ambiguous and highly explicit.No complex unification or backtracking under the hood.It's executed as it is written and it is easier to debug.It also increases adoption because it prevents the extra step of learning a new language's constructs just to use it.But it does also mean that it may not be eaily accessible to non programmers without some coding knowledge.
+    - To make the rules less ambiguous and highly explicit.No complex unification or backtracking under the hood.It's executed as it is written and it is easier to debug.It also increases adoption because it prevents the extra step of learning a new language's constructs just to use it.But it also s that it may not be eaily accessible to non programmers without some coding knowledge.
     
-    - It also prevents accidents in queries by leveraging the host language's type system.
+    - It prevents accidents in queries by leveraging the host language's type system.
   
 
 ### Important note
@@ -45,7 +47,7 @@ As of now,only a javascript binding is available.You are free to port the bindin
 
 
 ### Environment Setup
-- To use this language,you must install nodeJS because the language is written in javascript.It requires at least v22 because it was the version that was used during the time of writing the language.
+- To use this language,you must install nodeJS because the language is written in javascript.It requires at least v22 because it was the version that was used to write the language.
 
 - Install the language with npm or pnpm and make sure that you do so as a global installation.
   
@@ -76,12 +78,14 @@ As of now,only a javascript binding is available.You are free to port the bindin
 
 
 ### WalkThrough 
+#### Syntax and Semantics
 - Syntax notation
 - Quick intro to errors
 - Facts
 - Expected output
+- Json output structure
 - Names
-- Name Usage assertion
+- Name usage assertion
 - Numbers
 - Predicates
 - Aliases
@@ -90,13 +94,22 @@ As of now,only a javascript binding is available.You are free to port the bindin
 - Arrays
 - References
 - Concatenation
-- Errors
+- Errors in detail
+
+
+#### The rule-based model
+- Brief introduction
 - Queries
-- Statement check modes (exact match or membership)
+- Types of truthiness check (exact match or membership)
 - Query types (statement vs implication)
 - Rules
 - Wild card candidate vs Arbitrary candidate
 
+
+#### Others
+- Incremental resolution
+- How to contribute to the language
+  
 
 ### Facts
 Facts are written with a single relationship(predicate or alias) with one to many names or numbers and it ends with a terminator.
@@ -123,3 +136,9 @@ Names are usually prefixed with colons but one can also prefix it with an exclam
 :k is *big.
 !k is *n.
 ```
+
+### How to contribute to the language
+One can contribute by implementing and sharing their reasoning models with the community with well exposed interfaces for usability.
+
+Can new language features be proposed?
+Yes,but the language is mainly for knowledge representation
