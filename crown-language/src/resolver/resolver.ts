@@ -1002,7 +1002,4 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
         };
         return list;
     }
-    public static createSrcLines(input:string) {
-        return input.split('\n');
-    }
 }

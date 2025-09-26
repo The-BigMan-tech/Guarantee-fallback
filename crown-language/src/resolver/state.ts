@@ -1,37 +1,20 @@
-import { Dependent } from "../utils/utils.js";
-import { PhaseManager } from "./phase-manager.js";
-import {create} from "zustand";
-import {immer} from "zustand/middleware/immer";
+import { createKey, breakIntoLines } from "../utils/utils.js";
+import { Safe } from "./phase-manager.js";
+
 
 export interface ResolutionState {
-    dependen:(Dependent | null)[],
-    updateDependen:(dependents:(Dependent | null)[])=>void,
+    srcKeysAsSet:Safe<Set<string>>,
+    updateSrcKeys:(srcText:string)=>void,
 };
 
-export const phaseManager = new PhaseManager();
+export const store:ResolutionState = {
+    srcKeysAsSet:new Safe(new Set(),(ref)=>ref.value.clear()),
 
-const resolutionStore = create<ResolutionState>()(
-    immer((set)=>({
-        dependen:[],
-        updateDependen:(dependents):void => {
-            phaseManager.protect(['write','update','clear'],()=>set(state=>{
-                state.dependen = [...dependents];
-            }));
-        }
-    }))
-);
-
-export function state<T extends keyof ResolutionState>(value:T):ResolutionState[T] {
-    if (typeof value !== "function") {
-        return phaseManager.protect(['read'],()=>{
-            const data = structuredClone(resolutionStore.getState()[value]);
-            return data;
+    updateSrcKeys:(srcText):void => {
+        const manager = store.srcKeysAsSet.manager;
+        manager.protect(['write','update'],(ref)=>{
+            const srcLines = breakIntoLines(srcText);
+            ref.value = new Set(srcLines.map((content,line)=>createKey(line,content as string)));
         });
     }
-    return resolutionStore.getState()[value];
-};
-
-phaseManager.clearFn = ():void =>{
-    console.log('called the clear func');
-
 };

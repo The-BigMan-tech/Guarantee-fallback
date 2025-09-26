@@ -166,6 +166,9 @@ export function lineFromKey(key: string):number {
     if (Number.isNaN(lineNumber))throw new Error('Invalid key format: line number is not a number');
     return lineNumber;
 }
+export function breakIntoLines(input:string):string[] {
+    return input.split('\n');
+}
 export function xand(a:boolean,b:boolean):boolean {
     return (!a && !b) || (a && b);
 }
