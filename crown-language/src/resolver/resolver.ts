@@ -15,6 +15,7 @@ import { cartesianProduct } from "combinatorial-generators";
 import stripAnsi from "strip-ansi";
 import { ParseHelper } from "./parse-helper.js";
 
+
 interface ResolvedSingleTokens {
     indices:number[],//i used an array because they may be multiple refs in a sentence to resolve
     tokens:Map<number,null | Token>//i used a map here to localize the tokens that resolves each ref
@@ -58,12 +59,13 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     public static usedNames:Record<string,{src:string,uniqueKeys:UniqueList<string>}> = {};//the unqiue keys hold the keys of the line where the names were declared
     private predicateForLog:string | null = null;
 
-    public static visitedSentences = new Map<string,VisitedSentence>();//this is static because of incremental resolution as used by the lsp
     public static workingIncrementally:boolean = false;
-    public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
     public static lastDocumentPath:string | null = null;
 
+    public static visitedSentences = new Map<string,VisitedSentence>();//this is static because of incremental resolution as used by the lsp
+    public static lspDiagnosticsCache = new LRUCache<string,lspDiagnostics[]>({max:500});//i cant clear this on every resolution call like the rest because its meant to be persistent
     private currentStringifiedStatement:string | null = null;
+    
     //this method expects that the line is 0-based
     public static srcLine = (line:number):string | undefined => Resolver.srcLines.at(line);
 
@@ -73,6 +75,7 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
     }
     public static lineToAffectedLines:Record<string,string[]> = {};
     public static linesWithIssues = new Set<string>();
+    public static hoverInfo = new Map<string,{data:HoverData,refTo:{line:number,text:string},uniqueKey:string}>();
 
     public static readonly OMIT_WARNING = '//omit-warning';
     public static readonly AND_TERMINATOR = '&and';
@@ -95,8 +98,6 @@ export class Resolver extends DSLVisitor<Promise<undefined | Token[]>> {
             end: { line: targetLine, character: endChar }
         };
     }; 
-    public static hoverInfo = new Map<string,{data:HoverData,refTo:{line:number,text:string},uniqueKey:string}>();
-
     private static createHoverInfo(args:{line:number,hoverText:string,code:string,doc:string | undefined,refLine:number,refText:string}) {
         const {line,hoverText,code,doc,refLine,refText} = args;
 

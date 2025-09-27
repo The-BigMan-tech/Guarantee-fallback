@@ -1,5 +1,5 @@
 /* eslint-disable indent */
-import { contentFromKey, convMapToRecord,createKey,EndOfLine, FullData,isWhitespace,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspHover,lspInsertTextFormat, lspLocation, omitJsonKeys, Path, ReportKind, ResolutionResult, Result, breakIntoLines } from "../utils/utils.js";
+import { breakIntoLines, contentFromKey, convMapToRecord,createKey,EndOfLine, FullData,isWhitespace,lime, lspCompletionItem, lspCompletionItemKind, lspDiagnostics, lspHover,lspInsertTextFormat, lspLocation, omitJsonKeys, Path, ReportKind, ResolutionResult, Result } from "../utils/utils.js";
 import { ParseHelper } from "./parse-helper.js";
 import { Resolver } from "./resolver.js";
 import path from "path";
@@ -12,7 +12,6 @@ import { Doc, serverDoc } from "../rule-based-model/rule-model.js";
 import { ConsoleErrorListener } from "antlr4ng";
 import fuzzysort from 'fuzzysort';
 import { LRUCache } from "lru-cache";
-import { store } from "./state.js";
 
 
 function overrideErrorListener():void {
@@ -88,14 +87,13 @@ function updateStatePostResolution():void {
     }
 }
 export function updateStateUsingSrc():void {//the reason why the deletions under this function cant go directly in updateCache where the rest are deleted is because these structures arent keyed by the src line's unique key,but by other strings used for the various purposes of the structure.the unique key is part of the value but not the key of the following structures themselves which updateCache assumes.
-    const srcKeysAsSet = store.srcKeysAsSet.copy();
     for (const key of Resolver.linesWithIssues.values()) {
-        if (!srcKeysAsSet.has(key)) {
+        if (!Purger.srcKeysAsSet.has(key)) {
             Resolver.linesWithIssues.delete(key);
         }
     }
     for (const [key,value] of [...Resolver.visitedSentences.entries(),...Resolver.aliases.entries(),...Resolver.hoverInfo.entries()]) {
-        if ((!srcKeysAsSet.has(value.uniqueKey))) {
+        if ((!Purger.srcKeysAsSet.has(value.uniqueKey))) {
             Resolver.visitedSentences.delete(key);
             Resolver.aliases.delete(key);
             Resolver.hoverInfo.delete(key);
@@ -103,7 +101,7 @@ export function updateStateUsingSrc():void {//the reason why the deletions under
     }
     for (const [name,value] of Object.entries(Resolver.usedNames)) {
         for (const uniqueKey of value.uniqueKeys.list) {
-            if (!srcKeysAsSet.has(uniqueKey)) {
+            if (!Purger.srcKeysAsSet.has(uniqueKey)) {
                 value.uniqueKeys.delete(uniqueKey);
                 if (value.uniqueKeys.list.length === 0) {
                     delete Resolver.usedNames[name];
@@ -122,6 +120,7 @@ function cleanState(srcPath:string,workingIncrementally:boolean):void {//Note th
     Resolver.workingIncrementally = workingIncrementally;
     Resolver.foundWarning = false;
     Resolver.terminate = false;//reset it for subsequent analyzing
+    Purger.srcKeysAsSet.clear();
     
     if ((srcPath !== Resolver.lastDocumentPath) || !Resolver.workingIncrementally) {//im clearing it on full resolution to prevent any incremental data from lingering into full resolution to avoid corrupting the state during full resolution.it will start on a clean slate to ensure correctness.but it means that incremental analysis will have to start over each time this is done.so the best thing is to resolve the document once its ready for use and use the analysis during authoring
         console.log('\nCLEANED THE STATE.\n');
@@ -214,9 +213,6 @@ export async function resolveDocument(srcFilePath:string,outputFolder?:string):P
 export async function analyzeDocument(srcText:string,srcPath:string):Promise<lspDiagnostics[]> {
     cleanState(srcPath,true);
 
-    store.updateSrcKeys(srcText);
-    store.srcKeysAsSet.manager.send('READ');
-
     const purger = new Purger(srcText,srcPath,Resolver.lspDiagnosticsCache);
     const unpurgedSrcText = purger.purge();
     await generateJson({srcPath,srcText:unpurgedSrcText,fullSrcText:srcText,cache:Resolver.lspDiagnosticsCache,emptyCacheEntry:[]});//this populates the lsp diagostics
@@ -234,8 +230,6 @@ export async function analyzeDocument(srcText:string,srcPath:string):Promise<lsp
     console.log('lines with issues: ',Resolver.linesWithIssues);
     console.log('hover info: ',Resolver.hoverInfo);
     console.log('');//for new line
-    
-    store.srcKeysAsSet.manager.send('CLEAR');
     return fullDiagnostics;
 }
 function scoreToString(score:number):string {
