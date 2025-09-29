@@ -8,7 +8,7 @@ import chalk from "chalk";
 import stringify from "safe-stable-stringify";
 import { Purger } from "./purger.js";
 import { validator } from "../utils/utils.js";
-import { Doc, serverDoc } from "../rule-based-model/rule-model.js";
+import { Doc, serverDoc } from "../reader/reader.js";
 import { ConsoleErrorListener } from "antlr4ng";
 import fuzzysort from 'fuzzysort';
 import { LRUCache } from "lru-cache";

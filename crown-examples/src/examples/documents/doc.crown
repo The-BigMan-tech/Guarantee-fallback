@@ -4,24 +4,29 @@ alias friend = *friends.
 alias mother = *parent.
 alias males = *male.
 
-:Billy and :John are #friends.
+:Billy and :John :Cole are #friends.
 
 !John,:Mark and :Zane are  #friends.
 
-!Zane  is the #friend of :Cole.
+!Zane  is the #friend of !Cole.
 
 :Leo is !Cole's #friend &and <He> is *nice.
 
 :Matt and :Philip  are #males.
 
-:Mandy is a *female.  
+:Mandy is a *female.
 
-!Mandy is the #mother of  !Philip.
+!Mandy is the #mother of  !Philip .
+
 !Mandy is the #mother of !Matt .
 
-:ada is a #good  :girl.
+:ada is a #good :girl.
 
 !ada is a *female.
 
+:a is a *male.
+:b is a *male.
+
 [:l,2] :h *tall.
+
 [:a,:b,:c,:d] are  #good.

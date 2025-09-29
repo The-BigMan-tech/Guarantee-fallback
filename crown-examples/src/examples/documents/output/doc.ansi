@@ -22,8 +22,8 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 -Semantic form: [38;2;221;203;160m["alias", "males"][39m
 [38;2;173;239;30m[4m[24m[39m
 [38;2;173;239;30m[4mProcessed line 7: [24m[39m
--Sentence: [38;2;221;203;160m:Billy and :John are #friends.[39m
--Semantic form: [38;2;221;203;160m["friends", "Billy", "John"][39m-
+-Sentence: [38;2;221;203;160m:Billy and :John :Cole are #friends.[39m
+-Semantic form: [38;2;221;203;160m["friends", "Billy", "John", "Cole"][39m-
  alias friends = [38;2;221;203;160m*friends[39m.
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
@@ -34,7 +34,7 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
 [38;2;173;239;30m[4mProcessed line 11: [24m[39m
--Sentence: [38;2;221;203;160m!Zane  is the #friend of :Cole.[39m
+-Sentence: [38;2;221;203;160m!Zane  is the #friend of !Cole.[39m
 -Semantic form: [38;2;221;203;160m["friends", "Zane", "Cole"][39m-
  alias friend = [38;2;221;203;160m*friends[39m.
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
@@ -65,30 +65,42 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
 [38;2;173;239;30m[4mProcessed line 19: [24m[39m
--Sentence: [38;2;221;203;160m!Mandy is the #mother of  !Philip.[39m
+-Sentence: [38;2;221;203;160m!Mandy is the #mother of  !Philip .[39m
 -Semantic form: [38;2;221;203;160m["parent", "Mandy", "Philip"][39m-
  alias mother = [38;2;221;203;160m*parent[39m.
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 20: [24m[39m
+[38;2;173;239;30m[4mProcessed line 21: [24m[39m
 -Sentence: [38;2;221;203;160m!Mandy is the #mother of !Matt .[39m
 -Semantic form: [38;2;221;203;160m["parent", "Mandy", "Matt"][39m-
  alias mother = [38;2;221;203;160m*parent[39m.
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 22: [24m[39m
--Sentence: [38;2;221;203;160m:ada is a #good  :girl.[39m
+[38;2;173;239;30m[4mProcessed line 23: [24m[39m
+-Sentence: [38;2;221;203;160m:ada is a #good :girl.[39m
 -Semantic form: [38;2;221;203;160m["good", "ada", "girl"][39m-
  alias good = [38;2;221;203;160m*good[39m.
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 24: [24m[39m
+[38;2;173;239;30m[4mProcessed line 25: [24m[39m
 -Sentence: [38;2;221;203;160m!ada is a *female.[39m
 -Semantic form: [38;2;221;203;160m["female", "ada"][39m
 -Predicate: *female
 -Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 26: [24m[39m
+[38;2;173;239;30m[4mProcessed line 27: [24m[39m
+-Sentence: [38;2;221;203;160m:a is a *male.[39m
+-Semantic form: [38;2;221;203;160m["male", "a"][39m
+-Predicate: *male
+-Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 28: [24m[39m
+-Sentence: [38;2;221;203;160m:b is a *male.[39m
+-Semantic form: [38;2;221;203;160m["male", "b"][39m
+-Predicate: *male
+-Expansion: [38;2;221;203;160m[38;2;221;203;160mnone.[39m[38;2;221;203;160m[39m
+[38;2;173;239;30m[4m[24m[39m
+[38;2;173;239;30m[4mProcessed line 30: [24m[39m
 -Sentence: [38;2;221;203;160m[:l,2] :h *tall.[39m
 -Semantic form: [38;2;221;203;160m["tall", "[", "l", ", ", "2", "]", "h"][39m
 -Predicate: *tall
@@ -98,8 +110,20 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;221;203;160m    [2,"h"][39m
 [38;2;221;203;160m][39m
 [38;2;221;203;160m[39m
+[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mDouble check line 32:[24m[39m
+-You may wish to type [1m!a[22m rather than loosely as [1m:a[22m. 
+-It signals that it has been used before here and it prevents errors early.[32m[39m
+[32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m[:a,:b,:c,:d] are  #good.[39m
+[38;2;221;203;160m[39m
+[38;2;240;146;88m[4m[24m[39m
+[38;2;240;146;88m[4mDouble check line 32:[24m[39m
+-You may wish to type [1m!b[22m rather than loosely as [1m:b[22m. 
+-It signals that it has been used before here and it prevents errors early.[32m[39m
+[32mCheck[39m[38;2;152;206;37m->[39m[38;2;221;203;160m[:a,:b,:c,:d] are  #good.[39m
+[38;2;221;203;160m[39m
 [38;2;173;239;30m[4m[24m[39m
-[38;2;173;239;30m[4mProcessed line 27: [24m[39m
+[38;2;173;239;30m[4mProcessed line 32: [24m[39m
 -Sentence: [38;2;221;203;160m[:a,:b,:c,:d] are  #good.[39m
 -Semantic form: [38;2;221;203;160m["good", "[", "a", ", ", "b", ", ", "c", ", ", "d", "]"][39m-
  alias good = [38;2;221;203;160m*good[39m.
@@ -113,4 +137,4 @@ THIS IS A DIAGNOSTICS FILE.VIEW THIS UNDER AN ANSI PREVIEWER.
 [38;2;221;203;160m[39m
 [32m[39m
 [32m[39m
-[32mThe document resolved in 68.092 ms (0.068 seconds)[39m
+[32mThe document resolved in 130.654 ms (0.131 seconds)[39m

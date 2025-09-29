@@ -34,7 +34,8 @@
                 {
                     "list": [
                         "Billy",
-                        "John"
+                        "John",
+                        "Cole"
                     ]
                 },
                 {
@@ -94,6 +95,16 @@
                     "list": [
                         "Matt",
                         "Philip"
+                    ]
+                },
+                {
+                    "list": [
+                        "a"
+                    ]
+                },
+                {
+                    "list": [
+                        "b"
                     ]
                 }
             ]

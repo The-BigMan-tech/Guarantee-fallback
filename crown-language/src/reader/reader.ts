@@ -86,12 +86,22 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         //the actual fact checking
         const matchedFacts:AtomList[] = [];
         let saveToCacheEarly:boolean = false;
-        for (const fact of record.facts) {
-            if (this.areMembersInSet(statement,fact.set)) {
-                if (byMembership || this.compareStatements(statement,fact.list)) {//compare statements method uses strict checking by checking if the statement is exactly identical to the fact by number of elements and element order.By placing this strict check under the membership check,the function saves computation by only scanning statements aginst relevant facts not a full linear scam against all facts
-                    const atomList:AtomList = fact.list;
-                    matchedFacts.push(atomList);
-                    saveToCacheEarly = Boolean(yield atomList); 
+
+        if (byMembership) {
+            if (this.areMembersInSet(statement,record.members.set)) {
+                for (const fact of record.facts) {
+                    if (statement.some(atom=>fact.set.has(atom))) {
+                        matchedFacts.push(fact.list);
+                        saveToCacheEarly = Boolean(yield fact.list); 
+                        if (saveToCacheEarly) this.saveToFactsCache(cacheKey,matchedFacts);
+                    }
+                }
+            }
+        }else {
+            for (const fact of record.facts) {
+                if (this.compareStatements(statement,fact.list)) {//compare statements method uses strict checking by checking if the statement is exactly identical to the fact by number of elements and element order.By placing this strict check under the membership check,the function saves computation by only scanning statements aginst relevant facts not a full linear scam against all facts
+                    matchedFacts.push(fact.list);
+                    saveToCacheEarly = Boolean(yield fact.list); 
                     if (saveToCacheEarly) this.saveToFactsCache(cacheKey,matchedFacts);
                 }
             }

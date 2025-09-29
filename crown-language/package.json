@@ -1,11 +1,11 @@
 {
-  "name": "@crown",
+  "name": "crown-program",
   "main": "./dist/bundle-min.js",
   "types": "./dist/bundle-min.d.ts",
   "bin": {
     "crown": "./dist/bundle-min.js"
   },
-  "version": "1.0.15",
+  "version": "1.0.0",
   "description": "The crown logic language",
   "scripts": {
     "compile:full": "swc ./src -d build --delete-dir-on-start --copy-files",

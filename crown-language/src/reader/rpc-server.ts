@@ -2,10 +2,10 @@ import chalk from "chalk";
 import ipc from 'node-ipc';
 import { JSONRPCServer } from "json-rpc-2.0";
 import stringify from "safe-stable-stringify";
-import { Doc } from "./rule-model.js";
+import { Doc } from "./reader.js";
 import {autoComplete, findDefLocation, getHoverInfo, importDocFromJson, importDocFromObject, importDocFromSrc} from "../resolver/functions.js";
 import { Atom, AtomList, isGenerator,Result} from "../utils/utils.js";
-import {serverDoc} from "./rule-model.js";
+import {serverDoc} from "./reader.js";
 import { analyzeDocument, resolveDocument } from "../resolver/functions.js";
 import {Mutex} from 'async-mutex';
 
