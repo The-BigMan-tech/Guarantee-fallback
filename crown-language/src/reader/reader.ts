@@ -17,7 +17,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
 
     public  predicates:Record<string,string> = {};
 
-    public static wildCard = uniqueID();//by using a unique id over the string '*', will prevent collisions with atoms during fact checking.
+    public static wildCard = uniqueID();;//by using a unique id over the string '*', will prevent collisions with atoms during fact checking.
     private static factCheckerCache = new LRUCache<string,string>({max:100});//so even if the client runs multiple times,they will still be using cached data.and to ensure this i made the cache static so that it doesnt get wiped on recreation of the doc class due to repeated imports from re-execution of client scripts
 
     public constructor(records:Record<string,Rec>,predicates:Record<string,string>) {
@@ -90,7 +90,7 @@ export class Doc {//I named it Doc instead of Document to avoid ambiguity with t
         if (byMembership) {
             if (this.areMembersInSet(statement,record.members.set)) {
                 for (const fact of record.facts) {
-                    if (statement.some(atom=>fact.set.has(atom))) {
+                    if (statement.some(atom=>fact.set.has(atom) || this.isWildCard(atom))) {
                         matchedFacts.push(fact.list);
                         saveToCacheEarly = Boolean(yield fact.list); 
                         if (saveToCacheEarly) this.saveToFactsCache(cacheKey,matchedFacts);
