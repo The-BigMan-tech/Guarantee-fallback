@@ -39,7 +39,8 @@
     "tailwindcss": "^4.1.8",
     "three": "^0.177.0",
     "uuid": "^11.1.0",
-    "vite-plugin-wasm": "^3.4.1"
+    "vite-plugin-wasm": "^3.4.1",
+    "xstate": "^5.22.0"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "4",

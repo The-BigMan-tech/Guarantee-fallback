@@ -1,6 +1,8 @@
 TODO:
 *at times,the entity navigation system doesnt even notice im there till i get close at it.It could be that i didnt add the relationship properly under the refresh relationships methd or the nav method itself
 
+*the entities at times just skip infront of the target on approaching it.
+
 *sometimes,the container holding the item clones dont get removed from their parents upon cleanup
 
 *my entity controller at times,doesnt hit me when i get directly close at it.it will just be there until i rotate.its the nav method.i checked the logs.it believed that it didnt reach me yet until i rotated a little.

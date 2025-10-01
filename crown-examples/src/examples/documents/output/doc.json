@@ -3,12 +3,16 @@
         "female": "female",
         "friend": "friends",
         "friends": "friends",
-        "good": "good",
+        "generic": "generic",
+        "girl": "girl",
         "male": "male",
         "males": "male",
         "mother": "parent",
         "nice": "nice",
         "parent": "parent",
+        "passing": "passing",
+        "query": "query",
+        "recommends": "recommends",
         "tall": "tall"
     },
     "records": {
@@ -59,32 +63,22 @@
                 }
             ]
         },
-        "good": {
+        "generic": {
+            "facts": [
+                {
+                    "list": [
+                        "type",
+                        "Doc"
+                    ]
+                }
+            ]
+        },
+        "girl": {
             "facts": [
                 {
                     "list": [
                         "ada",
-                        "girl"
-                    ]
-                },
-                {
-                    "list": [
-                        "a"
-                    ]
-                },
-                {
-                    "list": [
-                        "b"
-                    ]
-                },
-                {
-                    "list": [
-                        "c"
-                    ]
-                },
-                {
-                    "list": [
-                        "d"
+                        "good"
                     ]
                 }
             ]
@@ -136,6 +130,40 @@
                     "list": [
                         "Mandy",
                         "Matt"
+                    ]
+                }
+            ]
+        },
+        "passing": {
+            "facts": [
+                {
+                    "list": [
+                        "safety",
+                        "by",
+                        "predicate",
+                        "type"
+                    ]
+                }
+            ]
+        },
+        "query": {
+            "facts": [
+                {
+                    "list": [
+                        "types",
+                        "better",
+                        "safety"
+                    ]
+                }
+            ]
+        },
+        "recommends": {
+            "facts": [
+                {
+                    "list": [
+                        "x",
+                        "generating",
+                        "types"
                     ]
                 }
             ]
