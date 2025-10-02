@@ -348,7 +348,7 @@ export class Player extends Controller implements EntityLike {
         const timeToPlayAnimation = this.attackCooldown - this.animationControls!.attackDuration;
         //despite already having the first part of the condition,the reason why i still have a flag check on top is to prevent this condition from being true more than when it should.cuz the first condition only checks if that timer has reacjed the point where it should play the animation hich is > X time.but it also means that it will return true for X + 1,X + 2,X + 3 not just once at X+1.this will make it to repeat the animation even when i only need it to play once just from that point forward.so by adding the flag,it ensures it only plays at X + 1.nothing else.
         if ((this.attackTimer > timeToPlayAnimation) && !this.hasPlayedAttackAnimation) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
-            this.animationControls!.animationToPlay = 'attack';
+            this.animationControls!.setAnimation('attack')
             this.hasPlayedAttackAnimation = true
         }
         if ((this.attackTimer > this.attackCooldown)){
@@ -390,9 +390,8 @@ export class Player extends Controller implements EntityLike {
         if (this.health.isDead) {
             this.respawnTimer += this.clockDelta || 0;
             this.targetY = this.offsetY - this.playerHeight;
-            this.animationControls!.animationToPlay = null;//to prevent any other animation from playing when its dead
             if (!this.hasPlayedDeathAnimation) {//this is to play the death animation only once
-                this.animationControls!.animationToPlay = 'death';
+                this.animationControls!.setAnimation('death');
                 this.hasPlayedDeathAnimation = true;
             }
             if (this.respawnTimer >= this.respawnDelay) {

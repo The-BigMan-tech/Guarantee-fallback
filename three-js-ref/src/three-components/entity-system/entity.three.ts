@@ -108,7 +108,7 @@ export class Entity extends Controller implements EntityLike {
     private chase():void {
         if (this.navPosition) {
             const rotateAndMove = (this.movementType == "precise") ? false : true;
-            const atTarget = this.navToTarget(this.navPosition,true);
+            const atTarget = this.navToTarget(this.navPosition,rotateAndMove);
             if (atTarget && this.onTargetReached) {
                 const behaviour = this.onTargetReached();
                 if (behaviour === 'idle') this.idle();
@@ -123,7 +123,7 @@ export class Entity extends Controller implements EntityLike {
         const timeToPlayAnimation = this.attackCooldown - this.animationControls!.attackDuration;
 
         if ((this.attackTimer > timeToPlayAnimation) && !this.hasPlayedAttackAnimation) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
-            this.animationControls!.animationToPlay = 'attack';
+            this.animationControls!.setAnimation('attack')
             this.hasPlayedAttackAnimation = true;
         }
         if (this.attackTimer > this.attackCooldown) {
@@ -141,9 +141,8 @@ export class Entity extends Controller implements EntityLike {
     private hasPlayedDeathAnimation = false
     public death():void {
         if (this.health.isDead && !this.isRemoved) {//I used to have a fadeout function to fade out the animation slowly as the entity dies but the problem is that it mutated the opacity of the materails directly which is fine as long as i reread the gltf file from disk for each entity.but if i only read it once and clone the model,it only clones the model not the material.each model clone even deep ones will still ref the same material in mem for perf.i didnt discover this till i reused models for my item clones.
-            this.animationControls!.animationToPlay = null;//to prevent any other animation from playing when its dead.This will make it remain at the dead animation because i clamped the dead animation at its end and this will prevent any other animation from overriding it
             if (!this.hasPlayedDeathAnimation) {//this is to ensure that the animation plays a few milli seconds before the knockback is applied to make it more natural
-                this.animationControls!.animationToPlay = 'death'
+                this.animationControls!.setAnimation('death');
                 this.hasPlayedDeathAnimation = true;
                 console.log('death. playing death animation');
             }

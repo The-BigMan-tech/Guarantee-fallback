@@ -81,12 +81,12 @@ export class PhaseManager<T> {
         }else throw new Error(chalk.red('State Error: ') + `The phase, ${this.phase}, is invalid for the called operation. Only these are allowed: ${phases}`);
     }
 }
-export class Guard<T> {
+export class Guard<T,I extends T> {
     private ref:Ref<T>;
     public manager:PhaseManager<T>;
 
-    constructor(value:T,cleanFn?:(ref:Ref<T>)=>void) {
-        this.ref = {value};
+    constructor(initValue:I,cleanFn?:(ref:Ref<T>)=>void) {
+        this.ref = {value:initValue};
         this.manager = new PhaseManager(this.ref,cleanFn);
     }
     public copy():T | never {//any caller that needs to access the value at the ref will get a copy

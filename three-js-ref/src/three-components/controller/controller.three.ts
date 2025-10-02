@@ -7,7 +7,7 @@ import { getGroundDetectionDistance, VelCalcUtils } from "./helper";
 import { createBoxLine, createCapsuleLine } from "../item-system/behaviour/other-helpers.three";
 import { disposeHierarchy } from "../disposer/disposer.three";
 import { SoundControls } from "./sound-controls.three";
-import { AnimationControls,type Animation } from "./animation-controls.three";
+import { AnimationControls } from "./animation-controls.three";
 
 
 //this is data fpr the controller that cant or should not be changed after creation
@@ -217,7 +217,7 @@ export abstract class Controller {
             console.log("Is character collider: ",isCharacterCollider);
             if (isCharacterCollider) return true;//skip the check for the player and contiune searching for other colliers at that point
 
-            if (this.playLandSound && !this.preservePrevSound()) {
+            if (this.playLandSound) {
                 this.soundControls.soundToPlay = 'land'
                 this.playLandSound = false
             }
@@ -524,7 +524,7 @@ export abstract class Controller {
         const greaterOrSameYLevel = Math.round(finalDestY - this.character.position.y) >= 2;//this is to ensure it doesnt jumps proactively when im below it.it should just walk down
         const jumpProactively = greaterOrSameYLevel && !this.groundIsPresentForward;
         
-        if (this.isNearOriginalPath) {//this is for it to retain spacing between the entity and the target so that it doesnt jitter between moving and staying idle because of unstable small positional diff between it and the target like moving forward while knockinng back the entity
+        if (this.isNearOriginalTarget) {//this is for it to retain spacing between the entity and the target so that it doesnt jitter between moving and staying idle because of unstable small positional diff between it and the target like moving forward while knockinng back the entity
             return
         }
         if ((jumpProactively || this.canJumpOntoObstacle()) && !this.shouldStepUp && onGround) {
@@ -600,14 +600,13 @@ export abstract class Controller {
         console.log('.:Cleared this branch');
     }
 
-    private isNearOriginalPath:boolean = false;
+    private isNearOriginalTarget:boolean = false;
     private spaceCooldown = combatCooldown; // cooldown duration in seconds
     private spaceTimer = 0;
     
     //to break down the different types of paths i have,there are four types;the original path,the branched path,the current path and the final path.the original path is the original goal the entity needs to go.the branched path is the temporary point that the entity goes to in order to evade an obstacle that it cant overcome,the current path is the variable that reflects the path that the entity is taking at the moment which is either the original or branched path while the final path is the current path but it can be branched from there or not.the final path wont live long enough to properly lead the entity to the branch cuz its local and reset on every frame but it lives long enough to steer its facing direction to that branch so that in the next frame,the branched path can take it from there to lead it to the branched point.one may argue that i should cut down this variable and just leave it as 3 path types but having final path is important to properly get it steering to the branched point in the same frame.
     protected navToTarget(originalPath:THREE.Vector3,rotateAndMove:boolean):boolean {//targetpos is the player for example
         this.timeSinceLastFlipCheck += this.clockDelta || 0;
-        this.animationControls!.waitForSprintBeforeIdle = true;
 
         const characterPos = this.character.position;
         const distToOriginalPath = characterPos.distanceTo(originalPath);//im using hypot dist here cuz i need the distance to reflect all the comp before deciding that its close to it cuz this is where it terminates the navigation but its not the sole factor used to determine that.i also included in the y level diff check
@@ -617,13 +616,13 @@ export abstract class Controller {
         const targetReachedDistance = 3//this defines how close the entity must be to the original path before it considers it has reached it and stops navigating towards it.its a tight threshold ensuring that the entity reaches the target/original path at a reasonable distance before stopping
         const hasReachedOriginalPath =  (onSameYLevel) && (distToOriginalPath < targetReachedDistance);
 
-        if (hasReachedOriginalPath || this.isNearOriginalPath) {//the current value of isNearOriginalPath will come in the next frame before using it to make its decision.cuz its needed for automoveforward to know it should stop moving the entity.if i use it to return from here,that opportunity wont happen and the entity wont preserve any space between it and the target
+        if (hasReachedOriginalPath || this.isNearOriginalTarget) {//the current value of isNearOriginalPath will come in the next frame before using it to make its decision.cuz its needed for automoveforward to know it should stop moving the entity.if i use it to return from here,that opportunity wont happen and the entity wont preserve any space between it and the target
             this.spaceTimer += this.clockDelta || 0;
             this.terminateBranch();
 
             if (this.spaceTimer > this.spaceCooldown) {//i used a cooldown to retain this space for some time or else,it will just go straight to the target again
                 this.spaceTimer = 0;
-                this.isNearOriginalPath = false
+                this.isNearOriginalTarget = false
             }
             return true
         } 
@@ -681,7 +680,7 @@ export abstract class Controller {
         }
 
         this.isFinalDestClose = distToFinalDest < distToFinalDestThresh;
-        this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 5);//this is used to control spacing between the entity and the target to prevent jitter when it knocks me back while coming at me
+        this.isNearOriginalTarget = (onSameYLevel) && (distToOriginalPath < 6);//this is used to control spacing between the entity and the target to prevent jitter when it knocks me back while coming at me
         
         if (rotateAndMove || shouldWalkAroundObstacle) {//if should walk aroud an obstacle,i want it to move and rotate at the same time for a fluid walk around the obstacle's perimeter
             if (finalDir !== null) this.rotateCharacterX(finalDir);
@@ -930,30 +929,13 @@ export abstract class Controller {
     public headRotation:THREE.Euler = new THREE.Euler(0,0,0,'YXZ')//this state is only public so that entity wrappers can access them from within the entity.some other states too are also public because of the same reason
     private updateHead() {//this is to control the head bone programmatically.its useful for looking up and down.Its best with animations that dont animate the head bone to avoid conflicts
         if (this.head) {
-            const animationToPlay = this.animationControls!.animationToPlay;
+            const animationToPlay = this.animationControls!.animationToPlay.copy();
             if ((animationToPlay === "idle") || (animationToPlay === "sprint")) {//only override the head in the aniations where it will make sense like wlaking or standing idle
                 this.head.quaternion.slerp(new THREE.Quaternion().setFromEuler(this.headRotation),0.3)
             }
         }
     }
-    private preservePrevAnimation() {
-        return  (this.animationControls!.animationToPlay === null) || 
-                (this.animationControls!.animationToPlay === 'attack') ||  
-                (this.animationControls!.animationToPlay === 'death') ||  
-                (this.animationControls!.animationToPlay === 'throw')
-    }
-    private preservePrevSound() {
-        return (this.soundControls!.soundToPlay === "punch")
-    }
-    private overrideAnimation() {
-        if (!this.preservePrevAnimation() && !this.isAirBorne() && !this.velocity.clone().setY(0).equals(Controller.zeroVector)) {//i used the velocity vector instead of the rigid body's actual velocity to show the desire to move.because the velocity vector can have a value which means a need for movement but the rigid body may be stuck that it cant actually move.so using a velocity vector here shows responsiveness even though the character cant actually move.I set the y to 0 because i want it to be isensitive to the y component
-            this.animationControls!.animationToPlay = 'sprint';
-            if (!this.preservePrevSound()) this.soundControls.soundToPlay = 'walk';
-        }
-        else if (!this.preservePrevAnimation() && this.isAirBorne()) {//only ovverride the animation to jump if its airborne and its not doing an attack animation so that it can do an attack in the air.im doing this after the hook so that it checks on the controller's latest state
-            this.animationControls!.animationToPlay = 'jump';
-        }
-    }
+
 
     protected abstract onLoop():void//this is a hook where the entity must be controlled before updating
     private forceSleepIfIdle() {
@@ -961,6 +943,18 @@ export abstract class Controller {
         if (this.isGrounded() && !this.characterRigidBody.isSleeping() && !this.isKnockedBack) {// im forcing the character rigid body to sleep when its on the ground to prevent extra computation for the physics engine and to prevent the character from consistently querying the engine for ground or obstacle checks.doing it when the entity is grounded is the best point for this.but if the character is on the ground but he wants to move.so what i did was that every exposed method to the inheriting class that requires modification to the rigid body will forcefully wake it up before proceeding.i dont have to wake up the rigid body in other exposed functions that dont affect the rigid body.and i cant wake up the rigid body constantly at a point in the update loop even where calculations arent necessary cuz the time of sleep may be too short.so by doing it the way i did,i ensure that the rigid body sleeps only when its idle. i.e not updated by the inheriting class.this means that the player body isnt simulated till i move it or jump.
             this.characterRigidBody.sleep();
         } 
+    }
+    private playMobileAnimations():void {
+        if (!this.isAirBorne()) {
+            const inMotion =  !this.velocity.clone().setY(0).equals(Controller.zeroVector)//i used the velocity vector instead of the rigid body's actual velocity to show the desire to move.because the velocity vector can have a value which means a need for movement but the rigid body may be stuck that it cant actually move.so using a velocity vector here shows responsiveness even though the character cant actually move.I set the y to 0 because i want it to be isensitive to the y component
+            if (inMotion) {
+                this.animationControls!.setAnimation('sprint');
+                this.soundControls.soundToPlay = 'walk';
+            }
+        }
+        else {//only ovverride the animation to jump if its airborne and its not doing an attack animation so that it can do an attack in the air.im doing this after the hook so that it checks on the controller's latest state
+            this.animationControls!.setAnimation('jump');
+        }
     }
      //in this controller,order of operations and how they are performed are very sensitive to its accuracy.so the placement of these commands in the update loop were crafted with care.be cautious when changing it in the future.but the inheriting classes dont need to think about the order they perform operations on their respective controllers cuz their functions that operate on the controller are hooked properly into the controller's update loop and actual modifications happens in the controller under a crafted environment not in the inheriting class code.so it meands that however in which order they write the behaviour of their controllers,it will always yield the same results
     private updateCharacter(deltaTime:number):void {//i made it private to prevent direct access but added a getter to ensure that it can be read essentially making this function call-only
@@ -970,12 +964,17 @@ export abstract class Controller {
         this.forceSleepIfIdle();
         this.updateKnockbackCooldown();
         this.updateVelJustAboveGround();
-        this.animationControls!.animationToPlay = 'idle' as Animation;//make all controllers play the idle animation by default.it overrides the animation state in the last frame.this ensures that animation states remain predictable by always starting at a defined state every frame and it prevents an arbritary state from lingering at every frame which can cause repeated playing animations that arent desired.
+        
+        this.animationControls?.setAnimation('idle');//make all controllers play the idle animation by default.it overrides the animation state in the last frame.this ensures that animation states remain predictable by always starting at a defined state every frame and it prevents an arbritary state from lingering at every frame which can cause repeated playing animations that arent desired.
         this.onLoop();//the child class custom hook which can play animations
-        this.overrideAnimation();
+        this.playMobileAnimations();
+
+        this.animationControls!.animationToPlay.manager.send('READ');
         this.animationControls?.updateAnimations(deltaTime);//im updating the animation before the early return so that it stops naturally 
         this.soundControls?.playSelectedSound();
         this.updateHead();//we want to update the head after the animation so that the animation doesnt override this one
+        this.animationControls!.animationToPlay.manager.send('CLEAR');
+
         if (this.characterRigidBody && this.characterRigidBody.isSleeping()) {
             console.log("sleeping...");
             return;//to prevent unnecessary queries.Since it sleeps only when its grounded.its appropriate to return true here saving computation

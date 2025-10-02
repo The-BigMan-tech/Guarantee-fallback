@@ -194,7 +194,7 @@ export class CommonBehaviour {
             
             const timeToPlayAnimation = this.entity.useItemCooldown - this.entity.animationControls!.throwDuration;
             if ((this.entity.useItemTimer > timeToPlayAnimation) && !this.hasPlayedThrowAnimation) {
-                this.entity.animationControls!.animationToPlay = 'throw';
+                this.entity.animationControls!.setAnimation('throw')
                 this.hasPlayedThrowAnimation = true
             }
             this.useItem({view,...itemWithID,strength:strength});
