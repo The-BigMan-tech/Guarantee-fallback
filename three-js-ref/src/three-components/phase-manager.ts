@@ -1,4 +1,4 @@
-import {ActorRefFrom, createActor, createMachine,transition } from "xstate";
+import {type ActorRefFrom, createActor, createMachine,transition } from "xstate";
 import chalk from "chalk";
 
 type Phase = 'write' | 'read' | 'update' | 'clear';

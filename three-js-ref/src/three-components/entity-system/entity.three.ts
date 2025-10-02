@@ -7,6 +7,7 @@ import type { EntityLike } from "./relationships.three";
 import { disposeHierarchy, disposeMixer } from "../disposer/disposer.three";
 import type { EntityCount,EntityWrapper, seconds} from "./global-types"
 import { isEntityWrapper } from "./entity-registry";
+import { randInt } from "three/src/math/MathUtils.js";
 
 type Behaviour = 'idle' | 'patrol' | 'chase' | 'attack' | 'death';
 interface EntityStateMachine {
@@ -65,7 +66,7 @@ export class Entity extends Controller implements EntityLike {
 
     private movementType:'fluid' | 'precise' = 'precise'
 
-    public useItemCooldown:seconds = 5;//increase the cooldown accordingly to control the rate at which entities spawn items in the game which indirectly preserves memory
+    public useItemCooldown:seconds = randInt(5,8);//increase the cooldown accordingly to control the rate at which entities spawn items in the game which indirectly preserves memory
     public useItemTimer:seconds = 0;
     public height:number
 
@@ -107,7 +108,7 @@ export class Entity extends Controller implements EntityLike {
     private chase():void {
         if (this.navPosition) {
             const rotateAndMove = (this.movementType == "precise") ? false : true;
-            const atTarget = this.navToTarget(this.navPosition,rotateAndMove);
+            const atTarget = this.navToTarget(this.navPosition,true);
             if (atTarget && this.onTargetReached) {
                 const behaviour = this.onTargetReached();
                 if (behaviour === 'idle') this.idle();

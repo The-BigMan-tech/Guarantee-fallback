@@ -620,10 +620,10 @@ export abstract class Controller {
         if (hasReachedOriginalPath || this.isNearOriginalPath) {//the current value of isNearOriginalPath will come in the next frame before using it to make its decision.cuz its needed for automoveforward to know it should stop moving the entity.if i use it to return from here,that opportunity wont happen and the entity wont preserve any space between it and the target
             this.spaceTimer += this.clockDelta || 0;
             this.terminateBranch();
-            console.log('Reached original path');
+
             if (this.spaceTimer > this.spaceCooldown) {//i used a cooldown to retain this space for some time or else,it will just go straight to the target again
+                this.spaceTimer = 0;
                 this.isNearOriginalPath = false
-                this.spaceTimer = 0
             }
             return true
         } 

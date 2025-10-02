@@ -49,10 +49,7 @@ export class CommonBehaviour {
                 if (prop === 'currentHealth' || prop === 'attackDamage' || prop === 'knockback') {//update the heaps if the health,attack damage or other props of the entity that can change at runtime changes
                     console.log('Proxy called');
                     if (this.targetRelationshipToUpdate) {
-                        const topEntities = this.targetRelationshipToUpdate.subQueries.byHealth.top(3); //this is just here to log the state before and after for debugging purposes.
-                        console.log('heap top entities before:', topEntities.map(e =>e.controllerID));
                         relationshipManager.updateRelationship(proxy,this.targetRelationshipToUpdate);//this is the call that updates the respective heap
-                        console.log('heap top entities after:', topEntities.map(e =>e.controllerID));
                     }
                 }
                 return true;

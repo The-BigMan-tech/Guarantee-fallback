@@ -3,6 +3,7 @@ use std::cell::{RefCell,RefMut};
 
 use teacher::{Teacher, TeacherTraits};
 use student::{Student, StudentTraits};
+
 mod teacher{
     use super::{Rc,RefCell,Student,RefMut};
     pub struct Teacher {
@@ -171,4 +172,4 @@ pub fn smart()->() {
     println!("A count: {}",Rc::strong_count(&owner_a));
     println!("B count: {}",Rc::strong_count(&owner_b));
     
-}
+}"#f3a894"
