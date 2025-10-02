@@ -683,15 +683,11 @@ export abstract class Controller {
         this.isFinalDestClose = distToFinalDest < distToFinalDestThresh;
         this.isNearOriginalPath = (onSameYLevel) && (distToOriginalPath < 5);//this is used to control spacing between the entity and the target to prevent jitter when it knocks me back while coming at me
         
-        if (rotateAndMove) {
+        if (rotateAndMove || shouldWalkAroundObstacle) {//if should walk aroud an obstacle,i want it to move and rotate at the same time for a fluid walk around the obstacle's perimeter
             if (finalDir !== null) this.rotateCharacterX(finalDir);
             this.moveAgent(finalPath.y);
-            return false
         }
-        if (shouldWalkAroundObstacle) {//if should walk aroud an obstacle,i want it to move and rotate at the same time for a fluid walk around the obstacle's perimeter
-            if (finalDir !== null) this.rotateCharacterX(finalDir);
-            this.moveAgent(finalPath.y);
-        }else {//if its not walking around an obstacle,i want it to either rotate or move but not at the same time in the same frame.this is for precision
+        else {//if its not walking around an obstacle,i want it to either rotate or move but not at the same time in the same frame.this is for precision
             if (finalDir !== null) this.rotateCharacterX(finalDir);
             else this.moveAgent(finalPath.y);
         }
