@@ -14,8 +14,8 @@ pub fn try_flex() {
     let mut flex_shoes:Flex = Flex::new(shoes);
     println!("Number of bytes of flexible vector:{}",bytes(&flex_shoes.internal));
 
-    let re_rep:&Vec<u8> = flex_shoes.get_internal();
-    let test_data:i64 = flex_shoes.get_data::<i64>(11);
+    let re_rep:&Vec<u8> = flex_shoes.internal();
+    let test_data:i64 = flex_shoes.at::<i64>(11);
 
     println!("Test data: {test_data}");
     println!("Test re-rep: {:?}",re_rep);
@@ -23,7 +23,7 @@ pub fn try_flex() {
     flex_shoes.push(100000);
     flex_shoes.push(10);
     flex_shoes.push(-30000);
-    println!("After pushing: {:?}",flex_shoes.get_internal());
+    println!("After pushing: {:?}",flex_shoes.internal());
     println!("Number of bytes of flexible vector:{}",bytes(&flex_shoes.internal));
 
     flex_shoes.clear();
@@ -38,5 +38,5 @@ pub fn try_flex() {
     let stats:Vec<i64> = vec![23,77,88,99,10,11,11,11,1,1,1,99,9,999,11,22,33,22,23,33,33];
     let flex_stats:Flex = Flex::new(stats);
     println!("Number of bytes of flexible vector:{}",bytes(&flex_stats.internal));
-    println!("at 0: {}",flex_stats.get_data::<i64>(0));
+    println!("at 0: {}",flex_stats.at::<i64>(0));
 }

@@ -5,19 +5,24 @@ alias males = *male.
 
 :Billy,:John and :Cole are #friends.
 !John,:Mark and :Zane are  #friends.
+
 !Zane  is the #friend of !Cole.
+
 :Leo is !Cole's #friend &and <He> is *nice.
+
 :Matt and :Philip  are #males.
 :Mandy is a *female.
-!Mandy is the #mother of  !Philip.
-!Mandy is the #mother of !Matt .
-:ada is a :good *girl.
-!ada is a *female.
-:a is a *male.
-:b is a *male.
-[:l,2] :h *tall.
 
-:x *recommends :generating the :types.
-<ref:3> is for :better *query :safety.
-<ref:3> is :by *passing the :predicate :type.//omit-warning
-<ref:4> as a *generic to the :Doc. //omit-warning
+!Mandy is the #mother of  !Philip.
+
+!Mandy is the #mother of !Matt .
+
+:ada is a :good *girl.
+
+!ada is a *female.
+
+:a is a *male.
+
+:b is a *male.
+
+[:l,2] :h *tall.

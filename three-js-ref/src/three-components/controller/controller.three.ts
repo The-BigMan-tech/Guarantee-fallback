@@ -764,8 +764,8 @@ export abstract class Controller {
     private updateCharacterTransformations():void {
         if (!this.characterRigidBody) return;
         //i  used its ground position and also added the level where things on the ground stand on as the y transform of the mesh
-        const [posX,posY,posZ] = [this.characterPosition.x,this.calculateGroundPosition()+startingLevelY,this.characterPosition.z];
-        this.character.position.set(posX,posY,posZ);
+        const pos = new THREE.Vector3(this.characterPosition.x,this.calculateGroundPosition()+startingLevelY,this.characterPosition.z);
+        this.character.position.copy(pos);
         this.character.quaternion.slerp(this.targetQuaternion,this.dynamicData.rotationSpeed);
         this.characterRigidBody.setRotation(this.targetQuaternion,true);
     }
@@ -775,7 +775,7 @@ export abstract class Controller {
         if (!this.characterRigidBody) return;
         this.characterRigidBody.setTranslation(this.fixedData.spawnPoint,true);
         this.characterPosition = this.characterRigidBody.translation();
-        this.character.position.set(this.characterPosition.x,this.characterPosition.y,this.characterPosition.z);
+        this.character.position.copy(this.characterPosition);
     }
     private updateIsOutOfBounds():void {
         this.isOutOfBounds = false
@@ -950,6 +950,8 @@ export abstract class Controller {
             if (inMotion) {
                 this.animationControls!.setAnimation('sprint');
                 this.soundControls.soundToPlay = 'walk';
+            }else {
+                this.animationControls!.setAnimation('idle');//make all controllers play the idle animation by default.it overrides the animation state in the last frame.this ensures that animation states remain predictable by always starting at a defined state every frame and it prevents an arbritary state from lingering at every frame which can cause repeated playing animations that arent desired.
             }
         }
         else {//only ovverride the animation to jump if its airborne and its not doing an attack animation so that it can do an attack in the air.im doing this after the hook so that it checks on the controller's latest state
@@ -964,11 +966,10 @@ export abstract class Controller {
         this.forceSleepIfIdle();
         this.updateKnockbackCooldown();
         this.updateVelJustAboveGround();
-        
-        this.animationControls?.setAnimation('idle');//make all controllers play the idle animation by default.it overrides the animation state in the last frame.this ensures that animation states remain predictable by always starting at a defined state every frame and it prevents an arbritary state from lingering at every frame which can cause repeated playing animations that arent desired.
-        this.onLoop();//the child class custom hook which can play animations
-        this.playMobileAnimations();
 
+        this.playMobileAnimations();
+        this.onLoop();//the child class custom hook which can play animations
+        
         this.animationControls!.animationToPlay.manager.send('READ');
         this.animationControls?.updateAnimations(deltaTime);//im updating the animation before the early return so that it stops naturally 
         this.soundControls?.playSelectedSound();

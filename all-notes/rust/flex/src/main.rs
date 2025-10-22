@@ -8,11 +8,11 @@ impl Flex {
     fn new<T:Display +  Into<i64> >(vector:Vec<T>)->Flex  {
         let mut instance:Flex = Self {internal:Vec::new()};
         let mut re_representation:Vec<u8> = vec![];
-        for num in vector {instance.create_representation(num ,&mut re_representation)}
+        for num in vector {instance.encode_num_to_vec(num ,&mut re_representation)}
         instance.internal = re_representation;
         return instance
     }
-    fn create_representation<T:Display + Into<i64>>(&self,num:T,offload:&mut Vec<u8>) {
+    fn encode_num_to_vec<T:Display + Into<i64>>(&self,num:T,offload:&mut Vec<u8>) {
         let num:i64 = num.into();
         if num.is_negative() {offload.push(255)}
 
@@ -47,11 +47,11 @@ impl Flex {
             index += 2;
         }
     }
-    fn get_internal(&self)->&Vec<u8> {
+    fn internal(&self)->&Vec<u8> {
         return &self.internal
     }
-    fn get_data<T:FromStr + From<T> + Display>(&self,ind:usize)->T where T::Err :Debug {
-        let internal:&Vec<u8> = self.get_internal();
+    fn at<T:FromStr + From<T> + Display>(&self,ind:usize)->T where T::Err :Debug {
+        let internal:&Vec<u8> = self.internal();
         let mut internal_signed:Vec<i32> = vec![];
 
         for (index,element) in internal.iter().enumerate() {
@@ -65,7 +65,7 @@ impl Flex {
                     }
                 }
         }
-        println!("Internal signed: {internal_signed:?}");
+
         let mut terminators:Vec<i32> = vec![0];
         let mut string_data:String = String::from("");
         for (index,num) in internal_signed.iter().enumerate() {
@@ -82,19 +82,19 @@ impl Flex {
                 let mut termination_start:usize = (own_terminators[ind] as usize) + 1;
                 if ind == 0 {termination_start = 0;}
                 let termination_end:usize = (own_terminators[ind+1] as usize) + 1;
-                println!("Termination start: {termination_start}, End: {termination_end}");
+        
                 let digits:& [i32] = {
                     if (termination_start == 1) && (termination_end == 1) {& internal_signed[..=0]}
                     else {& internal_signed[termination_start..termination_end]}
                 };
                 digits
             };
-            println!("Digits: {:?}",digits);
+            
             let mut digits:Vec<i32> = digits.to_owned();
             if (digits[0].is_negative()) && (digits.len() > 1)  {
                 digits.remove(1);
             }
-            println!("Digits 2: {:?}",digits);
+            
             for digit in &digits {
                 string_data += & { 
                     let x = {
@@ -110,19 +110,19 @@ impl Flex {
             if (digits.len() == 1) && (digits[0].is_negative()){
                 string_data = format!("-{string_data}");
             }
-            println!("String data: {string_data}");
+            
             let num_to_return:T = {
                 let string_data:String = string_data;
                 let num_to_return:T = string_data.parse::<T>().unwrap();
                 num_to_return
             };
-            println!("Num to return: {num_to_return}");
+            
             return  num_to_return;
         }
     }
     fn push<T:Display+ Into<i64>>(&mut self,num:T) {
         let mut offload:Vec<u8> = vec![];
-        self.create_representation(num, &mut offload);
+        self.encode_num_to_vec(num, &mut offload);
         self.internal.append(&mut offload);
     }
     fn clear(&mut self) {
@@ -133,9 +133,9 @@ impl Flex {
     }
 }
 fn main() {
-    let mut cars:Flex = Flex::new([-17,63,61,64,-90000001,897].to_vec());
-    println!("Internal Car re-representation: {:?}",cars.get_internal());
-    let x:i32 = cars.get_data::<i32>(4);//the number of bytes the element you want to retieve takes.Requires head knowledge of which index has which numbe of bytes which isnt possible at runtime so using the biggest byte of the elemensts is preferrable.the vec still takes only the space that it needs for each element but when returning the element,it has to be the biggest size because of lack of runtime predictability
+    let mut cars:Flex = Flex::new([-17,63,61,64,-900000,897].to_vec());
+    println!("Internal Car re-representation: {:?}",cars.internal());
+    let x:i32 = cars.at::<i32>(6);//the number of bytes the element you want to retieve takes.Requires head knowledge of which index has which numbe of bytes which isnt possible at runtime so using the biggest byte of the elemensts is preferrable.the vec still takes only the space that it needs for each element but when returning the element,it has to be the biggest size because of lack of runtime predictability
     println!("Number at an index: {}",x);
     cars.push(20);
     cars.clear();

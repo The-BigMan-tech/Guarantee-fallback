@@ -30,14 +30,6 @@ export class AnimationControls {
 
     public animationToPlay:Guard<Animation | null,null>;//a null animation state is used to cancel out any previous animation state and thus have no new animation play again.its used to ensure whaterver animation is played on the model currently doesnt get changed by a new animation state and thus remains.like having the death animation to remain when an entity is dead
 
-    private animationPriority:Record<Animation,number> = {//the higher the number,the higher the priority
-        death:60,
-        attack:50,
-        throw:40,
-        jump:30,
-        sprint:20,
-        idle:10
-    }   
     constructor(characterModel: THREE.Group) {
         this.mixer = new THREE.AnimationMixer(characterModel);
         this.mixer.addEventListener('finished',this.onFinish);
@@ -45,12 +37,8 @@ export class AnimationControls {
     }
     public setAnimation(nextAnimation:Animation) {
         this.animationToPlay.guard(['write','update'],(ref)=>{
-            const currentAnimation = ref.value;  
-            const hasHigherPriority = currentAnimation !== null && (this.animationPriority[nextAnimation] > this.animationPriority[currentAnimation]);
             console.log('trying animation:', nextAnimation);
-            if (currentAnimation === null || hasHigherPriority) {
-                ref.value = nextAnimation;
-            }
+            ref.value = nextAnimation;
         })
     }
     private onFinish = (event:AnimationFinishedEvent)=>{
@@ -97,9 +85,9 @@ export class AnimationControls {
             this.currentAction = this.idleAction;
         }
     }
+
     private fadeToAnimation(newAction: THREE.AnimationAction | null):void {
-        if (!newAction) return;
-        if ((newAction !== this.currentAction) || !newAction.isRunning()) {
+        if (newAction && ((newAction !== this.currentAction))) {
             newAction.reset();
             newAction.play();
             if (this.currentAction) this.currentAction.crossFadeTo(newAction, 0.4, false);
@@ -133,39 +121,33 @@ export class AnimationControls {
     get throwDuration():number {
         return this.throwClip?.duration || 0;
     }
-    private lastPlayedAnimation:Animation | null = null;
-
     private playAnimation():void {
-        const nextAnimation = this.animationToPlay.copy();
-        if (this.lastPlayedAnimation !== nextAnimation) {
-            switch (nextAnimation) {
-                case 'idle': {
-                    this.playIdleAnimation()
-                    break;
-                }
-                case 'jump': {
-                    this.playJumpAnimation();
-                    break;
-                }
-                case 'sprint': {
-                    this.playSprintAnimation()
-                    break;
-                }
-                case 'attack': {
-                    this.playAttackAnimation();
-                    break;
-                };
-                case 'throw': {
-                    this.playThrowAnimation();
-                    break;
-                }
-                case 'death': {
-                    this.playDeathAnimation()
-                    break;
-                }
+        switch (this.animationToPlay.copy()) {
+            case 'idle': {
+                this.playIdleAnimation()
+                break;
             }
-            this.lastPlayedAnimation = nextAnimation;
-        }
+            case 'jump': {
+                this.playJumpAnimation();
+                break;
+            }
+            case 'sprint': {
+                this.playSprintAnimation()
+                break;
+            }
+            case 'attack': {
+                this.playAttackAnimation();
+                break;
+            };
+            case 'throw': {
+                this.playThrowAnimation();
+                break;
+            }
+            case 'death': {
+                this.playDeathAnimation();
+                break;
+            }
+        }  
     } 
     public updateAnimations(clockDelta:number) {
         if (this.mixer) {//only update animations if the mixer is still available.the reason why im checking the mixer state every frame is because the mixer can be removed at any point in the controller when its no longer needed like upon death
