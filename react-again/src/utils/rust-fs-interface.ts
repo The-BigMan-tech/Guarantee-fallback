@@ -31,39 +31,32 @@ export class FsResult<T>  {
         return new FsResult((error instanceof Error)?error:new Error("An unknown error occurred"))
     }
 }
-function isExt(fileExtension:string | null,...extensions:string[]):boolean {
-    if (fileExtension) {
-        for (const ext of extensions) {
-            if (fileExtension == ext) {
-                return true
-            }
+//this function assumes that the pipe symbol '|' will be used to represent concatenated keys pointing to the same value
+function turnToMap(rec:Record<string,string>):Map<string,string> {
+    const map = new Map<string,string>();
+    for (const [key,value] of Object.entries(rec)) {
+        const concatenatedKeys = key.split('|');
+        for (const concatKey of concatenatedKeys) {
+            map.set(concatKey,value);
         }
-        return false
-    }else {
-        return false
     }
+    return map;
 }
+const extToImg = turnToMap({
+    "jpg|svg|png":"image-file.svg",
+    "pdf":"pdf-file.svg",
+    "txt":"text-file.svg",
+    "zip":"zip-file.svg",
+    "mp4":"video-file.svg",
+    "docx|doc":"word-file.svg",
+    "ini|xml|json|cfg":"code-file.svg",
+    "mp3":"audio-file.svg",
+})
 function getFsIcon(fileExtension:string | null):string {
-    if (isExt(fileExtension,"jpg","svg","png")) {
-        return "image-file.svg"//path to png icon
-    }else if (fileExtension=="pdf") {
-        return "pdf-file.svg"
-    }else if (fileExtension == "txt") {
-        return "text-file.svg"
-    }else if (fileExtension == "zip") {
-        return "zip-file.svg"
-    }else if (fileExtension == "mp4") {
-        return "video-file.svg"
-    }else if (isExt(fileExtension,"docx","doc")) {
-        return "word-file.svg"
-    }else if (isExt(fileExtension,"ini","xml","json","cfg")) {
-        return "code-file.svg"
-    }else if (fileExtension == "mp3") {
-        return "audio-file.svg"
-    }else if (!(fileExtension)) {
-        return "folder-solid.svg"//path to folder icon
-    }else {//file icon path is at the else instead of folder cuz i cant exhuast all posssible file types before writing the folder path under else
-        return "file-solid.svg"
+    if (fileExtension === null) {
+        return "folder-solid.svg"
+    }else {
+        return extToImg.get(fileExtension) || "file-solid.svg"
     }
 }
 async function getFsNode(nodePath:string): Promise<FsNode> {
