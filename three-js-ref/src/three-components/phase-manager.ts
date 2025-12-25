@@ -9,7 +9,7 @@ type PhaseType = "final" | "history" | "atomic" | "compound" | "parallel"
 interface Ref<T> {
     value:T
 }
-const orange = chalk.hex("#ea986c");
+const orange = chalk.hex("#eeb18f");
 
 //by making it support async,it can work for tasks where the mutation scope should be tight but also allows it to scope an entire block of operations that should be guarded while uses the guard's value to fetch data without using a potentially stale snapshot from the outside
 class PhaseManager<T> {
@@ -67,14 +67,17 @@ class PhaseManager<T> {
             { type: phaseEvent }   // Event to process
         );
         if (this.phase === nextPhase) {//if the phase never changed,then the transition is invalid
-            throw new Error(chalk.red('Invalid Transition:') + orange(` Cannot send event "${phaseEvent}" from phase "${this.phase}".`));
+            throw new Error(
+                chalk.red('Transition Error') + 
+                orange(`\nCannot transition from ${this.phase} to ${phaseEvent}.`)
+            );
         }
         const endOfCycle = (nextPhase === 'update') || (nextPhase === "clear")
         if (endOfCycle) {
             if (!this.hasReadSinceLastWrite) {
                 throw new Error(
-                    chalk.red('Protocol Violation:') + 
-                    orange(' You must call snapshot() during the READ phase before transitioning to ',nextPhase.toUpperCase())
+                    chalk.red('Protocol Violation') + 
+                    orange('\nYou must call snapshot during the READ phase before transitioning to ',nextPhase.toUpperCase())
                 );
             }else this.hasReadSinceLastWrite = false;
         }
@@ -93,8 +96,8 @@ class PhaseManager<T> {
             const result = callback(this.ref);//passing the ref to the protect method while the ref prperty is private in the Guard class,it ensures that state utations are only allowed under centralized protected methods rather than everywhere in the code.And passing the mutabe ref directly prevents unnecessary complexity by introducing immutable drafts.It believes that every mutation under the guard is intentional
             return result;
         }else throw new Error(
-            chalk.red('State Error ') + 
-            orange(`\nThe '${this.phase}' phase is invalid for the called operation. \nIt is only valid for these phases: ${phases.toString()}`)
+            chalk.red('State Error') + 
+            orange(`\nThe ${this.phase} phase is invalid for the called operation.\nIt is only valid for ${phases.toString()}.`)
         );
     }
 }
@@ -141,8 +144,8 @@ flag.transition('READ')
 const freshData = flag.snapshot(); 
 console.log("Current Value acknowledged:", freshData);
 
-flag.transition('UPDATE');
-await flag.guard(['update'],async (ref)=>{
+// flag.transition('UPDATE');
+await flag.guard(['update','write'],async (ref)=>{
     ref.value += await someIO(ref.value);
 })
 
