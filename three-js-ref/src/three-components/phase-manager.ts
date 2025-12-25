@@ -81,11 +81,11 @@ export class PhaseManager<T> {
         }else throw new Error(chalk.red('State Error: ') + `The phase, ${this.phase}, is invalid for the called operation. Only these are allowed: ${phases}`);
     }
 }
-export class Guard<T,I extends T> {
+export class Guard<T> {
     private ref:Ref<T>;
     public manager:PhaseManager<T>;
 
-    constructor(initValue:I,cleanFn?:(ref:Ref<T>)=>void) {
+    constructor(initValue:T,cleanFn?:(ref:Ref<T>)=>void) {
         this.ref = {value:initValue};
         this.manager = new PhaseManager(this.ref,cleanFn);
     }
@@ -100,3 +100,8 @@ export class Guard<T,I extends T> {
         this.manager.protect(phases,callback);
     }
 }
+const HEALTH:number = 0;
+const health = new Guard(HEALTH);
+health.manager.protect(['write'],ref=>{
+    ref.value += 10
+})
