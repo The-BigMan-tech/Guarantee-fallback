@@ -36,7 +36,7 @@ class PhaseManager<T> {
         },
         update:{
             on:{
-                'CLEAR':'clear'
+                'READ':'read'
             }
         },
         clear:{
