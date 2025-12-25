@@ -11,6 +11,7 @@ interface Ref<T> {
 }
 const orange = chalk.hex("#ea986c");
 
+//by making it support async,it can work for tasks where the mutation scope should be tight but also allows it to scope an entire block of operations that should be guarded while uses the guard's value to fetch data without using a potentially stale snapshot from the outside
 class PhaseManager<T> {
     private ref:Ref<T>;
     private clearFn?:(ref:Ref<T>)=>void;
@@ -77,12 +78,18 @@ class PhaseManager<T> {
         this.actor ||= this.createNewActor();
         return this.actor?.getSnapshot().value as Phase;
     }
-    public protect(phases:Phase[],callback:(ref:Ref<T>)=>void):void | never {
-        if (new Set(phases).has(this.phase)) {
-            callback(this.ref);//passig the ref to the protect method while the ref prperty is private in the Safe class,it ensures that state utations are only allowed under centralized protected methods rather than everywhere in teh code
-        }else throw new Error(chalk.red('State Error ') + orange(`\nThe '${this.phase}' phase is invalid for the called operation. \nIt is only valid for these phases: ${phases.toString()}`));
+    public protect<R>(phases:Phase[],callback:(ref:Ref<T>)=>R):R {
+        if (new Set(phases).has(this.phase)) { 
+            const result = callback(this.ref);//passing the ref to the protect method while the ref prperty is private in the Guard class,it ensures that state utations are only allowed under centralized protected methods rather than everywhere in teh code
+            return result;
+        }else throw new Error(
+            chalk.red('State Error ') + 
+            orange(`\nThe '${this.phase}' phase is invalid for the called operation. \nIt is only valid for these phases: ${phases.toString()}`)
+        );
     }
 }
+//it is recommended that any async data that is to be used inside the callback of the guard method should be fetched inside the guard itself.This to prevent wasting resources on an io operation that is potentially bound to fail because of an invalid state and also prevents situations where one guarded operation overwrite the effect of another with a stale state
+
 export class Guard<T> {
     private ref:Ref<T>;
     private manager:PhaseManager<T>;
@@ -91,15 +98,13 @@ export class Guard<T> {
         this.ref = {value:initValue};
         this.manager = new PhaseManager(this.ref,cleanFn);
     }
-    public copy():T | never {//any caller that needs to access the value at the ref will get a copy
-        let result:T | undefined = undefined;
-        this.manager.protect(['read'],()=>{
-            result = structuredClone(this.ref.value);
+    public snapshot():T {//any caller that needs to access the value at the ref will get a copy
+        return this.manager.protect(['read'],()=>{
+            return structuredClone(this.ref.value);
         });
-        return result as T;//it cant be undefined here because it would have thrown an error.
     }
-    public guard(phases:Phase[],callback:(ref:Ref<T>)=>void):void {
-        this.manager.protect(phases,callback);
+    public guard<R>(phases:Phase[],callback:(ref:Ref<T>)=>R):R {
+        return this.manager.protect(phases,callback);
     }
     public transition(phaseEvent:PhaseEvent) {
         this.manager.transition(phaseEvent);
@@ -108,11 +113,11 @@ export class Guard<T> {
         return this.manager.phase
     }
 }
-const health = new Guard(10);
-console.log(health.phase);
+const flag = new Guard(10);
+console.log(flag.phase);
 
-health.transition('READ');
-health.guard(['write'],ref=>{//will throw an error cuz this operation is guarded under write but its currently on read
+flag.transition('READ');
+await flag.guard(['write'],async (ref)=>{//will throw an error cuz this operation is guarded under write but its currently on read
     ref.value += 10
 })
-console.log(health.copy());
+console.log(flag.snapshot());
