@@ -15,7 +15,7 @@ const orange = chalk.hex("#ea986c");
 class PhaseManager<T> {
     private ref:Ref<T>;
     private actor:ActorRefFrom<typeof this.machine> | null = null;
-    public hasReadSinceLastUpdate = false;
+    public  hasReadSinceLastWrite = false;
     private clearFn?:(ref:Ref<T>)=>void;
 
     constructor(ref:Ref<T>,clearFn?:typeof this.clearFn) { 
@@ -69,6 +69,15 @@ class PhaseManager<T> {
         if (this.phase === nextPhase) {//if the phase never changed,then the transition is invalid
             throw new Error(chalk.red('Invalid Transition:') + orange(` Cannot send event "${phaseEvent}" from phase "${this.phase}".`));
         }
+        const endOfCycle = (nextPhase === 'update') || (nextPhase === "clear")
+        if (endOfCycle) {
+            if (!this.hasReadSinceLastWrite) {
+                throw new Error(
+                    chalk.red('Protocol Violation:') + 
+                    orange(' You must call snapshot() during the READ phase before transitioning to ',nextPhase.toUpperCase())
+                );
+            }else this.hasReadSinceLastWrite = false;
+        }
     }
     public transition(phaseEvent:PhaseEvent):void {
         this.actor ||= this.createNewActor();
@@ -91,7 +100,7 @@ class PhaseManager<T> {
 }
 //it is recommended that any async data that is to be used inside the callback of the guard method should be fetched inside the guard itself.This to prevent wasting resources on an io operation that is potentially bound to fail because of an invalid state and also prevents situations where one guarded operation overwrite the effect of another with a stale state
 
-export class Guard<T> {
+export class Guard<T> {//removed access to the ref as a property in the guard
     private manager:PhaseManager<T>;
 
     constructor(initValue:T,cleanFn?:(ref:Ref<T>)=>void) {
@@ -100,8 +109,8 @@ export class Guard<T> {
     }
     public snapshot():T {//any caller that needs to access the value at the ref will get a copy
         return this.manager.protect(['read'],(ref)=>{
-            this.manager.hasReadSinceLastUpdate = true
-            return structuredClone(ref.value);
+            this.manager.hasReadSinceLastWrite = true
+            return structuredClone(ref.value);//now uses the ref from the machine
         });
     }
     public guard<R>(phases:Phase[],callback:(ref:Ref<T>)=>R):R {
@@ -114,14 +123,27 @@ export class Guard<T> {
         return this.manager.phase
     }
 }
-const flag = new Guard(10);
-console.log(flag.phase);
-
 async function someIO(value:number) {
     return value + 10
 }
-await flag.guard(['write'],async (ref)=>{//will throw an error cuz this operation is guarded under write but its currently on read
+
+
+const flag = new Guard(10);
+console.log(flag.phase);
+
+await flag.guard(['write'],async (ref)=>{
     ref.value += await someIO(ref.value);
 })
-flag.transition('READ')//Must call first,else,reading the snapshot will throw an error
-console.log(flag.snapshot());
+
+flag.transition('READ')
+
+//MANDATORY: Acknowledge the data
+const freshData = flag.snapshot(); 
+console.log("Current Value acknowledged:", freshData);
+
+flag.transition('UPDATE');
+await flag.guard(['update'],async (ref)=>{
+    ref.value += await someIO(ref.value);
+})
+
+flag.transition('CLEAR');
