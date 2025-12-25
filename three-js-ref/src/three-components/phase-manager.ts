@@ -9,7 +9,9 @@ type PhaseType = "final" | "history" | "atomic" | "compound" | "parallel"
 interface Ref<T> {
     value:T
 }
-export class PhaseManager<T> {
+const orange = chalk.hex("#ea986c");
+
+class PhaseManager<T> {
     private ref:Ref<T>;
     private clearFn?:(ref:Ref<T>)=>void;
     private actor:ActorRefFrom<typeof this.machine> | null = null;
@@ -63,10 +65,10 @@ export class PhaseManager<T> {
             { type: phaseEvent }   // Event to process
         );
         if (this.phase === nextPhase) {
-            throw new Error(chalk.red('Invalid Transition:') + ` Cannot send event "${phaseEvent}" from phase "${this.phase}".`);
+            throw new Error(chalk.red('Invalid Transition:') + orange(` Cannot send event "${phaseEvent}" from phase "${this.phase}".`));
         }
     }
-    public send(phaseEvent:PhaseEvent):void {
+    public transition(phaseEvent:PhaseEvent):void {
         this.actor ||= this.createNewActor();
         this.verifyTransition(phaseEvent);
         this.actor.send({ type: phaseEvent });
@@ -78,12 +80,12 @@ export class PhaseManager<T> {
     public protect(phases:Phase[],callback:(ref:Ref<T>)=>void):void | never {
         if (new Set(phases).has(this.phase)) {
             callback(this.ref);//passig the ref to the protect method while the ref prperty is private in the Safe class,it ensures that state utations are only allowed under centralized protected methods rather than everywhere in teh code
-        }else throw new Error(chalk.red('State Error: ') + `The phase, ${this.phase}, is invalid for the called operation. Only these are allowed: ${phases}`);
+        }else throw new Error(chalk.red('State Error ') + orange(`\nThe '${this.phase}' phase is invalid for the called operation. \nIt is only valid for these phases: ${phases.toString()}`));
     }
 }
 export class Guard<T> {
     private ref:Ref<T>;
-    public manager:PhaseManager<T>;
+    private manager:PhaseManager<T>;
 
     constructor(initValue:T,cleanFn?:(ref:Ref<T>)=>void) {
         this.ref = {value:initValue};
@@ -99,9 +101,18 @@ export class Guard<T> {
     public guard(phases:Phase[],callback:(ref:Ref<T>)=>void):void {
         this.manager.protect(phases,callback);
     }
+    public transition(phaseEvent:PhaseEvent) {
+        this.manager.transition(phaseEvent);
+    }
+    public get phase() {
+        return this.manager.phase
+    }
 }
-const HEALTH:number = 0;
-const health = new Guard(HEALTH);
-health.manager.protect(['write'],ref=>{
+const health = new Guard(10);
+console.log(health.phase);
+
+health.transition('READ');
+health.guard(['write'],ref=>{//will throw an error cuz this operation is guarded under write but its currently on read
     ref.value += 10
 })
+console.log(health.copy());
