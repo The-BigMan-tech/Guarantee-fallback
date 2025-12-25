@@ -80,7 +80,7 @@ class PhaseManager<T> {
     }
     public protect<R>(phases:Phase[],callback:(ref:Ref<T>)=>R):R {
         if (new Set(phases).has(this.phase)) { 
-            const result = callback(this.ref);//passing the ref to the protect method while the ref prperty is private in the Guard class,it ensures that state utations are only allowed under centralized protected methods rather than everywhere in teh code
+            const result = callback(this.ref);//passing the ref to the protect method while the ref prperty is private in the Guard class,it ensures that state utations are only allowed under centralized protected methods rather than everywhere in the code.And passing the mutabe ref directly prevents unnecessary complexity by introducing immutable drafts.It believes that every mutation under the guard is intentional
             return result;
         }else throw new Error(
             chalk.red('State Error ') + 
@@ -116,8 +116,11 @@ export class Guard<T> {
 const flag = new Guard(10);
 console.log(flag.phase);
 
-flag.transition('READ');
+async function someIO(value:number) {
+    return value + 10
+}
 await flag.guard(['write'],async (ref)=>{//will throw an error cuz this operation is guarded under write but its currently on read
-    ref.value += 10
+    ref.value += await someIO(ref.value);
 })
+flag.transition('READ')//Must call first,else,reading the snapshot will throw an error
 console.log(flag.snapshot());
