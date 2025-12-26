@@ -100,24 +100,10 @@ class PhaseManager<T> {
         this.actor ||= this.createNewActor();
         return this.actor?.getSnapshot().value as Phase;
     }
-    private getDraft(draft:ImmutableDraft<T>): ImmutableDraft<T> {
-        return new Proxy(draft, {
-            get(target, prop, receiver) {
-                if (prop === 'value') {
-                    throw new Error(
-                        chalk.red('Read Violation') + orange(
-                            `\ndraft.value access is forbidden.The READ phase is not possible within a guard.Use the snapshot() method instead outside the guard.`
-                        )
-                    );
-                }
-                return Reflect.get(target, prop, receiver);
-            }
-        }) as ImmutableDraft<T>;
-    }
     public protect(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
         if (new Set(phases).has(this.phase)) { 
             this.immut = create(this.immut,(draft=>{//writes are fast through mutative js structural sharing algorithm
-                callback(this.getDraft(draft))
+                callback(draft)
             }));//the returned result can be a promise that can be awaited
         }else throw new Error(
             chalk.red('State Error') + 
@@ -126,13 +112,15 @@ class PhaseManager<T> {
     }
 }
 /**
- * The Gate class enforces strict phase protocol on individual states without any integration inteference with others.
- * 1. WRITE: Pure assignments only (no reads)
- * 2. READ: Through a snapshot - MUST acknowledge before UPDATE  
- * 3. UPDATE: Use snapshot data for mutations.Can transition back to read for a read-update cycle
- * 4. CLEAR: Reset cycle.Automatically calls the clear function
+ * The Gate class enforces Gated State Management.
+ * This is means that there is a strict phase protocol on individual states without any integration inteference with others.
+
+ * 1. WRITE:  Allows mutating values before any reads but can also optionally read the state for its own mutation
+ * 2. READ:   Allows reading the state through a snapshot - MUST acknowledge before UPDATE or CLEAR.Supports time travel states thanks to Mutative.js
+ * 3. UPDATE: Allows updating the state after a read.Can transition back to read for a read-update cycle as used in games or long running programs
+ * 4. CLEAR:  Reset the cycle.Automatically calls the clear function
  * 
- * Async IO: Always outside guard using snapshot data
+ * Async IO: Any async io that will need the Gate's value must be done outside any guarded operation.
  */
 export class Gate<T> {//removed access to the ref as a property in the guard
     private manager:PhaseManager<T>;
@@ -146,12 +134,12 @@ export class Gate<T> {//removed access to the ref as a property in the guard
         let result:Immutable<Ref<T>> | null = null;
         this.manager.protect(['read'],()=>{
             this.manager.hasReadSinceLastWrite = true
-            result = this.manager.immut;
+            result = this.manager.immut;//the reason why i didnt do a direct return is to protect reading the reference under the read phase
         });
         return result!;
     }
     /**
-    * @param phases Allowed phases for this mutation.Read is not allowed.
+    * @param phases Allowed phases for this mutation.
     * @param callback SYNCHRONOUS mutation callback only.
     *                 Async IO must be done OUTSIDE using snapshot() first.
     * @example
@@ -168,9 +156,9 @@ export class Gate<T> {//removed access to the ref as a property in the guard
     public guard(phases:WritePhase[],callback:(draft:ImmutableDraft<T>)=>void):void {
         this.manager.protect(phases,callback);
     }
-    public set(value:Immutable<T>) {
+    public set(callback:(prev:Immutable<T>)=>Immutable<T>) {
         this.manager.protect(['write', 'update'], (draft) => {
-            draft.value = castDraft(value);
+            draft.value = castDraft(callback(draft.value as Immutable<T>));
         });
     }   
     public transition(phaseEvent:PhaseEvent) {
@@ -184,24 +172,23 @@ async function someIO(value:number) {
     return value**2;
 }
 
-//This is what i call--Gated State Management (State management is gated under a lifecycle)
 const flag = new Gate(10,(draft=>draft.value=0));
 console.log(flag.phase);
 
 flag.guard(['write'],(draft)=>{//write is the first phase.
-    draft.value = 50;//so i can only initiate it with a value
+    draft.value += 50;//so i can only initiate it with a value
 })
 
 flag.transition('READ')
 
-//MANDATORY: Acknowledge the data.else,proceeding to update will throw an error
+//MANDATORY: Acknowledge the data.Else,proceeding to update will throw an error
 const current = flag.snapshot();
 console.log("Current Value acknowledged:",current.value);
 
 flag.transition('UPDATE');
 
 const newValue = await someIO(current.value);
-flag.set(newValue);//the set method is a shorthand for simple updates like primitives
+flag.set(()=>newValue);//the set method is a shorthand for simple updates like primitives
 
 flag.transition('READ');
 console.log("Updated value:",flag.snapshot());
@@ -210,3 +197,16 @@ flag.transition('CLEAR');
 
 flag.transition('READ');
 console.log(flag.snapshot().value);
+
+const grades:Gate<Set<string>> = new Gate(
+    new Set(['A','B','C','D','E','F']),
+    (draft)=>draft.value.clear()
+);
+
+grades.guard(['write'],(draft)=>{
+    draft.value.add('A+');
+    draft.value.add('B-');
+});
+
+grades.transition('READ');
+console.log(grades.snapshot().value);
