@@ -14,6 +14,7 @@ interface Ref<T> {
     value:T
 }
 type ImmutableDraft<T> = DraftedObject<Immutable<Ref<T>>>;
+type ImmutableSetter<T> = ((prev:Immutable<T>)=>Immutable<T>);
 const orange = chalk.hex("#eeb18f");
 
 
@@ -121,7 +122,7 @@ class PhaseManager<T> {
  * 4. CLEAR:  Reset the cycle.Automatically calls the clear function
  * 
  * Async IO: Any async io that will need the Gate's value must be done outside any guarded operation.
- */
+*/
 export class Gate<T> {//removed access to the ref as a property in the guard
     private manager:PhaseManager<T>;
 
@@ -139,26 +140,30 @@ export class Gate<T> {//removed access to the ref as a property in the guard
         return result!;
     }
     /**
-    * @param phases Allowed phases for this mutation.
-    * @param callback SYNCHRONOUS mutation callback only.
-    *                 Async IO must be done OUTSIDE using snapshot() first.
-    * @example
-    * const flag = new Guard(10)
-    * 
-    * flag.transition('READ')
-    * const snapshot = flag.snapshot();
-    * 
-    * const result = await fetchData(snapshot.value);
-    * flag.guard(['update'], (draft) => {
-    *     draft.value = result; // ✅ Synchronous mutation only
-    * });
+        * @param phases Allowed phases for this mutation.
+        * @param callback SYNCHRONOUS mutation callback only.
+        *                 Async IO must be done OUTSIDE using snapshot() first.
+        * @example
+        * const flag = new Guard(10)
+        * 
+        * flag.transition('READ')
+        * const snapshot = flag.snapshot();
+        * 
+        * const result = await fetchData(snapshot.value);
+        * flag.guard(['update'], (draft) => {
+        *     draft.value = result; // ✅ Synchronous mutation only
+        * });
     */
     public guard(phases:WritePhase[],callback:(draft:ImmutableDraft<T>)=>void):void {
-        this.manager.protect(phases,callback);
+        this.manager.protect(phases as Phase[],callback);
     }
-    public set(callback:(prev:Immutable<T>)=>Immutable<T>) {
+    public set(valueOrCallback:Immutable<T> | ImmutableSetter<T>) {
         this.manager.protect(['write', 'update'], (draft) => {
-            draft.value = castDraft(callback(draft.value as Immutable<T>));
+            draft.value = castDraft(
+            typeof valueOrCallback === 'function' 
+                ? (valueOrCallback as ImmutableSetter<T>)(draft.value as Immutable<T>)
+                : valueOrCallback
+            );
         });
     }   
     public transition(phaseEvent:PhaseEvent) {
@@ -188,7 +193,7 @@ console.log("Current Value acknowledged:",current.value);
 flag.transition('UPDATE');
 
 const newValue = await someIO(current.value);
-flag.set(()=>newValue);//the set method is a shorthand for simple updates like primitives
+flag.set(newValue);//the set method is a shorthand for simple updates like primitives
 
 flag.transition('READ');
 console.log("Updated value:",flag.snapshot());
