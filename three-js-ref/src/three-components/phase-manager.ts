@@ -116,7 +116,7 @@ class PhaseManager<T> {
     }
     public protect(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
         if (new Set(phases).has(this.phase)) { 
-            this.immut = create(this.immut,(draft=>{
+            this.immut = create(this.immut,(draft=>{//writes are fast through mutative js structural sharing algorithm
                 callback(this.getDraft(draft))
             }));//the returned result can be a promise that can be awaited
         }else throw new Error(
@@ -125,7 +125,15 @@ class PhaseManager<T> {
         );
     }
 }
-
+/**
+ * The Guard class enforces strict phase protocol on individual states without any integration inteference with others.
+ * 1. WRITE: Pure assignments only (no reads)
+ * 2. READ: Through a snapshot - MUST acknowledge before UPDATE  
+ * 3. UPDATE: Use snapshot data for mutations.Can transition back to read for a read-update cycle
+ * 4. CLEAR: Reset cycle.Automatically calls the clear function
+ * 
+ * Async IO: Always outside guard using snapshot data
+ */
 export class Guard<T> {//removed access to the ref as a property in the guard
     private manager:PhaseManager<T>;
 
@@ -147,7 +155,11 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     * @param callback SYNCHRONOUS mutation callback only.
     *                 Async IO must be done OUTSIDE using snapshot() first.
     * @example
+    * const flag = new Guard(10)
+    * 
+    * flag.transition('READ')
     * const snapshot = flag.snapshot();
+    * 
     * const result = await fetchData(snapshot.value);
     * flag.guard(['update'], (draft) => {
     *     draft.value = result; // ✅ Synchronous mutation only
@@ -173,7 +185,7 @@ async function someIO(value:number) {
 }
 
 
-const flag = new Guard(10);
+const flag = new Guard(10,(draft=>draft.value=0));
 console.log(flag.phase);
 
 flag.guard(['write'],(draft)=>{//write is the first phase.
@@ -189,9 +201,12 @@ console.log("Current Value acknowledged:",current.value);
 flag.transition('UPDATE');
 
 const newValue = await someIO(current.value);
-flag.set(newValue);//since update comes after read,i can update it with the value read in the read phase
+flag.set(newValue);//the set method is a shorthand for simple updates like primitives
 
 flag.transition('READ');
 console.log("Updated value:",flag.snapshot());
 
 flag.transition('CLEAR');
+
+flag.transition('READ');
+console.log(flag.snapshot().value);
