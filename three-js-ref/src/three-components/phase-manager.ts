@@ -113,8 +113,8 @@ class PhaseManager<T> {
     }
 }
 /**
- * The Gate class enforces Gated State Management.
- * This is means that there is a strict phase protocol on individual states without any integration inteference with others.
+ * The Gate class enforces a Gated State Management paradigm.
+ * This is means that there is a strict phase protocol on individual states that determines when different operations can happen and without any inteference with others.
 
  * 1. WRITE:  Allows mutating values before any reads but can also optionally read the state for its own mutation
  * 2. READ:   Allows reading the state through a snapshot - MUST acknowledge before UPDATE or CLEAR.Supports time travel states thanks to Mutative.js
