@@ -180,9 +180,12 @@ async function someIO(value:number) {
 const flag = new Gate(10,(draft=>draft.value=0));
 console.log(flag.phase);
 
+let externalNum = 10;
 flag.guard(['write'],(draft)=>{//write is the first phase.
     draft.value += 50;//so i can only initiate it with a value
+    externalNum = draft.value;//primitives can be copied out of the guarded scope even before the gate allows the value to be read externally
 })
+console.log(externalNum);//logs 60
 
 flag.transition('READ')
 
@@ -208,10 +211,13 @@ const grades:Gate<Set<string>> = new Gate(
     (draft)=>draft.value.clear()
 );
 
+let externalSet = new Set();
 grades.guard(['write'],(draft)=>{
     draft.value.add('A+');
     draft.value.add('B-');
+    externalSet = draft.value//non-primitives cant be copied out of the guarded scope.the draft is revoked.so you cant read the value externally before the gate allows you to read it
 });
+console.log(externalSet);
 
 grades.transition('READ');
 console.log(grades.snapshot().value);
