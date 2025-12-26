@@ -1,5 +1,8 @@
 import {type ActorRefFrom, createActor, createMachine,transition } from "xstate";
+import { castDraft, create, type Immutable } from 'mutative';
 import chalk from "chalk";
+import type { DraftedObject } from "mutative/dist/interface.js";
+
 
 type Phase = 'write' | 'read' | 'update' | 'clear';
 type PhaseEvent = "WRITE" | 'READ' | 'UPDATE' | 'CLEAR';
@@ -9,19 +12,21 @@ type PhaseType = "final" | "history" | "atomic" | "compound" | "parallel"
 interface Ref<T> {
     value:T
 }
+type ImmutableDraft<T> = DraftedObject<Immutable<Ref<T>>>;
 const orange = chalk.hex("#eeb18f");
 
 //by making it support async,it can work for tasks where the mutation scope should be tight but also allows it to scope an entire block of operations that should be guarded while uses the guard's value to fetch data without using a potentially stale snapshot from the outside
 class PhaseManager<T> {
-    private ref:Ref<T>;
     private actor:ActorRefFrom<typeof this.machine> | null = null;
-    public  hasReadSinceLastWrite = false;
-    private clearFn?:(ref:Ref<T>)=>void;
+    private clearFn?:(draft:ImmutableDraft<T>)=>void;
+
+    public immut:Immutable<Ref<T>>;
+    public hasReadSinceLastWrite = false;
 
     constructor(ref:Ref<T>,clearFn?:typeof this.clearFn) { 
-        this.ref = ref;
         this.clearFn = clearFn;
         this.actor = this.createNewActor();
+        this.immut = create(ref,()=>{},{enableAutoFreeze:true});
     }
     private phases:Record<Phase,{on?:OnTransititions,type?:PhaseType}> = {
         write:{
@@ -55,7 +60,12 @@ class PhaseManager<T> {
         actor.subscribe(phase=>{
             if (phase.status === "done") {
                 this.actor = null;
-                if (this.clearFn) this.clearFn(this.ref);
+                if (this.clearFn) {
+                    const clearFn = this.clearFn;
+                    this.immut = create(this.immut,(draft=>{
+                        clearFn(draft);
+                    }))
+                }
             }
         });
         return actor;
@@ -91,10 +101,13 @@ class PhaseManager<T> {
         this.actor ||= this.createNewActor();
         return this.actor?.getSnapshot().value as Phase;
     }
-    public protect<R>(phases:Phase[],callback:(ref:Ref<T>)=>R):R {
+    public protect<R>(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>R):R {
         if (new Set(phases).has(this.phase)) { 
-            const result = callback(this.ref);//passing the ref to the protect method while the ref prperty is private in the Guard class,it ensures that state utations are only allowed under centralized protected methods rather than everywhere in the code.And passing the mutabe ref directly prevents unnecessary complexity by introducing immutable drafts.It believes that every mutation under the guard is intentional
-            return result;
+            let result:R | null = null;
+            this.immut = create(this.immut,(draft=>{
+                result = callback(draft);//the returned result can be a promise that can be awaited
+            }));
+            return result!;
         }else throw new Error(
             chalk.red('State Error') + 
             orange(`\nThe ${this.phase} phase is invalid for the called operation.\nIt is only valid for ${phases.toString()}.`)
@@ -106,19 +119,24 @@ class PhaseManager<T> {
 export class Guard<T> {//removed access to the ref as a property in the guard
     private manager:PhaseManager<T>;
 
-    constructor(initValue:T,cleanFn?:(ref:Ref<T>)=>void) {
+    constructor(initValue:T,cleanFn?:(draft:ImmutableDraft<T>)=>void) {
         const ref = {value:initValue};
         this.manager = new PhaseManager(ref,cleanFn);
     }
-    public snapshot():T {//any caller that needs to access the value at the ref will get a copy
-        return this.manager.protect(['read'],(ref)=>{
+    public snapshot():Immutable<Ref<T>> {//any caller that needs to access the value at the ref will get a copy
+        return this.manager.protect(['read'],()=>{
             this.manager.hasReadSinceLastWrite = true
-            return structuredClone(ref.value);//now uses the ref from the machine
+            return this.manager.immut;
         });
     }
-    public guard<R>(phases:Phase[],callback:(ref:Ref<T>)=>R):R {
+    public guard<R>(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>R):R {
         return this.manager.protect(phases,callback);
     }
+    public set(callback: (prev: T) =>Immutable<T>) {
+        this.manager.protect(['write', 'update'], (draft) => {
+            draft.value = castDraft(callback(draft.value as T));
+        });
+    }   
     public transition(phaseEvent:PhaseEvent) {
         this.manager.transition(phaseEvent);
     }
@@ -134,19 +152,20 @@ async function someIO(value:number) {
 const flag = new Guard(10);
 console.log(flag.phase);
 
-await flag.guard(['write'],async (ref)=>{
-    ref.value += await someIO(ref.value);
+await flag.guard(['write'],async (draft)=>{
+    await someIO(draft.value);
 })
 
 flag.transition('READ')
 
 //MANDATORY: Acknowledge the data
-const freshData = flag.snapshot(); 
-console.log("Current Value acknowledged:", freshData);
+const x = flag.snapshot();
+console.log("Current Value acknowledged:",x.value);
 
-// flag.transition('UPDATE');
-await flag.guard(['update','write'],async (ref)=>{
-    ref.value += await someIO(ref.value);
-})
+flag.transition('UPDATE');
+flag.set(()=>90);
+
+flag.transition('READ');
+console.log("Updated value:",flag.snapshot());
 
 flag.transition('CLEAR');
