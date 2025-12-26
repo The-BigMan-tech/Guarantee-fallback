@@ -3,8 +3,9 @@ import { castDraft, create, type Immutable } from 'mutative';
 import chalk from "chalk";
 import type { DraftedObject } from "mutative/dist/interface.js";
 
-
-type Phase = 'write' | 'read' | 'update' | 'clear';
+type ReadPhase = 'read';
+type WritePhase = 'write' | 'update' | 'clear'
+type Phase = ReadPhase | WritePhase;
 type PhaseEvent = "WRITE" | 'READ' | 'UPDATE' | 'CLEAR';
 type OnTransititions = Partial<Record<PhaseEvent,Phase>>;
 type PhaseType = "final" | "history" | "atomic" | "compound" | "parallel"
@@ -141,12 +142,23 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         });
         return result!;
     }
-    public guard(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
+    /**
+    * @param phases Allowed phases for this mutation.Read is not allowed.
+    * @param callback SYNCHRONOUS mutation callback only.
+    *                 Async IO must be done OUTSIDE using snapshot() first.
+    * @example
+    * const snapshot = flag.snapshot();
+    * const result = await fetchData(snapshot.value);
+    * flag.guard(['update'], (draft) => {
+    *     draft.value = result; // ✅ Synchronous mutation only
+    * });
+    */
+    public guard(phases:WritePhase[],callback:(draft:ImmutableDraft<T>)=>void):void {
         this.manager.protect(phases,callback);
     }
-    public set(callback: (prev: T) =>Immutable<T>) {
+    public set(value:Immutable<T>) {
         this.manager.protect(['write', 'update'], (draft) => {
-            draft.value = castDraft(callback(draft.value as T));
+            draft.value = castDraft(value);
         });
     }   
     public transition(phaseEvent:PhaseEvent) {
@@ -157,25 +169,27 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     }
 }
 async function someIO(value:number) {
-    return value + 10
+    return value**2;
 }
 
 
 const flag = new Guard(10);
 console.log(flag.phase);
 
-flag.guard(['write'],(draft)=>{
-    someIO(draft.value);
+flag.guard(['write'],(draft)=>{//write is the first phase.
+    draft.value = 50;//so i can only initiate it with a value
 })
 
 flag.transition('READ')
 
-//MANDATORY: Acknowledge the data
-const x = flag.snapshot();
-console.log("Current Value acknowledged:",x.value);
+//MANDATORY: Acknowledge the data.else,proceeding to update will throw an error
+const current = flag.snapshot();
+console.log("Current Value acknowledged:",current.value);
 
 flag.transition('UPDATE');
-flag.set(()=>90);
+
+const newValue = await someIO(current.value);
+flag.set(newValue);//since update comes after read,i can update it with the value read in the read phase
 
 flag.transition('READ');
 console.log("Updated value:",flag.snapshot());
