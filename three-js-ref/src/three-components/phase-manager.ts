@@ -126,7 +126,7 @@ class PhaseManager<T> {
     }
 }
 /**
- * The Guard class enforces strict phase protocol on individual states without any integration inteference with others.
+ * The Gate class enforces strict phase protocol on individual states without any integration inteference with others.
  * 1. WRITE: Pure assignments only (no reads)
  * 2. READ: Through a snapshot - MUST acknowledge before UPDATE  
  * 3. UPDATE: Use snapshot data for mutations.Can transition back to read for a read-update cycle
@@ -134,7 +134,7 @@ class PhaseManager<T> {
  * 
  * Async IO: Always outside guard using snapshot data
  */
-export class Guard<T> {//removed access to the ref as a property in the guard
+export class Gate<T> {//removed access to the ref as a property in the guard
     private manager:PhaseManager<T>;
 
     constructor(initValue:T,cleanFn?:(draft:ImmutableDraft<T>)=>void) {
@@ -184,8 +184,8 @@ async function someIO(value:number) {
     return value**2;
 }
 
-
-const flag = new Guard(10,(draft=>draft.value=0));
+//This is what i call--Gated State Management (State management is gated under a lifecycle)
+const flag = new Gate(10,(draft=>draft.value=0));
 console.log(flag.phase);
 
 flag.guard(['write'],(draft)=>{//write is the first phase.
