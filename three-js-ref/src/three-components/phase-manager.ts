@@ -15,7 +15,7 @@ interface Ref<T> {
 type ImmutableDraft<T> = DraftedObject<Immutable<Ref<T>>>;
 const orange = chalk.hex("#eeb18f");
 
-//by making it support async,it can work for tasks where the mutation scope should be tight but also allows it to scope an entire block of operations that should be guarded while uses the guard's value to fetch data without using a potentially stale snapshot from the outside
+
 class PhaseManager<T> {
     private actor:ActorRefFrom<typeof this.machine> | null = null;
     private clearFn?:(draft:ImmutableDraft<T>)=>void;
@@ -78,16 +78,14 @@ class PhaseManager<T> {
         );
         if (this.phase === nextPhase) {//if the phase never changed,then the transition is invalid
             throw new Error(
-                chalk.red('Transition Error') + 
-                orange(`\nCannot transition from ${this.phase} to ${phaseEvent}.`)
+                chalk.red('Transition Error') + orange(`\nCannot transition from ${this.phase} to ${phaseEvent}.`)
             );
         }
         const endOfCycle = (nextPhase === 'update') || (nextPhase === "clear")
         if (endOfCycle) {
             if (!this.hasReadSinceLastWrite) {
                 throw new Error(
-                    chalk.red('Protocol Violation') + 
-                    orange('\nYou must call snapshot during the READ phase before transitioning to ',nextPhase.toUpperCase())
+                    chalk.red('Protocol Violation') + orange('\nYou must call snapshot during the READ phase before transitioning to ',nextPhase.toUpperCase())
                 );
             }else this.hasReadSinceLastWrite = false;
         }
@@ -101,20 +99,31 @@ class PhaseManager<T> {
         this.actor ||= this.createNewActor();
         return this.actor?.getSnapshot().value as Phase;
     }
-    public protect<R>(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>R):R {
+    private getDraft(draft:ImmutableDraft<T>): ImmutableDraft<T> {
+        return new Proxy(draft, {
+            get(target, prop, receiver) {
+                if (prop === 'value') {
+                    throw new Error(
+                        chalk.red('Read Violation') + orange(
+                            `\ndraft.value access is forbidden.The READ phase is not possible within a guard.Use the snapshot() method instead outside the guard.`
+                        )
+                    );
+                }
+                return Reflect.get(target, prop, receiver);
+            }
+        }) as ImmutableDraft<T>;
+    }
+    public protect(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
         if (new Set(phases).has(this.phase)) { 
-            let result:R | null = null;
             this.immut = create(this.immut,(draft=>{
-                result = callback(draft);//the returned result can be a promise that can be awaited
-            }));
-            return result!;
+                callback(this.getDraft(draft))
+            }));//the returned result can be a promise that can be awaited
         }else throw new Error(
             chalk.red('State Error') + 
             orange(`\nThe ${this.phase} phase is invalid for the called operation.\nIt is only valid for ${phases.toString()}.`)
         );
     }
 }
-//it is recommended that any async data that is to be used inside the callback of the guard method should be fetched inside the guard itself.This to prevent wasting resources on an io operation that is potentially bound to fail because of an invalid state and also prevents situations where one guarded operation overwrite the effect of another with a stale state
 
 export class Guard<T> {//removed access to the ref as a property in the guard
     private manager:PhaseManager<T>;
@@ -123,14 +132,17 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         const ref = {value:initValue};
         this.manager = new PhaseManager(ref,cleanFn);
     }
-    public snapshot():Immutable<Ref<T>> {//any caller that needs to access the value at the ref will get a copy
-        return this.manager.protect(['read'],()=>{
+    //O1 read because it directly returns the immutable instance rather than deep cloning the original source
+    public snapshot():Immutable<Ref<T>> {
+        let result:Immutable<Ref<T>> | null = null;
+        this.manager.protect(['read'],()=>{
             this.manager.hasReadSinceLastWrite = true
-            return this.manager.immut;
+            result = this.manager.immut;
         });
+        return result!;
     }
-    public guard<R>(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>R):R {
-        return this.manager.protect(phases,callback);
+    public guard(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
+        this.manager.protect(phases,callback);
     }
     public set(callback: (prev: T) =>Immutable<T>) {
         this.manager.protect(['write', 'update'], (draft) => {
@@ -152,8 +164,8 @@ async function someIO(value:number) {
 const flag = new Guard(10);
 console.log(flag.phase);
 
-await flag.guard(['write'],async (draft)=>{
-    await someIO(draft.value);
+flag.guard(['write'],(draft)=>{
+    someIO(draft.value);
 })
 
 flag.transition('READ')
