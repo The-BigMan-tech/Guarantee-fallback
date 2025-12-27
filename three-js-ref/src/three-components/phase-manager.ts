@@ -1,5 +1,5 @@
 import {type ActorRefFrom, createActor, createMachine,transition } from "xstate";
-import { create, type Immutable,current } from 'mutative';
+import { create, type Immutable } from 'mutative';
 import chalk from "chalk";
 import type { DraftedObject } from "mutative/dist/interface.js";
 import * as THREE from "three";
@@ -25,16 +25,9 @@ class PhaseManager<T> {
     public immut:Immutable<Ref<T>>;
     public hasReadSinceLastWrite = false;
 
-    constructor(ref:Ref<T>,clearFn?:typeof this.clearFn) { 
-        this.clearFn = clearFn;
-        this.actor = this.createNewActor();
-        this.immut = create(ref,()=>{},{enableAutoFreeze:true});
-    }
     private phases:Record<Phase,{on?:OnTransititions,type?:PhaseType}> = {
         write:{
-            on:{
-                'READ':'read',
-            }
+            on:{'READ':'read',}
         },
         read:{
             on:{
@@ -43,9 +36,7 @@ class PhaseManager<T> {
             }
         },
         update:{
-            on:{
-                'READ':'read'
-            }
+            on:{'READ':'read'}
         },
         clear:{
             type:'final'
@@ -56,11 +47,17 @@ class PhaseManager<T> {
         initial:'write',
         states:this.phases
     });
+
+    constructor(ref:Ref<T>,clearFn?:typeof this.clearFn) { 
+        this.clearFn = clearFn;
+        this.actor = this.createNewActor();
+        this.immut = create(ref,()=>{},{enableAutoFreeze:true});
+    }
     private createNewActor() {
         const actor = createActor(this.machine);
         actor.start();
-        actor.subscribe(phase=>{
-            if (phase.status === "done") {
+        actor.subscribe(state=>{
+            if (state.status === "done") {
                 this.actor = null;
                 if (this.clearFn) {
                     const clearFn = this.clearFn;
@@ -79,16 +76,14 @@ class PhaseManager<T> {
             { type: phaseEvent }   
         );
         if (this.phase === nextPhase) {//if the phase never changed,then the transition is invalid
-            throw new Error(
-                chalk.red('Transition Error') + PhaseManager.orange(`\nCannot transition from ${this.phase} to ${phaseEvent}.`)
-            );
+            const message = chalk.red('Transition Error') + PhaseManager.orange(`\nCannot transition from ${this.phase} to ${phaseEvent}.`);
+            throw new Error(message);
         }
         const endOfCycle = (nextPhase === 'update') || (nextPhase === "clear")
         if (endOfCycle) {
             if (!this.hasReadSinceLastWrite) {
-                throw new Error(
-                    chalk.red('Protocol Violation') + PhaseManager.orange('\nYou must call snapshot during the READ phase before transitioning to ',nextPhase.toUpperCase())
-                );
+                const message = chalk.red('Protocol Violation') + PhaseManager.orange('\nYou must call snapshot during the READ phase before transitioning to ',nextPhase.toUpperCase())
+                throw new Error(message);
             }else this.hasReadSinceLastWrite = false;
         }
     }
@@ -101,11 +96,10 @@ class PhaseManager<T> {
         this.actor ||= this.createNewActor();
         return this.actor?.getSnapshot().value as Phase;
     }
+    //writes are fast through mutative js structural sharing algorithm
     public protect(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
         if (new Set(phases).has(this.phase)) { 
-            this.immut = create(this.immut,(draft=>{//writes are fast through mutative js structural sharing algorithm
-                callback(draft)
-            }));//the returned result can be a promise that can be awaited
+            this.immut = create(this.immut,(draft=>callback(draft)));
         }else throw new Error(
             chalk.red('State Error') + 
             PhaseManager.orange(`\nThe state is in the ${this.phase} phase but an operation expected it to be in the ${phases.toString().replace(',',' or ')} phase.`)
@@ -113,7 +107,7 @@ class PhaseManager<T> {
     }
 }
 /**
- * The Gate class enforces a Gated State Management paradigm.
+ * The Guard class enforces Phase State Management.
  * This is means that there is a strict phase protocol on individual states that determines when different operations can happen and without any inteference with others.
 
  * 1. WRITE:  Allows mutating values before any reads but can also optionally read the state for its own mutation
