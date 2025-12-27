@@ -1,11 +1,13 @@
 import {type ActorRefFrom, createActor, createMachine,transition } from "xstate";
-import { castDraft, create, type Immutable } from 'mutative';
+import { create, type Immutable,current } from 'mutative';
 import chalk from "chalk";
 import type { DraftedObject } from "mutative/dist/interface.js";
+import * as THREE from "three";
 
 type ReadPhase = 'read';
-type WritePhase = 'write' | 'update' | 'clear'
-type Phase = ReadPhase | WritePhase;
+type WritePhase = 'write' | 'update'
+type ClearPhase = 'clear'
+type Phase =  ReadPhase | WritePhase | ClearPhase;
 type PhaseEvent = "WRITE" | 'READ' | 'UPDATE' | 'CLEAR';
 type OnTransititions = Partial<Record<PhaseEvent,Phase>>;
 type PhaseType = "final" | "history" | "atomic" | "compound" | "parallel"
@@ -14,11 +16,9 @@ interface Ref<T> {
     value:T
 }
 type ImmutableDraft<T> = DraftedObject<Immutable<Ref<T>>>;
-type ImmutableSetter<T> = ((prev:Immutable<T>)=>Immutable<T>);
-const orange = chalk.hex("#eeb18f");
-
 
 class PhaseManager<T> {
+    private static orange = chalk.hex("#eeb18f");
     private actor:ActorRefFrom<typeof this.machine> | null = null;
     private clearFn?:(draft:ImmutableDraft<T>)=>void;
 
@@ -74,20 +74,20 @@ class PhaseManager<T> {
     }
     private verifyTransition(phaseEvent:PhaseEvent):void {
         const [{value:nextPhase}] = transition(
-            this.machine,          // Your machine
-            this.actor!.getSnapshot(),       // The current actor snapshot
-            { type: phaseEvent }   // Event to process
+            this.machine,          
+            this.actor!.getSnapshot(),       
+            { type: phaseEvent }   
         );
         if (this.phase === nextPhase) {//if the phase never changed,then the transition is invalid
             throw new Error(
-                chalk.red('Transition Error') + orange(`\nCannot transition from ${this.phase} to ${phaseEvent}.`)
+                chalk.red('Transition Error') + PhaseManager.orange(`\nCannot transition from ${this.phase} to ${phaseEvent}.`)
             );
         }
         const endOfCycle = (nextPhase === 'update') || (nextPhase === "clear")
         if (endOfCycle) {
             if (!this.hasReadSinceLastWrite) {
                 throw new Error(
-                    chalk.red('Protocol Violation') + orange('\nYou must call snapshot during the READ phase before transitioning to ',nextPhase.toUpperCase())
+                    chalk.red('Protocol Violation') + PhaseManager.orange('\nYou must call snapshot during the READ phase before transitioning to ',nextPhase.toUpperCase())
                 );
             }else this.hasReadSinceLastWrite = false;
         }
@@ -108,7 +108,7 @@ class PhaseManager<T> {
             }));//the returned result can be a promise that can be awaited
         }else throw new Error(
             chalk.red('State Error') + 
-            orange(`\nThe ${this.phase} phase is invalid for the called operation.\nIt is only valid for ${phases.toString()}.`)
+            PhaseManager.orange(`\nThe state is in the ${this.phase} phase but an operation expected it to be in the ${phases.toString().replace(',',' or ')} phase.`)
         );
     }
 }
@@ -123,7 +123,7 @@ class PhaseManager<T> {
  * 
  * Async IO: Any async io that will need the Gate's value must be done outside any guarded operation.
 */
-export class Gate<T> {//removed access to the ref as a property in the guard
+export class Guard<T> {//removed access to the ref as a property in the guard
     private manager:PhaseManager<T>;
 
     constructor(initValue:T,cleanFn?:(draft:ImmutableDraft<T>)=>void) {
@@ -131,13 +131,13 @@ export class Gate<T> {//removed access to the ref as a property in the guard
         this.manager = new PhaseManager(ref,cleanFn);
     }
     //O1 read because it directly returns the immutable instance rather than deep cloning the original source
-    public snapshot():Immutable<Ref<T>> {
-        let result:Immutable<Ref<T>> | null = null;
+    public snapshot():Immutable<T> {
+        let ref:Immutable<Ref<T>> | null = null;
         this.manager.protect(['read'],()=>{
             this.manager.hasReadSinceLastWrite = true
-            result = this.manager.immut;//the reason why i didnt do a direct return is to protect reading the reference under the read phase
+            ref = this.manager.immut;//the reason why i didnt do a direct return is to protect reading the reference under the read phase
         });
-        return result!;
+        return ref!.value;//directly return the value at the reference
     }
     /**
         * @param phases Allowed phases for this mutation.
@@ -155,17 +155,14 @@ export class Gate<T> {//removed access to the ref as a property in the guard
         * });
     */
     public guard(phases:WritePhase[],callback:(draft:ImmutableDraft<T>)=>void):void {
-        this.manager.protect(phases as Phase[],callback);
+        this.manager.protect(phases,callback);
     }
-    public set(valueOrCallback:Immutable<T> | ImmutableSetter<T>) {
-        this.manager.protect(['write', 'update'], (draft) => {
-            draft.value = castDraft(
-            typeof valueOrCallback === 'function' 
-                ? (valueOrCallback as ImmutableSetter<T>)(draft.value as Immutable<T>)
-                : valueOrCallback
-            );
-        });
-    }   
+    public write(callback:(draft:ImmutableDraft<T>)=>void) {
+        this.manager.protect(['write'],callback);
+    }
+    public update(callback:(draft:ImmutableDraft<T>)=>void) {
+        this.manager.protect(['update'],callback);
+    }
     public transition(phaseEvent:PhaseEvent) {
         this.manager.transition(phaseEvent);
     }
@@ -177,11 +174,12 @@ async function someIO(value:number) {
     return value**2;
 }
 
-const flag = new Gate(10,(draft=>draft.value=0));
+const flag = new Guard(10,(draft=>draft.value=0));
 console.log(flag.phase);
 
 let externalNum = 10;
-flag.guard(['write'],(draft)=>{//write is the first phase.
+
+flag.write(draft=>{//write is the first phase.
     draft.value += 50;//so i can only initiate it with a value
     externalNum = draft.value;//primitives can be copied out of the guarded scope even before the gate allows the value to be read externally
 })
@@ -190,13 +188,13 @@ console.log(externalNum);//logs 60
 flag.transition('READ')
 
 //MANDATORY: Acknowledge the data.Else,proceeding to update will throw an error
-const current = flag.snapshot();
-console.log("Current Value acknowledged:",current.value);
+const snap = flag.snapshot();
+console.log("Current Value acknowledged:",snap);
 
 flag.transition('UPDATE');
 
-const newValue = await someIO(current.value);
-flag.set(newValue);//the set method is a shorthand for simple updates like primitives
+const newValue = await someIO(snap);
+flag.update(draft=>draft.value = newValue);//the set method is a shorthand for simple updates like primitives
 
 flag.transition('READ');
 console.log("Updated value:",flag.snapshot());
@@ -204,20 +202,22 @@ console.log("Updated value:",flag.snapshot());
 flag.transition('CLEAR');
 
 flag.transition('READ');
-console.log(flag.snapshot().value);
+console.log(flag.snapshot());
 
-const grades:Gate<Set<string>> = new Gate(
+const grades:Guard<Set<string>> = new Guard(
     new Set(['A','B','C','D','E','F']),
     (draft)=>draft.value.clear()
 );
-
 let externalSet = new Set();
-grades.guard(['write'],(draft)=>{
+grades.write(draft=>{
     draft.value.add('A+');
     draft.value.add('B-');
-    externalSet = draft.value//non-primitives cant be copied out of the guarded scope.the draft is revoked.so you cant read the value externally before the gate allows you to read it
+    externalSet = draft.value//non-primitives cant be copied out of the guarded scope.the draft is revoked.so you cant read the value externally unless the guard allows you to read it
 });
 console.log(externalSet);
 
 grades.transition('READ');
-console.log(grades.snapshot().value);
+console.log(grades.snapshot());
+
+const vec = new Guard(new THREE.Vector3());
+vec.transition('READ')
