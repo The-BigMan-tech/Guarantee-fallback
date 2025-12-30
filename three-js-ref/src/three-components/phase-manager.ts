@@ -18,14 +18,15 @@ interface Ref<T> {
 type ImmutableDraft<T> = DraftedObject<Immutable<Ref<T>>>;
 
 class PhaseManager<T> {
-    private static orange = chalk.hex("#eeb18f");
-    private actor:ActorRefFrom<typeof this.machine> | null = null;
-    private clearFn?:(draft:ImmutableDraft<T>)=>void;
-
     public immut:Immutable<Ref<T>>;
     public hasReadSinceLastWrite = false;
 
-    private phases:Record<Phase,{on?:OnTransititions,type?:PhaseType}> = {
+    private actorRef:ActorRefFrom<typeof this.machine> | null = null;
+    private clearFn?:(draft:ImmutableDraft<T>)=>void;
+
+    private static orange = chalk.hex("#eeb18f");
+
+    private static phases:Record<Phase,{on?:OnTransititions,type?:PhaseType}> = {
         write:{
             on:{'READ':'read',}
         },
@@ -45,34 +46,35 @@ class PhaseManager<T> {
     private machine = createMachine({
         id:'phases',
         initial:'write',
-        states:this.phases
+        states:PhaseManager.phases
     });
 
     constructor(ref:Ref<T>,clearFn?:typeof this.clearFn) { 
         this.clearFn = clearFn;
-        this.actor = this.createNewActor();
         this.immut = create(ref,()=>{},{enableAutoFreeze:true});
     }
-    private createNewActor() {
-        const actor = createActor(this.machine);
-        actor.start();
-        actor.subscribe(state=>{
-            if (state.status === "done") {
-                this.actor = null;
-                if (this.clearFn) {
-                    const clearFn = this.clearFn;
-                    this.immut = create(this.immut,(draft=>{
-                        clearFn(draft);
-                    }))
+    private get actor() {
+        if (this.actorRef === null) {
+            this.actorRef = createActor(this.machine);
+            this.actorRef.start();
+            this.actorRef.subscribe(state=>{
+                if (state.status === "done") {
+                    this.actorRef = null;
+                    if (this.clearFn) {
+                        const clearFn = this.clearFn;
+                        this.immut = create(this.immut,(draft=>{
+                            clearFn(draft);
+                        }))
+                    }
                 }
-            }
-        });
-        return actor;
+            });
+        }
+        return this.actorRef;
     }
     private verifyTransition(phaseEvent:PhaseEvent):void {
         const [{value:nextPhase}] = transition(
             this.machine,          
-            this.actor!.getSnapshot(),       
+            this.actor.getSnapshot(),       
             { type: phaseEvent }   
         );
         if (this.phase === nextPhase) {//if the phase never changed,then the transition is invalid
@@ -88,13 +90,11 @@ class PhaseManager<T> {
         }
     }
     public transition(phaseEvent:PhaseEvent):void {
-        this.actor ||= this.createNewActor();
         this.verifyTransition(phaseEvent);
         this.actor.send({ type: phaseEvent });
     }
     public get phase():Phase {
-        this.actor ||= this.createNewActor();
-        return this.actor?.getSnapshot().value as Phase;
+        return this.actor.getSnapshot().value as Phase;
     }
     //writes are fast through mutative js structural sharing algorithm
     public protect(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
@@ -168,7 +168,7 @@ async function someIO(value:number) {
     return value**2;
 }
 
-const flag = new Guard(10,(draft=>draft.value=0));
+const flag = new Guard(10,draft=>draft.value=0);
 console.log(flag.phase);
 
 let externalNum = 10;
@@ -198,9 +198,11 @@ flag.transition('CLEAR');
 flag.transition('READ');
 console.log(flag.snapshot());
 
+
+
 const grades:Guard<Set<string>> = new Guard(
     new Set(['A','B','C','D','E','F']),
-    (draft)=>draft.value.clear()
+    draft=>draft.value.clear()
 );
 let externalSet = new Set();
 grades.write(draft=>{
@@ -213,5 +215,15 @@ console.log(externalSet);
 grades.transition('READ');
 console.log(grades.snapshot());
 
-const vec = new Guard(new THREE.Vector3());
+
+
+const vec = new Guard(
+    new THREE.Vector3(),
+    draft=>draft.value.set(0,0,0)
+);
+vec.write(draft=>draft.value.setX(10));
+
 vec.transition('READ')
+const x = vec.snapshot();
+x.addScalar(10)
+console.log(vec.snapshot());
