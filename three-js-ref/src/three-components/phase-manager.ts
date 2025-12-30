@@ -96,10 +96,20 @@ class PhaseManager<T> {
     public get phase():Phase {
         return this.actor.getSnapshot().value as Phase;
     }
+    private isAddress(value:unknown):boolean {
+        return value !== Object(value);
+    }
     //writes are fast through mutative js structural sharing algorithm
     public protect(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
         if (new Set(phases).has(this.phase)) { 
+            const oldValue = this.immut.value;
             this.immut = create(this.immut,(draft=>{ callback(draft) }));
+            if (this.isAddress(oldValue) && (oldValue !== this.immut.value) ) {
+                throw new Error(
+                    chalk.red('State Violation') +
+                    PhaseManager.orange('\nReplacing the root object reference is forbidden.')
+                );
+            }
         }else throw new Error(
             chalk.red('State Error') + 
             PhaseManager.orange(`\nThe state is in the ${this.phase} phase but an operation expected it to be in the ${phases.toString().replace(',',' or ')} phase.`)
@@ -221,7 +231,10 @@ const vec = new Guard(
     new THREE.Vector3(),
     draft=>draft.value.set(0,0,0)
 );
-vec.write(draft=>draft.value.setX(10));
+vec.write(draft=>{
+    draft.value = new THREE.Vector3();
+    draft.value.addScalar(0);
+});
 
 vec.transition('READ')
 const x = vec.snapshot();
