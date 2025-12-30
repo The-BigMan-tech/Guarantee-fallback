@@ -99,7 +99,7 @@ class PhaseManager<T> {
     //writes are fast through mutative js structural sharing algorithm
     public protect(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
         if (new Set(phases).has(this.phase)) { 
-            this.immut = create(this.immut,(draft=>callback(draft)));
+            this.immut = create(this.immut,(draft=>{ callback(draft) }));
         }else throw new Error(
             chalk.red('State Error') + 
             PhaseManager.orange(`\nThe state is in the ${this.phase} phase but an operation expected it to be in the ${phases.toString().replace(',',' or ')} phase.`)
