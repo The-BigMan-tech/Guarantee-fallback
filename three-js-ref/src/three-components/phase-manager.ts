@@ -193,7 +193,7 @@ console.log(flag.phase);
 let externalNum = 10;
 
 flag.write(draft=>{//write is the first phase.
-    draft.value += 50;//so i can only initiate it with a value
+    draft.value += 50;//reassigning the ref to a new value is allowed if its a primitive
     externalNum = draft.value;//primitives can be copied out of the guarded scope even before the gate allows the value to be read externally
 })
 console.log(externalNum);//logs 60
@@ -235,7 +235,6 @@ grades.transition('READ');
 console.log(grades.snapshot());
 
 
-
 const a = new Guard(10,draft=>draft.value=0);
 const b = new Guard(20,draft=>draft.value=0);
 const c = new Guard(30,draft=>draft.value=0);
@@ -272,8 +271,7 @@ vec.write(draft=>{
     // draft.value = new THREE.Vector3();//this will throw an error.
     draft.value.addScalar(3);
 });
-
-vec.transition('READ')
+vec.transition('READ');
 const x = vec.snapshot();
 x.addScalar(10)
 console.log(vec.snapshot());
