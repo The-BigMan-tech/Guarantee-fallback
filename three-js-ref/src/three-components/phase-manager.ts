@@ -1,5 +1,5 @@
 import {type ActorRefFrom, createActor, createMachine,transition } from "xstate";
-import { create, type Immutable } from 'mutative';
+import { create,type Immutable } from 'mutative';
 import chalk from "chalk";
 import type { DraftedObject } from "mutative/dist/interface.js";
 import * as THREE from "three";
@@ -78,13 +78,13 @@ class PhaseManager<T> {
             { type: phaseEvent }   
         );
         if (this.phase === nextPhase) {//if the phase never changed,then the transition is invalid
-            const message = chalk.red('Transition Error') + PhaseManager.orange(`\nCannot transition from ${this.phase} to ${phaseEvent}.`);
+            const message = chalk.red('\nTransition Error') + PhaseManager.orange(`\nCannot transition from ${this.phase} to ${phaseEvent}.`);
             throw new Error(message);
         }
         const endOfCycle = (nextPhase === 'update') || (nextPhase === "clear")
         if (endOfCycle) {
             if (!this.hasReadSinceLastWrite) {
-                const message = chalk.red('Protocol Violation') + PhaseManager.orange('\nYou must call snapshot during the READ phase before transitioning to ',nextPhase.toUpperCase())
+                const message = chalk.red('\nProtocol Violation') + PhaseManager.orange('\nYou must call snapshot during the READ phase before transitioning to ',nextPhase.toUpperCase())
                 throw new Error(message);
             }else this.hasReadSinceLastWrite = false;
         }
@@ -96,22 +96,26 @@ class PhaseManager<T> {
     public get phase():Phase {
         return this.actor.getSnapshot().value as Phase;
     }
-    private isAddress(value:unknown):boolean {
-        return value !== Object(value);
+    private isObject(value:unknown):boolean {
+        return value === Object(value);
+    }
+    private proxyDraft(draft:ImmutableDraft<T>) {//this is to prevent reassignment of the value at the ref to a new object if its of the object type cuz deep freezing it again will be expensie and not doing so will bypass the guard immutable snapshots
+        const isObject = this.isObject;
+        return new Proxy(draft, {
+            set(target:ImmutableDraft<T>, prop:string | symbol, value:T) {
+                if (prop === 'value' && isObject(value)) {
+                    throw new Error(chalk.red('\nState Violation') + PhaseManager.orange('\nRoot replacement of object reference is forbidden'));
+                }
+                return Reflect.set(target, prop, value);
+            }
+        });
     }
     //writes are fast through mutative js structural sharing algorithm
     public protect(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
         if (new Set(phases).has(this.phase)) { 
-            const oldValue = this.immut.value;
-            this.immut = create(this.immut,(draft=>{ callback(draft) }));
-            if (this.isAddress(oldValue) && (oldValue !== this.immut.value) ) {
-                throw new Error(
-                    chalk.red('State Violation') +
-                    PhaseManager.orange('\nReplacing the root object reference is forbidden.')
-                );
-            }
+            this.immut = create(this.immut,(draft=>{ callback(this.proxyDraft(draft)) }));
         }else throw new Error(
-            chalk.red('State Error') + 
+            chalk.red('\nState Error') + 
             PhaseManager.orange(`\nThe state is in the ${this.phase} phase but an operation expected it to be in the ${phases.toString().replace(',',' or ')} phase.`)
         );
     }
@@ -173,6 +177,11 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     public get phase() {
         return this.manager.phase
     }
+    public static clearAll<U>(...states:Guard<U>[]) {
+        for (const state of states) {
+            state.transition('CLEAR');
+        }
+    }
 }
 async function someIO(value:number) {
     return value**2;
@@ -209,12 +218,12 @@ flag.transition('READ');
 console.log(flag.snapshot());
 
 
-
+let externalSet = new Set();
 const grades:Guard<Set<string>> = new Guard(
     new Set(['A','B','C','D','E','F']),
     draft=>draft.value.clear()
 );
-let externalSet = new Set();
+
 grades.write(draft=>{
     draft.value.add('A+');
     draft.value.add('B-');
@@ -227,13 +236,41 @@ console.log(grades.snapshot());
 
 
 
+const a = new Guard(10,draft=>draft.value=0);
+const b = new Guard(20,draft=>draft.value=0);
+const c = new Guard(30,draft=>draft.value=0);
+
+a.transition('READ');
+b.transition('READ');
+c.transition('READ');
+
+console.log('Before clears: ',a.snapshot(),b.snapshot(),c.snapshot());
+Guard.clearAll(a,b,c);//better than redundant calls to transition if they will be cleared at the same time
+
+a.transition('READ');
+b.transition('READ');
+c.transition('READ');
+
+console.log('After clears: ',a.snapshot(),b.snapshot(),c.snapshot());
+
+// i encourage to do this instead if many states have identical lifecycles
+const nums = new Guard({
+    a:10,
+    b:20,
+    c:30
+})
+
+nums.transition('READ');
+console.log(nums.snapshot());
+
+
 const vec = new Guard(
     new THREE.Vector3(),
     draft=>draft.value.set(0,0,0)
 );
 vec.write(draft=>{
-    draft.value = new THREE.Vector3();
-    draft.value.addScalar(0);
+    // draft.value = new THREE.Vector3();//this will throw an error.
+    draft.value.addScalar(3);
 });
 
 vec.transition('READ')
