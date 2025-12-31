@@ -60,7 +60,6 @@ class PhaseManager<T> {
     public static orange = chalk.hex("#eeb18f");
 
     public immut:Immutable<Ref<T>>;
-    public mut:Ref<T>;
     public hasReadSinceLastWrite = false;
 
     private clearFn?:(draft:ImmutableDraft<T>)=>void;
@@ -97,7 +96,7 @@ class PhaseManager<T> {
             }
         }
     } as const;
-    
+
     private static catchUntrappableRef(value:unknown) {
         if (ClassType.isNativeForeignClass(value)) {
             throw new Error(
@@ -117,7 +116,6 @@ class PhaseManager<T> {
         PhaseManager.catchUntrappableRef(ref.value);
         this.clearFn = clearFn;
         this.immut = create(ref,()=>{},PhaseManager.mutativeOptions);
-        this.mut = ref;
     }   
     private get actor() {
         if (this.actorRef === null) {
@@ -197,13 +195,16 @@ class PhaseManager<T> {
  * Async IO: Any async io that will need the Guard's value must be done outside any guarded operation.
 */
 export class Guard<T> {//removed access to the ref as a property in the guard
+    public mut:Ref<T>;
+    private manager:PhaseManager<T> | null = null;
     private static mode:GuardMode | null = null;
-    private manager:PhaseManager<T>;
-
+    
     constructor(initValue:T,cleanFn?:(draft:ImmutableDraft<T>)=>void) {
         Guard.checkForMode();
-        const ref = {value:initValue};
-        this.manager = new PhaseManager(ref,cleanFn);
+        this.mut = {value:initValue};
+        if (Guard.mode === "dev") {
+            this.manager = new PhaseManager(this.mut,cleanFn);
+        }
     }
     private static checkForMode() {
         if (Guard.mode === null) {
@@ -218,12 +219,12 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     public snapshot():Immutable<T> | T {
         let ref:Immutable<Ref<T>> | Ref<T> | null = null;
         if (Guard.mode === 'dev') {
-            this.manager.protect(this.phase,['read'],()=>{
-                this.manager.hasReadSinceLastWrite = true
-                ref = this.manager.immut;
+            this.manager!.protect(this.phase!,['read'],()=>{
+                this.manager!.hasReadSinceLastWrite = true
+                ref = this.manager!.immut;
             });
         }else {
-            ref = this.manager.mut;
+            ref = this.mut;
         }
         return ref!.value;//directly return the value at the reference
     }
@@ -244,9 +245,9 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     */
     public guard(phases:WritePhase[],callback:(draft:ImmutableDraft<T> | Ref<T>)=>void):void {
         if (Guard.mode === 'dev') {
-            this.manager.protect(this.phase,phases,callback);
+            this.manager!.protect(this.phase!,phases,callback);//the phase is guaranteed to not be null in dev mode
         }else {
-            callback(this.manager.mut);
+            callback(this.mut);
         }
     }
     /**Short hand method for calling the guard method for the write phase */
@@ -258,10 +259,12 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         this.guard(['update'],callback);
     }
     public transition(phaseEvent:PhaseEvent) {
-        this.manager.transition(phaseEvent);
+        if (Guard.mode === "prod") return;
+        this.manager!.transition(phaseEvent);
     }
-    public get phase() {
-        return this.manager.phase;
+    public get phase():Phase | null {
+        if (Guard.mode === 'prod') return null;//this will prevent calling the phase getter that will create a dormant actor in production
+        return this.manager!.phase;
     }
     public static clearAll<U>(...states:Guard<U>[]) {
         for (const state of states) {
