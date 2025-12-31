@@ -4,6 +4,7 @@ import chalk from "chalk";
 import type { DraftedObject,ExternalOptions } from "mutative/dist/interface.js";
 import * as THREE from "three";
 
+//i pasted this code in a perplexity chat and two gemini chat sessions--one per google account.
 type ReadPhase = 'read';
 type WritePhase = 'write' | 'update'
 type ClearPhase = 'clear'
@@ -70,7 +71,7 @@ class PhaseManager<T> {
         states:PhaseManager.phases
     });
     
-    private static phases:Record<Phase,{on?:OnTransititions,type?:PhaseType}> = {
+    private static readonly phases:Record<Phase,{on?:OnTransititions,type?:PhaseType}> = {
         write:{
             on:{'READ':'read'}
         },
@@ -86,15 +87,17 @@ class PhaseManager<T> {
         clear:{
             type:'final'
         }
-    };
-    private static mutativeOptions:ExternalOptions<false, true> = {
+    }  as const;
+
+    private static readonly mutativeOptions:ExternalOptions<false, true> = {
         enableAutoFreeze:true,
         mark:(target:unknown) => {//the mark function is used by mutative js recursively at each node level of the object
             if (ClassType.isNativeObject(target) || ClassType.isCustomFlatClass(target)) {
                 return 'immutable'//return in a draft
             }
         }
-    }
+    } as const;
+    
     private static catchUntrappableRef(value:unknown) {
         if (ClassType.isNativeForeignClass(value)) {
             throw new Error(
