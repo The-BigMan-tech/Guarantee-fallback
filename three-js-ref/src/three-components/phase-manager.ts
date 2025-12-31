@@ -206,8 +206,8 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     private static checkForMode() {
         if (PhaseManager.mode === null) {
             throw new Error(
-                chalk.red('The guard must be set to a mode first,i.e dev or prod,using the setMode static method before use.') +
-                PhaseManager.orange('Note: ') + 
+                chalk.red('\nThe guard must be set to a mode first,i.e dev or prod,using the setMode static method before use.') +
+                PhaseManager.orange('\nNote: ') + 
                 chalk.green('Dev mode enforces the guard\'s protocol while prod mode strips it away for performance')
             )
         }
@@ -265,14 +265,18 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     }
     public static setMode(mode:GuardMode) {
         if (PhaseManager.mode !== null) {
-            throw new Error(chalk.red('The mode must only be set once to prevent the production reference from being out of sync with the developer mode reference.'))
+            throw new Error(chalk.red('\nThe mode can only be set once to prevent the production reference from being out of sync with the developer mode reference.'))
         }
         PhaseManager.mode = mode;
     }
 }
+
+Guard.setMode('dev');
+
 async function someIO(value:number) {
     return value**2;
 }
+
 //Flat class example
 const vec = new Guard(
     new THREE.Vector3(0,10,0),
@@ -286,8 +290,8 @@ vec.update(draft=>{
     draft.value.addScalar(10);
 });
 vec.transition('READ');
-console.log(initVec);
-console.log(vec.snapshot());
+console.log('init vec: ',initVec);//this vec is a snapshot and unaffected by subsequent mutations
+console.log('current vec: ',vec.snapshot());
 
 
 //Primitive State
@@ -298,28 +302,27 @@ let externalNum = 10;
 
 flag.write(draft=>{//write is the first phase.
     draft.value += 50;//reassigning the ref to a new value is allowed if its a primitive
-    externalNum = draft.value;//primitives can be copied out of the guarded scope even before the gate allows the value to be read externally
+    externalNum = draft.value;//primitives can be copied out of the guarded scope even before the guard allows the value to be read externally.This is safe cuz they are passed by value.
 })
-console.log(externalNum);//logs 60
+console.log('escaped primitive: ',externalNum);//logs 60.but try to keep mutations under guarded operations.even for primitives
 
-flag.transition('READ')
+flag.transition('READ');
 
-//MANDATORY: Acknowledge the data.Else,proceeding to update will throw an error
-const snap = flag.snapshot();
-console.log("Current Value acknowledged:",snap);
+const currentFlag = flag.snapshot();//It is mandatory to acknowledge the data.Else,proceeding to update will throw an error
+console.log("Current flag acknowledged:",currentFlag);
 
 flag.transition('UPDATE');
 
-const newValue = await someIO(snap);
-flag.update(draft=>draft.value = newValue);//the set method is a shorthand for simple updates like primitives
+const newValue = await someIO(currentFlag);
+flag.update(draft=>draft.value = newValue);//we fetch the data outside the guard
 
 flag.transition('READ');
-console.log("Updated value:",flag.snapshot());
+console.log("Updated flag from fetch:",flag.snapshot());
 
-flag.transition('CLEAR');
+flag.transition('CLEAR');//automatically calls the stateless clear function that was set in the beginning
 
-flag.transition('READ');
-console.log(flag.snapshot());
+flag.transition('READ');//we must transition to read to see the value cuz after clear is a write.
+console.log('Cleared flag: ',flag.snapshot());
 
 
 
@@ -330,15 +333,17 @@ const grades:Guard<Set<string>> = new Guard(
     draft=>draft.value.clear()
 );
 
-grades.write(draft=>{
+grades.write(draft=>{//reassignment to a new set is forbidden
     draft.value.add('A+');
     draft.value.add('B-');
     externalSet = draft.value//non-primitives cant be copied out of the guarded scope.the draft is revoked.so you cant read the value externally unless the guard allows you to read it
 });
-console.log(externalSet);
+console.log('Escaped reference: ',externalSet);
 
 grades.transition('READ');
-console.log(grades.snapshot());
+console.log('Current grades',grades.snapshot());
+
+grades.transition('CLEAR');
 
 
 //Using the clear all method
@@ -368,4 +373,5 @@ const nums = new Guard({
 })
 
 nums.transition('READ');
-console.log(nums.snapshot());
+console.log('grouped states: ',nums.snapshot());
+nums.transition('CLEAR');
