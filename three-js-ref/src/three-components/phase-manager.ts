@@ -288,8 +288,8 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         Guard.mode = mode;
     }
 }
-
-Guard.setMode('dev');
+const start = performance.now();
+Guard.setMode('prod');
 
 async function someIO(value:number) {
     return value**2;
@@ -393,3 +393,6 @@ const nums = new Guard({
 nums.transition('READ');
 console.log('grouped states: ',nums.snapshot());
 nums.transition('CLEAR');
+
+const end = performance.now();
+console.log('\nFinished in ',end-start,' milliseconds');
