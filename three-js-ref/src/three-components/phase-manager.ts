@@ -12,6 +12,7 @@ type Phase =  ReadPhase | WritePhase | ClearPhase;
 type PhaseEvent = "WRITE" | 'READ' | 'UPDATE' | 'CLEAR';
 type OnTransititions = Partial<Record<PhaseEvent,Phase>>;
 type PhaseType = "final" | "history" | "atomic" | "compound" | "parallel"
+
 export type GuardMode = 'dev' | 'prod';
 
 interface Ref<T> {
@@ -62,7 +63,7 @@ class PhaseManager<T> {
     public immut:Immutable<Ref<T>>;
     public hasReadSinceLastWrite = false;
 
-    private clearFn?:(draft:ImmutableDraft<T>)=>void;
+    private clearFn?:ClearFn<T>;
     private actorRef:ActorRefFrom<typeof this.machine> | null = null;
     private machine = createMachine({
         id:'phases',
@@ -194,14 +195,18 @@ class PhaseManager<T> {
  * 
  * Async IO: Any async io that will need the Guard's value must be done outside any guarded operation.
 */
+type ClearFn<T> = (draft:ImmutableDraft<T> | Ref<T>)=>void;
+
 export class Guard<T> {//removed access to the ref as a property in the guard
     public mut:Ref<T>;
     private manager:PhaseManager<T> | null = null;
+    private clearFn?:ClearFn<T>;//keeping so that it can be called in prod mode for integrity even though the phase manager is skipped
     private static mode:GuardMode | null = null;
     
-    constructor(initValue:T,cleanFn?:(draft:ImmutableDraft<T>)=>void) {
+    constructor(initValue:T,cleanFn?:ClearFn<T>) {
         Guard.checkForMode();
         this.mut = {value:initValue};
+        this.clearFn = cleanFn;
         if (Guard.mode === "dev") {
             this.manager = new PhaseManager(this.mut,cleanFn);
         }
@@ -259,7 +264,12 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         this.guard(['update'],callback);
     }
     public transition(phaseEvent:PhaseEvent) {
-        if (Guard.mode === "prod") return;
+        if (Guard.mode === "prod") {
+            if ((phaseEvent === "CLEAR") && this.clearFn) {
+                this.clearFn(this.mut);
+            }
+            return
+        }
         this.manager!.transition(phaseEvent);
     }
     public get phase():Phase | null {
