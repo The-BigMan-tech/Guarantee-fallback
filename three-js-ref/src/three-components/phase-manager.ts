@@ -11,7 +11,7 @@ type Phase =  ReadPhase | WritePhase | ClearPhase;
 type PhaseEvent = "WRITE" | 'READ' | 'UPDATE' | 'CLEAR';
 type OnTransititions = Partial<Record<PhaseEvent,Phase>>;
 type PhaseType = "final" | "history" | "atomic" | "compound" | "parallel"
-type GuardMode = 'dev' | 'prod';
+export type GuardMode = 'dev' | 'prod';
 
 interface Ref<T> {
     value:T
@@ -56,15 +56,14 @@ class ClassType {
 }
 
 class PhaseManager<T> {
-    public static mode:GuardMode | null = null;
     public static orange = chalk.hex("#eeb18f");
 
     public immut:Immutable<Ref<T>>;
     public mut:Ref<T>;
     public hasReadSinceLastWrite = false;
 
-    private actorRef:ActorRefFrom<typeof this.machine> | null = null;
     private clearFn?:(draft:ImmutableDraft<T>)=>void;
+    private actorRef:ActorRefFrom<typeof this.machine> | null = null;
     private machine = createMachine({
         id:'phases',
         initial:'write',
@@ -107,7 +106,7 @@ class PhaseManager<T> {
             throw new Error(
                 chalk.red(`Complex class detected: ${(value as object).constructor.name}.`) +
                 PhaseManager.orange('\nNested objects in custom classes will not work as expected under the guard.') +
-                chalk.dim(`\nRecommendation: Convert ${ (value as object).constructor.name } to a plain object or ensure all its properties are primitives.`)
+                chalk.dim(`\nConsider either converting ${ (value as object).constructor.name } to a nested plain object or ensure all its properties are primitives`)
             )
         }
     }
@@ -196,6 +195,7 @@ class PhaseManager<T> {
  * Async IO: Any async io that will need the Gate's value must be done outside any guarded operation.
 */
 export class Guard<T> {//removed access to the ref as a property in the guard
+    private static mode:GuardMode | null = null;
     private manager:PhaseManager<T>;
 
     constructor(initValue:T,cleanFn?:(draft:ImmutableDraft<T>)=>void) {
@@ -204,7 +204,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         this.manager = new PhaseManager(ref,cleanFn);
     }
     private static checkForMode() {
-        if (PhaseManager.mode === null) {
+        if (Guard.mode === null) {
             throw new Error(
                 chalk.red('\nThe guard must be set to a mode first,i.e dev or prod,using the setMode static method before use.') +
                 PhaseManager.orange('\nNote: ') + 
@@ -214,15 +214,16 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     }
     //O1 read because it directly returns the immutable instance rather than deep cloning the original source
     public snapshot():Immutable<T> | T {
-        if (PhaseManager.mode === 'dev') {
-            let ref:Immutable<Ref<T>> | null = null;
+        let ref:Immutable<Ref<T>> | Ref<T> | null = null;
+        if (Guard.mode === 'dev') {
             this.manager.protect(['read'],()=>{
                 this.manager.hasReadSinceLastWrite = true
-                ref = this.manager.immut;//the reason why i didnt do a direct return is to protect reading the reference under the read phase
+                ref = this.manager.immut;
             });
-            return ref!.value;//directly return the value at the reference
+        }else {
+            ref = this.manager.mut;
         }
-        return this.manager.mut.value;
+        return ref!.value;//directly return the value at the reference
     }
     /**
         * @param phases Allowed phases for this mutation.
@@ -240,7 +241,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         * });
     */
     public guard(phases:WritePhase[],callback:(draft:ImmutableDraft<T> | Ref<T>)=>void):void {
-        if (PhaseManager.mode === 'dev') {
+        if (Guard.mode === 'dev') {
             this.manager.protect(phases,callback);
         }else {
             callback(this.manager.mut);
@@ -264,10 +265,10 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         }
     }
     public static setMode(mode:GuardMode) {
-        if (PhaseManager.mode !== null) {
+        if (Guard.mode !== null) {
             throw new Error(chalk.red('\nThe mode can only be set once to prevent the production reference from being out of sync with the developer mode reference.'))
         }
-        PhaseManager.mode = mode;
+        Guard.mode = mode;
     }
 }
 
