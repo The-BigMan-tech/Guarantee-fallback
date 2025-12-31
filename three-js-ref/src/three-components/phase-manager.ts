@@ -192,7 +192,7 @@ class PhaseManager<T> {
  * 3. UPDATE: Allows updating the state after a read.Can transition back to read for a read-update cycle as used in games or long running programs
  * 4. CLEAR:  Reset the cycle.Automatically calls the clear function
  * 
- * Async IO: Any async io that will need the Gate's value must be done outside any guarded operation.
+ * Async IO: Any async io that will need the Guard's value must be done outside any guarded operation.
 */
 export class Guard<T> {//removed access to the ref as a property in the guard
     private static mode:GuardMode | null = null;
@@ -247,9 +247,11 @@ export class Guard<T> {//removed access to the ref as a property in the guard
             callback(this.manager.mut);
         }
     }
+    /**Short hand method for calling the guard method for the write phase */
     public write(callback:(draft:ImmutableDraft<T> | Ref<T>)=>void) {
         this.guard(['write'],callback);
     }
+    /**Short hand method for calling the guard method for the update phase */
     public update(callback:(draft:ImmutableDraft<T> | Ref<T>)=>void) {
         this.guard(['update'],callback);
     }
