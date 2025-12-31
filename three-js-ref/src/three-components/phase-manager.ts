@@ -11,6 +11,7 @@ type Phase =  ReadPhase | WritePhase | ClearPhase;
 type PhaseEvent = "WRITE" | 'READ' | 'UPDATE' | 'CLEAR';
 type OnTransititions = Partial<Record<PhaseEvent,Phase>>;
 type PhaseType = "final" | "history" | "atomic" | "compound" | "parallel"
+type GuardMode = 'dev' | 'prod';
 
 interface Ref<T> {
     value:T
@@ -55,7 +56,8 @@ class ClassType {
 }
 
 class PhaseManager<T> {
-    public static readonly flag:'prod' | 'dev' = 'dev';
+    public static mode:GuardMode | null = null;
+    public static orange = chalk.hex("#eeb18f");
 
     public immut:Immutable<Ref<T>>;
     public mut:Ref<T>;
@@ -69,7 +71,6 @@ class PhaseManager<T> {
         states:PhaseManager.phases
     });
     
-    private static orange = chalk.hex("#eeb18f");
     private static phases:Record<Phase,{on?:OnTransititions,type?:PhaseType}> = {
         write:{
             on:{'READ':'read'}
@@ -90,22 +91,28 @@ class PhaseManager<T> {
     private static mutativeOptions:ExternalOptions<false, true> = {
         enableAutoFreeze:true,
         mark:(target:unknown) => {//the mark function is used by mutative js recursively at each node level of the object
-            if (ClassType.isNativeObject(target)) return 'immutable';
-
-            if (ClassType.isNativeForeignClass(target)) return 'mutable';
-
-            if (ClassType.isCustomFlatClass(target)) return 'immutable'
-
-            if (ClassType.isComplexClass(target)) {
-                throw new Error(
-                    chalk.red(`Complex class detected: ${(target as object).constructor.name}.`) +
-                    PhaseManager.orange('\nNested objects in custom classes will not work as expected under the guard.') +
-                    chalk.dim(`\nRecommendation: Convert ${ (target as object).constructor.name } to a plain object or ensure all its properties are primitives.`)
-                )
+            if (ClassType.isNativeObject(target) || ClassType.isCustomFlatClass(target)) {
+                return 'immutable'//return in a draft
             }
         }
     }
+    private static catchUntrappableRef(value:unknown) {
+        if (ClassType.isNativeForeignClass(value)) {
+            throw new Error(
+                chalk.red(`Detected a native-foreign object: ${(value as object).constructor.name}.`) +
+                PhaseManager.orange('\nMutations in this class are done outside of js which is beyond the reach of the guard.') 
+            )
+        }
+        if (ClassType.isComplexClass(value)) {
+            throw new Error(
+                chalk.red(`Complex class detected: ${(value as object).constructor.name}.`) +
+                PhaseManager.orange('\nNested objects in custom classes will not work as expected under the guard.') +
+                chalk.dim(`\nRecommendation: Convert ${ (value as object).constructor.name } to a plain object or ensure all its properties are primitives.`)
+            )
+        }
+    }
     constructor(ref:Ref<T>,clearFn?:typeof this.clearFn) { 
+        PhaseManager.catchUntrappableRef(ref.value);
         this.clearFn = clearFn;
         this.immut = create(ref,()=>{},PhaseManager.mutativeOptions);
         this.mut = ref;
@@ -157,7 +164,7 @@ class PhaseManager<T> {
         const isPrimitiveFunc = ClassType.isPrimitive;
         return new Proxy(draft, {
             set(target:ImmutableDraft<T>, prop:string | symbol, value:T) {
-                const forbidReassignment = !isPrimitiveFunc(value) && !ClassType.isNativeForeignClass(value)
+                const forbidReassignment = !isPrimitiveFunc(value);
                 if (prop === 'value' && forbidReassignment) {
                     throw new Error(chalk.red('\nState Violation') + PhaseManager.orange('\nRoot replacement of object reference is forbidden.'));
                 }
@@ -192,12 +199,22 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     private manager:PhaseManager<T>;
 
     constructor(initValue:T,cleanFn?:(draft:ImmutableDraft<T>)=>void) {
+        Guard.checkForMode();
         const ref = {value:initValue};
         this.manager = new PhaseManager(ref,cleanFn);
     }
+    private static checkForMode() {
+        if (PhaseManager.mode === null) {
+            throw new Error(
+                chalk.red('The guard must be set to a mode first,i.e dev or prod,using the setMode static method before use.') +
+                PhaseManager.orange('Note: ') + 
+                chalk.green('Dev mode enforces the guard\'s protocol while prod mode strips it away for performance')
+            )
+        }
+    }
     //O1 read because it directly returns the immutable instance rather than deep cloning the original source
     public snapshot():Immutable<T> | T {
-        if (PhaseManager.flag === 'dev') {
+        if (PhaseManager.mode === 'dev') {
             let ref:Immutable<Ref<T>> | null = null;
             this.manager.protect(['read'],()=>{
                 this.manager.hasReadSinceLastWrite = true
@@ -223,7 +240,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         * });
     */
     public guard(phases:WritePhase[],callback:(draft:ImmutableDraft<T> | Ref<T>)=>void):void {
-        if (PhaseManager.flag === 'dev') {
+        if (PhaseManager.mode === 'dev') {
             this.manager.protect(phases,callback);
         }else {
             callback(this.manager.mut);
@@ -236,7 +253,6 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         this.guard(['update'],callback);
     }
     public transition(phaseEvent:PhaseEvent) {
-        if (PhaseManager.flag === 'prod') return;
         this.manager.transition(phaseEvent);
     }
     public get phase() {
@@ -247,21 +263,34 @@ export class Guard<T> {//removed access to the ref as a property in the guard
             state.transition('CLEAR');
         }
     }
+    public static setMode(mode:GuardMode) {
+        if (PhaseManager.mode !== null) {
+            throw new Error(chalk.red('The mode must only be set once to prevent the production reference from being out of sync with the developer mode reference.'))
+        }
+        PhaseManager.mode = mode;
+    }
 }
 async function someIO(value:number) {
     return value**2;
 }
+//Flat class example
 const vec = new Guard(
     new THREE.Vector3(0,10,0),
     draft=>draft.value.set(0,0,0)
 );
-vec.write(draft=>{
+vec.transition('READ')
+const initVec = vec.snapshot();
+
+vec.transition('UPDATE');
+vec.update(draft=>{
     draft.value.addScalar(10);
 });
 vec.transition('READ');
+console.log(initVec);
 console.log(vec.snapshot());
 
 
+//Primitive State
 const flag = new Guard(10,draft=>draft.value=0);
 console.log(flag.phase);
 
@@ -293,6 +322,8 @@ flag.transition('READ');
 console.log(flag.snapshot());
 
 
+
+//Native object state
 let externalSet = new Set();
 const grades:Guard<Set<string>> = new Guard(
     new Set(['A','B','C','D','E','F']),
@@ -310,6 +341,7 @@ grades.transition('READ');
 console.log(grades.snapshot());
 
 
+//Using the clear all method
 const a = new Guard(10,draft=>draft.value=0);
 const b = new Guard(20,draft=>draft.value=0);
 const c = new Guard(30,draft=>draft.value=0);
@@ -327,6 +359,7 @@ c.transition('READ');
 
 console.log('After clears: ',a.snapshot(),b.snapshot(),c.snapshot());
 
+
 // i encourage to do this instead if many states have identical lifecycles
 const nums = new Guard({
     a:10,
@@ -336,4 +369,3 @@ const nums = new Guard({
 
 nums.transition('READ');
 console.log(nums.snapshot());
-
