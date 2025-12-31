@@ -1,7 +1,7 @@
 import {type ActorRefFrom, createActor, createMachine,transition } from "xstate";
 import { create,type Immutable } from 'mutative';
 import chalk from "chalk";
-import type { DraftedObject } from "mutative/dist/interface.js";
+import type { DraftedObject,ExternalOptions } from "mutative/dist/interface.js";
 import * as THREE from "three";
 
 type ReadPhase = 'read';
@@ -17,18 +17,62 @@ interface Ref<T> {
 }
 type ImmutableDraft<T> = DraftedObject<Immutable<Ref<T>>>;
 
+class ClassType {
+    public static isPrimitive(value:unknown):boolean {
+        return (value === null) || (typeof value !== 'object')
+    }
+    public static isNativeObject(val: unknown): val is object | Array<unknown> | Map<unknown, unknown> | Set<unknown> {
+        if (ClassType.isPrimitive(val)) return false;
+
+        if (Array.isArray(val) || val instanceof Map || val instanceof Set) return true;
+        
+        const proto = Object.getPrototypeOf(val); 
+        const isPlainObject = (proto === Object.prototype) || (proto === null);// It's a native class if the prototype is Object.prototype
+        return isPlainObject
+    };
+    //Detects native built-ins that crash when wrapped in a Proxy.
+    public static isNativeForeignClass = (val: unknown): boolean => {
+        return (
+            val instanceof Date ||
+            val instanceof RegExp ||
+            val instanceof Error ||
+            (typeof Promise !== 'undefined' && val instanceof Promise) ||
+            ArrayBuffer.isView(val) // TypedArrays like Float32Array
+        );
+    };
+    //Detects custom classes that have only primitive properties.
+    public static isCustomFlatClass(val:unknown): boolean {
+        if (ClassType.isPrimitive(val) || ClassType.isNativeObject(val) || ClassType.isNativeForeignClass(val)) return false;
+        return Object.values(val as object).every(prop => ClassType.isPrimitive(prop));
+    };
+    public static isComplexClass = (val: unknown):boolean => {
+        if (ClassType.isPrimitive(val) || 
+            ClassType.isNativeObject(val) || 
+            ClassType.isNativeForeignClass(val)
+        ) return false;
+        return !ClassType.isCustomFlatClass(val);
+    };
+}
+
 class PhaseManager<T> {
+    public static readonly flag:'prod' | 'dev' = 'dev';
+
     public immut:Immutable<Ref<T>>;
+    public mut:Ref<T>;
     public hasReadSinceLastWrite = false;
 
     private actorRef:ActorRefFrom<typeof this.machine> | null = null;
     private clearFn?:(draft:ImmutableDraft<T>)=>void;
-
+    private machine = createMachine({
+        id:'phases',
+        initial:'write',
+        states:PhaseManager.phases
+    });
+    
     private static orange = chalk.hex("#eeb18f");
-
     private static phases:Record<Phase,{on?:OnTransititions,type?:PhaseType}> = {
         write:{
-            on:{'READ':'read',}
+            on:{'READ':'read'}
         },
         read:{
             on:{
@@ -43,16 +87,29 @@ class PhaseManager<T> {
             type:'final'
         }
     };
-    private machine = createMachine({
-        id:'phases',
-        initial:'write',
-        states:PhaseManager.phases
-    });
+    private static mutativeOptions:ExternalOptions<false, true> = {
+        enableAutoFreeze:true,
+        mark:(target:unknown) => {//the mark function is used by mutative js recursively at each node level of the object
+            if (ClassType.isNativeObject(target)) return 'immutable';
 
+            if (ClassType.isNativeForeignClass(target)) return 'mutable';
+
+            if (ClassType.isCustomFlatClass(target)) return 'immutable'
+
+            if (ClassType.isComplexClass(target)) {
+                throw new Error(
+                    chalk.red(`Complex class detected: ${(target as object).constructor.name}.`) +
+                    PhaseManager.orange('\nNested objects in custom classes will not work as expected under the guard.') +
+                    chalk.dim(`\nRecommendation: Convert ${ (target as object).constructor.name } to a plain object or ensure all its properties are primitives.`)
+                )
+            }
+        }
+    }
     constructor(ref:Ref<T>,clearFn?:typeof this.clearFn) { 
         this.clearFn = clearFn;
-        this.immut = create(ref,()=>{},{enableAutoFreeze:true});
-    }
+        this.immut = create(ref,()=>{},PhaseManager.mutativeOptions);
+        this.mut = ref;
+    }   
     private get actor() {
         if (this.actorRef === null) {
             this.actorRef = createActor(this.machine);
@@ -96,24 +153,24 @@ class PhaseManager<T> {
     public get phase():Phase {
         return this.actor.getSnapshot().value as Phase;
     }
-    private isObject(value:unknown):boolean {
-        return value === Object(value);
-    }
     private proxyDraft(draft:ImmutableDraft<T>) {//this is to prevent reassignment of the value at the ref to a new object if its of the object type cuz deep freezing it again will be expensie and not doing so will bypass the guard immutable snapshots
-        const isObject = this.isObject;
+        const isPrimitiveFunc = ClassType.isPrimitive;
         return new Proxy(draft, {
             set(target:ImmutableDraft<T>, prop:string | symbol, value:T) {
-                if (prop === 'value' && isObject(value)) {
-                    throw new Error(chalk.red('\nState Violation') + PhaseManager.orange('\nRoot replacement of object reference is forbidden'));
+                const forbidReassignment = !isPrimitiveFunc(value) && !ClassType.isNativeForeignClass(value)
+                if (prop === 'value' && forbidReassignment) {
+                    throw new Error(chalk.red('\nState Violation') + PhaseManager.orange('\nRoot replacement of object reference is forbidden.'));
                 }
                 return Reflect.set(target, prop, value);
             }
         });
     }
-    //writes are fast through mutative js structural sharing algorithm
+    //writes are fast through mutative js structural sharing algorithm but is O(S) where S is the number of modified nodes
     public protect(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
         if (new Set(phases).has(this.phase)) { 
-            this.immut = create(this.immut,(draft=>{ callback(this.proxyDraft(draft)) }));
+            this.immut = create(this.immut,draft=>{ callback(this.proxyDraft(draft)) },
+                PhaseManager.mutativeOptions
+            )as Immutable<Ref<T>>;
         }else throw new Error(
             chalk.red('\nState Error') + 
             PhaseManager.orange(`\nThe state is in the ${this.phase} phase but an operation expected it to be in the ${phases.toString().replace(',',' or ')} phase.`)
@@ -139,13 +196,16 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         this.manager = new PhaseManager(ref,cleanFn);
     }
     //O1 read because it directly returns the immutable instance rather than deep cloning the original source
-    public snapshot():Immutable<T> {
-        let ref:Immutable<Ref<T>> | null = null;
-        this.manager.protect(['read'],()=>{
-            this.manager.hasReadSinceLastWrite = true
-            ref = this.manager.immut;//the reason why i didnt do a direct return is to protect reading the reference under the read phase
-        });
-        return ref!.value;//directly return the value at the reference
+    public snapshot():Immutable<T> | T {
+        if (PhaseManager.flag === 'dev') {
+            let ref:Immutable<Ref<T>> | null = null;
+            this.manager.protect(['read'],()=>{
+                this.manager.hasReadSinceLastWrite = true
+                ref = this.manager.immut;//the reason why i didnt do a direct return is to protect reading the reference under the read phase
+            });
+            return ref!.value;//directly return the value at the reference
+        }
+        return this.manager.mut.value;
     }
     /**
         * @param phases Allowed phases for this mutation.
@@ -162,20 +222,25 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         *     draft.value = result; // ✅ Synchronous mutation only
         * });
     */
-    public guard(phases:WritePhase[],callback:(draft:ImmutableDraft<T>)=>void):void {
-        this.manager.protect(phases,callback);
+    public guard(phases:WritePhase[],callback:(draft:ImmutableDraft<T> | Ref<T>)=>void):void {
+        if (PhaseManager.flag === 'dev') {
+            this.manager.protect(phases,callback);
+        }else {
+            callback(this.manager.mut);
+        }
     }
-    public write(callback:(draft:ImmutableDraft<T>)=>void) {
-        this.manager.protect(['write'],callback);
+    public write(callback:(draft:ImmutableDraft<T> | Ref<T>)=>void) {
+        this.guard(['write'],callback);
     }
-    public update(callback:(draft:ImmutableDraft<T>)=>void) {
-        this.manager.protect(['update'],callback);
+    public update(callback:(draft:ImmutableDraft<T> | Ref<T>)=>void) {
+        this.guard(['update'],callback);
     }
     public transition(phaseEvent:PhaseEvent) {
+        if (PhaseManager.flag === 'prod') return;
         this.manager.transition(phaseEvent);
     }
     public get phase() {
-        return this.manager.phase
+        return this.manager.phase;
     }
     public static clearAll<U>(...states:Guard<U>[]) {
         for (const state of states) {
@@ -186,6 +251,16 @@ export class Guard<T> {//removed access to the ref as a property in the guard
 async function someIO(value:number) {
     return value**2;
 }
+const vec = new Guard(
+    new THREE.Vector3(0,10,0),
+    draft=>draft.value.set(0,0,0)
+);
+vec.write(draft=>{
+    draft.value.addScalar(10);
+});
+vec.transition('READ');
+console.log(vec.snapshot());
+
 
 const flag = new Guard(10,draft=>draft.value=0);
 console.log(flag.phase);
@@ -262,16 +337,3 @@ const nums = new Guard({
 nums.transition('READ');
 console.log(nums.snapshot());
 
-
-const vec = new Guard(
-    new THREE.Vector3(),
-    draft=>draft.value.set(0,0,0)
-);
-vec.write(draft=>{
-    // draft.value = new THREE.Vector3();//this will throw an error.
-    draft.value.addScalar(3);
-});
-vec.transition('READ');
-const x = vec.snapshot();
-x.addScalar(10)
-console.log(vec.snapshot());
