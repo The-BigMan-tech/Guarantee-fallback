@@ -121,14 +121,12 @@ class PhaseManager<T> {
             this.actorRef = createActor(this.machine);
             this.actorRef.start();
             this.actorRef.subscribe(state=>{
-                if (state.status === "done") {
-                    this.actorRef = null;
+                if (state.value === 'clear') {
                     if (this.clearFn) {
                         const clearFn = this.clearFn;
-                        this.immut = create(this.immut,(draft=>{
-                            clearFn(draft);
-                        }))
+                        this.protect(state.value,['clear'],(draft=>clearFn(draft)))//will always succeed
                     }
+                    this.actorRef = null;
                 }
             });
         }
@@ -172,14 +170,15 @@ class PhaseManager<T> {
         });
     }
     //writes are fast through mutative js structural sharing algorithm but is O(S) where S is the number of modified nodes
-    public protect(phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
-        if (new Set(phases).has(this.phase)) { 
-            this.immut = create(this.immut,draft=>{ callback(this.proxyDraft(draft)) },
+    public protect(currentPhase:Phase,phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
+        if (phases.includes(currentPhase)) { 
+            this.immut = create(this.immut,
+                draft=>{ callback(this.proxyDraft(draft)) },
                 PhaseManager.mutativeOptions
-            )as Immutable<Ref<T>>;
+            ) as Immutable<Ref<T>>;
         }else throw new Error(
             chalk.red('\nState Error') + 
-            PhaseManager.orange(`\nThe state is in the ${this.phase} phase but an operation expected it to be in the ${phases.toString().replace(',',' or ')} phase.`)
+            PhaseManager.orange(`\nThe state is in the ${currentPhase} phase but an operation expected it to be in the ${phases.toString().replace(',',' or ')} phase.`)
         );
     }
 }
@@ -216,7 +215,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     public snapshot():Immutable<T> | T {
         let ref:Immutable<Ref<T>> | Ref<T> | null = null;
         if (Guard.mode === 'dev') {
-            this.manager.protect(['read'],()=>{
+            this.manager.protect(this.phase,['read'],()=>{
                 this.manager.hasReadSinceLastWrite = true
                 ref = this.manager.immut;
             });
@@ -236,13 +235,13 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         * const snapshot = flag.snapshot();
         * 
         * const result = await fetchData(snapshot.value);
-        * flag.guard(['update'], (draft) => {
-        *     draft.value = result; // ✅ Synchronous mutation only
+        * flag.guard(['write','update'], (draft) => {//this means the below operation should be guarded under the write or update phase
+        *     draft.value = result; 
         * });
     */
     public guard(phases:WritePhase[],callback:(draft:ImmutableDraft<T> | Ref<T>)=>void):void {
         if (Guard.mode === 'dev') {
-            this.manager.protect(phases,callback);
+            this.manager.protect(this.phase,phases,callback);
         }else {
             callback(this.manager.mut);
         }
