@@ -61,9 +61,9 @@ class PhaseManager<T> {
     public static orange = chalk.hex("#eeb18f");
 
     public immut:Immutable<Ref<T>>;
+    public clearFn:ClearFn<T> | null = null;
     public hasReadSinceLastWrite = false;
 
-    private clearFn?:ClearFn<T>;
     private actorRef:ActorRefFrom<typeof this.machine> | null = null;
     private machine = createMachine({
         id:'phases',
@@ -113,9 +113,8 @@ class PhaseManager<T> {
             )
         }
     }
-    constructor(ref:Ref<T>,clearFn?:typeof this.clearFn) { 
+    constructor(ref:Ref<T>) { 
         PhaseManager.catchUntrappableRef(ref.value);
-        this.clearFn = clearFn;
         this.immut = create(ref,()=>{},PhaseManager.mutativeOptions);
     }   
     private get actor() {
@@ -200,15 +199,14 @@ type ClearFn<T> = (draft:ImmutableDraft<T> | Ref<T>)=>void;
 export class Guard<T> {//removed access to the ref as a property in the guard
     public mut:Ref<T>;
     private manager:PhaseManager<T> | null = null;
-    private clearFn?:ClearFn<T>;//keeping so that it can be called in prod mode for integrity even though the phase manager is skipped
+    private clearFn:ClearFn<T> | null = null;//keeping so that it can be called in prod mode for integrity even though the phase manager is skipped
     private static mode:GuardMode | null = null;
     
-    constructor(initValue:T,cleanFn?:ClearFn<T>) {
+    constructor(initValue:T) {
         Guard.checkForMode();
         this.mut = {value:initValue};
-        this.clearFn = cleanFn;
         if (Guard.mode === "dev") {
-            this.manager = new PhaseManager(this.mut,cleanFn);
+            this.manager = new PhaseManager(this.mut);
         }
     }
     private static checkForMode() {
@@ -224,9 +222,10 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     public snapshot():Immutable<T> | T {
         let ref:Immutable<Ref<T>> | Ref<T> | null = null;
         if (Guard.mode === 'dev') {
-            this.manager!.protect(this.phase!,['read'],()=>{
-                this.manager!.hasReadSinceLastWrite = true
-                ref = this.manager!.immut;
+            const manager = this.manager!;
+            manager.protect(this.phase!,['read'],()=>{
+                manager.hasReadSinceLastWrite = true
+                ref = manager.immut;
             });
         }else {
             ref = this.mut;
@@ -276,6 +275,11 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         if (Guard.mode === 'prod') return null;//this will prevent calling the phase getter that will create a dormant actor in production
         return this.manager!.phase;
     }
+    public onClear(clearFn:ClearFn<T>):Guard<T> {//returning the guard object allows for chaining at the constructor
+        this.clearFn = clearFn;
+        if (this.manager) this.manager.clearFn = this.clearFn;
+        return this;
+    }
     public static clearAll<U>(...states:Guard<U>[]) {
         for (const state of states) {
             state.transition('CLEAR');
@@ -289,17 +293,16 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     }
 }
 const start = performance.now();
-Guard.setMode('prod');
+Guard.setMode('dev');
 
 async function someIO(value:number) {
     return value**2;
 }
 
 //Flat class example
-const vec = new Guard(
-    new THREE.Vector3(0,10,0),
-    draft=>draft.value.set(0,0,0)
-);
+const vec = new Guard(new THREE.Vector3(0,10,0))
+    .onClear(draft=>draft.value.set(0,0,0));
+
 vec.transition('READ')
 const initVec = vec.snapshot();
 
@@ -313,7 +316,9 @@ console.log('current vec: ',vec.snapshot());
 
 
 //Primitive State
-const flag = new Guard(10,draft=>draft.value=0);
+const flag = new Guard(10)
+    .onClear(draft=>draft.value=0);
+
 console.log(flag.phase);
 
 let externalNum = 10;
@@ -346,10 +351,9 @@ console.log('Cleared flag: ',flag.snapshot());
 
 //Native object state
 let externalSet = new Set();
-const grades:Guard<Set<string>> = new Guard(
-    new Set(['A','B','C','D','E','F']),
-    draft=>draft.value.clear()
-);
+
+const grades = new Guard(new Set(['A','B','C','D','E','F']))
+    .onClear(draft=>draft.value.clear());
 
 grades.write(draft=>{//reassignment to a new set is forbidden
     draft.value.add('A+');
@@ -365,9 +369,9 @@ grades.transition('CLEAR');
 
 
 //Using the clear all method
-const a = new Guard(10,draft=>draft.value=0);
-const b = new Guard(20,draft=>draft.value=0);
-const c = new Guard(30,draft=>draft.value=0);
+const a = new Guard(10).onClear(draft=>draft.value=0);
+const b = new Guard(20).onClear(draft=>draft.value=0);
+const c = new Guard(30).onClear(draft=>draft.value=0);
 
 a.transition('READ');
 b.transition('READ');
