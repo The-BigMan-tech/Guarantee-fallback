@@ -12,7 +12,7 @@ def accum(weights:list[int]) -> list[int]:
             prevIndex:int = index - 1
             accumList.append(num + accumList[prevIndex])
     print('Accum list: ',accumList)
-    return accumList
+    return accumList 
 
 def bisect_right(a:list[int], x:float,hi:int):
     lo:int = 0

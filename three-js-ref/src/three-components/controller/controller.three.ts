@@ -110,7 +110,7 @@ export abstract class Controller {
     constructor(fixedData:FixedControllerData,dynamicData:DynamicControllerData) {
         const halfHeight = Math.round(fixedData.characterHeight)/2;//i rounded the width and height to prevent cases where a class supplied a float for these parameters.the controller was only tested on integers and might break with floats.
         const halfWidth = Math.round(fixedData.characterWidth)/2;
-        const radius = halfWidth * 2
+        const radius = halfWidth * 2;
         const increasedHalfWidth = halfWidth + 0.5;//i used this in the box collider creation to ensure that it is as volumetric as its capsule counterpart
         const increasedHalfHeight = halfHeight + 0.5;//same thing goes for here
 

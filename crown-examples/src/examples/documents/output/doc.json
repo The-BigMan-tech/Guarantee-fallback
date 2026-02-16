@@ -3,16 +3,13 @@
         "female": "female",
         "friend": "friends",
         "friends": "friends",
-        "generic": "generic",
         "girl": "girl",
         "male": "male",
         "males": "male",
         "mother": "parent",
         "nice": "nice",
         "parent": "parent",
-        "passing": "passing",
-        "query": "query",
-        "recommends": "recommends",
+        "short": "short",
         "tall": "tall"
     },
     "records": {
@@ -59,16 +56,6 @@
                     "list": [
                         "Leo",
                         "Cole"
-                    ]
-                }
-            ]
-        },
-        "generic": {
-            "facts": [
-                {
-                    "list": [
-                        "type",
-                        "Doc"
                     ]
                 }
             ]
@@ -134,36 +121,16 @@
                 }
             ]
         },
-        "passing": {
+        "short": {
             "facts": [
                 {
                     "list": [
-                        "safety",
-                        "by",
-                        "predicate",
-                        "type"
+                        "l"
                     ]
-                }
-            ]
-        },
-        "query": {
-            "facts": [
+                },
                 {
                     "list": [
-                        "types",
-                        "better",
-                        "safety"
-                    ]
-                }
-            ]
-        },
-        "recommends": {
-            "facts": [
-                {
-                    "list": [
-                        "x",
-                        "generating",
-                        "types"
+                        2
                     ]
                 }
             ]
@@ -180,6 +147,16 @@
                     "list": [
                         2,
                         "h"
+                    ]
+                },
+                {
+                    "list": [
+                        "l"
+                    ]
+                },
+                {
+                    "list": [
+                        2
                     ]
                 }
             ]

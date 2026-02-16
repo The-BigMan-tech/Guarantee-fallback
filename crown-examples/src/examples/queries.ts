@@ -7,5 +7,9 @@ const doc = await importDocFromObject<Info>(resolvedDoc);
 if (doc === Result.error) process.exit(0);
 const wildcard = await doc.wildCard();
 
-const answer1 = await doc.findAllFacts('membership','male',[wildcard])
+const answer1 = await doc.isItStated('membership','friends',['Leo','Cole'])
+console.log(answer1);
+
+
+const answer2 = await doc.isItStated('exact','mother',['Mandy','Philip'])
 console.log(answer1);

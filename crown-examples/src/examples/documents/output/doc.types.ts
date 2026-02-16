@@ -1,5 +1,5 @@
-export type Members = "Mandy" | "ada" | "Billy" | "John" | "Cole" | "Mark" | "Zane" | "Leo" | "type" | "Doc" | "good" | "Matt" | "Philip" | "a" | "b" | "safety" | "by" | "predicate" | "types" | "better" | "x" | "generating" | "l" | "h" | 2;
-export type Predicates = "female" | "friend" | "friends" | "generic" | "girl" | "male" | "males" | "mother" | "parent" | "nice" | "passing" | "query" | "recommends" | "tall";
+export type Members = "Mandy" | "ada" | "Billy" | "John" | "Cole" | "Mark" | "Zane" | "Leo" | "good" | "Matt" | "Philip" | "a" | "b" | "l" | 2 | "h";
+export type Predicates = "female" | "friend" | "friends" | "girl" | "male" | "males" | "mother" | "parent" | "nice" | "short" | "tall";
 export type KeyofRules = "directFriends" | "indirectFriends" | "friends" | "siblings" | "brothers";
 
 export interface Info {

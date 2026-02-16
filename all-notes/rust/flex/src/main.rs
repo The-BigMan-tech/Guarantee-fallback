@@ -133,9 +133,9 @@ impl Flex {
     }
 }
 fn main() {
-    let mut cars:Flex = Flex::new([-17,63,61,64,-900000,897].to_vec());
+    let mut cars:Flex = Flex::new(vec![-17,63,61,64,-900000,897]);
     println!("Internal Car re-representation: {:?}",cars.internal());
-    let x:i32 = cars.at::<i32>(6);//the number of bytes the element you want to retieve takes.Requires head knowledge of which index has which numbe of bytes which isnt possible at runtime so using the biggest byte of the elemensts is preferrable.the vec still takes only the space that it needs for each element but when returning the element,it has to be the biggest size because of lack of runtime predictability
+    let x:i32 = cars.at::<i32>(6);//the number of bytes the element you want to retieve takes.Requires head knowledge of which index has which numbe of bytes which isnt possible at comptime so using the biggest byte of the elemensts is preferrable.the vec still takes only the space that it needs for each element but when returning the element,it has to be the biggest size because of lack of runtime predictability
     println!("Number at an index: {}",x);
     cars.push(20);
     cars.clear();

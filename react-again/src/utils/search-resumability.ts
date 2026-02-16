@@ -44,7 +44,7 @@ const mockHeuristics:PassiveCache<Queries> = {data:{},mtime:new Date()};
 const mockSearchData:PassiveCache<FsNode[]> = {data:[],mtime:new Date()};
 
 //todo:set a cap on the disk usage to prevent unbounded growth
-//the access to the resumable data is in a pipeline.when the main caches are full cuz of watcher limits.they overflow to the passive caches where they are validated statically,when that overflows,they go to the disk storage which means that the resumable data has no limit besides disk storage.The access is also in a pipeline where the next overflow container is a fallback.
+//the access to the resumable data is in a pipeline.when the main caches are full cuz of watcher limits,they overflow to the passive caches where they are validated statically,when that overflows,they go to the disk storage which means that the resumable data has no limit besides disk storage.The access is also in a pipeline where the next overflow container is a fallback.
 //im only batching setters to index db and not getters because the setters are used to save the resumable data which is not vital for the search engine to continue processing.so they get batched so that the search engine can process more nodes before setting all the entries at once.it simply prevents the setters from blocking the search engine with disk i/o while im not batching the getter requests because the data is needed in time for the search engine to speed up progress
 const diskBatch:DiskEntry[] = []; 
 

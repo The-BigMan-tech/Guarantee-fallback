@@ -143,8 +143,8 @@ class PhaseManager<T> {
             const message = chalk.red('\nTransition Error') + PhaseManager.orange(`\nCannot transition from ${this.phase} to ${phaseEvent}.`);
             throw new Error(message);
         }
-        const endOfCycle = (nextPhase === 'update') || (nextPhase === "clear")
-        if (endOfCycle) {
+        const afterRead = (nextPhase === 'update') || (nextPhase === "clear")
+        if (afterRead) {
             if (!this.hasReadSinceLastWrite) {
                 const message = chalk.red('\nProtocol Violation') + PhaseManager.orange('\nYou must call snapshot during the READ phase before transitioning to ',nextPhase.toUpperCase())
                 throw new Error(message);
@@ -199,7 +199,7 @@ type ClearFn<T> = (draft:ImmutableDraft<T> | Ref<T>)=>void;
 export class Guard<T> {//removed access to the ref as a property in the guard
     public mut:Ref<T>;
     private manager:PhaseManager<T> | null = null;
-    private clearFn:ClearFn<T> | null = null;//keeping so that it can be called in prod mode for integrity even though the phase manager is skipped
+    private clearFn:ClearFn<T> | null = null;//keep aref to the clearFn outside the manager so that it can be called in prod mode for integrity even though the phase manager is skipped
     private static mode:GuardMode | null = null;
     
     constructor(initValue:T) {
@@ -264,7 +264,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     }
     public transition(phaseEvent:PhaseEvent) {
         if (Guard.mode === "prod") {
-            if ((phaseEvent === "CLEAR") && this.clearFn) {
+            if ((phaseEvent === "CLEAR") && this.clearFn) {//we want to still call the clear function even in production mode that wont trigger a transition
                 this.clearFn(this.mut);
             }
             return
@@ -350,7 +350,7 @@ console.log('Cleared flag: ',flag.snapshot());
 
 
 //Native object state
-let externalSet = new Set();
+let externalSet:Set<string> = new Set();
 
 const grades = new Guard(new Set(['A','B','C','D','E','F']))
     .onClear(draft=>draft.value.clear());

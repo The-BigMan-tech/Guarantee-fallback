@@ -26,3 +26,6 @@ alias males = *male.
 :b is a *male.
 
 [:l,2] :h *tall.
+<They> are *tall.
+<They> are *short.//omit-warning
+

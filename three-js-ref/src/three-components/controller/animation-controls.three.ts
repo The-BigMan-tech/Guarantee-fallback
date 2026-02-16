@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { Guard } from "../phase-manager";
+import { Gate } from "../phase-manager";
 
 export type Animation = 'idle' | 'sprint' | 'jump' | 'attack' | 'death' | 'throw'
 
@@ -28,17 +28,17 @@ export class AnimationControls {
     private jumpClip: THREE.AnimationClip | null = null;
     private throwClip: THREE.AnimationClip | null = null;
 
-    public animationToPlay:Guard<Animation | null,null>;//a null animation state is used to cancel out any previous animation state and thus have no new animation play again.its used to ensure whaterver animation is played on the model currently doesnt get changed by a new animation state and thus remains.like having the death animation to remain when an entity is dead
+    public animationToPlay:Gate<Animation | null>;//a null animation state is used to cancel out any previous animation state and thus have no new animation play again.its used to ensure whaterver animation is played on the model currently doesnt get changed by a new animation state and thus remains.like having the death animation to remain when an entity is dead
 
     constructor(characterModel: THREE.Group) {
         this.mixer = new THREE.AnimationMixer(characterModel);
         this.mixer.addEventListener('finished',this.onFinish);
-        this.animationToPlay = new Guard(null);
+        this.animationToPlay = new Gate<Animation | null>(null,(draft)=>draft.value=null);
     }
     public setAnimation(nextAnimation:Animation) {
-        this.animationToPlay.guard(['write','update'],(ref)=>{
+        this.animationToPlay.guard(['write','update'],(draft)=>{
             console.log('trying animation:', nextAnimation);
-            ref.value = nextAnimation;
+            draft.value = nextAnimation;
         })
     }
     private onFinish = (event:AnimationFinishedEvent)=>{

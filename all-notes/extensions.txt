@@ -25,7 +25,7 @@ Catpuccin for vscode
 Github theme
 Waka time
 Emoji
-Es lint
+Es lint 
 Debugger for firefox
 Rainbow csv
 auto docstring-python docstring generator

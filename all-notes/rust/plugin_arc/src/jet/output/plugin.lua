@@ -5,7 +5,7 @@ function square(num)
 end
 
 function main()
-   local sum = rust.sum(10, 12)
-   print("Sum on lua side is: ", sum)
-   return rust.change_model(10)
+    local sum = rust.sum(10, 12)
+    print("Sum on lua side is: ", sum)
+    return rust.change_model(10)
 end
