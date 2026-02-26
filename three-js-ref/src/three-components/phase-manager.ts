@@ -23,6 +23,30 @@ type PassedRef<T> = ImmutableDraft<T> | Ref<T>;
 type ProtectedCallback<T,U> = (draft:PassedRef<T>)=>U
 type ProtectMethod<T,U> = (currentPhase:Phase,phases:Phase[],callback:ProtectedCallback<T,U>)=>U
 
+type ClearFn<T> = (draft:ImmutableDraft<T> | Ref<T>)=>Promise<void> | void;
+type Flow = 'sync' | 'async';
+type SyncCallbackReturn = void | { [K in keyof Promise<unknown>]: never };
+
+interface Common<T> {
+    phase():Phase | null,
+    onClear(clearFn:ClearFn<T>):this
+}
+interface SyncGuard<T> extends Common<T> {
+    snapshot(): Immutable<T> | T;
+    guard():(phases:Phase[],callback:ProtectedCallback<T,SyncCallbackReturn>)=>void;
+    update:(callback:ProtectedCallback<T,SyncCallbackReturn>)=>void,
+    write:(callback:ProtectedCallback<T,SyncCallbackReturn>)=>void,
+    transition(event: PhaseEvent): this;
+}
+
+interface AsyncGuard<T> extends Common<T> {
+    snapshot():Promise<Immutable<T> | T>;
+    guard():(phases:Phase[],callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>
+    update:(callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>,
+    write:(callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>,
+    transition(event: PhaseEvent): Promise<this>;
+}
+
 
 class ClassTypeUtil {
     public static isPrimitive(value:unknown):boolean {
@@ -184,30 +208,6 @@ class PhaseManager<T> {
  * 
  * Async IO: Any async io that will need the Guard's value must be done outside any guarded operation.
 */
-type ClearFn<T> = (draft:ImmutableDraft<T> | Ref<T>)=>Promise<void> | void;
-type Flow = 'sync' | 'async';
-
-interface Common<T> {
-    phase():Phase | null,
-    onClear(clearFn:ClearFn<T>):this
-}
-interface SyncGuard<T> extends Common<T> {
-    snapshot(): Immutable<T> | T;
-    guard():(phases:Phase[],callback:ProtectedCallback<T,void>)=>void;
-    update:(callback:ProtectedCallback<T,void>)=>void,
-    write:(callback:ProtectedCallback<T,void>)=>void,
-    transition(event: PhaseEvent): this;
-}
-
-interface AsyncGuard<T> extends Common<T> {
-    snapshot():Promise<Immutable<T> | T>;
-    guard():(phases:Phase[],callback:ProtectedCallback<T,void>)=>Promise<void>
-    update:(callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>,
-    write:(callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>,
-    transition(event: PhaseEvent): Promise<this>;
-}
-
-
 export class Guard<T> {//removed access to the ref as a property in the guard
     private mut:Ref<T>;
     private manager:PhaseManager<T> | null = null;
