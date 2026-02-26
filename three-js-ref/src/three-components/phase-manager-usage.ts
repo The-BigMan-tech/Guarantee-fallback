@@ -2,21 +2,14 @@ import { Guard } from "./phase-manager";
 import * as THREE from "three";
 
 const start = performance.now();
-Guard.setMode('dev');
 
-async function someIO(value:number) {
-    return value**2;
-}
+Guard.setMode('prod');
 
-//Flat class example
+//Custom class example
 const vec = new Guard(new THREE.Vector3(0,10,0))
     .onClear(draft=>draft.value.set(0,0,0));
 
-vec.write(draft=>{
-    draft.value = new THREE.Vector3(0,10,0);
-})
 const initVec = vec.transition('READ').snapshot();
-initVec.addScalar(9);
 
 vec.transition('UPDATE').update(draft=>{
     draft.value.addScalar(10)
@@ -26,6 +19,8 @@ console.log('current vec: ',vec.transition('READ').snapshot());
 
 vec.transition('CLEAR');
 console.log('cleared vec: ',vec.transition('READ').snapshot());
+
+
 
 //Primitive State
 const flag = new Guard(10)
@@ -41,18 +36,14 @@ flag.write(draft=>{//write is the first phase.
 })
 console.log('escaped primitive: ',externalNum);//logs 60.but try to keep mutations under guarded operations.even for primitives
 
-flag.transition('READ');
-
-const currentFlag = flag.snapshot();//It is mandatory to acknowledge the data.Else,proceeding to update will throw an error
+const currentFlag = flag.transition('READ').snapshot();//It is mandatory to acknowledge the data.Else,proceeding to update will throw an error
 console.log("Current flag acknowledged:",currentFlag);
 
-flag.transition('UPDATE');
-
+const someIO = async (value:number) => value**2;
 const newValue = await someIO(currentFlag);
-flag.update(draft=>draft.value = newValue);//we fetch the data outside the guard
 
-flag.transition('READ');
-console.log("Updated flag from fetch:",flag.snapshot());
+flag.transition('UPDATE').update(draft=>draft.value = newValue);//we fetch the data outside the guard
+console.log("Updated flag from fetch:",flag.transition('READ').snapshot());
 
 flag.transition('CLEAR');//automatically calls the stateless clear function that was set in the beginning
 
@@ -74,8 +65,7 @@ grades.write(draft=>{//reassignment to a new set is forbidden
 });
 console.log('Escaped reference: ',externalSet);
 
-grades.transition('READ');
-console.log('Current grades',grades.snapshot());
+console.log('Current grades',grades.transition('READ').snapshot());
 
 grades.transition('CLEAR');
 
@@ -85,18 +75,19 @@ const a = new Guard(10).onClear(draft=>draft.value=0);
 const b = new Guard(20).onClear(draft=>draft.value=0);
 const c = new Guard(30).onClear(draft=>draft.value=0);
 
-a.transition('READ');
-b.transition('READ');
-c.transition('READ');
+console.log('Before clears: ',
+    a.transition('READ').snapshot(),
+    b.transition('READ').snapshot(),
+    c.transition('READ').snapshot()
+);
 
-console.log('Before clears: ',a.snapshot(),b.snapshot(),c.snapshot());
 Guard.clearAll(a,b,c);//better than redundant calls to transition if they will be cleared at the same time
 
-a.transition('READ');
-b.transition('READ');
-c.transition('READ');
-
-console.log('After clears: ',a.snapshot(),b.snapshot(),c.snapshot());
+console.log('After clears: ',
+    a.transition('READ').snapshot(),
+    b.transition('READ').snapshot(),
+    c.transition('READ').snapshot()
+);
 
 
 // i encourage to do this instead if many states have identical lifecycles
@@ -106,9 +97,18 @@ const nums = new Guard({
     c:30
 })
 
-nums.transition('READ');
-console.log('grouped states: ',nums.snapshot());
+console.log('grouped states: ',nums.transition('READ').snapshot());
 nums.transition('CLEAR');
 
 const end = performance.now();
 console.log('\nFinished in ',end-start,' milliseconds');
+
+
+//Native foreign class
+const xy = new Guard(new Date());
+
+console.log(xy.transition('READ').snapshot().getTime());//it doesnt throw an error on read because the object is never visited on the draft.Using the Guard like this is especially useful as a dev-time Object.freeze 
+
+xy.transition('UPDATE').update(draft=>{//but u cant write to it
+    draft.value.getTime();
+})
