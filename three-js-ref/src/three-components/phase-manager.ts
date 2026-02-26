@@ -20,6 +20,8 @@ interface Ref<T> {
 }
 type ImmutableDraft<T> = DraftedObject<Immutable<Ref<T>>>;
 type PassedRef<T> = ImmutableDraft<T> | Ref<T>;
+type ProtectedCallback<T,U> = (draft:PassedRef<T>)=>U
+type ProtectMethod<T,U> = (currentPhase:Phase,phases:Phase[],callback:ProtectedCallback<T,U>)=>U
 
 
 class ClassTypeUtil {
@@ -171,7 +173,6 @@ class PhaseManager<T> {
         ) as Immutable<Ref<T>>;
     }
 }
-type ProtectMethod<T,U> = (currentPhase:Phase,phases:Phase[],callback:(draft:ImmutableDraft<T>)=>U)=>U
 /**
  * The Guard class enforces Phase State Management.
  * This is means that there is a strict phase protocol on individual states that determines when different operations can happen and without any inteference with others.
@@ -223,32 +224,30 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         }
     }
     
-    private validateFlow(expectedFlow:Flow | undefined) {
+    private checkIfFlowIsNull() {
         if (this.controlFlow == null) {
             throw new Error(chalk.red('The guard control flow must be set to either sync or async before use'));
         }
-        else if (this.controlFlow !== expectedFlow) {
-            throw new Error(chalk.red('A method was called that expected the control flow to be',expectedFlow));
-        }
     }
-    private checkForFlow() {
+    private checkIfFlowIsSet() {
         if (this.controlFlow !== null) {
             throw new Error(chalk.red('The flow can only be set once'))
         }
     }
     public sync() {
-        this.checkForFlow();
+        this.checkIfFlowIsSet();
         this.controlFlow = 'sync';
         return this;
     }
     public async() {
-        this.checkForFlow();
+        this.checkIfFlowIsSet();
         this.controlFlow = 'async';
         return this;
     }
 
+    //Snapshot functions
     //O1 read because it directly returns the immutable instance rather than deep cloning the original source
-    private getSnapshot():Immutable<T> | T {
+    private snapshotSync():Immutable<T> | T {
         let ref:Immutable<Ref<T>> | Ref<T> | null = null;
         if (Guard.mode === 'dev') {
             const manager = this.manager!;
@@ -261,49 +260,36 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         }
         return ref!.value;//directly return the value at the reference
     }
-    public snapshot() {
-        this.validateFlow('sync');
-        return this.getSnapshot();
-    }
-    public async snapshotAsync():Promise<Immutable<T> | T> {
+    private async snapshotAsync():Promise<Immutable<T> | T> {
         const release = await this.mutex.acquire();
         try {
-            this.validateFlow('async');
-            return this.getSnapshot();
+            return this.snapshotSync();
         } finally {
             release();
         }
     }
+    public snapshot() {
+        this.checkIfFlowIsNull();
+        if (this.controlFlow === 'sync') {
+            return this.snapshotSync();
+        }else {
+            return this.snapshotAsync()
+        }
+    }
 
-    /**
-        * @param phases Allowed phases for this mutation.
-        * @param callback SYNCHRONOUS mutation callback only.
-        *                 Async IO must be done OUTSIDE using snapshot() first.
-        * @example
-        * const flag = new Guard(10)
-        * 
-        * flag.transition('READ')
-        * const snapshot = flag.snapshot();
-        * 
-        * const result = await fetchData(snapshot.value);
-        * flag.guard(['write','update'], (draft) => {//this means the below operation should be guarded under the write or update phase
-        *     draft.value = result; 
-        * });
-    */
-    public guard(phases:WritePhase[],callback:(draft:PassedRef<T>)=>void):void {
-        this.validateFlow('sync');
+    //Guard functions
+    private guardSync:ProtectMethod<T,void> = (currentPhase,phases,callback)=> {
         if (Guard.mode === 'dev') {
-            this.manager!.protect(this.phase!,phases,callback);//the phase is guaranteed to not be null in dev mode
+            this.manager!.protect(currentPhase,phases,callback);//the phase is guaranteed to not be null in dev mode
         }else {
             callback(this.mut);
         }
     }
-    public async guardAsync(phases:WritePhase[],callback:(draft:PassedRef<T>)=>Promise<void>):Promise<void> {
+    private guardAsync:ProtectMethod<T,Promise<void>> = async (currentPhase,phases,callback)=> {
         const release = await this.mutex.acquire();
         try {
-            this.validateFlow('async');
             if (Guard.mode === 'dev') {
-                await this.manager!.protectAsync(this.phase!,phases,callback);//the phase is guaranteed to not be null in dev mode
+                await this.manager!.protectAsync(currentPhase,phases,callback);//the phase is guaranteed to not be null in dev mode
             }else {
                 await callback(this.mut);
             }
@@ -311,31 +297,51 @@ export class Guard<T> {//removed access to the ref as a property in the guard
             release();
         }
     }
+    public guard (phases:Phase[],callback:ProtectedCallback<T,void | Promise<void>>) {
+        this.checkIfFlowIsNull();
+        if (this.controlFlow === 'sync') {
+            return this.guardSync(this.phase!,phases,callback);
+        }else {
+            return this.guardAsync(this.phase!,phases,callback as ProtectedCallback<T,Promise<void>>)
+        }
+    }
 
 
     /**Short hand method for calling the guard method for the write phase */
-    public write(callback:(draft:PassedRef<T>)=>void) {
+    private writeSync(callback:ProtectedCallback<T,void>) {
         this.guard(['write'],callback);
     }
-    public async writeAsync(callback:(draft:PassedRef<T>)=>Promise<void>) {
-        await this.guardAsync(['write'],callback);
+    private async writeAsync(callback:ProtectedCallback<T,Promise<void>>) {
+        await this.guard(['write'],callback);
     }
-
+    public write(callback:ProtectedCallback<T,void | Promise<void>>) {
+        if (this.controlFlow === 'sync') {
+            return this.writeSync(callback);
+        }else {
+            return this.writeAsync(callback as ProtectedCallback<T,Promise<void>>)
+        }
+    }
 
     /**Short hand method for calling the guard method for the update phase */
-    public update(callback:(draft:PassedRef<T>)=>void) {
+    private updateSync(callback:ProtectedCallback<T,void>) {
         this.guard(['update'],callback);
     }
-    public async updateAsync(callback:(draft:PassedRef<T>)=>Promise<void>) {
-        await this.guardAsync(['update'],callback);
+    private async updateAsync(callback:ProtectedCallback<T,Promise<void>>) {
+        await this.guard(['update'],callback);
+    }
+    public update(callback:ProtectedCallback<T,void | Promise<void>>) {
+        if (this.controlFlow === 'sync') {
+            return this.updateSync(callback);
+        }else {
+            return this.updateAsync(callback as ProtectedCallback<T,Promise<void>>)
+        }
     }
 
-
+    //Transition functions
     private callClearInProd(phaseEvent:PhaseEvent) {
         return ((Guard.mode === "prod") && (phaseEvent === "CLEAR") && this.clearFn) 
     }
-    public transition(phaseEvent:PhaseEvent) {
-        this.validateFlow('sync');
+    private transitionSync(phaseEvent:PhaseEvent) {
         if (Guard.mode === 'dev') {
             this.manager!.transition(phaseEvent);
         }else if (this.callClearInProd(phaseEvent)) {
@@ -343,10 +349,9 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         }
         return this;
     }
-    public async transitionAsync(phaseEvent:PhaseEvent) {
+    private async transitionAsync(phaseEvent:PhaseEvent) {
         const release = await this.mutex.acquire();
         try {
-            this.validateFlow('async');
             if (Guard.mode === 'dev') {
                 this.manager!.transition(phaseEvent);
             }else if (this.callClearInProd(phaseEvent)) {
@@ -357,13 +362,26 @@ export class Guard<T> {//removed access to the ref as a property in the guard
             release();
         }
     }
+    public transition(phaseEvent:PhaseEvent) {
+        this.checkIfFlowIsNull();
+        if (this.controlFlow === 'sync') {
+            return this.transitionSync(phaseEvent);
+        }else {
+            return this.transitionAsync(phaseEvent)
+        }
+    }
 
-
+    //Other functions
     public get phase():Phase | null {
+        this.checkIfFlowIsNull();
         if (Guard.mode === 'prod') return null;//this will prevent calling the phase getter that will create a dormant actor in production
         return this.manager!.phase;
     }
     public onClear(clearFn:ClearFn<T>):Guard<T> {//returning the guard object allows for chaining at the constructor
+        this.checkIfFlowIsNull();
+        if (this.clearFn) {
+            throw new Error(chalk.red('The clear function can only be set once'))
+        }
         this.clearFn = clearFn;
         if (this.manager) this.manager.clearFn = this.clearFn;
         return this;
