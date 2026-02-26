@@ -21,12 +21,12 @@ type ImmutableDraft<T> = DraftedObject<Immutable<Ref<T>>>;
 type PassedRef<T> = ImmutableDraft<T> | Ref<T>;
 
 
-class ClassType {
+class ClassTypeUtil {
     public static isPrimitive(value:unknown):boolean {
         return (value === null) || (typeof value !== 'object')
     }
     public static isNativeObject(val: unknown): val is object | Array<unknown> | Map<unknown, unknown> | Set<unknown> {
-        if (ClassType.isPrimitive(val)) return false;
+        if (ClassTypeUtil.isPrimitive(val)) return false;
 
         if (Array.isArray(val) || val instanceof Map || val instanceof Set) return true;
         
@@ -44,18 +44,13 @@ class ClassType {
             ArrayBuffer.isView(val) // TypedArrays like Float32Array
         );
     };
-    //Detects custom classes that have only primitive properties.
-    public static isCustomFlatClass(val:unknown): boolean {
-        if (ClassType.isPrimitive(val) || ClassType.isNativeObject(val) || ClassType.isNativeForeignClass(val)) return false;
-        return Object.values(val as object).every(prop => ClassType.isPrimitive(prop));
-    };
-    public static isComplexClass = (val: unknown):boolean => {
-        if (ClassType.isPrimitive(val) || 
-            ClassType.isNativeObject(val) || 
-            ClassType.isNativeForeignClass(val)
-        ) return false;
-        return !ClassType.isCustomFlatClass(val);
-    };
+    public static isCustomClass(val:unknown):boolean {
+        return (
+            !this.isPrimitive(val) && 
+            !this.isNativeObject(val) && 
+            !this.isNativeForeignClass(val)
+        );
+    }
 }
 
 class PhaseManager<T> {
@@ -93,29 +88,19 @@ class PhaseManager<T> {
     private static readonly mutativeOptions:ExternalOptions<false, true> = {
         enableAutoFreeze:true,
         mark:(target:unknown) => {//the mark function is used by mutative js recursively at each node level of the object
-            if (ClassType.isNativeObject(target) || ClassType.isCustomFlatClass(target)) {
+            if (ClassTypeUtil.isNativeObject(target) || ClassTypeUtil.isCustomClass(target)) {
                 return 'immutable'//return in a draft
+            }
+            if (ClassTypeUtil.isNativeForeignClass(target)) {
+                throw new Error(
+                    chalk.red(`Detected a native-foreign object: ${(target as object).constructor.name}.`) +
+                    PhaseManager.orange('\nMutations in this class are done outside of js which is beyond the reach of the guard.') 
+                )
             }
         }
     } as const;
 
-    private static catchUntrappableRef(value:unknown) {
-        if (ClassType.isNativeForeignClass(value)) {
-            throw new Error(
-                chalk.red(`Detected a native-foreign object: ${(value as object).constructor.name}.`) +
-                PhaseManager.orange('\nMutations in this class are done outside of js which is beyond the reach of the guard.') 
-            )
-        }
-        if (ClassType.isComplexClass(value)) {
-            throw new Error(
-                chalk.red(`Complex class detected: ${(value as object).constructor.name}.`) +
-                PhaseManager.orange('\nNested objects in custom classes will not work as expected under the guard.') +
-                chalk.dim(`\nConsider either converting ${ (value as object).constructor.name } to a nested plain object or ensure all its properties are primitives`)
-            )
-        }
-    }
     constructor(ref:Ref<T>) { 
-        PhaseManager.catchUntrappableRef(ref.value);
         this.immut = create(ref,()=>{},PhaseManager.mutativeOptions);
     }   
     private get actor() {
@@ -162,7 +147,8 @@ class PhaseManager<T> {
     //writes are fast through mutative js structural sharing algorithm but is O(S) where S is the number of modified nodes
     public protect(currentPhase:Phase,phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
         if (phases.includes(currentPhase)) { 
-            this.immut = create(this.immut,
+            this.immut = create(
+                this.immut,
                 draft=>{ callback(draft) },
                 PhaseManager.mutativeOptions
             ) as Immutable<Ref<T>>;
