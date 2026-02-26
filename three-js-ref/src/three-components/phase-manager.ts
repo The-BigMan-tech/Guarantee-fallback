@@ -23,28 +23,29 @@ type PassedRef<T> = ImmutableDraft<T> | Ref<T>;
 type ProtectedCallback<T,U> = (draft:PassedRef<T>)=>U
 type ProtectMethod<T,U> = (currentPhase:Phase,phases:Phase[],callback:ProtectedCallback<T,U>)=>U
 
-type ClearFn<T> = (draft:ImmutableDraft<T> | Ref<T>)=>Promise<void> | void;
+type ClearFn<T,U> = (draft:ImmutableDraft<T> | Ref<T>)=>U;
 type Flow = 'sync' | 'async';
 type SyncCallbackReturn = void | { [K in keyof Promise<unknown>]: never };
 
-interface Common<T> {
+interface Common {
     phase():Phase | null,
-    onClear(clearFn:ClearFn<T>):this
 }
-interface SyncGuard<T> extends Common<T> {
+interface SyncGuard<T> extends Common {
     snapshot(): Immutable<T> | T;
     guard():(phases:Phase[],callback:ProtectedCallback<T,SyncCallbackReturn>)=>void;
     update:(callback:ProtectedCallback<T,SyncCallbackReturn>)=>void,
     write:(callback:ProtectedCallback<T,SyncCallbackReturn>)=>void,
     transition(event: PhaseEvent): this;
+    onClear(clearFn:ClearFn<T,SyncCallbackReturn>):this
 }
 
-interface AsyncGuard<T> extends Common<T> {
+interface AsyncGuard<T> extends Common {
     snapshot():Promise<Immutable<T> | T>;
     guard():(phases:Phase[],callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>
     update:(callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>,
     write:(callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>,
     transition(event: PhaseEvent): Promise<this>;
+    onClear(clearFn:ClearFn<T,Promise<void>>):this
 }
 
 
@@ -84,7 +85,6 @@ class PhaseManager<T> {
     public static orange = chalk.hex("#eeb18f");
 
     public immut:Immutable<Ref<T>>;
-    public clearFn:ClearFn<T> | null = null;
     public hasReadSinceLastWrite = false;
 
     private actorRef:ActorRefFrom<typeof this.machine> | null = null;
@@ -136,10 +136,6 @@ class PhaseManager<T> {
             this.actorRef.start();
             this.actorRef.subscribe(state=>{
                 if (state.value === 'clear') {
-                    if (this.clearFn) {
-                        const clearFn = this.clearFn;
-                        this.protect(state.value,['clear'],(draft=>clearFn(draft)))//will always succeed
-                    }
                     this.actorRef = null;
                 }
             });
@@ -211,7 +207,7 @@ class PhaseManager<T> {
 export class Guard<T> {//removed access to the ref as a property in the guard
     private mut:Ref<T>;
     private manager:PhaseManager<T> | null = null;
-    private clearFn:ClearFn<T> | null = null;//keep aref to the clearFn outside the manager so that it can be called in prod mode for integrity even though the phase manager is skipped
+    private clearFn:ClearFn<T,void | Promise<void>> | null = null;//keep aref to the clearFn outside the manager so that it can be called in prod mode for integrity even though the phase manager is skipped
     private controlFlow:Flow | null = null;
     private mutex = new Mutex();
     private static mode:GuardMode | null = null;
@@ -359,14 +355,19 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     }
 
     //Transition functions
-    private callClearInProd(phaseEvent:PhaseEvent) {
-        return ((Guard.mode === "prod") && (phaseEvent === "CLEAR") && this.clearFn) 
+    private callClear(phaseEvent:PhaseEvent) {
+        return ((phaseEvent === "CLEAR") && this.clearFn) 
     }
     private transitionSync(phaseEvent:PhaseEvent) {
         if (Guard.mode === 'dev') {
             this.manager!.transition(phaseEvent);
-        }else if (this.callClearInProd(phaseEvent)) {
-            this.clearFn!(this.mut);//we still want to call the clear function even in production mode that wont trigger a transition
+        }
+        if (this.callClear(phaseEvent)) {
+            if (Guard.mode === "prod") {
+                this.clearFn!(this.mut);//we still want to call the clear function even in production mode that wont trigger a transition
+            }else {
+                this.guard(['clear'],this.clearFn!);
+            }
         }
         return this;
     }
@@ -375,8 +376,13 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         try {
             if (Guard.mode === 'dev') {
                 this.manager!.transition(phaseEvent);
-            }else if (this.callClearInProd(phaseEvent)) {
-                await this.clearFn!(this.mut);//we still want to call the clear function even in production mode that wont trigger a transition
+            }
+            if (this.callClear(phaseEvent)) {
+                if (Guard.mode === "prod") {
+                    await this.clearFn!(this.mut);//we still want to call the clear function even in production mode that wont trigger a transition
+                }else {
+                    await this.guard(['clear'],this.clearFn!);
+                }
             }
             return this;
         }finally {
@@ -398,13 +404,13 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         if (Guard.mode === 'prod') return null;//this will prevent calling the phase getter that will create a dormant actor in production
         return this.manager!.phase;
     }
-    public onClear(clearFn:ClearFn<T>):Guard<T> {//returning the guard object allows for chaining at the constructor
+    public onClear(clearFn:ClearFn<T,void | Promise<void>>):Guard<T> {//returning the guard object allows for chaining at the constructor
         this.checkIfFlowIsNull();
         if (this.clearFn) {
             throw new Error(chalk.red('The clear function can only be set once'))
+        }else {
+            this.clearFn = clearFn;
+            return this;
         }
-        this.clearFn = clearFn;
-        if (this.manager) this.manager.clearFn = this.clearFn;
-        return this;
     }
 }

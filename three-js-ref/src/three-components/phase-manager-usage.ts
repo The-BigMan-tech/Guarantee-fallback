@@ -7,21 +7,21 @@ Guard.setMode('dev');
 
 const dummyFetch = async (value:number) => value*2;
 
-const x = new Guard(10).async().onClear(draft=>{ draft.value=0 });
+const x = new Guard(10).async().onClear(async draft=>{ draft.value=0 });
 
-await x.transition('READ');//you loose the fluent chaining syntax when using an async guard
+await x.transition('READ');
 console.log(await x.snapshot());
 
-await x.transition('UPDATE');
-await x.update(async draft=>{
+x.transition('UPDATE');
+x.update(async draft=>{
     draft.value = await dummyFetch(draft.value);
     draft.value += await dummyFetch(draft.value);
 });
-await x.update(async draft=>{
+x.update(async draft=>{
     draft.value += 2;
 });
 
-await x.transition('READ');//you loose the fluent chaining syntax when using an async guard
+x.transition('READ');//you loose the fluent chaining syntax when using an async guard
 console.log(await x.snapshot());
 
 
