@@ -366,7 +366,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
             if (Guard.mode === "prod") {
                 this.clearFn!(this.mut);//we still want to call the clear function even in production mode that wont trigger a transition
             }else {
-                this.guard(['clear'],this.clearFn!);
+                this.write(this.clearFn!);//it should be in thee write phase after the clear which is why i used write here
             }
         }
         return this;
@@ -381,7 +381,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
                 if (Guard.mode === "prod") {
                     await this.clearFn!(this.mut);//we still want to call the clear function even in production mode that wont trigger a transition
                 }else {
-                    await this.guard(['clear'],this.clearFn!);
+                    await this.write(this.clearFn!);
                 }
             }
             return this;
