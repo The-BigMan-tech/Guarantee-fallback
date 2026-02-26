@@ -2,7 +2,6 @@ import {type ActorRefFrom, createActor, createMachine,transition } from "xstate"
 import { create,type Immutable } from 'mutative';
 import chalk from "chalk";
 import type { DraftedObject,ExternalOptions } from "mutative/dist/interface.js";
-import * as THREE from "three";
 
 //i pasted this code in a perplexity chat and two gemini chat sessions--one per google account.
 type ReadPhase = 'read';
@@ -19,6 +18,8 @@ interface Ref<T> {
     value:T
 }
 type ImmutableDraft<T> = DraftedObject<Immutable<Ref<T>>>;
+type PassedRef<T> = ImmutableDraft<T> | Ref<T>;
+
 
 class ClassType {
     public static isPrimitive(value:unknown):boolean {
@@ -140,7 +141,7 @@ class PhaseManager<T> {
             { type: phaseEvent }   
         );
         if (this.phase === nextPhase) {//if the phase never changed,then the transition is invalid
-            const message = chalk.red('\nTransition Error') + PhaseManager.orange(`\nCannot transition from ${this.phase} to ${phaseEvent}.`);
+            const message = chalk.red('\nTransition Error') + PhaseManager.orange(`\nCannot transition from ${this.phase} to ${phaseEvent.toLowerCase()}.`);
             throw new Error(message);
         }
         const afterRead = (nextPhase === 'update') || (nextPhase === "clear")
@@ -158,23 +159,11 @@ class PhaseManager<T> {
     public get phase():Phase {
         return this.actor.getSnapshot().value as Phase;
     }
-    private proxyDraft(draft:ImmutableDraft<T>) {//this is to prevent reassignment of the value at the ref to a new object if its of the object type cuz deep freezing it again will be expensie and not doing so will bypass the guard immutable snapshots
-        const isPrimitiveFunc = ClassType.isPrimitive;
-        return new Proxy(draft, {
-            set(target:ImmutableDraft<T>, prop:string | symbol, value:T) {
-                const forbidReassignment = !isPrimitiveFunc(value);
-                if (prop === 'value' && forbidReassignment) {
-                    throw new Error(chalk.red('\nState Violation') + PhaseManager.orange('\nRoot replacement of object reference is forbidden.'));
-                }
-                return Reflect.set(target, prop, value);
-            }
-        });
-    }
     //writes are fast through mutative js structural sharing algorithm but is O(S) where S is the number of modified nodes
     public protect(currentPhase:Phase,phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
         if (phases.includes(currentPhase)) { 
             this.immut = create(this.immut,
-                draft=>{ callback(this.proxyDraft(draft)) },
+                draft=>{ callback(draft) },
                 PhaseManager.mutativeOptions
             ) as Immutable<Ref<T>>;
         }else throw new Error(
@@ -197,7 +186,7 @@ class PhaseManager<T> {
 type ClearFn<T> = (draft:ImmutableDraft<T> | Ref<T>)=>void;
 
 export class Guard<T> {//removed access to the ref as a property in the guard
-    public mut:Ref<T>;
+    private mut:Ref<T>;
     private manager:PhaseManager<T> | null = null;
     private clearFn:ClearFn<T> | null = null;//keep aref to the clearFn outside the manager so that it can be called in prod mode for integrity even though the phase manager is skipped
     private static mode:GuardMode | null = null;
@@ -247,7 +236,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         *     draft.value = result; 
         * });
     */
-    public guard(phases:WritePhase[],callback:(draft:ImmutableDraft<T> | Ref<T>)=>void):void {
+    public guard(phases:WritePhase[],callback:(draft:PassedRef<T>)=>void):void {
         if (Guard.mode === 'dev') {
             this.manager!.protect(this.phase!,phases,callback);//the phase is guaranteed to not be null in dev mode
         }else {
@@ -255,11 +244,11 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         }
     }
     /**Short hand method for calling the guard method for the write phase */
-    public write(callback:(draft:ImmutableDraft<T> | Ref<T>)=>void) {
+    public write(callback:(draft:PassedRef<T>)=>void) {
         this.guard(['write'],callback);
     }
     /**Short hand method for calling the guard method for the update phase */
-    public update(callback:(draft:ImmutableDraft<T> | Ref<T>)=>void) {
+    public update(callback:(draft:PassedRef<T>)=>void) {
         this.guard(['update'],callback);
     }
     public transition(phaseEvent:PhaseEvent) {
@@ -267,9 +256,10 @@ export class Guard<T> {//removed access to the ref as a property in the guard
             if ((phaseEvent === "CLEAR") && this.clearFn) {//we want to still call the clear function even in production mode that wont trigger a transition
                 this.clearFn(this.mut);
             }
-            return
+            return this
         }
         this.manager!.transition(phaseEvent);
+        return this;
     }
     public get phase():Phase | null {
         if (Guard.mode === 'prod') return null;//this will prevent calling the phase getter that will create a dormant actor in production
@@ -292,111 +282,3 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         Guard.mode = mode;
     }
 }
-const start = performance.now();
-Guard.setMode('dev');
-
-async function someIO(value:number) {
-    return value**2;
-}
-
-//Flat class example
-const vec = new Guard(new THREE.Vector3(0,10,0))
-    .onClear(draft=>draft.value.set(0,0,0));
-
-vec.transition('READ')
-const initVec = vec.snapshot();
-
-vec.transition('UPDATE');
-vec.update(draft=>{
-    draft.value.addScalar(10);
-});
-vec.transition('READ');
-console.log('init vec: ',initVec);//this vec is a snapshot and unaffected by subsequent mutations
-console.log('current vec: ',vec.snapshot());
-
-
-//Primitive State
-const flag = new Guard(10)
-    .onClear(draft=>draft.value=0);
-
-console.log(flag.phase);
-
-let externalNum = 10;
-
-flag.write(draft=>{//write is the first phase.
-    draft.value += 50;//reassigning the ref to a new value is allowed if its a primitive
-    externalNum = draft.value;//primitives can be copied out of the guarded scope even before the guard allows the value to be read externally.This is safe cuz they are passed by value.
-})
-console.log('escaped primitive: ',externalNum);//logs 60.but try to keep mutations under guarded operations.even for primitives
-
-flag.transition('READ');
-
-const currentFlag = flag.snapshot();//It is mandatory to acknowledge the data.Else,proceeding to update will throw an error
-console.log("Current flag acknowledged:",currentFlag);
-
-flag.transition('UPDATE');
-
-const newValue = await someIO(currentFlag);
-flag.update(draft=>draft.value = newValue);//we fetch the data outside the guard
-
-flag.transition('READ');
-console.log("Updated flag from fetch:",flag.snapshot());
-
-flag.transition('CLEAR');//automatically calls the stateless clear function that was set in the beginning
-
-flag.transition('READ');//we must transition to read to see the value cuz after clear is a write.
-console.log('Cleared flag: ',flag.snapshot());
-
-
-
-//Native object state
-let externalSet:Set<string> = new Set();
-
-const grades = new Guard(new Set(['A','B','C','D','E','F']))
-    .onClear(draft=>draft.value.clear());
-
-grades.write(draft=>{//reassignment to a new set is forbidden
-    draft.value.add('A+');
-    draft.value.add('B-');
-    externalSet = draft.value//non-primitives cant be copied out of the guarded scope.the draft is revoked.so you cant read the value externally unless the guard allows you to read it
-});
-console.log('Escaped reference: ',externalSet);
-
-grades.transition('READ');
-console.log('Current grades',grades.snapshot());
-
-grades.transition('CLEAR');
-
-
-//Using the clear all method
-const a = new Guard(10).onClear(draft=>draft.value=0);
-const b = new Guard(20).onClear(draft=>draft.value=0);
-const c = new Guard(30).onClear(draft=>draft.value=0);
-
-a.transition('READ');
-b.transition('READ');
-c.transition('READ');
-
-console.log('Before clears: ',a.snapshot(),b.snapshot(),c.snapshot());
-Guard.clearAll(a,b,c);//better than redundant calls to transition if they will be cleared at the same time
-
-a.transition('READ');
-b.transition('READ');
-c.transition('READ');
-
-console.log('After clears: ',a.snapshot(),b.snapshot(),c.snapshot());
-
-
-// i encourage to do this instead if many states have identical lifecycles
-const nums = new Guard({
-    a:10,
-    b:20,
-    c:30
-})
-
-nums.transition('READ');
-console.log('grouped states: ',nums.snapshot());
-nums.transition('CLEAR');
-
-const end = performance.now();
-console.log('\nFinished in ',end-start,' milliseconds');
