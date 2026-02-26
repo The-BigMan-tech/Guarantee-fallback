@@ -170,11 +170,13 @@ class PhaseManager<T> {
  * Async IO: Any async io that will need the Guard's value must be done outside any guarded operation.
 */
 type ClearFn<T> = (draft:ImmutableDraft<T> | Ref<T>)=>void;
+type Flow = 'sync' | 'async';
 
 export class Guard<T> {//removed access to the ref as a property in the guard
     private mut:Ref<T>;
     private manager:PhaseManager<T> | null = null;
     private clearFn:ClearFn<T> | null = null;//keep aref to the clearFn outside the manager so that it can be called in prod mode for integrity even though the phase manager is skipped
+    private controlFlow:Flow | null = null;
     private static mode:GuardMode | null = null;
     
     constructor(initValue:T) {
@@ -183,6 +185,18 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         if (Guard.mode === "dev") {
             this.manager = new PhaseManager(this.mut);
         }
+    }
+
+    public static clearAll<U>(...states:Guard<U>[]) {
+        for (const state of states) {
+            state.transition('CLEAR');
+        }
+    }
+    public static setMode(mode:GuardMode) {
+        if (Guard.mode !== null) {
+            throw new Error(chalk.red('\nThe mode can only be set once to prevent the production and developer reference from being out of sync.'))
+        }
+        Guard.mode = mode;
     }
     private static checkForMode() {
         if (Guard.mode === null) {
@@ -193,8 +207,31 @@ export class Guard<T> {//removed access to the ref as a property in the guard
             )
         }
     }
+    
+    private validateFlow() {
+        if (this.controlFlow === null) {
+            throw new Error(chalk.red('The guard control flow must be set to either sync or async before use'));
+        }
+    }
+    private checkForFlow() {
+        if (this.controlFlow !== null) {
+            throw new Error(chalk.red('The flow can only be set once'))
+        }
+    }
+    public sync() {
+        this.checkForFlow();
+        this.controlFlow = 'sync';
+        return this;
+    }
+    public async() {
+        this.checkForFlow();
+        this.controlFlow = 'async';
+        return this;
+    }
+
     //O1 read because it directly returns the immutable instance rather than deep cloning the original source
     public snapshot():Immutable<T> | T {
+        this.validateFlow();
         let ref:Immutable<Ref<T>> | Ref<T> | null = null;
         if (Guard.mode === 'dev') {
             const manager = this.manager!;
@@ -223,6 +260,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         * });
     */
     public guard(phases:WritePhase[],callback:(draft:PassedRef<T>)=>void):void {
+        this.validateFlow();
         if (Guard.mode === 'dev') {
             this.manager!.protect(this.phase!,phases,callback);//the phase is guaranteed to not be null in dev mode
         }else {
@@ -238,6 +276,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         this.guard(['update'],callback);
     }
     public transition(phaseEvent:PhaseEvent) {
+        this.validateFlow();
         if (Guard.mode === "prod") {
             if ((phaseEvent === "CLEAR") && this.clearFn) {//we want to still call the clear function even in production mode that wont trigger a transition
                 this.clearFn(this.mut);
@@ -248,23 +287,14 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         return this;
     }
     public get phase():Phase | null {
+        this.validateFlow();
         if (Guard.mode === 'prod') return null;//this will prevent calling the phase getter that will create a dormant actor in production
         return this.manager!.phase;
     }
     public onClear(clearFn:ClearFn<T>):Guard<T> {//returning the guard object allows for chaining at the constructor
+        this.validateFlow();
         this.clearFn = clearFn;
         if (this.manager) this.manager.clearFn = this.clearFn;
         return this;
-    }
-    public static clearAll<U>(...states:Guard<U>[]) {
-        for (const state of states) {
-            state.transition('CLEAR');
-        }
-    }
-    public static setMode(mode:GuardMode) {
-        if (Guard.mode !== null) {
-            throw new Error(chalk.red('\nThe mode can only be set once to prevent the production reference from being out of sync with the developer mode reference.'))
-        }
-        Guard.mode = mode;
     }
 }
