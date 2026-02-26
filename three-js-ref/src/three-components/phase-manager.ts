@@ -2,6 +2,7 @@ import {type ActorRefFrom, createActor, createMachine,transition } from "xstate"
 import { create,type Immutable } from 'mutative';
 import chalk from "chalk";
 import type { DraftedObject,ExternalOptions } from "mutative/dist/interface.js";
+import {Mutex} from "async-mutex";
 
 //i pasted this code in a perplexity chat and two gemini chat sessions--one per google account.
 type ReadPhase = 'read';
@@ -144,20 +145,33 @@ class PhaseManager<T> {
     public get phase():Phase {
         return this.actor.getSnapshot().value as Phase;
     }
+    private validatePhase(currentPhase:Phase,phases:Phase[]) {
+        if (!phases.includes(currentPhase)) {
+            throw new Error(
+                chalk.red('\nState Error') + 
+                PhaseManager.orange(`\nThe state is in the ${currentPhase} phase but an operation expected ${phases.toString()}`)
+            );
+        }
+    }
     //writes are fast through mutative js structural sharing algorithm but is O(S) where S is the number of modified nodes
-    public protect(currentPhase:Phase,phases:Phase[],callback:(draft:ImmutableDraft<T>)=>void):void {
-        if (phases.includes(currentPhase)) { 
-            this.immut = create(
-                this.immut,
-                draft=>{ callback(draft) },
-                PhaseManager.mutativeOptions
-            ) as Immutable<Ref<T>>;
-        }else throw new Error(
-            chalk.red('\nState Error') + 
-            PhaseManager.orange(`\nThe state is in the ${currentPhase} phase but an operation expected it to be in the ${phases.toString().replace(',',' or ')} phase.`)
-        );
+    public protect:ProtectMethod<T,void> = (currentPhase,phases,callback)=> {
+        this.validatePhase(currentPhase,phases);
+        this.immut = create(
+            this.immut,
+            draft=>{ callback(draft) },
+            PhaseManager.mutativeOptions
+        ) as Immutable<Ref<T>>;
+    }
+    public protectAsync:ProtectMethod<T,Promise<void>> = async(currentPhase,phases,callback)=>{
+        this.validatePhase(currentPhase,phases);
+        this.immut = await create(
+            this.immut,
+            async draft=>{ await callback(draft) },
+            PhaseManager.mutativeOptions
+        ) as Immutable<Ref<T>>;
     }
 }
+type ProtectMethod<T,U> = (currentPhase:Phase,phases:Phase[],callback:(draft:ImmutableDraft<T>)=>U)=>U
 /**
  * The Guard class enforces Phase State Management.
  * This is means that there is a strict phase protocol on individual states that determines when different operations can happen and without any inteference with others.
@@ -169,7 +183,7 @@ class PhaseManager<T> {
  * 
  * Async IO: Any async io that will need the Guard's value must be done outside any guarded operation.
 */
-type ClearFn<T> = (draft:ImmutableDraft<T> | Ref<T>)=>void;
+type ClearFn<T> = (draft:ImmutableDraft<T> | Ref<T>)=>Promise<void> | void;
 type Flow = 'sync' | 'async';
 
 export class Guard<T> {//removed access to the ref as a property in the guard
@@ -177,6 +191,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     private manager:PhaseManager<T> | null = null;
     private clearFn:ClearFn<T> | null = null;//keep aref to the clearFn outside the manager so that it can be called in prod mode for integrity even though the phase manager is skipped
     private controlFlow:Flow | null = null;
+    private mutex = new Mutex();
     private static mode:GuardMode | null = null;
     
     constructor(initValue:T) {
@@ -208,9 +223,12 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         }
     }
     
-    private validateFlow() {
-        if (this.controlFlow === null) {
+    private validateFlow(expectedFlow:Flow | undefined) {
+        if (this.controlFlow == null) {
             throw new Error(chalk.red('The guard control flow must be set to either sync or async before use'));
+        }
+        else if (this.controlFlow !== expectedFlow) {
+            throw new Error(chalk.red('A method was called that expected the control flow to be',expectedFlow));
         }
     }
     private checkForFlow() {
@@ -230,8 +248,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     }
 
     //O1 read because it directly returns the immutable instance rather than deep cloning the original source
-    public snapshot():Immutable<T> | T {
-        this.validateFlow();
+    private getSnapshot():Immutable<T> | T {
         let ref:Immutable<Ref<T>> | Ref<T> | null = null;
         if (Guard.mode === 'dev') {
             const manager = this.manager!;
@@ -244,6 +261,20 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         }
         return ref!.value;//directly return the value at the reference
     }
+    public snapshot() {
+        this.validateFlow('sync');
+        return this.getSnapshot();
+    }
+    public async snapshotAsync():Promise<Immutable<T> | T> {
+        const release = await this.mutex.acquire();
+        try {
+            this.validateFlow('async');
+            return this.getSnapshot();
+        } finally {
+            release();
+        }
+    }
+
     /**
         * @param phases Allowed phases for this mutation.
         * @param callback SYNCHRONOUS mutation callback only.
@@ -260,39 +291,79 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         * });
     */
     public guard(phases:WritePhase[],callback:(draft:PassedRef<T>)=>void):void {
-        this.validateFlow();
+        this.validateFlow('sync');
         if (Guard.mode === 'dev') {
             this.manager!.protect(this.phase!,phases,callback);//the phase is guaranteed to not be null in dev mode
         }else {
             callback(this.mut);
         }
     }
+    public async guardAsync(phases:WritePhase[],callback:(draft:PassedRef<T>)=>Promise<void>):Promise<void> {
+        const release = await this.mutex.acquire();
+        try {
+            this.validateFlow('async');
+            if (Guard.mode === 'dev') {
+                await this.manager!.protectAsync(this.phase!,phases,callback);//the phase is guaranteed to not be null in dev mode
+            }else {
+                await callback(this.mut);
+            }
+        }finally {
+            release();
+        }
+    }
+
+
     /**Short hand method for calling the guard method for the write phase */
     public write(callback:(draft:PassedRef<T>)=>void) {
         this.guard(['write'],callback);
     }
+    public async writeAsync(callback:(draft:PassedRef<T>)=>Promise<void>) {
+        await this.guardAsync(['write'],callback);
+    }
+
+
     /**Short hand method for calling the guard method for the update phase */
     public update(callback:(draft:PassedRef<T>)=>void) {
         this.guard(['update'],callback);
     }
+    public async updateAsync(callback:(draft:PassedRef<T>)=>Promise<void>) {
+        await this.guardAsync(['update'],callback);
+    }
+
+
+    private callClearInProd(phaseEvent:PhaseEvent) {
+        return ((Guard.mode === "prod") && (phaseEvent === "CLEAR") && this.clearFn) 
+    }
     public transition(phaseEvent:PhaseEvent) {
-        this.validateFlow();
-        if (Guard.mode === "prod") {
-            if ((phaseEvent === "CLEAR") && this.clearFn) {//we want to still call the clear function even in production mode that wont trigger a transition
-                this.clearFn(this.mut);
-            }
-            return this
+        this.validateFlow('sync');
+        if (Guard.mode === 'dev') {
+            this.manager!.transition(phaseEvent);
+        }else if (this.callClearInProd(phaseEvent)) {
+            this.clearFn!(this.mut);//we still want to call the clear function even in production mode that wont trigger a transition
         }
-        this.manager!.transition(phaseEvent);
         return this;
     }
+    public async transitionAsync(phaseEvent:PhaseEvent) {
+        const release = await this.mutex.acquire();
+        try {
+            this.validateFlow('async');
+            if (Guard.mode === 'dev') {
+                this.manager!.transition(phaseEvent);
+            }else if (this.callClearInProd(phaseEvent)) {
+                await this.clearFn!(this.mut);//we still want to call the clear function even in production mode that wont trigger a transition
+            }
+            return this;
+        }finally {
+            release();
+        }
+    }
+
+
     public get phase():Phase | null {
-        this.validateFlow();
         if (Guard.mode === 'prod') return null;//this will prevent calling the phase getter that will create a dormant actor in production
         return this.manager!.phase;
     }
     public onClear(clearFn:ClearFn<T>):Guard<T> {//returning the guard object allows for chaining at the constructor
-        this.validateFlow();
         this.clearFn = clearFn;
         if (this.manager) this.manager.clearFn = this.clearFn;
         return this;
