@@ -3,16 +3,28 @@ import * as THREE from "three";
 
 const start = performance.now();
 
-Guard.setMode('prod');
+Guard.setMode('dev');
+
+const dummyFetch = async (value:number) => value*2;
 
 const x = new Guard(10).async().onClear(draft=>{ draft.value=0 });
 
 await x.transition('READ');//you loose the fluent chaining syntax when using an async guard
-console.log(x.snapshot());
+console.log(await x.snapshot());
 
-x.update(async draft=>{
-    draft.value = 15
-})
+await x.transition('UPDATE');
+await x.update(async draft=>{
+    draft.value = await dummyFetch(draft.value);
+    draft.value += await dummyFetch(draft.value);
+});
+await x.update(async draft=>{
+    draft.value += 2;
+});
+
+await x.transition('READ');//you loose the fluent chaining syntax when using an async guard
+console.log(await x.snapshot());
+
+
 // //Custom class example
 // const vec = new Guard(new THREE.Vector3(0,10,0))
 //     .onClear(draft=>draft.value.set(0,0,0));

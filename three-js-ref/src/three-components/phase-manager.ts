@@ -187,6 +187,27 @@ class PhaseManager<T> {
 type ClearFn<T> = (draft:ImmutableDraft<T> | Ref<T>)=>Promise<void> | void;
 type Flow = 'sync' | 'async';
 
+interface Common<T> {
+    phase():Phase | null,
+    onClear(clearFn:ClearFn<T>):this
+}
+interface SyncGuard<T> extends Common<T> {
+    snapshot(): Immutable<T> | T;
+    guard():(phases:Phase[],callback:ProtectedCallback<T,void>)=>void;
+    update:(callback:ProtectedCallback<T,void>)=>void,
+    write:(callback:ProtectedCallback<T,void>)=>void,
+    transition(event: PhaseEvent): this;
+}
+
+interface AsyncGuard<T> extends Common<T> {
+    snapshot():Promise<Immutable<T> | T>;
+    guard():(phases:Phase[],callback:ProtectedCallback<T,void>)=>Promise<void>
+    update:(callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>,
+    write:(callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>,
+    transition(event: PhaseEvent): Promise<this>;
+}
+
+
 export class Guard<T> {//removed access to the ref as a property in the guard
     private mut:Ref<T>;
     private manager:PhaseManager<T> | null = null;
@@ -234,15 +255,15 @@ export class Guard<T> {//removed access to the ref as a property in the guard
             throw new Error(chalk.red('The flow can only be set once'))
         }
     }
-    public sync() {
+    public sync():SyncGuard<T> {
         this.checkIfFlowIsSet();
         this.controlFlow = 'sync';
-        return this;
+        return this as unknown as SyncGuard<T>;
     }
-    public async() {
+    public async():AsyncGuard<T> {
         this.checkIfFlowIsSet();
         this.controlFlow = 'async';
-        return this;
+        return this as unknown as AsyncGuard<T>;
     }
 
     //Snapshot functions
@@ -278,18 +299,18 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     }
 
     //Guard functions
-    private guardSync:ProtectMethod<T,void> = (currentPhase,phases,callback)=> {
+    private guardSync(phases:Phase[],callback:ProtectedCallback<T,void>) {
         if (Guard.mode === 'dev') {
-            this.manager!.protect(currentPhase,phases,callback);//the phase is guaranteed to not be null in dev mode
+            this.manager!.protect(this.phase!,phases,callback);//the phase is guaranteed to not be null in dev mode
         }else {
             callback(this.mut);
         }
     }
-    private guardAsync:ProtectMethod<T,Promise<void>> = async (currentPhase,phases,callback)=> {
+    private async guardAsync(phases:Phase[],callback:ProtectedCallback<T,Promise<void>>)  {
         const release = await this.mutex.acquire();
         try {
             if (Guard.mode === 'dev') {
-                await this.manager!.protectAsync(currentPhase,phases,callback);//the phase is guaranteed to not be null in dev mode
+                await this.manager!.protectAsync(this.phase!,phases,callback);//the phase is guaranteed to not be null in dev mode
             }else {
                 await callback(this.mut);
             }
@@ -300,9 +321,9 @@ export class Guard<T> {//removed access to the ref as a property in the guard
     public guard (phases:Phase[],callback:ProtectedCallback<T,void | Promise<void>>) {
         this.checkIfFlowIsNull();
         if (this.controlFlow === 'sync') {
-            return this.guardSync(this.phase!,phases,callback);
+            return this.guardSync(phases,callback);
         }else {
-            return this.guardAsync(this.phase!,phases,callback as ProtectedCallback<T,Promise<void>>)
+            return this.guardAsync(phases,callback as ProtectedCallback<T,Promise<void>>)
         }
     }
 
