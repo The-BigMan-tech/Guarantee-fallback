@@ -36,7 +36,7 @@ interface SyncGuard<T> extends Common {
     update:(callback:ProtectedCallback<T,SyncCallbackReturn>)=>void,
     write:(callback:ProtectedCallback<T,SyncCallbackReturn>)=>void,
     transition(event: PhaseEvent): this;
-    onClear(clearFn:ClearFn<T,SyncCallbackReturn>):this
+    cleanup(clearFn:ClearFn<T,SyncCallbackReturn>):this
 }
 
 interface AsyncGuard<T> extends Common {
@@ -45,7 +45,7 @@ interface AsyncGuard<T> extends Common {
     update:(callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>,
     write:(callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>,
     transition(event: PhaseEvent): Promise<this>;
-    onClear(clearFn:ClearFn<T,Promise<void>>):this
+    cleanup(clearFn:ClearFn<T,Promise<void>>):this
 }
 
 
@@ -136,6 +136,7 @@ class PhaseManager<T> {
             this.actorRef.start();
             this.actorRef.subscribe(state=>{
                 if (state.value === 'clear') {
+                    this.actorRef?.stop()
                     this.actorRef = null;
                 }
             });
@@ -366,7 +367,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
             if (Guard.mode === "prod") {
                 this.clearFn!(this.mut);//we still want to call the clear function even in production mode that wont trigger a transition
             }else {
-                this.write(this.clearFn!);//it should be in thee write phase after the clear which is why i used write here
+                this.write(this.clearFn!);//it should be in the write phase after the clear which is why i used write here.as it is,the guard uses the write phase as the opportunity to clear it and not in the actual clear itself but its the same
             }
         }
         return this;
@@ -381,7 +382,11 @@ export class Guard<T> {//removed access to the ref as a property in the guard
                 if (Guard.mode === "prod") {
                     await this.clearFn!(this.mut);//we still want to call the clear function even in production mode that wont trigger a transition
                 }else {
-                    await this.write(this.clearFn!);
+                    const currentPhase = this.manager!.phase;
+                    await this.manager!.protectAsync(
+                        currentPhase, ['write'], 
+                        this.clearFn as ClearFn<T,Promise<void>>
+                    );
                 }
             }
             return this;
@@ -404,7 +409,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         if (Guard.mode === 'prod') return null;//this will prevent calling the phase getter that will create a dormant actor in production
         return this.manager!.phase;
     }
-    public onClear(clearFn:ClearFn<T,void | Promise<void>>):Guard<T> {//returning the guard object allows for chaining at the constructor
+    public cleanup(clearFn:ClearFn<T,void | Promise<void>>):Guard<T> {//returning the guard object allows for chaining at the constructor
         this.checkIfFlowIsNull();
         if (this.clearFn) {
             throw new Error(chalk.red('The clear function can only be set once'))
