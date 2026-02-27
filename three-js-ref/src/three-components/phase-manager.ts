@@ -242,7 +242,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         }
     }
 
-    public static clearAll<U>(...states:Guard<U>[]) {
+    public static clearAll<U>(...states:(Guard<U> | SyncGuard<U> | AsyncGuard<U>)[]) {
         for (const state of states) {
             state.transition('CLEAR');
         }
