@@ -4,7 +4,7 @@ import chalk from "chalk";
 import type { DraftedObject,ExternalOptions } from "mutative/dist/interface.js";
 import {Mutex} from "async-mutex";
 
-//i pasted this code in a perplexity chat and two gemini chat sessions--one per google account.
+//i pasted this code in a perplexity chat and gemini chat sessions
 type ReadPhase = 'read';
 type WritePhase = 'write' | 'update'
 type ClearPhase = 'clear'
@@ -36,18 +36,25 @@ interface SyncGuard<T> extends Common {
     update:(callback:ProtectedCallback<T,SyncCallbackReturn>)=>void,
     write:(callback:ProtectedCallback<T,SyncCallbackReturn>)=>void,
     transition(event: PhaseEvent): this;
-    cleanup(clearFn:ClearFn<T,SyncCallbackReturn>):this
+    cleanup(clearFn:ClearFn<T,SyncCallbackReturn>):this;
+    readonly():SyncReadonlyGuard<T>;
 }
-
 interface AsyncGuard<T> extends Common {
     snapshot():Promise<Immutable<T> | T>;
     guard():(phases:Phase[],callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>
     update:(callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>,
     write:(callback:ProtectedCallback<T,Promise<void>>)=>Promise<void>,
     transition(event: PhaseEvent): Promise<this>;
-    cleanup(clearFn:ClearFn<T,Promise<void>>):this
+    cleanup(clearFn:ClearFn<T,Promise<void>>):this;
+    readonly():AsyncReadonlyGuard<T>;
+}
+interface SyncReadonlyGuard<T> extends Common {
+    snapshot(): ReturnType<SyncGuard<T>['snapshot']>;
 }
 
+interface AsyncReadonlyGuard<T> extends Common {
+    snapshot(): ReturnType<AsyncGuard<T>['snapshot']>;
+}
 
 class ClassTypeUtil {
     public static isPrimitive(value:unknown):boolean {
@@ -205,6 +212,20 @@ class PhaseManager<T> {
  * 
  * Async IO: Any async io that will need the Guard's value must be done outside any guarded operation.
 */
+export class ReadonlyGuard<T> {
+    private guard:Guard<T>;
+
+    constructor(guard:Guard<T>) {
+        this.guard = guard;
+    }
+    public get phase() {
+        return this.guard.phase;
+    }
+    public snapshot() {
+        return this.guard.snapshot();
+    }
+    
+}
 export class Guard<T> {//removed access to the ref as a property in the guard
     private mut:Ref<T>;
     private manager:PhaseManager<T> | null = null;
@@ -262,7 +283,10 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         this.controlFlow = 'async';
         return this as unknown as AsyncGuard<T>;
     }
-
+    public readonly() {
+        this.checkIfFlowIsNull();
+        return new ReadonlyGuard(this) 
+    }
     //Snapshot functions
     //O1 read because it directly returns the immutable instance rather than deep cloning the original source
     private snapshotSync():Immutable<T> | T {
@@ -291,7 +315,7 @@ export class Guard<T> {//removed access to the ref as a property in the guard
         if (this.controlFlow === 'sync') {
             return this.snapshotSync();
         }else {
-            return this.snapshotAsync()
+            return this.snapshotAsync();
         }
     }
 
