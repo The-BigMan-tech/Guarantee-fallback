@@ -89,3 +89,34 @@
     line-height: 1em;
     display:inline;
 }
+.monaco-workbench .part.editor>.content .editor-group-container>.editor-group-watermark .shortcuts dt {
+    letter-spacing: .04em;
+    color: #b0ae8d;
+    font-weight: 600;
+    font-family: sans-serif;
+}
+.monaco-workbench .part.editor>.content .editor-group-container>.editor-group-watermark .shortcuts dl:first-of-type  {
+    margin-top: 0;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.monaco-workbench .part.editor>.content .editor-group-container>.editor-group-watermark .shortcuts dl {
+    margin-top: 0;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+.monaco-workbench .part.editor>.content .editor-group-container>.editor-group-watermark .shortcuts dl:last-of-type {
+    margin-top: 0;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
