@@ -172,4 +172,4 @@ pub fn smart()->() {
     println!("A count: {}",Rc::strong_count(&owner_a));
     println!("B count: {}",Rc::strong_count(&owner_b));
     
-}"#f3a894"
+}

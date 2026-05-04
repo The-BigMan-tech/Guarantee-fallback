@@ -4,14 +4,12 @@
 //it is ot used in this project but will be in the future.
 
 export default class CustomQueue<T> {
-    private arr:(T | undefined)[];
-    private start:number;
+    private arr:(T | undefined)[] = [];
     private compactionFraction:number = 0.40;//a weight between 0 and 1
     private initHeadSpace:number = 5;
+    private start:number = this.initHeadSpace;
 
     constructor(init?:T[]) {
-        this.arr = [];
-        this.start = this.initHeadSpace;
         this.allocateHeadSpace(this.initHeadSpace);
         if (init) {
             for (const element of init) {
@@ -19,6 +17,7 @@ export default class CustomQueue<T> {
             }
         }
     }
+
     public push(element:T):void {//O1
         this.arr.push(element);
     }
@@ -34,10 +33,6 @@ export default class CustomQueue<T> {
         this.compactIfLarge();
         return value;
     }
-    private insert(element:T):void {
-        this.start--;
-        this.arr[this.start] = element;
-    }
     public unshift(element:T):void {//O(1) with infrequent O(n)
         if (this.start === 0) {
             this.allocateHeadSpace(this.arr.length);
@@ -46,6 +41,7 @@ export default class CustomQueue<T> {
             this.insert(element);
         }
     }
+
     public get(i:number):T | undefined {//O1
         if ((i < 0) || (i >= this.length)) return undefined;
         const index = this.start + i;
@@ -57,11 +53,22 @@ export default class CustomQueue<T> {
         this.arr[index] = element;
         return true;
     }
+
     public array():T[] {//O(n)
         return this.arr.slice(this.start) as T[];
     }
     public get length():number {//O1
         return this.arr.length - this.start;
+    }
+    public clear():void {
+        this.arr.length = 0;
+        this.start = this.initHeadSpace;
+        this.allocateHeadSpace(this.initHeadSpace);
+    }
+
+    private insert(element:T):void {
+        this.start--;
+        this.arr[this.start] = element;
     }
     private allocateHeadSpace(size:number):void {//O(n)
         const newArr = new Array(size + this.arr.length);
