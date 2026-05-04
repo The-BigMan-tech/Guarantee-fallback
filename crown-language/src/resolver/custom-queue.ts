@@ -1,9 +1,10 @@
 //i made this deque because the denque pkg doesnt allow mutation at any arbitrary index but only efficient O1 queu operations.
 //This structure helps to solve that by using a headspaced array implementation for efficient 01 queue operations while still supporting O1 arbitary mutation
 //But it has inferequent O(n) operations at certain conditions and it doesnt save memory as the circular buffer dequeu which is used in denque
-//it is ot used in this project but will be in the future.
+//it is not used in this project but will be in the future.
 
-export default class CustomQueue<T> {
+
+export class QList<T> {
     private arr:(T | undefined)[] = [];
     private compactionFraction:number = 0.40;//a weight between 0 and 1
     private initHeadSpace:number = 5;
@@ -33,7 +34,7 @@ export default class CustomQueue<T> {
         this.compactIfLarge();
         return value;
     }
-    public unshift(element:T):void {//O(1) with infrequent O(n)
+    public unshift(element:T):void {//O(1) with infrequent O(n) thanks to allocating the size of the array
         if (this.start === 0) {
             this.allocateHeadSpace(this.arr.length);
             this.insert(element);
@@ -55,15 +56,16 @@ export default class CustomQueue<T> {
     }
 
     public array():T[] {//O(n)
-        return this.arr.slice(this.start) as T[];
+        return this.arr.slice(this.start) as T[];//by returning a slice,we ensure that they dont mutate the internal array
     }
     public get length():number {//O1
         return this.arr.length - this.start;
     }
-    public clear():void {
-        this.arr.length = 0;
-        this.start = this.initHeadSpace;
-        this.allocateHeadSpace(this.initHeadSpace);
+    public clear():void {//rather than clearing the array which will lead to future allocations if reused,we just set everything to undefined and shift the start pointer
+        for (let i=0; i < this.arr.length; i++ ) {
+            this.arr[i] = undefined;
+        }
+        this.start = this.arr.length;
     }
 
     private insert(element:T):void {
