@@ -187,7 +187,7 @@ Gpu processing--thousands of gpu cores
 
 *White hackers hack to better secure their software while black hackers hack to have illegal priviledges to a software.
 
-*Whiete hat:Find a vulnerability,inform,defend against it.
+*White hat:Find a vulnerability,inform,defend against it.
 *Black hat:Find a vulnerability,exploit it,go to jail.
 
 *Many black hat hackers that hack by misusing security tools are the less experienced and its mostly the ethical hacker and the security software programmer that actually have the knowledge and the experience.This is because the script kiddies often focus on using available tools without a deep understanding of how they work. If a tool functions effectively for their purposes, they may not see the need to learn about the underlying technology.This leads to them only having surface knowledge as they primarily focus on attacks while ethical hackers invest time in learning how various security tools work, the vulnerabilities they exploit, and the defensive measures that can be implemented.Their goal is to identify and mitigate vulnerabilities within systems.
