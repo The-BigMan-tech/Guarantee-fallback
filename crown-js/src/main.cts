@@ -29,13 +29,13 @@ function handleResponse(serverID:string,data:string):void {
     const jsonRPCResponse = JSON.parse(data) as JSONRPCResponse;
     const result = jsonRPCResponse.result as Response<any>;
     client.receive(jsonRPCResponse);//hanlde the response.It still receives the result whether finished or not unlike the stream batch because one-time requests only have one result where the meaningful value is under the same object that flagged th request as finsihed
+    
     if (inStreamRequest) {
         streamBatch.push(result);//push this regardless of whether its the finished dummy state.Its important to clarify that the stream request is complete
         streamMemSize += sizeof(result.value);//only increase the size on every streamed value.The reason why im not just getting the size of the stream batch directly is because the dequeue object may be a complex object to calculate the size.So to maximize perf,only measuring the actual value is bette
-        // console.log('stream length: ',streamBatch.length,'mem size: ',streamMemSize);
+        
         const flushStreamBatch = (streamBatch.length >= batchLengthThresh) || (streamMemSize >= batchMemThresh) || result.finished;
         if (flushStreamBatch) {
-            // console.log('cleared the stream');
             streamMemSize = 0;//we can reset the memsize here because the batch will be cleared.
             streamResult.next(streamBatch);
         }
@@ -75,9 +75,7 @@ function processStream<R,T>(subscriber:Subscriber<any>,subscription:Subscription
             subscriber.next(returnValue);
         }
     }
-    // console.log('🚀response?.finished:', response?.finished);
     if (response?.finished) {
-        // console.log('completed stream req\n');
         subscriber.complete();
         subscription?.unsubscribe();
     }
